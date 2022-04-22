@@ -110,6 +110,17 @@
             "type": "integer",
             "example": 65536 
         },
+        "width":{
+            "summary": "The cursor width",
+            "type": "number",
+            "example": 255
+            
+        },
+        "height":{
+            "summary": "The cursor height",
+            "type": "number",
+            "example": 255
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -238,6 +249,55 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "addKeyIntercepts": {
+            "summary": "Adds the list of key intercepts. \n \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "intercepts": {
+                        "summary": "A list of intercepts",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "client":{
+                                    "summary": "The client name",
+                                    "type": "string",
+                                    "example": "searchanddiscovery"
+                                },
+                                "keys":{
+                                    "summary": "A list of keys to simulate",
+                                    "type": "array",
+                                    "items":{
+                                        "type": "object",
+                                        "properties": {
+                                            "keycode": {
+                                                "$ref": "#/definitions/keyCode"
+                                            },
+                                            "modifiers": {
+                                                "$ref": "#/definitions/modifiers"
+                                            }
+                                        },
+                                        "required": [
+                                            "keycode",
+                                            "modifiers",
+                                            "keys"
+                                        ]
+                                    }
+                                }
+                            },
+                            "required": [
+                                "client",
+                                "keys"
+                            ]
+                        }
+                    }
+                }
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "addKeyListener":{
             "summary": "Adds a key listener to an application. The keys are bubbled up based on their z-order. \n \n### Events\n \n No Events.",
             "params": {
@@ -291,6 +351,30 @@
                 "required": [
                     "client",
                     "keys"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "addKeyMetadataListener": {
+            "summary": "Adds the key metadata listeners. \n \n### Events\n \n No Events.",
+            "params": {
+                "type": "object",
+                "properties":{
+                    "client": {
+                        "summary": "The client name",
+                        "type": "string",
+                        "example": "searchanddiscovery"
+                    },
+                    "callsign": {
+                        "summary": "The application callsign",
+                        "type": "string",
+                        "example": "searchanddiscovery"
+                    }
+                },
+                "required": [
+                    "client"
                 ]
             },
             "result": {
@@ -608,6 +692,28 @@
                 ]
             }
         },
+        "getCursorSize": {
+            "summary": "Returns the currently set cursor size. \n \n### Events\n \n No Events.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "width":{
+                        "$ref": "#/definitions/width"
+                    },
+                    "height":{
+                        "$ref": "#/definitions/height"
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "width",
+                    "height",
+                    "success"
+                ]
+            }
+        },
         "getHolePunch": {
             "summary": "Returns whether video hole punching is enabled or disabled for the specified client. \n \n### Events\n \n No Events.",
             "params": {
@@ -690,6 +796,24 @@
                 ]
             }   
         },
+        "getLogLevel": {
+            "summary": "Returns the currently set logging level. \n \n### Events\n \n No Events.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "logLevel": {
+                        "$ref": "#/definitions/logLevel"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "logLevel",
+                    "success"
+                ]
+            }
+        },
         "getLogsFlushingEnabled": {
             "summary": "Returns whether log flushing is enabled or disabled. \n \n### Events\n \n No Events.",
             "result": {
@@ -706,24 +830,6 @@
                 },
                 "required": [
                     "enabled",
-                    "success"
-                ]
-            }
-        },
-        "getLogLevel": {
-            "summary": "Returns the currently set logging level. \n \n### Events\n \n No Events.",
-            "result": {
-                "type": "object",
-                "properties": {
-                    "logLevel": {
-                        "$ref": "#/definitions/logLevel"
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "logLevel",
                     "success"
                 ]
             }
@@ -816,6 +922,13 @@
                 ]
             }
         },
+        "getScreenshot": {
+            "summary": "Captures a screenshot. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onScreenshotComplete` | Triggers when a screenshot is captured successfully |",
+            "events": ["onScreenshotComplete"],
+            "result":{
+                "$ref": "#/definitions/result"
+            }
+        },
         "getState":{
             "summary": "Returns the state of all applications.\n \n### Events\n \n No Events.",
             "result": {
@@ -853,6 +966,38 @@
                 "required": [
                     "runtimes",
                     "success"
+                ]
+            }
+        },
+        "getSystemMemory": {
+            "summary": "Gets the information of System Memory. \n \n### Events\n \n No Events.",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "freeRam": {
+                        "summary": "Free RAM memory (kB)",
+                        "type": "number",
+                        "example": "321944"
+                    },
+                    "swapRam": {
+                        "summary": "Swap memory (kB)",
+                        "type": "number",
+                        "example": "0"
+                    },
+                    "totalRam": {
+                        "summary": "Total RAM memory (kB)",
+                        "type": "number",
+                        "example": "624644"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success",
+                    "freeRam",
+                    "swapRam",
+                    "totalRam"
                 ]
             }
         },
@@ -1026,8 +1171,76 @@
                 ]
             }
         },
+        "hideAllClients": {
+            "summary": "Hides/Unhides all the clients. \n \n### Events\n \n No Events.",
+            "params": {
+                "type": "object",
+                "properties":{
+                    "hide": {
+                        "summary": "true to hide all the clients, and false to unhide all the clients",
+                        "type": "boolean",
+                        "example": true
+                    }
+                }
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "hideCursor": {
+            "summary": "Hides the cursor from showing on the display. The cursor is hidden by default. \n \n### Events\n \n No Events.",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "hideFullScreenImage":{
+            "summary": "Hides the Full Screen Image. \n \n### Events\n \n No Events.",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "hideSplashLogo": {
             "summary": "Removes the splash screen. \n \n### Events\n \n No Events.",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "ignoreKeyInputs": {
+            "summary": "Blocks user key inputs",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "ignore": {
+                        "summary": "Whether key inputs are ignored",
+                        "type": "boolean",
+                        "example": false
+                    }
+                },
+                "required": [
+                    "ignore"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "injectKey": {
+            "summary": "Injects the keys. \n \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "keycode": {
+                        "$ref": "#/definitions/keyCode"
+                    },
+                    "modifiers": {
+                        "$ref": "#/definitions/modifiers"
+                    } 
+                },
+                "required": [
+                    "keycode",
+                    "modifiers"
+                ]
+            },
             "result": {
                 "$ref": "#/definitions/result"
             }
@@ -1117,22 +1330,27 @@
                         "$ref": "#/definitions/displayName"
                     },    
                     "scaleToFit": {
-                        "summary": "Whether the app can be scaled to fit the current bounds. Default is 'false'",
+                        "summary": "Whether the app can be scaled to fit the current bounds. Default is `false`.",
                         "type": "boolean",
-                        "exampe": "" 
+                        "example": "" 
                     },
                     "holePunch": {
-                        "summary": "Whether the video hole punching can be enabled for the client. Default is 'true'",
+                        "summary": "Whether the video hole punching can be enabled for the client. Default is `true`.",
                         "type": "boolean",
                         "example": ""
                     },
                     "topmost": {
-                        "summary": "Whether the app appears above all other apps on the display. Default is 'false'",
+                        "summary": "Whether the app appears above all other apps on the display. Default is `false`.",
                         "type": "boolean",
                         "example": ""
                     },
                     "focus": {
-                        "summary": "Wether the app should be under focus. Default is 'false'",
+                        "summary": "Whether the app should be under focus. Default is `false`.",
+                        "type": "boolean",
+                        "example": ""
+                    },
+                    "autodestroy": {
+                        "summary": "Whether the application can be automatically destroyed. Default is `true`.",
                         "type": "boolean",
                         "example": ""
                     }
@@ -1159,6 +1377,54 @@
                     "launchType",
                     "success"
                 ]
+            }
+        },
+        "launchApplication": {
+            "summary": "Launches an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onApplicationLaunched` | Triggers when an application is launched successfully |.",
+            "events": ["onApplicationLaunched"],
+            "params": {
+                "type": "object",
+                "properties":{
+                    "client": {
+                        "summary": "The client name",
+                        "type": "string",
+                        "example": "HtmlApp"
+                    },
+                    "uri": {
+                        "summary": "The client uri",
+                        "type": "string",
+                        "example": "https://x1box-app.xumo.com/3.0.70/index.html%22"
+                    },
+                    "mimeType": {
+                        "summary": "The mime type",
+                        "type": "string",
+                        "example": "application/native"
+                    },
+                    "topmost": {
+                        "summary": "true to put the application at the top, otherwise false",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "focus": {
+                        "summary": "true to put the application above all other applications, otherwise false",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "client",
+                    "uri",
+                    "mimeType"
+                ]
+            },
+             "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "launchResidentApp": {
+            "summary": "Launches the Resident application. \n \n### Events\n \n No Events.",
+            "result": {
+                "$ref": "#/definitions/result"
             }
         },
         "moveBehind":{
@@ -1329,6 +1595,53 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "removeKeyMetadataListener":{
+            "summary": "Removes the key metadata listeners. \n \n### Events\n \n No Events.",
+            "params": {
+                "type": "object",
+                "properties":{
+                    "client": {
+                        "summary": "The client name",
+                        "type": "string",
+                        "example": "searchanddiscovery"
+                    },
+                    "callsign": {
+                        "summary": "The application callsign",
+                        "type": "string",
+                        "example": "searchanddiscovery"
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "resetInactivityTime":{
+            "summary": "Resets the inactivity notification interval. \n \n### Events\n \n No Events.",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "resumeApplication": {
+            "summary": "Resumes an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onApplicationResumed` | Triggers when an application resumes from a suspended state |.",
+            "events": ["onApplicationResumed"],
+            "params": {
+                "type": "object",
+                "properties":{
+                    "client": {
+                        "summary": "The client name",
+                        "type": "string",
+                        "example": "HtmlApp"
+                    }
+                }
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "scaleToFit": {
             "summary": "Scales the specified client to fit the current bounds. \n \n### Events\n \n No Events.",
             "params": {
@@ -1399,6 +1712,27 @@
                     "y",
                     "w",
                     "h"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setCursorSize": {
+            "summary": "Sets the cursor size. \n \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "width":{
+                        "$ref": "#/definitions/width"
+                    },
+                    "height":{
+                        "$ref": "#/definitions/height"
+                    }
+                },
+                "required": [
+                    "width",
+                    "height"
                 ]
             },
             "result": {
@@ -1680,6 +2014,28 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "showCursor": {
+            "summary": "Shows the cursor on the display using the current cursor size. See `setCursorSize`. The cursor automatically disappears after 5 seconds of inactivity. \n \n### Events\n \n No Events.",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "showFullScreenImage": {
+            "summary": "Shows the Full Screen Image. \n \n### Events\n \n No Events.",
+            "params": {
+                "type": "object",
+                "properties":{
+                    "path": {
+                        "summary": "The image path",
+                        "type": "string",
+                        "example": "/tmp/netflix.png"
+                    }
+                }
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "showSplashLogo": {
             "summary": "Displays the splash screen. \n \n### Events\n \n No Events.",
             "params": {
@@ -1736,131 +2092,6 @@
                 "$ref": "#/definitions/result"
             }
         },
-        "getScreenshot": {
-            "summary": "Captures a screenshot. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onScreenshotComplete` | Triggers when a screenshot is captured successfully |",
-            "events": ["onScreenshotComplete"],
-            "result":{
-                "$ref": "#/definitions/result"
-            }
-        },
-        "hideAllClients": {
-            "summary": "Hides/Unhides all the clients. \n \n### Events\n \n No Events.",
-            "params": {
-                "type": "object",
-                "properties":{
-                    "hide": {
-                        "summary": "true to hide all the clients, and false to unhide all the clients",
-                        "type": "boolean",
-                        "example": true
-                    }
-                }
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "launchResidentApp": {
-            "summary": "Launches the Resident application. \n \n### Events\n \n No Events.",
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "hideFullScreenImage":{
-            "summary": "Hides the Full Screen Image. \n \n### Events\n \n No Events.",
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "showFullScreenImage": {
-            "summary": "Shows the Full Screen Image. \n \n### Events\n \n No Events.",
-            "params": {
-                "type": "object",
-                "properties":{
-                    "path": {
-                        "summary": "The image path",
-                        "type": "string",
-                        "example": "/tmp/netflix.png"
-                    }
-                }
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "getSystemMemory": {
-            "summary": "Gets the information of System Memory. \n \n### Events\n \n No Events.",
-            "result": {
-                "type":"object",
-                "properties": {
-                    "freeRam": {
-                        "summary": "Free RAM memory (kB)",
-                        "type": "number",
-                        "example": "321944"
-                    },
-                    "swapRam": {
-                        "summary": "Swap memory (kB)",
-                        "type": "number",
-                        "example": "0"
-                    },
-                    "totalRam": {
-                        "summary": "Total RAM memory (kB)",
-                        "type": "number",
-                        "example": "624644"
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "success",
-                    "freeRam",
-                    "swapRam",
-                    "totalRam"
-                ]
-            }
-        },
-        "launchApplication": {
-            "summary": "Launches an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onApplicationLaunched` | Triggers when an application is launched successfully |.",
-            "events": ["onApplicationLaunched"],
-            "params": {
-                "type": "object",
-                "properties":{
-                    "client": {
-                        "summary": "The client name",
-                        "type": "string",
-                        "example": "HtmlApp"
-                    },
-                    "uri": {
-                        "summary": "The client uri",
-                        "type": "string",
-                        "example": "https://x1box-app.xumo.com/3.0.70/index.html%22"
-                    },
-                    "mimeType": {
-                        "summary": "The mime type",
-                        "type": "string",
-                        "example": "application/native"
-                    },
-                    "topmost": {
-                        "summary": "true to put the application at the top, otherwise false",
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "focus": {
-                        "summary": "true to put the application above all other applications, otherwise false",
-                        "type": "boolean",
-                        "example": true
-                    }
-                },
-                "required": [
-                    "client",
-                    "uri",
-                    "mimeType"
-                ]
-            },
-             "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
         "suspendApplication": {
             "summary": "Suspends an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onApplicationSuspended` | Triggers when an application is suspended |.",
             "events": ["onApplicationSuspended"],
@@ -1874,147 +2105,6 @@
                     }
                 }
             },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "resumeApplication": {
-            "summary": "Resumes an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onApplicationResumed` | Triggers when an application resumes from a suspended state |.",
-            "events": ["onApplicationResumed"],
-            "params": {
-                "type": "object",
-                "properties":{
-                    "client": {
-                        "summary": "The client name",
-                        "type": "string",
-                        "example": "HtmlApp"
-                    }
-                }
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "injectKey": {
-            "summary": "Injects the keys. \n \n### Events\n \n No Events.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "keycode": {
-                        "$ref": "#/definitions/keyCode"
-                    },
-                    "modifiers": {
-                        "$ref": "#/definitions/modifiers"
-                    } 
-                },
-                "required": [
-                    "keycode",
-                    "modifiers"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "addKeyMetadataListener": {
-            "summary": "Adds the key metadata listeners. \n \n### Events\n \n No Events.",
-            "params": {
-                "type": "object",
-                "properties":{
-                    "client": {
-                        "summary": "The client name",
-                        "type": "string",
-                        "example": "searchanddiscovery"
-                    },
-                    "callsign": {
-                        "summary": "The application callsign",
-                        "type": "string",
-                        "example": "searchanddiscovery"
-                    }
-                },
-                "required": [
-                    "client"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "removeKeyMetadataListener":{
-            "summary": "Removes the key metadata listeners. \n \n### Events\n \n No Events.",
-            "params": {
-                "type": "object",
-                "properties":{
-                    "client": {
-                        "summary": "The client name",
-                        "type": "string",
-                        "example": "searchanddiscovery"
-                    },
-                    "callsign": {
-                        "summary": "The application callsign",
-                        "type": "string",
-                        "example": "searchanddiscovery"
-                    }
-                },
-                "required": [
-                    "client"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "addKeyIntercepts": {
-            "summary": "Adds the list of key intercepts. \n \n### Events\n \n No Events.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "intercepts": {
-                        "summary": "A list of intercepts",
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "client":{
-                                    "summary": "The client name",
-                                    "type": "string",
-                                    "example": "searchanddiscovery"
-                                },
-                                "keys":{
-                                    "summary": "A list of keys to simulate",
-                                    "type": "array",
-                                    "items":{
-                                        "type": "object",
-                                        "properties": {
-                                            "keycode": {
-                                                "$ref": "#/definitions/keyCode"
-                                            },
-                                            "modifiers": {
-                                                "$ref": "#/definitions/modifiers"
-                                            }
-                                        },
-                                        "required": [
-                                            "keycode",
-                                            "modifiers",
-                                            "keys"
-                                        ]
-                                    }
-                                }
-                            },
-                            "required": [
-                                "client",
-                                "keys"
-                            ]
-                        }
-                    }
-                }
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "resetInactivityTime":{
-            "summary": "Resets the inactivity notification interval. \n \n### Events\n \n No Events.",
             "result": {
                 "$ref": "#/definitions/result"
             }
