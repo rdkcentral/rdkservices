@@ -153,7 +153,6 @@ namespace WPEFramework {
                 bool checkNetwork();
                 bool getActivatedStatus(bool &skipFirmwareCheck);
                 const string checkActivatedStatus(void);
-                bool isMaintenanceStarted(void);
                 pid_t getTaskPID(const char*);
 
                 string getLastRebootReason();
