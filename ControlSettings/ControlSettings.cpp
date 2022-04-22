@@ -20,6 +20,22 @@
 #include <string>
 #include "ControlSettings.h"
 
+#define returnResponse(return_status, error_log) \
+    {response["success"] = return_status; \
+    if(!return_status) \
+        response["error_message"] = _T(error_log); \
+    PLUGIN_Unlock(tvLock); \
+    return (Core::ERROR_NONE);}
+
+#define returnIfParamNotFound(param)\
+    if(param.empty())\
+    {\
+        LOGERR("missing parameter %s\n",#param);\
+        returnResponse(false,"missing parameter");\
+    }
+#define PLUGIN_Lock(lock) pthread_mutex_lock(&lock)
+#define PLUGIN_Unlock(lock) pthread_mutex_unlock(&lock)
+
 #define VIDEO_DESCRIPTION_MAX (25)
 #define VIDEO_DESCRIPTION_NAME_SIZE (25)
 
@@ -107,7 +123,7 @@ namespace Plugin {
         return supportedResolution;
    }
 
-   std::string Device::getErrorString (tvError_t eReturn)
+   std::string ControlSettings::getErrorString (tvError_t eReturn)
     {
         switch (eReturn)
         {
@@ -231,8 +247,8 @@ namespace Plugin {
                , m_videoZoomMode (tvDisplayMode_NORMAL)
                , m_isDisabledHdmiIn4KZoom (false)
     {
-        LOGINFO();
-        devicePtr = new TV();
+        LOGINFO("Entry\n");
+        devicePtr = new WPEFramework::Plugin::TV;
 	ControlSettings::_instance = this;
 	InitializeIARM();
 
@@ -242,7 +258,7 @@ namespace Plugin {
         registerMethod("setBacklight", &ControlSettings::setVolume, this, {2});
 	registerMethod("getBacklight", &ControlSettings::getBacklight, this, {2});
         registerMethod("setBacklight", &ControlSettings::setBacklight, this, {2});
-
+        LOGINFO("Exit \n");
     }
 
     ControlSettings::~ControlSettings()
@@ -252,15 +268,15 @@ namespace Plugin {
 
     const std::string ControlSettings::Initialize(PluginHost::IShell* service)
     {
-	LOGINFO();
+	LOGINFO("Entry\n");
         try {
             dsVideoPortResolution_t vidResolution;
             device::HdmiInput::getInstance().getCurrentVideoModeObj(vidResolution);
             m_currentHdmiInResoluton = vidResolution.pixelResolution;
         } catch (...){
-            LOGWARN("tvmgrplugin: getCurrentVideoModeObj failed");
+            LOGWARN("ControlSettingsPlugins: getCurrentVideoModeObj failed");
         }
-        LOGWARN("tvmgrplugin: ControlSettings Initialize m_currentHdmiInResoluton:%d m_mod:%d", m_currentHdmiInResoluton, m_videoZoomMode);
+        LOGWARN("ControlSettingsPlugins: ControlSettings Initialize m_currentHdmiInResoluton:%d m_mod:%d", m_currentHdmiInResoluton, m_videoZoomMode);
 
         ASSERT(service != nullptr);
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
@@ -294,6 +310,7 @@ namespace Plugin {
         RegisterVideoFrameRateChangeCB(FpscallbackData);
 
 	devicePtr->Initialize();//Call Factory Initialize---Platform specific Initsequence willbe invoked
+	LOGINFO("Exit\n");
 
         return (service != nullptr ? _T("") : _T("No service."));
 
@@ -398,22 +415,22 @@ namespace Plugin {
             resolution.pixelResolution =  eventData->data.hdmi_in_video_mode.resolution.pixelResolution;
             resolution.interlaced =  eventData->data.hdmi_in_video_mode.resolution.interlaced;
             resolution.frameRate =  eventData->data.hdmi_in_video_mode.resolution.frameRate;
-            LOGWARN("tvmgrplugin: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE  event  port: %d, pixelResolution: %d, interlaced : %d, frameRate: %d \n", hdmi_in_port,resolution.pixelResolution, resolution.interlaced, resolution.frameRate);
+            LOGWARN("ControlSettingsPlugins: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE  event  port: %d, pixelResolution: %d, interlaced : %d, frameRate: %d \n", hdmi_in_port,resolution.pixelResolution, resolution.interlaced, resolution.frameRate);
             if (ControlSettings::_instance->m_isDisabledHdmiIn4KZoom) {
                 tvError_t ret = tvERROR_NONE;
                 if (ControlSettings::_instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
                     (dsVIDEO_PIXELRES_MAX == ControlSettings::_instance->m_currentHdmiInResoluton)){
-                    LOGWARN("tvmgrplugin: Setting %d zoom mode for below 4K", ControlSettings::_instance->m_videoZoomMode);
+                    LOGWARN("ControlSettingsPlugins: Setting %d zoom mode for below 4K", ControlSettings::_instance->m_videoZoomMode);
                     ret = SetAspectRatio((tvDisplayMode_t)ControlSettings::_instance->m_videoZoomMode);
                 }else {
-                    LOGWARN("tvmgrplugin: Setting auto zoom mode for 4K and above");
+                    LOGWARN("ControlSettingsPlugins: Setting auto zoom mode for 4K and above");
                     ret = SetAspectRatio(tvDisplayMode_AUTO);
                 }
                 if (ret != tvERROR_NONE) {
                     LOGWARN("SetAspectRatio set Failed");
                 }
             } else {
-                LOGWARN("tvmgrplugin: %s: HdmiInput is not started yet. m_isDisabledHdmiIn4KZoom: %d", __FUNCTION__, ControlSettings::_instance->m_isDisabledHdmiIn4KZoom);
+                LOGWARN("ControlSettingsPlugins: %s: HdmiInput is not started yet. m_isDisabledHdmiIn4KZoom: %d", __FUNCTION__, ControlSettings::_instance->m_isDisabledHdmiIn4KZoom);
             }
         }
     }
@@ -428,18 +445,18 @@ namespace Plugin {
             IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
             int hdmi_in_port = eventData->data.hdmi_in_status.port;
             bool hdmi_in_status = eventData->data.hdmi_in_status.isPresented;
-            LOGWARN("tvmgrplugin: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS  event  port: %d, started: %d", hdmi_in_port,hdmi_in_status);
+            LOGWARN("ControlSettingsPlugins: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS  event  port: %d, started: %d", hdmi_in_port,hdmi_in_status);
             if (!hdmi_in_status){
                 tvError_t ret = tvERROR_NONE;
                 ControlSettings::_instance->m_isDisabledHdmiIn4KZoom = false;
-                LOGWARN("tvmgrplugin: Hdmi streaming stopped here reapply the global zoom settings:%d here. m_isDisabledHdmiIn4KZoom: %d", ControlSettings::_instance->m_videoZoomMode, ControlSettings::_instance->m_isDisabledHdmiIn4KZoom);
+                LOGWARN("ControlSettingsPlugins: Hdmi streaming stopped here reapply the global zoom settings:%d here. m_isDisabledHdmiIn4KZoom: %d", ControlSettings::_instance->m_videoZoomMode, ControlSettings::_instance->m_isDisabledHdmiIn4KZoom);
                 ret = SetAspectRatio((tvDisplayMode_t)ControlSettings::_instance->m_videoZoomMode);
                 if (ret != tvERROR_NONE) {
                     LOGWARN("SetAspectRatio set Failed");
                 }
             }else {
                 ControlSettings::_instance->m_isDisabledHdmiIn4KZoom = true;
-                LOGWARN("tvmgrplugin: m_isDisabledHdmiIn4KZoom: %d", ControlSettings::_instance->m_isDisabledHdmiIn4KZoom);
+                LOGWARN("ControlSettingsPlugins: m_isDisabledHdmiIn4KZoom: %d", ControlSettings::_instance->m_isDisabledHdmiIn4KZoom);
             }
         }
     }

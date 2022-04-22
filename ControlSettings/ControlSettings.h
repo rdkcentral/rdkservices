@@ -30,9 +30,6 @@
 #include "dsMgr.h"
 #include "hdmiIn.hpp"
 
-#include "Device.h"
-#include "TV.h"
-#include "STB.h"
 #include "bl_table.h"
 #include "als_bl_iniparser.h"
 #include <iostream>
@@ -45,6 +42,9 @@
 #include "utils.h"
 #include "tvTypes.h"
 #include "tvError.h"
+#include "Device.h"
+#include "TV.h"
+#include "STB.h"
 
 #include "tr181api.h"
 #include "AbstractPlugin.h"
@@ -62,7 +62,7 @@ namespace Plugin {
     private:
         ControlSettings(const ControlSettings&) = delete;
         ControlSettings& operator=(const ControlSettings&) = delete;
-        Device *devicePtr;
+	WPEFramework::Plugin::Device *devicePtr;
 
 	DECLARE_JSON_RPC_METHOD(getAspectRatio)
         DECLARE_JSON_RPC_METHOD(setAspectRatio)
@@ -75,7 +75,6 @@ namespace Plugin {
         DECLARE_JSON_RPC_METHOD(getVideoResolution)
 
    public:
-        public:
         ControlSettings();
         ~ControlSettings();
         static ControlSettings* _instance;
