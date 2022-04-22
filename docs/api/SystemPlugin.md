@@ -3411,6 +3411,7 @@ SystemServices interface events:
 | [onSystemClockSet](#event.onSystemClockSet) | Triggered when the clock on the set-top device is updated |
 | [onSystemModeChanged](#event.onSystemModeChanged) | Triggered when the device operating mode changes |
 | [onSystemPowerStateChanged](#event.onSystemPowerStateChanged) | Triggered when the power manager detects a device power state change |
+| [onNetworkStandbyModeChanged](#event.onNetworkStandbyModeChanged) | Triggered when the network standby mode setting changed |
 | [onTemperatureThresholdChanged](#event.onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
 
 
@@ -3643,6 +3644,30 @@ Triggered when the power manager detects a device power state change.
     "params": {
         "powerState": "ON",
         "currentPowerState": "ON"
+    }
+}
+```
+
+<a name="event.onNetworkStandbyModeChanged"></a>
+## *onNetworkStandbyModeChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when the network standby mode setting changed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.nwStandby | boolean | Network standby mode |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onNetworkStandbyModeChanged",
+    "params": {
+        "nwStandby": true
     }
 }
 ```
