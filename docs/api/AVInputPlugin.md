@@ -85,29 +85,43 @@ AVInput interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [contentProtected](#method.contentProtected) | Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false` |
-| [currentVideoMode](#method.currentVideoMode) | Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input |
-| [numberOfInputs](#method.numberOfInputs) | Returns an integer that specifies the number of available inputs |
+| [getInputDevices](#method.getInputDevices) | Returns an array of available HDMI/Composite Input ports |
+| [getEdidVersion](#method.getEdidVersion) | (Version 2) Returns the EDID version |
+| [getHDMISPD](#method.getHDMISPD) | (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device |
+| [getRawHDMISPD](#method.getRawHDMISPD) | (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits |
+| [readEDID](#method.readEDID) | Returns the current EDID value |
+| [startInput](#method.startInput) | Activates the specified HDMI/Composite Input port as the primary video source |
+| [stopInput](#method.stopInput) | Deactivates the HDMI/Composite Input port currently selected as the primary video source |
+| [setEdidVersion](#method.setEdidVersion) | (Version 2) Sets an HDMI EDID version |
+| [setVideoRectangle](#method.setVideoRectangle) | Sets an HDMI/Composite Input video window |
+| [writeEDID](#method.writeEDID) | Changes a current EDID value |
 
 
-<a name="method.contentProtected"></a>
-## *contentProtected [<sup>method</sup>](#head.Methods)*
+<a name="method.getInputDevices"></a>
+## *getInputDevices [<sup>method</sup>](#head.Methods)*
 
-Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false`. If the content is protected, then it is only presented if the component and composite outputs of the box are disabled.
+Returns an array of available HDMI/Composite Input ports.
+ 
+### Events
+ 
+No Events.
 
 ### Parameters
 
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object | An empty parameter object |
+This method takes no parameters.
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.isContentProtected | boolean | Whether the HDMI input is protected |
+| result.devices | array | An object [] that describes each HDMI/Composite Input port |
+| result.devices[#] | object |  |
+| result.devices[#].id | number | The port identifier for the HDMI/Composite Input |
+| result.devices[#].locator | string | A URL corresponding to the HDMI/Composite Input port |
+| result.devices[#].connected | boolean | Whether a device is currently connected to this HDMI/Composite Input port |
 | result.success | boolean | Whether the request succeeded |
+| result?.typeOfInput | string | <sup>*(optional)*</sup> The type of Input - HDMI/COMPOSITE |
 
 ### Example
 
@@ -117,8 +131,7 @@ Returns `true` if the content coming in the HDMI input is protected; otherwise, 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.contentProtected",
-    "params": {}
+    "method": "org.rdk.AVInput.1.getInputDevices"
 }
 ```
 
@@ -129,34 +142,93 @@ Returns `true` if the content coming in the HDMI input is protected; otherwise, 
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "isContentProtected": true,
+        "devices": [
+            {
+                "id": 0,
+                "locator": "hdmiin://localhost/deviceid/0",
+                "connected": true
+            }
+        ],
+        "success": true,
+        "typeOfInput": "HDMI"
+    }
+}
+```
+
+<a name="method.getEdidVersion"></a>
+## *getEdidVersion [<sup>method</sup>](#head.Methods)*
+
+(Version 2) Returns the EDID version.
+ 
+### Events
+ 
+No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.edidVersion | string | The EDID version |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.1.getEdidVersion",
+    "params": {
+        "portId": "0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "edidVersion": "HDMI2.0",
         "success": true
     }
 }
 ```
 
-<a name="method.currentVideoMode"></a>
-## *currentVideoMode [<sup>method</sup>](#head.Methods)*
+<a name="method.getHDMISPD"></a>
+## *getHDMISPD [<sup>method</sup>](#head.Methods)*
 
-Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution. 
+(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.
  
 ### Events
  
- No Events.
+No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | object | An empty parameter object |
+| params | object |  |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.currentVideoMode | string | The current video mode |
-| result.message | string | `Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed |
+| result.HDMISPD | string | The SPD information |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -167,8 +239,10 @@ Returns a string encoding the video mode being supplied by the device currently 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.currentVideoMode",
-    "params": {}
+    "method": "org.rdk.AVInput.1.getHDMISPD",
+    "params": {
+        "portId": "0"
+    }
 }
 ```
 
@@ -179,35 +253,34 @@ Returns a string encoding the video mode being supplied by the device currently 
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "currentVideoMode": "Unknown",
-        "message": "Success",
+        "HDMISPD": "...",
         "success": true
     }
 }
 ```
 
-<a name="method.numberOfInputs"></a>
-## *numberOfInputs [<sup>method</sup>](#head.Methods)*
+<a name="method.getRawHDMISPD"></a>
+## *getRawHDMISPD [<sup>method</sup>](#head.Methods)*
 
-Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`. 
+(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.
  
 ### Events
  
- No Events.
+No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | object | An empty parameter object |
+| params | object |  |
+| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.numberOfInputs | number | The number of inputs that are available for selection |
-| result.message | string | `Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed |
+| result.HDMISPD | string | The SPD information as raw bits |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -218,8 +291,10 @@ Returns an integer that specifies the number of available inputs. For example, a
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.numberOfInputs",
-    "params": {}
+    "method": "org.rdk.AVInput.1.getRawHDMISPD",
+    "params": {
+        "portId": "0"
+    }
 }
 ```
 
@@ -230,8 +305,330 @@ Returns an integer that specifies the number of available inputs. For example, a
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "numberOfInputs": 1,
-        "message": "Success",
+        "HDMISPD": "...",
+        "success": true
+    }
+}
+```
+
+<a name="method.readEDID"></a>
+## *readEDID [<sup>method</sup>](#head.Methods)*
+
+Returns the current EDID value.
+ 
+### Events
+ 
+No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.deviceId | number | The port identifier for the HDMI/Composite Input |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.EDID | string | The EDID Value |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.1.readEDID",
+    "params": {
+        "deviceId": 0
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "EDID": "...",
+        "success": true
+    }
+}
+```
+
+<a name="method.startInput"></a>
+## *startInput [<sup>method</sup>](#head.Methods)*
+
+Activates the specified HDMI/Composite Input port as the primary video source.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `onInputStatusChanged` | Triggers the event when HDMI/Composite Input source is activated and Input status changes to `started` | 
+| `onSignalChanged` | Triggers the event when HDMI/Composite Input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal).
+
+Also see: [onInputStatusChanged](#event.onInputStatusChanged), [onSignalChanged](#event.onSignalChanged)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params.typeOfInput | string | The type of Input - HDMI/COMPOSITE |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.1.startInput",
+    "params": {
+        "portId": "0",
+        "typeOfInput": "HDMI"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.stopInput"></a>
+## *stopInput [<sup>method</sup>](#head.Methods)*
+
+Deactivates the HDMI/Composite Input port currently selected as the primary video source.
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `onInputStatusChanged` | Triggers the event when HDMI/Composite Input source is deactivated and Input status changes to `stopped`.
+
+Also see: [onInputStatusChanged](#event.onInputStatusChanged)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.typeOfInput | string | The type of Input - HDMI/COMPOSITE |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.1.stopInput",
+    "params": {
+        "typeOfInput": "HDMI"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setEdidVersion"></a>
+## *setEdidVersion [<sup>method</sup>](#head.Methods)*
+
+(Version 2) Sets an HDMI EDID version.
+ 
+### Events
+ 
+No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params.edidVersion | string | The EDID version |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.1.setEdidVersion",
+    "params": {
+        "portId": "0",
+        "edidVersion": "HDMI2.0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.setVideoRectangle"></a>
+## *setVideoRectangle [<sup>method</sup>](#head.Methods)*
+
+Sets an HDMI/Composite Input video window.
+ 
+### Events
+ 
+No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.x | integer | The x-coordinate of the video rectangle |
+| params.y | integer | The y-coordinate of the video rectangle |
+| params.w | integer | The width of the video rectangle |
+| params.h | integer | The height of the video rectangle |
+| params.typeOfInput | string | The type of Input - HDMI/COMPOSITE |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.1.setVideoRectangle",
+    "params": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1080,
+        "typeOfInput": "HDMI"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.writeEDID"></a>
+## *writeEDID [<sup>method</sup>](#head.Methods)*
+
+Changes a current EDID value.
+ 
+### Events
+ 
+No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.deviceId | number | The ID of an input device for which the EDID should be changed |
+| params.message | string | A new EDID value |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.1.writeEDID",
+    "params": {
+        "deviceId": 0,
+        "message": "EDID"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
         "success": true
     }
 }
@@ -248,54 +645,134 @@ AVInput interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onAVInputActive](#event.onAVInputActive) | Triggered when an active device is connected to an AVInput port |
-| [onAVInputInActive](#event.onAVInputInActive) | Triggered when an active device is disconnected from an AVInput port or when the device becomes inactive |
+| [onDevicesChanged](#event.onDevicesChanged) | Triggered whenever a new HDMI/Composite device is connected to an HDMI/Composite Input |
+| [onInputStatusChanged](#event.onInputStatusChanged) | Triggered whenever the status changes for an HDMI/Composite Input |
+| [onSignalChanged](#event.onSignalChanged) | Triggered whenever the signal status changes for an HDMI/Composite Input |
+| [videoStreamInfoUpdate](#event.videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI Input video stream info |
 
 
-<a name="event.onAVInputActive"></a>
-## *onAVInputActive [<sup>event</sup>](#head.Notifications)*
+<a name="event.onDevicesChanged"></a>
+## *onDevicesChanged [<sup>event</sup>](#head.Notifications)*
 
-Triggered when an active device is connected to an AVInput port.
+Triggered whenever a new HDMI/Composite device is connected to an HDMI/Composite Input.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.url | string | The URL of the port with an active device |
+| params.devices | array | An object [] that describes each HDMI/Composite Input port |
+| params.devices[#] | object |  |
+| params.devices[#].id | number | The port identifier for the HDMI/Composite Input |
+| params.devices[#].locator | string | A URL corresponding to the HDMI/Composite Input port |
+| params.devices[#].connected | boolean | Whether a device is currently connected to this HDMI/Composite Input port |
 
 ### Example
 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onAVInputActive",
+    "method": "client.events.1.onDevicesChanged",
     "params": {
-        "url": "avin://input0"
+        "devices": [
+            {
+                "id": 0,
+                "locator": "hdmiin://localhost/deviceid/0",
+                "connected": true
+            }
+        ]
     }
 }
 ```
 
-<a name="event.onAVInputInActive"></a>
-## *onAVInputInActive [<sup>event</sup>](#head.Notifications)*
+<a name="event.onInputStatusChanged"></a>
+## *onInputStatusChanged [<sup>event</sup>](#head.Notifications)*
 
-Triggered when an active device is disconnected from an AVInput port or when the device becomes inactive.
+Triggered whenever the status changes for an HDMI/Composite Input.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.url | string | The URL of the port with an inactive device |
+| params.id | number | The port identifier for the HDMI/Composite Input |
+| params.locator | string | A URL corresponding to the HDMI/Composite Input port |
+| params.status | string | Status of the HDMI/Composite Input. Valid values are `started` or `stopped` |
 
 ### Example
 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onAVInputInActive",
+    "method": "client.events.1.onInputStatusChanged",
     "params": {
-        "url": "avin://input0"
+        "id": 0,
+        "locator": "hdmiin://localhost/deviceid/0",
+        "status": "started"
+    }
+}
+```
+
+<a name="event.onSignalChanged"></a>
+## *onSignalChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered whenever the signal status changes for an HDMI/Composite Input.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.id | number | The port identifier for the HDMI/Composite Input |
+| params.locator | string | A URL corresponding to the HDMI/Composite Input port |
+| params.signalStatus | string | Signal Status of the HDMI/Composite Input. Valid values are `noSignal`, `unstableSignal`, `notSupportedSignal`, `stableSignal` |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onSignalChanged",
+    "params": {
+        "id": 0,
+        "locator": "hdmiin://localhost/deviceid/0",
+        "signalStatus": "stableSignal"
+    }
+}
+```
+
+<a name="event.videoStreamInfoUpdate"></a>
+## *videoStreamInfoUpdate [<sup>event</sup>](#head.Notifications)*
+
+Triggered whenever there is an update in HDMI Input video stream info.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.id | number | The port identifier for the HDMI/Composite Input |
+| params.locator | string | A URL corresponding to the HDMI/Composite Input port |
+| params.width | integer | Width of the Video Stream |
+| params.height | integer | Height of the Video Stream |
+| params.progressive | boolean | Whether the streaming video is progressive or not? |
+| params.frameRateN | integer | FrameRate Numerator |
+| params.frameRateD | integer | FrameRate Denomirator |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.videoStreamInfoUpdate",
+    "params": {
+        "id": 0,
+        "locator": "hdmiin://localhost/deviceid/0",
+        "width": 3840,
+        "height": 2160,
+        "progressive": true,
+        "frameRateN": 60000,
+        "frameRateD": 1001
     }
 }
 ```

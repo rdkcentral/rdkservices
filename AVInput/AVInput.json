@@ -2,11 +2,59 @@
     "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
-        "title": "AVInput API",
+        "title": "AVInput API", 
         "class": "AVInput", 
-        "description": "The `AVInput` API facilitates interactions with the Parker STB HDMI input. The HDMI input is presented by using a `VideoResource` whose url starts with `avin:`. For example: `avin://input1`."
+        "description": "The `AVInput` plugin allows you to control the HDMI and Composite Inputs on a TV box."
     },
     "definitions": {
+        "devices":{
+            "summary": "An object [] that describes each HDMI/Composite Input port",
+            "type":"array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/definitions/id"
+                    },
+                    "locator": {
+                        "$ref": "#/definitions/locator"
+                    },
+                    "connected": {
+                        "$ref": "#/definitions/connected"
+                    }
+                },
+                "required": [
+                    "id",
+                    "locator",
+                    "connected"
+                ]
+            }
+        },
+        "id": {
+            "summary": "The port identifier for the HDMI/Composite Input",
+            "type": "number",
+            "example": 0
+        },
+        "locator": {
+            "summary": "A URL corresponding to the HDMI/Composite Input port",
+            "type": "string",
+            "example": "hdmiin://localhost/deviceid/0"
+        },
+        "connected": {
+            "summary": "Whether a device is currently connected to this HDMI/Composite Input port",
+            "type": "boolean",
+            "example": true
+        },
+        "portId":{
+            "summary": "An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method",
+            "type": "string",
+            "example": "0"
+        },
+		"typeOfInput":{
+            "summary": "The type of Input - HDMI/COMPOSITE",
+            "type": "string",
+            "example": "HDMI"
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -25,127 +73,405 @@
         }
     },
     "methods": {
-        "contentProtected": {
-            "summary": "Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false`. If the content is protected, then it is only presented if the component and composite outputs of the box are disabled.",
-            "params": {
-                "summary": "An empty parameter object",
-                "type": "object",
-                "properties": {}
-            },
+        "getInputDevices": {
+            "summary": "Returns an array of available HDMI/Composite Input ports.\n \n### Events\n \nNo Events.",
             "result": {
-                "type":"object",
+                "type": "object",
                 "properties": {
-                    "isContentProtected" : {
-                        "summary": "Whether the HDMI input is protected",
-                        "type":"boolean",
-                        "example": true
+                    "devices": {
+                        "$ref": "#/definitions/devices"
                     },
                     "success": {
                         "$ref": "#/definitions/success"
+                    },
+					"typeOfInput": {
+						"$ref": "#/definitions/typeOfInput"
                     }
                 },
                 "required": [
-                    "isContentProtected",
+                    "devices",
                     "success"
                 ]
             }
         },
-        "currentVideoMode": {
-            "summary": "Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution. \n \n### Events\n \n No Events.",
+        "getEdidVersion":{
+            "summary": "(Version 2) Returns the EDID version.\n \n### Events\n \nNo Events.",
             "params": {
-                "summary": "An empty parameter object",
-                "type": "object",
-                "properties": {}
-            },
-            "result": {
                 "type":"object",
                 "properties": {
-                    "currentVideoMode" : {
-                        "summary": "The current video mode.",
-                        "type":"string",
-                        "example": "Unknown"
-                    },
-                    "message": {
-                        "summary": "`Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed.",
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portid"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "edidVersion": {
+                        "summary": "The EDID version",
                         "type": "string",
-                        "example": "Success"
+                        "example": "HDMI2.0"
                     },
                     "success": {
                         "$ref": "#/definitions/success"
                     }
                 },
                 "required": [
-                    "currentVideoMode",
-                    "message",
+                    "edidVersion",
                     "success"
                 ]
             }
         },
-        "numberOfInputs" : {
-            "summary": "Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`. \n \n### Events\n \n No Events.",
+        "getHDMISPD": {
+            "summary": "(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.\n \n### Events\n \nNo Events.",
             "params": {
-                "summary": "An empty parameter object",
-                "type": "object",
-                "properties": {}
-            },
-            "result": {
                 "type":"object",
                 "properties": {
-                    "numberOfInputs" : {
-                        "summary": "The number of inputs that are available for selection",
-                        "type":"number",
-                        "example": 1
-                    },
-                    "message": {
-                        "summary": "`Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed.",
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portid"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "HDMISPD": {
+                        "summary": "The SPD information",
                         "type": "string",
-                        "example": "Success"
+                        "example": ""
                     },
                     "success": {
                         "$ref": "#/definitions/success"
                     }
                 },
                 "required": [
-                    "numberOfInputs",
-                    "message",
+                    "HDMISPD",
                     "success"
                 ]
+            }
+        },
+        "getRawHDMISPD":{
+            "summary": "(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.\n \n### Events\n \nNo Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portId"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "HDMISPD": {
+                        "summary": "The SPD information as raw bits",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "HDMISPD",
+                    "success"
+                ]
+            }
+        },
+        "readEDID":{
+            "summary": "Returns the current EDID value.\n \n### Events\n \nNo Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceId": {
+                        "$ref": "#/definitions/id"
+                    }
+                },
+                "required": [
+                    "deviceId"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "EDID": {
+                        "summary": "The EDID Value",
+                        "type": "string",
+                        "example": ""
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "EDID",
+                    "success"
+                ]
+            }
+        },
+        "startInput": {
+            "summary": "Activates the specified HDMI/Composite Input port as the primary video source.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onInputStatusChanged` | Triggers the event when HDMI/Composite Input source is activated and Input status changes to `started` | \n| `onSignalChanged` | Triggers the event when HDMI/Composite Input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal)",
+            "events": [
+                "onInputStatusChanged",
+                "onSignalChanged"
+            ],
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    },
+					"typeOfInput":{
+                        "$ref": "#/definitions/typeOfInput"
+                    }
+                },
+                "required": [
+                    "portid",
+					"typeOfInput"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "stopInput": {
+            "summary": "Deactivates the HDMI/Composite Input port currently selected as the primary video source.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onInputStatusChanged` | Triggers the event when HDMI/Composite Input source is deactivated and Input status changes to `stopped`",
+            "events": [
+                "onInputStatusChanged"
+            ],
+            "params": {
+                "type":"object",
+                "properties": {
+					"typeOfInput":{
+                        "$ref": "#/definitions/typeOfInput"
+                    }
+                },
+                "required": [
+					"typeOfInput"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }            
+        },
+        "setEdidVersion": {
+            "summary": "(Version 2) Sets an HDMI EDID version.\n \n### Events\n \nNo Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    },
+                    "edidVersion":{
+                        "summary": "The EDID version",
+                        "type": "string",
+                        "example": "HDMI2.0"
+                    }
+                },
+                "required": [
+                    "portId",
+                    "edidVersion"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setVideoRectangle": {
+            "summary": "Sets an HDMI/Composite Input video window.\n \n### Events\n \nNo Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "x":{
+                        "summary": "The x-coordinate of the video rectangle",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "y":{
+                        "summary": "The y-coordinate of the video rectangle",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "w":{
+                        "summary": "The width of the video rectangle",
+                        "type": "integer",
+                        "example": 1920
+                    },
+                    "h":{
+                        "summary": "The height of the video rectangle",
+                        "type": "integer",
+                        "example": 1080
+                    },
+					"typeOfInput":{
+                        "$ref": "#/definitions/typeOfInput"
+                    }
+                },
+                "required": [
+                    "x",
+                    "y",
+                    "w",
+                    "h",
+                    "typeOfInput"
+				]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "writeEDID": {
+            "summary": "Changes a current EDID value.\n \n### Events\n \nNo Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceId":{
+                        "summary": "The ID of an input device for which the EDID should be changed",
+                        "type": "number",
+                        "example": 0
+                    },
+                    "message":{
+                        "summary": "A new EDID value",
+                        "type": "string",
+                        "example": "EDID"
+                    }
+                },
+                "required": [
+                    "deviceId",
+                    "message"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
             }
         }
     },
     "events": {
-        "onAVInputActive":{
-            "summary": "Triggered when an active device is connected to an AVInput port",
+        "onDevicesChanged": {
+            "summary": "Triggered whenever a new HDMI/Composite device is connected to an HDMI/Composite Input",
             "params": {
                 "type":"object",
                 "properties": {
-                    "url": {
-                        "summary": "The URL of the port with an active device",
-                        "type": "string",
-                        "example": "avin://input0"
+                    "devices":{
+                        "$ref": "#/definitions/devices"
                     }
                 },
                 "required": [
-                    "url"
+                    "devices"
                 ]
             }
         },
-        "onAVInputInActive": {
-            "summary": "Triggered when an active device is disconnected from an AVInput port or when the device becomes inactive",
+        "onInputStatusChanged": {
+            "summary": "Triggered whenever the status changes for an HDMI/Composite Input",
             "params": {
-                "type":"object",
+                "type": "object",
                 "properties": {
-                    "url": {
-                        "summary": "The URL of the port with an inactive device",
+                    "id": {
+                        "$ref": "#/definitions/id"
+                    },
+                    "locator": {
+                        "$ref": "#/definitions/locator"
+                    },
+                    "status": {
+                        "summary": "Status of the HDMI/Composite Input. Valid values are `started` or `stopped`.",
                         "type": "string",
-                        "example": "avin://input0"
+                        "example": "started"
                     }
                 },
                 "required": [
-                    "url"
+                    "id",
+                    "locator",
+                    "status"
                 ]
-                
+            }
+        },
+        "onSignalChanged": {
+            "summary": "Triggered whenever the signal status changes for an HDMI/Composite Input",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/definitions/id"
+                    },
+                    "locator": {
+                        "$ref": "#/definitions/locator"
+                    },
+                    "signalStatus": {
+                        "summary": "Signal Status of the HDMI/Composite Input. Valid values are `noSignal`, `unstableSignal`, `notSupportedSignal`, `stableSignal`.",
+                        "type": "string",
+                        "example": "stableSignal"
+                    }
+                },
+                "required": [
+                    "id",
+                    "locator",
+                    "signalStatus"
+                ]                
+            }
+        },
+        "videoStreamInfoUpdate": {
+            "summary": "Triggered whenever there is an update in HDMI Input video stream info",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/definitions/id"
+                    },
+                    "locator": {
+                        "$ref": "#/definitions/locator"
+                    },
+                    "width": {
+                        "summary": "Width of the Video Stream",
+                        "type": "integer",
+                        "example": 3840
+                    },
+                    "height": {
+                        "summary": "Height of the Video Stream",
+                        "type": "integer",
+                        "example": 2160
+                    },
+                    "progressive": {
+                        "summary": "Whether the streaming video is progressive or not?",
+                        "type": "boolean",
+                        "example": "true"
+                    },
+                    "frameRateN": {
+                        "summary": "FrameRate Numerator",
+                        "type": "integer",
+                        "example": 60000
+                    },
+                    "frameRateD": {
+                        "summary": "FrameRate Denomirator",
+                        "type": "integer",
+                        "example": 1001
+                    }
+                },
+                "required": [
+                    "id",
+                    "locator",
+                    "width",
+                    "height",
+                    "progressive",
+                    "frameRateN",
+                    "frameRateD"
+                ]
             }
         }
+
     }
 }
