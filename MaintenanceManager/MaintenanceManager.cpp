@@ -274,15 +274,15 @@ namespace WPEFramework {
             // Unsolicited part comes here
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-                for( i = 0; i < tasks.size(); i++) {
+                for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
                     LOGINFO("waiting to unlock.. [%d/%d]",i,tasks.size());
                     task_thread.wait(lck);
                     cmd = tasks[i];
                     cmd += " &";
                     cmd += "\0";
-                    m_task_map[tasks[i]] = true;
 
                     if ( !m_abort_flag ){
+                        m_task_map[tasks[i]] = true;
                         LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
                         system(cmd.c_str());
                     }
@@ -299,14 +299,14 @@ namespace WPEFramework {
                 LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
                 system(cmd.c_str());
                 cmd="";
-                for( i = 1; i < tasks.size(); i++){
+                for( i = 1; i < tasks.size() && !m_abort_flag; i++){
                     LOGINFO("Waiting to unlock.. [%d/%d]",i,tasks.size());
                     task_thread.wait(lck);
                     cmd = tasks[i];
                     cmd += " &";
                     cmd += "\0";
-                    m_task_map[tasks[i]]=true;
                     if ( !m_abort_flag ){
+                        m_task_map[tasks[i]]=true;
                         LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
                         system(cmd.c_str());
                     }
@@ -821,6 +821,12 @@ namespace WPEFramework {
                 MaintenanceManager::_instance = nullptr;
             }
 
+            /* set the abort flag to true */
+            m_abort_flag = true;
+
+            /* unlock if the task is still waiting */
+            task_thread.notify_one();
+
             if(m_thread.joinable()){
                 m_thread.join();
             }
@@ -1112,6 +1118,16 @@ namespace WPEFramework {
                     returnResponse(result);
                 }
 
+        bool MaintenanceManager::isMaintenanceStarted()
+        {
+            bool status=false;
+            m_statusMutex.lock();
+	    if( MAINTENANCE_STARTED == m_notify_status )
+                status=true;
+            m_statusMutex.unlock();
+	    return status;
+        }
+
         /*
          * @brief This function stops the maintenance activity.
          * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.1.stopMaintenance",
@@ -1137,8 +1153,7 @@ namespace WPEFramework {
             if( checkAbortFlag() ){
 
                 /* run only when the maintenance status is MAINTENANCE_STARTED */
-                m_statusMutex.lock();
-                if ( MAINTENANCE_STARTED == m_notify_status  ){
+                if ( isMaintenanceStarted() ){
 
                     // Set the condition flag m_abort_flag to true
                     m_abort_flag = true;
@@ -1209,7 +1224,6 @@ namespace WPEFramework {
                 else {
                     LOGERR("Failed to stopMaintenance without starting maintenance \n");
                 }
-                m_statusMutex.unlock();
             }
             else {
                 LOGERR("Failed to initiate stopMaintenance, RFC is set as False \n");
