@@ -149,6 +149,7 @@ namespace WPEFramework {
                 void requestSystemReboot();
                 void maintenanceManagerOnBootup();
                 bool checkAutoRebootFlag();
+                bool stopMaintenanceWrapper();
                 bool checkAbortFlag();
                 bool checkNetwork();
                 bool getActivatedStatus(bool &skipFirmwareCheck);
