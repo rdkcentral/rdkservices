@@ -508,8 +508,13 @@ namespace WPEFramework {
         void MaintenanceManager::Deinitialize(PluginHost::IShell*)
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-            stopMaintenanceWrapper();
-            DeinitializeIARM();
+            if( stopMaintenanceWrapper() ){
+                  LOGINFO("stopMaintenanceWrapper returns true. hence deinitializing Iarm \n");
+                  DeinitializeIARM();
+            }
+            else {
+                LOGINFO("stopMaintenanceWrapper returns false. hence exiting \n");
+            }
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
         }
 
@@ -1124,7 +1129,7 @@ namespace WPEFramework {
                 JsonObject& response){
 
             bool result=false;
-            stopMaintenanceWrapper();
+            result=stopMaintenanceWrapper();
             returnResponse(result);
         }
 
