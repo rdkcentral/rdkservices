@@ -508,7 +508,7 @@ namespace WPEFramework {
         void MaintenanceManager::Deinitialize(PluginHost::IShell*)
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-            stopMaintenance(this,this);
+            stopMaintenance(NULL,NULL);
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
         }
