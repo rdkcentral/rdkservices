@@ -1123,6 +1123,7 @@ namespace WPEFramework {
         uint32_t MaintenanceManager::stopMaintenance(const JsonObject& parameters,
                 JsonObject& response){
 
+            bool result=false;
             stopMaintenanceWrapper();
             returnResponse(result);
         }
@@ -1135,9 +1136,9 @@ namespace WPEFramework {
             int32_t exec_status=E_NOK;
 
             bool task_status[4]={false};
-            bool result=false;
+            //bool result=false;
             bool task_incomplete=false;
-
+             LOGINFO("Value of result niside stopMaintenanceWrapper is %s\n", result);
             /* only based on RFC */
             if( checkAbortFlag() ){
 
