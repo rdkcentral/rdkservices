@@ -31,7 +31,6 @@ const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MAJOR = 2;
 const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MINOR = 0;
 
 /* Netsrvmgr Based Macros & Structures */
-#define NETSRVMGR_INTERFACES_MAX 16
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
 #define INTERFACE_SIZE 10
 #define INTERFACE_LIST 50
@@ -67,16 +66,6 @@ typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_MAX,
 } IARM_Bus_NetworkManager_EventId_t;
 
-typedef enum _NetworkManager_GetIPSettings_ErrorCode_t
-{
-  NETWORK_IPADDRESS_ACQUIRED,
-  NETWORK_IPADDRESS_NOTFOUND,
-  NETWORK_NO_ROUTE_INTERFACE,
-  NETWORK_NO_DEFAULT_ROUTE,
-  NETWORK_DNS_NOT_CONFIGURED,
-  NETWORK_INVALID_IPADDRESS,
-} NetworkManager_GetIPSettings_ErrorCode_t;
-
 typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     union {
         char activeIface[INTERFACE_SIZE];
@@ -90,36 +79,11 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     char ipfamily[MAX_IP_FAMILY_SIZE];
 } IARM_BUS_NetSrvMgr_Iface_EventData_t;
 
-typedef struct {
-    char interface[16];
-    char ipversion[16];
-    bool autoconfig;
-    char ipaddress[MAX_IP_ADDRESS_LEN];
-    char netmask[MAX_IP_ADDRESS_LEN];
-    char gateway[MAX_IP_ADDRESS_LEN];
-    char dhcpserver[MAX_IP_ADDRESS_LEN];
-    char primarydns[MAX_IP_ADDRESS_LEN];
-    char secondarydns[MAX_IP_ADDRESS_LEN];
-    bool isSupported;
-    NetworkManager_GetIPSettings_ErrorCode_t errCode;
-} IARM_BUS_NetSrvMgr_Iface_Settings_t;
-
 typedef struct
 {
     unsigned char size;
     char          endpoints[MAX_ENDPOINTS][MAX_ENDPOINT_SIZE];
 } IARM_BUS_NetSrvMgr_Iface_TestEndpoints_t;
-
-typedef struct {
-    char name[16];
-    char mac[20];
-    unsigned int flags;
-} NetSrvMgr_Interface_t;
-
-typedef struct {
-    unsigned char         size;
-    NetSrvMgr_Interface_t interfaces[NETSRVMGR_INTERFACES_MAX];
-} IARM_BUS_NetSrvMgr_InterfaceList_t;
 
 typedef struct {
     char interface[16];
@@ -216,6 +180,22 @@ namespace WPEFramework
             m_stunBindTimeout = 30;
             m_stunCacheTimeout = 0;
             m_stunSync = true;
+            m_useIpv4WifiCache = false;
+            m_useIpv6WifiCache = false;
+            m_useIpv4EthCache = false;
+            m_useIpv6EthCache = false;
+            m_useStbIPCache = false;
+            m_stbIpCache = "";
+            m_useStbIPFamilyCache = false;
+            m_stbIpFamilyCache = "";
+            m_useDefInterfaceCache = false;
+            m_defInterfaceCache = "";
+            m_useInterfacesCache = false;
+            m_interfacesCache = {0};
+            m_ipv4WifiCache = {0};
+            m_ipv6WifiCache = {0};
+            m_ipv4EthCache = {0};
+            m_ipv6EthCache = {0};
         }
 
         Network::~Network()
@@ -416,7 +396,23 @@ namespace WPEFramework
 
             if(m_isPluginReady)
             {
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
+                if (m_useInterfacesCache)
+                {
+                    memcpy(&list, &m_interfacesCache, sizeof(m_interfacesCache));
+                    result = true;
+                }
+                else if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
+                {
+                    memcpy(&m_interfacesCache, &list, sizeof(list));
+                    m_useInterfacesCache = true;
+                    result = true;
+                }
+                else
+                {
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
+                }
+
+                if (result == true)
                 {
                     JsonArray networkInterfaces;
 
@@ -437,11 +433,6 @@ namespace WPEFramework
                     }
 
                     response["interfaces"] = networkInterfaces;
-                    result = true;
-                }
-                else
-                {
-                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
                 }
             }
             else
@@ -460,9 +451,16 @@ namespace WPEFramework
             bool result = false;
             if(m_isPluginReady)
             {
-                if (_getDefaultInterface(interface, gateway))
+                if (m_useDefInterfaceCache)
+                {
+                    response["interface"] = m_defInterfaceCache;
+                    result = true;
+                }
+		else if (_getDefaultInterface(interface, gateway))
                 {
                     response["interface"] = m_netUtils.getInterfaceDescription(interface);
+                    m_defInterfaceCache = m_netUtils.getInterfaceDescription(interface);
+                    m_useDefInterfaceCache = true;
                     result = true;
                 }
                 else
@@ -522,9 +520,16 @@ namespace WPEFramework
 
             if(m_isPluginReady)
             {
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip, (void*)&param, sizeof(param)))
+                if(m_useStbIPCache)
+                {
+                    response["ip"] = m_stbIpCache;
+                    result = true;
+                }
+                else if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip, (void*)&param, sizeof(param)))
                 {
                     response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
+                    m_stbIpCache = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
+                    m_useStbIPCache = true;
                     result = true;
                 }
                 else
@@ -548,22 +553,32 @@ namespace WPEFramework
             {
                 if (parameters.HasLabel("family"))
                 {
-                    IARM_BUS_NetSrvMgr_Iface_EventData_t param;
-                    memset(&param, 0, sizeof(param));
-
-                    string ipfamily("");
-                    getStringParameter("family", ipfamily);
-                    strncpy(param.ipfamily,ipfamily.c_str(),MAX_IP_FAMILY_SIZE);
-
-                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip_family, (void*)&param, sizeof(param)))
+                    if (m_useStbIPFamilyCache)
                     {
-                        response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
+                        response["ip"] = m_stbIpFamilyCache;
                         result = true;
                     }
                     else
                     {
-                        LOGWARN ("Query to get IPaddress by Family Failed..");
-                        response["ip"] = "";
+                        IARM_BUS_NetSrvMgr_Iface_EventData_t param;
+                        memset(&param, 0, sizeof(param));
+
+                        string ipfamily("");
+                        getStringParameter("family", ipfamily);
+                        strncpy(param.ipfamily,ipfamily.c_str(),MAX_IP_FAMILY_SIZE);
+
+                        if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip_family, (void*)&param, sizeof(param)))
+                        {
+                            response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
+                            m_stbIpFamilyCache = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
+                            m_useStbIPFamilyCache = true;
+                            result = true;
+                        }
+                        else
+                        {
+                            LOGWARN ("Query to get IPaddress by Family Failed..");
+                            response["ip"] = "";
+                        }
                     }
                 }
                 else
@@ -1069,7 +1084,56 @@ namespace WPEFramework
             strncpy(iarmData.interface, interface.c_str(), 16);
             strncpy(iarmData.ipversion, ipversion.c_str(), 16);
             iarmData.isSupported = true;
-            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
+            if (m_useIpv4WifiCache && !strcasecmp(ipversion.c_str(), "ipv4") && !strcasecmp(interface.c_str(), "wifi"))
+            {
+                memcpy(&iarmData, &m_ipv4WifiCache, sizeof(m_ipv4WifiCache));
+                result = true;
+            }
+            else if(m_useIpv4EthCache && !strcasecmp(ipversion.c_str(), "ipv4") && !strcasecmp(interface.c_str(), "ethernet"))
+            {
+                memcpy(&iarmData, &m_ipv4EthCache, sizeof(m_ipv4EthCache));
+                result = true;
+            }
+            else if (m_useIpv6WifiCache && !strcasecmp(ipversion.c_str(), "ipv6") && !strcasecmp(interface.c_str(), "wifi"))
+            {
+                memcpy(&iarmData, &m_ipv6WifiCache, sizeof(m_ipv6WifiCache));
+                result = true;
+            }
+            else if(m_useIpv6EthCache && !strcasecmp(ipversion.c_str(), "ipv6") && !strcasecmp(interface.c_str(), "ethernet"))
+            {
+                memcpy(&iarmData, &m_ipv6EthCache, sizeof(m_ipv6EthCache));
+                result = true;
+            }
+            else
+            {
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
+                {
+                    if (!m_useIpv4WifiCache && !strcasecmp(ipversion.c_str(), "ipv4") && !strcasecmp(interface.c_str(), "wifi"))
+                    {
+                        memcpy(&m_ipv4WifiCache, &iarmData, sizeof(iarmData));
+                        m_useIpv4WifiCache = true;
+                    }
+                    else if(!m_useIpv4EthCache && !strcasecmp(ipversion.c_str(), "ipv4") && !strcasecmp(interface.c_str(), "ethernet"))
+                    {
+                        memcpy(&m_ipv4EthCache, &iarmData, sizeof(iarmData));
+                        m_useIpv4EthCache = true;
+                    }
+                    else if (!m_useIpv6WifiCache && !strcasecmp(ipversion.c_str(), "ipv6") && !strcasecmp(interface.c_str(), "wifi"))
+                    {
+                        memcpy(&m_ipv6WifiCache, &iarmData, sizeof(iarmData));
+                        m_useIpv6WifiCache = true;
+                    }
+                    else if (!m_useIpv6EthCache && !strcasecmp(ipversion.c_str(), "ipv6") && !strcasecmp(interface.c_str(), "ethernet"))
+                    {
+                        memcpy(&m_ipv6EthCache, &iarmData, sizeof(iarmData));
+                        m_useIpv6EthCache = true;
+                    }
+
+                    result = true;
+                }
+            }
+
+            if (result == true)
             {
                 response["interface"] = string(iarmData.interface);
                 response["ipversion"] = string(iarmData.ipversion);
@@ -1081,7 +1145,6 @@ namespace WPEFramework
                 response["primarydns"] = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
                 response["secondarydns"] = string(iarmData.secondarydns,MAX_IP_ADDRESS_LEN - 1);
                 errCode = iarmData.errCode;
-                result = true;
             }
             return result;
         }
@@ -1258,6 +1321,7 @@ namespace WPEFramework
             JsonObject params;
             params["interface"] = m_netUtils.getInterfaceDescription(interface);
             params["enabled"] = enabled;
+            m_useInterfacesCache = false;
             sendNotify("onInterfaceStatusChanged", params);
         }
 
@@ -1272,14 +1336,33 @@ namespace WPEFramework
         void Network::onInterfaceIPAddressChanged(string interface, string ipv6Addr, string ipv4Addr, bool acquired)
         {
             JsonObject params;
-            params["interface"] = m_netUtils.getInterfaceDescription(interface);
+            string onInterface;
+            params["interface"] = onInterface = m_netUtils.getInterfaceDescription(interface);
             if (ipv6Addr != "")
             {
                 params["ip6Address"] = ipv6Addr;
+                if (!strcasecmp(onInterface.c_str(), "wifi"))
+                {
+                    m_useIpv6WifiCache = false;
+                }
+		else if(!strcasecmp(onInterface.c_str(), "ethernet"))
+                {
+                    m_useIpv6EthCache = false;
+                }
+
+                m_useStbIPCache = false;
             }
             if (ipv4Addr != "")
             {
                 params["ip4Address"] = ipv4Addr;
+                if (!strcasecmp(onInterface.c_str(), "wifi"))
+                {
+                    m_useIpv4WifiCache = false;
+                }
+		else if(!strcasecmp(onInterface.c_str(), "ethernet"))
+                {
+                    m_useIpv4EthCache = false;
+                }
             }
             params["status"] = string (acquired ? "ACQUIRED" : "LOST");
             sendNotify("onIPAddressStatusChanged", params);
@@ -1290,6 +1373,8 @@ namespace WPEFramework
             JsonObject params;
             params["oldInterfaceName"] = m_netUtils.getInterfaceDescription(oldInterface);
             params["newInterfaceName"] = m_netUtils.getInterfaceDescription(newInterface);
+            m_useDefInterfaceCache = false;
+            m_useStbIPFamilyCache = false;
             sendNotify("onDefaultInterfaceChanged", params);
         }
 
