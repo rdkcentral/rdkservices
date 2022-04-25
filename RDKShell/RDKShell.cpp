@@ -5361,9 +5361,9 @@ namespace WPEFramework {
                 }
             }
 
-            bool enabled;
-            int32_t initialDelay;
-            int32_t repeatInterval;
+            bool enabled = false;
+            int32_t initialDelay = 0;
+            int32_t repeatInterval = 0;
 
             if (parameters.HasLabel("enabled"))
             {
@@ -5377,7 +5377,7 @@ namespace WPEFramework {
 
             if (parameters.HasLabel("initialDelay"))
             {
-                enabled = parameters["initialDelay"].Number();
+                initialDelay = parameters["initialDelay"].Number();
             }
             else
             {
@@ -5387,7 +5387,7 @@ namespace WPEFramework {
 
             if (parameters.HasLabel("repeatInterval"))
             {
-                enabled = parameters["repeatInterval"].Number();
+                repeatInterval = parameters["repeatInterval"].Number();
             }
             else
             {
