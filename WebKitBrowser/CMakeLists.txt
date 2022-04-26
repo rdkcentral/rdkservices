@@ -78,6 +78,8 @@ set(PLUGIN_WEBKITBROWSER_PTSOFFSET "0" CACHE STRING "Set ptsoffset for webkit")
 
 set(PLUGIN_YOUTUBE_AUTOSTART "false" CACHE STRING "Automatically start Youtube plugin")
 set(PLUGIN_YOUTUBE_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
+set(PLUGIN_YOUTUBE_STARTURL "https://www.youtube.com/tv" CACHE STRING "Initial URL for YouTube plugin")
+set(PLUGIN_YOUTUBE_STARTURL_QUERYSTRING "" CACHE STRING "Initial URL Query String for YouTube plugin")
 set(PLUGIN_YOUTUBE_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string YouTube")
 set(PLUGIN_YOUTUBE_WEBINSPECTOR_ADDRESS "0.0.0.0:9999" CACHE STRING "IP:Port for WebInspector of YouTube")
 set(PLUGIN_YOUTUBE_LOCALSTORAGE_ENABLE "true" CACHE STRING "Enable LocalStorage of YouTube App")
