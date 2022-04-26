@@ -1271,6 +1271,13 @@ namespace WPEFramework {
             sRunning = false;
             gRdkShellMutex.unlock();
             shellThread.join();
+            std::vector<std::string> clientList;
+            CompositorController::getClients(clientList);
+            std::vector<std::string>::iterator ptr;
+            for(ptr=clientList.begin();ptr!=clientList.end();ptr++)
+            {
+               RdkShell::CompositorController::removeListener((*ptr),mEventListener);
+            }
             mCurrentService = nullptr;
             service->Unregister(mClientsMonitor);
             mClientsMonitor->Release();
