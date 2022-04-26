@@ -1737,6 +1737,12 @@
                         "summary":"Persists the resolution",
                         "type": "boolean",
                         "example": true
+                    },
+                    "ignoreEdid": {
+                        "summary": "Ignore the supported resolutions as transmitted by the connected TV EDID",
+                        "type": "boolean",
+                        "default": false,
+                        "example": true
                     }
                 },
                 "required": [
