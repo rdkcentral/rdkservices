@@ -149,12 +149,12 @@ namespace WPEFramework {
                 void requestSystemReboot();
                 void maintenanceManagerOnBootup();
                 bool checkAutoRebootFlag();
-                bool checkAbortFlag();
+                bool isStopMaintenanceRFCEnabled();
                 bool checkNetwork();
                 bool getActivatedStatus(bool &skipFirmwareCheck);
                 const string checkActivatedStatus(void);
-                bool stopMaintenanceWrapper(void);
-                bool isMaintenanceStarted(void);
+                bool stopMaintenanceTasks();
+                bool isMaintenanceStarted();
                 pid_t getTaskPID(const char*);
 
                 string getLastRebootReason();
