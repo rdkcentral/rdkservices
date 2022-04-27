@@ -87,7 +87,9 @@ RDKShell interface methods:
 | :-------- | :-------- |
 | [addAnimation](#addAnimation) | Performs the set of animations |
 | [addKeyIntercept](#addKeyIntercept) | Adds a key intercept to the client application specified |
+| [addKeyIntercepts](#addKeyIntercepts) | Adds the list of key intercepts |
 | [addKeyListener](#addKeyListener) | Adds a key listener to an application |
+| [addKeyMetadataListener](#addKeyMetadataListener) | Adds the key metadata listeners |
 | [createDisplay](#createDisplay) |  Creates a display for the specified client using the configuration parameters |
 | [destroy](#destroy) | Destroys an application |
 | [enableInactivityReporting](#enableInactivityReporting) | Enables or disables inactivity reporting and events |
@@ -98,23 +100,33 @@ RDKShell interface methods:
 | [getAvailableTypes](#getAvailableTypes) | Returns the list of application types available on the firmware |
 | [getBounds](#getBounds) | Gets the bounds of the specified client |
 | [getClients](#getClients) | Gets a list of clients |
+| [getCursorSize](#getCursorSize) | Returns the currently set cursor size |
 | [getHolePunch](#getHolePunch) | Returns whether video hole punching is enabled or disabled for the specified client |
 | [getKeyRepeatsEnabled](#getKeyRepeatsEnabled) | Returns whether key repeating is enabled or disabled |
 | [getLastWakeupKey](#getLastWakeupKey) | Returns the last key press prior to a device wakeup |
-| [getLogsFlushingEnabled](#getLogsFlushingEnabled) | Returns whether log flushing is enabled or disabled |
 | [getLogLevel](#getLogLevel) | Returns the currently set logging level |
+| [getLogsFlushingEnabled](#getLogsFlushingEnabled) | Returns whether log flushing is enabled or disabled |
 | [getOpacity](#getOpacity) | Gets the opacity of the specified client |
 | [getScale](#getScale) | Returns the scale of an application |
 | [getScreenResolution](#getScreenResolution) | Gets the screen resolution |
+| [getScreenshot](#getScreenshot) | Captures a screenshot |
 | [getState](#getState) | Returns the state of all applications |
+| [getSystemMemory](#getSystemMemory) | Gets the information of System Memory |
 | [getSystemResourceInfo](#getSystemResourceInfo) | Returns system resource information about each application |
 | [getVirtualDisplayEnabled](#getVirtualDisplayEnabled) | Returns whether virtual display is enabled or disabled for the specified client |
 | [getVirtualResolution](#getVirtualResolution) | Returns the virtual display resolution for the specified client |
 | [getVisibility](#getVisibility) | Gets the visibility of the specified client |
 | [getZOrder](#getZOrder) | Returns an array of clients in Z order, starting with the top most application client first |
+| [hideAllClients](#hideAllClients) | Hides/Unhides all the clients |
+| [hideCursor](#hideCursor) | Hides the cursor from showing on the display |
+| [hideFullScreenImage](#hideFullScreenImage) | Hides the Full Screen Image |
 | [hideSplashLogo](#hideSplashLogo) | Removes the splash screen |
+| [ignoreKeyInputs](#ignoreKeyInputs) | Blocks user key inputs |
+| [injectKey](#injectKey) | Injects the keys |
 | [kill](#kill) | Kills the specified client |
 | [launch](#launch) | Launches an application |
+| [launchApplication](#launchApplication) | Launches an application |
+| [launchResidentApp](#launchResidentApp) | Launches the Resident application |
 | [moveBehind](#moveBehind) | Moves the specified client behind the specified target client |
 | [moveToBack](#moveToBack) | Moves the specified client to the back or bottom of the Z order |
 | [moveToFront](#moveToFront) | Moves the specified client to the front or top of the Z order |
@@ -123,8 +135,12 @@ RDKShell interface methods:
 | [removeAnimation](#removeAnimation) | Removes the current animation for the specified client |
 | [removeKeyIntercept](#removeKeyIntercept) | Removes a key intercept |
 | [removeKeyListener](#removeKeyListener) | Removes a key listener for an application |
+| [removeKeyMetadataListener](#removeKeyMetadataListener) | Removes the key metadata listeners |
+| [resetInactivityTime](#resetInactivityTime) | Resets the inactivity notification interval |
+| [resumeApplication](#resumeApplication) | Resumes an application |
 | [scaleToFit](#scaleToFit) | Scales the specified client to fit the current bounds |
 | [setBounds](#setBounds) | Sets the bounds of the specified client |
+| [setCursorSize](#setCursorSize) | Sets the cursor size |
 | [setFocus](#setFocus) | Sets focus to the specified client |
 | [setHolePunch](#setHolePunch) | Enables or disables video hole punching for the specified client |
 | [setInactivityInterval](#setInactivityInterval) | Sets the inactivity notification interval |
@@ -136,23 +152,12 @@ RDKShell interface methods:
 | [setTopmost](#setTopmost) | Sets whether the specified client appears above all other clients on the display |
 | [setVirtualResolution](#setVirtualResolution) | Sets the virtual resolution for the specified client |
 | [setVisibility](#setVisibility) | Sets whether the specified client should be visible |
+| [showCursor](#showCursor) | Shows the cursor on the display using the current cursor size |
+| [showFullScreenImage](#showFullScreenImage) | Shows the Full Screen Image |
 | [showSplashLogo](#showSplashLogo) | Displays the splash screen |
 | [showWatermark](#showWatermark) | Sets whether a watermark shows on the display |
 | [suspend](#suspend) | Suspends an application |
-| [getScreenshot](#getScreenshot) | Captures a screenshot |
-| [hideAllClients](#hideAllClients) | Hides/Unhides all the clients |
-| [launchResidentApp](#launchResidentApp) | Launches the Resident application |
-| [hideFullScreenImage](#hideFullScreenImage) | Hides the Full Screen Image |
-| [showFullScreenImage](#showFullScreenImage) | Shows the Full Screen Image |
-| [getSystemMemory](#getSystemMemory) | Gets the information of System Memory |
-| [launchApplication](#launchApplication) | Launches an application |
 | [suspendApplication](#suspendApplication) | Suspends an application |
-| [resumeApplication](#resumeApplication) | Resumes an application |
-| [injectKey](#injectKey) | Injects the keys |
-| [addKeyMetadataListener](#addKeyMetadataListener) | Adds the key metadata listeners |
-| [removeKeyMetadataListener](#removeKeyMetadataListener) | Removes the key metadata listeners |
-| [addKeyIntercepts](#addKeyIntercepts) | Adds the list of key intercepts |
-| [resetInactivityTime](#resetInactivityTime) | Resets the inactivity notification interval |
 
 
 <a name="addAnimation"></a>
@@ -290,6 +295,75 @@ Adds a key intercept to the client application specified. The keys are specified
 }
 ```
 
+<a name="addKeyIntercepts"></a>
+## *addKeyIntercepts*
+
+Adds the list of key intercepts. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.intercepts | array | A list of intercepts |
+| params.intercepts[#] | object |  |
+| params.intercepts[#].client | string | The client name |
+| params.intercepts[#].keys | array | A list of keys to simulate |
+| params.intercepts[#].keys[#] | object |  |
+| params.intercepts[#].keys[#].keycode | number | The key code of the key to intercept (only symbol * (string data type) is acceptable) |
+| params.intercepts[#].keys[#].modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
+| params.intercepts[#].keys[#].modifiers[#] | string |  |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.addKeyIntercepts",
+    "params": {
+        "intercepts": [
+            {
+                "client": "searchanddiscovery",
+                "keys": [
+                    {
+                        "keycode": 10,
+                        "modifiers": [
+                            "shift"
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="addKeyListener"></a>
 ## *addKeyListener*
 
@@ -345,6 +419,58 @@ Adds a key listener to an application. The keys are bubbled up based on their z-
                 "propagate": true
             }
         ]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="addKeyMetadataListener"></a>
+## *addKeyMetadataListener*
+
+Adds the key metadata listeners. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.addKeyMetadataListener",
+    "params": {
+        "client": "searchanddiscovery",
+        "callsign": "searchanddiscovery"
     }
 }
 ```
@@ -914,6 +1040,54 @@ This method takes no parameters.
 }
 ```
 
+<a name="getCursorSize"></a>
+## *getCursorSize*
+
+Returns the currently set cursor size. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.width | number | The cursor width |
+| result.height | number | The cursor height |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.getCursorSize"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "width": 255,
+        "height": 255,
+        "success": true
+    }
+}
+```
+
 <a name="getHolePunch"></a>
 ## *getHolePunch*
 
@@ -1067,52 +1241,6 @@ This method takes no parameters.
 }
 ```
 
-<a name="getLogsFlushingEnabled"></a>
-## *getLogsFlushingEnabled*
-
-Returns whether log flushing is enabled or disabled. 
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.enabled | boolean | `true` if enabled, otherwise `false` |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.getLogsFlushingEnabled"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "enabled": true,
-        "success": true
-    }
-}
-```
-
 <a name="getLogLevel"></a>
 ## *getLogLevel*
 
@@ -1154,6 +1282,52 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "logLevel": "INFO",
+        "success": true
+    }
+}
+```
+
+<a name="getLogsFlushingEnabled"></a>
+## *getLogsFlushingEnabled*
+
+Returns whether log flushing is enabled or disabled. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.enabled | boolean | `true` if enabled, otherwise `false` |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.getLogsFlushingEnabled"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "enabled": true,
         "success": true
     }
 }
@@ -1313,6 +1487,53 @@ This method takes no parameters.
 }
 ```
 
+<a name="getScreenshot"></a>
+## *getScreenshot*
+
+Captures a screenshot. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onScreenshotComplete` | Triggers when a screenshot is captured successfully |.
+
+Also see: [onScreenshotComplete](#onScreenshotComplete)
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.getScreenshot"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="getState"></a>
 ## *getState*
 
@@ -1364,6 +1585,56 @@ This method takes no parameters.
                 "uri": "https://..."
             }
         ],
+        "success": true
+    }
+}
+```
+
+<a name="getSystemMemory"></a>
+## *getSystemMemory*
+
+Gets the information of System Memory. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.freeRam | number | Free RAM memory (kB) |
+| result.swapRam | number | Swap memory (kB) |
+| result.totalRam | number | Total RAM memory (kB) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.getSystemMemory"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "freeRam": 321944,
+        "swapRam": 0,
+        "totalRam": 624644,
         "success": true
     }
 }
@@ -1638,6 +1909,144 @@ This method takes no parameters.
 }
 ```
 
+<a name="hideAllClients"></a>
+## *hideAllClients*
+
+Hides/Unhides all the clients. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.hide | boolean | true to hide all the clients, and false to unhide all the clients |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.hideAllClients",
+    "params": {
+        "hide": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="hideCursor"></a>
+## *hideCursor*
+
+Hides the cursor from showing on the display. The cursor is hidden by default. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.hideCursor"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="hideFullScreenImage"></a>
+## *hideFullScreenImage*
+
+Hides the Full Screen Image. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.hideFullScreenImage"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="hideSplashLogo"></a>
 ## *hideSplashLogo*
 
@@ -1667,6 +2076,107 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.RDKShell.1.hideSplashLogo"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="ignoreKeyInputs"></a>
+## *ignoreKeyInputs*
+
+Blocks user key inputs.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.ignore | boolean | Whether key inputs are ignored |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.ignoreKeyInputs",
+    "params": {
+        "ignore": false
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="injectKey"></a>
+## *injectKey*
+
+Injects the keys. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.keycode | number | The key code of the key to intercept (only symbol * (string data type) is acceptable) |
+| params.modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
+| params.modifiers[#] | string |  |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.injectKey",
+    "params": {
+        "keycode": 10,
+        "modifiers": [
+            "shift"
+        ]
+    }
 }
 ```
 
@@ -1765,10 +2275,11 @@ Also see: [onLaunched](#onLaunched)
 | params?.configuration | string | <sup>*(optional)*</sup> The plugin configuration overrides. Empty by default |
 | params?.behind | string | <sup>*(optional)*</sup> The client to put behind. Defaults to top of z-order |
 | params?.displayName | string | <sup>*(optional)*</sup> A name for the display |
-| params?.scaleToFit | boolean | <sup>*(optional)*</sup> Whether the app can be scaled to fit the current bounds. Default is 'false' |
-| params?.holePunch | boolean | <sup>*(optional)*</sup> Whether the video hole punching can be enabled for the client. Default is 'true' |
-| params?.topmost | boolean | <sup>*(optional)*</sup> Whether the app appears above all other apps on the display. Default is 'false' |
-| params?.focus | boolean | <sup>*(optional)*</sup> Wether the app should be under focus. Default is 'false' |
+| params?.scaleToFit | boolean | <sup>*(optional)*</sup> Whether the app can be scaled to fit the current bounds. Default is `false` |
+| params?.holePunch | boolean | <sup>*(optional)*</sup> Whether the video hole punching can be enabled for the client. Default is `true` |
+| params?.topmost | boolean | <sup>*(optional)*</sup> Whether the app appears above all other apps on the display. Default is `false` |
+| params?.focus | boolean | <sup>*(optional)*</sup> Whether the app should be under focus. Default is `false` |
+| params?.autodestroy | boolean | <sup>*(optional)*</sup> Whether the application can be automatically destroyed. Default is `true` |
 
 ### Result
 
@@ -1805,7 +2316,8 @@ Also see: [onLaunched](#onLaunched)
         "scaleToFit": false,
         "holePunch": false,
         "topmost": false,
-        "focus": false
+        "focus": false,
+        "autodestroy": false
     }
 }
 ```
@@ -1818,6 +2330,111 @@ Also see: [onLaunched](#onLaunched)
     "id": 42,
     "result": {
         "launchType": "activate",
+        "success": true
+    }
+}
+```
+
+<a name="launchApplication"></a>
+## *launchApplication*
+
+Launches an application. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onApplicationLaunched` | Triggers when an application is launched successfully |.
+
+Also see: [onApplicationLaunched](#onApplicationLaunched)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+| params.uri | string | The client uri |
+| params.mimeType | string | The mime type |
+| params?.topmost | boolean | <sup>*(optional)*</sup> true to put the application at the top, otherwise false |
+| params?.focus | boolean | <sup>*(optional)*</sup> true to put the application above all other applications, otherwise false |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.launchApplication",
+    "params": {
+        "client": "HtmlApp",
+        "uri": "https://x1box-app.xumo.com/3.0.70/index.html%22",
+        "mimeType": "application/native",
+        "topmost": true,
+        "focus": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="launchResidentApp"></a>
+## *launchResidentApp*
+
+Launches the Resident application. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.launchResidentApp"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
         "success": true
     }
 }
@@ -2241,6 +2858,155 @@ Removes a key listener for an application.
 }
 ```
 
+<a name="removeKeyMetadataListener"></a>
+## *removeKeyMetadataListener*
+
+Removes the key metadata listeners. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.removeKeyMetadataListener",
+    "params": {
+        "client": "searchanddiscovery",
+        "callsign": "searchanddiscovery"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="resetInactivityTime"></a>
+## *resetInactivityTime*
+
+Resets the inactivity notification interval. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.resetInactivityTime"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="resumeApplication"></a>
+## *resumeApplication*
+
+Resumes an application. 
+ 
+### Events 
+| Event | Description | 
+| :----------- | :----------- |
+| `onApplicationResumed` | Triggers when an application resumes from a suspended state |.
+
+Also see: [onApplicationResumed](#onApplicationResumed)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.resumeApplication",
+    "params": {
+        "client": "HtmlApp"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="scaleToFit"></a>
 ## *scaleToFit*
 
@@ -2345,6 +3111,58 @@ Sets the bounds of the specified client.
         "y": 0,
         "w": 1920,
         "h": 1080
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="setCursorSize"></a>
+## *setCursorSize*
+
+Sets the cursor size. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.width | number | The cursor width |
+| params.height | number | The cursor height |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.setCursorSize",
+    "params": {
+        "width": 255,
+        "height": 255
     }
 }
 ```
@@ -2948,6 +3766,100 @@ Sets whether the specified client should be visible.
 }
 ```
 
+<a name="showCursor"></a>
+## *showCursor*
+
+Shows the cursor on the display using the current cursor size. See `setCursorSize`. The cursor automatically disappears after 5 seconds of inactivity. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.showCursor"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="showFullScreenImage"></a>
+## *showFullScreenImage*
+
+Shows the Full Screen Image. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.path | string | The image path |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.showFullScreenImage",
+    "params": {
+        "path": "/tmp/netflix.png"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="showSplashLogo"></a>
 ## *showSplashLogo*
 
@@ -3101,352 +4013,6 @@ Also see: [onSuspended](#onSuspended)
 }
 ```
 
-<a name="getScreenshot"></a>
-## *getScreenshot*
-
-Captures a screenshot. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onScreenshotComplete` | Triggers when a screenshot is captured successfully |.
-
-Also see: [onScreenshotComplete](#onScreenshotComplete)
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.getScreenshot"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="hideAllClients"></a>
-## *hideAllClients*
-
-Hides/Unhides all the clients. 
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.hide | boolean | true to hide all the clients, and false to unhide all the clients |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.hideAllClients",
-    "params": {
-        "hide": true
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="launchResidentApp"></a>
-## *launchResidentApp*
-
-Launches the Resident application. 
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.launchResidentApp"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="hideFullScreenImage"></a>
-## *hideFullScreenImage*
-
-Hides the Full Screen Image. 
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.hideFullScreenImage"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="showFullScreenImage"></a>
-## *showFullScreenImage*
-
-Shows the Full Screen Image. 
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.path | string | The image path |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.showFullScreenImage",
-    "params": {
-        "path": "/tmp/netflix.png"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="getSystemMemory"></a>
-## *getSystemMemory*
-
-Gets the information of System Memory. 
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.freeRam | number | Free RAM memory (kB) |
-| result.swapRam | number | Swap memory (kB) |
-| result.totalRam | number | Total RAM memory (kB) |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.getSystemMemory"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "freeRam": 321944,
-        "swapRam": 0,
-        "totalRam": 624644,
-        "success": true
-    }
-}
-```
-
-<a name="launchApplication"></a>
-## *launchApplication*
-
-Launches an application. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onApplicationLaunched` | Triggers when an application is launched successfully |.
-
-Also see: [onApplicationLaunched](#onApplicationLaunched)
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-| params.uri | string | The client uri |
-| params.mimeType | string | The mime type |
-| params?.topmost | boolean | <sup>*(optional)*</sup> true to put the application at the top, otherwise false |
-| params?.focus | boolean | <sup>*(optional)*</sup> true to put the application above all other applications, otherwise false |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.launchApplication",
-    "params": {
-        "client": "HtmlApp",
-        "uri": "https://x1box-app.xumo.com/3.0.70/index.html%22",
-        "mimeType": "application/native",
-        "topmost": true,
-        "focus": true
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
 <a name="suspendApplication"></a>
 ## *suspendApplication*
 
@@ -3485,331 +4051,6 @@ Also see: [onApplicationSuspended](#onApplicationSuspended)
     "params": {
         "client": "HtmlApp"
     }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="resumeApplication"></a>
-## *resumeApplication*
-
-Resumes an application. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onApplicationResumed` | Triggers when an application resumes from a suspended state |.
-
-Also see: [onApplicationResumed](#onApplicationResumed)
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.resumeApplication",
-    "params": {
-        "client": "HtmlApp"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="injectKey"></a>
-## *injectKey*
-
-Injects the keys. 
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.keycode | number | The key code of the key to intercept (only symbol * (string data type) is acceptable) |
-| params.modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
-| params.modifiers[#] | string |  |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.injectKey",
-    "params": {
-        "keycode": 10,
-        "modifiers": [
-            "shift"
-        ]
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="addKeyMetadataListener"></a>
-## *addKeyMetadataListener*
-
-Adds the key metadata listeners. 
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.addKeyMetadataListener",
-    "params": {
-        "client": "searchanddiscovery",
-        "callsign": "searchanddiscovery"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="removeKeyMetadataListener"></a>
-## *removeKeyMetadataListener*
-
-Removes the key metadata listeners. 
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.removeKeyMetadataListener",
-    "params": {
-        "client": "searchanddiscovery",
-        "callsign": "searchanddiscovery"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="addKeyIntercepts"></a>
-## *addKeyIntercepts*
-
-Adds the list of key intercepts. 
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.intercepts | array | A list of intercepts |
-| params.intercepts[#] | object |  |
-| params.intercepts[#].client | string | The client name |
-| params.intercepts[#].keys | array | A list of keys to simulate |
-| params.intercepts[#].keys[#] | object |  |
-| params.intercepts[#].keys[#].keycode | number | The key code of the key to intercept (only symbol * (string data type) is acceptable) |
-| params.intercepts[#].keys[#].modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
-| params.intercepts[#].keys[#].modifiers[#] | string |  |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.addKeyIntercepts",
-    "params": {
-        "intercepts": [
-            {
-                "client": "searchanddiscovery",
-                "keys": [
-                    {
-                        "keycode": 10,
-                        "modifiers": [
-                            "shift"
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="resetInactivityTime"></a>
-## *resetInactivityTime*
-
-Resets the inactivity notification interval. 
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.resetInactivityTime"
 }
 ```
 
