@@ -176,6 +176,11 @@
             "type": "string",
             "example": "FULL"
         },
+        "colordepth": {
+            "summary": "Video display colordepth. Possible values: `8 Bit`,`10 Bit`,`12 Bit`,`Auto`",
+            "type": "string",
+            "example": "12 Bit"
+        },
         "result": {
             "type":"object",
             "properties": {
@@ -2243,8 +2248,89 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
+        },
+        "getColorDepthCapabilities": {
+            "summary": "Returns supported color depth capabilities.\n \n### Event \n\n No Events.",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "getColorDepthCapabilities": {
+                        "summary": "A string array of supported STB color depth capabilities",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "8 Bit"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "getPreferredColorDepth":{
+            "summary": "Returns the current color depth on the selected video display port.\n \n### Event \n\n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "videoDisplay": {
+                        "$ref": "#/definitions/videoDisplay"
+                    },
+                    "persist": {
+                        "summary":"Persists the color depth",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required":[
+                    " "
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "resolution": {
+                        "$ref": "#/definitions/colordepth"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "setPreferredColorDepth":{
+            "summary": "Sets the current color depth for the videoDisplay.\n",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "videoDisplay": {
+                        "$ref": "#/definitions/videoDisplay"
+                    },
+                    "colorDepth": {
+                        "$ref": "#/definitions/colordepth"
+                    },
+                    "persist": {
+                        "summary":"Persists the color depth",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "videoDisplay",
+                    "colorDepth"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
         }
-    },    
+    },
     "events": {
         "activeInputChanged":{
             "summary": "Triggered on active input change (RxSense)",
