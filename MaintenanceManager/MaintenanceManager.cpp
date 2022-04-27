@@ -1129,12 +1129,13 @@ namespace WPEFramework {
                 JsonObject& response){
 
             bool result=false;
-            if ( isMaintenanceStarted() ){
+            if ( isMaintenanceStarted() )
                 result=stopMaintenanceWrapper();
             returnResponse(result);
         }
 
-        bool MaintenanceManager::stopMaintenanceWrapper(){
+        bool MaintenanceManager::stopMaintenanceWrapper()
+        {
             pid_t pid_num=-1;
 
             int k_ret=EINVAL;
