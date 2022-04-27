@@ -75,6 +75,16 @@
             "type": "boolean",
             "example": false
         },
+        "pattern": {
+            "summary": "Bootloader pattern mode",
+            "enum": [
+                "NORMAL",
+                "SILENT",
+                "SILENT_LED_ON"
+            ],
+            "type": "string",
+            "example": "NORMAL"
+        },
         "powerState": {
             "summary": "The power state",
             "enum": [
@@ -1541,6 +1551,23 @@
                 },
                 "required": [
                     "nwStandby"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setBootLoaderPattern":{
+            "summary": "Sets the boot loader pattern mode in MFR \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "pattern": {
+                        "$ref": "#/definitions/pattern"
+                    }
+                },
+                "required": [
+                    "pattern"
                 ]
             },
             "result": {

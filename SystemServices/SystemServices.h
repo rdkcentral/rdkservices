@@ -203,6 +203,7 @@ namespace WPEFramework {
                 uint32_t getMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
                 uint32_t setMode(const JsonObject& parameters, JsonObject& response);
+                uint32_t setBootLoaderPattern(const JsonObject& parameters, JsonObject& response);
                 static void firmwareUpdateInfoReceived(void);
                 uint32_t getFirmwareUpdateInfo(const JsonObject& parameters, JsonObject& response);
                 void reportFirmwareUpdateInfoReceived(string firmwareUpdateVersion,
