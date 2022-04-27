@@ -1144,7 +1144,6 @@ namespace WPEFramework {
             bool task_status[4]={false};
             bool ret=false;
             bool task_incomplete=false;
-             LOGINFO("Value of result niside stopMaintenanceWrapper is %s\n", result);
             /* only based on RFC */
             if( checkAbortFlag() ){
 
