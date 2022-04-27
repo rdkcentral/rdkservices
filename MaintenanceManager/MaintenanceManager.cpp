@@ -511,7 +511,7 @@ namespace WPEFramework {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             if ( isMaintenanceStarted() ){
                 LOGINFO("Maintenance is in progress. hence calling stopmaintenance \n");
-                stopMaintenanceWrapper();
+                stopMaintenanceTasks();
             }
             LOGINFO("calling deinitializing Iarm \n");
             DeinitializeIARM();
