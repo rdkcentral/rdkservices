@@ -825,6 +825,12 @@ namespace WPEFramework {
                 IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT));
                 MaintenanceManager::_instance = nullptr;
             }
+            
+            /* set the abort flag to true */
+            m_abort_flag = true;
+
+            /* unlock if the task is still waiting */
+            task_thread.notify_one();
 
             if(m_thread.joinable()){
                 m_thread.join();
@@ -1151,6 +1157,9 @@ namespace WPEFramework {
                 /* run only when the maintenance status is MAINTENANCE_STARTED */
                 if ( isMaintenanceStarted() ){
 
+                    // Set the condition flag m_abort_flag to true
+                    m_abort_flag = true;
+                    
                     auto task_status_DCM=m_task_map.find("/lib/rdk/StartDCM_maintaince.sh");
                     auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
                     auto task_status_FWDLD=m_task_map.find(task_names_foreground[1].c_str());
@@ -1213,12 +1222,6 @@ namespace WPEFramework {
                         }
                     }
                     result=true;
-                    
-                    // Set the condition flag m_abort_flag to true
-                    m_abort_flag = true;
-                    
-                    /* unlock if the task is still waiting */
-                    task_thread.notify_one();
                 }
                 else {
                     LOGERR("Failed to stopMaintenance without starting maintenance \n");
