@@ -281,6 +281,7 @@ namespace WPEFramework {
                     cmd += " &";
                     cmd += "\0";
                     m_task_map[tasks[i]] = true;
+                    
                     if ( !m_abort_flag ){
                         LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
                         system(cmd.c_str());
@@ -508,13 +509,12 @@ namespace WPEFramework {
         void MaintenanceManager::Deinitialize(PluginHost::IShell*)
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-            if( stopMaintenanceWrapper() ){
-                  LOGINFO("stopMaintenanceWrapper returns true. hence deinitializing Iarm \n");
-                  DeinitializeIARM();
+            if ( isMaintenanceStarted() ){
+                LOGINFO("Maintenance is in progress. hence calling stopmaintenance \n");
+                stopMaintenanceWrapper();
             }
-            else {
-                LOGINFO("stopMaintenanceWrapper returns false. hence exiting \n");
-            }
+            LOGINFO("calling deinitializing Iarm \n");
+            DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
         }
 
@@ -1129,7 +1129,8 @@ namespace WPEFramework {
                 JsonObject& response){
 
             bool result=false;
-            result=stopMaintenanceWrapper();
+            if ( isMaintenanceStarted() ){
+                result=stopMaintenanceWrapper();
             returnResponse(result);
         }
 
@@ -1141,15 +1142,14 @@ namespace WPEFramework {
             int32_t exec_status=E_NOK;
 
             bool task_status[4]={false};
-            bool result=false;
+            bool ret=false;
             bool task_incomplete=false;
              LOGINFO("Value of result niside stopMaintenanceWrapper is %s\n", result);
             /* only based on RFC */
             if( checkAbortFlag() ){
 
                 /* run only when the maintenance status is MAINTENANCE_STARTED */
-                m_statusMutex.lock();
-                if ( MAINTENANCE_STARTED == m_notify_status  ){
+                if ( isMaintenanceStarted() ){
 
                     // Set the condition flag m_abort_flag to true
                     m_abort_flag = true;
@@ -1215,17 +1215,26 @@ namespace WPEFramework {
                             LOGINFO("Failed to locate maintenanceTrapEventNotifier.sh \n");
                         }
                     }
-                    result=true;
+                    ret=true;
                 }
                 else {
                     LOGERR("Failed to stopMaintenance without starting maintenance \n");
                 }
-                m_statusMutex.unlock();
             }
             else {
                 LOGERR("Failed to initiate stopMaintenance, RFC is set as False \n");
             }
-            return result;
+            return ret;
+        }
+        
+        bool MaintenanceManager::isMaintenanceStarted()
+        {
+            bool status=false;
+            m_statusMutex.lock();
+            if( MAINTENANCE_STARTED == m_notify_status )
+                status=true;
+            m_statusMutex.unlock();
+            return status;
         }
         
         bool MaintenanceManager::checkAbortFlag(){
