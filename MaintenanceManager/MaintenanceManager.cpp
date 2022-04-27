@@ -274,7 +274,7 @@ namespace WPEFramework {
             // Unsolicited part comes here
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-                for( i = 0; i < tasks.size(); i++) {
+                for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
                     LOGINFO("waiting to unlock.. [%d/%d]",i,tasks.size());
                     task_thread.wait(lck);
                     cmd = tasks[i];
@@ -299,7 +299,7 @@ namespace WPEFramework {
                 LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
                 system(cmd.c_str());
                 cmd="";
-                for( i = 1; i < tasks.size(); i++){
+                for( i = 1; i < tasks.size() && !m_abort_flag; i++){
                     LOGINFO("Waiting to unlock.. [%d/%d]",i,tasks.size());
                     task_thread.wait(lck);
                     cmd = tasks[i];
@@ -826,12 +826,6 @@ namespace WPEFramework {
                 MaintenanceManager::_instance = nullptr;
             }
             
-            /* set the abort flag to true */
-            m_abort_flag = true;
-
-            /* unlock if the task is still waiting */
-            task_thread.notify_one();
-
             if(m_thread.joinable()){
                 m_thread.join();
             }
@@ -1156,9 +1150,6 @@ namespace WPEFramework {
 
                 /* run only when the maintenance status is MAINTENANCE_STARTED */
                 if ( isMaintenanceStarted() ){
-
-                    // Set the condition flag m_abort_flag to true
-                    m_abort_flag = true;
                     
                     auto task_status_DCM=m_task_map.find("/lib/rdk/StartDCM_maintaince.sh");
                     auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
@@ -1222,6 +1213,12 @@ namespace WPEFramework {
                         }
                     }
                     result=true;
+                    
+                    /* set the abort flag to true */
+                    m_abort_flag = true;
+
+                    /* unlock if the task is still waiting */
+                    task_thread.notify_one();
                 }
                 else {
                     LOGERR("Failed to stopMaintenance without starting maintenance \n");
