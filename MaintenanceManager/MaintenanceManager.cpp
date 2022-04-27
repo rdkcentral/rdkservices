@@ -282,7 +282,7 @@ namespace WPEFramework {
                     cmd += "\0";
                     m_task_map[tasks[i]] = true;
 
-                    if ( !m_abort_flag ){ 
+                    if ( !m_abort_flag ){
                         LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
                         system(cmd.c_str());
                     }
@@ -510,10 +510,8 @@ namespace WPEFramework {
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             if ( isMaintenanceStarted() ){
-                LOGINFO("Maintenance is in progress. hence calling stopmaintenance \n");
                 stopMaintenanceTasks();
             }
-            LOGINFO("calling deinitializing Iarm \n");
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
         }
