@@ -265,16 +265,27 @@ namespace WPEFramework
 
             string sFramerate = parameters["framerate"].String();
 
-            bool success = true;
-            try
+            bool success = false;
+            if(sFramerate == "3840x2160x60"
+                            || sFramerate == "3840x2160x47"
+                            || sFramerate == "3840x2160x48"
+                            || sFramerate == "3840x2160x50"
+                            || sFramerate == "3840x2160x59")
+	    {
+	            try
+        	    {
+                	device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
+	                device.setDisplayframerate(sFramerate.c_str());
+			success = true;
+	            }
+        	    catch (const device::Exception& err)
+	            {
+        	        LOG_DEVICE_EXCEPTION1(sFramerate);
+	            }
+	    }
+            else
             {
-                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
-                device.setDisplayframerate(sFramerate.c_str());
-            }
-            catch (const device::Exception& err)
-            {
-                LOG_DEVICE_EXCEPTION1(sFramerate);
-                success = false;
+                LOGERR("Please select valid framerate value from these\n3840x2160x47\n3840x2160x48\n3840x2160x50\n3840x2160x59\n3840x2160x60\n");
             }
             returnResponse(success);
         }
