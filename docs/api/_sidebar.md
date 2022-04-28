@@ -15,6 +15,7 @@
   - [DisplayInfo](api/DisplayInfoPlugin.md)
   - [DisplaySettings](api/DisplaySettingsPlugin.md)
   - [DTV](api/DTVPlugin.md)
+  - [FireboltMediaPlayer](api/FireboltMediaPlayerPlugin.md)
   - [FrameRate](api/FrameRatePlugin.md)
   - [FrontPanel](api/FrontPanelPlugin.md)
   - [HdcpProfile](api/HdcpProfilePlugin.md)
