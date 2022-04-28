@@ -30,7 +30,7 @@ namespace Plugin {
     
     TV :: ~TV()
     {
-    
+        LOGINFO();    
     }
 
     void TV::Initialize()

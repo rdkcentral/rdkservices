@@ -248,16 +248,29 @@ namespace Plugin {
                , m_isDisabledHdmiIn4KZoom (false)
     {
         LOGINFO("Entry\n");
-        devicePtr = new WPEFramework::Plugin::TV;
+#ifndef ENABLE_TV_SUPPORT
+        devicePtr = new STB;
+#else
+        devicePtr = new TV;
+#endif
+
 	ControlSettings::_instance = this;
 	InitializeIARM();
 
+        if(devicePtr->isTvSupportEnabled())//TV Specific API
+	{
+            registerMethod("getBacklight", &ControlSettings::getBacklight, this, {2});
+            registerMethod("setBacklight", &ControlSettings::setBacklight, this, {2});
+        }else 
+	{//STB Specific API
+	    registerMethod("getVolume", &ControlSettings::getVolume, this, {2});
+            registerMethod("setVolume", &ControlSettings::setVolume, this, {2});
+	}
+
+        //Common API Registration
 	registerMethod("getAspectRatio", &ControlSettings::getAspectRatio, this, {2});
         registerMethod("setAspectRatio", &ControlSettings::setAspectRatio, this, {2});
-	registerMethod("getBacklight", &ControlSettings::getVolume, this, {2});
-        registerMethod("setBacklight", &ControlSettings::setVolume, this, {2});
-	registerMethod("getBacklight", &ControlSettings::getBacklight, this, {2});
-        registerMethod("setBacklight", &ControlSettings::setBacklight, this, {2});
+
         LOGINFO("Exit \n");
     }
 
@@ -587,7 +600,7 @@ namespace Plugin {
 
         LOGINFO("Entry\n");
         PLUGIN_Lock(tvLock);
-        //*devicePtr->getVolume(); Yet to implemented in STB class
+        devicePtr->getVolume();
         LOGINFO("Exit : %s\n",__FUNCTION__);
         returnResponse(true, "success");
     }
@@ -597,7 +610,7 @@ namespace Plugin {
 
         LOGINFO("Entry\n");
         PLUGIN_Lock(tvLock);
-        //*devicePtr->setVolume(); Yet to implement in STB class
+        devicePtr->setVolume(); 
         LOGINFO("Exit : %s\n",__FUNCTION__);
         returnResponse(true, "success");
     }

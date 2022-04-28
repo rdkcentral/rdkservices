@@ -34,10 +34,11 @@ class STB : public Device {
     public:
 	STB();
 	~STB();
-
-    public:
-       void Initialize();
-       void DeInitialize();
+        void Initialize();
+        void DeInitialize();
+        void getVolume();
+        void setVolume();
+        bool isTvSupportEnabled() { return false; }
 };
 
 }//namespace Plugin
