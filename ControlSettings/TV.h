@@ -35,10 +35,9 @@ class TV : public Device {
         ~TV();
         void getBacklight();
         void setBacklight();
-
-    public:
-       void Initialize();
-       void DeInitialize();
+        void Initialize();
+        void DeInitialize();
+	bool isTvSupportEnabled() { return true; }
 };
 
 }//namespace Plugin

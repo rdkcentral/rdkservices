@@ -25,7 +25,7 @@ namespace Plugin {
 
     Device::Device() 
     {
-       LOGINFO(); 
+        LOGINFO(); 
     }
     
     void Device::Initialize()
@@ -60,6 +60,19 @@ namespace Plugin {
         LOGINFO("Base Entry : %s\n",__FUNCTION__);
         LOGINFO("Base Exit  : %s\n",__FUNCTION__);
     }
+
+    void Device::getVolume()
+    {
+        LOGINFO("Base Entry : %s\n",__FUNCTION__);
+        LOGINFO("Base Exit  : %s\n",__FUNCTION__);
+    }
+
+    void Device::setVolume()
+    {
+        LOGINFO("Base Entry : %s\n",__FUNCTION__);
+        LOGINFO("Base Exit  : %s\n",__FUNCTION__);
+    }
+
 
    }
 }

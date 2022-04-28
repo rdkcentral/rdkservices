@@ -25,11 +25,12 @@ namespace Plugin {
 
     STB::STB()
     {
-         LOGINFO(); 
+        LOGINFO(); 
     }
     
     STB :: ~STB()
     {
+        LOGINFO();
     }
 
     void STB::Initialize()
@@ -42,6 +43,19 @@ namespace Plugin {
     {
         LOGINFO();
     }
+
+    void STB::getVolume()
+    {
+        LOGINFO("Derived Entry : %s\n",__FUNCTION__);
+        LOGINFO("Derived Exit  : %s\n",__FUNCTION__);
+    }
+
+    void STB::setVolume()
+    {
+        LOGINFO("Derived Entry : %s\n",__FUNCTION__);
+        LOGINFO("Derived Exit  : %s\n",__FUNCTION__);
+    }
+
 
 
 }//namespace Plugin

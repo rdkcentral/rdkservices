@@ -42,10 +42,13 @@ class Device  {
         ~Device();
         void getAspectRatio();
         void setAspectRatio();
-	virtual void getBacklight();
-        virtual void setBacklight();
         virtual void Initialize();
         virtual void DeInitialize();
+	virtual bool isTvSupportEnabled() { return false; }
+	virtual void setBacklight();
+	virtual void getBacklight();
+	virtual void getVolume();
+	virtual void setVolume();
 
     protected:
 
