@@ -1734,11 +1734,15 @@ static GSourceFuncs _handlerIntervention =
 
             // WebInspector
             if (_config.Inspector.Value().empty() == false) {
+#ifdef WEBKIT_GLIB_API
+                Core::SystemInfo::SetEnvironment(_T("WEBKIT_INSPECTOR_HTTP_SERVER"), _config.Inspector.Value(), !environmentOverride);
+#else
                 if (_config.Automation.Value()) {
                     Core::SystemInfo::SetEnvironment(_T("WEBKIT_INSPECTOR_SERVER"), _config.Inspector.Value(), !environmentOverride);
                 } else {
                     Core::SystemInfo::SetEnvironment(_T("WEBKIT_LEGACY_INSPECTOR_SERVER"), _config.Inspector.Value(), !environmentOverride);
                 }
+#endif
             }
 
             // RPI mouse support
