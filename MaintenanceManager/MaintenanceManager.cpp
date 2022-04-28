@@ -1145,7 +1145,7 @@ namespace WPEFramework {
             if( checkAbortFlag() ){
 
                 /* run only when the maintenance status is MAINTENANCE_STARTED */
-		m_statusMutex.lock();
+                m_statusMutex.lock();
                 if ( MAINTENANCE_STARTED == m_notify_status  ){
 
                     // Set the condition flag m_abort_flag to true
