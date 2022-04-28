@@ -202,6 +202,13 @@ enum RDKShellLaunchType
     RESUME
 };
 
+enum AppLastExitReason
+{
+    UNDEFINED = 0,
+    CRASH,
+    DEACTIVATED
+};
+
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 
 namespace WPEFramework {
@@ -375,6 +382,7 @@ namespace WPEFramework {
         std::vector<RDKShellStartupConfig> gStartupConfigs;
         std::map<std::string, bool> gDestroyApplications;
         std::map<std::string, bool> gLaunchApplications;
+        std::map<std::string, AppLastExitReason> gApplicationsExitReason;
         
         uint32_t getKeyFlag(std::string modifier)
         {
@@ -403,6 +411,7 @@ namespace WPEFramework {
         std::mutex gDestroyMutex;
 
         std::mutex gLaunchMutex;
+        std::mutex gExitReasonMutex;
         int32_t gLaunchCount = 0;
 
         static std::thread shellThread;
@@ -591,6 +600,18 @@ namespace WPEFramework {
             if (service)
             {
                 PluginHost::IShell::state currentState(service->State());
+
+                gExitReasonMutex.lock();
+                if ((currentState == PluginHost::IShell::DEACTIVATED) || (currentState == PluginHost::IShell::DESTROYED))
+                {
+                     gApplicationsExitReason[service->Callsign()] = AppLastExitReason::DEACTIVATED;
+                }
+                if(service->Reason() == PluginHost::IShell::FAILURE)
+                {
+                    gApplicationsExitReason[service->Callsign()] = AppLastExitReason::CRASH;
+                }
+                gExitReasonMutex.unlock();
+
                 if (currentState == PluginHost::IShell::ACTIVATION)
                 {
                    std::string configLine = service->ConfigLine();
@@ -4269,6 +4290,17 @@ namespace WPEFramework {
                                 {
                                     typeObject["uri"] = "";
                                 }
+                                gExitReasonMutex.lock();
+                                if (gApplicationsExitReason.find(callsign) != gApplicationsExitReason.end())
+                                {
+                                    typeObject["lastExitReason"] = (int)gApplicationsExitReason[callsign];
+                                }
+                                else
+                                {
+                                    typeObject["lastExitReason"] = (int)AppLastExitReason::UNDEFINED;
+                                }
+                                gExitReasonMutex.unlock();
+
                                 stateArray.Add(typeObject);
                             }
                         }
