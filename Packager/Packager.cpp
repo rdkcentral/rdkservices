@@ -41,10 +41,10 @@ namespace {
         _implementation = _service->Root<Exchange::IPackager>(_connectionId, 2000, _T("PackagerImplementation"));
         if (_implementation == nullptr) {
             result = _T("Couldn't create package instance");
-        } else {
-            if (_implementation->Configure(_service) != Core::ERROR_NONE) {
-                result = _T("Couldn't initialize package instance");
-            }
+            _service->Unregister(&_notification);
+        } else if (_implementation->Configure(_service) != Core::ERROR_NONE) {
+            result = _T("Couldn't initialize package instance");
+            _service->Unregister(&_notification);
         }
 
         return (result);
