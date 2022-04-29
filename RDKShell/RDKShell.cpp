@@ -5364,20 +5364,16 @@ namespace WPEFramework {
                 returnResponse(false);
             }
             std::string group = parameters["group"].String();
-            // CompositoController::createGroup(group);
-            std::cout << "CompositoController::createGroup(" << group << ")\n";
+            std::cout << "CompositorController::createGroup(" << group << ")\n";
 
-            // I assume clients are optional parameter?
+            std::vector<std::string> clients;
             if (parameters.HasLabel("clients"))
             {
                 const JsonArray clientsList = parameters["clients"].Array();
                 for (int i = 0; i < clientsList.Length(); i++)
-                {
-                    std::string client = clientsList[i].String();
-                    // CompositoController::addToGroup(group, client);
-                    std::cout << "CompositoController::addToGroup(" << group << ", " << client << ")\n";
-                }
+                    clients.push_back(clientsList[i].String());
             }
+            CompositorController::createGroup(group, clients);
 
             returnResponse(true);
         }
@@ -5386,9 +5382,9 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
 
-            map<string, vector<string>> groups = {{"group1", {"client1", "client2"}}, {"group2", {"client3", "client4"}}};
-            // CompositoController::getGroups(groups);
-            std::cout << "CompositoController::getGroups()\n";
+            map<string, vector<string>> groups;// = {{"group1", {"client1", "client2"}}, {"group2", {"client3", "client4"}}};
+            CompositorController::getGroups(groups);
+            std::cout << "CompositorController::getGroups()\n";
 
             JsonArray jsonGroups;
             for (const pair<string, vector<string>>& group : groups)
@@ -5416,8 +5412,8 @@ namespace WPEFramework {
                 returnResponse(false);
             }
             std::string group = parameters["group"].String();
-            // CompositoController::deleteGroup(group);
-            std::cout << "CompositoController::deleteGroup(" << group << ")\n";
+            CompositorController::deleteGroup(group);
+            std::cout << "CompositorController::deleteGroup(" << group << ")\n";
 
             returnResponse(true);
         }
@@ -5439,12 +5435,11 @@ namespace WPEFramework {
             bool result = true;
             std::string group = parameters["group"].String();
             const JsonArray clientsList = parameters["clients"].Array();
+            std::vector<std::string> clients;
             for (int i = 0; i < clientsList.Length(); i++)
-            {
-                std::string client = clientsList[i].String();
-                // result = CompositoController::addToGroup(group, client);
-                std::cout << "CompositoController::setGroup(" << group << ", " << client << ")\n";
-            }
+                clients.push_back(clientsList[i].String());
+
+            CompositorController::setGroup(group, clients);
 
             returnResponse(result);
         }
@@ -5465,14 +5460,12 @@ namespace WPEFramework {
 
             bool result = true;
             std::string group = parameters["group"].String();
+            std::vector<std::string> clients;
             const JsonArray clientsList = parameters["clients"].Array();
             for (int i = 0; i < clientsList.Length(); i++)
-            {
-                std::string client = clientsList[i].String();
-                // result = CompositoController::removeFromGroup(group, client);
-                std::cout << "CompositoController::removeFromGroup(" << group << ", " << client << ")\n";
-            }
+                clients.push_back(clientsList[i].String());
 
+            CompositorController::removeFromGroup(group, clients);
             returnResponse(result);
         }
 
@@ -5493,33 +5486,34 @@ namespace WPEFramework {
             }
 
             JsonObject properties = parameters["properties"].Object();
-            if (properties.HasLabel("position"))
+            if (properties.HasLabel("position") && properties.HasLabel("size"))
             {
                 JsonObject pos = properties["position"].Object();
-                if (!pos.HasLabel("x") || !pos.HasLabel("y"))
+                JsonObject size = properties["size"].Object();
+                if (!pos.HasLabel("x") || !pos.HasLabel("y") || !size.HasLabel("w") || !size.HasLabel("h"))
                 {
-                    response["message"] = "please specify x and y parameter of position property";
+                    response["message"] = "please specify x, y, w, h parameter of position property";
                     returnResponse(false);
                 }
                 else
                 {
-                    std::cout << "setPropertiesWrapper position: " << pos["x"].Number() << "," << pos["y"].Number() << "\n";
+                    CompositorController::setBounds(id, pos["x"].Number(), pos["y"].Number(), pos["w"].Number(), pos["h"].Number());
                 }
             }
 
-            if (properties.HasLabel("size"))
-            {
-                JsonObject size = properties["size"].Object();
-                if (!size.HasLabel("w") || !size.HasLabel("h"))
-                {
-                    response["message"] = "please specify w and h parameter of size property";
-                    returnResponse(false);
-                }
-                else
-                {
-                    std::cout << "setPropertiesWrapper size: " << size["w"].Number() << "," << size["h"].Number() << "\n";
-                }
-            }
+            // if (properties.HasLabel("size"))
+            // {
+            //     JsonObject size = properties["size"].Object();
+            //     if (!size.HasLabel("w") || !size.HasLabel("h"))
+            //     {
+            //         response["message"] = "please specify w and h parameter of size property";
+            //         returnResponse(false);
+            //     }
+            //     else
+            //     {
+            //         std::cout << "setPropertiesWrapper size: " << size["w"].Number() << "," << size["h"].Number() << "\n";
+            //     }
+            // }
 
             if (properties.HasLabel("scale"))
             {
@@ -5531,7 +5525,8 @@ namespace WPEFramework {
                 }
                 else
                 {
-                    std::cout << "setPropertiesWrapper scale: " << scale["x"].Number() << "," << scale["y"].Number() << "\n";
+                    CompositorController::setScale(id, scale["x"].Number(), scale["y"].Number());;
+                    //std::cout << "setPropertiesWrapper scale: " << scale["x"].Number() << "," << scale["y"].Number() << "\n";
                 }
             }
 
@@ -5542,12 +5537,12 @@ namespace WPEFramework {
 
             if (properties.HasLabel("opacity"))
             {
-                std::cout << "setPropertiesWrapper opacity: " << properties["opacity"].Number() << "\n";
+                CompositorController::setOpacity(id, properties["opacity"].Number());
             }
 
             if (properties.HasLabel("visibility"))
             {
-                std::cout << "setPropertiesWrapper visibility: " << properties["visibility"].Number() << "\n";
+                CompositorController::setOpacity(id, properties["visibility"].Number());
             }
 
             if (properties.HasLabel("blendingFactors"))
