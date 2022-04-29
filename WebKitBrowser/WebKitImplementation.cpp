@@ -2162,6 +2162,13 @@ static GSourceFuncs _handlerIntervention =
                 }
                 g_mkdir_with_parents(wpeStoragePath, 0700);
 
+                // Default value suggested by HTML5 spec
+                uint32_t localStorageDatabaseQuotaInBytes = 5 * 1024 * 1024;
+                if (_config.LocalStorageSize.IsSet() == true && _config.LocalStorageSize.Value() != 0) {
+                    localStorageDatabaseQuotaInBytes = _config.LocalStorageSize.Value() * 1024;
+                    TRACE(Trace::Information, (_T("Configured LocalStorage Quota  %u bytes"), localStorageDatabaseQuotaInBytes));
+                }
+
                 gchar* wpeDiskCachePath;
                 if (_config.DiskCacheDir.IsSet() == true && _config.DiskCacheDir.Value().empty() == false) {
                     wpeDiskCachePath = g_build_filename(_config.DiskCacheDir.Value().c_str(), "wpe", "disk-cache", nullptr);
@@ -2170,7 +2177,7 @@ static GSourceFuncs _handlerIntervention =
                 }
                 g_mkdir_with_parents(wpeDiskCachePath, 0700);
 
-                auto* websiteDataManager = webkit_website_data_manager_new("local-storage-directory", wpeStoragePath, "disk-cache-directory", wpeDiskCachePath, nullptr);
+                auto* websiteDataManager = webkit_website_data_manager_new("local-storage-directory", wpeStoragePath, "disk-cache-directory", wpeDiskCachePath, "local-storage-quota", localStorageDatabaseQuotaInBytes, nullptr);
                 g_free(wpeStoragePath);
                 g_free(wpeDiskCachePath);
 
