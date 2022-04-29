@@ -455,6 +455,7 @@ static GSourceFuncs _handlerIntervention =
                 , Transparent(false)
                 , Compositor()
                 , Inspector()
+                , InspectorNative()
                 , FPS(false)
                 , Cursor(false)
                 , Touch(false)
@@ -507,6 +508,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("transparent"), &Transparent);
                 Add(_T("compositor"), &Compositor);
                 Add(_T("inspector"), &Inspector);
+                Add(_T("inspectornative"), &InspectorNative);
                 Add(_T("fps"), &FPS);
                 Add(_T("cursor"), &Cursor);
                 Add(_T("touch"), &Touch);
@@ -566,6 +568,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::Boolean Transparent;
             Core::JSON::String Compositor;
             Core::JSON::String Inspector;
+            Core::JSON::Boolean InspectorNative;
             Core::JSON::Boolean FPS;
             Core::JSON::Boolean Cursor;
             Core::JSON::Boolean Touch;
@@ -1734,11 +1737,19 @@ static GSourceFuncs _handlerIntervention =
 
             // WebInspector
             if (_config.Inspector.Value().empty() == false) {
+#ifdef WEBKIT_GLIB_API
+                if (_config.InspectorNative.Value()) {
+                    Core::SystemInfo::SetEnvironment(_T("WEBKIT_INSPECTOR_SERVER"), _config.Inspector.Value(), !environmentOverride);
+                } else {
+                    Core::SystemInfo::SetEnvironment(_T("WEBKIT_INSPECTOR_HTTP_SERVER"), _config.Inspector.Value(), !environmentOverride);
+                }
+#else
                 if (_config.Automation.Value()) {
                     Core::SystemInfo::SetEnvironment(_T("WEBKIT_INSPECTOR_SERVER"), _config.Inspector.Value(), !environmentOverride);
                 } else {
                     Core::SystemInfo::SetEnvironment(_T("WEBKIT_LEGACY_INSPECTOR_SERVER"), _config.Inspector.Value(), !environmentOverride);
                 }
+#endif
             }
 
             // RPI mouse support
