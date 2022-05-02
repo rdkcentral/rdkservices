@@ -3757,7 +3757,6 @@ namespace WPEFramework {
 
             bool success = false;
 
-#ifdef ENABLE_SYSTEM_UPLOAD_LOGS
             string url;
             getStringParameter("url", url);
             auto err = UploadLogs::upload(url);
@@ -3765,9 +3764,6 @@ namespace WPEFramework {
                 response["error"] = UploadLogs::errToText(err);
             else
                 success = true;
-#else
-            response["error"] = "unsupported";
-#endif
 
             returnResponse(success);
         }
