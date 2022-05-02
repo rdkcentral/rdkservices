@@ -54,9 +54,7 @@
 #include "powerstate.h"
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
-#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
 #include "mfrMgr.h"
-#endif
 
 #ifdef ENABLE_DEEP_SLEEP
 #include "deepSleepMgr.h"
@@ -338,6 +336,7 @@ namespace WPEFramework {
             registerMethod("getMode", &SystemServices::getMode, this);
             registerMethod("updateFirmware", &SystemServices::updateFirmware, this);
             registerMethod("setMode", &SystemServices::setMode, this);
+            registerMethod("setBootLoaderPattern", &SystemServices::setBootLoaderPattern, this);
             registerMethod("getFirmwareUpdateInfo",
                     &SystemServices::getFirmwareUpdateInfo, this);
             registerMethod("setDeepSleepTimer", &SystemServices::setDeepSleepTimer,
@@ -1103,6 +1102,42 @@ namespace WPEFramework {
             modeInfo["duration"] = m_remainingDuration;
             response["modeInfo"] = modeInfo;
             returnResponse(true);
+        }
+
+        /***
+         * @brief : Sets the bootloader pattern to MFR. 
+         * @param1[in]  : {"pattern":"<string>"}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return              : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setBootLoaderPattern(const JsonObject& parameters,
+                JsonObject& response)
+        {
+                returnIfParamNotFound(parameters, "pattern");
+                bool status = false;
+                IARM_Bus_MFRLib_SetBLPattern_Param_t mfrparam;
+                mfrparam.pattern = mfrBL_PATTERN_NORMAL;
+                string strBLPattern = parameters["pattern"].String();
+                if (strBLPattern == "NORMAL") {
+                    mfrparam.pattern = mfrBL_PATTERN_NORMAL;
+                    status = true;
+                }
+                else if (strBLPattern == "SILENT") {
+                    mfrparam.pattern = mfrBL_PATTERN_SILENT;
+                    status = true;
+                }
+                else if (strBLPattern == "SILENT_LED_ON") {
+                    mfrparam.pattern = mfrBL_PATTERN_SILENT_LED_ON;
+                    status = true;
+                }
+                LOGWARN("setBootLoaderPattern :%d \n", mfrparam.pattern);
+                if(status == true)
+                {
+                   if (IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_SetBootLoaderPattern, (void *)&mfrparam, sizeof(mfrparam))){
+                        status = false;
+                   }
+                }
+                returnResponse(status);
         }
 
         /***
@@ -3722,7 +3757,6 @@ namespace WPEFramework {
 
             bool success = false;
 
-#ifdef ENABLE_SYSTEM_UPLOAD_LOGS
             string url;
             getStringParameter("url", url);
             auto err = UploadLogs::upload(url);
@@ -3730,9 +3764,6 @@ namespace WPEFramework {
                 response["error"] = UploadLogs::errToText(err);
             else
                 success = true;
-#else
-            response["error"] = "unsupported";
-#endif
 
             returnResponse(success);
         }

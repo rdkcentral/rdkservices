@@ -184,10 +184,6 @@ namespace WPEFramework
             m_useIpv6WifiCache = false;
             m_useIpv4EthCache = false;
             m_useIpv6EthCache = false;
-            m_useStbIPCache = false;
-            m_stbIpCache = "";
-            m_useStbIPFamilyCache = false;
-            m_stbIpFamilyCache = "";
             m_useDefInterfaceCache = false;
             m_defInterfaceCache = "";
             m_useInterfacesCache = false;
@@ -456,7 +452,7 @@ namespace WPEFramework
                     response["interface"] = m_defInterfaceCache;
                     result = true;
                 }
-		else if (_getDefaultInterface(interface, gateway))
+                else if (_getDefaultInterface(interface, gateway))
                 {
                     response["interface"] = m_netUtils.getInterfaceDescription(interface);
                     m_defInterfaceCache = m_netUtils.getInterfaceDescription(interface);
@@ -520,21 +516,24 @@ namespace WPEFramework
 
             if(m_isPluginReady)
             {
-                if(m_useStbIPCache)
+                int errCode;
+                JsonObject internal;
+                JsonObject internalResponse;
+                internal["ipversion"] = "ipv6";
+                internal["interface"] = m_defInterfaceCache;
+
+                if (getIPSettingsInternal(internal, internalResponse, errCode))
                 {
-                    response["ip"] = m_stbIpCache;
-                    result = true;
-                }
-                else if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip, (void*)&param, sizeof(param)))
-                {
-                    response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
-                    m_stbIpCache = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
-                    m_useStbIPCache = true;
-                    result = true;
-                }
-                else
-                {
-                    response["ip"] = "";
+                    if (NETWORK_IPADDRESS_ACQUIRED == errCode)
+                    {
+                        response["ip"] = internalResponse["ipaddr"];
+                        m_defInterfaceCache = internalResponse["interface"];
+                        result = true;
+                    }
+                    else
+                    {
+                        LOGWARN ("Failed to get IP Address for this family");
+                    }
                 }
             }
             else
@@ -553,31 +552,23 @@ namespace WPEFramework
             {
                 if (parameters.HasLabel("family"))
                 {
-                    if (m_useStbIPFamilyCache)
-                    {
-                        response["ip"] = m_stbIpFamilyCache;
-                        result = true;
-                    }
-                    else
-                    {
-                        IARM_BUS_NetSrvMgr_Iface_EventData_t param;
-                        memset(&param, 0, sizeof(param));
+                    int errCode;
+                    JsonObject internal;
+                    JsonObject internalResponse;
+                    internal["ipversion"] = parameters["family"];
+                    internal["interface"] = m_defInterfaceCache;
 
-                        string ipfamily("");
-                        getStringParameter("family", ipfamily);
-                        strncpy(param.ipfamily,ipfamily.c_str(),MAX_IP_FAMILY_SIZE);
-
-                        if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getSTBip_family, (void*)&param, sizeof(param)))
+                    if (getIPSettingsInternal(internal, internalResponse, errCode))
+                    {
+                        if (NETWORK_IPADDRESS_ACQUIRED == errCode)
                         {
-                            response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
-                            m_stbIpFamilyCache = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
-                            m_useStbIPFamilyCache = true;
+                            response["ip"] = internalResponse["ipaddr"];
+                            m_defInterfaceCache = internalResponse["interface"];
                             result = true;
                         }
                         else
                         {
-                            LOGWARN ("Query to get IPaddress by Family Failed..");
-                            response["ip"] = "";
+                            LOGWARN ("Failed to get IP Address for this family");
                         }
                     }
                 }
@@ -1071,7 +1062,7 @@ namespace WPEFramework
             returnResponse(result)
         }
 
-        bool Network::getIPSettingsInternal(const JsonObject& parameters, JsonObject& response,int errCode)
+        bool Network::getIPSettingsInternal(const JsonObject& parameters, JsonObject& response,int& errCode)
         {
             string interface = "";
             string ipversion = "";
@@ -1350,7 +1341,6 @@ namespace WPEFramework
                     m_useIpv6EthCache = false;
                 }
 
-                m_useStbIPCache = false;
             }
             if (ipv4Addr != "")
             {
@@ -1374,7 +1364,11 @@ namespace WPEFramework
             params["oldInterfaceName"] = m_netUtils.getInterfaceDescription(oldInterface);
             params["newInterfaceName"] = m_netUtils.getInterfaceDescription(newInterface);
             m_useDefInterfaceCache = false;
-            m_useStbIPFamilyCache = false;
+            m_useIpv4WifiCache = false;
+            m_useIpv6WifiCache = false;
+            m_useIpv4EthCache = false;
+            m_useIpv6EthCache = false;
+            m_defInterfaceCache = m_netUtils.getInterfaceDescription(newInterface);
             sendNotify("onDefaultInterfaceChanged", params);
         }
 

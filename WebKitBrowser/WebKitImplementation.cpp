@@ -455,6 +455,7 @@ static GSourceFuncs _handlerIntervention =
                 , Transparent(false)
                 , Compositor()
                 , Inspector()
+                , InspectorNative()
                 , FPS(false)
                 , Cursor(false)
                 , Touch(false)
@@ -507,6 +508,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("transparent"), &Transparent);
                 Add(_T("compositor"), &Compositor);
                 Add(_T("inspector"), &Inspector);
+                Add(_T("inspectornative"), &InspectorNative);
                 Add(_T("fps"), &FPS);
                 Add(_T("cursor"), &Cursor);
                 Add(_T("touch"), &Touch);
@@ -566,6 +568,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::Boolean Transparent;
             Core::JSON::String Compositor;
             Core::JSON::String Inspector;
+            Core::JSON::Boolean InspectorNative;
             Core::JSON::Boolean FPS;
             Core::JSON::Boolean Cursor;
             Core::JSON::Boolean Touch;
@@ -1734,11 +1737,19 @@ static GSourceFuncs _handlerIntervention =
 
             // WebInspector
             if (_config.Inspector.Value().empty() == false) {
+#ifdef WEBKIT_GLIB_API
+                if (_config.InspectorNative.Value()) {
+                    Core::SystemInfo::SetEnvironment(_T("WEBKIT_INSPECTOR_SERVER"), _config.Inspector.Value(), !environmentOverride);
+                } else {
+                    Core::SystemInfo::SetEnvironment(_T("WEBKIT_INSPECTOR_HTTP_SERVER"), _config.Inspector.Value(), !environmentOverride);
+                }
+#else
                 if (_config.Automation.Value()) {
                     Core::SystemInfo::SetEnvironment(_T("WEBKIT_INSPECTOR_SERVER"), _config.Inspector.Value(), !environmentOverride);
                 } else {
                     Core::SystemInfo::SetEnvironment(_T("WEBKIT_LEGACY_INSPECTOR_SERVER"), _config.Inspector.Value(), !environmentOverride);
                 }
+#endif
             }
 
             // RPI mouse support
@@ -2151,6 +2162,13 @@ static GSourceFuncs _handlerIntervention =
                 }
                 g_mkdir_with_parents(wpeStoragePath, 0700);
 
+                // Default value suggested by HTML5 spec
+                uint32_t localStorageDatabaseQuotaInBytes = 5 * 1024 * 1024;
+                if (_config.LocalStorageSize.IsSet() == true && _config.LocalStorageSize.Value() != 0) {
+                    localStorageDatabaseQuotaInBytes = _config.LocalStorageSize.Value() * 1024;
+                    TRACE(Trace::Information, (_T("Configured LocalStorage Quota  %u bytes"), localStorageDatabaseQuotaInBytes));
+                }
+
                 gchar* wpeDiskCachePath;
                 if (_config.DiskCacheDir.IsSet() == true && _config.DiskCacheDir.Value().empty() == false) {
                     wpeDiskCachePath = g_build_filename(_config.DiskCacheDir.Value().c_str(), "wpe", "disk-cache", nullptr);
@@ -2159,7 +2177,7 @@ static GSourceFuncs _handlerIntervention =
                 }
                 g_mkdir_with_parents(wpeDiskCachePath, 0700);
 
-                auto* websiteDataManager = webkit_website_data_manager_new("local-storage-directory", wpeStoragePath, "disk-cache-directory", wpeDiskCachePath, nullptr);
+                auto* websiteDataManager = webkit_website_data_manager_new("local-storage-directory", wpeStoragePath, "disk-cache-directory", wpeDiskCachePath, "local-storage-quota", localStorageDatabaseQuotaInBytes, nullptr);
                 g_free(wpeStoragePath);
                 g_free(wpeDiskCachePath);
 

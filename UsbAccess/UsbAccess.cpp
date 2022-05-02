@@ -269,13 +269,15 @@ namespace Plugin {
 
         string name = fileName.substr(fileName.find_last_of("/\\") + 1);
         string path = fileName.substr(0, fileName.find_last_of("/\\"));
-        if (!name.empty() && !path.empty() &&
+
+        if (fileName.find('\'') == string::npos &&
+            !name.empty() && !path.empty() &&
             std::regex_match(name, std::regex(deviceSpecificRegexBin(), std::regex_constants::icase)) == true)
         {
             char buff[1000];
             size_t n = sizeof(buff);
             int size = snprintf(buff, n,
-                    "/lib/rdk/userInitiatedFWDnld.sh %s %s %s %d >> /opt/logs/swupdate.log &",
+                    "/lib/rdk/userInitiatedFWDnld.sh %s '%s' '%s' %d >> /opt/logs/swupdate.log &",
                     "usb",
                     path.c_str(),
                     name.c_str(),

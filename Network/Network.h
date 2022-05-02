@@ -143,7 +143,7 @@ namespace WPEFramework {
 
             JsonObject _doPing(const std::string& guid, const std::string& endPoint, int packets);
             JsonObject _doPingNamedEndpoint(const std::string& guid, const std::string& endpointName, int packets);
-            bool getIPSettingsInternal(const JsonObject& parameters, JsonObject& response,int errCode);
+            bool getIPSettingsInternal(const JsonObject& parameters, JsonObject& response,int& errCode);
             uint32_t setIPSettingsInternal(const JsonObject& parameters, JsonObject& response);
 
         public:
@@ -183,10 +183,6 @@ namespace WPEFramework {
             std::atomic<bool> m_useIpv6WifiCache;
             std::atomic<bool> m_useIpv4EthCache;
             std::atomic<bool> m_useIpv6EthCache;
-            std::atomic<bool> m_useStbIPCache;
-            string m_stbIpCache;
-            std::atomic<bool> m_useStbIPFamilyCache;
-            string m_stbIpFamilyCache;
             std::atomic<bool> m_useDefInterfaceCache;
             string m_defInterfaceCache;
             std::atomic<bool> m_useInterfacesCache;
