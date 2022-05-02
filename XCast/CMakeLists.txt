@@ -27,7 +27,8 @@ add_library(${MODULE_NAME} SHARED
         RtXcastConnector.cpp
         XCastSystemRemoteObject.cpp
 	../helpers/tptimer.cpp
-        ../helpers/utils.cpp)
+        ../helpers/utils.cpp
+        ../helpers/powerstate.cpp)
 
 find_package(IARMBus)
 set_target_properties(${MODULE_NAME} PROPERTIES

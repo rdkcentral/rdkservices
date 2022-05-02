@@ -31,7 +31,6 @@
 #ifdef __cplusplus
 extern "C" {
 #include "libIBus.h"
-#include "pwrMgr.h"
 }
 #endif
 
@@ -52,7 +51,7 @@ bool CPowerState::stop()
     return true;
 }
 
-bool CPowerState::setPowerState(std::string powerState)
+bool CPowerState::setPowerState(std::string powerState, const IARM_Bus_PWRMgr_PowerStateSource_t source)
 {
     IARM_Bus_PWRMgr_SetPowerState_Param_t param;
     //if (powerState.compare("standby", Qt::CaseInsensitive) == 0)
@@ -82,6 +81,8 @@ bool CPowerState::setPowerState(std::string powerState)
         /* powerState can be one of "ON" or "STANDBY". */
         return false;
     }
+
+    param.stateSource = source;
 
     IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_SetPowerState,
                   (void *)&param, sizeof(param));

@@ -29,6 +29,7 @@
 #define POWERSTATE_H
 
 #include <string>
+#include "pwrMgr.h"
 
 class SystemService;
 
@@ -39,7 +40,7 @@ public:
 
     bool start();
     bool stop();
-    bool setPowerState(std::string powerState);
+    bool setPowerState(std::string powerState, const IARM_Bus_PWRMgr_PowerStateSource_t source = IARM_BUS_PWRMGR_STATE_SOURCE_REQUEST);
     std::string getPowerState();
 };
 
