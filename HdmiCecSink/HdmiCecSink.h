@@ -535,11 +535,14 @@ private:
 			void sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason);
 			void systemAudioModeRequest();
                         void SendStandbyMsgEvent(const int logicalAddress);
+                        void requestAudioDevicePowerStatus();
+                        void reportAudioDevicePowerStatusInfo(const int logicalAddress, const int powerStatus);
             void Process_ReportAudioStatus_msg(const ReportAudioStatus msg);
             void sendKeyPressEvent(const int logicalAddress, int keyCode);
             void sendKeyReleaseEvent(const int logicalAddress);
 			void sendGiveAudioStatusMsg();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
+			bool m_audioDevicePowerStatusRequested;
         private:
             // We do not allow this plugin to be copied !!
             HdmiCecSink(const HdmiCecSink&) = delete;
@@ -568,6 +571,7 @@ private:
                         uint32_t sendRemoteKeyPressWrapper(const JsonObject& parameters, JsonObject& response);
 	                uint32_t sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t getAudioDeviceConnectedStatusWrapper(const JsonObject& parameters, JsonObject& response);
+                        uint32_t requestAudioDevicePowerStatusWrapper(const JsonObject& parameters, JsonObject& response);
                         //End methods
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;
