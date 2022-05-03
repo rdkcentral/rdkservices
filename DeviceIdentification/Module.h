@@ -21,7 +21,7 @@
 #define OPENPLUGIN_DEVICEIDENTIFICATION_MODULE_H
 
 #ifndef MODULE_NAME
-#define MODULE_NAME Plugin_DeviceInfo
+#define MODULE_NAME Plugin_DeviceIdentification
 #endif
 
 #include <plugins/plugins.h>
