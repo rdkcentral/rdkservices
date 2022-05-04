@@ -310,7 +310,6 @@ namespace WPEFramework {
                         LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
                         system(cmd.c_str());
                     }
-                    LOGINFO("Inside task thread for loop");
                 }
             }
             m_abort_flag=false;
@@ -816,7 +815,6 @@ namespace WPEFramework {
         }
         void MaintenanceManager::DeinitializeIARM()
         {
-            LOGINFO("Executing DeinitializeIARM()");
             if (Utils::IARM::isConnected()){
                 IARM_Result_t res;
                 IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE));
