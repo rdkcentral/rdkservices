@@ -2,7 +2,7 @@
 * If not stated otherwise in this file or this component's LICENSE
 * file the following copyright and licenses apply:
 *
-* Copyright 2020 RDK Management
+* Copyright 2019 RDK Management
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,14 +18,13 @@
 **/
 
 #include "AVInput.h"
-#include "dsMgr.h"
+#include "utils.h"
 #include "hdmiIn.hpp"
 #include "compositeIn.hpp"
-#include "UtilsJsonRpc.h"
-#include "UtilsIarm.h"
 #include "exception.hpp"
 #include "dsUtl.h"
 #include "dsError.h"
+#include "dsMgr.h"
 #include <vector>
 #include <algorithm>
 
@@ -50,6 +49,7 @@
 #define AVINPUT_EVENT_ON_VIDEO_MODE_UPDATED "videoStreamInfoUpdate"
 
 using namespace std;
+
 int getTypeOfInput(string sType)
 {
     int iType = -1;
@@ -62,45 +62,49 @@ int getTypeOfInput(string sType)
     return iType;
 }
 
-namespace WPEFramework {
-    namespace Plugin {
+namespace WPEFramework
+{
+    namespace Plugin
+    {
         SERVICE_REGISTRATION(AVInput, 1, 0);
 
         AVInput* AVInput::_instance = nullptr;
 
         AVInput::AVInput()
-            : PluginHost::JSONRPC()
+        : AbstractPlugin(2)
         {
-            RegisterAll();
-	}
+            AVInput::_instance = this;
+
+            InitializeIARM();
+
+            registerMethod(AVINPUT_METHOD_GET_INPUT_DEVICES, &AVInput::getInputDevicesWrapper, this);
+            registerMethod(AVINPUT_METHOD_WRITE_EDID, &AVInput::writeEDIDWrapper, this);
+            registerMethod(AVINPUT_METHOD_READ_EDID, &AVInput::readEDIDWrapper, this);
+            //version2 api start
+            registerMethod(AVINPUT_METHOD_READ_RAWSPD, &AVInput::getRawSPDWrapper, this, {2});
+            registerMethod(AVINPUT_METHOD_READ_SPD, &AVInput::getSPDWrapper, this, {2});
+            registerMethod(AVINPUT_METHOD_SET_EDID_VERSION, &AVInput::setEdidVersionWrapper, this, {2});
+            registerMethod(AVINPUT_METHOD_GET_EDID_VERSION, &AVInput::getEdidVersionWrapper, this, {2});
+            //version2 api end
+            registerMethod(AVINPUT_METHOD_START_INPUT, &AVInput::startInput, this);
+            registerMethod(AVINPUT_METHOD_STOP_INPUT, &AVInput::stopInput, this);
+            registerMethod(AVINPUT_METHOD_SCALE_INPUT, &AVInput::setVideoRectangleWrapper, this);
+        }
 
         AVInput::~AVInput()
         {
-            UnregisterAll();
         }
 
-        const string AVInput::Initialize(PluginHost::IShell * /* service */)
+        void AVInput::Deinitialize(PluginHost::IShell* /* service */)
         {
-            AVInput::_instance = this;
-            InitializeIARM();
-
-            return (string());
-        }
-
-        void AVInput::Deinitialize(PluginHost::IShell * /* service */)
-        {
-            DeinitializeIARM();
             AVInput::_instance = nullptr;
-        }
-
-        string AVInput::Information() const
-        {
-            return (string());
+            DeinitializeIARM();
         }
 
         void AVInput::InitializeIARM()
         {
-            if (Utils::IARM::init()) {
+            if (Utils::IARM::init())
+            {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsAVEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS, dsAVSignalStatusEventHandler) );
@@ -114,7 +118,8 @@ namespace WPEFramework {
 
         void AVInput::DeinitializeIARM()
         {
-            if (Utils::IARM::isConnected()) {
+            if (Utils::IARM::isConnected())
+            {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS) );
@@ -124,112 +129,6 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS) );
             }
-        }
-
-        void AVInput::RegisterAll()
-        {
-            Register<JsonObject, JsonObject>(_T("numberOfInputs"), &AVInput::endpoint_numberOfInputs, this);
-            Register<JsonObject, JsonObject>(_T("currentVideoMode"), &AVInput::endpoint_currentVideoMode, this);
-            Register<JsonObject, JsonObject>(_T("contentProtected"), &AVInput::endpoint_contentProtected, this);
-            Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_INPUT_DEVICES), &AVInput::getInputDevicesWrapper, this);
-            Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_WRITE_EDID), &AVInput::writeEDIDWrapper, this);
-            Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_READ_EDID), &AVInput::readEDIDWrapper, this);
-            Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_READ_RAWSPD), &AVInput::getRawSPDWrapper, this);
-            Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_READ_SPD), &AVInput::getSPDWrapper, this);
-            Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_EDID_VERSION), &AVInput::setEdidVersionWrapper, this);
-            Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_EDID_VERSION), &AVInput::getEdidVersionWrapper, this);
-            Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_START_INPUT), &AVInput::startInput, this);
-            Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_STOP_INPUT), &AVInput::stopInput, this);
-            Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SCALE_INPUT), &AVInput::setVideoRectangleWrapper, this);
-        }
-
-        void AVInput::UnregisterAll()
-        {
-            Unregister(_T("numberOfInputs"));
-            Unregister(_T("currentVideoMode"));
-            Unregister(_T("contentProtected"));
-        }
-
-        uint32_t AVInput::endpoint_numberOfInputs(const JsonObject &parameters, JsonObject &response)
-        {
-            LOGINFOMETHOD();
-
-            bool success = false;
-
-            auto result = numberOfInputs(success);
-            if (success) {
-                response[_T("numberOfInputs")] = result;
-            }
-            returnResponse(success);
-        }
-
-        uint32_t AVInput::endpoint_currentVideoMode(const JsonObject &parameters, JsonObject &response)
-        {
-            LOGINFOMETHOD();
-
-            bool success = false;
-
-            auto result = currentVideoMode(success);
-            if (success) {
-                response[_T("currentVideoMode")] = result;
-            }
-            returnResponse(success);
-        }
-
-        uint32_t AVInput::endpoint_contentProtected(const JsonObject &parameters, JsonObject &response)
-        {
-            LOGINFOMETHOD();
-
-            // "Ths is the way it's done in Service Manager"
-            response[_T("isContentProtected")] = true;
-
-            returnResponse(true);
-        }
-
-        void AVInput::event_onAVInputActive(int id)
-        {
-            JsonObject params;
-            params[_T("url")] = "avin://input" + std::to_string(id);
-            sendNotify(_T("onAVInputActive"), params);
-        }
-
-        void AVInput::event_onAVInputInactive(int id)
-        {
-            JsonObject params;
-            params[_T("url")] = "avin://input" + std::to_string(id);
-            sendNotify(_T("onAVInputInactive"), params);
-        }
-
-        int AVInput::numberOfInputs(bool &success)
-        {
-            int result = 0;
-
-            try {
-                result = device::HdmiInput::getInstance().getNumberOfInputs();
-                success = true;
-            }
-            catch (...) {
-                LOGERR("Exception caught");
-                success = false;
-            }
-
-            return result;
-        }
-
-        string AVInput::currentVideoMode(bool &success)
-        {
-            string result;
-
-            try {
-                result = device::HdmiInput::getInstance().getCurrentVideoMode();
-                success = true;
-            }
-            catch (...) {
-                LOGERR("Exception caught");
-                success = false;
-            }
-
-            return result;
         }
 
         uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
@@ -284,7 +183,7 @@ namespace WPEFramework {
                 response["message"] = "Invalid Arguments";
                 returnResponse(false);
             }
-
+            
             try
             {
                 if (iType == HDMI) {
@@ -315,7 +214,7 @@ namespace WPEFramework {
                 result = false;
                 response["message"] = "please specify window width and height (w,h)";
             }
-
+            
             if (!parameters.HasLabel("typeOfInput")) {
                 result = false;
                 response["message"] = "please specify type of input HDMI/COMPOSITE";
@@ -331,7 +230,7 @@ namespace WPEFramework {
 
                 try {
                     if (parameters.HasLabel("x")) {
-                        x = std::stoi(parameters["x"].String());
+                       x = std::stoi(parameters["x"].String());
                     }
                     if (parameters.HasLabel("y")) {
                         y = std::stoi(parameters["y"].String());
@@ -403,7 +302,7 @@ namespace WPEFramework {
                 JsonArray listComposite = getInputDevices(COMPOSITE);
                 for (int i = 0; i < listComposite.Length(); i++) {
                     listHdmi.Add(listComposite.Get(i));
-                }
+            }		
             response["devices"] = listHdmi;
             }
             returnResponse(true);
@@ -513,6 +412,7 @@ namespace WPEFramework {
                     LOGERR("Size too large to use ToString base64 wpe api");
                     return edidbase64;
                 }
+
                 Core::ToString((uint8_t*)&edidVec[0], size, true, edidbase64);
             }
             catch (const device::Exception& err) {
@@ -559,7 +459,7 @@ namespace WPEFramework {
             }
             params["locator"] = locator.str();
             /* values of dsHdmiInSignalStatus_t and dsCompInSignalStatus_t are same
-           Hence used only HDMI macro for case statement */
+	       Hence used only HDMI macro for case statement */
             switch (signalStatus) {
                 case dsHDMI_IN_SIGNAL_STATUS_NOSIGNAL:
                     params["signalStatus"] = "noSignal";
@@ -612,6 +512,7 @@ namespace WPEFramework {
             else {
                 params["status"] = "stopped";
             }
+
             sendNotify(AVINPUT_EVENT_ON_STATUS_CHANGED, params);
         }
 
@@ -757,7 +658,7 @@ namespace WPEFramework {
                 int composite_in_signal_status = eventData->data.composite_in_sig_status.status;
                 LOGWARN("Received IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS  event  port: %d, signal status: %d", composite_in_port,composite_in_signal_status);
                 AVInput::_instance->AVInputSignalChange(composite_in_port, composite_in_signal_status, COMPOSITE);
-            }
+            } 
         }
 
         void AVInput::dsAVStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
@@ -904,14 +805,14 @@ namespace WPEFramework {
                   LOGINFO("%02X ", spdVect[itr]);
                 }
                 if (spdVect.size() > 0) {
-                    struct dsSpd_infoframe_st pre;
-                    memcpy(&pre,spdVect.data(),sizeof(struct dsSpd_infoframe_st));
+                struct dsSpd_infoframe_st pre;
+                memcpy(&pre,spdVect.data(),sizeof(struct dsSpd_infoframe_st));
 
-                    char str[200] = {0};
-                    sprintf(str, "Packet Type:%02X,Version:%u,Length:%u,vendor name:%s,product des:%s,source info:%02X"
-,pre.pkttype,pre    .version,pre.length,pre.vendor_name,pre.product_des,pre.source_info);
-                    spdbase64 = str;
-                }
+               char str[200] = {0};
+               sprintf(str, "Packet Type:%02X,Version:%u,Length:%u,vendor name:%s,product des:%s,source info:%02X"
+,pre.pkttype,pre.version,pre.length,pre.vendor_name,pre.product_des,pre.source_info);
+               spdbase64 = str;
+               }
             }
             catch (const device::Exception& err) {
                 LOG_DEVICE_EXCEPTION1(std::to_string(iPort));
