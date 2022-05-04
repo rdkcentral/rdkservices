@@ -95,6 +95,9 @@ AVInput interface methods:
 | [setEdidVersion](#method.setEdidVersion) | (Version 2) Sets an HDMI EDID version |
 | [setVideoRectangle](#method.setVideoRectangle) | Sets an HDMI/Composite Input video window |
 | [writeEDID](#method.writeEDID) | Changes a current EDID value |
+| [contentProtected](#method.contentProtected) | Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false` |
+| [currentVideoMode](#method.currentVideoMode) | Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input |
+| [numberOfInputs](#method.numberOfInputs) | Returns an integer that specifies the number of available inputs |
 
 
 <a name="method.getInputDevices"></a>
@@ -634,6 +637,153 @@ No Events.
 }
 ```
 
+<a name="method.contentProtected"></a>
+## *contentProtected [<sup>method</sup>](#head.Methods)*
+
+Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false`. If the content is protected, then it is only presented if the component and composite outputs of the box are disabled.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object | An empty parameter object |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.isContentProtected | boolean | Whether the HDMI input is protected |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.1.contentProtected",
+    "params": {}
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "isContentProtected": true,
+        "success": true
+    }
+}
+```
+
+<a name="method.currentVideoMode"></a>
+## *currentVideoMode [<sup>method</sup>](#head.Methods)*
+
+Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object | An empty parameter object |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.currentVideoMode | string | The current video mode |
+| result.message | string | `Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.1.currentVideoMode",
+    "params": {}
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "currentVideoMode": "Unknown",
+        "message": "Success",
+        "success": true
+    }
+}
+```
+
+<a name="method.numberOfInputs"></a>
+## *numberOfInputs [<sup>method</sup>](#head.Methods)*
+
+Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object | An empty parameter object |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.numberOfInputs | number | The number of inputs that are available for selection |
+| result.message | string | `Success` if plugin is activated successfully and gets the current Videomode. `org.rdk.HdmiInput plugin is not ready` if plugin is not activated or activation failed |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.1.numberOfInputs",
+    "params": {}
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "numberOfInputs": 1,
+        "message": "Success",
+        "success": true
+    }
+}
+```
+
 <a name="head.Notifications"></a>
 # Notifications
 
@@ -649,6 +799,8 @@ AVInput interface events:
 | [onInputStatusChanged](#event.onInputStatusChanged) | Triggered whenever the status changes for an HDMI/Composite Input |
 | [onSignalChanged](#event.onSignalChanged) | Triggered whenever the signal status changes for an HDMI/Composite Input |
 | [videoStreamInfoUpdate](#event.videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI Input video stream info |
+| [onAVInputActive](#event.onAVInputActive) | Triggered when an active device is connected to an AVInput port |
+| [onAVInputInActive](#event.onAVInputInActive) | Triggered when an active device is disconnected from an AVInput port or when the device becomes inactive |
 
 
 <a name="event.onDevicesChanged"></a>
@@ -773,6 +925,54 @@ Triggered whenever there is an update in HDMI Input video stream info.
         "progressive": true,
         "frameRateN": 60000,
         "frameRateD": 1001
+    }
+}
+```
+
+<a name="event.onAVInputActive"></a>
+## *onAVInputActive [<sup>event</sup>](#head.Notifications)*
+
+Triggered when an active device is connected to an AVInput port.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.url | string | The URL of the port with an active device |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onAVInputActive",
+    "params": {
+        "url": "avin://input0"
+    }
+}
+```
+
+<a name="event.onAVInputInActive"></a>
+## *onAVInputInActive [<sup>event</sup>](#head.Notifications)*
+
+Triggered when an active device is disconnected from an AVInput port or when the device becomes inactive.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.url | string | The URL of the port with an inactive device |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onAVInputInActive",
+    "params": {
+        "url": "avin://input0"
     }
 }
 ```
