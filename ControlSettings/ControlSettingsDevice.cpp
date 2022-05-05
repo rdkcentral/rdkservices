@@ -18,59 +18,65 @@
 */
 
 #include <string>
-#include "Device.h"
+#include "ControlSettingsDevice.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-    Device::Device() 
+    ControlSettingsDevice::ControlSettingsDevice() 
     {
         LOGINFO(); 
     }
     
-    void Device::Initialize()
+    void ControlSettingsDevice::Initialize()
     {
         LOGINFO();
     }
-    void Device::DeInitialize()
+    void ControlSettingsDevice::DeInitialize()
     {
         LOGINFO();
     }
 
-    void Device::getAspectRatio()
+    tvError_t ControlSettingsDevice::getAspectRatio()
     {
         LOGINFO("Base Entry : %s\n",__FUNCTION__);
 	LOGINFO("Base Exit  : %s\n",__FUNCTION__);
+	return tvERROR_NONE;
     }
 
-    void Device::setAspectRatio()
+    tvError_t ControlSettingsDevice::setAspectRatio()
     {
         LOGINFO("Base Entry : %s\n",__FUNCTION__);
         LOGINFO("Base Exit  : %s\n",__FUNCTION__);
+        return tvERROR_NONE;
     }
 
-    void Device::getBacklight()
+    tvError_t ControlSettingsDevice::getBacklight()
     {
         LOGINFO("Base Entry : %s\n",__FUNCTION__);
         LOGINFO("Base Exit  : %s\n",__FUNCTION__);
+        return tvERROR_NONE;
     }
 
-    void Device::setBacklight()
+    tvError_t ControlSettingsDevice::setBacklight()
     {
         LOGINFO("Base Entry : %s\n",__FUNCTION__);
         LOGINFO("Base Exit  : %s\n",__FUNCTION__);
+        return tvERROR_NONE;
     }
 
-    void Device::getVolume()
+    tvError_t ControlSettingsDevice::getVolume()
     {
         LOGINFO("Base Entry : %s\n",__FUNCTION__);
         LOGINFO("Base Exit  : %s\n",__FUNCTION__);
+        return tvERROR_NONE;
     }
 
-    void Device::setVolume()
+    tvError_t ControlSettingsDevice::setVolume()
     {
         LOGINFO("Base Entry : %s\n",__FUNCTION__);
         LOGINFO("Base Exit  : %s\n",__FUNCTION__);
+        return tvERROR_NONE;
     }
 
 

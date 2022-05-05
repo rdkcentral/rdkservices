@@ -18,43 +18,47 @@
 */
 
 #include <string>
-#include "TV.h"
+#include "ControlSettingsSTB.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-    TV::TV()
+    ControlSettingsSTB::ControlSettingsSTB()
     {
         LOGINFO(); 
     }
     
-    TV :: ~TV()
-    {
-        LOGINFO();    
-    }
-
-    void TV::Initialize()
-    {
-        LOGINFO();
-	//Platform specific Init Sequence
-    }
-
-    void TV::DeInitialize()
+    ControlSettingsSTB :: ~ControlSettingsSTB()
     {
         LOGINFO();
     }
 
-    void TV::getBacklight()
+    void ControlSettingsSTB::Initialize()
     {
-        LOGINFO("Derived Entry : %s\n",__FUNCTION__);
-        LOGINFO("Derived Exit  : %s\n",__FUNCTION__);
+        LOGINFO();
+        //Platform specific Init Sequence
     }
 
-    void TV::setBacklight()
+    void ControlSettingsSTB::DeInitialize()
+    {
+        LOGINFO();
+    }
+
+    tvError_t ControlSettingsSTB::getVolume()
     {
         LOGINFO("Derived Entry : %s\n",__FUNCTION__);
         LOGINFO("Derived Exit  : %s\n",__FUNCTION__);
+        return tvERROR_NONE;
     }
+
+    tvError_t ControlSettingsSTB::setVolume()
+    {
+        LOGINFO("Derived Entry : %s\n",__FUNCTION__);
+        LOGINFO("Derived Exit  : %s\n",__FUNCTION__);
+        return tvERROR_NONE;
+    }
+
+
 
 }//namespace Plugin
 }//namespace WPEFramework

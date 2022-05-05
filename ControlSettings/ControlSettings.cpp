@@ -248,16 +248,16 @@ namespace Plugin {
                , m_isDisabledHdmiIn4KZoom (false)
     {
         LOGINFO("Entry\n");
-#ifndef ENABLE_TV_SUPPORT
-        devicePtr = new STB;
+#ifndef CONFIG_DEVICE_TV
+        devicePtr = new ControlSettingsSTB;
 #else
-        devicePtr = new TV;
+        devicePtr = new ControlSettingsTV;
 #endif
 
 	ControlSettings::_instance = this;
 	InitializeIARM();
 
-        if(devicePtr->isTvSupportEnabled())//TV Specific API
+        if(devicePtr->isDisplayAvailable())
 	{
             registerMethod("getBacklight", &ControlSettings::getBacklight, this, {2});
             registerMethod("setBacklight", &ControlSettings::setBacklight, this, {2});
@@ -558,9 +558,17 @@ namespace Plugin {
 
         LOGINFO("Entry %s\n",__FUNCTION__);
         PLUGIN_Lock(tvLock);
-	devicePtr->getAspectRatio();
-	LOGINFO("Exit : %s\n",__FUNCTION__);
-	returnResponse(true, "success");
+	tvError_t ret = tvERROR_NONE;
+
+	ret = devicePtr->getAspectRatio();
+
+	if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            LOGINFO("Exit : %s\n",__FUNCTION__);
+            returnResponse(true, "success");
+        }
     }
 
     uint32_t ControlSettings::setAspectRatio(const JsonObject& parameters, JsonObject& response)
@@ -568,9 +576,17 @@ namespace Plugin {
 
         LOGINFO("Entry%s\n",__FUNCTION__);
         PLUGIN_Lock(tvLock);
-	devicePtr->setAspectRatio(); 
-        LOGINFO("Exit : %s\n",__FUNCTION__);
-        returnResponse(true, "success");
+	tvError_t ret = tvERROR_NONE;
+
+        ret = devicePtr->setAspectRatio(); 
+        
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            LOGINFO("Exit : %s\n",__FUNCTION__);
+            returnResponse(true, "success");
+        }
     }
     
     //Backlight
@@ -579,9 +595,17 @@ namespace Plugin {
 
         LOGINFO("Entry %s\n",__FUNCTION__);
         PLUGIN_Lock(tvLock);
-        devicePtr->getBacklight(); 
-        LOGINFO("Exit : %s\n",__FUNCTION__);
-        returnResponse(true, "success");
+        tvError_t ret = tvERROR_NONE;
+
+        ret = devicePtr->getBacklight(); 
+        
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            LOGINFO("Exit : %s\n",__FUNCTION__);
+            returnResponse(true, "success");
+        }
     }
 
     uint32_t ControlSettings::setBacklight(const JsonObject& parameters, JsonObject& response)
@@ -589,9 +613,17 @@ namespace Plugin {
 
         LOGINFO("Entry\n");
         PLUGIN_Lock(tvLock);
-        devicePtr->setBacklight();
-        LOGINFO("Exit : %s\n",__FUNCTION__);
-        returnResponse(true, "success");
+        tvError_t ret = tvERROR_NONE;
+
+        ret = devicePtr->setBacklight();
+
+	if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            LOGINFO("Exit : %s\n",__FUNCTION__);
+            returnResponse(true, "success");
+        }
     }
 
     //Volume -STB
@@ -600,9 +632,17 @@ namespace Plugin {
 
         LOGINFO("Entry\n");
         PLUGIN_Lock(tvLock);
-        devicePtr->getVolume();
-        LOGINFO("Exit : %s\n",__FUNCTION__);
-        returnResponse(true, "success");
+        tvError_t ret = tvERROR_NONE;
+
+        ret = devicePtr->getVolume();
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            LOGINFO("Exit : %s\n",__FUNCTION__);
+            returnResponse(true, "success");
+        }
     }
 
     uint32_t ControlSettings::setVolume(const JsonObject& parameters, JsonObject& response)
@@ -610,9 +650,17 @@ namespace Plugin {
 
         LOGINFO("Entry\n");
         PLUGIN_Lock(tvLock);
-        devicePtr->setVolume(); 
-        LOGINFO("Exit : %s\n",__FUNCTION__);
-        returnResponse(true, "success");
+        tvError_t ret = tvERROR_NONE;
+
+        ret = devicePtr->setVolume(); 
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            LOGINFO("Exit : %s\n",__FUNCTION__);
+            returnResponse(true, "success");
+        }
     }
 
 } //namespace WPEFramework

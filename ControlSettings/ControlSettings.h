@@ -42,9 +42,9 @@
 #include "utils.h"
 #include "tvTypes.h"
 #include "tvError.h"
-#include "Device.h"
-#include "TV.h"
-#include "STB.h"
+#include "ControlSettingsDevice.h"
+#include "ControlSettingsTV.h"
+#include "ControlSettingsSTB.h"
 
 #include "tr181api.h"
 #include "AbstractPlugin.h"
@@ -62,7 +62,7 @@ namespace Plugin {
     private:
         ControlSettings(const ControlSettings&) = delete;
         ControlSettings& operator=(const ControlSettings&) = delete;
-	WPEFramework::Plugin::Device *devicePtr;
+	WPEFramework::Plugin::ControlSettingsDevice *devicePtr;
 
 	DECLARE_JSON_RPC_METHOD(getAspectRatio)
         DECLARE_JSON_RPC_METHOD(setAspectRatio)

@@ -32,23 +32,23 @@
 namespace WPEFramework {
 namespace Plugin {
 
-class Device  {
+class ControlSettingsDevice  {
     private:
-        Device(const Device&) = delete;
-        Device& operator=(const Device&) = delete;
+        ControlSettingsDevice(const ControlSettingsDevice&) = delete;
+        ControlSettingsDevice& operator=(const ControlSettingsDevice&) = delete;
 
     public:
-        Device();
-        ~Device();
-        void getAspectRatio();
-        void setAspectRatio();
+        ControlSettingsDevice();
+        ~ControlSettingsDevice();
+        tvError_t getAspectRatio();
+        tvError_t setAspectRatio();
         virtual void Initialize();
         virtual void DeInitialize();
-	virtual bool isTvSupportEnabled() { return false; }
-	virtual void setBacklight();
-	virtual void getBacklight();
-	virtual void getVolume();
-	virtual void setVolume();
+	virtual bool isDisplayAvailable() { return false; }
+	virtual tvError_t setBacklight();
+	virtual tvError_t getBacklight();
+	virtual tvError_t getVolume();
+	virtual tvError_t setVolume();
 
     protected:
 

@@ -17,28 +17,27 @@
 * limitations under the License.
 */
 
-#ifndef STB_H
-#define STB_H
-
+#ifndef ControlSettingsTV_H
+#define ControlSettingsTV_H
 #include "string.h"
-#include "Device.h"
+#include "ControlSettingsDevice.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-class STB : public Device {
+class ControlSettingsTV : public ControlSettingsDevice {
     private:
-        STB(const STB&) = delete;
-        STB& operator=(const STB&) = delete;
+        ControlSettingsTV(const ControlSettingsTV&) = delete;
+        ControlSettingsTV& operator=(const ControlSettingsTV&) = delete;
 
     public:
-	STB();
-	~STB();
+        ControlSettingsTV();
+        ~ControlSettingsTV();
+        tvError_t getBacklight();
+        tvError_t setBacklight();
         void Initialize();
         void DeInitialize();
-        void getVolume();
-        void setVolume();
-        bool isTvSupportEnabled() { return false; }
+	bool isDisplayAvailable() { return true; }
 };
 
 }//namespace Plugin

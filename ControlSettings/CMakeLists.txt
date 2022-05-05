@@ -44,9 +44,9 @@ include_directories(${STAGING_INCDIR}/rdk/ds)
 
 add_library(${MODULE_NAME} SHARED
     ControlSettings.cpp 
-    Device.cpp
-    TV.cpp
-    STB.cpp
+    ControlSettingsDevice.cpp
+    ControlSettingsTV.cpp
+    ControlSettingsSTB.cpp
     Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
