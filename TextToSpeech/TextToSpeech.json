@@ -52,6 +52,11 @@
             "type": "number",
             "example": 50
         },
+        "apikey": {
+            "summary": "x api key(secret key) required for GCD Endpoints",
+            "type": "string",
+            "example": "XXXXXXXXXXXX"
+        },
         "text":{
             "summary": "The text input",
             "type": "string",
@@ -443,7 +448,21 @@
                     },
                     "rate":{
                         "$ref": "#/definitions/rate"
-                    }
+                    },
+                    "authinfo":{
+                        "type": "object",
+                        "properties": {
+                                       "type": {
+                                                 "summary": "type of authentication,at present only apikey is supported",
+                                                 "type": "string",
+                                                 "example": "apikey"
+                                        },
+                                       "value": {
+                                           "$ref": "#/definitions/apikey"
+                                        }
+
+                               }
+                        }     
                 },
                 "required": [
                 ]
