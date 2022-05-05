@@ -2,7 +2,7 @@
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2022 RDK Management
+ * Copyright 2020 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@
 #include "DemuxerStreamFsFCC.h"
 #include "FileSelectListener.h"
 #include <interfaces/json/JsonData_LinearPlaybackControl.h>
-#include <interfaces/ISystemServices.h>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -46,8 +45,6 @@ namespace Plugin {
         LinearPlaybackControl()
             : _skipURL(0)
             , _service(nullptr)
-            , _notification(this)
-            , _job(*this)
         {
             RegisterAll();
         }
@@ -59,42 +56,7 @@ namespace Plugin {
             UnregisterAll();
         }
 
-        class Notification :public PluginHost::IPlugin::INotification
-                , public Exchange::ISystemServices::INotification {
-        private:
-            Notification() = delete;
-            Notification(const Notification&) = delete;
-
-        public:
-            explicit Notification(LinearPlaybackControl* parent)
-                    : _parent(*parent) {
-                ASSERT(parent != nullptr);
-            }
-            virtual ~Notification() {
-                TRACE(Trace::Information, (_T("LinearPlaybackControl::Notification destructed. Line: %d"), __LINE__));
-            }
-
-        public:
-            virtual void StateChange(PluginHost::IShell* plugin) {
-                _parent.StateChange(plugin);
-            }
-
-            virtual void StateChange(const Exchange::ISystemServices::SystemServicesState state, int left_time) {
-                _parent.StateChange(state, left_time);
-            }
-
-            BEGIN_INTERFACE_MAP(Notification)
-                INTERFACE_ENTRY(PluginHost::IPlugin::INotification)
-                INTERFACE_ENTRY(Exchange::ISystemServices::INotification)
-            END_INTERFACE_MAP
-
-        private:
-            LinearPlaybackControl& _parent;
-        };
-
-        using Job = Core::WorkerPool::JobType<LinearPlaybackControl&>;
-
-    public:
+public:
         BEGIN_INTERFACE_MAP(LinearPlaybackControl)
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
@@ -121,12 +83,6 @@ namespace Plugin {
         // to this plugin. This Metadata can be used by the MetData plugin to publish this information to the ouside world.
         string Information() const override;
 
-        void StateChange(PluginHost::IShell* plugin);
-        void StateChange(const Exchange::ISystemServices::SystemServicesState state, int left_time);
-        void Dispatch() {
-            TRACE(Trace::Information, (_T("Dispatched!!")));
-            _trickPlayFileListener.reset();
-        }
     private:
         void RegisterAll();
         void UnregisterAll();
@@ -154,8 +110,6 @@ namespace Plugin {
         bool _isStreamFSEnabled;
         std::unique_ptr<DemuxerStreamFsFCC> _demuxer;
         std::unique_ptr<FileSelectListener> _trickPlayFileListener;
-        Core::Sink<Notification> _notification;
-        Job _job;
 };
 } //namespace Plugin
 } //namespace WPEFramework

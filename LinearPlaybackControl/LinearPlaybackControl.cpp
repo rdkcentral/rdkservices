@@ -2,7 +2,7 @@
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2022 RDK Management
+ * Copyright 2020 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 #include "LinearPlaybackControl.h"
 #include "DemuxerStreamFsFCC.h"
 #include "LinearConfig.h"
-#define SYSTEM_SERVICES_CALLSIGN 	"SystemServices"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -44,9 +43,6 @@ namespace Plugin {
             }));
         }
 
-        _service = service;
-        _service->Register(&_notification);
-
         // Initialize streamfs and associated dependencies here.
 
         // No additional info to report in this initial/empty implementation.
@@ -57,39 +53,9 @@ namespace Plugin {
     {
         ASSERT(_service == service);
 
-        _service->Unregister(&_notification);
        // Deinitialize streamfs and associated dependencies here.
 
         _service = nullptr;
-    }
-
-    void LinearPlaybackControl::StateChange(PluginHost::IShell* plugin) {
-        const string callsign(plugin->Callsign());
-
-        if (callsign == SYSTEM_SERVICES_CALLSIGN || callsign == _service->Callsign()) {
-            Exchange::ISystemServices* handler(_service->QueryInterfaceByCallsign<Exchange::ISystemServices>(SYSTEM_SERVICES_CALLSIGN));
-            if (plugin->State() == PluginHost::IShell::ACTIVATION && handler != nullptr) {
-                handler->Register(&_notification);
-            }
-            else if (plugin->State() == PluginHost::IShell::DEACTIVATION && handler != nullptr) {
-                handler->Unregister(&_notification);
-            }
-        }
-    }
-
-    void LinearPlaybackControl::StateChange(Exchange::ISystemServices::SystemServicesState state, int left_time) {
-        // It is notification callback. It shouldn't blocked
-        if (state == Exchange::ISystemServices::SystemServicesState::DEEP_SLEEP) {
-            _job.Submit();
-        }
-        else if (state == Exchange::ISystemServices::SystemServicesState::ON) {
-            if (_isStreamFSEnabled) {
-                // For now we only have one Nokia FCC demuxer interface with demux Id = 0
-                _trickPlayFileListener = std::unique_ptr<FileSelectListener>(new FileSelectListener(_demuxer->getTrickPlayFile(), 16,[this](const std::string &data){
-                    speedchangedNotify(data);
-                }));
-            }
-        }
     }
 
     /* virtual */ string LinearPlaybackControl::Information() const
