@@ -1,21 +1,26 @@
 #pragma once
 
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
+
+#include "libIARM.h"
 
 #include <thread>
 
 namespace WPEFramework {
 namespace Plugin {
 
-    class UsbAccess :  public AbstractPlugin {
+    class UsbAccess :  public PluginHost::IPlugin, public PluginHost::JSONRPC {
     public:
         UsbAccess();
         virtual ~UsbAccess();
         virtual const string Initialize(PluginHost::IShell* service) override;
         virtual void Deinitialize(PluginHost::IShell* service) override;
         virtual string Information() const override;
+
+        BEGIN_INTERFACE_MAP(UsbAccess)
+        INTERFACE_ENTRY(PluginHost::IPlugin)
+        INTERFACE_ENTRY(PluginHost::IDispatcher)
+        END_INTERFACE_MAP
 
     public/*members*/:
         static UsbAccess* _instance;
