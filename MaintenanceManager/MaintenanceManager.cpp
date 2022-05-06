@@ -286,9 +286,6 @@ namespace WPEFramework {
                         LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
                         system(cmd.c_str());
                     }
-                    LOGINFO("EL:unlocking thread. calling notify_one()");
-                    task_thread.notify_one();
-                    LOGINFO("EL:unlocked thread");
                 }
             }
             /* Here in Solicited, we start with RFC so no
@@ -513,7 +510,7 @@ namespace WPEFramework {
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             stopMaintenanceTasks();
-            DeinitializeIARM();
+            //DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
         }
 
@@ -816,7 +813,7 @@ namespace WPEFramework {
                 LOGWARN("Ignoring unexpected event - owner: %s, eventId: %d!!", owner, eventId);
             }
         }
-        void MaintenanceManager::DeinitializeIARM()
+        /*void MaintenanceManager::DeinitializeIARM()
         {
             LOGINFO("Inside DeinitializeIARM()!!!!");
             if (Utils::IARM::isConnected()){
@@ -833,7 +830,7 @@ namespace WPEFramework {
                 LOGINFO("EL:successfully executed join()");
             }
             LOGINFO("EL:successfully executed DeinitializeIARM()");
-        }
+        }*/
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
 #ifdef DEBUG
