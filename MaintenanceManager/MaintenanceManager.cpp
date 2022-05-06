@@ -286,6 +286,9 @@ namespace WPEFramework {
                         LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
                         system(cmd.c_str());
                     }
+                    LOGINFO("EL:unlocking thread);
+                    task_thread.notify_one();
+                    LOGINFO("EL:unlocked thread);
                 }
             }
             /* Here in Solicited, we start with RFC so no
