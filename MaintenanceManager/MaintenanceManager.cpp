@@ -281,6 +281,7 @@ namespace WPEFramework {
                     cmd += " &";
                     cmd += "\0";
                     m_task_map[tasks[i]] = true;
+                    stopMaintenanceTasks();
 
                     if ( !m_abort_flag ){
                         LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
@@ -509,8 +510,8 @@ namespace WPEFramework {
         void MaintenanceManager::Deinitialize(PluginHost::IShell*)
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-            stopMaintenanceTasks();
-            //DeinitializeIARM();
+            //stopMaintenanceTasks();
+            DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
         }
 
@@ -813,7 +814,7 @@ namespace WPEFramework {
                 LOGWARN("Ignoring unexpected event - owner: %s, eventId: %d!!", owner, eventId);
             }
         }
-        /*void MaintenanceManager::DeinitializeIARM()
+        void MaintenanceManager::DeinitializeIARM()
         {
             LOGINFO("Inside DeinitializeIARM()!!!!");
             if (Utils::IARM::isConnected()){
@@ -830,7 +831,7 @@ namespace WPEFramework {
                 LOGINFO("EL:successfully executed join()");
             }
             LOGINFO("EL:successfully executed DeinitializeIARM()");
-        }*/
+        }
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
 #ifdef DEBUG
