@@ -281,11 +281,11 @@ namespace WPEFramework {
                     cmd += " &";
                     cmd += "\0";
                     m_task_map[tasks[i]] = true;
-                    stopMaintenanceTasks();
 
                     if ( !m_abort_flag ){
                         LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
                         system(cmd.c_str());
+			stopMaintenanceTasks();
                     }
                 }
             }
