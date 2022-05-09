@@ -826,7 +826,7 @@ namespace WPEFramework {
                 MaintenanceManager::_instance = nullptr;
             }
             LOGINFO("EL:Aborting the thread using abort()");
-            task_thread.terminate();
+            task_thread.stop();
             LOGINFO("EL:successfully aborted");
             LOGINFO("EL:checking if thread is joinable");
             if(m_thread.joinable()){
