@@ -815,9 +815,6 @@ namespace WPEFramework {
         }
         void MaintenanceManager::DeinitializeIARM()
         {
-            LOGINFO("Inside DeinitializeIARM()!!!!");
-            m_abort_flag = true;
-            //task_thread.notify_one();
             if (Utils::IARM::isConnected()){
                 LOGINFO("IARM connected!!!!");
                 IARM_Result_t res;
@@ -825,16 +822,11 @@ namespace WPEFramework {
                 IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT));
                 MaintenanceManager::_instance = nullptr;
             }
-            LOGINFO("EL:Aborting the thread using abort()");
+            
             task_thread.notify_all();
-            LOGINFO("EL:successfully aborted");
-            LOGINFO("EL:checking if thread is joinable");
             if(m_thread.joinable()){
-                LOGINFO("EL:thread is joinable");
                 m_thread.join();
-                LOGINFO("EL:successfully executed join()");
             }
-            LOGINFO("EL:successfully executed DeinitializeIARM()");
         }
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
