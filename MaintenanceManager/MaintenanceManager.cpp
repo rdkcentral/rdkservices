@@ -285,7 +285,6 @@ namespace WPEFramework {
                     if ( !m_abort_flag ){
                         LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
                         system(cmd.c_str());
-			stopMaintenanceTasks();
                     }
                 }
             }
@@ -826,9 +825,9 @@ namespace WPEFramework {
                 IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT));
                 MaintenanceManager::_instance = nullptr;
             }
-            LOGINFO("EL:unlocking the thread using notify_one");
-            MaintenanceManager::_instance->task_thread.notify_one();
-            LOGINFO("EL:successfully unlocked");
+            LOGINFO("EL:Aborting the thread using abort()");
+            task_thread.abort();
+            LOGINFO("EL:successfully aborted");
             LOGINFO("EL:checking if thread is joinable");
             if(m_thread.joinable()){
                 LOGINFO("EL:thread is joinable");
