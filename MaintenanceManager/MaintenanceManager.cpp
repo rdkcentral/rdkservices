@@ -818,7 +818,7 @@ namespace WPEFramework {
         {
             LOGINFO("Inside DeinitializeIARM()!!!!");
             m_abort_flag = true;
-            task_thread.notify_one();
+            //task_thread.notify_one();
             if (Utils::IARM::isConnected()){
                 LOGINFO("IARM connected!!!!");
                 IARM_Result_t res;
@@ -826,6 +826,9 @@ namespace WPEFramework {
                 IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT));
                 MaintenanceManager::_instance = nullptr;
             }
+            LOGINFO("EL:unlocking the thread using notify_one");
+            MaintenanceManager::_instance->task_thread.notify_one();
+            LOGINFO("EL:successfully unlocked");
             LOGINFO("EL:checking if thread is joinable");
             if(m_thread.joinable()){
                 LOGINFO("EL:thread is joinable");
