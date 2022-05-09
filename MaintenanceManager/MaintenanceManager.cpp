@@ -510,7 +510,7 @@ namespace WPEFramework {
         void MaintenanceManager::Deinitialize(PluginHost::IShell*)
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-            //stopMaintenanceTasks();
+            stopMaintenanceTasks();
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
         }
@@ -817,6 +817,8 @@ namespace WPEFramework {
         void MaintenanceManager::DeinitializeIARM()
         {
             LOGINFO("Inside DeinitializeIARM()!!!!");
+            m_abort_flag = true;
+            task_thread.notify_one();
             if (Utils::IARM::isConnected()){
                 LOGINFO("IARM connected!!!!");
                 IARM_Result_t res;
