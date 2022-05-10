@@ -1144,7 +1144,7 @@ namespace WPEFramework {
                 if ( MAINTENANCE_STARTED == m_notify_status  ){
 
                     // Set the condition flag m_abort_flag to true
-                    m_abort_flag = true;
+                    //m_abort_flag = true;
 
                     auto task_status_DCM=m_task_map.find("/lib/rdk/StartDCM_maintaince.sh");
                     auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
@@ -1212,6 +1212,7 @@ namespace WPEFramework {
                 else {
                     LOGERR("Failed to stopMaintenance without starting maintenance \n");
                 }
+                m_abort_flag = true;
                 task_thread.notify_all();
                 if(m_thread.joinable()){
                     m_thread.join();
