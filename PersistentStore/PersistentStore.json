@@ -158,7 +158,8 @@
                                 "type": "integer",
                                 "example": 234
                             }
-                        }
+                        },
+                        "required": []
                     },
                     "success":{
                         "$ref": "#/definitions/success"
