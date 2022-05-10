@@ -129,7 +129,7 @@ For a plugin specific question, maintainers might refer you to the plugin owner(
     
     * All resources acquired by a RDKSerice must be released by the Deinitialize method and/or the destructor
 
-2. RDK services are implemented as Thunder Plugins and must adhere to the [PluginHost::IPlugin](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h) interface. This interface is accessible by extending the [AbstractPlugin](https://github.com/rdkcentral/rdkservices/blob/main/helpers/AbstractPlugin.h) helper class.
+2. RDK services are implemented as Thunder Plugins and must adhere to the [PluginHost::IPlugin](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h) interface.
 
 3. All RDK Services must have a callsign with a prefix of `org.rdk`. RDK Service name must be CamelCase and start with a capital letter.
 
@@ -154,12 +154,10 @@ For a plugin specific question, maintainers might refer you to the plugin owner(
             MODULE_NAME_DECLARATION(BUILD_REFERENCE)
 
 6. Versioning
-    
-    * All RDK Services by default will start with version 1.
-    
-    * Any client facing changes (like Removing or Adding an API) to RDKServices should be made by incrementing the version to the next whole number (2,3,4...). This will ensure that clients using existing versions are not affected.
-    
-    * Use the AbstractPlugin [registerMethod](https://github.com/rdkcentral/rdkservices/blob/main/helpers/AbstractPlugin.h#L76) helper function to register APIs to specific versions. Here is an [example](https://github.com/rdkcentral/rdkservices/commit/3692632373e8e82dba92bec56f9e6082b430a829#diff-f6cd28bb8911a0253a4601f823d3777089aecd54eb214bc6cdc227961da7b13f).
+
+    * RDK Service version in MAJOR.MINOR format is reflected in `MyServicePlugin.json`. Increment the MAJOR version when you make incompatible API changes, or MINOR version when you add functionality in a backwards compatible manner.
+
+    * API version (1, 2, etc) is not the same as the plugin version. The API version should remain at 1 for all practical purposes.
 
 7. Initialization and Cleanup
 
