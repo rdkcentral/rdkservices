@@ -33,6 +33,7 @@ file(GLOB TESTS tests/*.cpp)
 add_executable(${PROJECT_NAME}
         ${TESTS}
         source/Module.cpp
+        source/Wraps.cpp
         )
 
 include_directories(../LocationSync

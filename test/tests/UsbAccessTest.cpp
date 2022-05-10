@@ -7,11 +7,6 @@
 
 using namespace WPEFramework;
 
-extern "C" int __wrap_system(const char* command)
-{
-    return Wraps::getInstance().system(command);
-}
-
 class UsbAccessTestFixture : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::UsbAccess> plugin;
