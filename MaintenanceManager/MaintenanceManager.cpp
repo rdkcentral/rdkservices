@@ -509,6 +509,7 @@ namespace WPEFramework {
         void MaintenanceManager::Deinitialize(PluginHost::IShell*)
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+            stopMaintenanceTasks();
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
         }
@@ -821,6 +822,7 @@ namespace WPEFramework {
                 MaintenanceManager::_instance = nullptr;
             }
 
+            task_thread.notify_all();
             if(m_thread.joinable()){
                 m_thread.join();
             }
@@ -1123,6 +1125,12 @@ namespace WPEFramework {
         uint32_t MaintenanceManager::stopMaintenance(const JsonObject& parameters,
                 JsonObject& response){
 
+		bool result=false;
+		result=stopMaintenanceTasks();
+		returnResponse(result);
+	}
+
+        bool MaintenanceManager::stopMaintenanceTasks(){
             pid_t pid_num=-1;
 
             int k_ret=EINVAL;
@@ -1214,7 +1222,7 @@ namespace WPEFramework {
             else {
                 LOGERR("Failed to initiate stopMaintenance, RFC is set as False \n");
             }
-            returnResponse(result);
+            return result;
         }
 
         bool MaintenanceManager::checkAbortFlag(){
