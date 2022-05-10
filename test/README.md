@@ -15,7 +15,7 @@ Enable [ClangFormat](./.clang-format).
 
 Install act and docker.
 
-Ubuntu:
+##### Ubuntu #####
 
 ```shell script
 curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
@@ -25,7 +25,7 @@ sudo apt -y install docker.io
 sudo snap install docker
 ```
 
-macOS:
+##### macOS #####
 
 ```shell script
 brew install act
@@ -48,3 +48,18 @@ Get a bash shell in the container.
 docker ps
 docker exec -it <container name> /bin/bash
 ```
+
+## Tips and tricks ##
+
+### GCC ###
+
+`-I dir` adds the dir to the list of directories to be searched for headers.\
+`-Wl,-wrap,symbol` uses a wrapper function for symbol.
+
+### CMake ###
+
+`-DCMAKE_DISABLE_FIND_PACKAGE_<PackageName>=ON` disables non-REQUIRED `find_package` call.
+
+### GitHub ###
+
+At the bottom of the workflow summary page on GitHub, there is a section with artifacts. [unit-tests.yml](../.github/workflows/unit-tests.yml) uploads: coverage, valgrind_log.

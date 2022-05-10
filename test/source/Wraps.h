@@ -22,5 +22,3 @@ public:
         return getInstance().impl->system(command);
     }
 };
-
-extern "C" int __wrap_system(const char* command);
