@@ -822,6 +822,7 @@ namespace WPEFramework {
                 MaintenanceManager::_instance = nullptr;
             }
 
+            m_abort_flag = true;
             task_thread.notify_all();
             if(m_thread.joinable()){
                 m_thread.join();
