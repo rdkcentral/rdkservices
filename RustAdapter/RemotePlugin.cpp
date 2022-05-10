@@ -168,23 +168,36 @@ void RemotePlugin::onRead(const Response& rsp)
 
 int RemotePlugin::LaunchRemoteProcess(const string& rust_shared_lib, const string& host_ip, int port)
 {
+  std::string appName = "rust_adapter_process";
+
   int pid = fork();
 
   if (pid == 0)
   {
     std::stringstream ssPort;
     ssPort << port;
-    std::string name = "RustAdapterProcess";
     
     char const* argv[] = { 
-      name.c_str(),
+      appName.c_str(),
       rust_shared_lib.c_str(),
       host_ip.c_str(), 
       ssPort.str().c_str(), 
       nullptr
     };
 
-    execvp(name.c_str(), (char**)argv);
+    if(execvp(appName.c_str(), (char**)argv) < 0)
+    {
+      LOGERR("Failed launch remote app %s: %s", appName.c_str(), strerror(errno));
+      _exit(errno);
+    }
+  }
+  else if (pid < 0)
+  {
+    LOGERR("Failed to fork process");
+  }
+  else
+  {
+    //TODO: verify child is running
   }
 
   return pid;

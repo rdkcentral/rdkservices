@@ -42,9 +42,9 @@ WPEFramework::Plugin::RustAdapter::Initialize(PluginHost::IShell *shell)
   Config config;
   config.FromString(shell->ConfigLine());     
 
-  LOGINFO("RustAdapter::Initialize OutOfProc=%s", config.OutOfProc ? "true" : "false");
+  LOGINFO("RustAdapter::Initialize OutOfProcess=%s", config.OutOfProcess ? "true" : "false");
 
-  if (config.OutOfProc)
+  if (config.OutOfProcess)
     m_impl.reset(new WPEFramework::Plugin::Rust::RemotePlugin());
   else
     m_impl.reset(new WPEFramework::Plugin::Rust::LocalPlugin());

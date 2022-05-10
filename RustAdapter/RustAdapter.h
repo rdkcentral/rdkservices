@@ -39,15 +39,15 @@ public:
     Config(const Config&);
     Config& operator=(const Config&);
   public:
-    Config() : Core::JSON::Container(), OutOfProc(true)
+    Config() : Core::JSON::Container(), OutOfProcess(true)
     {
-      Add(_T("outofprocess_rust"), &OutOfProc);
+      Add(_T("outofprocess"), &OutOfProcess);
     }
     ~Config()
     {
     }
   public:
-    Core::JSON::Boolean OutOfProc;
+    Core::JSON::Boolean OutOfProcess;
   };
 
   /**
