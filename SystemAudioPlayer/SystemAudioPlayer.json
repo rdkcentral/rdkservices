@@ -88,7 +88,6 @@
                 "$ref": "#/definitions/result"
             }
         },
-        
         "isspeaking": {
             "summary": "Checks if playback is in progress.\n \n### Events \n\n No Events.",
             "params": {
@@ -327,11 +326,14 @@
                     "success":{
                         "$ref": "#/definitions/success"
                     }
-                }
+                },
+                "required": [
+                    "sessionId",
+                    "success"
+                ]
             }
         }
     },
-      
     "events": {
         "onsapevents": {
             "summary": "Triggered during playback for each player. Events from each player are broadcast to all registered clients. The client is responsible for checking the player `id` attribute and discarding events for unwanted players. \n\n### Notifications  \n\nThe following events are supported.  \n| Event Name | Description |  \n| :-------- | :-------- |  \n| PLAYBACK_STARTED| Triggered when playback starts  |  \n| PLAYBACK_FINISHED | Triggered when playback finishes normally. **Note**: Web socket playback is continuous and does not receive the `PLAYBACK_FINISHED` event until the stream contains `EOS`. |  \n| PLAYBACK_PAUSED| Triggered when playback is paused | \n |PLAYBACK_RESUMED | Triggered when playback resumes |  \n| NETWORK_ERROR | Triggered when a playback network error occurs (httpsrc/web socket) |  \n| PLAYBACK_ERROR| Triggered when any other playback error occurs (internal issue)|  \n| NEED_DATA|  Triggered when the buffer needs more data to play|",
