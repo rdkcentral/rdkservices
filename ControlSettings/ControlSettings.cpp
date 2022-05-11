@@ -19,34 +19,25 @@
 
 #include <string>
 #include "ControlSettings.h"
+#include "ControlSettingsSTB.h"
+#include "ControlSettingsTV.h"
 
-#define returnResponse(return_status, error_log) \
-    {response["success"] = return_status; \
-    if(!return_status) \
-        response["error_message"] = _T(error_log); \
-    PLUGIN_Unlock(tvLock); \
-    return (Core::ERROR_NONE);}
-
-#define returnIfParamNotFound(param)\
-    if(param.empty())\
-    {\
-        LOGERR("missing parameter %s\n",#param);\
-        returnResponse(false,"missing parameter");\
-    }
-#define PLUGIN_Lock(lock) pthread_mutex_lock(&lock)
-#define PLUGIN_Unlock(lock) pthread_mutex_unlock(&lock)
 
 #define VIDEO_DESCRIPTION_MAX (25)
 #define VIDEO_DESCRIPTION_NAME_SIZE (25)
 
 const char* PLUGIN_IARM_BUS_NAME = "Thunder_Plugins";
 static char videoDescBuffer[VIDEO_DESCRIPTION_MAX*VIDEO_DESCRIPTION_NAME_SIZE] = {0};
-static pthread_mutex_t tvLock = PTHREAD_MUTEX_INITIALIZER;
 
 namespace WPEFramework {
 namespace Plugin {
 
-    SERVICE_REGISTRATION(ControlSettings,1, 0);
+#ifdef CONFIG_DEVICE_TV
+    SERVICE_REGISTRATION(ControlSettingsTV,1, 0);
+#else
+    SERVICE_REGISTRATION(ControlSettingsSTB,1,0);
+#endif
+
     ControlSettings* ControlSettings::_instance = nullptr;
 
     static void tvVideoFormatChangeHandler(tvVideoHDRFormat_t format, void *userData)
@@ -248,29 +239,13 @@ namespace Plugin {
                , m_isDisabledHdmiIn4KZoom (false)
     {
         LOGINFO("Entry\n");
-#ifndef CONFIG_DEVICE_TV
-        devicePtr = new ControlSettingsSTB;
-#else
-        devicePtr = new ControlSettingsTV;
-#endif
 
 	ControlSettings::_instance = this;
 	InitializeIARM();
 
-        if(devicePtr->isDisplayAvailable())
-	{
-            registerMethod("getBacklight", &ControlSettings::getBacklight, this, {2});
-            registerMethod("setBacklight", &ControlSettings::setBacklight, this, {2});
-        }else 
-	{//STB Specific API
-	    registerMethod("getVolume", &ControlSettings::getVolume, this, {2});
-            registerMethod("setVolume", &ControlSettings::setVolume, this, {2});
-	}
-
         //Common API Registration
 	registerMethod("getAspectRatio", &ControlSettings::getAspectRatio, this, {2});
         registerMethod("setAspectRatio", &ControlSettings::setAspectRatio, this, {2});
-
         LOGINFO("Exit \n");
     }
 
@@ -322,7 +297,6 @@ namespace Plugin {
         tvVideoFrameRateCallbackData FpscallbackData = {this,tvVideoFrameRateChangeHandler};
         RegisterVideoFrameRateChangeCB(FpscallbackData);
 
-	devicePtr->Initialize();//Call Factory Initialize---Platform specific Initsequence willbe invoked
 	LOGINFO("Exit\n");
 
         return (service != nullptr ? _T("") : _T("No service."));
@@ -560,7 +534,7 @@ namespace Plugin {
         PLUGIN_Lock(tvLock);
 	tvError_t ret = tvERROR_NONE;
 
-	ret = devicePtr->getAspectRatio();
+//	ret = devicePtr->getAspectRatio();
 
 	if(ret != tvERROR_NONE) {
             returnResponse(false, getErrorString(ret).c_str());
@@ -578,7 +552,7 @@ namespace Plugin {
         PLUGIN_Lock(tvLock);
 	tvError_t ret = tvERROR_NONE;
 
-        ret = devicePtr->setAspectRatio(); 
+      //  ret = devicePtr->setAspectRatio(); 
         
         if(ret != tvERROR_NONE) {
             returnResponse(false, getErrorString(ret).c_str());
@@ -589,80 +563,6 @@ namespace Plugin {
         }
     }
     
-    //Backlight
-    uint32_t ControlSettings::getBacklight(const JsonObject& parameters, JsonObject& response)
-    {
-
-        LOGINFO("Entry %s\n",__FUNCTION__);
-        PLUGIN_Lock(tvLock);
-        tvError_t ret = tvERROR_NONE;
-
-        ret = devicePtr->getBacklight(); 
-        
-        if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
-        }
-        else {
-            LOGINFO("Exit : %s\n",__FUNCTION__);
-            returnResponse(true, "success");
-        }
-    }
-
-    uint32_t ControlSettings::setBacklight(const JsonObject& parameters, JsonObject& response)
-    {
-
-        LOGINFO("Entry\n");
-        PLUGIN_Lock(tvLock);
-        tvError_t ret = tvERROR_NONE;
-
-        ret = devicePtr->setBacklight();
-
-	if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
-        }
-        else {
-            LOGINFO("Exit : %s\n",__FUNCTION__);
-            returnResponse(true, "success");
-        }
-    }
-
-    //Volume -STB
-    uint32_t ControlSettings::getVolume(const JsonObject& parameters, JsonObject& response)
-    {
-
-        LOGINFO("Entry\n");
-        PLUGIN_Lock(tvLock);
-        tvError_t ret = tvERROR_NONE;
-
-        ret = devicePtr->getVolume();
-
-        if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
-        }
-        else {
-            LOGINFO("Exit : %s\n",__FUNCTION__);
-            returnResponse(true, "success");
-        }
-    }
-
-    uint32_t ControlSettings::setVolume(const JsonObject& parameters, JsonObject& response)
-    {
-
-        LOGINFO("Entry\n");
-        PLUGIN_Lock(tvLock);
-        tvError_t ret = tvERROR_NONE;
-
-        ret = devicePtr->setVolume(); 
-
-        if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
-        }
-        else {
-            LOGINFO("Exit : %s\n",__FUNCTION__);
-            returnResponse(true, "success");
-        }
-    }
-
 } //namespace WPEFramework
 
 } //namespace Plugin

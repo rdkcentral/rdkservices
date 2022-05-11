@@ -42,9 +42,8 @@
 #include "utils.h"
 #include "tvTypes.h"
 #include "tvError.h"
-#include "ControlSettingsDevice.h"
-#include "ControlSettingsTV.h"
-#include "ControlSettingsSTB.h"
+//#include "ControlSettingsTV.h"
+//#include "ControlSettingsSTB.h"
 
 #include "tr181api.h"
 #include "AbstractPlugin.h"
@@ -54,6 +53,25 @@
 #define DECLARE_JSON_RPC_METHOD(method) \
 uint32_t method(const JsonObject& parameters, JsonObject& response);
 
+#define PLUGIN_Lock(lock) pthread_mutex_lock(&lock)
+#define PLUGIN_Unlock(lock) pthread_mutex_unlock(&lock)
+
+#define returnResponse(return_status, error_log) \
+    {response["success"] = return_status; \
+    if(!return_status) \
+        response["error_message"] = _T(error_log); \
+    PLUGIN_Unlock(tvLock); \
+    return (Core::ERROR_NONE);}
+
+#define returnIfParamNotFound(param)\
+    if(param.empty())\
+    {\
+        LOGERR("missing parameter %s\n",#param);\
+        returnResponse(false,"missing parameter");\
+    }
+
+static pthread_mutex_t tvLock = PTHREAD_MUTEX_INITIALIZER;
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -62,25 +80,23 @@ namespace Plugin {
     private:
         ControlSettings(const ControlSettings&) = delete;
         ControlSettings& operator=(const ControlSettings&) = delete;
-	WPEFramework::Plugin::ControlSettingsDevice *devicePtr;
 
 	DECLARE_JSON_RPC_METHOD(getAspectRatio)
         DECLARE_JSON_RPC_METHOD(setAspectRatio)
         DECLARE_JSON_RPC_METHOD(getVideoFormat)
-        DECLARE_JSON_RPC_METHOD(getVolume)
-        DECLARE_JSON_RPC_METHOD(setVolume)
-	DECLARE_JSON_RPC_METHOD(getBacklight)
-        DECLARE_JSON_RPC_METHOD(setBacklight)
         DECLARE_JSON_RPC_METHOD(getVideoFrameRate)
         DECLARE_JSON_RPC_METHOD(getVideoResolution)
 
    public:
         ControlSettings();
         ~ControlSettings();
+        WPEFramework::Plugin::ControlSettings *devicePtr;
         static ControlSettings* _instance;
 	void NotifyVideoFormatChange(tvVideoHDRFormat_t format);
         void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
         void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
+	//virtual bool isDisplayAvailable() = 0;
+        std::string getErrorString (tvError_t eReturn);
 
 
         BEGIN_INTERFACE_MAP(ControlSettings)
@@ -100,7 +116,6 @@ namespace Plugin {
         static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
-        std::string getErrorString (tvError_t eReturn);
 
     public:
         //   IPlugin methods

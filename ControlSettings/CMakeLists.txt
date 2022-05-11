@@ -21,10 +21,15 @@ Project(CONTROLSETTINGS-PLUGINS)
 
 set(CMAKE_BUILD_TYPE "Debug")
 
-set(PLUGIN_NAME ControlSettings)
+if(CONFIG_DEVICE_TV)
+set(PLUGIN_NAME ControlSettingsTV)
+else()
+set(PLUGIN_NAME ControlSettingsSTB)
+endif()
+
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
-set(PLUGIN_CONTROLSETTINGS_AUTOSTART false CACHE STRING "Automatically start Tvmgr plugin")
+set(PLUGIN_CONTROLSETTINGS_AUTOSTART "false" CACHE STRING "Automatically start Tvmgr plugin")
 
 find_package(WPEFramework)
 find_package(${NAMESPACE}Plugins REQUIRED)
@@ -44,7 +49,6 @@ include_directories(${STAGING_INCDIR}/rdk/ds)
 
 add_library(${MODULE_NAME} SHARED
     ControlSettings.cpp 
-    ControlSettingsDevice.cpp
     ControlSettingsTV.cpp
     ControlSettingsSTB.cpp
     Module.cpp)

@@ -21,24 +21,39 @@
 #define ControlSettingsSTB_H
 
 #include "string.h"
-#include "ControlSettingsDevice.h"
+#include "ControlSettings.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-class ControlSettingsSTB : public ControlSettingsDevice {
+class ControlSettingsSTB : public ControlSettings {
     private:
         ControlSettingsSTB(const ControlSettingsSTB&) = delete;
         ControlSettingsSTB& operator=(const ControlSettingsSTB&) = delete;
+
+	DECLARE_JSON_RPC_METHOD(getVolume)
+        DECLARE_JSON_RPC_METHOD(setVolume)
 
     public:
 	ControlSettingsSTB();
 	~ControlSettingsSTB();
         void Initialize();
         void DeInitialize();
-        tvError_t getVolume();
-        tvError_t setVolume();
         bool isDisplayAvailable() { return false; }
+    public:
+        //   IPlugin methods
+        // -------------------------------------------------------------------------------------------------------
+        virtual const std::string Initialize(PluginHost::IShell* service)
+        {
+            return (std::string());
+        }
+        virtual void Deinitialize(PluginHost::IShell* service){ };
+        virtual std::string Information() const
+        {
+           return (std::string());
+        }
+	virtual void AddRef() const;
+        virtual uint32_t Release() const;
 };
 
 }//namespace Plugin

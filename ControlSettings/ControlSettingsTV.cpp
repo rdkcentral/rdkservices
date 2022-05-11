@@ -25,7 +25,10 @@ namespace Plugin {
 
     ControlSettingsTV::ControlSettingsTV()
     {
-        LOGINFO(); 
+        LOGINFO("Entry\n");
+        registerMethod("getBacklight", &ControlSettingsTV::getBacklight, this, {2});
+        registerMethod("setBacklight", &ControlSettingsTV::setBacklight, this, {2});	
+        LOGINFO("Exit\n");
     }
     
     ControlSettingsTV :: ~ControlSettingsTV()
@@ -44,19 +47,51 @@ namespace Plugin {
         LOGINFO();
     }
 
-    tvError_t ControlSettingsTV::getBacklight()
+    void ControlSettingsTV::AddRef() const
     {
-        LOGINFO("Derived Entry : %s\n",__FUNCTION__);
-        LOGINFO("Derived Exit  : %s\n",__FUNCTION__);
-        return tvERROR_NONE;
+        LOGINFO("Entry\n");
+        LOGINFO("Exit\n");
     }
 
-    tvError_t ControlSettingsTV::setBacklight()
+    uint32_t ControlSettingsTV::Release() const
     {
-        LOGINFO("Derived Entry : %s\n",__FUNCTION__);
-        LOGINFO("Derived Exit  : %s\n",__FUNCTION__);
-        return tvERROR_NONE;
+        return 0;
     }
 
+    uint32_t ControlSettingsTV::getBacklight(const JsonObject& parameters, JsonObject& response)
+    {
+
+        LOGINFO("Entry %s\n",__FUNCTION__);
+        PLUGIN_Lock(tvLock);
+        tvError_t ret = tvERROR_NONE;
+
+      //  ret = devicePtr->getBacklight();
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            LOGINFO("Exit : %s\n",__FUNCTION__);
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettingsTV::setBacklight(const JsonObject& parameters, JsonObject& response)
+    {
+
+        LOGINFO("Entry\n");
+        PLUGIN_Lock(tvLock);
+        tvError_t ret = tvERROR_NONE;
+
+    //    ret = devicePtr->setBacklight();
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            LOGINFO("Exit : %s\n",__FUNCTION__);
+            returnResponse(true, "success");
+        }
+    }
 }//namespace Plugin
 }//namespace WPEFramework

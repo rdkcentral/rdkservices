@@ -20,24 +20,42 @@
 #ifndef ControlSettingsTV_H
 #define ControlSettingsTV_H
 #include "string.h"
-#include "ControlSettingsDevice.h"
+#include "ControlSettings.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-class ControlSettingsTV : public ControlSettingsDevice {
+class ControlSettingsTV : public ControlSettings {
     private:
         ControlSettingsTV(const ControlSettingsTV&) = delete;
         ControlSettingsTV& operator=(const ControlSettingsTV&) = delete;
 
+	DECLARE_JSON_RPC_METHOD(getBacklight)
+        DECLARE_JSON_RPC_METHOD(setBacklight)
+
+
     public:
         ControlSettingsTV();
         ~ControlSettingsTV();
-        tvError_t getBacklight();
-        tvError_t setBacklight();
         void Initialize();
         void DeInitialize();
 	bool isDisplayAvailable() { return true; }
+
+    public:
+        //   IPlugin methods
+        // -------------------------------------------------------------------------------------------------------
+        virtual const std::string Initialize(PluginHost::IShell* service)
+        {
+            return (std::string());
+        }
+        virtual void Deinitialize(PluginHost::IShell* service){ };
+        virtual std::string Information() const
+        {
+           return (std::string());
+        }
+        virtual void AddRef() const;
+        virtual uint32_t Release() const;
+
 };
 
 }//namespace Plugin

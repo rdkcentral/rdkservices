@@ -25,7 +25,10 @@ namespace Plugin {
 
     ControlSettingsSTB::ControlSettingsSTB()
     {
-        LOGINFO(); 
+        LOGINFO("Entry\n"); 
+        registerMethod("getVolume", &ControlSettingsSTB::getVolume, this, {2});
+        registerMethod("setVolume", &ControlSettingsSTB::setVolume, this, {2});
+        LOGINFO("Exit\n");
     }
     
     ControlSettingsSTB :: ~ControlSettingsSTB()
@@ -44,19 +47,51 @@ namespace Plugin {
         LOGINFO();
     }
 
-    tvError_t ControlSettingsSTB::getVolume()
+    void ControlSettingsSTB::AddRef() const
     {
-        LOGINFO("Derived Entry : %s\n",__FUNCTION__);
-        LOGINFO("Derived Exit  : %s\n",__FUNCTION__);
-        return tvERROR_NONE;
+        LOGINFO("Entry\n");
+        LOGINFO("Exit\n");
     }
 
-    tvError_t ControlSettingsSTB::setVolume()
+    uint32_t ControlSettingsSTB::Release() const
     {
-        LOGINFO("Derived Entry : %s\n",__FUNCTION__);
-        LOGINFO("Derived Exit  : %s\n",__FUNCTION__);
-        return tvERROR_NONE;
+        return 0;
     }
+
+    uint32_t ControlSettingsSTB::getVolume(const JsonObject& parameters, JsonObject& response)
+    {
+
+        LOGINFO("Entry\n");
+        PLUGIN_Lock(tvLock);
+        tvError_t ret = tvERROR_NONE;
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            LOGINFO("Exit : %s\n",__FUNCTION__);
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettingsSTB::setVolume(const JsonObject& parameters, JsonObject& response)
+    {
+
+        LOGINFO("Entry\n");
+        PLUGIN_Lock(tvLock);
+        tvError_t ret = tvERROR_NONE;
+
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            LOGINFO("Exit : %s\n",__FUNCTION__);
+            returnResponse(true, "success");
+        }
+    }
+
+
 
 
 
