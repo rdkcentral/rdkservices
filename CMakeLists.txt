@@ -320,6 +320,10 @@ if(PLUGIN_WEBBRIDGE)
     add_subdirectory(WebBridge)
 endif()
 
+if(PLUGIN_RUSTADAPTER)
+    add_subdirectory(RustAdapter)
+endif()
+
 if(RDK_SERVICES_TEST)
     add_subdirectory(test)
 endif()

@@ -2,17 +2,17 @@ name: unit-tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ sprint/2205 ]
 
   pull_request:
     # By default: opened, synchronize, or reopened.
-    branches: [ main ]
+    branches: [ sprint/2205 ]
 
 env:
   BUILD_TYPE: Debug
 
-  # Refs for stable2.
-  THUNDER_REF: "54c2404197f16255cc47543e2d861e2c8137ee51"
+  # Refs for 2205_sprint.
+  THUNDER_REF: "R2-v1.9"
   INTERFACES_REF: "4ec7c6f8e14b152143a105a41f4c62b6723372c4"
 
   THUNDER_BINDING: "127.0.0.1"
@@ -160,7 +160,7 @@ jobs:
           -B build/rdkservices
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
-          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result"
+          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system"
           -DCOMCAST_CONFIG=OFF
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
@@ -173,6 +173,8 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
           -DPLUGIN_AVINPUT=ON
+          -DPLUGIN_USBACCESS=ON
+          -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DRDK_SERVICES_TEST=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
