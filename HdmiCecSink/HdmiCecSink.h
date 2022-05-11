@@ -543,7 +543,7 @@ private:
                         void stopArc();
                         void Process_InitiateArc();
                         void Process_TerminateArc();
-                        void updateArcState();
+                        void updateArcState(int portId);
                         void requestShortaudioDescriptor();
                         void Send_ShortAudioDescriptor_Event(JsonArray audiodescriptor);
 		        void Process_ShortAudioDescriptor_msg(const ReportShortAudioDescriptor  &msg);
@@ -643,7 +643,7 @@ private:
             static void pwrMgrModeChangeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void onCECDaemonInit();
             void cecStatusUpdated(void *evtStatus);
-            void onHdmiHotPlug(int portId, int connectStatus);
+            void onHdmiHotPlug(int portId, int connectStatus, int portType);
 	    void wakeupFromStandby();
             bool loadSettings();
             void persistSettings(bool enableStatus);
