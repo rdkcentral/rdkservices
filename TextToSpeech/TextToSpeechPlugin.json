@@ -6,7 +6,7 @@
         "locator": "libWPEFrameworkTextToSpeech.so",
         "status": "production",
         "description": "The `TextToSpeech` plugin provides TTS functionality (Voice Guidance & Speech Synthesis) for the client application.",
-        "version": "1.0"
+        "version": "1.0.0"
     },
     "interface": {
         "$ref": "TextToSpeech.json#"

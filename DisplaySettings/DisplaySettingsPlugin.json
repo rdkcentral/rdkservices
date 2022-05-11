@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkDisplaySettings.so",
       "status": "production",
       "description": "The `DisplaySetting` plugin provides an interface for display information such as current video resolution, supported video displays, zoom setting, sound mode, and much more.",
-      "version": "2.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "DisplaySettings.json#"

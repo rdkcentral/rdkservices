@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkDeviceDiagnostics.so",
       "status": "production",
       "description": "The `DeviceDiagnostics` plugin provides additional diagnostics information which includes device configuration and AV decoder status.",
-      "version": "1.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "DeviceDiagnostics.json#"

@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkHdmiCec.so",
       "status": "production",
       "description": "The `HdmiCec` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box.",
-      "version": "1.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "HdmiCec.json#"

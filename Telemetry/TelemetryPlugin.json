@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkTelemetry.so",
       "status": "production",
       "description": "The `Telemetry` plugin allows you to persist event data for monitoring applications.",
-      "version": "1.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "Telemetry.json#"

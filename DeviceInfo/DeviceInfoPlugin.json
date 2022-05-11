@@ -6,7 +6,7 @@
     "locator": "libWPEFrameworkDeviceInfo.so",
     "status": "production",
     "description": "The `DeviceInfo` plugin allows retrieving of various device-related information.",
-    "version": "1.0"
+    "version": "1.0.0"
   },
   "interface": {
     "$ref": "DeviceInfo.json#"

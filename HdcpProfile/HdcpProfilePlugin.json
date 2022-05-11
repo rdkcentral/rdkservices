@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkHdcpProfile.so",
       "status": "production",
       "description": "The HdcpProfile plugin provides an interface for HDCP-related data and events.",
-      "version": "1.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "HdcpProfile.json#"
