@@ -118,6 +118,9 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "g
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_EASTER_EGGS = "addEasterEggs";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_EASTER_EGGS = "removeEasterEggs";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_EASTER_EGGS = "getEasterEggs";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -848,6 +851,9 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_IGNORE_KEY_INPUTS, &RDKShell::ignoreKeyInputsWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ADD_EASTER_EGGS, &RDKShell::addEasterEggsWrapper, this);
+            registerMethod(RDKSHELL_METHOD_REMOVE_EASTER_EGGS, &RDKShell::removeEasterEggsWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_EASTER_EGGS, &RDKShell::getEasterEggsWrapper, this);
 	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -6437,6 +6443,120 @@ namespace WPEFramework {
             gRdkShellMutex.unlock();
         }
 
+        uint32_t RDKShell::addEasterEggsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("keySequence"))
+            {
+                result = false;
+                response["message"] = "please specify keySequence";
+            }
+            if (!parameters.HasLabel("id"))
+            {
+                result = false;
+                response["message"] = "please specify id";
+            }
+            if (!parameters.HasLabel("duration"))
+            {
+                result = false;
+                response["message"] = "please specify duration";
+            }
+            if (!parameters.HasLabel("api"))
+            {
+                result = false;
+                response["message"] = "please specify api";
+            }
+            if (!result)
+            {
+                returnResponse(result);
+            }
+
+            std::vector<RdkShellEasterEggKeyDetails> keyDetails;
+            const JsonArray keyInputs = parameters["keySequence"].Array();
+            for (int i=0; i<keyInputs.Length(); i++)
+            {
+                const JsonObject& keyInputInfo = keyInputs[i].Object();
+                uint32_t keyCode, flags=0;
+                std::string virtualKey("");
+                if (keyInputInfo.HasLabel("keyCode") && keyInputInfo.HasLabel("hold"))
+                {
+                    keyCode = keyInputInfo["keyCode"].Number();
+                    flags = keyInputInfo.HasLabel("modifiers") ? keyInputInfo["modifiers"].Number() : 0;
+                    const uint32_t holdTime = keyInputInfo["hold"].Number();
+                    keyDetails.push_back(RdkShellEasterEggKeyDetails(keyCode, flags, holdTime));
+                }
+                else
+                {
+                    continue;
+                }
+            }
+            std::string id = parameters["id"].String();
+            const uint32_t duration = parameters["duration"].Number();
+            JsonObject api = parameters["api"].Object();
+            std::string apiString("");
+            if (!api.ToString(apiString))
+            {
+                response["message"] = "api is not in proper json format";
+                returnResponse(false);
+            }
+            gRdkShellMutex.lock();
+            addEasterEgg(keyDetails, id, duration, apiString);
+            gRdkShellMutex.unlock();
+            keyDetails.clear();
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::removeEasterEggsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("id"))
+            {
+                result = false;
+                response["message"] = "please specify id";
+            }
+            std::string id = parameters["id"].String();
+            gRdkShellMutex.lock();
+            removeEasterEgg(id);
+            gRdkShellMutex.unlock();
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getEasterEggsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            JsonArray easterEggs;
+            std::vector<RdkShellEasterEggDetails> easterEggsList;
+            gRdkShellMutex.lock();
+            getEasterEggs(easterEggsList);
+            gRdkShellMutex.unlock();
+            for (size_t i=0; i<easterEggsList.size(); i++)
+	    {
+                RdkShellEasterEggDetails& easterEgg = easterEggsList[i];
+                JsonObject easterEggResponse;
+		easterEggResponse["id"] = easterEgg.id;
+                JsonArray keySequenceDetails;
+                for (size_t j=0; j<easterEgg.keySequence.size(); j++)
+                {
+                    JsonObject keyDetails;
+                    RdkShellEasterEggKeyDetails& details = easterEgg.keySequence[j];
+                    keyDetails["keyCode"] = details.keyCode;
+                    keyDetails["hold"] = details.keyHoldTime;
+                    keyDetails["modifiers"] = details.keyModifiers;
+                    keySequenceDetails.Add(keyDetails);
+                }
+		easterEggResponse["keySequence"] = keySequenceDetails;
+		easterEggResponse["duration"] = easterEgg.duration;
+		easterEggResponse["api"] = JsonObject(easterEgg.api.c_str());
+                easterEggs.Add(easterEggResponse);
+            }
+            response["easterEggs"] = easterEggs;
+            returnResponse(result);
+        }
         // Internal methods end
     } // namespace Plugin
 } // namespace WPEFramework
