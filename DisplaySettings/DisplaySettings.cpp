@@ -54,9 +54,6 @@ using namespace std;
 
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
 
-#define HDMI_IN_ARC_PORT_ID 1
-
-
 #define HDMICECSINK_CALLSIGN "org.rdk.HdmiCecSink"
 #define HDMICECSINK_CALLSIGN_VER HDMICECSINK_CALLSIGN".1"
 #define HDMICECSINK_ARC_INITIATION_EVENT "arcInitiationEvent"
@@ -725,14 +722,15 @@ namespace WPEFramework {
                     IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                     int hdmiin_hotplug_port = eventData->data.hdmi_in_connect.port;
                     bool hdmiin_hotplug_conn = eventData->data.hdmi_in_connect.isPortConnected;
-                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG  Port:%d, connected:%d \n", hdmiin_hotplug_port, hdmiin_hotplug_conn);
+                    int hdmiin_hotplug_portType = eventData->data.hdmi_in_connect.portType;
+                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG  Port:%d, connected:%d PortType:%d \n", hdmiin_hotplug_port, hdmiin_hotplug_conn,hdmiin_hotplug_portType);
 
 		    if(!DisplaySettings::_instance) {
                 LOGERR("DisplaySettings::dsHdmiEventHandler DisplaySettings::_instance is NULL\n");
 	                return;
             }
 
-		    if(hdmiin_hotplug_port == HDMI_IN_ARC_PORT_ID) { //HDMI ARC/eARC Port Handling
+		    if(hdmiin_hotplug_portType == HDMI_ARC_PORT) { //HDMI ARC/eARC Port Handling
 			bool arc_port_enabled =  false;
 
                         JsonObject audioOutputPortConfig = DisplaySettings::_instance->getAudioOutputPortConfig();
