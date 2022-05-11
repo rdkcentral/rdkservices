@@ -198,12 +198,14 @@ fn main() -> Result<(), ParseIntError> {
   let args : Vec<String> = env::args().collect();
   println!("RUST REMOTE: {:?}", args);
 
-  let addr = format!("{}:{}", args[2], args[3]);
-  println!("RUST REMOTE: addr:{}", addr);
-
-  let mut stream = connect_stream(addr);
+  if args.len() != 4 {
+    panic!("RUST REMOTE: Invalid command line.  Expected 4 arguments.  Got {}", args.len());
+  }
 
   let lib = load_library(&args[1]);
+
+  let addr = format!("{}:{}", args[2], args[3]);
+  let mut stream = connect_stream(addr);
 
   let mut plugin = load_plugin(&lib, stream.try_clone().expect("Cannot clone stream"));
 
