@@ -821,7 +821,6 @@ namespace WPEFramework {
                 IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT));
                 MaintenanceManager::_instance = nullptr;
             }
-		
             m_abort_flag = true;
             task_thread.notify_all();
             if(m_thread.joinable()){
