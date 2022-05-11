@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkUserPreferences.so",
       "status": "production",
       "description": "The `UserPreferences` plugin controls user preference settings on a set-top device.",
-      "version": "1.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "UserPreferences.json#"

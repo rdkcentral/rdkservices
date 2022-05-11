@@ -6,7 +6,7 @@
         "locator": "libWPEPlayerInfo.so",
         "status": "beta",
         "description": "The `PlayerInfo` plugin helps to get system supported audio and video codecs",
-        "version": "1.0"
+        "version": "1.0.0"
   },
     "interface": {
         "$ref": "PlayerInfo.json#"

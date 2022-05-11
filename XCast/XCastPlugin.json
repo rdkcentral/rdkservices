@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkXCast.so",
       "status": "production",
       "description": "This XCast plugin provides methods and events to support launching applications from an external source (for example, DIAL, Alexa, or WebPA). The RT implementation should use a RT service name that complies to the convention `com.comcast.<name>cast`. For example, `com.comcast.xdialcast` is used by `xdialserver`.",
-      "version": "1.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "XCast.json#"

@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkStateObserver.so",
       "status": "production",
       "description": "The `StateObserver` plugin is used to monitor property values.",
-      "version": "1.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "StateObserver.json#"

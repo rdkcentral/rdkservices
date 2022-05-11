@@ -155,11 +155,34 @@ For a plugin specific question, maintainers might refer you to the plugin owner(
 
 6. Versioning
 
-    * RDK Service version in MAJOR.MINOR format is reflected in `MyServicePlugin.json`. Increment the MAJOR version when you make incompatible API changes, or MINOR version when you add functionality in a backwards compatible manner.
+    * Given a version number MAJOR.MINOR.PATCH, increment the:
+        * MAJOR version when you make incompatible API changes (vhanges that break backward compatibility like removing APIs),
+        * MINOR version when you add backward compatible new features like adding new APIs, adding new parameters to existing APIs,
+        * PATCH version when you make backwards compatible bug fixes.
 
-    * API version (1, 2, etc) is not the same as the plugin version. The API version should remain at 1 for all practical purposes.
+    * RDK Service version in MAJOR.MINOR.PATCH format is reflected in `MyServicePlugin.json`.
 
-7. Initialization and Cleanup
+    * Changes in version should be updated when commits are added to the main branch.
+
+    * For more info visit: https://keepachangelog.com/en/1.0.0/
+
+7. Changelog
+
+    * Each RDK Service has a CHANGELOG file that contains all changes done so far:
+
+    * Please Add entry in the CHANGELOG for each version change and indicate the type of change with these labels:
+        * Added for new features.
+        * Changed for changes in existing functionality.
+        * Deprecated for soon-to-be removed features.
+        * Removed for now removed features.
+        * Fixed for any bug fixes.
+        * Security in case of vulnerabilities.
+
+    * Changes in CHANGELOG should be updated when commits are added to the main branch.
+
+    * For more info visit: https://semver.org/spec/v2.0.0.html
+
+8. Initialization and Cleanup
 
     * Prefer to do Plugin Initialization within IPlugin [Initialize()](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h#L71). If there is any error in initialization return non-empty string with useful error information. This will ensure that plugin doesn't get activated and also return this error information to the caller. Ensure that any Initialization done within Initialize() gets cleaned up within IPlugin [Deinitialize()](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h#L80) which gets called when the plugin is deactivated.
     

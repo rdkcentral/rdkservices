@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkRemoteActionMapping.so",
       "status": "production",
       "description": "The `RemoteActionMapping` plugin controls and maps remote controllers.",
-      "version": "1.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "RemoteActionMapping.json#"

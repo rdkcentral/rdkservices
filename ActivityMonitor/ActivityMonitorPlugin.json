@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkActivityMonitor.so",
       "status": "production",
       "description": "The `ActivityMonitor` plugin allows you to monitor memory and CPU usage by application.",
-      "version": "1.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "ActivityMonitor.json#"

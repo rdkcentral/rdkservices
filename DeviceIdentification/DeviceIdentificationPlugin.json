@@ -6,7 +6,7 @@
         "locator": "libWPEFrameworkDeviceIdentification.so",
         "status": "production",
         "description": "The `DeviceIdentification` plugin allows you to retrieve various device-related information",
-        "version": "1.0"
+        "version": "1.0.0"
     },
     "interface": {
         "$ref": "DeviceIdentification.json#"

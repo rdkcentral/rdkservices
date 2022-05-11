@@ -2,7 +2,7 @@
     "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
     "info": {
         "title": "Messenger Plugin",
-        "version": "1.0",
+        "version": "1.0.0",
         "callsign": "Messenger",
         "locator": "libWPEFrameworkMessenger.so",
         "status": "alpha",

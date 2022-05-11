@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkHdmiCecSink.so",
       "status": "production",
       "description": "The `HdmiCecSink` plugin allows you to manage HDMI Consumer Electronics Control (CEC) sink for connected devices.",
-      "version": "1.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "HdmiCecSink.json#"

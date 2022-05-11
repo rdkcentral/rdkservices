@@ -6,7 +6,7 @@
       "locator": "",
       "status": "production",
       "description": "The `ControlService` plugin provides the ability to manage the remote controls of a STB.",
-      "version": "1.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "ControlService.json#"

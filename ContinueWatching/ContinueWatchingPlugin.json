@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkContinueWatching.so",
       "status": "production",
       "description": "Initial version of the `ContinueWatching` API.",
-      "version": "1.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "ContinueWatching.json#"

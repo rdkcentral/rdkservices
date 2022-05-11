@@ -6,7 +6,7 @@
     "locator": "libWPEFrameworkDTV.so",
     "status": "beta",
     "description": "The DTV plugin provides access to DVB services provided by a DVB stack.",
-    "version": "2.0"
+    "version": "1.0.0"
   },
   "interface": {
     "$ref": "DTV.json#"

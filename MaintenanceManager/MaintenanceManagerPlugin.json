@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkMaintenanceManager.so",
       "status": "production",
       "description": "The `MaintenanceManager` plugin allows you to control and monitor maintenance activities on set-top devices.",
-      "version": "1.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "MaintenanceManager.json#"

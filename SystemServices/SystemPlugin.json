@@ -6,7 +6,7 @@
       "locator": "libWPEFrameworkSystemServices.so",
       "status": "production",
       "description": "The `System` plugin is used to manage various system-level features such as power settings and firmware updates.",
-      "version": "2.0"
+      "version": "1.0.0"
     },
     "interface": {
       "$ref": "System.json#"
