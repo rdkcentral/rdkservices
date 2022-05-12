@@ -79,7 +79,8 @@
                                     "type": "string",
                                     "example": "uvw"
                                 }
-                            }
+                            },
+                            "required": []
                         }
                     },                    
                     "success": {
@@ -114,7 +115,8 @@
                                 "type": "string",
                                 "example": "uvw"
                             }
-                        }
+                        },
+                        "required": []
                     }   
                 },
                 "required": [

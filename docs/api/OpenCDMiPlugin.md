@@ -95,11 +95,11 @@ OCDM interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [drms](#property.drms) <sup>RO</sup> | Supported DRM systems |
-| [keysystems](#property.keysystems) <sup>RO</sup> | DRM key systems |
+| [drms](#drms) <sup>RO</sup> | Supported DRM systems |
+| [keysystems](#keysystems) <sup>RO</sup> | DRM key systems |
 
 
-<a name="property.drms"></a>
+<a name="drms"></a>
 ## *drms [<sup>property</sup>](#Properties)*
 
 Provides access to the supported DRM systems.
@@ -145,7 +145,7 @@ Provides access to the supported DRM systems.
 }
 ```
 
-<a name="property.keysystems"></a>
+<a name="keysystems"></a>
 ## *keysystems [<sup>property</sup>](#Properties)*
 
 Provides access to the DRM key systems.

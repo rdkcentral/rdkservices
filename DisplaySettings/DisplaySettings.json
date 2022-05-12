@@ -177,8 +177,14 @@
             "example": "FULL"
         },
         "colordepth": {
-            "summary": "Video display colordepth. Possible values: `8 Bit`,`10 Bit`,`12 Bit`,`Auto`",
+            "summary": "Video display color depth.",
             "type": "string",
+            "enum": [
+                "8 Bit",
+                "10 Bit",
+                "12 Bit",
+                "Auto"
+            ],
             "example": "12 Bit"
         },
         "result": {
@@ -829,6 +835,38 @@
                 },
                 "required": [
                     "muted",
+                    "success"
+                ]
+            }
+        },
+        "getPreferredColorDepth":{
+            "summary": "Returns the current color depth on the selected video display port.\n \n### Event \n\n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "videoDisplay": {
+                        "$ref": "#/definitions/videoDisplay"
+                    },
+                    "persist": {
+                        "summary":"Persists the color depth",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required":[
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "resolution": {
+                        "$ref": "#/definitions/colordepth"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
                     "success"
                 ]
             }
@@ -2043,6 +2081,32 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "setPreferredColorDepth":{
+            "summary": "Sets the current color depth for the videoDisplay.\n",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "videoDisplay": {
+                        "$ref": "#/definitions/videoDisplay"
+                    },
+                    "colorDepth": {
+                        "$ref": "#/definitions/colordepth"
+                    },
+                    "persist": {
+                        "summary":"Persists the color depth",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "videoDisplay",
+                    "colorDepth"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "setScartParameter":{
             "summary": "Sets SCART parameters.  \n   \nPossible values:  \n| **Parameter** | **ParameterData** |  \n| `aspect_ratio` | `4x3` or `16x9` |  \n| `tv_startup` | `on` or `off` |  \n| `rgb` | `on` (disables cvbs) |  \n| `cvbs` | `on` (disables rgb) |  \n| `macrovision` | not implemented |  \n| `cgms` |  `disabled`, `copyNever`, `copyOnce`, `copyFreely`, or `copyNoMore` |  \n| `port` | `on` or `off` | \n \n### Event \n\n No Events.",
             "params": {
@@ -2276,65 +2340,6 @@
                     "success"
                 ]
             }
-        },
-        "getPreferredColorDepth":{
-            "summary": "Returns the current color depth on the selected video display port.\n \n### Event \n\n No Events.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "videoDisplay": {
-                        "$ref": "#/definitions/videoDisplay"
-                    },
-                    "persist": {
-                        "summary":"Persists the color depth",
-                        "type": "boolean",
-                        "example": true
-                    }
-                },
-                "required":[
-                    " "
-                ]
-            },
-            "result": {
-                "type":"object",
-                "properties": {
-                    "resolution": {
-                        "$ref": "#/definitions/colordepth"
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "success"
-                ]
-            }
-        },
-        "setPreferredColorDepth":{
-            "summary": "Sets the current color depth for the videoDisplay.\n",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "videoDisplay": {
-                        "$ref": "#/definitions/videoDisplay"
-                    },
-                    "colorDepth": {
-                        "$ref": "#/definitions/colordepth"
-                    },
-                    "persist": {
-                        "summary":"Persists the color depth",
-                        "type": "boolean",
-                        "example": true
-                    }
-                },
-                "required": [
-                    "videoDisplay",
-                    "colorDepth"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
-            }
         }
     },
     "events": {
@@ -2384,11 +2389,11 @@
                     },
                     "isConnected": {
                         "summary": "Current connection status of the audio port",
+                        "type": "string",
                         "enum": [
                             "connected",
                             "disconnected"
                         ],
-                        "type": "string",
                         "example": "connected"
                     }
                 },

@@ -138,6 +138,10 @@ SystemServices interface methods:
 | [setGzEnabled](#setGzEnabled) | Enables or disables GZ |
 | [setMode](#setMode) | Sets the mode of the set-top box for a specific duration before returning to normal mode |
 | [setNetworkStandbyMode](#setNetworkStandbyMode) | Enables or disables the network standby mode of the device |
+| [setBootLoaderPattern](#setBootLoaderPattern) | Sets the boot loader pattern mode in MFR 
+### Events
+ 
+ No Events |
 | [setOptOutTelemetry](#setOptOutTelemetry) | Sets the telemetry opt-out status |
 | [setOvertempGraceInterval](#setOvertempGraceInterval) | Sets the over-temperature grace interval value |
 | [setPowerState](#setPowerState) | Sets the power state of the device |
@@ -2781,6 +2785,55 @@ Enables or disables the network standby mode of the device. If network standby i
 }
 ```
 
+<a name="setBootLoaderPattern"></a>
+## *setBootLoaderPattern*
+
+Sets the boot loader pattern mode in MFR 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.pattern | string | Bootloader pattern mode (must be one of the following: *NORMAL*, *SILENT*, *SILENT_LED_ON*) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setBootLoaderPattern",
+    "params": {
+        "pattern": "NORMAL"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="setOptOutTelemetry"></a>
 ## *setOptOutTelemetry*
 
@@ -3411,6 +3464,7 @@ SystemServices interface events:
 | [onSystemClockSet](#onSystemClockSet) | Triggered when the clock on the set-top device is updated |
 | [onSystemModeChanged](#onSystemModeChanged) | Triggered when the device operating mode changes |
 | [onSystemPowerStateChanged](#onSystemPowerStateChanged) | Triggered when the power manager detects a device power state change |
+| [onNetworkStandbyModeChanged](#onNetworkStandbyModeChanged) | Triggered when the network standby mode setting changed |
 | [onTemperatureThresholdChanged](#onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
 
 
@@ -3643,6 +3697,30 @@ Triggered when the power manager detects a device power state change.
     "params": {
         "powerState": "ON",
         "currentPowerState": "ON"
+    }
+}
+```
+
+<a name="onNetworkStandbyModeChanged"></a>
+## *onNetworkStandbyModeChanged*
+
+Triggered when the network standby mode setting changed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.nwStandby | boolean | Network standby mode |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onNetworkStandbyModeChanged",
+    "params": {
+        "nwStandby": true
     }
 }
 ```

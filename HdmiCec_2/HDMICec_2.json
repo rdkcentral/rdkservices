@@ -190,7 +190,7 @@
                 "required": [
                     "status"
                 ]
-            }
+            },
             "result": {
                 "$ref": "#/definitions/result"
             }

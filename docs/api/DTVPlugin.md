@@ -474,24 +474,24 @@ DTV interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [numberOfCountries](#property.numberOfCountries) <sup>RO</sup> | Number of country configurations available |
-| [countryList](#property.countryList) <sup>RO</sup> | Array containing the name and 3 character ISO country code for all the available country configurations |
-| [country](#property.country) | Country configuration using the ISO 3-character country code |
-| [lnbList](#property.lnbList) <sup>RO</sup> | Array of LNBs defined in the database |
-| [satelliteList](#property.satelliteList) <sup>RO</sup> | Array of satellites defined in the database |
-| [numberOfServices](#property.numberOfServices) <sup>RO</sup> | Total number of services in the service database |
-| [serviceList](#property.serviceList) <sup>RO</sup> | List of services for the given type of tuner, transport (version 2), or all services if neither is given |
-| [serviceInfo](#property.serviceInfo) <sup>RO</sup> | Information for the given service as defined by its DVB triplet URI |
-| [serviceComponents](#property.serviceComponents) <sup>RO</sup> | (Version 2) array of components for the given service defined by its URI |
-| [transportInfo](#property.transportInfo) <sup>RO</sup> | Information for the given transport as defined by its DVB doublet URI |
-| [nowNextEvents](#property.nowNextEvents) <sup>RO</sup> | Now and next events (EITp/f) for the given service |
-| [scheduleEvents](#property.scheduleEvents) <sup>RO</sup> | Events which are scheduled (EITsched) for the given service |
-| [extendedEventInfo](#property.extendedEventInfo) <sup>RO</sup> | Extended event info for the given service and event ID (version 2) |
-| [status](#property.status) <sup>RO</sup> | Information related to the play handle defined by the index |
-| [signalInfo](#property.signalInfo) <sup>RO</sup> | strength and quality of the currently tuned signal for the given play handle (version 2) |
+| [numberOfCountries](#numberOfCountries) <sup>RO</sup> | Number of country configurations available |
+| [countryList](#countryList) <sup>RO</sup> | Array containing the name and 3 character ISO country code for all the available country configurations |
+| [country](#country) | Country configuration using the ISO 3-character country code |
+| [lnbList](#lnbList) <sup>RO</sup> | Array of LNBs defined in the database |
+| [satelliteList](#satelliteList) <sup>RO</sup> | Array of satellites defined in the database |
+| [numberOfServices](#numberOfServices) <sup>RO</sup> | Total number of services in the service database |
+| [serviceList](#serviceList) <sup>RO</sup> | List of services for the given type of tuner, transport (version 2), or all services if neither is given |
+| [serviceInfo](#serviceInfo) <sup>RO</sup> | Information for the given service as defined by its DVB triplet URI |
+| [serviceComponents](#serviceComponents) <sup>RO</sup> | (Version 2) array of components for the given service defined by its URI |
+| [transportInfo](#transportInfo) <sup>RO</sup> | Information for the given transport as defined by its DVB doublet URI |
+| [nowNextEvents](#nowNextEvents) <sup>RO</sup> | Now and next events (EITp/f) for the given service |
+| [scheduleEvents](#scheduleEvents) <sup>RO</sup> | Events which are scheduled (EITsched) for the given service |
+| [extendedEventInfo](#extendedEventInfo) <sup>RO</sup> | Extended event info for the given service and event ID (version 2) |
+| [status](#status) <sup>RO</sup> | Information related to the play handle defined by the index |
+| [signalInfo](#signalInfo) <sup>RO</sup> | strength and quality of the currently tuned signal for the given play handle (version 2) |
 
 
-<a name="property.numberOfCountries"></a>
+<a name="numberOfCountries"></a>
 ## *numberOfCountries [<sup>property</sup>](#Properties)*
 
 Provides access to the number of country configurations available.
@@ -526,7 +526,7 @@ Provides access to the number of country configurations available.
 }
 ```
 
-<a name="property.countryList"></a>
+<a name="countryList"></a>
 ## *countryList [<sup>property</sup>](#Properties)*
 
 Provides access to the array containing the name and 3 character ISO country code for all the available country configurations.
@@ -569,7 +569,7 @@ Provides access to the array containing the name and 3 character ISO country cod
 }
 ```
 
-<a name="property.country"></a>
+<a name="country"></a>
 ## *country [<sup>property</sup>](#Properties)*
 
 Provides access to the country configuration using the ISO 3-character country code.
@@ -623,7 +623,7 @@ Provides access to the country configuration using the ISO 3-character country c
 }
 ```
 
-<a name="property.lnbList"></a>
+<a name="lnbList"></a>
 ## *lnbList [<sup>property</sup>](#Properties)*
 
 Provides access to the array of LNBs defined in the database.
@@ -690,7 +690,7 @@ Provides access to the array of LNBs defined in the database.
 }
 ```
 
-<a name="property.satelliteList"></a>
+<a name="satelliteList"></a>
 ## *satelliteList [<sup>property</sup>](#Properties)*
 
 Provides access to the array of satellites defined in the database.
@@ -735,7 +735,7 @@ Provides access to the array of satellites defined in the database.
 }
 ```
 
-<a name="property.numberOfServices"></a>
+<a name="numberOfServices"></a>
 ## *numberOfServices [<sup>property</sup>](#Properties)*
 
 Provides access to the total number of services in the service database.
@@ -770,7 +770,7 @@ Provides access to the total number of services in the service database.
 }
 ```
 
-<a name="property.serviceList"></a>
+<a name="serviceList"></a>
 ## *serviceList [<sup>property</sup>](#Properties)*
 
 Provides access to the list of services for the given type of tuner, transport (version 2), or all services if neither is given.
@@ -831,7 +831,7 @@ Provides access to the list of services for the given type of tuner, transport (
 }
 ```
 
-<a name="property.serviceInfo"></a>
+<a name="serviceInfo"></a>
 ## *serviceInfo [<sup>property</sup>](#Properties)*
 
 Provides access to the information for the given service as defined by its DVB triplet URI.
@@ -889,7 +889,7 @@ Provides access to the information for the given service as defined by its DVB t
 }
 ```
 
-<a name="property.serviceComponents"></a>
+<a name="serviceComponents"></a>
 ## *serviceComponents [<sup>property</sup>](#Properties)*
 
 Provides access to the (Version 2) array of components for the given service defined by its URI.
@@ -977,7 +977,7 @@ Provides access to the (Version 2) array of components for the given service def
 }
 ```
 
-<a name="property.transportInfo"></a>
+<a name="transportInfo"></a>
 ## *transportInfo [<sup>property</sup>](#Properties)*
 
 Provides access to the information for the given transport as defined by its DVB doublet URI.
@@ -1064,7 +1064,7 @@ Provides access to the information for the given transport as defined by its DVB
 }
 ```
 
-<a name="property.nowNextEvents"></a>
+<a name="nowNextEvents"></a>
 ## *nowNextEvents [<sup>property</sup>](#Properties)*
 
 Provides access to the now and next events (EITp/f) for the given service.
@@ -1154,7 +1154,7 @@ Provides access to the now and next events (EITp/f) for the given service.
 }
 ```
 
-<a name="property.scheduleEvents"></a>
+<a name="scheduleEvents"></a>
 ## *scheduleEvents [<sup>property</sup>](#Properties)*
 
 Provides access to the events which are scheduled (EITsched) for the given service.
@@ -1218,7 +1218,7 @@ Provides access to the events which are scheduled (EITsched) for the given servi
 }
 ```
 
-<a name="property.extendedEventInfo"></a>
+<a name="extendedEventInfo"></a>
 ## *extendedEventInfo [<sup>property</sup>](#Properties)*
 
 Provides access to the extended event info for the given service and event ID (version 2).
@@ -1268,7 +1268,7 @@ Provides access to the extended event info for the given service and event ID (v
 }
 ```
 
-<a name="property.status"></a>
+<a name="status"></a>
 ## *status [<sup>property</sup>](#Properties)*
 
 Provides access to the information related to the play handle defined by the index.
@@ -1316,7 +1316,7 @@ Provides access to the information related to the play handle defined by the ind
 }
 ```
 
-<a name="property.signalInfo"></a>
+<a name="signalInfo"></a>
 ## *signalInfo [<sup>property</sup>](#Properties)*
 
 Provides access to the strength and quality of the currently tuned signal for the given play handle (version 2).

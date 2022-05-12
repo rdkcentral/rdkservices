@@ -667,8 +667,8 @@ Get the session ID by providing the URL as the input parameter. Session is nothi
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result?.sessionId | integer | <sup>*(optional)*</sup> A unique identifier for a player instance |
-| result?.success | boolean | <sup>*(optional)*</sup> Whether the request succeeded |
+| result.sessionId | integer | A unique identifier for a player instance |
+| result.success | boolean | Whether the request succeeded |
 
 ### Example
 
