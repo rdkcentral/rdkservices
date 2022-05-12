@@ -118,6 +118,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "g
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_FRAME_RATE = "getFrameRate";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -848,6 +849,7 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_IGNORE_KEY_INPUTS, &RDKShell::ignoreKeyInputsWrapper, this);
+	    registerMethod(RDKSHELL_METHOD_GET_FRAME_RATE, &RDKShell::getFrameRateWrapper, this);
 	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -5274,6 +5276,16 @@ namespace WPEFramework {
                 response["message"] = "key ignore is not allowed";
             }
             returnResponse(ret);
+        }
+
+	uint32_t RDKShell::getFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+	    lockRdkShellMutex();
+	    unsigned int value = gCurrentFramerate;
+            gRdkShellMutex.unlock();
+            response["framerate"] = value;
+	    returnResponse(true);
         }
 
         // Registered methods end
