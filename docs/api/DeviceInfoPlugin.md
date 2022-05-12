@@ -84,12 +84,12 @@ DeviceInfo interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [systeminfo](#property.systeminfo) <sup>RO</sup> | Provides access to system general information |
-| [addresses](#property.addresses) <sup>RO</sup> | Network interface addresses |
-| [socketinfo](#property.socketinfo) <sup>RO</sup> | Socket information |
+| [systeminfo](#systeminfo) <sup>RO</sup> | Provides access to system general information |
+| [addresses](#addresses) <sup>RO</sup> | Network interface addresses |
+| [socketinfo](#socketinfo) <sup>RO</sup> | Socket information |
 
 
-<a name="property.systeminfo"></a>
+<a name="systeminfo"></a>
 ## *systeminfo [<sup>property</sup>](#Properties)*
 
 Provides access to the provides access to system general information.
@@ -141,7 +141,7 @@ Provides access to the provides access to system general information.
 }
 ```
 
-<a name="property.addresses"></a>
+<a name="addresses"></a>
 ## *addresses [<sup>property</sup>](#Properties)*
 
 Provides access to the network interface addresses.
@@ -189,7 +189,7 @@ Provides access to the network interface addresses.
 }
 ```
 
-<a name="property.socketinfo"></a>
+<a name="socketinfo"></a>
 ## *socketinfo [<sup>property</sup>](#Properties)*
 
 Provides access to the socket information.

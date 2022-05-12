@@ -89,7 +89,8 @@ XCast interface methods:
 | [getEnabled](#getEnabled) | Reports whether xcast is enabled or disabled |
 | [getFriendlyName](#getFriendlyName) | Returns the friendly name set by setFriendlyName API |
 | [getStandbyBehavior](#getStandbyBehavior) | Gets the expected xcast behavior in standby mode |
-| [onApplicationStateChanged](#onApplicationStateChanged) | provides notification whenever an application changes state (due to user activity, an internal error, or other reasons) |
+| [getProtocolVersion](#getProtocolVersion) | Return the DIAL protocol version supported by the server  |
+| [onApplicationStateChanged](#onApplicationStateChanged) | Provides notification whenever an application changes state due to user activity, an internal error, or other reasons |
 | [registerApplications](#registerApplications) | Registers an application |
 | [setEnabled](#setEnabled) | Enables or disables xcast |
 | [setFriendlyName](#setFriendlyName) | Sets the friendly name of device |
@@ -280,18 +281,66 @@ This method takes no parameters.
 }
 ```
 
+<a name="getProtocolVersion"></a>
+## *getProtocolVersion*
+
+Return the DIAL protocol version supported by the server .
+  
+### Events 
+
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.version | string | DIAL protocol version string |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Xcast.1.getProtocolVersion"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "version": "2.1 or 2.2.1 etc.",
+        "success": true
+    }
+}
+```
+
 <a name="onApplicationStateChanged"></a>
 ## *onApplicationStateChanged*
 
-provides notification whenever an application changes state (due to user activity, an internal error, or other reasons). For singleton applications, the `applicationId` parameter is optional. If an application request is denied, fails to fulfill, or the state change is triggered by an internal error, a predefined error string should be included. This error may be translated to an XCast client.  
- Client Error Mapping Example:  
+Provides notification whenever an application changes state due to user activity, an internal error, or other reasons. For singleton applications, the `applicationId` parameter is optional. If an application request is denied, fails to fulfill, or the state change is triggered by an internal error, then a predefined error string should be included. This error may be translated to an XCast client.  
+
+The following table provides a client error mapping example: 
+
 | Error | Description | HTTP Status Codes |  
- | :-------- | :-------- | :-------- |   
+| :-------- | :-------- | :-------- |   
 | `none` | The request (start/stop) is fulfilled successfully | HTTP 200 OK |  
 | `forbidden` | The user is not allowed to change the state of the application. This is not related to user account authentication of the native application | HTTP 403 Forbidden |  
 | `unavailable` | The target native application is not available on the device | HTTP 404 Not Found |  
 | `invalid` | The request is invalid (bad parameter for example) | HTTP 400 Bad Request |  
-| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |. 
+| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |
   
 ### Events 
 

@@ -84,10 +84,10 @@ DeviceIdentification interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [deviceidentification](#property.deviceidentification) <sup>RO</sup> | Device platform specific information |
+| [deviceidentification](#deviceidentification) <sup>RO</sup> | Device platform specific information |
 
 
-<a name="property.deviceidentification"></a>
+<a name="deviceidentification"></a>
 ## *deviceidentification [<sup>property</sup>](#Properties)*
 
 Provides access to the device platform specific information.
