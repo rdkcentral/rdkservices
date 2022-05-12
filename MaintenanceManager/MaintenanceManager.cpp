@@ -823,7 +823,8 @@ namespace WPEFramework {
             }
 
             m_abort_flag = true;
-            LOGINFO("EL: Unlocking all the threads");
+		
+            /* unlock if the task is still waiting */
             task_thread.notify_all();
             if(m_thread.joinable()){
                 m_thread.join();
