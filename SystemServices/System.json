@@ -2016,7 +2016,7 @@
                     }
                 },
                 "required": [
-                    "nwStandby",
+                    "nwStandby"
                 ]
             }
         },

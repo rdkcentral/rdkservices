@@ -138,7 +138,7 @@ This method takes no parameters.
 <a name="setKeystrokeMaskEnabled"></a>
 ## *setKeystrokeMaskEnabled*
 
-Sets the keystroke logging mask property. If a keystroke mask is successfully changed, then this method triggers an `onKeystrokeMaskEnabledChange` 
+Sets the keystroke logging mask  If a keystroke mask is successfully changed, then this method triggers an `onKeystrokeMaskEnabledChange` 
  
 ### Events 
 | Event | Description | 

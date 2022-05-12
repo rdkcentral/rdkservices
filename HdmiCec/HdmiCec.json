@@ -4,8 +4,7 @@
     "info": {
         "title": "HdmiCec API", 
         "class": "HdmiCec", 
-        "description": "The `HdmiCec` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box. HdmiCec plugin can be used on Hdmi Source device where application
-will have complete control on implementing the CEC messages and thunder plugin will provide the transport mechenism to send and recceive the messages to other CEC devices in the network."
+        "description": "The `HdmiCec` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. HdmiCec plugin can be used on an HDMI Source device where the application has complete control on implementing the CEC messages, and Thunder plugin provides the transport mechanism to send and receive the messages to other CEC devices in the network."
     },
     "definitions": {
         "enabled": {
@@ -196,7 +195,7 @@ will have complete control on implementing the CEC messages and thunder plugin w
             "result": {
                 "$ref": "#/definitions/result"
             }
-        }
+        },
         "getActiveSourceStatus":{
             "summary": "Get the active source status of the device.\n  \n### Event \n\n No Events",
             "params": {
@@ -211,7 +210,7 @@ will have complete control on implementing the CEC messages and thunder plugin w
                 "required": [
                     "status"
                 ]
-            }
+            },
             "result": {
                 "$ref": "#/definitions/result"
             }

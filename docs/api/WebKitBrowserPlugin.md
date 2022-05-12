@@ -266,18 +266,18 @@ WebKitBrowser interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [fps](#property.fps) <sup>RO</sup> | Current number of frames-per-second the browser is rendering |
-| [headers](#property.headers) | Headers to send on all requests that the browser makes |
-| [httpcookieacceptpolicy](#property.httpcookieacceptpolicy) | HTTP cookies accept policy |
-| [languages](#property.languages) | User preferred languages |
-| [localstorageenabled](#property.localstorageenabled) | Local storage availability |
-| [state](#property.state) | Running state of the service |
-| [url](#property.url) | URL loaded in the browser |
-| [useragent](#property.useragent) | `UserAgent` string used by the browser |
-| [visibility](#property.visibility) | Current browser visibility |
+| [fps](#fps) <sup>RO</sup> | Current number of frames-per-second the browser is rendering |
+| [headers](#headers) | Headers to send on all requests that the browser makes |
+| [httpcookieacceptpolicy](#httpcookieacceptpolicy) | HTTP cookies accept policy |
+| [languages](#languages) | User preferred languages |
+| [localstorageenabled](#localstorageenabled) | Local storage availability |
+| [state](#state) | Running state of the service |
+| [url](#url) | URL loaded in the browser |
+| [useragent](#useragent) | `UserAgent` string used by the browser |
+| [visibility](#visibility) | Current browser visibility |
 
 
-<a name="property.fps"></a>
+<a name="fps"></a>
 ## *fps [<sup>property</sup>](#Properties)*
 
 Provides access to the current number of frames-per-second the browser is rendering.
@@ -312,7 +312,7 @@ Provides access to the current number of frames-per-second the browser is render
 }
 ```
 
-<a name="property.headers"></a>
+<a name="headers"></a>
 ## *headers [<sup>property</sup>](#Properties)*
 
 Provides access to the headers to send on all requests that the browser makes.
@@ -387,7 +387,7 @@ Use this property to send on all requests that the browser makes.
 }
 ```
 
-<a name="property.httpcookieacceptpolicy"></a>
+<a name="httpcookieacceptpolicy"></a>
 ## *httpcookieacceptpolicy [<sup>property</sup>](#Properties)*
 
 Provides access to the HTTP cookies accept policy.
@@ -455,7 +455,7 @@ Use this property to accept HTTP cookie policy.
 }
 ```
 
-<a name="property.languages"></a>
+<a name="languages"></a>
 ## *languages [<sup>property</sup>](#Properties)*
 
 Provides access to the user preferred languages.
@@ -522,7 +522,7 @@ Use this property to return User preferred languages.
 }
 ```
 
-<a name="property.localstorageenabled"></a>
+<a name="localstorageenabled"></a>
 ## *localstorageenabled [<sup>property</sup>](#Properties)*
 
 Provides access to the local storage availability.
@@ -584,7 +584,7 @@ Use this property to return Local storage availability.
 }
 ```
 
-<a name="property.state"></a>
+<a name="state"></a>
 ## *state [<sup>property</sup>](#Properties)*
 
 Provides access to the running state of the service.
@@ -649,7 +649,7 @@ Also see: [statechange](#statechange)
 }
 ```
 
-<a name="property.url"></a>
+<a name="url"></a>
 ## *url [<sup>property</sup>](#Properties)*
 
 Provides access to the URL loaded in the browser.
@@ -722,7 +722,7 @@ Also see: [urlchange](#urlchange)
 }
 ```
 
-<a name="property.useragent"></a>
+<a name="useragent"></a>
 ## *useragent [<sup>property</sup>](#Properties)*
 
 Provides access to the `UserAgent` string used by the browser.
@@ -784,7 +784,7 @@ Use this property to return `UserAgent` string used by the browser.
 }
 ```
 
-<a name="property.visibility"></a>
+<a name="visibility"></a>
 ## *visibility [<sup>property</sup>](#Properties)*
 
 Provides access to the current browser visibility.
