@@ -82,7 +82,7 @@ using namespace std;
 #define REGEX_UNALLOWABLE_INPUT "[^[:alnum:]_-]{1}"
 
 #define STORE_DEMO_FILE "/opt/persistent/store-mode-video/videoFile.mp4"
-#define STORE_DEMO_LINK "http://127.0.0.1:50050/store-mode-video/videoFile.mp4"
+#define STORE_DEMO_LINK "file:///opt/persistent/store-mode-video/videoFile.mp4"
 
 #define RFC_CALLERID           "SystemServices"
 
