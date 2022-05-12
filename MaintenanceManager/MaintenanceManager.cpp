@@ -826,9 +826,9 @@ namespace WPEFramework {
                 MaintenanceManager::_instance = nullptr;
             }
 
-            m_abort_flag = true;
+            //m_abort_flag = true;
             LOGINFO("EL: Notifiying all");
-            task_thread.notify_all();
+            //task_thread.notify_all();
             LOGINFO("EL: Checking thread is joinable");
             if(m_thread.joinable()){
                 LOGINFO("EL: thread is joinable. Executing join");
