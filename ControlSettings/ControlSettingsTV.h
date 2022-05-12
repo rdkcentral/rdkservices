@@ -37,24 +37,15 @@ class ControlSettingsTV : public ControlSettings {
     public:
         ControlSettingsTV();
         ~ControlSettingsTV();
-        void Initialize();
-        void DeInitialize();
-	bool isDisplayAvailable() { return true; }
 
     public:
         //   IPlugin methods
         // -------------------------------------------------------------------------------------------------------
-        virtual const std::string Initialize(PluginHost::IShell* service)
-        {
-            return (std::string());
-        }
-        virtual void Deinitialize(PluginHost::IShell* service){ };
-        virtual std::string Information() const
-        {
-           return (std::string());
-        }
-        virtual void AddRef() const;
-        virtual uint32_t Release() const;
+        const std::string Initialize(PluginHost::IShell* service);
+        void Deinitialize(PluginHost::IShell* service);
+        std::string Information() const;
+        void AddRef() const;
+        uint32_t Release() const;
 
 };
 

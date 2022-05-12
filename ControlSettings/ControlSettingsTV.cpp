@@ -36,15 +36,24 @@ namespace Plugin {
         LOGINFO();    
     }
 
-    void ControlSettingsTV::Initialize()
+    const std::string ControlSettingsTV::Initialize(PluginHost::IShell* service)
     {
-        LOGINFO();
-	//Platform specific Init Sequence
+        LOGINFO("Entry\n");
+        InitializeGeneric(service); //Calls generic Init Sequence
+	//Space for Device specific Init Sequence
+	return (service != nullptr ? _T("") : _T("No service."));
     }
 
-    void ControlSettingsTV::DeInitialize()
+    void ControlSettingsTV::Deinitialize(PluginHost::IShell* service)
     {
-        LOGINFO();
+        LOGINFO("Entry\n");
+        DeinitializeGeneric(service);//Call generic De-init Sequence
+        LOGINFO("Exit\n");
+    }
+
+    std::string ControlSettingsTV::ControlSettingsTV::Information() const
+    {
+        return (std::string());
     }
 
     void ControlSettingsTV::AddRef() const
@@ -65,8 +74,6 @@ namespace Plugin {
         PLUGIN_Lock(tvLock);
         tvError_t ret = tvERROR_NONE;
 
-      //  ret = devicePtr->getBacklight();
-
         if(ret != tvERROR_NONE) {
             returnResponse(false, getErrorString(ret).c_str());
         }
@@ -82,8 +89,6 @@ namespace Plugin {
         LOGINFO("Entry\n");
         PLUGIN_Lock(tvLock);
         tvError_t ret = tvERROR_NONE;
-
-    //    ret = devicePtr->setBacklight();
 
         if(ret != tvERROR_NONE) {
             returnResponse(false, getErrorString(ret).c_str());

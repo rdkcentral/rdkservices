@@ -36,15 +36,25 @@ namespace Plugin {
         LOGINFO();
     }
 
-    void ControlSettingsSTB::Initialize()
+    const std::string ControlSettingsSTB::Initialize(PluginHost::IShell* service)
     {
-        LOGINFO();
-        //Platform specific Init Sequence
+        LOGINFO("Entry\n");
+        InitializeGeneric(service); //Calls generic Init Sequence
+        //Space for Device specific Init Sequence
+	//
+	return (service != nullptr ? _T("") : _T("No service."));
     }
 
-    void ControlSettingsSTB::DeInitialize()
+    void ControlSettingsSTB::Deinitialize(PluginHost::IShell* service)
     {
-        LOGINFO();
+        LOGINFO("Entry\n");
+        DeinitializeGeneric(service);//Call generic De-init Sequence
+        LOGINFO("Exit\n");
+    }
+
+    std::string ControlSettingsSTB::ControlSettingsSTB::Information() const
+    {
+        return (std::string());
     }
 
     void ControlSettingsSTB::AddRef() const

@@ -42,8 +42,6 @@
 #include "utils.h"
 #include "tvTypes.h"
 #include "tvError.h"
-//#include "ControlSettingsTV.h"
-//#include "ControlSettingsSTB.h"
 
 #include "tr181api.h"
 #include "AbstractPlugin.h"
@@ -90,13 +88,13 @@ namespace Plugin {
    public:
         ControlSettings();
         ~ControlSettings();
-        WPEFramework::Plugin::ControlSettings *devicePtr;
         static ControlSettings* _instance;
 	void NotifyVideoFormatChange(tvVideoHDRFormat_t format);
         void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
         void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
-	//virtual bool isDisplayAvailable() = 0;
         std::string getErrorString (tvError_t eReturn);
+        void InitializeGeneric(PluginHost::IShell* service);
+        void DeinitializeGeneric(PluginHost::IShell* service);
 
 
         BEGIN_INTERFACE_MAP(ControlSettings)
@@ -120,9 +118,9 @@ namespace Plugin {
     public:
         //   IPlugin methods
         // -------------------------------------------------------------------------------------------------------
-        virtual const std::string Initialize(PluginHost::IShell* service);
-        virtual void Deinitialize(PluginHost::IShell* service);
-        virtual std::string Information() const;
+        const std::string Initialize(PluginHost::IShell* service);
+        void Deinitialize(PluginHost::IShell* service);
+        std::string Information() const;
    };
 }
 }

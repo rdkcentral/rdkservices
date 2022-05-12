@@ -254,7 +254,7 @@ namespace Plugin {
         LOGINFO();
     }
 
-    const std::string ControlSettings::Initialize(PluginHost::IShell* service)
+    void ControlSettings::InitializeGeneric(PluginHost::IShell* service)
     {
 	LOGINFO("Entry\n");
         try {
@@ -299,17 +299,30 @@ namespace Plugin {
 
 	LOGINFO("Exit\n");
 
-        return (service != nullptr ? _T("") : _T("No service."));
+    }
 
+    const std::string ControlSettings::Initialize(PluginHost::IShell* service)
+    {
+        // No additional info to report.
+	// Handled in Child
+	LOGINFO();
+	return (std::string());
     }
 
     std::string ControlSettings::Information() const
     {
         // No additional info to report.
+        LOGINFO();
         return (std::string());
     }
 
     void ControlSettings::Deinitialize(PluginHost::IShell* service)
+    {
+        LOGINFO();
+        // No additional info to report.
+    }
+
+    void ControlSettings::DeinitializeGeneric(PluginHost::IShell* service)
     {
         LOGINFO();
         tvError_t ret = tvERROR_NONE;
@@ -534,8 +547,6 @@ namespace Plugin {
         PLUGIN_Lock(tvLock);
 	tvError_t ret = tvERROR_NONE;
 
-//	ret = devicePtr->getAspectRatio();
-
 	if(ret != tvERROR_NONE) {
             returnResponse(false, getErrorString(ret).c_str());
         }
@@ -552,8 +563,6 @@ namespace Plugin {
         PLUGIN_Lock(tvLock);
 	tvError_t ret = tvERROR_NONE;
 
-      //  ret = devicePtr->setAspectRatio(); 
-        
         if(ret != tvERROR_NONE) {
             returnResponse(false, getErrorString(ret).c_str());
         }
