@@ -26,15 +26,12 @@ namespace WPEFramework {
 namespace Plugin {
 namespace Rust {
 
-#define DEFAULT_HOST "127.0.0.1"
-#define DEFAULT_PORT 55350
-
-RemotePlugin::RemotePlugin()
-  : m_service(nullptr)
+RemotePlugin::RemotePlugin(RustAdapter* rustAdapter)
+  : m_remotePid(0), m_rustAdapter(rustAdapter)
 {
 }
 
-const std::string
+const string
 RemotePlugin::Initialize(PluginHost::IShell *shell)
 {
   m_service = shell;
@@ -45,7 +42,14 @@ RemotePlugin::Initialize(PluginHost::IShell *shell)
     shared_library_name << static_cast<char>(std::tolower(c));
   shared_library_name << ".so";
 
-  if (m_stream.Open(DEFAULT_HOST, DEFAULT_PORT, std::bind(&RemotePlugin::onRead, this, std::placeholders::_1)) < 0)
+  string address = m_rustAdapter->GetConfig().Address.Value();
+  printf("ADDR=%s\n", address.c_str());
+  if (address.empty())
+    address = "127.0.0.1";
+
+  if (m_stream.Open(address, 
+                    m_rustAdapter->GetConfig().Port.Value(), 
+                    std::bind(&RemotePlugin::onRead, this, std::placeholders::_1)) < 0)
   {
     return string("RustAdapter RemotePlugin couldn't open socket stream");
   }
@@ -55,9 +59,12 @@ RemotePlugin::Initialize(PluginHost::IShell *shell)
     return string("RustAdapter RemotePlugin failed to run stream thread");
   }
 
-  if ((m_remotePid = LaunchRemoteProcess(shared_library_name.str(), DEFAULT_HOST, DEFAULT_PORT)) < 0)
+  if (m_rustAdapter->GetConfig().AutoExec)
   {
-    return string("RustAdapter RemotePlugin failed spawn remote process");
+    if ((m_remotePid = LaunchRemoteProcess(shared_library_name.str(), m_stream.GetAddress(), m_stream.GetPort())) < 0)
+    {
+      return string("RustAdapter RemotePlugin failed spawn remote process");
+    }
   }
 
   return {};
@@ -66,12 +73,13 @@ RemotePlugin::Initialize(PluginHost::IShell *shell)
 void
 RemotePlugin::Deinitialize(PluginHost::IShell *shell)
 {
+  
+  LOGDBG("Deinitialize: send exit message to any connected client");
+  m_stream.SendExit();
+
   if (m_remotePid > 0)
   {
     int status;
-    LOGDBG("Deinitialize: send exit message");
-    m_stream.SendExit();
-
     LOGDBG("Deinitialize: waiting on remote %d to close", m_remotePid);
     waitpid(m_remotePid, &status, 0);
     LOGDBG("Deinitialize:remote closed status=%d", status);
@@ -94,7 +102,7 @@ RemotePlugin::Invoke(
   const WPEFramework::Core::JSONRPC::Context &ctx,
   const WPEFramework::Core::JSONRPC::Message &req)
 {
-  std::string json;
+  string json;
   req.ToString(json);
   m_stream.SendInvoke(ctx.ChannelId(), ctx.Token(), json);
   return {};
@@ -127,7 +135,7 @@ RemotePlugin::Detach(PluginHost::Channel &channel)
 }
 
 WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>
-RemotePlugin::Inbound(const std::string &identifier)
+RemotePlugin::Inbound(const string &identifier)
 {
   return WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>(
     WPEFramework::PluginHost::IFactories::Instance().JSONRPC());
@@ -154,7 +162,7 @@ RemotePlugin::Release() const
   return 0;
 }
 
-std::string
+string
 RemotePlugin::Information() const
 {
   return { };
@@ -168,7 +176,7 @@ void RemotePlugin::onRead(const Response& rsp)
 
 int RemotePlugin::LaunchRemoteProcess(const string& rust_shared_lib, const string& host_ip, int port)
 {
-  std::string appName = "rust_adapter_process";
+  string appName = "rust_adapter_process";
 
   int pid = fork();
 
@@ -185,7 +193,7 @@ int RemotePlugin::LaunchRemoteProcess(const string& rust_shared_lib, const strin
       nullptr
     };
 
-    if(execvp(appName.c_str(), (char**)argv) < 0)
+    if (execvp(appName.c_str(), (char**)argv) < 0)
     {
       LOGERR("Failed launch remote app %s: %s", appName.c_str(), strerror(errno));
       _exit(errno);

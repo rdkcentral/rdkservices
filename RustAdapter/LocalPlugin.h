@@ -40,7 +40,7 @@ public:
   /**
    * IPlugin::Initialize
    */
-  const std::string Initialize(PluginHost::IShell *shell) override;
+  const string Initialize(PluginHost::IShell *shell) override;
 
   /**
    * IPlugin::Deinitialize
@@ -50,7 +50,7 @@ public:
   /**
    * IPlugin Information
    */
-  std::string Information() const override;
+  string Information() const override;
 
   /**
    * IDispatcher -> IUknown -> IReferenceCounted::AddRef
@@ -95,7 +95,7 @@ public:
   /**
    *
    */
-  Core::ProxyType<Core::JSON::IElement> Inbound(const std::string &identifier) override;
+  Core::ProxyType<Core::JSON::IElement> Inbound(const string &identifier) override;
   Core::ProxyType<Core::JSON::IElement> Inbound(const uint32_t id,
     const Core::ProxyType<Core::JSON::IElement> &element) override;
 

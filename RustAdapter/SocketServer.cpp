@@ -65,79 +65,19 @@ Response::Response()
 {
 }
 
-Response::Response(uint32_t channel, const std::string& json_str)
+Response::Response(uint32_t channel, const string& json_str)
 : channel_id(channel), json(json_str)
 {
 }
 
-class SocketMonitor
-{
-public:
-  SocketMonitor();
-  ~SocketMonitor();
-  void Set(int fd);
-  bool IsReadSet(int fd);
-  bool IsExceptSet(int fd);
-  void Clear(int fd);
-  int Select(int timeout);
-
-private:
-    fd_set m_readSet;
-    fd_set m_exceptSet;
-    int m_fdMax;
-};
-
-SocketMonitor::SocketMonitor() 
-: m_fdMax(0)
-{
-  FD_ZERO(&m_readSet);
-  FD_ZERO(&m_exceptSet);
-}
-
-SocketMonitor::~SocketMonitor()
-{
-
-}
-
-void SocketMonitor::Set(int fd)
-{
-  FD_SET(fd, &m_readSet);
-  FD_SET(fd, &m_exceptSet);
-
-  if (fd > m_fdMax)
-    m_fdMax = fd;
-}
-
-bool SocketMonitor::IsReadSet(int fd)
-{
-  return FD_ISSET(fd, &m_readSet);
-}
-
-bool SocketMonitor::IsExceptSet(int fd)
-{
-  return FD_ISSET(fd, &m_exceptSet);
-}
-
-void SocketMonitor::Clear(int fd)
-{
-  FD_SET(fd, &m_readSet);
-  FD_SET(fd, &m_exceptSet);
-}
-
-int SocketMonitor::Select(int timeout)
-{
-  struct timeval tv;
-  
-  tv.tv_sec = timeout;
-  tv.tv_usec = 0;
-  
-  return select(m_fdMax + 1, &m_readSet, NULL, &m_exceptSet, &tv);
-}
+#define CLIENT_DISCONNECT -2
 
 SocketServer::SocketServer()
 : m_serverSocket(0)
 , m_clientSocket(0)
 , m_running(false)
+, m_address()
+, m_port(0)
 {
 
 }
@@ -147,10 +87,11 @@ SocketServer::~SocketServer()
   Close();
 }
 
-int SocketServer::Open(char const* host_ip, int port, const std::function<void (const Response&)>& reader)
+int SocketServer::Open(const string& address, int port, const function<void (const Response&)>& reader)
 {
   int sock;
   struct sockaddr_in addr;
+  int rc;
 
   sock = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -160,11 +101,24 @@ int SocketServer::Open(char const* host_ip, int port, const std::function<void (
     return -1;
   }
 
-  memset(&addr, 0, sizeof(addr));
+  memset(&addr, 0, sizeof(address));
   addr.sin_family = AF_INET;
   addr.sin_port = htons(port);
-  inet_pton(AF_INET, host_ip, &addr.sin_addr);//FIXME
-  addr.sin_addr.s_addr = INADDR_ANY;//FIXME
+  
+  rc = inet_pton(AF_INET, address.c_str(), &addr.sin_addr);
+
+  if (rc == 0)
+  {
+    LOGERR("SocketServer::Open inet_pton %s invalid ip format", address.c_str());
+    return -1;
+  }
+  else if (rc < 0)
+  {
+    LOGERR("SocketServer::Open inet_pton %s failed: %s", address.c_str(), strerror(errno));
+    return -1;
+  }
+  
+  LOGDBG("SocketServer::Open host_ip=%s sin_addr=%d (note that INADDR_ANY=%d)", address.c_str(), addr.sin_addr.s_addr, INADDR_ANY);
 
   int sock_flags = fcntl (sock, F_GETFD, 0);
   if (sock_flags < 0)
@@ -195,15 +149,33 @@ int SocketServer::Open(char const* host_ip, int port, const std::function<void (
 
   m_reader = reader;
   m_serverSocket = sock;
+  m_address = address;
 
-  LOGDBG("SocketServer::Open successfully running on port %d", port);
+  if (port)
+  {
+    m_port = port;
+  }
+  else
+  {
+    struct sockaddr_in cur;
+    socklen_t len = sizeof(cur);
+    if (getsockname(sock, (struct sockaddr *)&cur, &len) ==-0)
+    {
+      m_port = ntohs(cur.sin_port);
+    }
+    else
+    {
+      LOGERR("SocketServer::Open getsockname failed: %s", strerror(errno));
+    }
+  }
 
+  LOGDBG("SocketServer::Open successfully running on port %d", m_port);
   return 0;
 }
 
 int SocketServer::RunThread()
 {
-  if (pthread_create(&m_socketThread, nullptr, SocketServer::RunThreadFunc, this) != 0)
+  if (pthread_create(&m_thread, nullptr, SocketServer::RunThreadFunc, this) != 0)
   {
     LOGERR("SocketServer::Open failed to create thread: %s",strerror(errno));
     return -1;
@@ -227,15 +199,27 @@ int SocketServer::Run()
 
   while (m_running)
   {
-    SocketMonitor mon;
+    fd_set m_readSet;
+    fd_set m_exceptSet;
+    struct timeval tv;
     int res;
 
-    mon.Set(m_serverSocket);
-    mon.Set(m_clientSocket);
+    FD_ZERO(&m_readSet);
+    FD_ZERO(&m_exceptSet);
+    FD_SET(m_serverSocket, &m_readSet);
+    FD_SET(m_serverSocket, &m_exceptSet);    
+    if (m_clientSocket)
+    {
+      FD_SET(m_clientSocket, &m_readSet);
+      FD_SET(m_clientSocket, &m_exceptSet);    
+    }
 
-    res = mon.Select(10);
+    tv.tv_sec = 10;
+    tv.tv_usec = 0;
+    res = select((m_clientSocket > m_serverSocket ? m_clientSocket : m_serverSocket) + 1, 
+                 &m_readSet, NULL, &m_exceptSet, &tv);
 
-    if(!m_running)
+    if (!m_running)
       break;
 
     if (res < 0)
@@ -247,7 +231,7 @@ int SocketServer::Run()
     if (res == 0)
       continue;
 
-    if (mon.IsReadSet(m_serverSocket))
+    if (FD_ISSET(m_serverSocket, &m_readSet))
     {
       int clsock;
       struct sockaddr_in claddr;
@@ -263,24 +247,41 @@ int SocketServer::Run()
       }
       else
       {
-        LOGDBG("SocketServer::Open accepted new client");
+        LOGDBG("SocketServer::Open client connected");
         m_clientSocket = clsock;
       }
     }
 
     if (m_clientSocket)
     {
-      if (mon.IsReadSet(m_clientSocket))
+      if (FD_ISSET(m_clientSocket, &m_readSet))
       {
         Response rsp;
-        if (ReadResponse(rsp) >= 0)
+        int rc = ReadResponse(rsp);
+        if (rc >= 0)
         {
           m_reader(rsp);
+        }
+        else if (rc == CLIENT_DISCONNECT)
+        {
+          LOGDBG("SocketServer::Open client disconnected");
+          close(m_clientSocket);
+          m_clientSocket = 0;
         }
       }
     }
   }
   return 0;
+}
+
+string SocketServer::GetAddress() const
+{
+  return m_address;
+}
+
+int SocketServer::GetPort() const
+{
+  return m_port; 
 }
 
 void SocketServer::Close()
@@ -311,6 +312,10 @@ int SocketServer::ReadExact(uint8_t* p, int len)
     if (num <= 0)
     {
         LOGERR("SocketServer::ReadExact failed: num=%d", num);
+
+        if (num == 0)
+          return CLIENT_DISCONNECT;
+
         return -1;
     }
     else
@@ -329,7 +334,7 @@ int SocketServer::ReadExact(uint8_t* p, int len)
   return len;
 }
 
-int SocketServer::SendInvoke(uint32_t channel_id, const std::string& token, const std::string& json)
+int SocketServer::SendInvoke(uint32_t channel_id, const string& token, const string& json)
 {
   if (m_serverSocket <= 0 || m_clientSocket <= 0)
     return -1;
@@ -415,10 +420,11 @@ int SocketServer::ReadResponse(Response& rsp)
     return -1;
 
   ResponseHeader header;
+  int rc;
 
-  if (ReadExact((uint8_t*)&header, (int)sizeof(ResponseHeader)) <= 0)
+  if ((rc = ReadExact((uint8_t*)&header, (int)sizeof(ResponseHeader))) <= 0)
   {
-    return -1;
+    return rc;
   }
 
   rsp.channel_id = ntohl(header.channel_id);
@@ -432,10 +438,10 @@ int SocketServer::ReadResponse(Response& rsp)
     uint8_t* buffer;
     buffer = (uint8_t*)malloc(header.json_len+1);
 
-    if (ReadExact(buffer, (int)header.json_len) <= 0)
+    if ((rc = ReadExact(buffer, (int)header.json_len)) <= 0)
     {
       free(buffer);
-      return -1;
+      return rc;
     }
     
     buffer[header.json_len] = 0;
