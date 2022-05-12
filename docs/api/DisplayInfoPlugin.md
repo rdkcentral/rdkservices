@@ -222,27 +222,27 @@ DisplayInfo interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [totalgpuram](#property.totalgpuram) <sup>RO</sup> | Total GPU DRAM memory (in bytes) |
-| [freegpuram](#property.freegpuram) <sup>RO</sup> | Free GPU DRAM memory (in bytes) |
-| [isaudiopassthrough](#property.isaudiopassthrough) <sup>RO</sup> | Current audio passthrough status on HDMI |
-| [connected](#property.connected) <sup>RO</sup> | Current HDMI connection status |
-| [width](#property.width) <sup>RO</sup> | Horizontal resolution of the TV |
-| [height](#property.height) <sup>RO</sup> | Vertical resolution of the TV |
-| [verticalfreq](#property.verticalfreq) <sup>RO</sup> | Vertical Frequency |
-| [hdcpprotection](#property.hdcpprotection) <sup>RO</sup> | HDCP protocol used for transmission |
-| [portname](#property.portname) <sup>RO</sup> | Video output port on the STB used for connecting to the TV |
-| [tvcapabilities](#property.tvcapabilities) <sup>RO</sup> | HDR formats supported by the TV |
-| [stbcapabilities](#property.stbcapabilities) <sup>RO</sup> | HDR formats supported by the STB |
-| [hdrsetting](#property.hdrsetting) <sup>RO</sup> | HDR format in use |
-| [colorspace](#property.colorspace) <sup>RO</sup> | Display color space (chroma subsampling format) |
-| [framerate](#property.framerate) <sup>RO</sup> | Display frame rate |
-| [colourdepth](#property.colourdepth) <sup>RO</sup> | Display colour depth |
-| [quantizationrange](#property.quantizationrange) <sup>RO</sup> | Display quantization range |
-| [colorimetry](#property.colorimetry) <sup>RO</sup> | Display colorimetry |
-| [eotf](#property.eotf) <sup>RO</sup> | Display Electro Optical Transfer Function (EOTF) |
+| [totalgpuram](#totalgpuram) <sup>RO</sup> | Total GPU DRAM memory (in bytes) |
+| [freegpuram](#freegpuram) <sup>RO</sup> | Free GPU DRAM memory (in bytes) |
+| [isaudiopassthrough](#isaudiopassthrough) <sup>RO</sup> | Current audio passthrough status on HDMI |
+| [connected](#connected) <sup>RO</sup> | Current HDMI connection status |
+| [width](#width) <sup>RO</sup> | Horizontal resolution of the TV |
+| [height](#height) <sup>RO</sup> | Vertical resolution of the TV |
+| [verticalfreq](#verticalfreq) <sup>RO</sup> | Vertical Frequency |
+| [hdcpprotection](#hdcpprotection) <sup>RO</sup> | HDCP protocol used for transmission |
+| [portname](#portname) <sup>RO</sup> | Video output port on the STB used for connecting to the TV |
+| [tvcapabilities](#tvcapabilities) <sup>RO</sup> | HDR formats supported by the TV |
+| [stbcapabilities](#stbcapabilities) <sup>RO</sup> | HDR formats supported by the STB |
+| [hdrsetting](#hdrsetting) <sup>RO</sup> | HDR format in use |
+| [colorspace](#colorspace) <sup>RO</sup> | Display color space (chroma subsampling format) |
+| [framerate](#framerate) <sup>RO</sup> | Display frame rate |
+| [colourdepth](#colourdepth) <sup>RO</sup> | Display colour depth |
+| [quantizationrange](#quantizationrange) <sup>RO</sup> | Display quantization range |
+| [colorimetry](#colorimetry) <sup>RO</sup> | Display colorimetry |
+| [eotf](#eotf) <sup>RO</sup> | Display Electro Optical Transfer Function (EOTF) |
 
 
-<a name="property.totalgpuram"></a>
+<a name="totalgpuram"></a>
 ## *totalgpuram [<sup>property</sup>](#Properties)*
 
 Provides access to the total GPU DRAM memory (in bytes).
@@ -277,7 +277,7 @@ Provides access to the total GPU DRAM memory (in bytes).
 }
 ```
 
-<a name="property.freegpuram"></a>
+<a name="freegpuram"></a>
 ## *freegpuram [<sup>property</sup>](#Properties)*
 
 Provides access to the free GPU DRAM memory (in bytes).
@@ -312,7 +312,7 @@ Provides access to the free GPU DRAM memory (in bytes).
 }
 ```
 
-<a name="property.isaudiopassthrough"></a>
+<a name="isaudiopassthrough"></a>
 ## *isaudiopassthrough [<sup>property</sup>](#Properties)*
 
 Provides access to the current audio passthrough status on HDMI.
@@ -347,7 +347,7 @@ Provides access to the current audio passthrough status on HDMI.
 }
 ```
 
-<a name="property.connected"></a>
+<a name="connected"></a>
 ## *connected [<sup>property</sup>](#Properties)*
 
 Provides access to the current HDMI connection status.
@@ -382,7 +382,7 @@ Provides access to the current HDMI connection status.
 }
 ```
 
-<a name="property.width"></a>
+<a name="width"></a>
 ## *width [<sup>property</sup>](#Properties)*
 
 Provides access to the horizontal resolution of the TV.
@@ -417,7 +417,7 @@ Provides access to the horizontal resolution of the TV.
 }
 ```
 
-<a name="property.height"></a>
+<a name="height"></a>
 ## *height [<sup>property</sup>](#Properties)*
 
 Provides access to the vertical resolution of the TV.
@@ -452,7 +452,7 @@ Provides access to the vertical resolution of the TV.
 }
 ```
 
-<a name="property.verticalfreq"></a>
+<a name="verticalfreq"></a>
 ## *verticalfreq [<sup>property</sup>](#Properties)*
 
 Provides access to the vertical Frequency.
@@ -487,7 +487,7 @@ Provides access to the vertical Frequency.
 }
 ```
 
-<a name="property.hdcpprotection"></a>
+<a name="hdcpprotection"></a>
 ## *hdcpprotection [<sup>property</sup>](#Properties)*
 
 Provides access to the HDCP protocol used for transmission.
@@ -522,7 +522,7 @@ Provides access to the HDCP protocol used for transmission.
 }
 ```
 
-<a name="property.portname"></a>
+<a name="portname"></a>
 ## *portname [<sup>property</sup>](#Properties)*
 
 Provides access to the video output port on the STB used for connecting to the TV.
@@ -557,7 +557,7 @@ Provides access to the video output port on the STB used for connecting to the T
 }
 ```
 
-<a name="property.tvcapabilities"></a>
+<a name="tvcapabilities"></a>
 ## *tvcapabilities [<sup>property</sup>](#Properties)*
 
 Provides access to the HDR formats supported by the TV.
@@ -592,7 +592,7 @@ Provides access to the HDR formats supported by the TV.
 }
 ```
 
-<a name="property.stbcapabilities"></a>
+<a name="stbcapabilities"></a>
 ## *stbcapabilities [<sup>property</sup>](#Properties)*
 
 Provides access to the HDR formats supported by the STB.
@@ -627,7 +627,7 @@ Provides access to the HDR formats supported by the STB.
 }
 ```
 
-<a name="property.hdrsetting"></a>
+<a name="hdrsetting"></a>
 ## *hdrsetting [<sup>property</sup>](#Properties)*
 
 Provides access to the HDR format in use.
@@ -662,7 +662,7 @@ Provides access to the HDR format in use.
 }
 ```
 
-<a name="property.colorspace"></a>
+<a name="colorspace"></a>
 ## *colorspace [<sup>property</sup>](#Properties)*
 
 Provides access to the display color space (chroma subsampling format).
@@ -697,7 +697,7 @@ Provides access to the display color space (chroma subsampling format).
 }
 ```
 
-<a name="property.framerate"></a>
+<a name="framerate"></a>
 ## *framerate [<sup>property</sup>](#Properties)*
 
 Provides access to the display frame rate.
@@ -732,7 +732,7 @@ Provides access to the display frame rate.
 }
 ```
 
-<a name="property.colourdepth"></a>
+<a name="colourdepth"></a>
 ## *colourdepth [<sup>property</sup>](#Properties)*
 
 Provides access to the display colour depth.
@@ -767,7 +767,7 @@ Provides access to the display colour depth.
 }
 ```
 
-<a name="property.quantizationrange"></a>
+<a name="quantizationrange"></a>
 ## *quantizationrange [<sup>property</sup>](#Properties)*
 
 Provides access to the display quantization range.
@@ -802,7 +802,7 @@ Provides access to the display quantization range.
 }
 ```
 
-<a name="property.colorimetry"></a>
+<a name="colorimetry"></a>
 ## *colorimetry [<sup>property</sup>](#Properties)*
 
 Provides access to the display colorimetry.
@@ -837,7 +837,7 @@ Provides access to the display colorimetry.
 }
 ```
 
-<a name="property.eotf"></a>
+<a name="eotf"></a>
 ## *eotf [<sup>property</sup>](#Properties)*
 
 Provides access to the display Electro Optical Transfer Function (EOTF).

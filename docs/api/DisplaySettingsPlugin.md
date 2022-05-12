@@ -107,6 +107,7 @@ DisplaySettings interface methods:
 | [getMS12AudioCompression](#getMS12AudioCompression) | Returns the current audio compression settings |
 | [getMS12AudioProfile](#getMS12AudioProfile) | Returns the current MS12 audio profile settings |
 | [getMuted](#getMuted) | Returns whether audio is muted on a given port |
+| [getPreferredColorDepth](#getPreferredColorDepth) | Returns the current color depth on the selected video display port |
 | [getSettopAudioCapabilities](#getSettopAudioCapabilities) | Returns the set-top audio capabilities for the specified audio port |
 | [getSettopHDRSupport](#getSettopHDRSupport) | Returns an HDR support object (list of standards that the STB supports) |
 | [getSettopMS12Capabilities](#getSettopMS12Capabilities) | Returns the set-top MS12 audio capabilities for the specified audio port |
@@ -153,6 +154,7 @@ DisplaySettings interface methods:
 | [setMS12AudioProfile](#setMS12AudioProfile) | Sets the selected MS12 audio profile |
 | [setMS12ProfileSettingsOverride](#setMS12ProfileSettingsOverride) | Overrides individual MS12 audio settings in order to optimize the customer experience (for example, enabling dialog enhancement in sports mode) |
 | [setMuted](#setMuted) | Mutes or unmutes audio on a specific port |
+| [setPreferredColorDepth](#setPreferredColorDepth) | Sets the current color depth for the videoDisplay |
 | [setScartParameter](#setScartParameter) | Sets SCART parameters |
 | [setSoundMode](#setSoundMode) | Sets the current sound mode for the corresponding video display |
 | [setSurroundVirtualizer](#setSurroundVirtualizer) | (Version 2) Sets the Surround Virtualizer boost |
@@ -160,6 +162,7 @@ DisplaySettings interface methods:
 | [setVolumeLevel](#setVolumeLevel) | Adjusts the Volume Level on a specific port |
 | [setVolumeLeveller](#setVolumeLeveller) | (Version 2) Sets the Volume Leveller level |
 | [setZoomSetting](#setZoomSetting) | Sets the current zoom value |
+| [getColorDepthCapabilities](#getColorDepthCapabilities) | Returns supported color depth capabilities |
 
 
 <a name="enableSurroundDecoder"></a>
@@ -1294,6 +1297,60 @@ Returns whether audio is muted on a given port.
     "id": 42,
     "result": {
         "muted": true,
+        "success": true
+    }
+}
+```
+
+<a name="getPreferredColorDepth"></a>
+## *getPreferredColorDepth*
+
+Returns the current color depth on the selected video display port.
+ 
+### Event 
+
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.videoDisplay | string | <sup>*(optional)*</sup> Video display port name. The default port is `HDMI0` if no port is specified |
+| params?.persist | boolean | <sup>*(optional)*</sup> Persists the color depth |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.resolution | string | <sup>*(optional)*</sup> Video display color depth. (must be one of the following: *8 Bit*, *10 Bit*, *12 Bit*, *Auto*) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.getPreferredColorDepth",
+    "params": {
+        "videoDisplay": "HDMI0",
+        "persist": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "resolution": "12 Bit",
         "success": true
     }
 }
@@ -3673,6 +3730,57 @@ Mutes or unmutes audio on a specific port.
 }
 ```
 
+<a name="setPreferredColorDepth"></a>
+## *setPreferredColorDepth*
+
+Sets the current color depth for the videoDisplay.
+.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.videoDisplay | string | Video display port name. The default port is `HDMI0` if no port is specified |
+| params.colorDepth | string | Video display color depth. (must be one of the following: *8 Bit*, *10 Bit*, *12 Bit*, *Auto*) |
+| params?.persist | boolean | <sup>*(optional)*</sup> Persists the color depth |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.setPreferredColorDepth",
+    "params": {
+        "videoDisplay": "HDMI0",
+        "colorDepth": "12 Bit",
+        "persist": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="setScartParameter"></a>
 ## *setScartParameter*
 
@@ -4049,6 +4157,55 @@ Sets the current zoom value.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "success": true
+    }
+}
+```
+
+<a name="getColorDepthCapabilities"></a>
+## *getColorDepthCapabilities*
+
+Returns supported color depth capabilities.
+ 
+### Event 
+
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.getColorDepthCapabilities | array | <sup>*(optional)*</sup> A string array of supported STB color depth capabilities |
+| result?.getColorDepthCapabilities[#] | string | <sup>*(optional)*</sup>  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.1.getColorDepthCapabilities"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "getColorDepthCapabilities": [
+            "8 Bit"
+        ],
         "success": true
     }
 }

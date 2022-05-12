@@ -257,10 +257,10 @@ Monitor interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [status](#property.status) <sup>RO</sup> | Service statistics |
+| [status](#status) <sup>RO</sup> | Service statistics |
 
 
-<a name="property.status"></a>
+<a name="status"></a>
 ## *status [<sup>property</sup>](#Properties)*
 
 Provides access to the service statistics.

@@ -280,7 +280,7 @@ This method takes no parameters.
 | result.supportedMotionDetectorsInfo.FP_MD.type | string | The motion detector type. For example, PIR, Microwave, video, hybrid, etc |
 | result.supportedMotionDetectorsInfo.FP_MD.distance | integer | The range, in cm, of the motion detection field |
 | result.supportedMotionDetectorsInfo.FP_MD.angle | integer | Field of view angle |
-| result.supportedMotionDetectorsInfo.FP_MD.sensitivityMode | integer | The supported sensitivity mode. Valid values are `0`: motion sensitivity cannot be changed, `1`: motion sensitivity can be set using an integer within the range defined by the `min`, `max`, and `step` properties, `2`: motion sensitivity can be set using the names listed in the `sensitivities` property. (must be one of the following: *0*, *1*, *2*) |
+| result.supportedMotionDetectorsInfo.FP_MD.sensitivityMode | integer | The supported sensitivity mode. Valid values are `0`: motion sensitivity cannot be changed, `1`: motion sensitivity can be set using an integer within the range defined by the `min`, `max`, and `step` properties, `2`: motion sensitivity can be set using the names listed in the `sensitivities`  (must be one of the following: *0*, *1*, *2*) |
 | result.supportedMotionDetectorsInfo.FP_MD?.sensitivities | array | <sup>*(optional)*</sup> A string [] of sensitivity names that can be set for a motion detector. This property is only valid if the `SensitivityMode` property is set to `2` |
 | result.supportedMotionDetectorsInfo.FP_MD?.sensitivities[#] | string | <sup>*(optional)*</sup>  |
 | result.success | boolean | Whether the request succeeded |

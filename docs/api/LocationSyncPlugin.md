@@ -153,10 +153,10 @@ LocationSync interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [location](#property.location) <sup>RO</sup> | Location information |
+| [location](#location) <sup>RO</sup> | Location information |
 
 
-<a name="property.location"></a>
+<a name="location"></a>
 ## *location [<sup>property</sup>](#Properties)*
 
 Provides access to the location information.
