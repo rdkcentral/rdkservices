@@ -741,9 +741,8 @@ namespace WPEFramework
                 IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                 bool isHdmiConnected = eventData->data.hdmi_in_connect.isPortConnected;
                 dsHdmiInPort_t portId = eventData->data.hdmi_in_connect.port;
-                dsHdmiInType_t portType = eventData->data.hdmi_in_connect.portType;
-                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG event port: %d data:%d portType:%d \r\n",portId,  isHdmiConnected,portType);
-                HdmiCecSink::_instance->onHdmiHotPlug(portId,isHdmiConnected,portType);
+                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG event port: %d data:%d \r\n",portId,  isHdmiConnected);
+                HdmiCecSink::_instance->onHdmiHotPlug(portId,isHdmiConnected);
             }
        }
 
@@ -859,7 +858,7 @@ namespace WPEFramework
            return;
        }
 
-       void HdmiCecSink::onHdmiHotPlug(int portId , int connectStatus, int portType)
+       void HdmiCecSink::onHdmiHotPlug(int portId , int connectStatus)
        {
         	bool previousHdmiState = m_isHdmiInConnected;
 			int i = 0;
@@ -873,16 +872,14 @@ namespace WPEFramework
 
           m_pollNextState = POLL_THREAD_STATE_PING;
           m_ThreadExitCV.notify_one();
-          if(portType == HDMI_ARC_PORT) {
-             updateArcState(portId);  
-          }
+          updateArcState();  
           return;
        }
-       void HdmiCecSink::updateArcState(int portId)
+       void HdmiCecSink::updateArcState()
        {
            if ( m_currentArcRoutingState != ARC_STATE_ARC_TERMINATED )
            {
-        	if (!(hdmiInputs[portId].m_isConnected))
+        	if (!(hdmiInputs[HDMISINK_ARCPORT].m_isConnected))
 		{
                    std::lock_guard<std::mutex> lock(_instance->m_arcRoutingStateMutex);
 		   m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
