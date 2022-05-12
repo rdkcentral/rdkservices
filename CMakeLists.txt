@@ -328,6 +328,10 @@ if(RDK_SERVICES_TEST)
     add_subdirectory(test)
 endif()
 
+if(PLUGIN_OUTOFPROCESSPLUGIN)
+    add_subdirectory(OutOfProcessPlugin)
+endif()
+
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
     set(CPACK_DEB_COMPONENT_INSTALL ON)
