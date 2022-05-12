@@ -824,7 +824,9 @@ namespace WPEFramework {
 
             m_abort_flag = true;
             task_thread.notify_all();
+            LOGINFO("EL: Checking thread is joinable");
             if(m_thread.joinable()){
+                LOGINFO("EL: thread is joinable. Executing join");
                 m_thread.join();
             }
         }
