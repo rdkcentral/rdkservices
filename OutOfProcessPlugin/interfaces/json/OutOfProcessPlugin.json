@@ -1,0 +1,12 @@
+{
+  "$schema": "interface.schema.json",
+  "jsonrpc": "2.0",
+  "info": {
+    "title": "OutOfProcessPlugin API",
+    "class": "OutOfProcessPlugin",
+    "description": "OutOfProcessPlugin JSON-RPC interface"
+  },
+  "common": {
+    "$ref": "common.json"
+  }
+}

@@ -1,0 +1,13 @@
+{
+ "locator":"libWPEFrameworkOutOfProcessPlugin.so",
+ "classname":"OutOfProcessPlugin",
+ "precondition":[
+  "Platform"
+ ],
+ "autostart":true,
+ "configuration":{
+  "root":{
+   "outofprocess":true
+  }
+ }
+}
