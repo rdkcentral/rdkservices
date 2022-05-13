@@ -176,7 +176,7 @@ void RemotePlugin::onRead(const Response& rsp)
 
 int RemotePlugin::LaunchRemoteProcess(const string& rust_shared_lib, const string& host_ip, int port)
 {
-  string appName = "rust_adapter_process";
+  string appName = "WPEHost";
 
   int pid = fork();
 
