@@ -1212,7 +1212,7 @@ namespace WPEFramework {
                 else {
                     LOGERR("Failed to stopMaintenance without starting maintenance \n");
                 }
-                task_thread.notify_all();
+                task_thread.notify_one();
 		    
                 if(m_thread.joinable()){
                     m_thread.join();
