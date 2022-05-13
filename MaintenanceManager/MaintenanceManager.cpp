@@ -277,6 +277,7 @@ namespace WPEFramework {
                 for( i = 0; i < tasks.size(); i++) {
                     LOGINFO("waiting to unlock.. [%d/%d]",i,tasks.size());
                     task_thread.wait(lck);
+                    LOGINFO("EL: Lock acquired.waiting to unlock...");
                     cmd = tasks[i];
                     cmd += " &";
                     cmd += "\0";
@@ -286,6 +287,13 @@ namespace WPEFramework {
                         LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
                         system(cmd.c_str());
                     }
+                    else {
+                        LOGINFO("EL: Abort flag set to true.");
+                        LOGINFO("EL: Unlocking all the tasks. calling notify_all()");
+                        task_thread.notify_all();
+                        LOGINFO("EL: Unlocked all the active tasks. hence exiting from for loop");
+                        break;
+		    }
                 }
             }
             /* Here in Solicited, we start with RFC so no
@@ -825,9 +833,12 @@ namespace WPEFramework {
             m_abort_flag = true;
 		
             /* unlock if the task is still waiting */
-            task_thread.notify_all();
+            //task_thread.notify_all();
+            LOGINFO("EL:checking if thread is joinable");
             if(m_thread.joinable()){
+                LOGINFO("EL:thread is joinable");
                 m_thread.join();
+                LOGINFO("EL: successfully executed join()");
             }
         }
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
