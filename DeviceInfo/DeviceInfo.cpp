@@ -19,8 +19,38 @@
 
 #include "DeviceInfo.h"
 
+#include <fstream>
+#include <regex>
+
+#include "rfcapi.h"
+
 namespace WPEFramework {
 namespace Plugin {
+
+    typedef Core::EnumerateType<JsonData::DeviceInfo::DistributoridData::DistributoridType> DistributoridEnum;
+    typedef Core::EnumerateType<JsonData::DeviceInfo::DevicetypeData::DevicetypeType> DevicetypeEnum;
+    typedef Core::EnumerateType<JsonData::DeviceInfo::MakeData::MakeType> MakeEnum;
+    typedef Core::EnumerateType<JsonData::DeviceInfo::ModelidData::SkuType> SkuEnum;
+    typedef Core::EnumerateType<JsonData::DeviceInfo::FirmwareversionData::YoctoType> YoctoEnum;
+
+    namespace {
+        constexpr auto* kDevicePropsFile = _T("/etc/device.properties");
+        constexpr auto* kAuthServiceFile = _T("/etc/authService.conf");
+        constexpr auto* kVersionFile = _T("/version.txt");
+        constexpr auto* kSerialNumberFile = _T("/proc/device-tree/serial-number");
+        constexpr auto* kPartnerIdFile = _T("/opt/www/authService/partnerId3.dat");
+        constexpr auto* kRfcPartnerId = _T("Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId");
+        constexpr auto* kRfcModelName = _T("Device.DeviceInfo.ModelName");
+        constexpr auto* kRfcSerialNumber = _T("Device.DeviceInfo.SerialNumber");
+        constexpr auto* kDeviceType = _T("deviceType");
+        constexpr auto* kFriendlyId = _T("FRIENDLY_ID");
+        constexpr auto* kMfgName = _T("MFG_NAME");
+        constexpr auto* kModelNum = _T("MODEL_NUM");
+        constexpr auto* kImagename = _T("imagename");
+        constexpr auto* kYoctoVersion = _T("YOCTO_VERSION");
+        constexpr auto* kSdkVersion = _T("SDK_VERSION");
+        constexpr auto* kMediariteVersion = _T("MEDIARITE");
+    }
 
     SERVICE_REGISTRATION(DeviceInfo, 1, 0);
 
@@ -93,6 +123,13 @@ namespace Plugin {
                 AddressInfo(response->Addresses);
                 SysInfo(response->SystemInfo);
                 SocketPortInfo(response->Sockets);
+                FirmwareVersion(response->FirmwareVersion);
+                SerialNumber(response->SerialNumber);
+                Sku(response->Sku);
+                Make(response->Make);
+                Model(response->Model);
+                DeviceType(response->DeviceType);
+                DistributorId(response->DistributorId);
             } else if (index.Current() == "Adresses") {
                 AddressInfo(response->Addresses);
             } else if (index.Current() == "System") {
@@ -153,6 +190,141 @@ namespace Plugin {
     void DeviceInfo::SocketPortInfo(JsonData::DeviceInfo::SocketinfoData& socketPortInfo) const
     {
         socketPortInfo.Runs = Core::ResourceMonitor::Instance().Runs();
+    }
+
+    void DeviceInfo::FirmwareVersion(JsonData::DeviceInfo::FirmwareversionData& firmwareVersion) const
+    {
+        std::ifstream file(kVersionFile);
+
+        if (file) {
+            string line;
+
+            while (std::getline(file, line)) {
+                if (line.rfind(kImagename, 0) == 0) {
+                    firmwareVersion.Imagename = line.substr(line.find(':') + 1);
+                } else if (line.rfind(kYoctoVersion, 0) == 0) {
+                    firmwareVersion.Yocto = YoctoEnum(line.substr(line.find('=') + 1).c_str()).Value();
+                } else if (line.rfind(kSdkVersion, 0) == 0) {
+                    firmwareVersion.Sdk = line.substr(line.find('=') + 1);
+                } else if (line.rfind(kMediariteVersion, 0) == 0) {
+                    firmwareVersion.Mediarite = line.substr(line.find('=') + 1);
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::SerialNumber(Core::JSON::String& serialNumber) const
+    {
+        RFC_ParamData_t param;
+
+        auto status = getRFCParameter(nullptr, kRfcSerialNumber, &param);
+
+        if (status == WDMP_SUCCESS) {
+            serialNumber = param.value;
+        } else {
+            std::ifstream file(kSerialNumberFile);
+
+            if (file) {
+                string line;
+                if (std::getline(file, line)) {
+                    serialNumber = line;
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::Sku(SkuJsonEnum& sku) const
+    {
+        RFC_ParamData_t param;
+
+        auto status = getRFCParameter(nullptr, kRfcModelName, &param);
+
+        if (status == WDMP_SUCCESS) {
+            sku = SkuEnum(param.value).Value();
+        } else {
+            std::ifstream file(kDevicePropsFile);
+
+            if (file) {
+                string line;
+                while (std::getline(file, line)) {
+                    if (line.rfind(kModelNum, 0) == 0) {
+                        sku = SkuEnum(line.substr(line.find('=') + 1).c_str()).Value();
+
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::Make(MakeJsonEnum& make) const
+    {
+        std::ifstream file(kDevicePropsFile);
+
+        if (file) {
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(kMfgName, 0) == 0) {
+                    make = MakeEnum(line.substr(line.find('=') + 1).c_str()).Value();
+
+                    break;
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::Model(Core::JSON::String& model) const
+    {
+        std::ifstream file(kDevicePropsFile);
+
+        if (file) {
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(kFriendlyId, 0) == 0) {
+                    // trim quotes
+
+                    model = std::regex_replace(line, std::regex(_T("^\\w+=(?:\")?([^\"\\n]+)(?:\")?$")), _T("$1"));
+
+                    break;
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::DeviceType(DevicetypeJsonEnum& deviceType) const
+    {
+        std::ifstream file(kAuthServiceFile);
+
+        if (file) {
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(kDeviceType, 0) == 0) {
+                    deviceType = DevicetypeEnum(line.substr(line.find('=') + 1).c_str()).Value();
+
+                    break;
+                }
+            }
+        }
+    }
+
+    void DeviceInfo::DistributorId(DistributoridJsonEnum& distributorId) const
+    {
+        RFC_ParamData_t param;
+
+        auto status = getRFCParameter(nullptr, kRfcPartnerId, &param);
+
+        if (status == WDMP_SUCCESS) {
+            distributorId = DistributoridEnum(param.value).Value();
+        } else {
+            std::ifstream file(kPartnerIdFile);
+
+            if (file) {
+                string line;
+                if (std::getline(file, line)) {
+                    distributorId = DistributoridEnum(line.c_str()).Value();
+                }
+            }
+        }
     }
 
 } // namespace Plugin
