@@ -118,6 +118,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "g
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -848,7 +849,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_IGNORE_KEY_INPUTS, &RDKShell::ignoreKeyInputsWrapper, this);
-	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
+            registerMethod(RDKSHELL_METHOD_KEY_REPEAT_CONFIG, &RDKShell::keyRepeatConfigWrapper, this);            
+            m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
         RDKShell::~RDKShell()
@@ -5284,6 +5286,62 @@ namespace WPEFramework {
                 response["message"] = "key ignore is not allowed";
             }
             returnResponse(ret);
+        }
+
+        uint32_t RDKShell::keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (parameters.HasLabel("input"))
+            {
+                string input = parameters["input"].String();
+
+                if (input != "default" || input != "keyboard")
+                {
+                    response["message"] = "not supported input type";
+                    returnResponse(false);
+                }
+            }
+
+            bool enabled = false;
+            int32_t initialDelay = 0;
+            int32_t repeatInterval = 0;
+
+            if (parameters.HasLabel("enabled"))
+            {
+                enabled = parameters["enabled"].Boolean();
+            }
+            else
+            {
+                response["message"] = "please specify enabled parameter";
+                returnResponse(false);
+            }
+
+            if (parameters.HasLabel("initialDelay"))
+            {
+                initialDelay = parameters["initialDelay"].Number();
+            }
+            else
+            {
+                response["message"] = "please specify initialDelay parameter";
+                returnResponse(false);
+            }
+
+            if (parameters.HasLabel("repeatInterval"))
+            {
+                repeatInterval = parameters["repeatInterval"].Number();
+            }
+            else
+            {
+                response["message"] = "please specify repeatInterval parameter";
+                returnResponse(false);
+            }
+
+            gRdkShellMutex.lock();
+            CompositorController::setKeyRepeatConfig(enabled, initialDelay, repeatInterval);
+            gRdkShellMutex.unlock();
+            returnResponse(true);
         }
 
         // Registered methods end
