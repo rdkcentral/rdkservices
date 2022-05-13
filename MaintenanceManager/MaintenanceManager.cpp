@@ -274,7 +274,7 @@ namespace WPEFramework {
             // Unsolicited part comes here
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-                for( i = 0; i < tasks.size(); i++) {
+                for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
                     LOGINFO("waiting to unlock.. [%d/%d]",i,tasks.size());
                     task_thread.wait(lck);
                     LOGINFO("EL: Lock acquired.waiting to unlock...");
@@ -287,13 +287,6 @@ namespace WPEFramework {
                         LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
                         system(cmd.c_str());
                     }
-                    else {
-                        LOGINFO("EL: Abort flag set to true.");
-                        LOGINFO("EL: Unlocking all the tasks. calling notify_all()");
-                        task_thread.notify_all();
-                        LOGINFO("EL: Unlocked all the active tasks. hence exiting from for loop");
-                        break;
-		    }
                 }
             }
             /* Here in Solicited, we start with RFC so no
@@ -307,7 +300,7 @@ namespace WPEFramework {
                 LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
                 system(cmd.c_str());
                 cmd="";
-                for( i = 1; i < tasks.size(); i++){
+                for( i = 1; i < tasks.size() && !m_abort_flag; i++){
                     LOGINFO("Waiting to unlock.. [%d/%d]",i,tasks.size());
                     task_thread.wait(lck);
                     cmd = tasks[i];
@@ -830,10 +823,10 @@ namespace WPEFramework {
                 MaintenanceManager::_instance = nullptr;
             }
 
-            m_abort_flag = true;
+            //m_abort_flag = true;
 		
             /* unlock if the task is still waiting */
-            //task_thread.notify_all();
+            task_thread.notify_all();
             LOGINFO("EL:checking if thread is joinable");
             if(m_thread.joinable()){
                 LOGINFO("EL:thread is joinable");
