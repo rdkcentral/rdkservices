@@ -20,6 +20,7 @@
 #include "LocalPlugin.h"
 #include "Logger.h"
 #include <plugins/Channel.h>
+#include <sstream>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -41,9 +42,9 @@ namespace {
     p_ctx->send_to(channel_id, json);
   }
 
-  std::vector<std::string> get_library_search_paths()
+  std::vector<string> get_library_search_paths()
   {
-    std::vector<std::string> paths  = {};
+    std::vector<string> paths  = {};
 
     char *ld_paths = getenv("LD_LIBRARY_PATH");
     if (ld_paths) {
@@ -52,7 +53,7 @@ namespace {
       char *p = nullptr;
       char *saveptr = nullptr;
       while ((p = strtok_r(ld_paths, ":", &saveptr)) != nullptr) {
-        paths.push_back(std::string(p));
+        paths.push_back(string(p));
         ld_paths = nullptr;
       }
       free(ld_paths);
@@ -60,20 +61,20 @@ namespace {
     return paths;
   }
 
-  inline std::string to_string(const WPEFramework::Core::JSONRPC::Message &m)
+  inline string to_string(const WPEFramework::Core::JSONRPC::Message &m)
   {
-    std::string s;
+    string s;
     m.ToString(s);
     return s;
   }
 
-  bool file_exists(const std::string &path)
+  bool file_exists(const string &path)
   {
     struct stat statbuf = {};
     return stat(path.c_str(), &statbuf) != -1;
   }
 
-  void *find_rust_plugin(const std::string &fname)
+  void *find_rust_plugin(const string &fname)
   {
     void *lib = nullptr;
     if (file_exists(fname)) {
@@ -84,8 +85,8 @@ namespace {
     }
     else {
       //MARKR is this needed because dlopen docs says it searches LD_LIBRARY_PATH paths by default
-      for (const std::string &path : get_library_search_paths()) {
-        std::string full_path = path + "/" + fname;
+      for (const string &path : get_library_search_paths()) {
+        string full_path = path + "/" + fname;
         if (file_exists(full_path)) {
           LOGDBG("Loading library from:%s\n", full_path.c_str());
           lib = dlopen(full_path.c_str(), RTLD_LAZY);
@@ -113,7 +114,7 @@ WPEFramework::Plugin::Rust::LocalPlugin::LocalPlugin()
 {
 }
 
-const std::string
+const string
 WPEFramework::Plugin::Rust::LocalPlugin::Initialize(PluginHost::IShell *shell)
 {
   m_service = shell;
@@ -218,7 +219,7 @@ WPEFramework::Plugin::Rust::LocalPlugin::Detach(PluginHost::Channel &channel)
 }
 
 WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>
-WPEFramework::Plugin::Rust::LocalPlugin::Inbound(const std::string &identifier)
+WPEFramework::Plugin::Rust::LocalPlugin::Inbound(const string &identifier)
 {
   return WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>(
     WPEFramework::PluginHost::IFactories::Instance().JSONRPC());
@@ -254,7 +255,7 @@ WPEFramework::Plugin::Rust::LocalPlugin::Release() const
   return 0;
 }
 
-std::string
+string
 WPEFramework::Plugin::Rust::LocalPlugin::Information() const
 {
   return { };
