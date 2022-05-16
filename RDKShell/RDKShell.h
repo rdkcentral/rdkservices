@@ -274,7 +274,7 @@ namespace WPEFramework {
             void onLaunched(const std::string& client, const string& launchType);
             void onSuspended(const std::string& client);
             void onDestroyed(const std::string& client);
-            bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
+            bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & availableKb, uint32_t & usedSwapKb);
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
             bool showWatermark(const bool enable);
             bool showFullScreenImage(std::string& path);
@@ -325,10 +325,10 @@ namespace WPEFramework {
                 virtual void onApplicationResumed(const std::string& client);
                 virtual void onApplicationActivated(const std::string& client);
                 virtual void onUserInactive(const double minutes);
-                virtual void onDeviceLowRamWarning(const int32_t freeKb);
-                virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb);
-                virtual void onDeviceLowRamWarningCleared(const int32_t freeKb);
-                virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb);
+                virtual void onDeviceLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb);
+                virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb);
+                virtual void onDeviceLowRamWarningCleared(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb);
+                virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb);
                 virtual void onEasterEgg(const std::string& name, const std::string& actionJson);
                 virtual void onPowerKey();
                 virtual void onSizeChangeComplete(const std::string& client);
