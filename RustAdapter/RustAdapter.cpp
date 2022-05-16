@@ -32,20 +32,19 @@ WPEFramework::Plugin::RustAdapter::RustAdapter()
 {
 }
 
-const std::string
+const string
 WPEFramework::Plugin::RustAdapter::Initialize(PluginHost::IShell *shell)
 {
   /* The RustAdapter plugin should always run in-process
      We run the rust plugin itself either in-process or out-of-process
      base the config setting */
 
-  Config config;
-  config.FromString(shell->ConfigLine());     
+  m_config.FromString(shell->ConfigLine());     
 
-  LOGINFO("RustAdapter::Initialize OutOfProcess=%s", config.OutOfProcess ? "true" : "false");
+  LOGINFO("RustAdapter::Initialize Config=%s", shell->ConfigLine().c_str());
 
-  if (config.OutOfProcess)
-    m_impl.reset(new WPEFramework::Plugin::Rust::RemotePlugin());
+  if (m_config.OutOfProcess)
+    m_impl.reset(new WPEFramework::Plugin::Rust::RemotePlugin(this));
   else
     m_impl.reset(new WPEFramework::Plugin::Rust::LocalPlugin());
 
@@ -58,7 +57,7 @@ WPEFramework::Plugin::RustAdapter::Deinitialize(PluginHost::IShell *shell)
   return m_impl->Deinitialize(shell);
 }
 
-std::string
+string
 WPEFramework::Plugin::RustAdapter::Information() const
 {
   return m_impl->Information();
@@ -116,7 +115,7 @@ WPEFramework::Plugin::RustAdapter::Detach(PluginHost::Channel &channel)
 }
 
 WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>
-WPEFramework::Plugin::RustAdapter::Inbound(const std::string &identifier)
+WPEFramework::Plugin::RustAdapter::Inbound(const string &identifier)
 {
   return m_impl->Inbound(identifier);
 }
