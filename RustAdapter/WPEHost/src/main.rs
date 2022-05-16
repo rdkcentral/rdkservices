@@ -137,10 +137,8 @@ struct RemotePluginProtocol  {
 
 impl thunder_rs::PluginProtocol for RemotePluginProtocol{
   
-  fn send_to(&self, channel: u32, json: String) {
-    //MARKR - this was hack to get around error of calling send_response(&mut stream.stream, result);
-    let mut stream = self.stream.try_clone().expect("Cannot clone stream");
-    send_response(&mut stream, channel, json);
+  fn send_to(&mut self, channel: u32, json: String) {
+    send_response(&mut self.stream, channel, json);
   }
 
 }

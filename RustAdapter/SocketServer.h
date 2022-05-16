@@ -22,13 +22,16 @@
 #include <functional>
 #include <pthread.h>
 
+using std::string;
+using std::function;
+
 struct Response
 {
   uint32_t channel_id;
-  std::string json;
+  string json;
 
   Response();
-  Response(uint32_t channel, const std::string& json_str);
+  Response(uint32_t channel, const string& json_str);
 };
 
 class SocketServer
@@ -36,11 +39,13 @@ class SocketServer
 public:
   SocketServer();
   ~SocketServer();
-  int Open(char const* host_ip, int port, const std::function<void (const Response&)>& reader);
+  int Open(const string& address, int port, const function<void (const Response&)>& reader);
   int RunThread();
   int Run();
   void Close();
-  int SendInvoke(uint32_t channel_id, const std::string& token, const std::string& json);
+  string GetAddress() const;
+  int GetPort() const;
+  int SendInvoke(uint32_t channel_id, const string& token, const string& json);
   int SendAttach(uint32_t channel_id, bool attach);
   int SendExit();
   int ReadResponse(Response& cmd);
@@ -50,7 +55,9 @@ private:
 
   int m_serverSocket;
   int m_clientSocket;  
-  std::function<void (const Response&)> m_reader;
+  function<void (const Response&)> m_reader;
   bool m_running;
-  pthread_t m_socketThread;
+  pthread_t m_thread;
+  string m_address;
+  int m_port;
 };

@@ -118,6 +118,14 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "g
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_EASTER_EGGS = "addEasterEggs";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_EASTER_EGGS = "removeEasterEggs";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_EASTER_EGGS = "getEasterEggs";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INPUT_EVENTS = "enableInputEvents";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SHOW_CURSOR = "showCursor";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_CURSOR = "hideCursor";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_CURSOR_SIZE = "getCursorSize";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_CURSOR_SIZE = "setCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
@@ -845,11 +853,18 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_HIDE_ALL_CLIENTS, &RDKShell::hideAllClientsWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_SCREENSHOT, &RDKShell::getScreenshotWrapper, this);
             registerMethod(RDKSHELL_METHOD_ENABLE_EASTER_EGGS, &RDKShell::enableEasterEggsWrapper, this);
-
             registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_IGNORE_KEY_INPUTS, &RDKShell::ignoreKeyInputsWrapper, this);
-            registerMethod(RDKSHELL_METHOD_KEY_REPEAT_CONFIG, &RDKShell::keyRepeatConfigWrapper, this);            
+            registerMethod(RDKSHELL_METHOD_ADD_EASTER_EGGS, &RDKShell::addEasterEggsWrapper, this);
+            registerMethod(RDKSHELL_METHOD_REMOVE_EASTER_EGGS, &RDKShell::removeEasterEggsWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_EASTER_EGGS, &RDKShell::getEasterEggsWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ENABLE_INPUT_EVENTS, &RDKShell::enableInputEventsWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SHOW_CURSOR, &RDKShell::showCursorWrapper, this);
+            registerMethod(RDKSHELL_METHOD_HIDE_CURSOR, &RDKShell::hideCursorWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_CURSOR_SIZE, &RDKShell::getCursorSizeWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_CURSOR_SIZE, &RDKShell::setCursorSizeWrapper, this);
+            registerMethod(RDKSHELL_METHOD_KEY_REPEAT_CONFIG, &RDKShell::keyRepeatConfigWrapper, this);
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -5259,7 +5274,7 @@ namespace WPEFramework {
 
         uint32_t RDKShell::getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response)
         {
-           LOGINFOMETHOD();
+            LOGINFOMETHOD();
 
             bool enabled = false;
             getLogsFlushingEnabled(enabled);
@@ -5268,6 +5283,57 @@ namespace WPEFramework {
             returnResponse(true);
         }
 
+        uint32_t RDKShell::showCursorWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = showCursor();
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::hideCursorWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = hideCursor();
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::setCursorSizeWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!(parameters.HasLabel("width") && parameters.HasLabel("height")))
+            {
+                response["message"] = "please specify width and height parameters";
+                result = false;
+            }
+            else
+            {
+                result = setCursorSize(parameters["width"].Number(), parameters["height"].Number());
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getCursorSizeWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = false;
+            uint32_t width = 0;
+            uint32_t height = 0;
+
+            if (!getCursorSize(width, height))
+            {
+                response["message"] = "failed to get cursor size";
+                result = false;
+            }
+            else
+            {
+                response["width"] = width;
+                response["height"] = height;
+                result = true;
+            }
+            returnResponse(result);
+        }
 	
         uint32_t RDKShell::ignoreKeyInputsWrapper(const JsonObject& parameters, JsonObject& response)
         {
@@ -5344,6 +5410,28 @@ namespace WPEFramework {
             returnResponse(true);
         }
 
+        uint32_t RDKShell::enableInputEventsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("clients"))
+            {
+                response["message"] = "please specify clients parameter";
+                result = false;
+            }
+            else if (!parameters.HasLabel("enable"))
+            {
+                response["message"] = "please specify enable parameter";
+                result = false;
+            }
+            else
+            {
+                result = enableInputEvents(parameters["clients"].Array(), parameters["enable"].Boolean());
+            }
+
+            returnResponse(result);
+        }
         // Registered methods end
 
         // Events begin
@@ -6491,7 +6579,7 @@ namespace WPEFramework {
             return status;
         }
         
-	void RDKShell::enableLogsFlushing(const bool enable)
+        void RDKShell::enableLogsFlushing(const bool enable)
         {
             gRdkShellMutex.lock();
             Logger::enableFlushing(enable);
@@ -6503,6 +6591,182 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             enabled = Logger::isFlushingEnabled();
             gRdkShellMutex.unlock();
+        }
+
+        uint32_t RDKShell::addEasterEggsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("keySequence"))
+            {
+                result = false;
+                response["message"] = "please specify keySequence";
+            }
+            if (!parameters.HasLabel("id"))
+            {
+                result = false;
+                response["message"] = "please specify id";
+            }
+            if (!parameters.HasLabel("duration"))
+            {
+                result = false;
+                response["message"] = "please specify duration";
+            }
+            if (!parameters.HasLabel("api"))
+            {
+                result = false;
+                response["message"] = "please specify api";
+            }
+            if (!result)
+            {
+                returnResponse(result);
+            }
+
+            std::vector<RdkShellEasterEggKeyDetails> keyDetails;
+            const JsonArray keyInputs = parameters["keySequence"].Array();
+            for (int i=0; i<keyInputs.Length(); i++)
+            {
+                const JsonObject& keyInputInfo = keyInputs[i].Object();
+                uint32_t keyCode, flags=0;
+                std::string virtualKey("");
+                if (keyInputInfo.HasLabel("keyCode") && keyInputInfo.HasLabel("hold"))
+                {
+                    keyCode = keyInputInfo["keyCode"].Number();
+                    flags = keyInputInfo.HasLabel("modifiers") ? keyInputInfo["modifiers"].Number() : 0;
+                    const uint32_t holdTime = keyInputInfo["hold"].Number();
+                    keyDetails.push_back(RdkShellEasterEggKeyDetails(keyCode, flags, holdTime));
+                }
+                else
+                {
+                    continue;
+                }
+            }
+            std::string id = parameters["id"].String();
+            const uint32_t duration = parameters["duration"].Number();
+            JsonObject api = parameters["api"].Object();
+            std::string apiString("");
+            if (!api.ToString(apiString))
+            {
+                response["message"] = "api is not in proper json format";
+                returnResponse(false);
+            }
+            gRdkShellMutex.lock();
+            addEasterEgg(keyDetails, id, duration, apiString);
+            gRdkShellMutex.unlock();
+            keyDetails.clear();
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::removeEasterEggsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("id"))
+            {
+                result = false;
+                response["message"] = "please specify id";
+            }
+            std::string id = parameters["id"].String();
+            gRdkShellMutex.lock();
+            removeEasterEgg(id);
+            gRdkShellMutex.unlock();
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::getEasterEggsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+            JsonArray easterEggs;
+            std::vector<RdkShellEasterEggDetails> easterEggsList;
+            gRdkShellMutex.lock();
+            getEasterEggs(easterEggsList);
+            gRdkShellMutex.unlock();
+            for (size_t i=0; i<easterEggsList.size(); i++)
+	    {
+                RdkShellEasterEggDetails& easterEgg = easterEggsList[i];
+                JsonObject easterEggResponse;
+		easterEggResponse["id"] = easterEgg.id;
+                JsonArray keySequenceDetails;
+                for (size_t j=0; j<easterEgg.keySequence.size(); j++)
+                {
+                    JsonObject keyDetails;
+                    RdkShellEasterEggKeyDetails& details = easterEgg.keySequence[j];
+                    keyDetails["keyCode"] = details.keyCode;
+                    keyDetails["hold"] = details.keyHoldTime;
+                    keyDetails["modifiers"] = details.keyModifiers;
+                    keySequenceDetails.Add(keyDetails);
+                }
+		easterEggResponse["keySequence"] = keySequenceDetails;
+		easterEggResponse["duration"] = easterEgg.duration;
+		easterEggResponse["api"] = JsonObject(easterEgg.api.c_str());
+                easterEggs.Add(easterEggResponse);
+            }
+            response["easterEggs"] = easterEggs;
+            returnResponse(result);
+        }
+
+      bool RDKShell::enableInputEvents(const JsonArray& clients, bool enable)
+        {
+            bool result = true;
+
+            gRdkShellMutex.lock();
+            for (int i = 0; i < clients.Length(); i++)
+            {
+                const string& clientName = clients[i].String();
+                if (clientName == "*")
+                {
+                    std::vector<std::string> clientList;
+                   CompositorController::getClients(clientList);
+                    for (size_t i = 0; i < clientList.size(); i++)
+                    {
+                        result = result && CompositorController::enableInputEvents(clientList[i], enable);
+                    }
+
+                    break;
+                }
+                else
+                {
+                    result = result && CompositorController::enableInputEvents(clientName, enable);
+                }
+            }
+            gRdkShellMutex.unlock();
+
+            return result;
+        }
+      
+        bool RDKShell::showCursor()
+        {
+            gRdkShellMutex.lock();
+            bool ret = CompositorController::showCursor();
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::hideCursor()
+        {
+            gRdkShellMutex.lock();
+            bool ret = CompositorController::hideCursor();
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::setCursorSize(uint32_t width, uint32_t height)
+        {
+            gRdkShellMutex.lock();
+            bool ret = CompositorController::setCursorSize(width, height);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::getCursorSize(uint32_t& width, uint32_t& height)
+        {
+            gRdkShellMutex.lock();
+            bool ret = CompositorController::getCursorSize(width, height);
+            gRdkShellMutex.unlock();
+            return ret;
         }
 
         // Internal methods end
