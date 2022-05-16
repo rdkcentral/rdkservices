@@ -23,7 +23,6 @@
 #include <interfaces/Ids.h>
 #include "tracing/Logging.h"
 #include "utils.h"
-#include "AbstractPlugin.h"
 
 #include "ISystemAudioPlayer.h"
 #include "impl/AudioPlayer.h"
