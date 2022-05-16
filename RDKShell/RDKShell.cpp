@@ -118,6 +118,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "g
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INPUT_EVENTS = "enableInputEvents";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -848,7 +849,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
             registerMethod(RDKSHELL_METHOD_IGNORE_KEY_INPUTS, &RDKShell::ignoreKeyInputsWrapper, this);
-	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
+            registerMethod(RDKSHELL_METHOD_ENABLE_INPUT_EVENTS, &RDKShell::enableInputEventsWrapper, this);
+            m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
         RDKShell::~RDKShell()
@@ -5286,6 +5288,28 @@ namespace WPEFramework {
             returnResponse(ret);
         }
 
+        uint32_t RDKShell::enableInputEventsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("clients"))
+            {
+                response["message"] = "please specify clients parameter";
+                result = false;
+            }
+            else if (!parameters.HasLabel("enable"))
+            {
+                response["message"] = "please specify enable parameter";
+                result = false;
+            }
+            else
+            {
+                result = enableInputEvents(parameters["clients"].Array(), parameters["enable"].Boolean());
+            }
+
+            returnResponse(result);
+        }
         // Registered methods end
 
         // Events begin
@@ -6445,6 +6469,35 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             enabled = Logger::isFlushingEnabled();
             gRdkShellMutex.unlock();
+        }
+
+        bool RDKShell::enableInputEvents(const JsonArray& clients, bool enable)
+        {
+            bool result = true;
+
+            gRdkShellMutex.lock();
+            for (int i = 0; i < clients.Length(); i++)
+            {
+                const string& clientName = clients[i].String();
+                if (clientName == "*")
+                {
+                    std::vector<std::string> clientList;
+                   CompositorController::getClients(clientList);
+                    for (size_t i = 0; i < clientList.size(); i++)
+                    {
+                        result = result && CompositorController::enableInputEvents(clientList[i], enable);
+                    }
+
+                    break;
+                }
+                else
+                {
+                    result = result && CompositorController::enableInputEvents(clientName, enable);
+                }
+            }
+            gRdkShellMutex.unlock();
+
+            return result;
         }
 
         // Internal methods end
