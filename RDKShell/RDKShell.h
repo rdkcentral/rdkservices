@@ -134,6 +134,12 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_REMOVE_EASTER_EGGS;
             static const string RDKSHELL_METHOD_GET_EASTER_EGGS;
             static const string RDKSHELL_METHOD_ENABLE_INPUT_EVENTS;
+            static const string RDKSHELL_METHOD_CREATE_GROUP;
+            static const string RDKSHELL_METHOD_GET_GROUPS;
+            static const string RDKSHELL_METHOD_DELETE_GROUP;
+            static const string RDKSHELL_METHOD_SET_GROUP;
+            static const string RDKSHELL_METHOD_REMOVE_FROM_GROUP;
+            static const string RDKSHELL_METHOD_SET_PROPERTIES;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -245,6 +251,12 @@ namespace WPEFramework {
             uint32_t removeEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableInputEventsWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t createGroupWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getGroupsWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t deleteGroupWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setGroupWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t removeFromGroupWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setPropertiesWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;

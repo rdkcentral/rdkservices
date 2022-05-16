@@ -126,6 +126,12 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SHOW_CURSOR = "show
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_CURSOR = "hideCursor";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_CURSOR_SIZE = "getCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_CURSOR_SIZE = "setCursorSize";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_CREATE_GROUP = "createGroup";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_GROUPS = "getGroups";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_DELETE_GROUP = "deleteGroup";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_GROUP = "setGroup";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_FROM_GROUP = "removeFromGroup";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_PROPERTIES = "setProperties";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -863,6 +869,13 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_HIDE_CURSOR, &RDKShell::hideCursorWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_CURSOR_SIZE, &RDKShell::getCursorSizeWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_CURSOR_SIZE, &RDKShell::setCursorSizeWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_FRAME_RATE, &RDKShell::setFrameRateWrapper, this);
+            registerMethod(RDKSHELL_METHOD_CREATE_GROUP, &RDKShell::createGroupWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_GROUPS, &RDKShell::getGroupsWrapper, this);
+            registerMethod(RDKSHELL_METHOD_DELETE_GROUP, &RDKShell::deleteGroupWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_GROUP, &RDKShell::setGroupWrapper, this);
+            registerMethod(RDKSHELL_METHOD_REMOVE_FROM_GROUP, &RDKShell::removeFromGroupWrapper, this);
+            registerMethod(RDKSHELL_METHOD_SET_PROPERTIES, &RDKShell::setPropertiesWrapper, this);
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -5374,6 +5387,207 @@ namespace WPEFramework {
 
             returnResponse(result);
         }
+
+        uint32_t RDKShell::createGroupWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            if (!parameters.HasLabel("group"))
+            {
+                response["message"] = "please specify group parameter";
+                returnResponse(false);
+            }
+            std::string group = parameters["group"].String();
+            // CompositorController::createGroup(group);
+            std::cout << "CompositorController::createGroup(" << group << ")\n";
+
+            std::vector<std::string> clients;
+            if (parameters.HasLabel("clients"))
+            {
+                const JsonArray clientsList = parameters["clients"].Array();
+                for (int i = 0; i < clientsList.Length(); i++)
+                    clients.push_back(clientsList[i].String());
+            }
+            CompositorController::createGroup(group, clients);
+
+            returnResponse(true);
+        }
+
+        uint32_t RDKShell::getGroupsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            map<string, vector<string>> groups;// = {{"group1", {"client1", "client2"}}, {"group2", {"client3", "client4"}}};
+            CompositorController::getGroups(groups);
+            std::cout << "CompositorController::getGroups()\n";
+
+            JsonArray jsonGroups;
+            for (const pair<string, vector<string>>& group : groups)
+            {
+                JsonArray jsonClients;
+                for (const string& clientName : group.second)
+                    jsonClients.Add(clientName);
+
+                JsonObject jsonGroup;
+                jsonGroup["name"] = group.first;
+                jsonGroup["clients"] = jsonClients;
+                jsonGroups.Add(jsonGroup);
+            }
+            response["groups"] = jsonGroups;
+
+            returnResponse(true);
+        }
+
+        uint32_t RDKShell::deleteGroupWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            if (!parameters.HasLabel("group"))
+            {
+                response["message"] = "please specify group parameter";
+                returnResponse(false);
+            }
+            std::string group = parameters["group"].String();
+            CompositorController::deleteGroup(group);
+            std::cout << "CompositorController::deleteGroup(" << group << ")\n";
+
+            returnResponse(true);
+        }
+
+        uint32_t RDKShell::setGroupWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            if (!parameters.HasLabel("clients"))
+            {
+                response["message"] = "please specify clients parameter";
+                returnResponse(false);
+            }
+            if (!parameters.HasLabel("group"))
+            {
+                response["message"] = "please specify group parameter";
+                returnResponse(false);
+            }
+
+            bool result = true;
+            std::string group = parameters["group"].String();
+            const JsonArray clientsList = parameters["clients"].Array();
+            std::vector<std::string> clients;
+            for (int i = 0; i < clientsList.Length(); i++)
+                clients.push_back(clientsList[i].String());
+
+            CompositorController::setGroup(group, clients);
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::removeFromGroupWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            if (!parameters.HasLabel("clients"))
+            {
+                response["message"] = "please specify clients parameter";
+                returnResponse(false);
+            }
+            if (!parameters.HasLabel("group"))
+            {
+                response["message"] = "please specify group parameter";
+                returnResponse(false);
+            }
+
+            bool result = true;
+            std::string group = parameters["group"].String();
+            std::vector<std::string> clients;
+            const JsonArray clientsList = parameters["clients"].Array();
+            for (int i = 0; i < clientsList.Length(); i++)
+                clients.push_back(clientsList[i].String());
+ 
+            CompositorController::removeFromGroup(group, clients);
+
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::setPropertiesWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            if (!parameters.HasLabel("id"))
+            {
+                response["message"] = "please specify id parameter";
+                returnResponse(false);
+            }
+            std::string id = parameters["id"].String();
+
+            if (!parameters.HasLabel("properties"))
+            {
+                response["message"] = "please specify properties parameter";
+                returnResponse(false);
+            }
+
+            JsonObject properties = parameters["properties"].Object();
+            if (properties.HasLabel("position") && properties.HasLabel("size"))
+            {
+                JsonObject size = properties["size"].Object();
+                if (!pos.HasLabel("x") || !pos.HasLabel("y") || !size.HasLabel("w") || !size.HasLabel("h"))
+                {
+                    response["message"] = "please specify x, y, w, h parameter of position property";
+                    returnResponse(false);
+                }
+                else
+                {
+                    CompositorController::setBounds(id, pos["x"].Number(), pos["y"].Number(), pos["w"].Number(), pos["h"].Number());
+                }
+            }
+
+            // if (properties.HasLabel("size"))
+            // {
+            //     JsonObject size = properties["size"].Object();
+            //     if (!size.HasLabel("w") || !size.HasLabel("h"))
+            //     {
+            //         response["message"] = "please specify w and h parameter of size property";
+            //         returnResponse(false);
+            //     }
+            //     else
+            //     {
+            //         std::cout << "setPropertiesWrapper size: " << size["w"].Number() << "," << size["h"].Number() << "\n";
+            //     }
+            // }
+
+            if (properties.HasLabel("scale"))
+            {
+                JsonObject scale = properties["scale"].Object();
+                if (!scale.HasLabel("x") || !scale.HasLabel("y"))
+                {
+                    response["message"] = "please specify x and y parameter of scale property";
+                    returnResponse(false);
+                }
+                else
+                {
+                    CompositorController::setScale(id, scale["x"].Number(), scale["y"].Number());;
+                    //std::cout << "setPropertiesWrapper scale: " << scale["x"].Number() << "," << scale["y"].Number() << "\n";                }
+            }
+
+            if (properties.HasLabel("z-order"))
+            {
+                std::cout << "setPropertiesWrapper z-order: " << properties["z-order"].Number() << "\n";
+            }
+
+            if (properties.HasLabel("opacity"))
+            {
+                std::cout << "setPropertiesWrapper opacity: " << properties["opacity"].Number() << "\n";
+                CompositorController::setOpacity(id, properties["opacity"].Number());
+            }
+
+            if (properties.HasLabel("visibility"))
+            {
+                std::cout << "setPropertiesWrapper visibility: " << properties["visibility"].Number() << "\n";
+                CompositorController::setOpacity(id, properties["visibility"].Number());
+            }
+
+            if (properties.HasLabel("blendingFactors"))
+            {
+
+            }
+
+            returnResponse(true);
+        }
+
         // Registered methods end
 
         // Events begin
