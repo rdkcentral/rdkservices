@@ -129,6 +129,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_ADD_EASTER_EGGS;
             static const string RDKSHELL_METHOD_REMOVE_EASTER_EGGS;
             static const string RDKSHELL_METHOD_GET_EASTER_EGGS;
+            static const string RDKSHELL_METHOD_ENABLE_INPUT_EVENTS;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -235,6 +236,7 @@ namespace WPEFramework {
             uint32_t addEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t enableInputEventsWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -302,6 +304,7 @@ namespace WPEFramework {
             void removeFactoryModeEasterEggs();
             void enableLogsFlushing(const bool enable);
             void getLogsFlushingEnabled(bool &enabled);
+            bool enableInputEvents(const JsonArray& clients, bool enable);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();

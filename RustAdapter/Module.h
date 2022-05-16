@@ -17,17 +17,13 @@
  * limitations under the License.
  */
 
-#ifndef OPENPLUGIN_DEVICEINFO_MODULE_H
-#define OPENPLUGIN_DEVICEINFO_MODULE_H
+#pragma once
 
 #ifndef MODULE_NAME
-#define MODULE_NAME Plugin_DeviceInfo
+#define MODULE_NAME Plugin_RustAdapter
 #endif
 
 #include <plugins/plugins.h>
-#include <interfaces/definitions.h>
 
 #undef EXTERNAL
 #define EXTERNAL
-
-#endif // OPENPLUGIN_DEVICEINFO_MODULE_H

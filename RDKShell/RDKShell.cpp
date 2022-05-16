@@ -121,6 +121,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_E
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_EASTER_EGGS = "addEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_EASTER_EGGS = "removeEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_EASTER_EGGS = "getEasterEggs";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INPUT_EVENTS = "enableInputEvents";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -854,7 +855,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_ADD_EASTER_EGGS, &RDKShell::addEasterEggsWrapper, this);
             registerMethod(RDKSHELL_METHOD_REMOVE_EASTER_EGGS, &RDKShell::removeEasterEggsWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_EASTER_EGGS, &RDKShell::getEasterEggsWrapper, this);
-	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
+            registerMethod(RDKSHELL_METHOD_ENABLE_INPUT_EVENTS, &RDKShell::enableInputEventsWrapper, this);
+            m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
         RDKShell::~RDKShell()
@@ -1413,12 +1415,17 @@ namespace WPEFramework {
                 {
                     std::cout << "Received power state change to sleep " << std::endl;
                     JsonObject request, response;
+                    request["visible"] = false;
                     int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchResidentApp", request, response);
                 }
  
                 if ((prevState == "STANDBY" || prevState == "LIGHT_SLEEP" || prevState == "DEEP_SLEEP" || prevState == "OFF")
                     && powerState == "ON")
                 {
+                    JsonObject request, response;
+                    request["callsign"] = "ResidentApp";
+                    request["visible"] = true;
+                    int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "setVisibility", request, response);
                     gRdkShellMutex.lock();
                     CompositorController::getLastKeyPress(mLastWakeupKeyCode, mLastWakeupKeyModifiers, mLastWakeupKeyTimestamp);
                     gRdkShellMutex.unlock();
@@ -4796,6 +4803,11 @@ namespace WPEFramework {
                 }
             }
 
+            if (parameters.HasLabel("visible"))
+            {
+                setVisibility("ResidentApp", parameters["visible"].Boolean());
+            }
+
             if (!updatedUrl.empty())
             {
                 WPEFramework::Core::JSON::String urlString;
@@ -5282,6 +5294,28 @@ namespace WPEFramework {
             returnResponse(ret);
         }
 
+        uint32_t RDKShell::enableInputEventsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("clients"))
+            {
+                response["message"] = "please specify clients parameter";
+                result = false;
+            }
+            else if (!parameters.HasLabel("enable"))
+            {
+                response["message"] = "please specify enable parameter";
+                result = false;
+            }
+            else
+            {
+                result = enableInputEvents(parameters["clients"].Array(), parameters["enable"].Boolean());
+            }
+
+            returnResponse(result);
+        }
         // Registered methods end
 
         // Events begin
@@ -6557,6 +6591,36 @@ namespace WPEFramework {
             response["easterEggs"] = easterEggs;
             returnResponse(result);
         }
+
+      bool RDKShell::enableInputEvents(const JsonArray& clients, bool enable)
+        {
+            bool result = true;
+
+            gRdkShellMutex.lock();
+            for (int i = 0; i < clients.Length(); i++)
+            {
+                const string& clientName = clients[i].String();
+                if (clientName == "*")
+                {
+                    std::vector<std::string> clientList;
+                   CompositorController::getClients(clientList);
+                    for (size_t i = 0; i < clientList.size(); i++)
+                    {
+                        result = result && CompositorController::enableInputEvents(clientList[i], enable);
+                    }
+
+                    break;
+                }
+                else
+                {
+                    result = result && CompositorController::enableInputEvents(clientName, enable);
+                }
+            }
+            gRdkShellMutex.unlock();
+
+            return result;
+        }
+
         // Internal methods end
     } // namespace Plugin
 } // namespace WPEFramework

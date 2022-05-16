@@ -16,18 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 
-#ifndef OPENPLUGIN_DEVICEINFO_MODULE_H
-#define OPENPLUGIN_DEVICEINFO_MODULE_H
+namespace WPEFramework {
+namespace Plugin {
+namespace Rust {
+  struct IPlugin 
+    : public WPEFramework::PluginHost::IPluginExtended
+    , public WPEFramework::PluginHost::IDispatcher
+    , public WPEFramework::PluginHost::IWebSocket
+  {
+  };
+} } }
 
-#ifndef MODULE_NAME
-#define MODULE_NAME Plugin_DeviceInfo
-#endif
-
-#include <plugins/plugins.h>
-#include <interfaces/definitions.h>
-
-#undef EXTERNAL
-#define EXTERNAL
-
-#endif // OPENPLUGIN_DEVICEINFO_MODULE_H

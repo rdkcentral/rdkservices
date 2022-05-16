@@ -17,17 +17,6 @@
  * limitations under the License.
  */
 
-#ifndef OPENPLUGIN_DEVICEINFO_MODULE_H
-#define OPENPLUGIN_DEVICEINFO_MODULE_H
+#include "Module.h"
 
-#ifndef MODULE_NAME
-#define MODULE_NAME Plugin_DeviceInfo
-#endif
-
-#include <plugins/plugins.h>
-#include <interfaces/definitions.h>
-
-#undef EXTERNAL
-#define EXTERNAL
-
-#endif // OPENPLUGIN_DEVICEINFO_MODULE_H
+MODULE_NAME_DECLARATION(BUILD_REFERENCE)
