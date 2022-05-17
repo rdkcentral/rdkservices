@@ -1,0 +1,1378 @@
+diff --git a/DeviceIdentification/CMakeLists.txt b/DeviceIdentification/CMakeLists.txt
+index 5078b10c..c64ee65d 100644
+--- a/DeviceIdentification/CMakeLists.txt
++++ b/DeviceIdentification/CMakeLists.txt
+@@ -15,12 +15,23 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-set(PLUGIN_NAME DeviceIdentification)
+-set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
++project(DeviceIdentification)
++
++cmake_minimum_required(VERSION 3.3)
++find_package(WPEFramework)
++
++set(PLUGIN_NAME ${PROJECT_NAME})
++set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
++
++list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
++
++message("Setup ${MODULE_NAME} v${PROJECT_VERSION}")
+ 
+-option(PLUGIN_DEVICEIDENTIFICATION_USE_MFR "Get device identification details using MFR library" OFF)
+ set(PLUGIN_DEVICEIDENTIFICATION_AUTOSTART "true" CACHE STRING "Automatically start DeviceIdentification plugin")
+ set(PLUGIN_DEVICEIDENTIFICATION_MODE "Off" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
++set(PLUGIN_DEVICEIDENTIFICATION_INTERFACE_NAME "eth0" CACHE STRING "Ethernet Card name which has to be associated for the Raw Device Id creation")
++option(PLUGIN_DEVICEIDENTIFICATION_USE_MFR "Get device identification details using MFR library" OFF)
++
+ 
+ find_package(NEXUS QUIET)
+ find_package(BCM_HOST QUIET)
+@@ -40,7 +51,11 @@ if (PLUGIN_DEVICEIDENTIFICATION_USE_MFR AND MFRFWLIBS_FOUND)
+             Implementation/MFR/MFR.cpp)
+     target_link_libraries(${MODULE_NAME}
+         PRIVATE
+-            mfrfwlibs::mfrfwlibs)
++	MFRFWLibs::MFRFWLibs)
++elseif (BUILD_BROADCOM)
++    target_sources(${MODULE_NAME}
++        PRIVATE
++            Implementation/Broadcom/Broadcom.cpp)
+ elseif (NEXUS_FOUND)
+     find_package(NXCLIENT REQUIRED)
+     target_link_libraries(${MODULE_NAME} 
+@@ -76,9 +91,14 @@ elseif (BUILD_AMLOGIC)
+         PRIVATE
+             Implementation/Amlogic/Amlogic.cpp)
+ elseif (BUILD_REALTEK)
+-	target_sources(${MODULE_NAME}
++    target_sources(${MODULE_NAME}
+         PRIVATE
+             Implementation/Realtek/Realtek.cpp)
++elseif(UNIX AND NOT APPLE)
++    target_sources(${MODULE_NAME}
++        PRIVATE
++            Implementation/Linux/Linux.cpp)
++    set(GENERIC_DEVICEIDENTIFIATION ON)
+ else ()
+     message(FATAL_ERROR "There is no platform backend for device identifier plugin")
+ endif()
+diff --git a/DeviceIdentification/DeviceIdentification.config b/DeviceIdentification/DeviceIdentification.config
+index 8b7a6aea..3781ce59 100644
+--- a/DeviceIdentification/DeviceIdentification.config
++++ b/DeviceIdentification/DeviceIdentification.config
+@@ -2,6 +2,12 @@ set(autostart ${PLUGIN_DEVICEIDENTIFICATION_AUTOSTART})
+ set(preconditions Platform)
+ 
+ map()
++if(GENERIC_DEVICEIDENTIFIATION)
++    if(PLUGIN_DEVICEIDENTIFICATION_INTERFACE_NAME)
++        kv(interface ${PLUGIN_DEVICEIDENTIFICATION_INTERFACE_NAME})
++    endif()
++endif()
++
+     key(root)
+     map()
+         kv(mode ${PLUGIN_DEVICEIDENTIFICATION_MODE})
+diff --git a/DeviceIdentification/DeviceIdentification.cpp b/DeviceIdentification/DeviceIdentification.cpp
+index 52273cf3..662d0574 100644
+--- a/DeviceIdentification/DeviceIdentification.cpp
++++ b/DeviceIdentification/DeviceIdentification.cpp
+@@ -19,6 +19,7 @@
+  
+ #include "DeviceIdentification.h"
+ #include "IdentityProvider.h"
++#include <interfaces/IConfiguration.h>
+ 
+ namespace WPEFramework {
+ namespace Plugin {
+@@ -28,55 +29,92 @@ namespace Plugin {
+     /* virtual */ const string DeviceIdentification::Initialize(PluginHost::IShell* service)
+     {
+         ASSERT(service != nullptr);
+-        ASSERT(_device == nullptr);
++        ASSERT(_service == nullptr);
++        ASSERT(_identifier == nullptr);
++        ASSERT(_connectionId == 0);
+ 
+-        string message;
++        _service = service;
++        _service->AddRef();
+ 
+-        _device = service->Root<Exchange::IDeviceProperties>(_connectionId, 2000, _T("DeviceImplementation"));
+-        if (_device != nullptr) {
++         string message;
+ 
+-            _identifier = _device->QueryInterface<PluginHost::ISubSystem::IIdentifier>();
+-            if (_identifier == nullptr) {
++        // Register the Process::Notification stuff. The Remote process might die before we get a
++        // change to "register" the sink for these events !!! So do it ahead of instantiation.
++        service->Register(&_notification);
+ 
+-                _device->Release();
+-                _device = nullptr;
+-            } else {
+-                _deviceId = GetDeviceId();
+-                if (_deviceId.empty() != true) {
+-                    service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _device);
+-                }
++        _identifier = service->Root<PluginHost::ISubSystem::IIdentifier>(_connectionId, RPC::CommunicationTimeOut, _T("DeviceImplementation"));
++
++        if (_identifier != nullptr) {
++
++            Exchange::IConfiguration* configure = _identifier->QueryInterface<Exchange::IConfiguration>();
++            if (configure != nullptr) {
++                configure->Configure(service);
++                configure->Release();
+             }
+-        }
+ 
+-        if (_device == nullptr) {
++            _deviceId = GetDeviceId();
++
++            RegisterAll();
++
++            if (_deviceId.empty() != true) {
++                service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _identifier);
++            }
++            else {
++                message = _T("DeviceIdentification plugin could not be instantiated. No DeviceID available");
++            }
++        }
++        else {
+             message = _T("DeviceIdentification plugin could not be instantiated.");
+         }
+ 
++        if (message.length() != 0) {
++            Deinitialize(service);
++        }
++
+         return message;
+     }
+ 
+     /* virtual */ void DeviceIdentification::Deinitialize(PluginHost::IShell* service)
+     {
+-        ASSERT(service != nullptr);
+-        ASSERT(_device != nullptr);
++        ASSERT(_service == service);
+ 
+-        ASSERT(_identifier != nullptr);
+-        if (_identifier != nullptr) {
+-            if (_deviceId.empty() != true) {
+-                service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, nullptr);
+-                _deviceId.clear();
+-            }
+-            _identifier->Release();
+-            _identifier = nullptr;
+-        }
++        _service->Unregister(&_notification);
+ 
+-        ASSERT(_device != nullptr);
+-        if (_device != nullptr) {
+-            _device->Release();
+-            _device = nullptr;
++        if (_deviceId.empty() != true) {
++            service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, nullptr);
++            _deviceId.clear();
+         }
+ 
+-        _connectionId = 0;
++        if(_identifier != nullptr) {
++
++            UnregisterAll();
++
++            // Stop processing:
++            RPC::IRemoteConnection* connection = service->RemoteConnection(_connectionId);
++
++            VARIABLE_IS_NOT_USED uint32_t result = _identifier->Release();
++            _identifier = nullptr;
++
++            // It should have been the last reference we are releasing,
++            // so it should endup in a DESTRUCTION_SUCCEEDED, if not we
++            // are leaking...
++            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
++
++            // If this was running in a (container) process...
++            if (connection != nullptr) {
++                // Lets trigger the cleanup sequence for
++                // out-of-process code. Which will guard
++                // that unwilling processes, get shot if
++                // not stopped friendly :-)
++                connection->Terminate();
++                connection->Release();
++            }
++         }
++
++         _connectionId = 0;
++
++        _service->Release();
++        _service = nullptr;
+     }
+ 
+     /* virtual */ string DeviceIdentification::Information() const
+@@ -105,13 +143,24 @@ namespace Plugin {
+ 
+     void DeviceIdentification::Info(JsonData::DeviceIdentification::DeviceidentificationData& deviceInfo) const
+     {
+-        deviceInfo.Firmwareversion = _device->FirmwareVersion();
+-        deviceInfo.Chipset = _device->Chipset();
++        deviceInfo.Firmwareversion = _identifier->FirmwareVersion();
++        deviceInfo.Chipset = _identifier->Chipset();
+ 
+         if (_deviceId.empty() != true) {
+             deviceInfo.Deviceid = _deviceId;
+         }
+     }
+ 
++    void DeviceIdentification::Deactivated(RPC::IRemoteConnection* connection)
++    {
++        // This can potentially be called on a socket thread, so the deactivation (wich in turn kills this object) must be done
++        // on a seperate thread. Also make sure this call-stack can be unwound before we are totally destructed.
++        if (_connectionId == connection->Id()) {
++
++            ASSERT(_service != nullptr);
++
++            Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service, PluginHost::IShell::DEACTIVATED, PluginHost::IShell::FAILURE));
++        }
++    }
+ } // namespace Plugin
+ } // namespace WPEFramework
+diff --git a/DeviceIdentification/DeviceIdentification.h b/DeviceIdentification/DeviceIdentification.h
+index 8b5893e4..1a991aa5 100644
+--- a/DeviceIdentification/DeviceIdentification.h
++++ b/DeviceIdentification/DeviceIdentification.h
+@@ -16,7 +16,7 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+- 
++
+ #pragma once
+ 
+ #include "Module.h"
+@@ -31,31 +31,60 @@ namespace Plugin {
+         DeviceIdentification(const DeviceIdentification&) = delete;
+         DeviceIdentification& operator=(const DeviceIdentification&) = delete;
+ 
++        class Notification : public RPC::IRemoteConnection::INotification {
++        public:
++            Notification(const Notification&) = delete;
++            Notification& operator=(const Notification&) = delete;
++
++            explicit Notification(DeviceIdentification* parent)
++                : _parent(*parent)
++            {
++                ASSERT(parent != nullptr);
++            }
++            ~Notification() override
++            {
++                TRACE(Trace::Information, (_T("DeviceIdentification::Notification destructed. Line: %d"), __LINE__));
++            }
++
++        public:
++            void Activated(RPC::IRemoteConnection* /* connection */) override
++            {
++            }
++            void Deactivated(RPC::IRemoteConnection* connectionId) override
++            {
++                _parent.Deactivated(connectionId);
++            }
++
++            BEGIN_INTERFACE_MAP(Notification)
++            INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
++            END_INTERFACE_MAP
++
++        private:
++            DeviceIdentification& _parent;
++        };
++
+         DeviceIdentification()
+-            : _deviceId()
+-            , _device(nullptr)
++            : _service(nullptr)
++            , _deviceId()
+             , _identifier(nullptr)
+             , _connectionId(0)
++            , _notification(this)
+         {
+-            RegisterAll();
+         }
+ 
+-        virtual ~DeviceIdentification()
+-        {
+-            UnregisterAll();
+-        }
++        ~DeviceIdentification() override = default;
+ 
+         BEGIN_INTERFACE_MAP(DeviceIdentification)
+-            INTERFACE_ENTRY(PluginHost::IPlugin)
+-            INTERFACE_ENTRY(PluginHost::IDispatcher)
++        INTERFACE_ENTRY(PluginHost::IPlugin)
++        INTERFACE_ENTRY(PluginHost::IDispatcher)
+         END_INTERFACE_MAP
+ 
+     public:
+         //   IPlugin methods
+         // -------------------------------------------------------------------------------------------------------
+-        virtual const string Initialize(PluginHost::IShell* service) override;
+-        virtual void Deinitialize(PluginHost::IShell* service) override;
+-        virtual string Information() const override;
++        const string Initialize(PluginHost::IShell* service) override;
++        void Deinitialize(PluginHost::IShell* service) override;
++        string Information() const override;
+ 
+     private:
+         void RegisterAll();
+@@ -65,12 +94,15 @@ namespace Plugin {
+         string GetDeviceId() const;
+         void Info(JsonData::DeviceIdentification::DeviceidentificationData&) const;
+ 
++        void Deactivated(RPC::IRemoteConnection* connection);
++
+     private:
++        PluginHost::IShell* _service;
+         string _deviceId;
+-        Exchange::IDeviceProperties* _device;
+-        const PluginHost::ISubSystem::IIdentifier* _identifier;
++        PluginHost::ISubSystem::IIdentifier* _identifier;
+ 
+         uint32_t _connectionId;
++         Core::Sink<Notification> _notification;
+     };
+ 
+ } // namespace Plugin
+diff --git a/DeviceIdentification/Implementation/Amlogic/Amlogic.cpp b/DeviceIdentification/Implementation/Amlogic/Amlogic.cpp
+index 6851e509..ee554eca 100644
+--- a/DeviceIdentification/Implementation/Amlogic/Amlogic.cpp
++++ b/DeviceIdentification/Implementation/Amlogic/Amlogic.cpp
+@@ -1,183 +1,106 @@
+-
+-
+ #include "../../Module.h"
+-#include <interfaces/IDeviceIdentification.h>
+-#include <fstream>
+ 
++#include <fstream>
+ 
+ namespace WPEFramework {
+-
+ namespace Plugin {
+-
+-
+-
+-class DeviceImplementation : public Exchange::IDeviceProperties, public PluginHost::ISubSystem::IIdentifier {
+-	static constexpr const TCHAR* ChipsetInfo= _T("T962X3");
+-	static constexpr const TCHAR* VERSIONFile= _T("/version.txt");
+-
+-
+-public:
+-
+-    DeviceImplementation()
+-    {
+-        UpdateChipset(_chipset);
+-
+-        UpdateFirmwareVersion(_firmwareVersion);
+-
+-        UpdateIdentifier();
+-
+-    }
+-
+-
+-
+-    DeviceImplementation(const DeviceImplementation&) = delete;
+-
+-    DeviceImplementation& operator= (const DeviceImplementation&) = delete;
+-
+-    virtual ~DeviceImplementation()
+-
+-    {
+-
+-         /* Nothing to do here. */
+-
+-    }
+-
+-
+-
+-public:
+-
+-    // Device Propertirs interface
+-
+-    const string Chipset() const override
+-
+-    {
+-
+-        return _chipset;
+-
+-    }
+-
+-    const string FirmwareVersion() const override
+-
+-    {
+-
+-        return _firmwareVersion;
+-
+-    }
+-
+-
+-
+-    // Identifier interface
+-
+-    uint8_t Identifier(const uint8_t length, uint8_t buffer[]) const override
+-
+-    {
+-
+-        uint8_t result = 0;
+-
+-        if ((_identity.length())) {
+-
+-            result = (_identity.length() > length ? length : _identity.length());
+-
+-            ::memcpy(buffer, _identity.c_str(), result);
+-
+-        } else {
+-
+-            SYSLOG(Logging::Notification, (_T("Cannot determine system identity")));
+-
++    class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
++	    static constexpr const TCHAR* ChipsetInfo= _T("T962X3");
++        static constexpr const TCHAR* VERSIONFile = _T("/version.txt");
++
++    public:
++        DeviceImplementation()
++        {
++            UpdateChipset(_chipset);
++            UpdateFirmwareVersion(_firmwareVersion);
++            UpdateIdentifier();
+         }
+ 
+-        return result;
+-
+-    }
+-
++        DeviceImplementation(const DeviceImplementation&) = delete;
++        DeviceImplementation& operator=(const DeviceImplementation&) = delete;
+ 
++        virtual ~DeviceImplementation()
++        {
++            /* Nothing to do here. */
++        }
+ 
+-    BEGIN_INTERFACE_MAP(DeviceImplementation)
++    public:
++        // IIdentifier interface
++        uint8_t Identifier(const uint8_t length, uint8_t buffer[]) const override
++        {
++            uint8_t result = 0;
++            if ((_identity.length())) {
++                result = (_identity.length() > length ? length : _identity.length());
++                ::memcpy(buffer, _identity.c_str(), result);
++            } else {
++                SYSLOG(Logging::Notification, (_T("Cannot determine system identity")));
++            }
+ 
+-        INTERFACE_ENTRY(Exchange::IDeviceProperties)
++            return result;
++        }
++        string Architecture() const override
++        {
++            return Core::SystemInfo::Instance().Architecture();
++        }
++        string Chipset() const override
++        {
++            return _chipset;
++        }
++        string FirmwareVersion() const override
++        {
++            return _firmwareVersion;
++        }
+ 
++        BEGIN_INTERFACE_MAP(DeviceImplementation)
+         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
+-
+-    END_INTERFACE_MAP
+-
+-
+-
+-private:
+-
+-    inline void UpdateFirmwareVersion(string& firmwareVersion) const
+-
+-    {
+-
+-        string line;
+-
+-        std::ifstream file(VERSIONFile);
+-
+-        if (file.is_open()) {
+-
+-            while (getline(file, line)) {
+-
+-                if (line.find("SDK_VERSION") != std::string::npos) {
+-
+-                    std::size_t position = line.find('=');
+-
+-                    if (position != std::string::npos) {
+-
+-                        firmwareVersion.assign(line.substr(position + 1, string::npos));
+-
+-                        break;
+-
++        END_INTERFACE_MAP
++
++    private:
++        inline void UpdateFirmwareVersion(string& firmwareVersion) const
++        {
++            string line;
++            std::ifstream file(VERSIONFile);
++
++            if (file.is_open()) {
++                while (getline(file, line)) {
++                    if (line.find("SDK_VERSION") != std::string::npos) {
++                        std::size_t position = line.find('=');
++                        if (position != std::string::npos) {
++                            firmwareVersion.assign(line.substr(position + 1, string::npos));
++                            break;
++                        }
+                     }
+-
+                 }
+ 
++                file.close();
+             }
+-
+-            file.close();
+-
+         }
+ 
+-    }
+-
+-    inline void UpdateChipset(string& chipset) const
+-
+-    {
++        inline void UpdateChipset(string& chipset) const
++        {
+ 
+ #ifndef DEVICE_IDENTIFICATION_CHIPSET_INFO
+-         chipset.assign(ChipsetInfo);
++             chipset.assign(ChipsetInfo);
+ #else
+-         chipset.assign(DEVICE_IDENTIFICATION_CHIPSET_INFO);
++             chipset.assign(DEVICE_IDENTIFICATION_CHIPSET_INFO);
+ #endif
++        }
+ 
+-    }
+-
+-    inline void UpdateIdentifier()
+-
+-    {
+-          /*
++        inline void UpdateIdentifier()
++        {
++            /*
+            * @TODO : Update proper code for identifier when SOC ID is made
+            * available for Amlogic boards
+-          */
+-
+-           _identity.assign("");
+-
+-    }
+-
+-
+-
+-private:
+-
+-    string _chipset;
+-
+-    string _firmwareVersion;
+-
+-    string _identity;
+-
+-};
+-
++           */
++            _identity.assign("");
++        }
+ 
++    private:
++        string _chipset;
++        string _firmwareVersion;
++        string _identity;
++    };
+ 
+     SERVICE_REGISTRATION(DeviceImplementation, 1, 0);
+-
+ }
+-
+ }
+diff --git a/DeviceIdentification/Implementation/MFR/MFR.cpp b/DeviceIdentification/Implementation/MFR/MFR.cpp
+index aaef40d2..086afa2d 100644
+--- a/DeviceIdentification/Implementation/MFR/MFR.cpp
++++ b/DeviceIdentification/Implementation/MFR/MFR.cpp
+@@ -18,7 +18,6 @@
+  */
+ 
+ #include "../../Module.h"
+-#include <interfaces/IDeviceIdentification.h>
+ 
+ #include <fstream>
+ 
+@@ -28,97 +27,96 @@ extern "C" {
+ 
+ namespace WPEFramework {
+ namespace Plugin {
++    class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
+ 
+-class DeviceImplementation : public Exchange::IDeviceProperties, public PluginHost::ISubSystem::IIdentifier {
+-
+-public:
+-    DeviceImplementation()
+-    {
+-        UpdateChipset(_chipset);
+-        UpdateFirmwareVersion(_firmwareVersion);
+-        UpdateIdentifier();
+-    }
+-
+-    DeviceImplementation(const DeviceImplementation&) = delete;
+-    DeviceImplementation& operator= (const DeviceImplementation&) = delete;
+-    virtual ~DeviceImplementation()
+-    {
+-    	/* Nothing to do here. */
+-    }
++    public:
++        DeviceImplementation()
++        {
++            UpdateChipset(_chipset);
++            UpdateFirmwareVersion(_firmwareVersion);
++            UpdateIdentifier();
++        }
+ 
+-public:
+-    // Device Propertirs interface
+-    const string Chipset() const override
+-    {
+-        return _chipset;
+-    }
+-    const string FirmwareVersion() const override
+-    {
+-        return _firmwareVersion;
+-    }
++        DeviceImplementation(const DeviceImplementation&) = delete;
++        DeviceImplementation& operator=(const DeviceImplementation&) = delete;
++        virtual ~DeviceImplementation()
++        {
++            /* Nothing to do here. */
++        }
+ 
+-    // Identifier interface
+-    uint8_t Identifier(const uint8_t length, uint8_t buffer[]) const override
+-    {
+-        uint8_t result = 0;
+-        if ((_identity.length()) && (_status == mfrERR_NONE)) {
+-            result = (_identity.length() > length ? length : _identity.length());
+-            ::memcpy(buffer, _identity.c_str(), result);
+-        } else {
+-            SYSLOG(Logging::Notification, (_T("Cannot determine system identity; Error:[%d]!"),
+-                    static_cast<uint8_t>(_status)));
++    public:
++        // IIdentifier interface
++        uint8_t Identifier(const uint8_t length, uint8_t buffer[]) const override
++        {
++            uint8_t result = 0;
++            if ((_identity.length()) && (_status == mfrERR_NONE)) {
++                result = (_identity.length() > length ? length : _identity.length());
++                ::memcpy(buffer, _identity.c_str(), result);
++            } else {
++                SYSLOG(Logging::Notification, (_T("Cannot determine system identity; Error:[%d]!"), static_cast<uint8_t>(_status)));
++            }
++            return result;
++        }
++        string Architecture() const override
++        {
++            return Core::SystemInfo::Instance().Architecture();
++        }
++        string Chipset() const override
++        {
++            return _chipset;
++        }
++        string FirmwareVersion() const override
++        {
++            return _firmwareVersion;
+         }
+-        return result;
+-    }
+ 
+-    BEGIN_INTERFACE_MAP(DeviceImplementation)
+-        INTERFACE_ENTRY(Exchange::IDeviceProperties)
++        BEGIN_INTERFACE_MAP(DeviceImplementation)
+         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
+-    END_INTERFACE_MAP
++        END_INTERFACE_MAP
+ 
+-private:
+-    inline void UpdateFirmwareVersion(string& firmwareVersion) const
+-    {
+-        int retVal = -1;
+-        mfrSerializedData_t mfrSerializedData;
+-        retVal = mfrGetSerializedData(mfrSERIALIZED_TYPE_SOFTWAREVERSION, &mfrSerializedData);
+-        if ((mfrERR_NONE == retVal) && mfrSerializedData.bufLen) {
+-            firmwareVersion =  mfrSerializedData.buf;
+-            if (mfrSerializedData.freeBuf) {
+-                mfrSerializedData.freeBuf(mfrSerializedData.buf);
++    private:
++        inline void UpdateFirmwareVersion(string& firmwareVersion) const
++        {
++            int retVal = -1;
++            mfrSerializedData_t mfrSerializedData;
++            retVal = mfrGetSerializedData(mfrSERIALIZED_TYPE_SOFTWAREVERSION, &mfrSerializedData);
++            if ((mfrERR_NONE == retVal) && mfrSerializedData.bufLen) {
++                firmwareVersion = mfrSerializedData.buf;
++                if (mfrSerializedData.freeBuf) {
++                    mfrSerializedData.freeBuf(mfrSerializedData.buf);
++                }
+             }
+         }
+-    }
+-    inline void UpdateChipset(string& chipset) const
+-    {
+-        int retVal = -1;
+-        mfrSerializedData_t mfrSerializedData;
+-        retVal = mfrGetSerializedData(mfrSERIALIZED_TYPE_CHIPSETINFO, &mfrSerializedData);
+-        if ((mfrERR_NONE == retVal) && mfrSerializedData.bufLen) {
+-            chipset = mfrSerializedData.buf;
+-            if (mfrSerializedData.freeBuf) {
+-                mfrSerializedData.freeBuf(mfrSerializedData.buf);
++        inline void UpdateChipset(string& chipset) const
++        {
++            int retVal = -1;
++            mfrSerializedData_t mfrSerializedData;
++            retVal = mfrGetSerializedData(mfrSERIALIZED_TYPE_CHIPSETINFO, &mfrSerializedData);
++            if ((mfrERR_NONE == retVal) && mfrSerializedData.bufLen) {
++                chipset = mfrSerializedData.buf;
++                if (mfrSerializedData.freeBuf) {
++                    mfrSerializedData.freeBuf(mfrSerializedData.buf);
++                }
+             }
+         }
+-    }
+-    inline void UpdateIdentifier()
+-    {
+-        mfrSerializedData_t mfrSerializedData;
+-        _status = mfrGetSerializedData(mfrSERIALIZED_TYPE_SERIALNUMBER, &mfrSerializedData);
+-        if ((mfrERR_NONE == _status) && mfrSerializedData.bufLen) {
+-            _identity = mfrSerializedData.buf;
+-            if (mfrSerializedData.freeBuf) {
+-                mfrSerializedData.freeBuf(mfrSerializedData.buf);
++        inline void UpdateIdentifier()
++        {
++            mfrSerializedData_t mfrSerializedData;
++            _status = mfrGetSerializedData(mfrSERIALIZED_TYPE_SERIALNUMBER, &mfrSerializedData);
++            if ((mfrERR_NONE == _status) && mfrSerializedData.bufLen) {
++                _identity = mfrSerializedData.buf;
++                if (mfrSerializedData.freeBuf) {
++                    mfrSerializedData.freeBuf(mfrSerializedData.buf);
++                }
+             }
+         }
+-    }
+ 
+-private:
+-    string _chipset;
+-    string _firmwareVersion;
+-    string _identity;
+-    mfrError_t _status;
+-};
++    private:
++        string _chipset;
++        string _firmwareVersion;
++        string _identity;
++        mfrError_t _status;
++    };
+ 
+     SERVICE_REGISTRATION(DeviceImplementation, 1, 0);
+ }
+diff --git a/DeviceIdentification/Implementation/RPI/RPI.cpp b/DeviceIdentification/Implementation/RPI/RPI.cpp
+index f535e066..79d59ab4 100644
+--- a/DeviceIdentification/Implementation/RPI/RPI.cpp
++++ b/DeviceIdentification/Implementation/RPI/RPI.cpp
+@@ -16,9 +16,8 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+- 
++
+ #include "../../Module.h"
+-#include <interfaces/IDeviceIdentification.h>
+ 
+ #include <bcm_host.h>
+ #include <fstream>
+@@ -26,108 +25,112 @@
+ namespace WPEFramework {
+ namespace Plugin {
+ 
+-class DeviceImplementation : public Exchange::IDeviceProperties, public PluginHost::ISubSystem::IIdentifier {
+-    static constexpr const TCHAR* CPUInfoFile= _T("/proc/cpuinfo");
+-
+-public:
+-    DeviceImplementation()
+-    {
+-        bcm_host_init();
+-
+-        UpdateChipset(_chipset);
+-        UpdateFirmwareVersion(_firmwareVersion);
+-    }
+-
+-    DeviceImplementation(const DeviceImplementation&) = delete;
+-    DeviceImplementation& operator= (const DeviceImplementation&) = delete;
+-    virtual ~DeviceImplementation()
+-    {
+-        bcm_host_deinit();
+-    }
+-
+-public:
+-    // Device Propertirs interface
+-    const string Chipset() const override
+-    {
+-        return _chipset;
+-    }
+-    const string FirmwareVersion() const override
+-    {
+-        return _firmwareVersion;
+-    }
+-
+-    // Identifier interface
+-    uint8_t Identifier(const uint8_t length, uint8_t buffer[]) const override
+-    {
+-        return 0;
+-    }
+-
+-    BEGIN_INTERFACE_MAP(DeviceImplementation)
+-        INTERFACE_ENTRY(Exchange::IDeviceProperties)
+-        INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
+-    END_INTERFACE_MAP
+-
+-private:
+-    inline void UpdateFirmwareVersion(string& firmwareVersion) const
+-    {
+-        Command("version", firmwareVersion);
+-        if (firmwareVersion.length() > 0) {
+-
+-            string::size_type i = 0;
+-            while (i < firmwareVersion.length()) {
+-                i = firmwareVersion.find_first_of("\n\r", i);
+-                if (i != std::string::npos) {
+-                    firmwareVersion.replace(i, 1, ", ");
+-                }
++    class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
++    private:
++        static constexpr const TCHAR* SerialInfoPath = "/sys/firmware/devicetree/base/serial-number";
++
++    public:
++        DeviceImplementation()
++            : _firmwareVersion()
++            , _identifier()
++        {
++            bcm_host_init();
++
++            UpdateFirmwareVersion(_firmwareVersion);
++            UpdateDeviceIdentifier(_identifier);
++        }
++
++        DeviceImplementation(const DeviceImplementation&) = delete;
++        DeviceImplementation& operator=(const DeviceImplementation&) = delete;
++        virtual ~DeviceImplementation()
++        {
++            bcm_host_deinit();
++        }
++
++    public:
++        // IIdentifier interface
++        uint8_t Identifier(const uint8_t length, uint8_t* buffer) const override
++        {
++            uint8_t ret = 0;
++            if (_identifier.length()) {
++                ret = (_identifier.length() > length ? length : _identifier.length());
++                ::memcpy(buffer, _identifier.c_str(), ret);
+             }
++            return ret;
++        }
++        string Architecture() const override
++        {
++            return Core::SystemInfo::Instance().Architecture();
+         }
+-    }
+-    inline void UpdateChipset(string& chipset) const
+-    {
+-        string line;
+-        std::ifstream file(CPUInfoFile);
+-        if (file.is_open()) {
+-            while (getline(file, line)) {
+-                if (line.find("Hardware") != std::string::npos) {
+-                    std::size_t position = line.find(':');
+-                    if (position != std::string::npos) {
+-                        chipset.assign(line.substr(position + 1, string::npos));
++        string Chipset() const override
++        {
++            return Core::SystemInfo::Instance().Chipset();
++        }
++        string FirmwareVersion() const override
++        {
++            return _firmwareVersion;
++        }
++
++        BEGIN_INTERFACE_MAP(DeviceImplementation)
++        INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
++        END_INTERFACE_MAP
++
++    private:
++        inline void UpdateFirmwareVersion(string& firmwareVersion) const
++        {
++            Command("version", firmwareVersion);
++            if (firmwareVersion.length() > 0) {
++
++                string::size_type i = 0;
++                while (i < firmwareVersion.length()) {
++                    i = firmwareVersion.find_first_of("\n\r", i);
++                    if (i != std::string::npos) {
++                        firmwareVersion.replace(i, 1, ", ");
+                     }
+                 }
+             }
+-            file.close();
+         }
+-    }
+-    void Command(const char request[], string& value) const
+-    {
+-        char buffer[512];
++        inline void UpdateDeviceIdentifier(string& identifier) const
++        {
++            string fileName = SerialInfoPath;
++            WPEFramework::Core::File serialFile(fileName);
++
++            if (serialFile.Open(true) == true) {
++                uint8_t serialInfo[serialFile.Size()];
++                uint32_t size = serialFile.Read(serialInfo, static_cast<uint32_t>(sizeof(serialInfo)));
++                identifier.assign(reinterpret_cast<char*>(serialInfo), size);
++                identifier.erase(0, identifier.find_first_not_of('0'));
++            }
++        }
++        void Command(const char request[], string& value) const
++        {
++            char buffer[512];
+ 
+-        // Reset the string
+-        buffer[0] = '\0';
++            // Reset the string
++            buffer[0] = '\0';
+ 
+-        int VARIABLE_IS_NOT_USED status = vc_gencmd(buffer, sizeof(buffer), &request[0]);
+-        assert((status == 0) && "Error: vc_gencmd failed.\n");
++            int VARIABLE_IS_NOT_USED status = vc_gencmd(buffer, sizeof(buffer), &request[0]);
++            assert((status == 0) && "Error: vc_gencmd failed.\n");
+ 
+-        // Make sure it is null-terminated
+-        buffer[sizeof(buffer) - 1] = '\0';
++            // Make sure it is null-terminated
++            buffer[sizeof(buffer) - 1] = '\0';
+ 
+-        // We do not need the stuff that is before the '=', we know what we requested :-)
+-        char* equal = strchr(buffer, '=');
+-        if (equal != nullptr) {
+-            equal++;
+-        }
+-        else {
+-            equal = buffer;
+-        }
++            // We do not need the stuff that is before the '=', we know what we requested :-)
++            char* equal = strchr(buffer, '=');
++            if (equal != nullptr) {
++                equal++;
++            } else {
++                equal = buffer;
++            }
+ 
+-        // Create string from buffer.
+-        Core::ToString(equal, value);
+-    }
++            // Create string from buffer.
++            Core::ToString(equal, value);
++        }
+ 
+-private:
+-    string _chipset;
+-    string _firmwareVersion;
+-};
++    private:
++        string _firmwareVersion;
++        string _identifier;
++    };
+ 
+     SERVICE_REGISTRATION(DeviceImplementation, 1, 0);
+ }
+diff --git a/DeviceIdentification/Implementation/Realtek/Realtek.cpp b/DeviceIdentification/Implementation/Realtek/Realtek.cpp
+index c9587120..70c0d0ff 100644
+--- a/DeviceIdentification/Implementation/Realtek/Realtek.cpp
++++ b/DeviceIdentification/Implementation/Realtek/Realtek.cpp
+@@ -17,118 +17,102 @@
+  * limitations under the License.
+  */
+ #include "../../Module.h"
+-#include <interfaces/IDeviceIdentification.h>
++
+ #include <fstream>
+ 
+ namespace WPEFramework {
+ namespace Plugin {
+ 
+-class DeviceImplementation : public Exchange::IDeviceProperties, public PluginHost::ISubSystem::IIdentifier {
+-	static constexpr const TCHAR* CPUInfoFile= _T("/proc/cpuinfo");
+-	static constexpr const TCHAR* VERSIONFile= _T("/version.txt");
+-
+-public:
+-    DeviceImplementation()
+-    {
+-        UpdateChipset(_chipset);
+-        UpdateFirmwareVersion(_firmwareVersion);
+-        UpdateIdentifier();
+-    }
+-
+-    DeviceImplementation(const DeviceImplementation&) = delete;
+-    DeviceImplementation& operator= (const DeviceImplementation&) = delete;
+-    virtual ~DeviceImplementation()
+-    {
+-         /* Nothing to do here. */
+-    }
++    class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
++        static constexpr const TCHAR* CPUInfoFile = _T("/proc/cpuinfo");
++        static constexpr const TCHAR* VERSIONFile = _T("/version.txt");
+ 
+-public:
+-    // Device Propertirs interface
+-    const string Chipset() const override
+-    {
+-        return _chipset;
+-    }
+-    const string FirmwareVersion() const override
+-    {
+-        return _firmwareVersion;
+-    }
++    public:
++        DeviceImplementation()
++        {
++            UpdateFirmwareVersion(_firmwareVersion);
++            UpdateIdentifier();
++        }
+ 
+-    // Identifier interface
+-    uint8_t Identifier(const uint8_t length, uint8_t buffer[]) const override
+-    {
+-        uint8_t result = 0;
+-        if ((_identity.length())) {
+-            result = (_identity.length() > length ? length : _identity.length());
+-            ::memcpy(buffer, _identity.c_str(), result);
+-        } else {
+-            SYSLOG(Logging::Notification, (_T("Cannot determine system identity")));
++        DeviceImplementation(const DeviceImplementation&) = delete;
++        DeviceImplementation& operator=(const DeviceImplementation&) = delete;
++        virtual ~DeviceImplementation()
++        {
++            /* Nothing to do here. */
+         }
+-        return result;
+-    }
+ 
+-    BEGIN_INTERFACE_MAP(DeviceImplementation)
+-        INTERFACE_ENTRY(Exchange::IDeviceProperties)
+-        INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
+-    END_INTERFACE_MAP
++    public:
++        // Device Propertirs interface
+ 
+-private:
+-    inline void UpdateFirmwareVersion(string& firmwareVersion) const
+-    {
+-        string line;
+-        std::ifstream file(VERSIONFile);
+-        if (file.is_open()) {
+-            while (getline(file, line)) {
+-                if (line.find("SDK_VERSION") != std::string::npos) {
+-                    std::size_t position = line.find('=');
+-                    if (position != std::string::npos) {
+-                        firmwareVersion.assign(line.substr(position + 1, string::npos));
+-                        break;
+-                    }
+-                }
++        // Identifier interface
++        uint8_t Identifier(const uint8_t length, uint8_t buffer[]) const override
++        {
++            uint8_t result = 0;
++            if ((_identity.length())) {
++                result = (_identity.length() > length ? length : _identity.length());
++                ::memcpy(buffer, _identity.c_str(), result);
++            } else {
++                SYSLOG(Logging::Notification, (_T("Cannot determine system identity")));
+             }
+-            file.close();
++            return result;
++        }
++        string Architecture() const override
++        {
++            return Core::SystemInfo::Instance().Architecture();
++        }
++        string Chipset() const override
++        {
++            return Core::SystemInfo::Instance().Chipset();
+         }
+-    }
++        string FirmwareVersion() const override
++        {
++            return _firmwareVersion;
++        }
++
++        BEGIN_INTERFACE_MAP(DeviceImplementation)
++        INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
++        END_INTERFACE_MAP
+ 
+-    inline void UpdateChipset(string& chipset) const
+-    {
+-        string line;
+-        std::ifstream file(CPUInfoFile);
+-        if (file.is_open()) {
+-            while (getline(file, line)) {
+-                if (line.find("Hardware") != std::string::npos) {
+-                    std::size_t position = line.find(": ");
+-                    if (position != std::string::npos) {
+-                        chipset.assign(line.substr(position + 2, string::npos));
++    private:
++        inline void UpdateFirmwareVersion(string& firmwareVersion) const
++        {
++            string line;
++            std::ifstream file(VERSIONFile);
++            if (file.is_open()) {
++                while (getline(file, line)) {
++                    if (line.find("SDK_VERSION") != std::string::npos) {
++                        std::size_t position = line.find('=');
++                        if (position != std::string::npos) {
++                            firmwareVersion.assign(line.substr(position + 1, string::npos));
++                            break;
++                        }
+                     }
+                 }
++                file.close();
+             }
+-            file.close();
+         }
+-    }
+ 
+-    inline void UpdateIdentifier()
+-    {
+-        string line;
+-        std::ifstream file(CPUInfoFile);
+-        if (file.is_open()) {
+-            while (getline(file, line)) {
+-                if (line.find("Serial") != std::string::npos) {
+-                    std::size_t position = line.find(": ");
+-                    if (position != std::string::npos) {
+-                        _identity.assign(line.substr(position + 2, string::npos));
++        inline void UpdateIdentifier()
++        {
++            string line;
++            std::ifstream file(CPUInfoFile);
++            if (file.is_open()) {
++                while (getline(file, line)) {
++                    if (line.find("Serial") != std::string::npos) {
++                        std::size_t position = line.find(": ");
++                        if (position != std::string::npos) {
++                            _identity.assign(line.substr(position + 2, string::npos));
++                        }
+                     }
+                 }
++                file.close();
+             }
+-            file.close();
+         }
+-    }
+ 
+-private:
+-    string _chipset;
+-    string _firmwareVersion;
+-    string _identity;
+-};
++    private:
++        string _firmwareVersion;
++        string _identity;
++    };
+ 
+     SERVICE_REGISTRATION(DeviceImplementation, 1, 0);
+ }
+diff --git a/DeviceIdentification/Module.h b/DeviceIdentification/Module.h
+index ff885cd3..b13b179d 100644
+--- a/DeviceIdentification/Module.h
++++ b/DeviceIdentification/Module.h
+@@ -21,7 +21,7 @@
+ #define OPENPLUGIN_DEVICEIDENTIFICATION_MODULE_H
+ 
+ #ifndef MODULE_NAME
+-#define MODULE_NAME Plugin_DeviceInfo
++#define MODULE_NAME Plugin_DeviceIdentification
+ #endif
+ 
+ #include <plugins/plugins.h>
+diff --git a/cmake/FindMFRFWLibs.cmake b/cmake/FindMFRFWLibs.cmake
+deleted file mode 100644
+index bba6c6dc..00000000
+--- a/cmake/FindMFRFWLibs.cmake
++++ /dev/null
+@@ -1,46 +0,0 @@
+-# If not stated otherwise in this file or this component's license file the
+-# following copyright and licenses apply:
+-#
+-# Copyright 2020 RDK Management
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-# http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-# - Try to find MFRFWLIBS
+-# Once done this will define
+-#  MFRFWLIBS_FOUND - System has mfrfwlibs
+-#  MFRFWLIBS_INCLUDE_DIRS - The mfrfwlibs include directories
+-#  MFRFWLIBS_LIBRARIES - The libraries needed to use mfrfwlibs
+-#
+-
+-find_package(PkgConfig)
+-pkg_check_modules(MFRFWLIBS fwupgrade)
+-
+-include(FindPackageHandleStandardArgs)
+-FIND_PACKAGE_HANDLE_STANDARD_ARGS(mfrfwlibs DEFAULT_MSG MFRFWLIBS_LIBRARIES)
+-
+-mark_as_advanced(MFRFWLIBS_INCLUDE_DIRS MFRFWLIBS_LIBRARIES)
+-
+-
+-find_library(MFRFWLIBS_LIBRARY NAMES ${MFRFWLIBS_LIBRARIES}
+-        HINTS ${MFRFWLIBS_LIBDIR} ${MFRFWLIBS_LIBRARY_DIRS}
+-        )
+-
+-if(MFRFWLIBS_LIBRARY AND NOT TARGET mfrfwlibs::mfrfwlibs)
+-    add_library(mfrfwlibs::mfrfwlibs UNKNOWN IMPORTED)
+-    set_target_properties(mfrfwlibs::mfrfwlibs PROPERTIES
+-            IMPORTED_LOCATION "${MFRFWLIBS_LIBRARY}"
+-            INTERFACE_LINK_LIBRARIES "${MFRFWLIBS_LIBRARIES}"
+-            INTERFACE_COMPILE_OPTIONS "${MFRFWLIBS_DEFINITIONS}"
+-            INTERFACE_INCLUDE_DIRECTORIES "${MFRFWLIBS_INCLUDE_DIRS}"
+-            )
+-endif()
+diff --git a/test/mocks/ServiceMock.h b/test/mocks/ServiceMock.h
+index be493943..e4678ba6 100644
+--- a/test/mocks/ServiceMock.h
++++ b/test/mocks/ServiceMock.h
+@@ -24,7 +24,7 @@
+ 
+ #include "Module.h"
+ 
+-class ServiceMock : public WPEFramework::PluginHost::IShell {
++class ServiceMock : public WPEFramework::PluginHost::IShell::ICOMLink, public WPEFramework::PluginHost::IShell {
+ public:
+     virtual ~ServiceMock() = default;
+ 
+@@ -64,6 +64,10 @@ public:
+     MOCK_METHOD(uint32_t, Deactivate, (const reason), (override));
+     MOCK_METHOD(uint32_t, Unavailable, (const reason), (override));
+     MOCK_METHOD(reason, Reason, (), (const, override));
++    MOCK_METHOD(void, Register, (WPEFramework::RPC::IRemoteConnection::INotification*), (override));
++    MOCK_METHOD(void, Unregister, (WPEFramework::RPC::IRemoteConnection::INotification*), (override));
++    MOCK_METHOD(WPEFramework::RPC::IRemoteConnection*, RemoteConnection, (const uint32_t), (override));
++    MOCK_METHOD(void*, Instantiate, (const WPEFramework::RPC::Object&, const uint32_t, uint32_t&, const string&, const string&), (override));
+ };
+ 
+ #endif //SERVICEMOCK_H
+diff --git a/test/tests/DeviceIdentificationTest.cpp b/test/tests/DeviceIdentificationTest.cpp
+index dee4e829..7d830b8d 100644
+--- a/test/tests/DeviceIdentificationTest.cpp
++++ b/test/tests/DeviceIdentificationTest.cpp
+@@ -8,6 +8,7 @@
+ using namespace WPEFramework;
+ 
+ namespace {
++const string testArchitecture = _T("testArchitecture");
+ const string testChipset = _T("testChipset");
+ const string testFirmwareVersion = _T("testFirmwareVersion");
+ const string testId = _T("testIdentity");
+@@ -17,13 +18,13 @@ const string deviceId = _T("WPEdGVzdElkZW50aXR5");
+ namespace WPEFramework {
+ namespace Plugin {
+ 
+-    class DeviceImplementation : public Exchange::IDeviceProperties,
+-                                 public PluginHost::ISubSystem::IIdentifier {
++    class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
+     public:
+         virtual ~DeviceImplementation() = default;
+ 
+-        const string Chipset() const override { return testChipset; }
+-        const string FirmwareVersion() const override { return testFirmwareVersion; }
++        string Architecture() const override { return testArchitecture; }
++        string Chipset() const override { return testChipset; }
++        string FirmwareVersion() const override { return testFirmwareVersion; }
+         uint8_t Identifier(const uint8_t length, uint8_t buffer[]) const override
+         {
+             ::memcpy(buffer, testId.c_str(), testId.length());
+@@ -32,7 +33,6 @@ namespace Plugin {
+         }
+ 
+         BEGIN_INTERFACE_MAP(DeviceImplementation)
+-        INTERFACE_ENTRY(Exchange::IDeviceProperties)
+         INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
+         END_INTERFACE_MAP
+     };
+@@ -62,12 +62,7 @@ protected:
+     }
+ };
+ 
+-TEST_F(DeviceIdentificationTestFixture, RegisteredMethods)
+-{
+-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("deviceidentification")));
+-}
+-
+-TEST_F(DeviceIdentificationTestFixture, Property)
++void PrepareExpectCallsForMockMethods(ServiceMock& service, Core::Sink<SystemInfo>& subSystem)
+ {
+     EXPECT_CALL(service, ConfigLine())
+         .Times(1)
+@@ -92,6 +87,28 @@ TEST_F(DeviceIdentificationTestFixture, Property)
+                 return result;
+             }));
+ 
++    ON_CALL(service, COMLink())
++        .WillByDefault(::testing::Return(&service));
++
++    return;
++}
++
++TEST_F(DeviceIdentificationTestFixture, RegisteredMethods)
++{
++
++    PrepareExpectCallsForMockMethods(service, subSystem);
++
++    EXPECT_EQ(string(""), plugin->Initialize(&service));
++
++    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("deviceidentification")));
++
++    plugin->Deinitialize(&service);
++}
++
++TEST_F(DeviceIdentificationTestFixture, Property)
++{
++    PrepareExpectCallsForMockMethods(service, subSystem);
++
+     EXPECT_EQ(string(""), plugin->Initialize(&service));
+ 
+     EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::IDENTIFIER) != nullptr);
