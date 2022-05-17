@@ -24,6 +24,10 @@
 
 #include "rfcapi.h"
 
+#include "host.hpp"
+#include "videoOutputPort.hpp"
+#include "videoOutputPortConfig.hpp"
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -32,25 +36,7 @@ namespace Plugin {
     typedef Core::EnumerateType<JsonData::DeviceInfo::MakeData::MakeType> MakeEnum;
     typedef Core::EnumerateType<JsonData::DeviceInfo::ModelidData::SkuType> SkuEnum;
     typedef Core::EnumerateType<JsonData::DeviceInfo::FirmwareversionData::YoctoType> YoctoEnum;
-
-    namespace {
-        constexpr auto* kDevicePropsFile = _T("/etc/device.properties");
-        constexpr auto* kAuthServiceFile = _T("/etc/authService.conf");
-        constexpr auto* kVersionFile = _T("/version.txt");
-        constexpr auto* kSerialNumberFile = _T("/proc/device-tree/serial-number");
-        constexpr auto* kPartnerIdFile = _T("/opt/www/authService/partnerId3.dat");
-        constexpr auto* kRfcPartnerId = _T("Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId");
-        constexpr auto* kRfcModelName = _T("Device.DeviceInfo.ModelName");
-        constexpr auto* kRfcSerialNumber = _T("Device.DeviceInfo.SerialNumber");
-        constexpr auto* kDeviceType = _T("deviceType");
-        constexpr auto* kFriendlyId = _T("FRIENDLY_ID");
-        constexpr auto* kMfgName = _T("MFG_NAME");
-        constexpr auto* kModelNum = _T("MODEL_NUM");
-        constexpr auto* kImagename = _T("imagename");
-        constexpr auto* kYoctoVersion = _T("YOCTO_VERSION");
-        constexpr auto* kSdkVersion = _T("SDK_VERSION");
-        constexpr auto* kMediariteVersion = _T("MEDIARITE");
-    }
+    typedef Core::EnumerateType<JsonData::DeviceInfo::Output_resolutionType> OutputResolutionEnum;
 
     SERVICE_REGISTRATION(DeviceInfo, 1, 0);
 
@@ -63,8 +49,7 @@ namespace Plugin {
 
         ASSERT(_subSystem == nullptr);
 
-        Config config;
-        config.FromString(service->ConfigLine());
+        _config.FromString(service->ConfigLine());
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
         _subSystem = service->SubSystems();
         _service = service;
@@ -192,139 +177,400 @@ namespace Plugin {
         socketPortInfo.Runs = Core::ResourceMonitor::Instance().Runs();
     }
 
-    void DeviceInfo::FirmwareVersion(JsonData::DeviceInfo::FirmwareversionData& firmwareVersion) const
+    uint32_t DeviceInfo::FirmwareVersion(JsonData::DeviceInfo::FirmwareversionData& firmwareVersion) const
     {
-        std::ifstream file(kVersionFile);
+        uint32_t result = Core::ERROR_GENERAL;
+
+        std::ifstream file(_config.VersionFile.Value());
 
         if (file) {
             string line;
 
             while (std::getline(file, line)) {
-                if (line.rfind(kImagename, 0) == 0) {
+                if (line.rfind(_T("imagename"), 0) == 0) {
                     firmwareVersion.Imagename = line.substr(line.find(':') + 1);
-                } else if (line.rfind(kYoctoVersion, 0) == 0) {
+                    result = Core::ERROR_NONE;
+                } else if (line.rfind(_T("YOCTO_VERSION"), 0) == 0) {
                     firmwareVersion.Yocto = YoctoEnum(line.substr(line.find('=') + 1).c_str()).Value();
-                } else if (line.rfind(kSdkVersion, 0) == 0) {
+                } else if (line.rfind(_T("SDK_VERSION"), 0) == 0) {
                     firmwareVersion.Sdk = line.substr(line.find('=') + 1);
-                } else if (line.rfind(kMediariteVersion, 0) == 0) {
+                } else if (line.rfind(_T("MEDIARITE"), 0) == 0) {
                     firmwareVersion.Mediarite = line.substr(line.find('=') + 1);
                 }
             }
         }
+
+        return result;
     }
 
-    void DeviceInfo::SerialNumber(Core::JSON::String& serialNumber) const
+    uint32_t DeviceInfo::SerialNumber(Core::JSON::String& serialNumber) const
     {
+        uint32_t result = Core::ERROR_GENERAL;
+
         RFC_ParamData_t param;
 
-        auto status = getRFCParameter(nullptr, kRfcSerialNumber, &param);
+        auto status = getRFCParameter(nullptr, _config.RfcSerialNumber.Value().c_str(), &param);
 
         if (status == WDMP_SUCCESS) {
             serialNumber = param.value;
+            result = Core::ERROR_NONE;
         } else {
-            std::ifstream file(kSerialNumberFile);
+            std::ifstream file(_config.SerialNumberFile.Value());
 
             if (file) {
                 string line;
                 if (std::getline(file, line)) {
                     serialNumber = line;
+                    result = Core::ERROR_NONE;
                 }
             }
         }
+
+        return result;
     }
 
-    void DeviceInfo::Sku(SkuJsonEnum& sku) const
+    uint32_t DeviceInfo::Sku(SkuJsonEnum& sku) const
     {
+        uint32_t result = Core::ERROR_GENERAL;
+
         RFC_ParamData_t param;
 
-        auto status = getRFCParameter(nullptr, kRfcModelName, &param);
+        auto status = getRFCParameter(nullptr, _config.RfcModelName.Value().c_str(), &param);
 
         if (status == WDMP_SUCCESS) {
             sku = SkuEnum(param.value).Value();
+            result = Core::ERROR_NONE;
         } else {
-            std::ifstream file(kDevicePropsFile);
+            std::ifstream file(_config.DeviceProperties.Value());
 
             if (file) {
                 string line;
                 while (std::getline(file, line)) {
-                    if (line.rfind(kModelNum, 0) == 0) {
+                    if (line.rfind(_T("MODEL_NUM"), 0) == 0) {
                         sku = SkuEnum(line.substr(line.find('=') + 1).c_str()).Value();
+                        result = Core::ERROR_NONE;
 
                         break;
                     }
                 }
             }
         }
+
+        return result;
     }
 
-    void DeviceInfo::Make(MakeJsonEnum& make) const
+    uint32_t DeviceInfo::Make(MakeJsonEnum& make) const
     {
-        std::ifstream file(kDevicePropsFile);
+        uint32_t result = Core::ERROR_GENERAL;
+
+        std::ifstream file(_config.DeviceProperties.Value());
 
         if (file) {
             string line;
             while (std::getline(file, line)) {
-                if (line.rfind(kMfgName, 0) == 0) {
+                if (line.rfind(_T("MFG_NAME"), 0) == 0) {
                     make = MakeEnum(line.substr(line.find('=') + 1).c_str()).Value();
+                    result = Core::ERROR_NONE;
 
                     break;
                 }
             }
         }
+
+        return result;
     }
 
-    void DeviceInfo::Model(Core::JSON::String& model) const
+    uint32_t DeviceInfo::Model(Core::JSON::String& model) const
     {
-        std::ifstream file(kDevicePropsFile);
+        uint32_t result = Core::ERROR_GENERAL;
+
+        std::ifstream file(_config.DeviceProperties.Value());
 
         if (file) {
             string line;
             while (std::getline(file, line)) {
-                if (line.rfind(kFriendlyId, 0) == 0) {
+                if (line.rfind(_T("FRIENDLY_ID"), 0) == 0) {
                     // trim quotes
 
                     model = std::regex_replace(line, std::regex(_T("^\\w+=(?:\")?([^\"\\n]+)(?:\")?$")), _T("$1"));
+                    result = Core::ERROR_NONE;
 
                     break;
                 }
             }
         }
+
+        return result;
     }
 
-    void DeviceInfo::DeviceType(DevicetypeJsonEnum& deviceType) const
+    uint32_t DeviceInfo::DeviceType(DevicetypeJsonEnum& deviceType) const
     {
-        std::ifstream file(kAuthServiceFile);
+        uint32_t result = Core::ERROR_GENERAL;
+
+        std::ifstream file(_config.AuthserviceConf.Value());
 
         if (file) {
             string line;
             while (std::getline(file, line)) {
-                if (line.rfind(kDeviceType, 0) == 0) {
+                if (line.rfind(_T("deviceType"), 0) == 0) {
                     deviceType = DevicetypeEnum(line.substr(line.find('=') + 1).c_str()).Value();
+                    result = Core::ERROR_NONE;
 
                     break;
                 }
             }
         }
+
+        return result;
     }
 
-    void DeviceInfo::DistributorId(DistributoridJsonEnum& distributorId) const
+    uint32_t DeviceInfo::DistributorId(DistributoridJsonEnum& distributorId) const
     {
+        uint32_t result = Core::ERROR_GENERAL;
+
         RFC_ParamData_t param;
 
-        auto status = getRFCParameter(nullptr, kRfcPartnerId, &param);
+        auto status = getRFCParameter(nullptr, _config.RfcPartnerId.Value().c_str(), &param);
 
         if (status == WDMP_SUCCESS) {
             distributorId = DistributoridEnum(param.value).Value();
+            result = Core::ERROR_NONE;
         } else {
-            std::ifstream file(kPartnerIdFile);
+            std::ifstream file(_config.PartnerIdFile.Value());
 
             if (file) {
                 string line;
                 if (std::getline(file, line)) {
                     distributorId = DistributoridEnum(line.c_str()).Value();
+                    result = Core::ERROR_NONE;
                 }
             }
         }
+
+        return result;
+    }
+
+    uint32_t DeviceInfo::SupportedAudioPorts(Core::JSON::ArrayType<Core::JSON::String>& supportedAudioPorts) const
+    {
+        uint32_t result = Core::ERROR_NONE;
+
+        try {
+            const auto& aPorts = device::Host::getInstance().getAudioOutputPorts();
+            for (size_t i = 0; i < aPorts.size(); i++) {
+                supportedAudioPorts.Add() = aPorts.at(i).getName();
+            }
+        } catch (...) {
+            result = Core::ERROR_GENERAL;
+        }
+
+        return result;
+    }
+
+    uint32_t DeviceInfo::SupportedVideoDisplays(Core::JSON::ArrayType<Core::JSON::String>& supportedVideoDisplays) const
+    {
+        uint32_t result = Core::ERROR_NONE;
+
+        try {
+            const auto& vPorts = device::Host::getInstance().getVideoOutputPorts();
+            for (size_t i = 0; i < vPorts.size(); i++) {
+                supportedVideoDisplays.Add() = vPorts.at(i).getName();
+            }
+        } catch (...) {
+            result = Core::ERROR_GENERAL;
+        }
+
+        return result;
+    }
+
+    uint32_t DeviceInfo::HostEDID(Core::JSON::String& edid) const
+    {
+        uint32_t result = Core::ERROR_NONE;
+
+        vector<uint8_t> edidVec({ 'u', 'n', 'k', 'n', 'o', 'w', 'n' });
+        try {
+            vector<unsigned char> edidVec2;
+            device::Host::getInstance().getHostEDID(edidVec2);
+            edidVec = edidVec2;
+        } catch (...) {
+            result = Core::ERROR_GENERAL;
+        }
+
+        if (result == Core::ERROR_NONE) {
+            // convert to base64
+
+            uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
+            if (edidVec.size() > (size_t)numeric_limits<uint16_t>::max()) {
+                result = Core::ERROR_GENERAL;
+            } else {
+                string base64String;
+                Core::ToString((uint8_t*)&edidVec[0], size, true, base64String);
+                edid = base64String;
+            }
+        }
+
+        return result;
+    }
+
+    uint32_t DeviceInfo::DefaultResolution(const string& videoDisplay, OutputResolutionJsonEnum& defaultResolution) const
+    {
+        uint32_t result = Core::ERROR_NONE;
+
+        try {
+            auto strVideoPort = videoDisplay.empty() ? device::Host::getInstance().getDefaultVideoPortName() : videoDisplay;
+            auto& vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort);
+            if (vPort.isDisplayConnected()) {
+                defaultResolution = OutputResolutionEnum(vPort.getDefaultResolution().getName().c_str()).Value();
+            } else {
+                result = Core::ERROR_GENERAL;
+            }
+        } catch (...) {
+            result = Core::ERROR_GENERAL;
+        }
+
+        return result;
+    }
+
+    uint32_t DeviceInfo::SupportedResolutions(const string& videoDisplay, Core::JSON::ArrayType<OutputResolutionJsonEnum>& supportedResolutions) const
+    {
+        uint32_t result = Core::ERROR_NONE;
+
+        try {
+            auto strVideoPort = videoDisplay.empty() ? device::Host::getInstance().getDefaultVideoPortName() : videoDisplay;
+            auto& vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort);
+            const auto resolutions = device::VideoOutputPortConfig::getInstance().getPortType(vPort.getType().getId()).getSupportedResolutions();
+            for (size_t i = 0; i < resolutions.size(); i++) {
+                supportedResolutions.Add() = OutputResolutionEnum(resolutions.at(i).getName().c_str()).Value();
+            }
+        } catch (...) {
+            result = Core::ERROR_GENERAL;
+        }
+
+        return result;
+    }
+
+    uint32_t DeviceInfo::SupportedHdcp(const string& videoDisplay, CopyProtectionJsonEnum& supportedHDCPVersion) const
+    {
+        uint32_t result = Core::ERROR_NONE;
+
+        try {
+            auto strVideoPort = videoDisplay.empty() ? device::Host::getInstance().getDefaultVideoPortName() : videoDisplay;
+            auto& vPort = device::VideoOutputPortConfig::getInstance().getPort(strVideoPort);
+            switch (vPort.getHDCPProtocol()) {
+            case dsHDCP_VERSION_2X:
+                supportedHDCPVersion = JsonData::DeviceInfo::Copy_protectionType::HDCP_22;
+                break;
+            case dsHDCP_VERSION_1X:
+                supportedHDCPVersion = JsonData::DeviceInfo::Copy_protectionType::HDCP_14;
+                break;
+            default:
+                result = Core::ERROR_GENERAL;
+            }
+        } catch (...) {
+            result = Core::ERROR_GENERAL;
+        }
+
+        return result;
+    }
+
+    uint32_t DeviceInfo::DisplaySettings(const string& videoDisplay, Core::JSON::DecUInt32& colorSpace, Core::JSON::DecUInt32& colorDepth, Core::JSON::DecUInt32& matrixCoefficients, Core::JSON::DecUInt32& videoEOTF, Core::JSON::DecUInt32& quantizationRange) const
+    {
+        uint32_t result = Core::ERROR_NONE;
+
+        try {
+            auto strVideoPort = videoDisplay.empty() ? device::Host::getInstance().getDefaultVideoPortName() : videoDisplay;
+            auto& vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort);
+            if (vPort.isDisplayConnected()) {
+                int _videoEOTF, _matrixCoefficients, _colorSpace, _colorDepth, _quantizationRange;
+                vPort.getCurrentOutputSettings(_videoEOTF, _matrixCoefficients, _colorSpace, _colorDepth, _quantizationRange);
+                colorSpace = _colorSpace;
+                colorDepth = _colorDepth;
+                matrixCoefficients = _matrixCoefficients;
+                videoEOTF = _videoEOTF;
+                quantizationRange = _quantizationRange;
+            } else {
+                result = Core::ERROR_GENERAL;
+            }
+        } catch (...) {
+            result = Core::ERROR_GENERAL;
+        }
+
+        return result;
+    }
+
+    uint32_t DeviceInfo::AudioCapabilities(const string& audioPort, Core::JSON::ArrayType<AudioCapabilityJsonEnum>& audioCapabilities) const
+    {
+        uint32_t result = Core::ERROR_NONE;
+
+        int capabilities = dsAUDIOSUPPORT_NONE;
+
+        try {
+            auto strAudioPort = audioPort.empty() ? "HDMI0" : audioPort;
+            auto& aPort = device::Host::getInstance().getAudioOutputPort(strAudioPort);
+            aPort.getAudioCapabilities(&capabilities);
+        } catch (...) {
+            result = Core::ERROR_GENERAL;
+        }
+
+        if (!capabilities)
+            audioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType::NONE;
+        if (capabilities & dsAUDIOSUPPORT_ATMOS)
+            audioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType::ATMOS;
+        if (capabilities & dsAUDIOSUPPORT_DD)
+            audioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType::DD;
+        if (capabilities & dsAUDIOSUPPORT_DDPLUS)
+            audioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType::DDPLUS;
+        if (capabilities & dsAUDIOSUPPORT_DAD)
+            audioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType::DAD;
+        if (capabilities & dsAUDIOSUPPORT_DAPv2)
+            audioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType::DAPV2;
+        if (capabilities & dsAUDIOSUPPORT_MS12)
+            audioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType::MS12;
+
+        return result;
+    }
+
+    uint32_t DeviceInfo::MS12Capabilities(const string& audioPort, Core::JSON::ArrayType<Ms12capabilityJsonEnum>& ms12Capabilities) const
+    {
+        uint32_t result = Core::ERROR_NONE;
+
+        int capabilities = dsMS12SUPPORT_NONE;
+
+        try {
+            auto strAudioPort = audioPort.empty() ? "HDMI0" : audioPort;
+            auto& aPort = device::Host::getInstance().getAudioOutputPort(strAudioPort);
+            aPort.getMS12Capabilities(&capabilities);
+        } catch (...) {
+            result = Core::ERROR_GENERAL;
+        }
+
+        if (!capabilities)
+            ms12Capabilities.Add() = JsonData::DeviceInfo::Ms12capabilitiesResultData::Ms12capabilityType::NONE;
+        if (capabilities & dsMS12SUPPORT_DolbyVolume)
+            ms12Capabilities.Add() = JsonData::DeviceInfo::Ms12capabilitiesResultData::Ms12capabilityType::DOLBYVOLUME;
+        if (capabilities & dsMS12SUPPORT_InteligentEqualizer)
+            ms12Capabilities.Add() = JsonData::DeviceInfo::Ms12capabilitiesResultData::Ms12capabilityType::INTELIGENTEQUALIZER;
+        if (capabilities & dsMS12SUPPORT_DialogueEnhancer)
+            ms12Capabilities.Add() = JsonData::DeviceInfo::Ms12capabilitiesResultData::Ms12capabilityType::DIALOGUEENHANCER;
+
+        return result;
+    }
+
+    uint32_t DeviceInfo::SupportedMS12AudioProfiles(const string& audioPort, Core::JSON::ArrayType<Core::JSON::String>& supportedMS12AudioProfiles) const
+    {
+        uint32_t result = Core::ERROR_NONE;
+
+        try {
+            auto strAudioPort = audioPort.empty() ? "HDMI0" : audioPort;
+            auto& aPort = device::Host::getInstance().getAudioOutputPort(strAudioPort);
+            const auto supportedProfiles = aPort.getMS12AudioProfileList();
+            for (size_t i = 0; i < supportedProfiles.size(); i++) {
+                supportedMS12AudioProfiles.Add() = supportedProfiles.at(i);
+            }
+        } catch (...) {
+            result = Core::ERROR_GENERAL;
+        }
+
+        return result;
     }
 
 } // namespace Plugin

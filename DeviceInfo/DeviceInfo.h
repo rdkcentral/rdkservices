@@ -32,6 +32,43 @@ namespace Plugin {
         typedef Core::JSON::EnumType<JsonData::DeviceInfo::DevicetypeData::DevicetypeType> DevicetypeJsonEnum;
         typedef Core::JSON::EnumType<JsonData::DeviceInfo::MakeData::MakeType> MakeJsonEnum;
         typedef Core::JSON::EnumType<JsonData::DeviceInfo::ModelidData::SkuType> SkuJsonEnum;
+        typedef Core::JSON::EnumType<JsonData::DeviceInfo::Output_resolutionType> OutputResolutionJsonEnum;
+        typedef Core::JSON::EnumType<JsonData::DeviceInfo::Copy_protectionType> CopyProtectionJsonEnum;
+        typedef Core::JSON::EnumType<JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType> AudioCapabilityJsonEnum;
+        typedef Core::JSON::EnumType<JsonData::DeviceInfo::Ms12capabilitiesResultData::Ms12capabilityType> Ms12capabilityJsonEnum;
+
+    private:
+        class Config : public Core::JSON::Container {
+        private:
+            Config(const Config&) = delete;
+            Config& operator=(const Config&) = delete;
+
+        public:
+            Config()
+            {
+                Add(_T("deviceproperties"), &DeviceProperties);
+                Add(_T("authserviceconf"), &AuthserviceConf);
+                Add(_T("versionfile"), &VersionFile);
+                Add(_T("serialnumberfile"), &SerialNumberFile);
+                Add(_T("partneridfile"), &PartnerIdFile);
+                Add(_T("rfcpartnerid"), &RfcPartnerId);
+                Add(_T("rfcmodelname"), &RfcModelName);
+                Add(_T("rfcserialnumber"), &RfcSerialNumber);
+            }
+            ~Config()
+            {
+            }
+
+        public:
+            Core::JSON::String DeviceProperties;
+            Core::JSON::String AuthserviceConf;
+            Core::JSON::String VersionFile;
+            Core::JSON::String SerialNumberFile;
+            Core::JSON::String PartnerIdFile;
+            Core::JSON::String RfcPartnerId;
+            Core::JSON::String RfcModelName;
+            Core::JSON::String RfcSerialNumber;
+        };
 
     public:
         class Data : public Core::JSON::Container {
@@ -122,23 +159,44 @@ namespace Plugin {
         uint32_t get_modelname(JsonData::DeviceInfo::ModelnameData& response) const;
         uint32_t get_devicetype(JsonData::DeviceInfo::DevicetypeData& response) const;
         uint32_t get_distributorid(JsonData::DeviceInfo::DistributoridData& response) const;
+        uint32_t get_supportedaudioports(JsonData::DeviceInfo::SupportedaudioportsData& response) const;
+        uint32_t get_supportedvideodisplays(JsonData::DeviceInfo::SupportedvideodisplaysData& response) const;
+        uint32_t get_hostedid(JsonData::DeviceInfo::HostedidData& response) const;
+        uint32_t endpoint_defaultresolution(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::DefaultresolutionResultData& response) const;
+        uint32_t endpoint_supportedresolutions(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::SupportedresolutionsResultData& response) const;
+        uint32_t endpoint_supportedhdcp(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::SupportedhdcpResultData& response) const;
+        uint32_t endpoint_displaysettings(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::DisplaysettingsResultData& response) const;
+        uint32_t endpoint_audiocapabilities(const JsonData::DeviceInfo::AudiocapabilitiesParamsInfo& params, JsonData::DeviceInfo::AudiocapabilitiesResultData& response) const;
+        uint32_t endpoint_ms12capabilities(const JsonData::DeviceInfo::AudiocapabilitiesParamsInfo& params, JsonData::DeviceInfo::Ms12capabilitiesResultData& response) const;
+        uint32_t endpoint_supportedms12audioprofiles(const JsonData::DeviceInfo::AudiocapabilitiesParamsInfo& params, JsonData::DeviceInfo::Supportedms12audioprofilesResultData& response) const;
 
         void SysInfo(JsonData::DeviceInfo::SysteminfoData& systemInfo) const;
         void AddressInfo(Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& addressInfo) const;
         void SocketPortInfo(JsonData::DeviceInfo::SocketinfoData& socketPortInfo) const;
-        void FirmwareVersion(JsonData::DeviceInfo::FirmwareversionData& firmwareVersion) const;
-        void SerialNumber(Core::JSON::String& serialNumber) const;
-        void Sku(SkuJsonEnum& sku) const;
-        void Make(MakeJsonEnum& make) const;
-        void Model(Core::JSON::String& model) const;
-        void DeviceType(DevicetypeJsonEnum& deviceType) const;
-        void DistributorId(DistributoridJsonEnum& distributorId) const;
+        uint32_t FirmwareVersion(JsonData::DeviceInfo::FirmwareversionData& firmwareVersion) const;
+        uint32_t SerialNumber(Core::JSON::String& serialNumber) const;
+        uint32_t Sku(SkuJsonEnum& sku) const;
+        uint32_t Make(MakeJsonEnum& make) const;
+        uint32_t Model(Core::JSON::String& model) const;
+        uint32_t DeviceType(DevicetypeJsonEnum& deviceType) const;
+        uint32_t DistributorId(DistributoridJsonEnum& distributorId) const;
+        uint32_t SupportedAudioPorts(Core::JSON::ArrayType<Core::JSON::String>& supportedAudioPorts) const;
+        uint32_t SupportedVideoDisplays(Core::JSON::ArrayType<Core::JSON::String>& supportedVideoDisplays) const;
+        uint32_t HostEDID(Core::JSON::String& edid) const;
+        uint32_t DefaultResolution(const string& videoDisplay, OutputResolutionJsonEnum& defaultResolution) const;
+        uint32_t SupportedResolutions(const string& videoDisplay, Core::JSON::ArrayType<OutputResolutionJsonEnum>& supportedResolutions) const;
+        uint32_t SupportedHdcp(const string& videoDisplay, CopyProtectionJsonEnum& supportedHDCPVersion) const;
+        uint32_t DisplaySettings(const string& videoDisplay, Core::JSON::DecUInt32& colorSpace, Core::JSON::DecUInt32& colorDepth, Core::JSON::DecUInt32& matrixCoefficients, Core::JSON::DecUInt32& videoEOTF, Core::JSON::DecUInt32& quantizationRange) const;
+        uint32_t AudioCapabilities(const string& audioPort, Core::JSON::ArrayType<AudioCapabilityJsonEnum>& audioCapabilities) const;
+        uint32_t MS12Capabilities(const string& audioPort, Core::JSON::ArrayType<Ms12capabilityJsonEnum>& ms12Capabilities) const;
+        uint32_t SupportedMS12AudioProfiles(const string& audioPort, Core::JSON::ArrayType<Core::JSON::String>& supportedMS12AudioProfiles) const;
 
     private:
         uint8_t _skipURL;
         PluginHost::IShell* _service;
         PluginHost::ISubSystem* _subSystem;
         string _systemId;
+        Config _config;
     };
 
 } // namespace Plugin

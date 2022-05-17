@@ -40,6 +40,16 @@ namespace Plugin {
         Property<ModelnameData>(_T("modelname"), &DeviceInfo::get_modelname, nullptr, this);
         Property<DevicetypeData>(_T("devicetype"), &DeviceInfo::get_devicetype, nullptr, this);
         Property<DistributoridData>(_T("distributorid"), &DeviceInfo::get_distributorid, nullptr, this);
+        Property<SupportedaudioportsData>(_T("supportedaudioports"), &DeviceInfo::get_supportedaudioports, nullptr, this);
+        Property<SupportedvideodisplaysData>(_T("supportedvideodisplays"), &DeviceInfo::get_supportedvideodisplays, nullptr, this);
+        Property<HostedidData>(_T("hostedid"), &DeviceInfo::get_hostedid, nullptr, this);
+        Register<SupportedresolutionsParamsInfo, DefaultresolutionResultData>(_T("defaultresolution"), &DeviceInfo::endpoint_defaultresolution, this);
+        Register<SupportedresolutionsParamsInfo, SupportedresolutionsResultData>(_T("supportedresolutions"), &DeviceInfo::endpoint_supportedresolutions, this);
+        Register<SupportedresolutionsParamsInfo, SupportedhdcpResultData>(_T("supportedhdcp"), &DeviceInfo::endpoint_supportedhdcp, this);
+        Register<SupportedresolutionsParamsInfo, DisplaysettingsResultData>(_T("displaysettings"), &DeviceInfo::endpoint_displaysettings, this);
+        Register<AudiocapabilitiesParamsInfo, AudiocapabilitiesResultData>(_T("audiocapabilities"), &DeviceInfo::endpoint_audiocapabilities, this);
+        Register<AudiocapabilitiesParamsInfo, Ms12capabilitiesResultData>(_T("ms12capabilities"), &DeviceInfo::endpoint_ms12capabilities, this);
+        Register<AudiocapabilitiesParamsInfo, Supportedms12audioprofilesResultData>(_T("supportedms12audioprofiles"), &DeviceInfo::endpoint_supportedms12audioprofiles, this);
     }
 
     void DeviceInfo::UnregisterAll()
@@ -54,6 +64,16 @@ namespace Plugin {
         Unregister(_T("modelname"));
         Unregister(_T("devicetype"));
         Unregister(_T("distributorid"));
+        Unregister(_T("supportedaudioports"));
+        Unregister(_T("supportedvideodisplays"));
+        Unregister(_T("hostedid"));
+        Unregister(_T("defaultresolution"));
+        Unregister(_T("supportedresolutions"));
+        Unregister(_T("supportedhdcp"));
+        Unregister(_T("displaysettings"));
+        Unregister(_T("audiocapabilities"));
+        Unregister(_T("ms12capabilities"));
+        Unregister(_T("supportedms12audioprofiles"));
     }
 
     // API implementation
@@ -89,64 +109,154 @@ namespace Plugin {
     // Property: firmwareversion - Versions maintained in version.txt
     // Return codes:
     //  - ERROR_NONE: Success
-    uint32_t DeviceInfo::get_firmwareversion(JsonData::DeviceInfo::FirmwareversionData& response) const
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::get_firmwareversion(FirmwareversionData& response) const
     {
-        FirmwareVersion(response);
-        return Core::ERROR_NONE;
+        return FirmwareVersion(response);
     }
 
     // Property: serialnumber - Serial number set by manufacturer
     // Return codes:
     //  - ERROR_NONE: Success
-    uint32_t DeviceInfo::get_serialnumber(JsonData::DeviceInfo::SerialnumberData& response) const
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::get_serialnumber(SerialnumberData& response) const
     {
-        SerialNumber(response.Serialnumber);
-        return Core::ERROR_NONE;
+        return SerialNumber(response.Serialnumber);
     }
 
     // Property: modelid - Device model number or SKU
     // Return codes:
     //  - ERROR_NONE: Success
-    uint32_t DeviceInfo::get_modelid(JsonData::DeviceInfo::ModelidData& response) const
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::get_modelid(ModelidData& response) const
     {
-        Sku(response.Sku);
-        return Core::ERROR_NONE;
+        return Sku(response.Sku);
     }
 
     // Property: make - Device manufacturer
     // Return codes:
     //  - ERROR_NONE: Success
-    uint32_t DeviceInfo::get_make(JsonData::DeviceInfo::MakeData& response) const
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::get_make(MakeData& response) const
     {
-        Make(response.Make);
-        return Core::ERROR_NONE;
+        return Make(response.Make);
     }
 
     // Property: modelname - Friendly device model name
     // Return codes:
     //  - ERROR_NONE: Success
-    uint32_t DeviceInfo::get_modelname(JsonData::DeviceInfo::ModelnameData& response) const
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::get_modelname(ModelnameData& response) const
     {
-        Model(response.Model);
-        return Core::ERROR_NONE;
+        return Model(response.Model);
     }
 
     // Property: devicetype - Device type
     // Return codes:
     //  - ERROR_NONE: Success
-    uint32_t DeviceInfo::get_devicetype(JsonData::DeviceInfo::DevicetypeData& response) const
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::get_devicetype(DevicetypeData& response) const
     {
-        DeviceType(response.Devicetype);
-        return Core::ERROR_NONE;
+        return DeviceType(response.Devicetype);
     }
 
     // Property: distributorid - Partner ID or distributor ID for device
     // Return codes:
     //  - ERROR_NONE: Success
-    uint32_t DeviceInfo::get_distributorid(JsonData::DeviceInfo::DistributoridData& response) const
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::get_distributorid(DistributoridData& response) const
     {
-        DistributorId(response.Distributorid);
-        return Core::ERROR_NONE;
+        return DistributorId(response.Distributorid);
+    }
+
+    // Property: supportedaudioports - Audio ports supported on the device (all ports that are physically present)
+    // Return codes:
+    //  - ERROR_NONE: Success
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::get_supportedaudioports(SupportedaudioportsData& response) const
+    {
+        return SupportedAudioPorts(response.SupportedAudioPorts);
+    }
+
+    // Property: supportedvideodisplays - Video ports supported on the device (all ports that are physically present)
+    // Return codes:
+    //  - ERROR_NONE: Success
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::get_supportedvideodisplays(SupportedvideodisplaysData& response) const
+    {
+        return SupportedVideoDisplays(response.SupportedVideoDisplays);
+    }
+
+    // Property: hostedid - EDID of the host
+    // Return codes:
+    //  - ERROR_NONE: Success
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::get_hostedid(JsonData::DeviceInfo::HostedidData& response) const
+    {
+        return HostEDID(response.EDID);
+    }
+
+    // Method: defaultresolution - Default resolution on the selected video display port
+    // Return codes:
+    //  - ERROR_NONE: Success
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::endpoint_defaultresolution(const SupportedresolutionsParamsInfo& params, DefaultresolutionResultData& response) const
+    {
+        return DefaultResolution(params.VideoDisplay.Value(), response.DefaultResolution);
+    }
+
+    // Method: supportedresolutions - Supported resolutions on the selected video display port
+    // Return codes:
+    //  - ERROR_NONE: Success
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::endpoint_supportedresolutions(const SupportedresolutionsParamsInfo& params, SupportedresolutionsResultData& response) const
+    {
+        return SupportedResolutions(params.VideoDisplay.Value(), response.SupportedResolutions);
+    }
+
+    // Method: supportedhdcp - Supported HDCP version on the selected video display port
+    // Return codes:
+    //  - ERROR_NONE: Success
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::endpoint_supportedhdcp(const SupportedresolutionsParamsInfo& params, SupportedhdcpResultData& response) const
+    {
+        return SupportedHdcp(params.VideoDisplay.Value(), response.SupportedHDCPVersion);
+    }
+
+    // Method: displaysettings - Current output settings on the selected video display port
+    // Return codes:
+    //  - ERROR_NONE: Success
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::endpoint_displaysettings(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::DisplaysettingsResultData& response) const
+    {
+        return DisplaySettings(params.VideoDisplay.Value(), response.ColorSpace, response.ColorDepth, response.MatrixCoefficients, response.VideoEOTF, response.QuantizationRange);
+    }
+
+    // Method: audiocapabilities - Audio capabilities for the specified audio port
+    // Return codes:
+    //  - ERROR_NONE: Success
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::endpoint_audiocapabilities(const JsonData::DeviceInfo::AudiocapabilitiesParamsInfo& params, JsonData::DeviceInfo::AudiocapabilitiesResultData& response) const
+    {
+        return AudioCapabilities(params.AudioPort.Value(), response.AudioCapabilities);
+    }
+
+    // Method: ms12capabilities - MS12 audio capabilities for the specified audio port
+    // Return codes:
+    //  - ERROR_NONE: Success
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::endpoint_ms12capabilities(const JsonData::DeviceInfo::AudiocapabilitiesParamsInfo& params, JsonData::DeviceInfo::Ms12capabilitiesResultData& response) const
+    {
+        return MS12Capabilities(params.AudioPort.Value(), response.MS12Capabilities);
+    }
+
+    // Method: supportedms12audioprofiles - Supported MS12 audio profiles for the specified audio port
+    // Return codes:
+    //  - ERROR_NONE: Success
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::endpoint_supportedms12audioprofiles(const JsonData::DeviceInfo::AudiocapabilitiesParamsInfo& params, JsonData::DeviceInfo::Supportedms12audioprofilesResultData& response) const
+    {
+        return SupportedMS12AudioProfiles(params.AudioPort.Value(), response.SupportedMS12AudioProfiles);
     }
 
 } // namespace Plugin
