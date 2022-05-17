@@ -19,6 +19,7 @@
  
 #include "DeviceIdentification.h"
 #include "IdentityProvider.h"
+#include <interfaces/IConfiguration.h>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -28,28 +29,46 @@ namespace Plugin {
     /* virtual */ const string DeviceIdentification::Initialize(PluginHost::IShell* service)
     {
         ASSERT(service != nullptr);
-        ASSERT(_device == nullptr);
+        ASSERT(_service == nullptr);
+        ASSERT(_identifier == nullptr);
+        ASSERT(_connectionId == 0);
 
-        string message;
+        _service = service;
+        _service->AddRef();
 
-        _device = service->Root<Exchange::IDeviceProperties>(_connectionId, 2000, _T("DeviceImplementation"));
-        if (_device != nullptr) {
+         string message;
 
-            _identifier = _device->QueryInterface<PluginHost::ISubSystem::IIdentifier>();
-            if (_identifier == nullptr) {
+        // Register the Process::Notification stuff. The Remote process might die before we get a
+        // change to "register" the sink for these events !!! So do it ahead of instantiation.
+        service->Register(&_notification);
 
-                _device->Release();
-                _device = nullptr;
-            } else {
-                _deviceId = GetDeviceId();
-                if (_deviceId.empty() != true) {
-                    service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _device);
-                }
+        _identifier = service->Root<PluginHost::ISubSystem::IIdentifier>(_connectionId, RPC::CommunicationTimeOut, _T("DeviceImplementation"));
+
+        if (_identifier != nullptr) {
+
+            Exchange::IConfiguration* configure = _identifier->QueryInterface<Exchange::IConfiguration>();
+            if (configure != nullptr) {
+                configure->Configure(service);
+                configure->Release();
+            }
+
+            _deviceId = GetDeviceId();
+
+            RegisterAll();
+
+            if (_deviceId.empty() != true) {
+                service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _identifier);
+            }
+            else {
+                message = _T("DeviceIdentification plugin could not be instantiated. No DeviceID available");
             }
         }
-
-        if (_device == nullptr) {
+        else {
             message = _T("DeviceIdentification plugin could not be instantiated.");
+        }
+
+        if (message.length() != 0) {
+            Deinitialize(service);
         }
 
         return message;
@@ -57,26 +76,45 @@ namespace Plugin {
 
     /* virtual */ void DeviceIdentification::Deinitialize(PluginHost::IShell* service)
     {
-        ASSERT(service != nullptr);
-        ASSERT(_device != nullptr);
+        ASSERT(_service == service);
 
-        ASSERT(_identifier != nullptr);
-        if (_identifier != nullptr) {
-            if (_deviceId.empty() != true) {
-                service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, nullptr);
-                _deviceId.clear();
-            }
-            _identifier->Release();
+        _service->Unregister(&_notification);
+
+        if (_deviceId.empty() != true) {
+            service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, nullptr);
+            _deviceId.clear();
+        }
+
+        if(_identifier != nullptr) {
+
+            UnregisterAll();
+
+            // Stop processing:
+            RPC::IRemoteConnection* connection = service->RemoteConnection(_connectionId);
+
+            VARIABLE_IS_NOT_USED uint32_t result = _identifier->Release();
             _identifier = nullptr;
-        }
 
-        ASSERT(_device != nullptr);
-        if (_device != nullptr) {
-            _device->Release();
-            _device = nullptr;
-        }
+            // It should have been the last reference we are releasing,
+            // so it should endup in a DESTRUCTION_SUCCEEDED, if not we
+            // are leaking...
+            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
-        _connectionId = 0;
+            // If this was running in a (container) process...
+            if (connection != nullptr) {
+                // Lets trigger the cleanup sequence for
+                // out-of-process code. Which will guard
+                // that unwilling processes, get shot if
+                // not stopped friendly :-)
+                connection->Terminate();
+                connection->Release();
+            }
+         }
+
+         _connectionId = 0;
+
+        _service->Release();
+        _service = nullptr;
     }
 
     /* virtual */ string DeviceIdentification::Information() const
@@ -105,13 +143,24 @@ namespace Plugin {
 
     void DeviceIdentification::Info(JsonData::DeviceIdentification::DeviceidentificationData& deviceInfo) const
     {
-        deviceInfo.Firmwareversion = _device->FirmwareVersion();
-        deviceInfo.Chipset = _device->Chipset();
+        deviceInfo.Firmwareversion = _identifier->FirmwareVersion();
+        deviceInfo.Chipset = _identifier->Chipset();
 
         if (_deviceId.empty() != true) {
             deviceInfo.Deviceid = _deviceId;
         }
     }
 
+    void DeviceIdentification::Deactivated(RPC::IRemoteConnection* connection)
+    {
+        // This can potentially be called on a socket thread, so the deactivation (wich in turn kills this object) must be done
+        // on a seperate thread. Also make sure this call-stack can be unwound before we are totally destructed.
+        if (_connectionId == connection->Id()) {
+
+            ASSERT(_service != nullptr);
+
+            Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service, PluginHost::IShell::DEACTIVATED, PluginHost::IShell::FAILURE));
+        }
+    }
 } // namespace Plugin
 } // namespace WPEFramework
