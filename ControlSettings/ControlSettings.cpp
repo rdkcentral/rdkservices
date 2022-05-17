@@ -32,11 +32,7 @@ static char videoDescBuffer[VIDEO_DESCRIPTION_MAX*VIDEO_DESCRIPTION_NAME_SIZE] =
 namespace WPEFramework {
 namespace Plugin {
 
-#ifdef CONFIG_DEVICE_TV
-    SERVICE_REGISTRATION(ControlSettingsTV,1, 0);
-#else
-    SERVICE_REGISTRATION(ControlSettingsSTB,1,0);
-#endif
+    SERVICE_REGISTRATION(ControlSettings,1, 0);
 
     ControlSettings* ControlSettings::_instance = nullptr;
 
@@ -114,23 +110,6 @@ namespace Plugin {
         return supportedResolution;
    }
 
-   std::string ControlSettings::getErrorString (tvError_t eReturn)
-    {
-        switch (eReturn)
-        {
-            case tvERROR_NONE:
-                return "TV API SUCCESS";
-            case tvERROR_GENERAL:
-                return "TV API FAILED";
-            case tvERROR_OPERATION_NOT_SUPPORTED:
-                return "TV OPERATION NOT SUPPORTED ERROR";
-            case tvERROR_INVALID_PARAM:
-                return "TV INVALID PARAM ERROR";
-            case tvERROR_INVALID_STATE:
-                return "TV INVALID STATE ERROR";
-        }
-        return "TV UNKNOWN ERROR";
-    }
 
     static const char *getVideoFormatTypeToString(tvVideoHDRFormat_t format)
     {
@@ -232,8 +211,7 @@ namespace Plugin {
 
 
     ControlSettings::ControlSettings()
-               : AbstractPlugin(3)
-               , _skipURL(0)
+               : _skipURL(0)
                , m_currentHdmiInResoluton (dsVIDEO_PIXELRES_1920x1080)
                , m_videoZoomMode (tvDisplayMode_NORMAL)
                , m_isDisabledHdmiIn4KZoom (false)
@@ -254,7 +232,7 @@ namespace Plugin {
         LOGINFO();
     }
 
-    void ControlSettings::InitializeGeneric(PluginHost::IShell* service)
+    const std::string ControlSettings::Initialize(PluginHost::IShell* service)
     {
 	LOGINFO("Entry\n");
         try {
@@ -297,32 +275,12 @@ namespace Plugin {
         tvVideoFrameRateCallbackData FpscallbackData = {this,tvVideoFrameRateChangeHandler};
         RegisterVideoFrameRateChangeCB(FpscallbackData);
 
+	instance->Initialize();
 	LOGINFO("Exit\n");
-
-    }
-
-    const std::string ControlSettings::Initialize(PluginHost::IShell* service)
-    {
-        // No additional info to report.
-	// Handled in Child
-	LOGINFO();
-	return (std::string());
-    }
-
-    std::string ControlSettings::Information() const
-    {
-        // No additional info to report.
-        LOGINFO();
-        return (std::string());
+        return (service != nullptr ? _T("") : _T("No service."));
     }
 
     void ControlSettings::Deinitialize(PluginHost::IShell* service)
-    {
-        LOGINFO();
-        // No additional info to report.
-    }
-
-    void ControlSettings::DeinitializeGeneric(PluginHost::IShell* service)
     {
         LOGINFO();
         tvError_t ret = tvERROR_NONE;
@@ -336,6 +294,8 @@ namespace Plugin {
         }
         ControlSettings::_instance = nullptr;
         DeinitializeIARM();
+
+	instance->Deinitialize();
     }
 
     void ControlSettings::InitializeIARM()

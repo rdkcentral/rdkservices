@@ -1,6 +1,0 @@
-{
- "locator":"libControlSettingsSTB.so",
- "classname":"ControlSettingsSTB",
- "callsign":"org.rdk.ControlSettings",
- "autostart":true
-}

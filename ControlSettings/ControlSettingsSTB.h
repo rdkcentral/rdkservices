@@ -21,12 +21,23 @@
 #define ControlSettingsSTB_H
 
 #include "string.h"
-#include "ControlSettings.h"
+
+#include "tvTypes.h"
+#include "tvLog.h"
+#include "tvSettings.h"
+#include <pthread.h>
+#include "Module.h"
+#include "tvTypes.h"
+#include "tvError.h"
+
+#include "AbstractPlugin.h"
+#include "utils.h"
+#include "common.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-class ControlSettingsSTB : public ControlSettings {
+class ControlSettingsSTB : public AbstractPlugin {
     private:
         ControlSettingsSTB(const ControlSettingsSTB&) = delete;
         ControlSettingsSTB& operator=(const ControlSettingsSTB&) = delete;
@@ -37,15 +48,12 @@ class ControlSettingsSTB : public ControlSettings {
     public:
 	ControlSettingsSTB();
 	~ControlSettingsSTB();
-    
+        ControlSettingsSTB *instance;
+        std::string getErrorString (tvError_t eReturn);
+
     public:
-        //   IPlugin methods
-        // -------------------------------------------------------------------------------------------------------
-        const std::string Initialize(PluginHost::IShell* service);
-        void Deinitialize(PluginHost::IShell* service);
-        std::string Information() const;
-	void AddRef() const;
-        uint32_t Release() const;
+        void Initialize();
+        void Deinitialize();
 };
 
 }//namespace Plugin

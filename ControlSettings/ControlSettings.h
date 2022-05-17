@@ -44,36 +44,18 @@
 #include "tvError.h"
 
 #include "tr181api.h"
-#include "AbstractPlugin.h"
 #include <sys/stat.h>
 #include <vector>
-
-#define DECLARE_JSON_RPC_METHOD(method) \
-uint32_t method(const JsonObject& parameters, JsonObject& response);
-
-#define PLUGIN_Lock(lock) pthread_mutex_lock(&lock)
-#define PLUGIN_Unlock(lock) pthread_mutex_unlock(&lock)
-
-#define returnResponse(return_status, error_log) \
-    {response["success"] = return_status; \
-    if(!return_status) \
-        response["error_message"] = _T(error_log); \
-    PLUGIN_Unlock(tvLock); \
-    return (Core::ERROR_NONE);}
-
-#define returnIfParamNotFound(param)\
-    if(param.empty())\
-    {\
-        LOGERR("missing parameter %s\n",#param);\
-        returnResponse(false,"missing parameter");\
-    }
-
-static pthread_mutex_t tvLock = PTHREAD_MUTEX_INITIALIZER;
+#include "ControlSettingsTV.h"
+#include "ControlSettingsSTB.h"
 
 namespace WPEFramework {
 namespace Plugin {
-
-    class ControlSettings : public AbstractPlugin {
+#ifdef CONFIG_DEVICE_TV
+    class ControlSettings : public ControlSettingsTV {
+#else
+    class ControlSettings : public ControlSettingsSTB {
+#endif
 
     private:
         ControlSettings(const ControlSettings&) = delete;
@@ -92,16 +74,7 @@ namespace Plugin {
 	void NotifyVideoFormatChange(tvVideoHDRFormat_t format);
         void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
         void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
-        std::string getErrorString (tvError_t eReturn);
-        void InitializeGeneric(PluginHost::IShell* service);
-        void DeinitializeGeneric(PluginHost::IShell* service);
 
-
-        BEGIN_INTERFACE_MAP(ControlSettings)
-        INTERFACE_ENTRY(PluginHost::IPlugin)
-        INTERFACE_ENTRY(PluginHost::IDispatcher)
-        END_INTERFACE_MAP
-    
     private:
         uint8_t _skipURL;
         int m_currentHdmiInResoluton;
@@ -120,7 +93,6 @@ namespace Plugin {
         // -------------------------------------------------------------------------------------------------------
         const std::string Initialize(PluginHost::IShell* service);
         void Deinitialize(PluginHost::IShell* service);
-        std::string Information() const;
    };
 }
 }

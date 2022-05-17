@@ -21,11 +21,7 @@ Project(CONTROLSETTINGS-PLUGINS)
 
 set(CMAKE_BUILD_TYPE "Debug")
 
-if(CONFIG_DEVICE_TV)
-set(PLUGIN_NAME ControlSettingsTV)
-else()
-set(PLUGIN_NAME ControlSettingsSTB)
-endif()
+set(PLUGIN_NAME ControlSettings)
 
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
@@ -47,10 +43,11 @@ include_directories(${STAGING_INCDIR}/rdk/ds-hal)
 include_directories(${STAGING_INCDIR}/rdk/ds-rpc)
 include_directories(${STAGING_INCDIR}/rdk/ds)
 
+
 add_library(${MODULE_NAME} SHARED
-    ControlSettings.cpp 
-    ControlSettingsTV.cpp
+    ControlSettingsTV.cpp 
     ControlSettingsSTB.cpp
+    ControlSettings.cpp
     Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -63,6 +60,7 @@ list(APPEND CMAKE_MODULE_PATH
 find_package(DS)
 
 target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
+target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
 target_link_libraries(${MODULE_NAME} 
     PRIVATE

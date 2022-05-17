@@ -23,9 +23,10 @@
 namespace WPEFramework {
 namespace Plugin {
 
-    ControlSettingsTV::ControlSettingsTV()
+    ControlSettingsTV::ControlSettingsTV(): AbstractPlugin(3)
     {
         LOGINFO("Entry\n");
+        instance = this;
         registerMethod("getBacklight", &ControlSettingsTV::getBacklight, this, {2});
         registerMethod("setBacklight", &ControlSettingsTV::setBacklight, this, {2});	
         LOGINFO("Exit\n");
@@ -36,35 +37,35 @@ namespace Plugin {
         LOGINFO();    
     }
 
-    const std::string ControlSettingsTV::Initialize(PluginHost::IShell* service)
+    void ControlSettingsTV::Initialize()
     {
-        LOGINFO("Entry\n");
-        InitializeGeneric(service); //Calls generic Init Sequence
-	//Space for Device specific Init Sequence
-	return (service != nullptr ? _T("") : _T("No service."));
+       LOGINFO("Entry\n");
+       //Space for Device specific Init Sequence
+       LOGINFO("Exit\n");
     }
 
-    void ControlSettingsTV::Deinitialize(PluginHost::IShell* service)
+    void ControlSettingsTV::Deinitialize()
     {
-        LOGINFO("Entry\n");
-        DeinitializeGeneric(service);//Call generic De-init Sequence
-        LOGINFO("Exit\n");
+       LOGINFO("Entry\n");
+       LOGINFO("Exit\n");
     }
 
-    std::string ControlSettingsTV::ControlSettingsTV::Information() const
+    std::string ControlSettingsTV::getErrorString (tvError_t eReturn)
     {
-        return (std::string());
-    }
-
-    void ControlSettingsTV::AddRef() const
-    {
-        LOGINFO("Entry\n");
-        LOGINFO("Exit\n");
-    }
-
-    uint32_t ControlSettingsTV::Release() const
-    {
-        return 0;
+        switch (eReturn)
+        {
+            case tvERROR_NONE:
+                return "TV API SUCCESS";
+            case tvERROR_GENERAL:
+                return "TV API FAILED";
+            case tvERROR_OPERATION_NOT_SUPPORTED:
+                return "TV OPERATION NOT SUPPORTED ERROR";
+            case tvERROR_INVALID_PARAM:
+                return "TV INVALID PARAM ERROR";
+            case tvERROR_INVALID_STATE:
+                return "TV INVALID STATE ERROR";
+        }
+        return "TV UNKNOWN ERROR";
     }
 
     uint32_t ControlSettingsTV::getBacklight(const JsonObject& parameters, JsonObject& response)
