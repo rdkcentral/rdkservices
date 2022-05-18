@@ -292,7 +292,7 @@ namespace WPEFramework {
             void onLaunched(const std::string& client, const string& launchType);
             void onSuspended(const std::string& client);
             void onDestroyed(const std::string& client);
-            bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
+            bool systemMemory(uint64_t &freeKb, uint64_t & totalKb, uint64_t & usedSwapKb);
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
             bool showWatermark(const bool enable);
             bool showFullScreenImage(std::string& path);

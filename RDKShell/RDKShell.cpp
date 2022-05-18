@@ -4400,7 +4400,7 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            uint32_t freeKb=0, usedSwapKb=0, totalKb=0;
+            uint64_t freeKb=0, usedSwapKb=0, totalKb=0;
             result = systemMemory(freeKb, totalKb, usedSwapKb);
             if (!result) {
               response["message"] = "failed to get system Ram";
@@ -6390,7 +6390,7 @@ namespace WPEFramework {
             notify(RDKSHELL_EVENT_ON_DESTROYED, params);
         }
 
-        bool RDKShell::systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb)
+        bool RDKShell::systemMemory(uint64_t &freeKb, uint64_t & totalKb, uint64_t & usedSwapKb)
         {
             lockRdkShellMutex();
             bool ret = RdkShell::systemRam(freeKb, totalKb, usedSwapKb);
