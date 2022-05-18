@@ -26,6 +26,7 @@
 #endif
 
 #include "Module.h"
+#include "SystemServicesHelper.h"
 
 namespace WPEFramework {
 
@@ -37,6 +38,7 @@ namespace WPEFramework {
 
             //Begin methods
             uint32_t getConfigurationWrapper(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getMilestones(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             int getConfiguration(const std::string& postData, JsonObject& response);

@@ -26,6 +26,7 @@
 
 #define DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION  "getConfiguration"
 #define DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS "getAVDecoderStatus"
+#define DEVICE_DIAGNOSTICS_METHOD_GET_MILE_STONES "getMilestones"
 
 #define DEVICE_DIAGNOSTICS_EVT_ON_AV_DECODER_STATUS_CHANGED "onAVDecoderStatusChanged"
 
@@ -60,12 +61,14 @@ namespace WPEFramework
 
             Register(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION, &DeviceDiagnostics::getConfigurationWrapper, this);
             Register(DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS, &DeviceDiagnostics::getAVDecoderStatus, this);
+	    Register(DEVICE_DIAGNOSTICS_METHOD_GET_MILE_STONES, &DeviceDiagnostics::getMilestones, this);
         }
 
         DeviceDiagnostics::~DeviceDiagnostics()
         {
             Unregister(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION);
             Unregister(DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS);
+	    Unregister(DEVICE_DIAGNOSTICS_METHOD_GET_MILE_STONES);
         }
 
         /* virtual */ const string DeviceDiagnostics::Initialize(PluginHost::IShell* service)
@@ -257,6 +260,32 @@ namespace WPEFramework
                  }
              }
             return result;
+        }
+
+	 /***
+         * @brief : To fetch the list of milestones.
+         * @param1[in]  : {params":{}}
+         * @param2[out] : "result":{"milestones":["<string>","<string>","<string>"],
+         *      "success":<bool>}
+         * @return      : Core::<StatusCode>
+         */
+        uint32_t DeviceDiagnostics::getMilestones(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool retAPIStatus = false;
+            vector<string> milestones;
+
+            if (Utils::fileExists(MILESTONES_LOG_FILE)) {
+                retAPIStatus = getFileContent(MILESTONES_LOG_FILE, milestones);
+                if (retAPIStatus) {
+                    setJSONResponseArray(response, "milestones", milestones);
+                } else {
+                    populateResponseWithError(SysSrv_FileAccessFailed, response);
+                }
+            } else {
+                populateResponseWithError(SysSrv_FileNotPresent, response);
+            }
+            returnResponse(retAPIStatus);
         }
 
 
