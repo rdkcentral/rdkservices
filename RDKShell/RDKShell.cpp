@@ -869,7 +869,6 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_HIDE_CURSOR, &RDKShell::hideCursorWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_CURSOR_SIZE, &RDKShell::getCursorSizeWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_CURSOR_SIZE, &RDKShell::setCursorSizeWrapper, this);
-            registerMethod(RDKSHELL_METHOD_SET_FRAME_RATE, &RDKShell::setFrameRateWrapper, this);
             registerMethod(RDKSHELL_METHOD_CREATE_GROUP, &RDKShell::createGroupWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_GROUPS, &RDKShell::getGroupsWrapper, this);
             registerMethod(RDKSHELL_METHOD_DELETE_GROUP, &RDKShell::deleteGroupWrapper, this);
@@ -5523,6 +5522,7 @@ namespace WPEFramework {
             JsonObject properties = parameters["properties"].Object();
             if (properties.HasLabel("position") && properties.HasLabel("size"))
             {
+                JsonObject pos = properties["position"].Object();
                 JsonObject size = properties["size"].Object();
                 if (!pos.HasLabel("x") || !pos.HasLabel("y") || !size.HasLabel("w") || !size.HasLabel("h"))
                 {
@@ -5531,7 +5531,7 @@ namespace WPEFramework {
                 }
                 else
                 {
-                    CompositorController::setBounds(id, pos["x"].Number(), pos["y"].Number(), pos["w"].Number(), pos["h"].Number());
+                    CompositorController::setBounds(id, pos["x"].Number(), pos["y"].Number(), size["w"].Number(), size["h"].Number());
                 }
             }
 
@@ -5560,7 +5560,8 @@ namespace WPEFramework {
                 else
                 {
                     CompositorController::setScale(id, scale["x"].Number(), scale["y"].Number());;
-                    //std::cout << "setPropertiesWrapper scale: " << scale["x"].Number() << "," << scale["y"].Number() << "\n";                }
+                    //std::cout << "setPropertiesWrapper scale: " << scale["x"].Number() << "," << scale["y"].Number() << "\n";
+                }
             }
 
             if (properties.HasLabel("z-order"))
