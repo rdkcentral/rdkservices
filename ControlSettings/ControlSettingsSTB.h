@@ -32,7 +32,7 @@
 
 #include "AbstractPlugin.h"
 #include "utils.h"
-#include "common.h"
+#include "ControlSettingsCommon.h"
 
 namespace WPEFramework {
 namespace Plugin {

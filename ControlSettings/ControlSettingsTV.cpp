@@ -27,8 +27,8 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         instance = this;
-        registerMethod("getBacklight", &ControlSettingsTV::getBacklight, this, {2});
-        registerMethod("setBacklight", &ControlSettingsTV::setBacklight, this, {2});	
+        registerMethod("getBacklight", &ControlSettingsTV::getBacklight, this, {1});
+        registerMethod("setBacklight", &ControlSettingsTV::setBacklight, this, {1});	
         LOGINFO("Exit\n");
     }
     

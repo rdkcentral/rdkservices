@@ -27,8 +27,8 @@ namespace Plugin {
     {
         LOGINFO("Entry\n"); 
         instance = this;
-        registerMethod("getVolume", &ControlSettingsSTB::getVolume, this, {2});
-        registerMethod("setVolume", &ControlSettingsSTB::setVolume, this, {2});
+        registerMethod("getVolume", &ControlSettingsSTB::getVolume, this, {1});
+        registerMethod("setVolume", &ControlSettingsSTB::setVolume, this, {1});
         LOGINFO("Exit\n");
     }
     

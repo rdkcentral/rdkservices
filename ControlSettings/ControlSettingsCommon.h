@@ -16,8 +16,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef CONTROLSETTINGS_COMMON_H
+#define CONTROLSETTINGS_COMMON_H
 
 #define DECLARE_JSON_RPC_METHOD(method) \
 uint32_t method(const JsonObject& parameters, JsonObject& response);

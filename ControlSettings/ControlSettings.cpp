@@ -222,8 +222,8 @@ namespace Plugin {
 	InitializeIARM();
 
         //Common API Registration
-	registerMethod("getAspectRatio", &ControlSettings::getAspectRatio, this, {2});
-        registerMethod("setAspectRatio", &ControlSettings::setAspectRatio, this, {2});
+	registerMethod("getAspectRatio", &ControlSettings::getAspectRatio, this, {1});
+        registerMethod("setAspectRatio", &ControlSettings::setAspectRatio, this, {1});
         LOGINFO("Exit \n");
     }
 
