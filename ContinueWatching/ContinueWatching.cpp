@@ -67,14 +67,14 @@ namespace WPEFramework {
         ContinueWatching* ContinueWatching::_instance = nullptr;
 
 		ContinueWatching::ContinueWatching()
-		: AbstractPlugin()
+		: PluginHost::JSONRPC()
 		, m_apiVersionNumber((uint32_t)-1)
 		{
 			ContinueWatching::_instance = this;
 			//Register all the APIs
-			registerMethod("getApplicationToken", &ContinueWatching::getApplicationToken, this);
-			registerMethod("setApplicationToken", &ContinueWatching::setApplicationToken, this);
-			registerMethod("deleteApplicationToken", &ContinueWatching::deleteApplicationToken, this);
+			Register("getApplicationToken", &ContinueWatching::getApplicationToken, this);
+			Register("setApplicationToken", &ContinueWatching::setApplicationToken, this);
+			Register("deleteApplicationToken", &ContinueWatching::deleteApplicationToken, this);
 			setApiVersionNumber(1);
 		}
 

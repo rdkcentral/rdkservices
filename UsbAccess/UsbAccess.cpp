@@ -6,12 +6,13 @@
 #include <libudev.h>
 #include <algorithm>
 #include <mutex>
+#include <fstream>
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-#include "libIARM.h"
 #include "libIBus.h"
 #include "sysMgr.h"
-#endif /* USE_IARMBUS || USE_IARM_BUS */
+
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MAJOR = 2;
 const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MINOR = 0;
@@ -116,17 +117,22 @@ namespace Plugin {
     UsbAccess* UsbAccess::_instance = nullptr;
 
     UsbAccess::UsbAccess()
-    : AbstractPlugin(UsbAccess::API_VERSION_NUMBER_MAJOR)
+    : PluginHost::JSONRPC()
     {
         UsbAccess::_instance = this;
 
-        registerMethod(METHOD_GET_FILE_LIST, &UsbAccess::getFileListWrapper, this);
-        registerMethod(METHOD_CREATE_LINK, &UsbAccess::createLinkWrapper, this);
-        registerMethod(METHOD_CLEAR_LINK, &UsbAccess::clearLinkWrapper, this);
-        registerMethod(METHOD_GET_AVAILABLE_FIRMWARE_FILES, &UsbAccess::getAvailableFirmwareFilesWrapper, this, {2});
-        registerMethod(METHOD_GET_MOUNTED, &UsbAccess::getMountedWrapper, this, {2});
-        registerMethod(METHOD_UPDATE_FIRMWARE, &UsbAccess::updateFirmware, this, {2});
-        registerMethod(METHOD_ARCHIVE_LOGS, &UsbAccess::archiveLogs, this, {2});
+        Register(_T("getFileList"), &UsbAccess::getFileListWrapper, this);
+        Register(_T("createLink"), &UsbAccess::createLinkWrapper, this);
+        Register(_T("clearLink"), &UsbAccess::clearLinkWrapper, this);
+
+        CreateHandler({2});
+        GetHandler(2)->Register<JsonObject, JsonObject>(_T("getFileList"), &UsbAccess::getFileListWrapper, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>(_T("createLink"), &UsbAccess::createLinkWrapper, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>(_T("clearLink"), &UsbAccess::clearLinkWrapper, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>(_T("getAvailableFirmwareFiles"), &UsbAccess::getAvailableFirmwareFilesWrapper, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>(_T("getMounted"), &UsbAccess::getMountedWrapper, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>(_T("updateFirmware"), &UsbAccess::updateFirmware, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>(_T("ArchiveLogs"), &UsbAccess::archiveLogs, this);
     }
 
     UsbAccess::~UsbAccess()
@@ -135,6 +141,18 @@ namespace Plugin {
 
         if (archiveLogsThread.joinable())
             archiveLogsThread.join();
+
+        Unregister(_T("getFileList"));
+        Unregister(_T("createLink"));
+        Unregister(_T("clearLink"));
+
+        GetHandler(2)->Unregister(_T("getFileList"));
+        GetHandler(2)->Unregister(_T("createLink"));
+        GetHandler(2)->Unregister(_T("clearLink"));
+        GetHandler(2)->Unregister(_T("getAvailableFirmwareFiles"));
+        GetHandler(2)->Unregister(_T("getMounted"));
+        GetHandler(2)->Unregister(_T("updateFirmware"));
+        GetHandler(2)->Unregister(_T("ArchiveLogs"));
     }
 
     const string UsbAccess::Initialize(PluginHost::IShell * /* service */)
@@ -282,7 +300,7 @@ namespace Plugin {
                     path.c_str(),
                     name.c_str(),
                     0);
-            if (size > 0 && size < n)
+            if (size > 0 && (size_t)size < n)
             {
                 int rc = runScript(buff);
                 LOGINFO("'%s' return code: %d", buff, rc);
@@ -355,6 +373,8 @@ namespace Plugin {
         params["error"] = it->second;
         params["success"] = (error == None);
         sendNotify(EVT_ON_ARCHIVE_LOGS.c_str(), params);
+
+        GetHandler(2)->Notify(EVT_ON_ARCHIVE_LOGS.c_str(), params);
     }
 
     // iarm
@@ -388,12 +408,12 @@ namespace Plugin {
     {
         if (strcmp(owner, IARM_BUS_SYSMGR_NAME) != 0)
         {
-            LOGERR("unexpected event: owner %s, eventId: %d, data: %p, size: %d.", owner, (int)eventId, data, len);
+            LOGERR("unexpected event: owner %s, eventId: %d, data: %p, size: %lu.", owner, (int)eventId, data, len);
             return;
         }
         if (data == nullptr || len == 0)
         {
-            LOGERR("event with NO DATA: eventId: %d, data: %p, size: %d.", (int)eventId, data, len);
+            LOGERR("event with NO DATA: eventId: %d, data: %p, size: %lu.", (int)eventId, data, len);
             return;
         }
 
@@ -406,7 +426,7 @@ namespace Plugin {
                 break;
             }
             default:
-                LOGWARN("unexpected event: owner %s, eventId: %d, data: %p, size: %d.", (int)eventId, data, len);
+                LOGWARN("unexpected event: owner %s, eventId: %d, data: %p, size: %lu.", owner, (int)eventId, data, len);
                 break;
         }
     }
@@ -417,6 +437,8 @@ namespace Plugin {
         params["mounted"] = mounted;
         params["device"] = device;
         sendNotify(EVT_ON_USB_MOUNT_CHANGED.c_str(), params);
+
+        GetHandler(2)->Notify(EVT_ON_USB_MOUNT_CHANGED.c_str(), params);
     }
 
     // internal methods

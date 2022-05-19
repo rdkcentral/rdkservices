@@ -82,7 +82,7 @@ using namespace std;
 #define REGEX_UNALLOWABLE_INPUT "[^[:alnum:]_-]{1}"
 
 #define STORE_DEMO_FILE "/opt/persistent/store-mode-video/videoFile.mp4"
-#define STORE_DEMO_LINK "http://127.0.0.1:50050/store-mode-video/videoFile.mp4"
+#define STORE_DEMO_LINK "file:///opt/persistent/store-mode-video/videoFile.mp4"
 
 #define RFC_CALLERID           "SystemServices"
 
@@ -3756,7 +3756,6 @@ namespace WPEFramework {
 
             bool success = false;
 
-#ifdef ENABLE_SYSTEM_UPLOAD_LOGS
             string url;
             getStringParameter("url", url);
             auto err = UploadLogs::upload(url);
@@ -3764,9 +3763,6 @@ namespace WPEFramework {
                 response["error"] = UploadLogs::errToText(err);
             else
                 success = true;
-#else
-            response["error"] = "unsupported";
-#endif
 
             returnResponse(success);
         }

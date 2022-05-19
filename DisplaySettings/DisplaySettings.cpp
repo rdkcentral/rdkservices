@@ -241,6 +241,10 @@ namespace WPEFramework {
 	    registerMethod("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer2, this, {2});
             registerMethod("getVideoFormat", &DisplaySettings::getVideoFormat, this);
 
+            registerMethod("setPreferredColorDepth", &DisplaySettings::setPreferredColorDepth, this);
+            registerMethod("getPreferredColorDepth", &DisplaySettings::getPreferredColorDepth, this);
+            registerMethod("getColorDepthCapabilities", &DisplaySettings::getColorDepthCapabilities, this);
+
 	    m_subscribed = false; //HdmiCecSink event subscription
 	    m_hdmiInAudioDeviceConnected = false;
         m_arcAudioEnabled = false;
@@ -317,8 +321,14 @@ namespace WPEFramework {
                         LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
                     } 
                     if (portName == "HDMI_ARC0") {
-                        //Set audio port config. ARC will be set up by onTimer()		
-                        if(isPortPersistenceValEnabled &&  m_hdmiCecAudioDeviceDetected) { 
+                        //Set audio port config. ARC will be set up by onTimer()
+                        #ifdef APP_CONTROL_AUDIOPORT_INIT
+                        if(isPortPersistenceValEnabled ) {
+                            LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Enabled\n");
+                        #else if
+                        if(isPortPersistenceValEnabled &&  m_hdmiCecAudioDeviceDetected) {
+                            LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Disabled\n");
+                        #endif 
                             m_audioOutputPortConfig["HDMI_ARC"] = true;
                         }
                         else {
@@ -413,7 +423,13 @@ namespace WPEFramework {
   
                         aPortHdmiEnableParam.Set(_T("audioPort"), portName); //aPortHdmiEnableParam.Set(_T("audioPort"),"HDMI0");
                         //Get value from ds srv persistence
+                        #ifdef APP_CONTROL_AUDIOPORT_INIT
+                        if(isPortPersistenceValEnabled) {
+                           LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Enabled\n");
+                        #else if
                         if(isPortPersistenceValEnabled || !m_hdmiCecAudioDeviceDetected) {
+                           LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Disabled\n");
+                        #endif
                             aPortHdmiEnableParam.Set(_T("enable"),true);
                         }
                         else {
@@ -3680,6 +3696,109 @@ namespace WPEFramework {
             returnResponse(success);
         }
 
+        uint32_t DisplaySettings::getPreferredColorDepth(const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:{"colorDepth":"10 Bit","success":true}
+            LOGINFOMETHOD();
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : strVideoPort;
+            bool persist = parameters.HasLabel("persist") ? parameters["persist"].Boolean() : true;
+
+            bool success = true;
+            try
+            {
+                device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
+                unsigned int colorDepth = vPort.getPreferredColorDepth(persist);
+		switch (colorDepth) {
+			case dsDISPLAY_COLORDEPTH_8BIT:
+				response["colorDepth"] = "8 Bit";
+				break;
+			case dsDISPLAY_COLORDEPTH_10BIT:
+				response["colorDepth"] = "10 Bit";
+				break;
+			case dsDISPLAY_COLORDEPTH_12BIT:
+				response["colorDepth"] = "12 Bit";
+				break;
+			case dsDISPLAY_COLORDEPTH_AUTO:
+				response["colorDepth"] = "Auto";
+				break;
+			default :
+				success = false;
+				break;
+		}
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(videoDisplay);
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::setPreferredColorDepth(const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response: {"success":true}
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "videoDisplay");
+            returnIfParamNotFound(parameters, "colorDepth");
+
+            string videoDisplay = parameters["videoDisplay"].String();
+            string strColorDepth = parameters["colorDepth"].String();
+
+            bool persist = parameters.HasLabel("persist") ? parameters["persist"].Boolean() : true;
+
+            bool success = true;
+            try
+            {
+                dsDisplayColorDepth_t colorDepth = dsDISPLAY_COLORDEPTH_UNKNOWN;
+                device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
+		if (0==strncmp(strColorDepth.c_str(), "8 Bit", 5)){
+                        colorDepth = dsDISPLAY_COLORDEPTH_8BIT;
+		} else if (0==strncmp(strColorDepth.c_str(), "10 Bit", 6)){
+                        colorDepth = dsDISPLAY_COLORDEPTH_10BIT;
+		} else if (0==strncmp(strColorDepth.c_str(), "12 Bit", 6)){
+                        colorDepth = dsDISPLAY_COLORDEPTH_12BIT;
+		} else if (0==strncmp(strColorDepth.c_str(), "Auto", 4)){
+                        colorDepth = dsDISPLAY_COLORDEPTH_AUTO;
+		} else {
+			//UNKNOWN color depth
+			LOGERR("UNKNOWN color depth: %s", strColorDepth.c_str());
+			success = false;
+		}
+                if (dsDISPLAY_COLORDEPTH_UNKNOWN!=colorDepth) {
+                    vPort.setPreferredColorDepth(colorDepth, persist);
+                }
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION2(videoDisplay, strColorDepth);
+                success = false;
+            }
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::getColorDepthCapabilities(const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:{"success":true,"capabilities":["8 Bit","10 Bit","12 Bit","Auto"]}
+            LOGINFOMETHOD();
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : strVideoPort;
+            vector<string> colorDepthCapabilities;
+            try
+            {
+                unsigned int capabilities = 0;
+                device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
+                vPort.getColorDepthCapabilities(&capabilities);
+                if(!capabilities) colorDepthCapabilities.emplace_back("none");
+                if(capabilities & dsDISPLAY_COLORDEPTH_8BIT)colorDepthCapabilities.emplace_back("8 Bit");
+                if(capabilities & dsDISPLAY_COLORDEPTH_10BIT)colorDepthCapabilities.emplace_back("10 Bit");
+                if(capabilities & dsDISPLAY_COLORDEPTH_12BIT)colorDepthCapabilities.emplace_back("12 Bit");
+                if(capabilities & dsDISPLAY_COLORDEPTH_AUTO)colorDepthCapabilities.emplace_back("Auto");
+            }
+            catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(videoDisplay);
+            }
+            setResponseArray(response, "capabilities", colorDepthCapabilities);
+            returnResponse(true);
+        }
 
         bool DisplaySettings::setUpHdmiCecSinkArcRouting (bool arcEnable)
         {
@@ -3914,7 +4033,7 @@ namespace WPEFramework {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
 
                     aPort.getSupportedARCTypes(&types);
-                    if((aPort.isConnected()) && (m_hdmiInAudioDeviceConnected == true)) {
+                    if((aPort.isConnected()) && (m_hdmiCecAudioDeviceDetected)) {
                         LOGINFO("DisplaySettings::setEnableAudioPort Configuring User set Audio mode before starting ARC/eARC Playback...\n");
                         if(aPort.getStereoAuto() == true) {
                             if(types & dsAUDIOARCSUPPORT_eARC) {
@@ -3964,8 +4083,13 @@ namespace WPEFramework {
 			       // For certain ARC devices, we get ARC initiate message even when ARC device is in standby
 			       // Wake up the device always before audio routing
 			       sendHdmiCecSinkAudioDevicePowerOn();
-                               aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
-                               m_arcAudioEnabled = true;
+			       if(m_arcAudioEnabled == false) {
+                                   aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
+                                   m_arcAudioEnabled = true;
+			       }
+			       else {
+			           LOGINFO("ARC is already enabled. Value of m_arcAudioEnabled is %d: \n", m_arcAudioEnabled);
+			       }
 			   }
 			   else {
                                LOGINFO("%s: Disable ARC \n",__FUNCTION__);
@@ -4318,9 +4442,11 @@ namespace WPEFramework {
                         }
 
                         if(aPortConfig["HDMI_ARC"].Boolean()) {
-                            LOGINFO("onARCInitiationEventHandler: Enable ARC\n");
-                            aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
-                            m_arcAudioEnabled = true;
+                            if(m_arcAudioEnabled == false) {
+			        LOGINFO("onARCInitiationEventHandler: Enable ARC\n");
+                                aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
+                                m_arcAudioEnabled = true;
+			    }
                         }
                         else {
                            LOGINFO("onARCInitiationEventHandler: HDMI_ARC0 Port not enabled. Skip Audio Routing !!!\n");

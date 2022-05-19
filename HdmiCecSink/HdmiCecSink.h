@@ -33,7 +33,6 @@
 
 #include "Module.h"
 #include "utils.h"
-#include "AbstractPlugin.h"
 #include "tptimer.h"
 #include <thread>
 #include <mutex>
@@ -139,7 +138,7 @@ namespace WPEFramework {
 			std::chrono::system_clock::time_point m_lastPowerUpdateTime;
 			
 			CECDeviceParams() 
-			: m_deviceType(0), m_logicalAddress(0),m_physicalAddr(0,0,0,0),m_cecVersion(0),m_vendorID(0,0,0),m_osdName("NA"),m_powerStatus(0),m_currentLanguage("NA")
+			: m_deviceType(0), m_logicalAddress(0),m_physicalAddr(0x0f,0x0f,0x0f,0x0f),m_cecVersion(0),m_vendorID(0,0,0),m_osdName("NA"),m_powerStatus(0),m_currentLanguage("NA")
 			{
 				m_isDevicePresent = false;
 				m_isActiveSource = false;
@@ -157,7 +156,7 @@ namespace WPEFramework {
 			{
 				m_deviceType = 0;
 				m_logicalAddress = 0;
-				m_physicalAddr = PhysicalAddress(0,0,0,0);
+				m_physicalAddr = PhysicalAddress(0x0f,0x0f,0x0f,0x0f);
 				m_cecVersion = 0;
 				m_vendorID = VendorID(0,0,0);
 				m_osdName = "NA";
@@ -470,7 +469,7 @@ private:
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class HdmiCecSink : public AbstractPlugin {
+        class HdmiCecSink : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 
 		enum {
 			POLL_THREAD_STATE_NONE,
@@ -515,6 +514,7 @@ private:
         public:
             HdmiCecSink();
             virtual ~HdmiCecSink();
+            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
             virtual void Deinitialize(PluginHost::IShell* service) override;
             static HdmiCecSink* _instance;
 			CECDeviceParams deviceList[16];
@@ -560,6 +560,12 @@ private:
 			void sendGiveAudioStatusMsg();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
 			bool m_audioDevicePowerStatusRequested;
+
+            BEGIN_INTERFACE_MAP(HdmiCecSink)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
+
         private:
             // We do not allow this plugin to be copied !!
             HdmiCecSink(const HdmiCecSink&) = delete;
