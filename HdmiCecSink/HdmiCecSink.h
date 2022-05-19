@@ -676,6 +676,7 @@ private:
             void Send_Request_Arc_Termination_Message();
             void Send_Report_Arc_Terminated_Message();
             void arcStartStopTimerFunction();
+            void getHdmiArcPortID();
         };
 	} // namespace Plugin
 } // namespace WPEFramework
