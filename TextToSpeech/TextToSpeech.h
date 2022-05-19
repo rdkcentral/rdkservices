@@ -34,14 +34,13 @@
 #include "Module.h"
 #include "tracing/Logging.h"
 #include "utils.h"
-#include "AbstractPlugin.h"
 
 #include "TextToSpeechImplementation.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-    class TextToSpeech: public AbstractPlugin {
+    class TextToSpeech: public PluginHost::IPlugin, public PluginHost::JSONRPC {
     public:
         class Notification : public RPC::IRemoteConnection::INotification,
                              public Exchange::ITextToSpeech::INotification {
@@ -125,14 +124,17 @@ namespace Plugin {
         };
 
         BEGIN_INTERFACE_MAP(TextToSpeech)
+        INTERFACE_ENTRY(PluginHost::IPlugin)
+        INTERFACE_ENTRY(PluginHost::IDispatcher)
         INTERFACE_AGGREGATE(Exchange::ITextToSpeech, _tts)
-        NEXT_INTERFACE_MAP(AbstractPlugin)
+        END_INTERFACE_MAP
 
     public:
         TextToSpeech();
         virtual ~TextToSpeech();
         virtual const string Initialize(PluginHost::IShell* service) override;
         virtual void Deinitialize(PluginHost::IShell* service) override;
+        virtual string Information() const override { return {}; }
 
     private:
         // We do not allow this plugin to be copied !!

@@ -62,7 +62,7 @@ namespace WPEFramework {
 
 
 		StateObserver::StateObserver()
-		: AbstractPlugin()
+		: PluginHost::JSONRPC()
 		, m_apiVersionNumber((uint32_t)-1)
 		{
 			StateObserver::_instance = this;
