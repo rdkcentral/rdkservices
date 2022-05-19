@@ -38,16 +38,3 @@ target_link_libraries(${MODULE_NAME} PRIVATE
 
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
-
-add_custom_target(
-    WPEHost
-    COMMAND cargo build 
-      --manifest-path ${CMAKE_CURRENT_SOURCE_DIR}/WPEHost/Cargo.toml
-      --target-dir ${CMAKE_CURRENT_BINARY_DIR}/WPEHost
-      #--release
-)
-add_dependencies(${MODULE_NAME} WPEHost)
-
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/WPEHost/debug/WPEHost
-  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-  DESTINATION bin)
