@@ -52,7 +52,7 @@ namespace WPEFramework {
         }
 
         MotionDetection::MotionDetection()
-            : AbstractPlugin()
+            : PluginHost::JSONRPC()
         {
             LOGINFO("MotionDetection ctor");
             MotionDetection::_instance = this;

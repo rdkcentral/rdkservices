@@ -48,15 +48,15 @@ namespace WPEFramework
         HdcpProfile* HdcpProfile::_instance = nullptr;
 
         HdcpProfile::HdcpProfile()
-        : AbstractPlugin()
+        : PluginHost::JSONRPC()
         {
             HdcpProfile::_instance = this;
 
             InitializeIARM();
             device::Manager::Initialize();
 
-            registerMethod(HDCP_PROFILE_METHOD_GET_HDCP_STATUS, &HdcpProfile::getHDCPStatusWrapper, this);
-            registerMethod(HDCP_PROFILE_METHOD_GET_SETTOP_HDCP_SUPPORT, &HdcpProfile::getSettopHDCPSupportWrapper, this);
+            Register(HDCP_PROFILE_METHOD_GET_HDCP_STATUS, &HdcpProfile::getHDCPStatusWrapper, this);
+            Register(HDCP_PROFILE_METHOD_GET_SETTOP_HDCP_SUPPORT, &HdcpProfile::getSettopHDCPSupportWrapper, this);
         }
 
         HdcpProfile::~HdcpProfile()
