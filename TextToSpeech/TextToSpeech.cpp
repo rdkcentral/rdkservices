@@ -91,7 +91,7 @@ namespace Plugin {
     }
 
     TextToSpeech::TextToSpeech()
-            : AbstractPlugin()
+            : PluginHost::JSONRPC()
             , m_AclCalled(false)
             , _apiVersionNumber(API_VERSION_NUMBER)
             , _notification(this)

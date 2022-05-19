@@ -25,7 +25,6 @@
 #include <rdkshell/rdkshellevents.h>
 #include <rdkshell/rdkshell.h>
 #include <rdkshell/linuxkeys.h>
-#include "AbstractPlugin.h"
 #include "tptimer.h"
 
 namespace WPEFramework {
@@ -38,13 +37,18 @@ namespace WPEFramework {
             JsonObject mRequest;
         };
 
-        class RDKShell :  public AbstractPlugin {
+        class RDKShell :  public PluginHost::IPlugin, public PluginHost::JSONRPC {
         public:
             RDKShell();
             virtual ~RDKShell();
             virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override;
+
+            BEGIN_INTERFACE_MAP(RDKShell)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         public/*members*/:
             static RDKShell* _instance;

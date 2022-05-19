@@ -190,7 +190,7 @@ namespace WPEFramework {
          * Register MaintenanceManager module as wpeframework plugin
          */
         MaintenanceManager::MaintenanceManager()
-            :AbstractPlugin()
+            :PluginHost::JSONRPC()
         {
             MaintenanceManager::_instance = this;
 
@@ -198,14 +198,14 @@ namespace WPEFramework {
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
              */
 #ifdef DEBUG
-            registerMethod("sampleMaintenanceManagerAPI", &MaintenanceManager::sampleAPI, this);
+            Register("sampleMaintenanceManagerAPI", &MaintenanceManager::sampleAPI, this);
 #endif /* DEBUG */
-            registerMethod("getMaintenanceActivityStatus", &MaintenanceManager::getMaintenanceActivityStatus,this);
-            registerMethod("getMaintenanceStartTime", &MaintenanceManager::getMaintenanceStartTime,this);
-            registerMethod("setMaintenanceMode", &MaintenanceManager::setMaintenanceMode,this);
-            registerMethod("startMaintenance", &MaintenanceManager::startMaintenance,this);
-            registerMethod("stopMaintenance", &MaintenanceManager::stopMaintenance,this);
-            registerMethod("getMaintenanceMode", &MaintenanceManager::getMaintenanceMode,this);
+            Register("getMaintenanceActivityStatus", &MaintenanceManager::getMaintenanceActivityStatus,this);
+            Register("getMaintenanceStartTime", &MaintenanceManager::getMaintenanceStartTime,this);
+            Register("setMaintenanceMode", &MaintenanceManager::setMaintenanceMode,this);
+            Register("startMaintenance", &MaintenanceManager::startMaintenance,this);
+            Register("stopMaintenance", &MaintenanceManager::stopMaintenance,this);
+            Register("getMaintenanceMode", &MaintenanceManager::getMaintenanceMode,this);
 
 
             MaintenanceManager::m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=false;

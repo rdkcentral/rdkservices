@@ -63,22 +63,28 @@ namespace WPEFramework
         SERVICE_REGISTRATION(WifiManager, WifiManager::API_VERSION_NUMBER_MAJOR, WifiManager::API_VERSION_NUMBER_MINOR);
 
         WifiManager::WifiManager()
-        : AbstractPlugin(WifiManager::API_VERSION_NUMBER_MAJOR),
+        : PluginHost::JSONRPC(),
           apiVersionNumber(API_VERSION_NUMBER_MAJOR),
           wifiSignalThreshold(*this)
         {
-            for(const auto &mapping: constMethods)
-                registerMethod(mapping.first, mapping.second, this);
+            CreateHandler({ 2 });
 
-            for(const auto &mapping: mutableMethods)
-                registerMethod(mapping.first, mapping.second, this);
+            for (const auto& mapping : constMethods) {
+                Register(mapping.first, mapping.second, this);
+                GetHandler(2)->Register<JsonObject, JsonObject>(mapping.first, mapping.second, this);
+            }
+
+            for (const auto& mapping : mutableMethods) {
+                Register(mapping.first, mapping.second, this);
+                GetHandler(2)->Register<JsonObject, JsonObject>(mapping.first, mapping.second, this);
+            }
 
             /* Version 1 only API */
-            registerMethod("initiateWPSPairing", &WifiManager::initiateWPSPairing, this, {1});
+            Register("initiateWPSPairing", &WifiManager::initiateWPSPairing, this);
 
             /* Version 2 API */
-            registerMethod("getSupportedSecurityModes", &WifiManager::getSupportedSecurityModes, this, {2});
-            registerMethod("initiateWPSPairing", &WifiManager::initiateWPSPairing2, this, {2});
+            GetHandler(2)->Register<JsonObject, JsonObject>("getSupportedSecurityModes", &WifiManager::getSupportedSecurityModes, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>("initiateWPSPairing", &WifiManager::initiateWPSPairing2, this);
         }
 
         WifiManager::~WifiManager()
@@ -316,6 +322,7 @@ namespace WPEFramework
             params["state"] = static_cast<int>(state);
             params["isLNF"] = isLNF;
             sendNotify("onWIFIStateChanged", params);
+            GetHandler(2)->Notify("onWIFIStateChanged", params);
             if (state == WifiState::CONNECTED)
             {
                 wifiSignalThreshold.setSignalThresholdChangeEnabled(true);
@@ -336,11 +343,13 @@ namespace WPEFramework
             JsonObject params;
             params["code"] = static_cast<int>(code);
             sendNotify("onError", params);
+            GetHandler(2)->Notify("onError", params);
         }
 
         void WifiManager::onSSIDsChanged()
         {
             sendNotify("onSSIDsChanged", JsonObject());
+            GetHandler(2)->Notify("onSSIDsChanged", JsonObject());
         }
 
         void WifiManager::onWifiSignalThresholdChanged(float signalStrength, const std::string &strength)
@@ -362,6 +371,7 @@ namespace WPEFramework
         void WifiManager::onAvailableSSIDs(JsonObject const& ssids)
         {
             sendNotify("onAvailableSSIDs", ssids);
+            GetHandler(2)->Notify("onAvailableSSIDs", ssids);
         }
 
         /**

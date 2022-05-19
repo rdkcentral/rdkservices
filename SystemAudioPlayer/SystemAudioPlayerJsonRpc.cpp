@@ -24,17 +24,17 @@ namespace Plugin {
 
     void SystemAudioPlayer::RegisterAll()
     {
-        registerMethod("open", &SystemAudioPlayer::Open, this);        
-        registerMethod("play", &SystemAudioPlayer::Play, this);
-        registerMethod("playbuffer", &SystemAudioPlayer::PlayBuffer, this);
-        registerMethod("pause", &SystemAudioPlayer::Pause, this);
-        registerMethod("resume", &SystemAudioPlayer::Resume, this);
-        registerMethod("stop", &SystemAudioPlayer::Stop, this);
-        registerMethod("close", &SystemAudioPlayer::Close, this);
-        registerMethod("setMixerLevels", &SystemAudioPlayer::SetMixerLevels, this);
-        registerMethod("isspeaking", &SystemAudioPlayer::IsPlaying, this);
-	registerMethod("config", &SystemAudioPlayer::Config, this);
-        registerMethod("getPlayerSessionId", &SystemAudioPlayer::GetPlayerSessionId, this);
+        Register("open", &SystemAudioPlayer::Open, this);        
+        Register("play", &SystemAudioPlayer::Play, this);
+        Register("playbuffer", &SystemAudioPlayer::PlayBuffer, this);
+        Register("pause", &SystemAudioPlayer::Pause, this);
+        Register("resume", &SystemAudioPlayer::Resume, this);
+        Register("stop", &SystemAudioPlayer::Stop, this);
+        Register("close", &SystemAudioPlayer::Close, this);
+        Register("setMixerLevels", &SystemAudioPlayer::SetMixerLevels, this);
+        Register("isspeaking", &SystemAudioPlayer::IsPlaying, this);
+	Register("config", &SystemAudioPlayer::Config, this);
+        Register("getPlayerSessionId", &SystemAudioPlayer::GetPlayerSessionId, this);
     }
     
    
