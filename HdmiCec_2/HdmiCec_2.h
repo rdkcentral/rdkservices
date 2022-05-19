@@ -33,7 +33,6 @@
 
 #include "Module.h"
 #include "utils.h"
-#include "AbstractPlugin.h"
 
 namespace WPEFramework {
 
@@ -154,7 +153,7 @@ namespace WPEFramework {
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class HdmiCec_2 : public AbstractPlugin {
+        class HdmiCec_2 : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         public:
             HdmiCec_2();
             virtual ~HdmiCec_2();
@@ -173,6 +172,11 @@ namespace WPEFramework {
             void removeDevice(const int logicalAddress);
             void sendUnencryptMsg(unsigned char* msg, int size);
             void sendDeviceUpdateInfo(const int logicalAddress);
+
+            BEGIN_INTERFACE_MAP(HdmiCec_2)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         private:
             // We do not allow this plugin to be copied !!
