@@ -18,7 +18,6 @@
 **/
 
 #include "DeviceDiagnostics.h"
-#include "utils.h"
 
 #include <curl/curl.h>
 #include <time.h>
