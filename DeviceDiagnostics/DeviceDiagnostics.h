@@ -26,8 +26,7 @@
 #endif
 
 #include "Module.h"
-
-#define MILESTONES_LOG_FILE                     "/opt/logs/rdk_milestones.log"
+#include "SystemServicesHelper.h"
 
 namespace WPEFramework {
 
