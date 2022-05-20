@@ -23,7 +23,8 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 add_library(${MODULE_NAME} SHARED
         DeviceDiagnostics.cpp
         Module.cpp
-        ../helpers/SystemServicesHelper.cpp)
+        ../helpers/SystemServicesHelper.cpp
+        ../helpers/utils.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
