@@ -287,6 +287,7 @@
     },
     "methods": {
         "cacheContains": {
+            "deprecated" : true,
             "summary": "Checks if a key is present in the cache.\n \n### Events\n \n No Events.",
             "params": {
                 "type": "object",
@@ -380,6 +381,7 @@
             }
         },
         "getCachedValue":{
+            "deprecated" : true,
             "summary": "Gets the value of a key in the cache.\n \n### Events\n \n No Events.",
             "params": {
                 "type": "object",
@@ -681,6 +683,7 @@
             }
         },
         "getMilestones": {
+	    "deprecated" : true,
             "summary": "Returns the list of milestones.\n \n### Events\n \n No Events.",
             "result": {
                 "type": "object",
@@ -1298,6 +1301,7 @@
             }
         },
         "isGzEnabled":{
+	    "deprecated" : true,
             "summary": "Checks whether GZ is enabled.\n \n### Events\n \n No Events.",
             "result": {
                 "type": "object",
@@ -1389,6 +1393,7 @@
             }
         },
         "removeCacheKey":{
+            "deprecated" : true,
             "summary": "Removes the cache key.\n \n### Events\n \n No Events.",
             "params": {
                 "type":"object",
@@ -1426,6 +1431,7 @@
             }
         },
         "setCachedValue": {
+            "deprecated" : true,
             "summary": "Sets the value for a key in the cache.\n \n### Events\n \n No Events.",
             "params": {
                 "type":"object",
@@ -1504,6 +1510,7 @@
             }
         },
         "setGzEnabled": {
+            "deprecated" : true,
             "summary": "Enables or disables GZ.\n \n### Events\n \n No Events.",
             "params": {
                 "type":"object",

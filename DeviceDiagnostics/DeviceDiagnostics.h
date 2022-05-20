@@ -26,6 +26,14 @@
 #endif
 
 #include "Module.h"
+#include "utils.h"
+
+#define MILESTONES_LOG_FILE                     "/opt/logs/rdk_milestones.log"
+
+enum SysSrv_ErrorCode {
+    SysSrv_FileNotPresent,
+    SysSrv_FileAccessFailed
+};
 
 namespace WPEFramework {
 
@@ -37,6 +45,7 @@ namespace WPEFramework {
 
             //Begin methods
             uint32_t getConfigurationWrapper(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getMilestones(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             int getConfiguration(const std::string& postData, JsonObject& response);
@@ -74,4 +83,36 @@ namespace WPEFramework {
 	} // namespace Plugin
 } // namespace WPEFramework
 
+/**
+  * @brief : To map the error code with matching error message.
+  * @param1[in] : error code of type SysSrv_ErrorCode.
+  * @return : string; error message.
+  */
+std::string getErrorDescription(int errCode);
+
+/***
+ * @brief  : Used to read file contents into a vector
+ * @param1[in] : Complete file name with path
+ * @param2[in] : Destination vector buffer to be filled with file contents
+ * @return : <bool>; TRUE if operation success; else FALSE.
+ */
+bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs);
+
+/***
+ * @brief  : Used to construct JSON response from Vector.
+ * @param1[in] : Destination JSON response buffer
+ * @param2[in] : JSON "Key"
+ * @param3[in] : Source Vector.
+ * @return : <bool>; TRUE if operation success; else FALSE.
+ */
+void setJSONResponseArray(JsonObject& response, const char* key,
+        const std::vector<string>& items);
+
+/***
+ * @brief   : Used to construct response with module error status.
+ * @param1[in]  : Error Code
+ * @param2[out]: "response" JSON Object which is returned by the API
+   with updated module error status.
+ */
+void populateResponseWithError(int errorCode, JsonObject& response);
 
