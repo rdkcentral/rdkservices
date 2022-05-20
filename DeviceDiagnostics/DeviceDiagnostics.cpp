@@ -18,6 +18,7 @@
 **/
 
 #include "DeviceDiagnostics.h"
+#include "utils.h"
 
 #include <curl/curl.h>
 #include <time.h>
@@ -293,6 +294,11 @@ namespace WPEFramework
     } // namespace Plugin
 } // namespace WPEFramework
 
+std::map<int, std::string> ErrCodeMap = {
+    {SysSrv_FileNotPresent, "Expected file not found"},
+    {SysSrv_FileAccessFailed, "File access failed"}
+};
+
 std::string getErrorDescription(int errCode)
 {
     std::string errMsg = "Unexpected Error";
@@ -313,7 +319,7 @@ std::string getErrorDescription(int errCode)
 bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs)
 {
     bool retStatus = false;
-    std::ifstream inFile(fileName.c_str(), ios::in);
+    std::ifstream inFile(fileName.c_str(), std::ios::in);
 
     if (!inFile.is_open())
         return retStatus;

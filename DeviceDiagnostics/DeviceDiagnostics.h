@@ -105,7 +105,7 @@ bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs);
  * @return : <bool>; TRUE if operation success; else FALSE.
  */
 void setJSONResponseArray(JsonObject& response, const char* key,
-        const vector<string>& items);
+        const std::vector<string>& items);
 
 /***
  * @brief   : Used to construct response with module error status.
