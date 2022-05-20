@@ -26,7 +26,6 @@
 #endif
 
 #include "Module.h"
-#include "SystemServicesHelper.h"
 
 namespace WPEFramework {
 
