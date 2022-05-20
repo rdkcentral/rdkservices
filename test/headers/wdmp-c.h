@@ -1,6 +1,3 @@
-#ifndef __WDMP_C_H__
-#define __WDMP_C_H__
-
 #include <stdbool.h>
 #include <stdint.h>
 

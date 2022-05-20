@@ -1,6 +1,3 @@
-#ifndef RFCAPI_H_
-#define RFCAPI_H_
-
 #include <string.h>
 #include <stdlib.h>
 
