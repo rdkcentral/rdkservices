@@ -24,7 +24,7 @@ add_library(${MODULE_NAME} SHARED
         DeviceDiagnostics.cpp
         Module.cpp
         ../helpers/SystemServicesHelper.cpp
-        )
+	../helpers/utils.h)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
