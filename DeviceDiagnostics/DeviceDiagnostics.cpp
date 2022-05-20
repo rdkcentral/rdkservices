@@ -21,6 +21,7 @@
 
 #include <curl/curl.h>
 #include <time.h>
+#include <fstream>
 
 #include "UtilsJsonRpc.h"
 
@@ -273,7 +274,7 @@ namespace WPEFramework
                 JsonObject& response)
         {
             bool retAPIStatus = false;
-            vector<string> milestones;
+	    std::vector<string> milestones;
 
             if (Utils::fileExists(MILESTONES_LOG_FILE)) {
                 retAPIStatus = getFileContent(MILESTONES_LOG_FILE, milestones);
@@ -291,6 +292,17 @@ namespace WPEFramework
 
     } // namespace Plugin
 } // namespace WPEFramework
+
+std::string getErrorDescription(int errCode)
+{
+    std::string errMsg = "Unexpected Error";
+
+    auto it = ErrCodeMap.find(errCode);
+    if (ErrCodeMap.end() != it) {
+        errMsg = it->second;
+    }
+    return errMsg;
+}
 
 /***
  * @brief	: Used to read file contents into a vector
@@ -325,7 +337,7 @@ bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs)
  * @return	: <bool>; TRUE if operation success; else FALSE.
  */
 void setJSONResponseArray(JsonObject& response, const char* key,
-        const vector<string>& items)
+        const std::vector<string>& items)
 {
     JsonArray arr;
 

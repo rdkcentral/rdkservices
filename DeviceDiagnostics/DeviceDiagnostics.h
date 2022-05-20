@@ -82,6 +82,12 @@ namespace WPEFramework {
 	} // namespace Plugin
 } // namespace WPEFramework
 
+/**
+  * @brief : To map the error code with matching error message.
+  * @param1[in] : error code of type SysSrv_ErrorCode.
+  * @return : string; error message.
+  */
+std::string getErrorDescription(int errCode);
 
 /***
  * @brief  : Used to read file contents into a vector
