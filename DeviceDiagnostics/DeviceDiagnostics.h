@@ -26,7 +26,6 @@
 #endif
 
 #include "Module.h"
-#include "utils.h"
 
 #define MILESTONES_LOG_FILE                     "/opt/logs/rdk_milestones.log"
 
