@@ -27,6 +27,8 @@
 
 #include "Module.h"
 
+#define MILESTONES_LOG_FILE                     "/opt/logs/rdk_milestones.log"
+
 namespace WPEFramework {
 
     namespace Plugin {
