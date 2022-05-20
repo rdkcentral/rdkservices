@@ -48,4 +48,3 @@ const char* getRFCErrorString(WDMP_STATUS code);
 }
 #endif
 
-#endif

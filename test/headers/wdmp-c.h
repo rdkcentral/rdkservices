@@ -263,4 +263,3 @@ void mapWdmpStatusToStatusMessage(WDMP_STATUS status, char *result);
 /*----------------------------------------------------------------------------*/
 /* none */
 
-#endif
