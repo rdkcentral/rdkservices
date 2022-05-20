@@ -31,6 +31,13 @@
 
 #define DEVICE_DIAGNOSTICS_EVT_ON_AV_DECODER_STATUS_CHANGED "onAVDecoderStatusChanged"
 
+#define MILESTONES_LOG_FILE                     "/opt/logs/rdk_milestones.log"
+
+enum SysSrv_ErrorCode {
+    SysSrv_FileNotPresent,
+    SysSrv_FileAccessFailed
+};
+
 namespace WPEFramework
 {
     namespace Plugin
@@ -276,7 +283,7 @@ namespace WPEFramework
             bool retAPIStatus = false;
 	    std::vector<string> milestones;
 
-            if (Utils::fileExists(MILESTONES_LOG_FILE)) {
+            if (Core::File(MILESTONES_LOG_FILE).Exists()) {
                 retAPIStatus = getFileContent(MILESTONES_LOG_FILE, milestones);
                 if (retAPIStatus) {
                     setJSONResponseArray(response, "milestones", milestones);

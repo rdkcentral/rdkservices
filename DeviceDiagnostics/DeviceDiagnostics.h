@@ -27,13 +27,6 @@
 
 #include "Module.h"
 
-#define MILESTONES_LOG_FILE                     "/opt/logs/rdk_milestones.log"
-
-enum SysSrv_ErrorCode {
-    SysSrv_FileNotPresent,
-    SysSrv_FileAccessFailed
-};
-
 namespace WPEFramework {
 
     namespace Plugin {
