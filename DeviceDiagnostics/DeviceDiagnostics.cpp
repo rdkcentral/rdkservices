@@ -23,7 +23,6 @@
 #include <time.h>
 
 #include "UtilsJsonRpc.h"
-#include "SystemServicesHelper.h"
 
 #define DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION  "getConfiguration"
 #define DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS "getAVDecoderStatus"
@@ -293,4 +292,61 @@ namespace WPEFramework
     } // namespace Plugin
 } // namespace WPEFramework
 
+/***
+ * @brief	: Used to read file contents into a vector
+ * @param1[in]	: Complete file name with path
+ * @param2[in]	: Destination vector buffer to be filled with file contents
+ * @return	: <bool>; TRUE if operation success; else FALSE.
+ */
+bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs)
+{
+    bool retStatus = false;
+    std::ifstream inFile(fileName.c_str(), ios::in);
 
+    if (!inFile.is_open())
+        return retStatus;
+
+    std::string line;
+    retStatus = true;
+    while (std::getline(inFile, line)) {
+        if (line.size() > 0) {
+            vecOfStrs.push_back(line);
+        }
+    }
+    inFile.close();
+    return retStatus;
+}
+
+/***
+ * @brief	: Used to construct JSON response from Vector.
+ * @param1[in]	: Destination JSON response buffer
+ * @param2[in]	: JSON "Key"
+ * @param3[in]	: Source Vector.
+ * @return	: <bool>; TRUE if operation success; else FALSE.
+ */
+void setJSONResponseArray(JsonObject& response, const char* key,
+        const vector<string>& items)
+{
+    JsonArray arr;
+
+    for (auto& i : items) {
+        arr.Add(JsonValue(i));
+    }
+    response[key] = arr;
+}
+
+/***
+ * @brief	: Used to construct response with module error status.
+ * @param1[in]	: Error Code
+ * @param2[out]: "response" JSON Object which is returned by the API
+   with updated module error status.
+ */
+void populateResponseWithError(int errorCode, JsonObject& response)
+{
+     if (errorCode) {
+        LOGWARN("Method %s failed; reason : %s\n", __FUNCTION__,
+        getErrorDescription(errorCode).c_str());
+        response["SysSrv_Status"] = static_cast<uint32_t>(errorCode);
+        response["errorMessage"] = getErrorDescription(errorCode);
+     }
+}
