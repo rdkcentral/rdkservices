@@ -23,6 +23,7 @@
 #include <time.h>
 
 #include "UtilsJsonRpc.h"
+#include "SystemServicesHelper.h"
 
 #define DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION  "getConfiguration"
 #define DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS "getAVDecoderStatus"

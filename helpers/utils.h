@@ -16,6 +16,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
+#ifndef __UTILS_H__
+#define __UTILS_H__
 
 #pragma once
 
@@ -437,3 +439,5 @@ namespace Utils
         };
     };
 } // namespace Utils
+
+#endif
