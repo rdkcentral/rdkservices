@@ -23,10 +23,8 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 add_library(${MODULE_NAME} SHARED
         MaintenanceManager.cpp
         Module.cpp
-        ../helpers/cTimer.cpp
         ../helpers/cSettings.cpp
         ../helpers/powerstate.cpp
-        ../helpers/SystemServicesHelper.cpp
         ../helpers/utils.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES

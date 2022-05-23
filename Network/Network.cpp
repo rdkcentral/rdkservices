@@ -21,6 +21,7 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 #include "utils.h"
+#include "libIBus.h"
 
 using namespace std;
 
