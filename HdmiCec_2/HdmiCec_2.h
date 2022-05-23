@@ -159,6 +159,7 @@ namespace WPEFramework {
             virtual ~HdmiCec_2();
             virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
             static HdmiCec_2* _instance;
             CECDeviceInfo_2 deviceList[16];
             pthread_cond_t m_condSig;
