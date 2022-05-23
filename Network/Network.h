@@ -26,7 +26,6 @@
 #include "Module.h"
 #include "NetUtils.h"
 #include "utils.h"
-#include "upnpdiscoverymanager.h"
 
 
 // Define this to use netlink calls (where there may be an alternative method but netlink could provide
