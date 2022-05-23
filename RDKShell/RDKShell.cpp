@@ -473,8 +473,45 @@ namespace WPEFramework {
             bool mResult;
         };
 
+        struct CreateGroupRequest
+        {
+            CreateGroupRequest(std::string name, std::vector<std::string> clients): mName(name), mClients(clients), mResult(false)
+            {
+                sem_init(&mSemaphore, 0, 0);
+            }
+  
+            ~CreateGroupRequest()
+            {
+                sem_destroy(&mSemaphore);
+            }
+
+            std::string mName;
+            std::vector<std::string> mClients;
+            sem_t mSemaphore;
+            bool mResult;
+        };
+
+        struct DeleteGroupRequest
+        {
+            DeleteGroupRequest(std::string name): mName(name), mResult(false)
+            {
+                sem_init(&mSemaphore, 0, 0);
+            }
+  
+            ~DeleteGroupRequest()
+            {
+                sem_destroy(&mSemaphore);
+            }
+
+            std::string mName;
+            sem_t mSemaphore;
+            bool mResult;
+        };
+
         std::vector<std::shared_ptr<CreateDisplayRequest>> gCreateDisplayRequests;
         std::vector<std::shared_ptr<KillClientRequest>> gKillClientRequests;
+        std::vector<std::shared_ptr<CreateGroupRequest>> gCreateGroupRequests;
+        std::vector<std::shared_ptr<DeleteGroupRequest>> gDeleteGroupRequests;
 
         void RDKShell::launchRequestThread(RDKShellApiRequest apiRequest)
         {
@@ -1066,6 +1103,30 @@ namespace WPEFramework {
                       }
                       request->mResult = CompositorController::kill(request->mClient);
                       gKillClientRequests.erase(gKillClientRequests.begin());
+                      sem_post(&request->mSemaphore);
+                  }
+                  while (gCreateGroupRequests.size() > 0)
+                  {
+	              std::shared_ptr<CreateGroupRequest> request = gCreateGroupRequests.front();
+                      if (!request)
+                      {
+                          gCreateGroupRequests.erase(gCreateGroupRequests.begin());
+                          continue;
+                      }
+                      request->mResult = CompositorController::createGroup(request->mName, request->mClients);
+                      gCreateGroupRequests.erase(gCreateGroupRequests.begin());
+                      sem_post(&request->mSemaphore);
+                  }
+                  while (gDeleteGroupRequests.size() > 0)
+                  {
+	              std::shared_ptr<DeleteGroupRequest> request = gDeleteGroupRequests.front();
+                      if (!request)
+                      {
+                          gDeleteGroupRequests.erase(gDeleteGroupRequests.begin());
+                          continue;
+                      }
+                      request->mResult = CompositorController::deleteGroup(request->mName);
+                      gDeleteGroupRequests.erase(gDeleteGroupRequests.begin());
                       sem_post(&request->mSemaphore);
                   }
                   if (receivedResolutionRequest)
@@ -5406,8 +5467,11 @@ namespace WPEFramework {
                 for (int i = 0; i < clientsList.Length(); i++)
                     clients.push_back(clientsList[i].String());
             }
-            CompositorController::createGroup(group, clients);
-
+            gRdkShellMutex.lock();
+            std::shared_ptr<CreateGroupRequest> request = std::make_shared<CreateGroupRequest>(group, clients);
+            gCreateGroupRequests.push_back(request);
+            gRdkShellMutex.unlock();
+            sem_wait(&request->mSemaphore);
             returnResponse(true);
         }
 
@@ -5445,7 +5509,11 @@ namespace WPEFramework {
                 returnResponse(false);
             }
             std::string group = parameters["group"].String();
-            CompositorController::deleteGroup(group);
+            gRdkShellMutex.lock();
+            std::shared_ptr<DeleteGroupRequest> request = std::make_shared<DeleteGroupRequest>(group);
+            gDeleteGroupRequests.push_back(request);
+            gRdkShellMutex.unlock();
+            sem_wait(&request->mSemaphore);
             std::cout << "CompositorController::deleteGroup(" << group << ")\n";
 
             returnResponse(true);
