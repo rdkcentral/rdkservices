@@ -51,11 +51,8 @@
 
 namespace WPEFramework {
 namespace Plugin {
-#ifdef CONFIG_DEVICE_TV
-    class ControlSettings : public ControlSettingsTV {
-#else
-    class ControlSettings : public ControlSettingsSTB {
-#endif
+
+    class ControlSettings : public DEVICE_TYPE {
 
     private:
         ControlSettings(const ControlSettings&) = delete;
