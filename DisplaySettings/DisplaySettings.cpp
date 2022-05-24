@@ -134,6 +134,8 @@ namespace
 }
 #endif
 
+#define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
+
 namespace WPEFramework {
 
     namespace Plugin {
@@ -144,10 +146,12 @@ namespace WPEFramework {
         IARM_Bus_PWRMgr_PowerState_t DisplaySettings::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
 
         DisplaySettings::DisplaySettings()
-            : AbstractPlugin(2)
+            : PluginHost::JSONRPC()
         {
             LOGINFO("ctor");
             DisplaySettings::_instance = this;
+
+            CreateHandler({ 2 });
 
             registerMethod("getConnectedVideoDisplays", &DisplaySettings::getConnectedVideoDisplays, this);
             registerMethod("getConnectedAudioPorts", &DisplaySettings::getConnectedAudioPorts, this);
@@ -175,15 +179,15 @@ namespace WPEFramework {
             registerMethod("getVideoPortStatusInStandby", &DisplaySettings::getVideoPortStatusInStandby, this);
             registerMethod("getCurrentOutputSettings", &DisplaySettings::getCurrentOutputSettings, this);
 
-            registerMethod("getVolumeLeveller", &DisplaySettings::getVolumeLeveller, this, {1});
+            Register("getVolumeLeveller", &DisplaySettings::getVolumeLeveller, this);
             registerMethod("getBassEnhancer", &DisplaySettings::getBassEnhancer, this);
             registerMethod("isSurroundDecoderEnabled", &DisplaySettings::isSurroundDecoderEnabled, this);
             registerMethod("getDRCMode", &DisplaySettings::getDRCMode, this);
-            registerMethod("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer, this, {1});
-            registerMethod("setVolumeLeveller", &DisplaySettings::setVolumeLeveller, this, {1});
+            Register("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer, this);
+            Register("setVolumeLeveller", &DisplaySettings::setVolumeLeveller, this);
             registerMethod("setBassEnhancer", &DisplaySettings::setBassEnhancer, this);
             registerMethod("enableSurroundDecoder", &DisplaySettings::enableSurroundDecoder, this);
-            registerMethod("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer, this, {1});
+            Register("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer, this);
             registerMethod("setMISteering", &DisplaySettings::setMISteering, this);
             registerMethod("setGain", &DisplaySettings::setGain, this);
             registerMethod("getGain", &DisplaySettings::getGain, this);
@@ -235,10 +239,10 @@ namespace WPEFramework {
             registerMethod("getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
             registerMethod("setMS12ProfileSettingsOverride", &DisplaySettings::setMS12ProfileSettingsOverride,this);
 
-	    registerMethod("getVolumeLeveller", &DisplaySettings::getVolumeLeveller2, this, {2});
-	    registerMethod("setVolumeLeveller", &DisplaySettings::setVolumeLeveller2, this, {2});
-	    registerMethod("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer2, this, {2});
-	    registerMethod("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer2, this, {2});
+            GetHandler(2)->Register<JsonObject, JsonObject>("getVolumeLeveller", &DisplaySettings::getVolumeLeveller2, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>("setVolumeLeveller", &DisplaySettings::setVolumeLeveller2, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer2, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer2, this);
             registerMethod("getVideoFormat", &DisplaySettings::getVideoFormat, this);
 
             registerMethod("setPreferredColorDepth", &DisplaySettings::setPreferredColorDepth, this);
@@ -2080,6 +2084,7 @@ namespace WPEFramework {
 	     JsonObject params;
 	     audioFormatToString(audioFormat, params);
              sendNotify("audioFormatChanged", params);
+        GetHandler(2)->Notify("audioFormatChanged", params);
 	}
 
 	void DisplaySettings::notifyVideoFormatChange(dsHDRStandard_t videoFormat)
@@ -2089,6 +2094,7 @@ namespace WPEFramework {
 
             params["supportedVideoFormat"] = getSupportedVideoFormats();
             sendNotify("videoFormatChanged", params);
+        GetHandler(2)->Notify("videoFormatChanged", params);
         }
 
         void DisplaySettings::notifyAssociatedAudioMixingChange(bool mixing)
@@ -2096,6 +2102,7 @@ namespace WPEFramework {
              JsonObject params;
              params["mixing"] = mixing;
              sendNotify("associatedAudioMixingChanged", params);
+            GetHandler(2)->Notify("associatedAudioMixingChanged", params);
         }
 
         void DisplaySettings::notifyFaderControlChange(bool mixerbalance)
@@ -2103,6 +2110,7 @@ namespace WPEFramework {
              JsonObject params;
              params["mixerBalance"] = mixerbalance;
              sendNotify("faderControlChanged", params);
+            GetHandler(2)->Notify("faderControlChanged", params);
         }
 
         void DisplaySettings::notifyPrimaryLanguageChange(std::string pLang)
@@ -2110,6 +2118,7 @@ namespace WPEFramework {
              JsonObject params;
              params["primaryLanguage"] = pLang;
              sendNotify("primaryLanguageChanged", params);
+            GetHandler(2)->Notify("primaryLanguageChanged", params);
         }
 
         void DisplaySettings::notifySecondaryLanguageChange(std::string sLang)
@@ -2117,6 +2126,7 @@ namespace WPEFramework {
              JsonObject params;
              params["secondaryLanguage"] = sLang;
              sendNotify("secondaryLanguageChanged", params);
+            GetHandler(2)->Notify("secondaryLanguageChanged", params);
         }
 
         uint32_t DisplaySettings::getBassEnhancer(const JsonObject& parameters, JsonObject& response)
@@ -4984,6 +4994,7 @@ namespace WPEFramework {
         void DisplaySettings::resolutionPreChange()
         {
             sendNotify("resolutionPreChange", JsonObject());
+            GetHandler(2)->Notify("resolutionPreChange", JsonObject());
         }
 
         void DisplaySettings::resolutionChanged(int width, int height)
@@ -5019,6 +5030,7 @@ namespace WPEFramework {
                         params["videoDisplayType"] = display;
                         params["resolution"] = resolution;
                         sendNotify("resolutionChanged", params);
+                        GetHandler(2)->Notify("resolutionChanged", params);
                         return;
                     }
                     else if (!firstResolutionSet)
@@ -5038,6 +5050,7 @@ namespace WPEFramework {
                 params["videoDisplayType"] = firstDisplay;
                 params["resolution"] = firstResolution;
                 sendNotify("resolutionChanged", params);
+                GetHandler(2)->Notify("resolutionChanged", params);
             }
         }
 
@@ -5048,6 +5061,7 @@ namespace WPEFramework {
             params["zoomSetting"] = zoomSetting;
             params["videoDisplayType"] = "all";
             sendNotify("zoomSettingUpdated", params);
+            GetHandler(2)->Notify("zoomSettingUpdated", params);
         }
 
         void DisplaySettings::activeInputChanged(bool activeInput)
@@ -5055,6 +5069,7 @@ namespace WPEFramework {
             JsonObject params;
             params["activeInput"] = activeInput;
             sendNotify("activeInputChanged", params);
+            GetHandler(2)->Notify("activeInputChanged", params);
         }
 
         void DisplaySettings::connectedVideoDisplaysUpdated(int hdmiHotPlugEvent)
@@ -5078,6 +5093,7 @@ namespace WPEFramework {
                 JsonObject params;
                 params["connectedVideoDisplays"] = connectedDisplays;
                 sendNotify("connectedVideoDisplaysUpdated", params);
+                GetHandler(2)->Notify("connectedVideoDisplaysUpdated", params);
             }
             previousStatus = hdmiHotPlugEvent;
         }
@@ -5115,6 +5131,7 @@ namespace WPEFramework {
             }
             LOGWARN ("Thunder sends notification %s audio port hotplug status %s", sPortName.c_str(), sPortStatus.c_str());
             sendNotify("connectedAudioPortUpdated", params);
+            GetHandler(2)->Notify("connectedAudioPortUpdated", params);
         }
 
         //End events

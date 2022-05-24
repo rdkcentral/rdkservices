@@ -27,7 +27,6 @@
 #include "Module.h"
 #include "tracing/Logging.h"
 #include "utils.h"
-#include "SystemServicesHelper.h"
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
 #include "libIBus.h"
@@ -38,7 +37,6 @@
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
 #include "sysMgr.h"
-#include "cTimer.h"
 #include "rfcapi.h"
 #include "cSettings.h"
 
