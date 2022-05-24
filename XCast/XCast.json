@@ -38,9 +38,9 @@
             "example": "active"
         },
         "version": {
-            "summary": "DIAL protocol version string",
+            "summary": "DIAL protocol version",
             "type": "string",
-            "example": "2.1 or 2.2.1 etc."
+            "example": "2.1"
         },
         "result": {
             "type":"object",
@@ -116,6 +116,24 @@
                 ]               
             }
         },
+        "getProtocolVersion":{
+            "summary": "Returns the DIAL protocol version supported by the server.\n  \n### Events \n\n No Events",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "version": {
+                        "$ref": "#/definitions/version"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "version",
+                    "success"
+                ]
+            }
+        },
         "getStandbyBehavior":{
             "summary": "Gets the expected xcast behavior in standby mode.\n  \n### Events \n\n No Events",
             "result": {
@@ -133,25 +151,7 @@
                     "success"
                 ]               
             }
-        },
-        "getProtocolVersion":{
-            "summary": "Return the DIAL protocol version supported by the server .\n  \n### Events \n\n No Events",
-            "result": {
-                "type":"object",
-                "properties": {
-                    "version": {
-                        "$ref": "#/definitions/version"
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "version",
-                    "success"
-                ]
-            }
-        },
+        },  
         "onApplicationStateChanged":{
             "summary": "Provides notification whenever an application changes state due to user activity, an internal error, or other reasons. For singleton applications, the `applicationId` parameter is optional. If an application request is denied, fails to fulfill, or the state change is triggered by an internal error, then a predefined error string should be included. This error may be translated to an XCast client.  \n\nThe following table provides a client error mapping example: \n\n| Error | Description | HTTP Status Codes |  \n| :-------- | :-------- | :-------- |   \n| `none` | The request (start/stop) is fulfilled successfully | HTTP 200 OK |  \n| `forbidden` | The user is not allowed to change the state of the application. This is not related to user account authentication of the native application | HTTP 403 Forbidden |  \n| `unavailable` | The target native application is not available on the device | HTTP 404 Not Found |  \n| `invalid` | The request is invalid (bad parameter for example) | HTTP 400 Bad Request |  \n| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |\n  \n### Events \n\n No Events",
             "params": {

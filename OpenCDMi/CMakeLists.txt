@@ -17,6 +17,7 @@
 
 set(PLUGIN_NAME OCDM)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+set(PLUGIN_OCDM_IMPLEMENTATION "${MODULE_NAME}Impl" CACHE STRING "Specify a library with a OCDM implementation." )
 
 set(PLUGIN_OPENCDMI_AUTOSTART "true" CACHE STRING "Automatically start OpenCDMi plugin")
 set(PLUGIN_OPENCDMI_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
@@ -33,12 +34,17 @@ find_package(ocdm REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
-add_library(${MODULE_NAME} SHARED 
+add_library(${MODULE_NAME} SHARED
         OCDM.cpp
         OCDMJsonRpc.cpp
+        Module.cpp)
+
+add_library(${PLUGIN_OCDM_IMPLEMENTATION} SHARED
         CENCParser.cpp
         FrameworkRPC.cpp
         Module.cpp)
+
+add_dependencies(${MODULE_NAME} ${PLUGIN_OCDM_IMPLEMENTATION})
 
 # avoid -as-needed flag being set, this will break linking to libocdm.so
 string(REPLACE "-Wl,--as-needed" "" CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
@@ -48,13 +54,25 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
-target_link_libraries(${MODULE_NAME} 
+set_target_properties(${PLUGIN_OCDM_IMPLEMENTATION} PROPERTIES
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED YES)
+
+target_link_libraries(${MODULE_NAME}
         PRIVATE
                 CompileSettingsDebug::CompileSettingsDebug
-                ${NAMESPACE}Plugins::${NAMESPACE}Plugins 
+                ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
+target_link_libraries(${PLUGIN_OCDM_IMPLEMENTATION}
+        PRIVATE
+                CompileSettingsDebug::CompileSettingsDebug
+                ${NAMESPACE}Plugins::${NAMESPACE}Plugins
                 ocdm::ocdm)
+
 # Library definition section
-install(TARGETS ${MODULE_NAME} 
+install(TARGETS ${MODULE_NAME}
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
+
+install(TARGETS ${PLUGIN_OCDM_IMPLEMENTATION}
         DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
 
 if("${CMAKE_FIND_ROOT_PATH}" STREQUAL "")
