@@ -96,6 +96,7 @@ SystemAudioPlayer interface methods:
 | [playbuffer](#playbuffer) | Buffers the audio playback on the specified player |
 | [resume](#resume) | Resumes playback on the specified player |
 | [setMixerLevels](#setMixerLevels) | Sets the audio level on the specified player |
+| [setSmartVolControl](#setSmartVolControl) | Sets the smart audio volume level on the specified player |
 | [stop](#stop) | Stops playback on the specified player |
 | [getPlayerSessionId](#getPlayerSessionId) | Get the session ID by providing the URL as the input parameter |
 
@@ -595,7 +596,6 @@ Sets the audio level on the specified player. The `SystemAudioPlayer` plugin can
     }
 }
 ```
-
 <a name="stop"></a>
 ## *stop*
 
@@ -729,6 +729,7 @@ The following events are supported.
 | NETWORK_ERROR | Triggered when a playback network error occurs (httpsrc/web socket) |  
 | PLAYBACK_ERROR| Triggered when any other playback error occurs (internal issue)|  
 | NEED_DATA|  Triggered when the buffer needs more data to play|.
+| PLAYBACK_INPROGRESS| Triggered when playback is in progress |
 
 ### Parameters
 
