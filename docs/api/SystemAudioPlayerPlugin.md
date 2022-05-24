@@ -96,6 +96,7 @@ SystemAudioPlayer interface methods:
 | [playbuffer](#playbuffer) | Buffers the audio playback on the specified player |
 | [resume](#resume) | Resumes playback on the specified player |
 | [setMixerLevels](#setMixerLevels) | Sets the audio level on the specified player |
+| [setSmartVolControl](#setSmartVolControl) | Sets the smart audio volume level on the specified player |
 | [stop](#stop) | Stops playback on the specified player |
 | [getPlayerSessionId](#getPlayerSessionId) | Get the session ID by providing the URL as the input parameter |
 
@@ -595,7 +596,66 @@ Sets the audio level on the specified player. The `SystemAudioPlayer` plugin can
     }
 }
 ```
+<a name="setSmartVolControl"></a>
+## *setSmartVolControl*
 
+Sets the smart volume audio control on the specified player. The `SystemAudioPlayer` plugin can control the smart volume of the content being played back as well as the primary program audio; thus, an application can duck down the volume on the primary program audio when system audio is played and then restore it back when the system audio playback is complete.
+
+### Events
+
+| Event | Description |
+| :----------- | :----------- |
+| `onsapevents:PLAYBACK_INPROGRESS`| Triggered if the playback in progress on the specified player.|.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.id | integer | A unique identifier for a player instance |
+| params.enable | bool | Smart Volume control identifier for a enable/disable |
+| params.playerAudioLevelThreshold | double | the minimum audio level threshold in the player source stream, above which triggers smart audio mixing detection. Range: 0 to 1 (in real number) |
+| params.playerDetectTimeMs | int | the duration that playerAudioLevelThreshold must be detected for before primary audio ducking is started. Range: Above 0 (in milliseconds) |
+| params.playerHoldTimeMs | int | the duration that primary audio ducking is enabled for, after the playerAudioLevelThreshold trigger is no longer met before primary audio ducking is stopped. Range: Above 0 (in milliseconds)  |
+| params.primaryDuckingPercent | int | Primary Volume duck percent. Valid values are `0` to `100` where `0` is the minimum and `100` is the maximum volume.  |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.SystemAudioPlayer.1.setSmartVolControl",
+    "params": {
+        "id": 1,
+        "enable": "true",
+        "playerAudioLevelThreshold": "0.1",
+        "playerDetectTimeMs": "200",
+        "playerHoldTimeMs": "1000",
+        "primaryDuckingPercent": "10"
+	}
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
 <a name="stop"></a>
 ## *stop*
 
@@ -729,6 +789,7 @@ The following events are supported.
 | NETWORK_ERROR | Triggered when a playback network error occurs (httpsrc/web socket) |  
 | PLAYBACK_ERROR| Triggered when any other playback error occurs (internal issue)|  
 | NEED_DATA|  Triggered when the buffer needs more data to play|.
+| PLAYBACK_INPROGRESS| Triggered when playback is in progress |
 
 ### Parameters
 
