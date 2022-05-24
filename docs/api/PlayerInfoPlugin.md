@@ -197,7 +197,7 @@ PlayerInfo interface properties:
 
 
 <a name="playerinfo"></a>
-## *playerinfo [<sup>property</sup>](#Properties)*
+## *playerinfo*
 
 Provides access to the player general information.
 
@@ -243,7 +243,7 @@ Provides access to the player general information.
 ```
 
 <a name="resolution"></a>
-## *resolution [<sup>property</sup>](#Properties)*
+## *resolution*
 
 Provides access to the current configured video output port resolution.
 
@@ -278,7 +278,7 @@ Provides access to the current configured video output port resolution.
 ```
 
 <a name="isaudioequivalenceenabled"></a>
-## *isaudioequivalenceenabled [<sup>property</sup>](#Properties)*
+## *isaudioequivalenceenabled*
 
 Provides access to the check for Loudness Equivalence in the platform.
 
@@ -313,7 +313,7 @@ Provides access to the check for Loudness Equivalence in the platform.
 ```
 
 <a name="dolby_atmosmetadata"></a>
-## *dolby_atmosmetadata [<sup>property</sup>](#Properties)*
+## *dolby_atmosmetadata*
 
 Provides access to the atmos capabilities of Sink.
 
@@ -348,7 +348,7 @@ Provides access to the atmos capabilities of Sink.
 ```
 
 <a name="dolby_soundmode"></a>
-## *dolby_soundmode [<sup>property</sup>](#Properties)*
+## *dolby_soundmode*
 
 Provides access to the current sound mode.
 
@@ -383,7 +383,7 @@ Provides access to the current sound mode.
 ```
 
 <a name="dolby_enableatmosoutput"></a>
-## *dolby_enableatmosoutput [<sup>property</sup>](#Properties)*
+## *dolby_enableatmosoutput*
 
 Provides access to the audio output enablement for Atmos.
 
@@ -419,7 +419,7 @@ Provides access to the audio output enablement for Atmos.
 ```
 
 <a name="dolby_mode"></a>
-## *dolby_mode [<sup>property</sup>](#Properties)*
+## *dolby_mode*
 
 Provides access to the dolby mode.
 
