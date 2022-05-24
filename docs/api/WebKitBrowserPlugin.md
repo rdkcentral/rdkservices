@@ -278,7 +278,7 @@ WebKitBrowser interface properties:
 
 
 <a name="fps"></a>
-## *fps [<sup>property</sup>](#Properties)*
+## *fps*
 
 Provides access to the current number of frames-per-second the browser is rendering.
 
@@ -313,7 +313,7 @@ Provides access to the current number of frames-per-second the browser is render
 ```
 
 <a name="headers"></a>
-## *headers [<sup>property</sup>](#Properties)*
+## *headers*
 
 Provides access to the headers to send on all requests that the browser makes.
 
@@ -388,7 +388,7 @@ Use this property to send on all requests that the browser makes.
 ```
 
 <a name="httpcookieacceptpolicy"></a>
-## *httpcookieacceptpolicy [<sup>property</sup>](#Properties)*
+## *httpcookieacceptpolicy*
 
 Provides access to the HTTP cookies accept policy.
 
@@ -456,7 +456,7 @@ Use this property to accept HTTP cookie policy.
 ```
 
 <a name="languages"></a>
-## *languages [<sup>property</sup>](#Properties)*
+## *languages*
 
 Provides access to the user preferred languages.
 
@@ -523,7 +523,7 @@ Use this property to return User preferred languages.
 ```
 
 <a name="localstorageenabled"></a>
-## *localstorageenabled [<sup>property</sup>](#Properties)*
+## *localstorageenabled*
 
 Provides access to the local storage availability.
 
@@ -585,7 +585,7 @@ Use this property to return Local storage availability.
 ```
 
 <a name="state"></a>
-## *state [<sup>property</sup>](#Properties)*
+## *state*
 
 Provides access to the running state of the service.
 
@@ -650,7 +650,7 @@ Also see: [statechange](#statechange)
 ```
 
 <a name="url"></a>
-## *url [<sup>property</sup>](#Properties)*
+## *url*
 
 Provides access to the URL loaded in the browser.
 
@@ -723,7 +723,7 @@ Also see: [urlchange](#urlchange)
 ```
 
 <a name="useragent"></a>
-## *useragent [<sup>property</sup>](#Properties)*
+## *useragent*
 
 Provides access to the `UserAgent` string used by the browser.
 
@@ -785,7 +785,7 @@ Use this property to return `UserAgent` string used by the browser.
 ```
 
 <a name="visibility"></a>
-## *visibility [<sup>property</sup>](#Properties)*
+## *visibility*
 
 Provides access to the current browser visibility.
 

@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.VoiceControl_Plugin"></a>
+<a name="VoiceControl_Plugin"></a>
 # VoiceControl Plugin
 
 **Version: 1.0**
@@ -10,61 +10,61 @@ A org.rdk.VoiceControl plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the org.rdk.VoiceControl plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `VoiceControl` plugin manages voice control sessions.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -76,7 +76,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkVoiceControl.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.VoiceControl plugin:
@@ -85,15 +85,15 @@ VoiceControl interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [configureVoice](#method.configureVoice) | Configures the RDK's voice stack |
-| [sendVoiceMessage](#method.sendVoiceMessage) | Sends a message to the Voice Server |
-| [setVoiceInit](#method.setVoiceInit) | Sets the application metadata in the INIT message that gets sent to the Voice Server |
-| [voiceSessionByText](#method.voiceSessionByText) | Sends a voice session with a transcription string to simulate a real voice session for QA |
-| [voiceStatus](#method.voiceStatus) | Returns the current status of the RDK voice stack |
+| [configureVoice](#configureVoice) | Configures the RDK's voice stack |
+| [sendVoiceMessage](#sendVoiceMessage) | Sends a message to the Voice Server |
+| [setVoiceInit](#setVoiceInit) | Sets the application metadata in the INIT message that gets sent to the Voice Server |
+| [voiceSessionByText](#voiceSessionByText) | Sends a voice session with a transcription string to simulate a real voice session for QA |
+| [voiceStatus](#voiceStatus) | Returns the current status of the RDK voice stack |
 
 
-<a name="method.configureVoice"></a>
-## *configureVoice [<sup>method</sup>](#head.Methods)*
+<a name="configureVoice"></a>
+## *configureVoice*
 
 Configures the RDK's voice stack. NOTE: The URL Scheme determines which VREX API protocol is used. Supported URL schemes include:  
 * http/https - VREX Legacy HTTP API  
@@ -170,8 +170,8 @@ Configures the RDK's voice stack. NOTE: The URL Scheme determines which VREX API
 }
 ```
 
-<a name="method.sendVoiceMessage"></a>
-## *sendVoiceMessage [<sup>method</sup>](#head.Methods)*
+<a name="sendVoiceMessage"></a>
+## *sendVoiceMessage*
 
 Sends a message to the Voice Server. The specification of this message is not in the scope of this document. Example use cases for this API call include sending context or sending ASR blobs to the server.
 
@@ -226,8 +226,8 @@ Sends a message to the Voice Server. The specification of this message is not in
 }
 ```
 
-<a name="method.setVoiceInit"></a>
-## *setVoiceInit [<sup>method</sup>](#head.Methods)*
+<a name="setVoiceInit"></a>
+## *setVoiceInit*
 
 Sets the application metadata in the INIT message that gets sent to the Voice Server. The specification of this blob is not in the scope of this document, but it MUST be a JSON blob.
 
@@ -281,8 +281,8 @@ Sets the application metadata in the INIT message that gets sent to the Voice Se
 }
 ```
 
-<a name="method.voiceSessionByText"></a>
-## *voiceSessionByText [<sup>method</sup>](#head.Methods)*
+<a name="voiceSessionByText"></a>
+## *voiceSessionByText*
 
 Sends a voice session with a transcription string to simulate a real voice session for QA. Example use cases for this API call include rack and automation testing.
 
@@ -296,7 +296,7 @@ Sends a voice session with a transcription string to simulate a real voice sessi
 | `onStreamEnd` |Triggers if streaming audio is stopped from the device |
 | `onSessionEnd` |Triggers if interaction with the server is end|.
 
-Also see: [onSessionBegin](#event.onSessionBegin), [onStreamBegin](#event.onStreamBegin), [onServerMessage](#event.onServerMessage), [onStreamEnd](#event.onStreamEnd), [onSessionEnd](#event.onSessionEnd)
+Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [onServerMessage](#onServerMessage), [onStreamEnd](#onStreamEnd), [onSessionEnd](#onSessionEnd)
 
 ### Parameters
 
@@ -341,8 +341,8 @@ Also see: [onSessionBegin](#event.onSessionBegin), [onStreamBegin](#event.onStre
 }
 ```
 
-<a name="method.voiceStatus"></a>
-## *voiceStatus [<sup>method</sup>](#head.Methods)*
+<a name="voiceStatus"></a>
+## *voiceStatus*
 
 Returns the current status of the RDK voice stack. This includes which URLs the stack is currently configured for along with the status for each device type.
 
@@ -413,10 +413,10 @@ This method takes no parameters.
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.VoiceControl plugin:
 
@@ -424,16 +424,16 @@ VoiceControl interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onKeywordVerification](#event.onKeywordVerification) | Triggered when a keyword verification result is received |
-| [onServerMessage](#event.onServerMessage) | Triggered when a message is received from the Voice Server |
-| [onSessionBegin](#event.onSessionBegin) | Triggered when a voice session begins |
-| [onSessionEnd](#event.onSessionEnd) | Triggered when the interaction with the server has concluded |
-| [onStreamBegin](#event.onStreamBegin) | Triggered when a device starts streaming voice data to the RDK |
-| [onStreamEnd](#event.onStreamEnd) | Triggered when the device has stopped streaming audio |
+| [onKeywordVerification](#onKeywordVerification) | Triggered when a keyword verification result is received |
+| [onServerMessage](#onServerMessage) | Triggered when a message is received from the Voice Server |
+| [onSessionBegin](#onSessionBegin) | Triggered when a voice session begins |
+| [onSessionEnd](#onSessionEnd) | Triggered when the interaction with the server has concluded |
+| [onStreamBegin](#onStreamBegin) | Triggered when a device starts streaming voice data to the RDK |
+| [onStreamEnd](#onStreamEnd) | Triggered when the device has stopped streaming audio |
 
 
-<a name="event.onKeywordVerification"></a>
-## *onKeywordVerification [<sup>event</sup>](#head.Notifications)*
+<a name="onKeywordVerification"></a>
+## *onKeywordVerification*
 
 Triggered when a keyword verification result is received.
 
@@ -460,8 +460,8 @@ Triggered when a keyword verification result is received.
 }
 ```
 
-<a name="event.onServerMessage"></a>
-## *onServerMessage [<sup>event</sup>](#head.Notifications)*
+<a name="onServerMessage"></a>
+## *onServerMessage*
 
 Triggered when a message is received from the Voice Server. The `params` value is a contract between the Voice Server and the Application. The definition of this object is outside of the scope of this document.
 
@@ -490,8 +490,8 @@ Triggered when a message is received from the Voice Server. The `params` value i
 }
 ```
 
-<a name="event.onSessionBegin"></a>
-## *onSessionBegin [<sup>event</sup>](#head.Notifications)*
+<a name="onSessionBegin"></a>
+## *onSessionBegin*
 
 Triggered when a voice session begins.
 
@@ -520,8 +520,8 @@ Triggered when a voice session begins.
 }
 ```
 
-<a name="event.onSessionEnd"></a>
-## *onSessionEnd [<sup>event</sup>](#head.Notifications)*
+<a name="onSessionEnd"></a>
+## *onSessionEnd*
 
 Triggered when the interaction with the server has concluded.
 
@@ -585,8 +585,8 @@ Triggered when the interaction with the server has concluded.
 }
 ```
 
-<a name="event.onStreamBegin"></a>
-## *onStreamBegin [<sup>event</sup>](#head.Notifications)*
+<a name="onStreamBegin"></a>
+## *onStreamBegin*
 
 Triggered when a device starts streaming voice data to the RDK. This event is optional, and will most likely be used for follow up sessions.
 
@@ -611,8 +611,8 @@ Triggered when a device starts streaming voice data to the RDK. This event is op
 }
 ```
 
-<a name="event.onStreamEnd"></a>
-## *onStreamEnd [<sup>event</sup>](#head.Notifications)*
+<a name="onStreamEnd"></a>
+## *onStreamEnd*
 
 Triggered when the device has stopped streaming audio.
 

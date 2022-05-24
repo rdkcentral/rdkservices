@@ -88,8 +88,8 @@ XCast interface methods:
 | [getApiVersionNumber](#getApiVersionNumber) | Gets the API version |
 | [getEnabled](#getEnabled) | Reports whether xcast is enabled or disabled |
 | [getFriendlyName](#getFriendlyName) | Returns the friendly name set by setFriendlyName API |
+| [getProtocolVersion](#getProtocolVersion) | Returns the DIAL protocol version supported by the server |
 | [getStandbyBehavior](#getStandbyBehavior) | Gets the expected xcast behavior in standby mode |
-| [getProtocolVersion](#getProtocolVersion) | Return the DIAL protocol version supported by the server  |
 | [onApplicationStateChanged](#onApplicationStateChanged) | Provides notification whenever an application changes state due to user activity, an internal error, or other reasons |
 | [registerApplications](#registerApplications) | Registers an application |
 | [setEnabled](#setEnabled) | Enables or disables xcast |
@@ -235,6 +235,52 @@ This method takes no parameters.
 }
 ```
 
+<a name="getProtocolVersion"></a>
+## *getProtocolVersion*
+
+Returns the DIAL protocol version supported by the server.
+  
+### Events 
+
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.version | string | DIAL protocol version |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Xcast.1.getProtocolVersion"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "version": "2.1",
+        "success": true
+    }
+}
+```
+
 <a name="getStandbyBehavior"></a>
 ## *getStandbyBehavior*
 
@@ -276,52 +322,6 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "standbybehavior": "active",
-        "success": true
-    }
-}
-```
-
-<a name="getProtocolVersion"></a>
-## *getProtocolVersion*
-
-Return the DIAL protocol version supported by the server .
-  
-### Events 
-
- No Events.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.version | string | DIAL protocol version string |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.Xcast.1.getProtocolVersion"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "version": "2.1 or 2.2.1 etc.",
         "success": true
     }
 }
