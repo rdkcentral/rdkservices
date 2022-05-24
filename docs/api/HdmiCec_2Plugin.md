@@ -60,7 +60,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="Description"></a>
 # Description
 
-The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box.
+The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. The HdmiCec_2 plugin is meant to be used on the source devices where an application relies on the Thunder plugin to handle protocol related messaging. The plugin also provides API's and events to implement the CEC use cases.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
