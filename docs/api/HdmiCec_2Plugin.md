@@ -60,7 +60,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="Description"></a>
 # Description
 
-The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box.
+The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. The HdmiCec_2 plugin is meant to be used on the source devices where an application relies on the Thunder plugin to handle protocol related messaging. The plugin also provides API's and events to implement the CEC use cases.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
@@ -85,12 +85,12 @@ HdmiCec_2 interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
+| [getActiveSourceStatus](#getActiveSourceStatus) | Gets the active source status of the device |
 | [getDeviceList](#getDeviceList) | Gets the list of CEC enabled devices connected and system information for each device |
 | [getEnabled](#getEnabled) | Returns HDMI-CEC driver enabled status |
 | [getOSDName](#getOSDName) | Returns the OSD name set by the application |
 | [getOTPEnabled](#getOTPEnabled) | Returns HDMI-CEC OTP option enabled status |
 | [getVendorId](#getVendorId) | Returns the vendor ID set by the application |
-| [getActiveSourceStatus](#getActiveSourceStatus) | Get the active source status of the device |
 | [performOTPAction](#performOTPAction) | Turns on the TV and takes back the input to the device |
 | [sendStandbyMessage](#sendStandbyMessage) | Sends a CEC \<Standby\> message to the logical address of the device |
 | [setEnabled](#setEnabled) | Enables or disables HDMI-CEC driver |
@@ -98,6 +98,56 @@ HdmiCec_2 interface methods:
 | [setOTPEnabled](#setOTPEnabled) | Enables or disables HDMI-CEC OTP option |
 | [setVendorId](#setVendorId) | Sets the vendor ID of the application |
 
+
+<a name="getActiveSourceStatus"></a>
+## *getActiveSourceStatus*
+
+Gets the active source status of the device.
+  
+### Event 
+
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.status | boolean | `true` if the device is active source otherwise, `false` |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiCec_2.1.getActiveSourceStatus",
+    "params": {
+        "status": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
 
 <a name="getDeviceList"></a>
 ## *getDeviceList*
@@ -336,56 +386,6 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "vendorid": "0x0019FB",
-        "success": true
-    }
-}
-```
-
-<a name="getActiveSourceStatus"></a>
-## *getActiveSourceStatus*
-
-Get the active source status of the device.
-  
-### Event 
-
- No Events.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.status | boolean | status true means device is active source and false means device is not active source |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.HdmiCec_2.1.getActiveSourceStatus",
-    "params": {
-        "status": true
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
         "success": true
     }
 }
@@ -690,12 +690,36 @@ HdmiCec_2 interface events:
 
 | Event | Description |
 | :-------- | :-------- |
+| [onActiveSourceStatusUpdated](#onActiveSourceStatusUpdated) | Triggered when the device active source status changes |
 | [onDeviceAdded](#onDeviceAdded) | Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device |
 | [onDeviceInfoUpdated](#onDeviceInfoUpdated) | Triggered when device system information is updated (vendorID, osdName) |
 | [onDeviceRemoved](#onDeviceRemoved) | Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device |
 | [standbyMessageReceived](#standbyMessageReceived) | Triggered when the source device changes status to `STANDBY` |
-| [onActiveSourceStatusUpdated](#onActiveSourceStatusUpdated) | Triggered when device active source status changes  |
 
+
+<a name="onActiveSourceStatusUpdated"></a>
+## *onActiveSourceStatusUpdated*
+
+Triggered when the device active source status changes.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.status | boolean | `true` if the device is active source otherwise, `false` |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onActiveSourceStatusUpdated",
+    "params": {
+        "status": true
+    }
+}
+```
 
 <a name="onDeviceAdded"></a>
 ## *onDeviceAdded*
@@ -789,30 +813,6 @@ Triggered when the source device changes status to `STANDBY`.
     "method": "client.events.1.standbyMessageReceived",
     "params": {
         "logicalAddress": 0
-    }
-}
-```
-
-<a name="onActiveSourceStatusUpdated"></a>
-## *onActiveSourceStatusUpdated*
-
-Triggered when device active source status changes .
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.status | boolean | status true means device is active source and false means device is not active source |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onActiveSourceStatusUpdated",
-    "params": {
-        "status": true
     }
 }
 ```

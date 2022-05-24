@@ -243,7 +243,7 @@ DisplayInfo interface properties:
 
 
 <a name="totalgpuram"></a>
-## *totalgpuram [<sup>property</sup>](#Properties)*
+## *totalgpuram*
 
 Provides access to the total GPU DRAM memory (in bytes).
 
@@ -278,7 +278,7 @@ Provides access to the total GPU DRAM memory (in bytes).
 ```
 
 <a name="freegpuram"></a>
-## *freegpuram [<sup>property</sup>](#Properties)*
+## *freegpuram*
 
 Provides access to the free GPU DRAM memory (in bytes).
 
@@ -313,7 +313,7 @@ Provides access to the free GPU DRAM memory (in bytes).
 ```
 
 <a name="isaudiopassthrough"></a>
-## *isaudiopassthrough [<sup>property</sup>](#Properties)*
+## *isaudiopassthrough*
 
 Provides access to the current audio passthrough status on HDMI.
 
@@ -348,7 +348,7 @@ Provides access to the current audio passthrough status on HDMI.
 ```
 
 <a name="connected"></a>
-## *connected [<sup>property</sup>](#Properties)*
+## *connected*
 
 Provides access to the current HDMI connection status.
 
@@ -383,7 +383,7 @@ Provides access to the current HDMI connection status.
 ```
 
 <a name="width"></a>
-## *width [<sup>property</sup>](#Properties)*
+## *width*
 
 Provides access to the horizontal resolution of the TV.
 
@@ -418,7 +418,7 @@ Provides access to the horizontal resolution of the TV.
 ```
 
 <a name="height"></a>
-## *height [<sup>property</sup>](#Properties)*
+## *height*
 
 Provides access to the vertical resolution of the TV.
 
@@ -453,7 +453,7 @@ Provides access to the vertical resolution of the TV.
 ```
 
 <a name="verticalfreq"></a>
-## *verticalfreq [<sup>property</sup>](#Properties)*
+## *verticalfreq*
 
 Provides access to the vertical Frequency.
 
@@ -488,7 +488,7 @@ Provides access to the vertical Frequency.
 ```
 
 <a name="hdcpprotection"></a>
-## *hdcpprotection [<sup>property</sup>](#Properties)*
+## *hdcpprotection*
 
 Provides access to the HDCP protocol used for transmission.
 
@@ -523,7 +523,7 @@ Provides access to the HDCP protocol used for transmission.
 ```
 
 <a name="portname"></a>
-## *portname [<sup>property</sup>](#Properties)*
+## *portname*
 
 Provides access to the video output port on the STB used for connecting to the TV.
 
@@ -558,7 +558,7 @@ Provides access to the video output port on the STB used for connecting to the T
 ```
 
 <a name="tvcapabilities"></a>
-## *tvcapabilities [<sup>property</sup>](#Properties)*
+## *tvcapabilities*
 
 Provides access to the HDR formats supported by the TV.
 
@@ -593,7 +593,7 @@ Provides access to the HDR formats supported by the TV.
 ```
 
 <a name="stbcapabilities"></a>
-## *stbcapabilities [<sup>property</sup>](#Properties)*
+## *stbcapabilities*
 
 Provides access to the HDR formats supported by the STB.
 
@@ -628,7 +628,7 @@ Provides access to the HDR formats supported by the STB.
 ```
 
 <a name="hdrsetting"></a>
-## *hdrsetting [<sup>property</sup>](#Properties)*
+## *hdrsetting*
 
 Provides access to the HDR format in use.
 
@@ -663,7 +663,7 @@ Provides access to the HDR format in use.
 ```
 
 <a name="colorspace"></a>
-## *colorspace [<sup>property</sup>](#Properties)*
+## *colorspace*
 
 Provides access to the display color space (chroma subsampling format).
 
@@ -698,7 +698,7 @@ Provides access to the display color space (chroma subsampling format).
 ```
 
 <a name="framerate"></a>
-## *framerate [<sup>property</sup>](#Properties)*
+## *framerate*
 
 Provides access to the display frame rate.
 
@@ -733,7 +733,7 @@ Provides access to the display frame rate.
 ```
 
 <a name="colourdepth"></a>
-## *colourdepth [<sup>property</sup>](#Properties)*
+## *colourdepth*
 
 Provides access to the display colour depth.
 
@@ -768,7 +768,7 @@ Provides access to the display colour depth.
 ```
 
 <a name="quantizationrange"></a>
-## *quantizationrange [<sup>property</sup>](#Properties)*
+## *quantizationrange*
 
 Provides access to the display quantization range.
 
@@ -803,7 +803,7 @@ Provides access to the display quantization range.
 ```
 
 <a name="colorimetry"></a>
-## *colorimetry [<sup>property</sup>](#Properties)*
+## *colorimetry*
 
 Provides access to the display colorimetry.
 
@@ -838,7 +838,7 @@ Provides access to the display colorimetry.
 ```
 
 <a name="eotf"></a>
-## *eotf [<sup>property</sup>](#Properties)*
+## *eotf*
 
 Provides access to the display Electro Optical Transfer Function (EOTF).
 

@@ -3460,11 +3460,11 @@ SystemServices interface events:
 | [onFirmwareUpdateInfoReceived](#onFirmwareUpdateInfoReceived) | Triggered when the `getFirmwareUpdateInfo` asynchronous method is invoked |
 | [onFirmwareUpdateStateChange](#onFirmwareUpdateStateChange) | Triggered when the state of a firmware update changes |
 | [onMacAddressesRetreived](#onMacAddressesRetreived) | Triggered when the `getMacAddresses` asynchronous method is invoked |
+| [onNetworkStandbyModeChanged](#onNetworkStandbyModeChanged) | Triggered when the network standby mode setting changes |
 | [onRebootRequest](#onRebootRequest) | Triggered when an application invokes the reboot method |
 | [onSystemClockSet](#onSystemClockSet) | Triggered when the clock on the set-top device is updated |
 | [onSystemModeChanged](#onSystemModeChanged) | Triggered when the device operating mode changes |
 | [onSystemPowerStateChanged](#onSystemPowerStateChanged) | Triggered when the power manager detects a device power state change |
-| [onNetworkStandbyModeChanged](#onNetworkStandbyModeChanged) | Triggered when the network standby mode setting changed |
 | [onTemperatureThresholdChanged](#onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
 
 
@@ -3607,6 +3607,30 @@ Triggered when the `getMacAddresses` asynchronous method is invoked.
 }
 ```
 
+<a name="onNetworkStandbyModeChanged"></a>
+## *onNetworkStandbyModeChanged*
+
+Triggered when the network standby mode setting changes.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.nwStandby | boolean | Network standby mode |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onNetworkStandbyModeChanged",
+    "params": {
+        "nwStandby": true
+    }
+}
+```
+
 <a name="onRebootRequest"></a>
 ## *onRebootRequest*
 
@@ -3697,30 +3721,6 @@ Triggered when the power manager detects a device power state change.
     "params": {
         "powerState": "ON",
         "currentPowerState": "ON"
-    }
-}
-```
-
-<a name="onNetworkStandbyModeChanged"></a>
-## *onNetworkStandbyModeChanged*
-
-Triggered when the network standby mode setting changed.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.nwStandby | boolean | Network standby mode |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onNetworkStandbyModeChanged",
-    "params": {
-        "nwStandby": true
     }
 }
 ```

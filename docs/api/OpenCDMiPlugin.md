@@ -100,7 +100,7 @@ OCDM interface properties:
 
 
 <a name="drms"></a>
-## *drms [<sup>property</sup>](#Properties)*
+## *drms*
 
 Provides access to the supported DRM systems.
 
@@ -146,7 +146,7 @@ Provides access to the supported DRM systems.
 ```
 
 <a name="keysystems"></a>
-## *keysystems [<sup>property</sup>](#Properties)*
+## *keysystems*
 
 Provides access to the DRM key systems.
 

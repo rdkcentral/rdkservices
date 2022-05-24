@@ -60,7 +60,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="Description"></a>
 # Description
 
-The `HdmiCec` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box.
+The `HdmiCec` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. HdmiCec plugin can be used on an HDMI Source device where the application has complete control on implementing the CEC messages, and Thunder plugin provides the transport mechanism to send and receive the messages to other CEC devices in the network.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
@@ -85,13 +85,63 @@ HdmiCec interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
+| [getActiveSourceStatus](#getActiveSourceStatus) | Gets the active source status of the device |
 | [getCECAddresses](#getCECAddresses) | Returns the HDMI-CEC addresses that are assigned to the local device |
 | [getDeviceList](#getDeviceList) | Gets the list of number of CEC enabled devices connected and system information for each device |
 | [getEnabled](#getEnabled) | Returns whether HDMI-CEC is enabled |
 | [sendMessage](#sendMessage) | Writes HDMI-CEC frame to the driver |
 | [setEnabled](#setEnabled) | Enables or disables HDMI-CEC driver |
-| [getActiveSourceStatus](#getActiveSourceStatus) | Get the active source status of the device |
 
+
+<a name="getActiveSourceStatus"></a>
+## *getActiveSourceStatus*
+
+Gets the active source status of the device.
+  
+### Event 
+
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.status | boolean | `true` if device is active source, otherwise `false` |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiCec.1.getActiveSourceStatus",
+    "params": {
+        "status": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
 
 <a name="getCECAddresses"></a>
 ## *getCECAddresses*
@@ -356,56 +406,6 @@ Enables or disables HDMI-CEC driver.
 }
 ```
 
-<a name="getActiveSourceStatus"></a>
-## *getActiveSourceStatus*
-
-Get the active source status of the device.
-  
-### Event 
-
- No Events.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.status | boolean | status true means device is active source and false means device is not active source |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.HdmiCec.1.getActiveSourceStatus",
-    "params": {
-        "status": true
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
 <a name="Notifications"></a>
 # Notifications
 
@@ -418,11 +418,11 @@ HdmiCec interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [cecAddressesChanged](#cecAddressesChanged) | Triggered when the address of the host CEC device has changed |
-| [onMessage](#onMessage) | Triggered when a message is sent from an HDMI device |
-| [onActiveSourceStatusUpdated](#onActiveSourceStatusUpdated) | Triggered when device active source status changes  |
+| [onActiveSourceStatusUpdated](#onActiveSourceStatusUpdated) | Triggered when device active source status changes |
 | [onDeviceAdded](#onDeviceAdded) | Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device |
 | [onDeviceInfoUpdated](#onDeviceInfoUpdated) | Triggered when device information changes (vendorID, osdName) |
 | [onDeviceRemoved](#onDeviceRemoved) | Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device |
+| [onMessage](#onMessage) | Triggered when a message is sent from an HDMI device |
 
 
 <a name="cecAddressesChanged"></a>
@@ -455,41 +455,17 @@ Triggered when the address of the host CEC device has changed.
 }
 ```
 
-<a name="onMessage"></a>
-## *onMessage*
-
-Triggered when a message is sent from an HDMI device.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.message | string | The message is a base64 encoded byte array of the raw CEC bytes. The CEC message includes the device ID for the intended destination |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onMessage",
-    "params": {
-        "message": "1234567890"
-    }
-}
-```
-
 <a name="onActiveSourceStatusUpdated"></a>
 ## *onActiveSourceStatusUpdated*
 
-Triggered when device active source status changes .
+Triggered when device active source status changes.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.status | boolean | status true means device is active source and false means device is not active source |
+| params.status | boolean | `true` if device is active source, otherwise `false` |
 
 ### Example
 
@@ -571,6 +547,30 @@ Triggered when HDMI cable is physically removed from the HDMI port on a TV or th
     "method": "client.events.1.onDeviceRemoved",
     "params": {
         "logicalAddress": 0
+    }
+}
+```
+
+<a name="onMessage"></a>
+## *onMessage*
+
+Triggered when a message is sent from an HDMI device.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.message | string | The message is a base64 encoded byte array of the raw CEC bytes. The CEC message includes the device ID for the intended destination |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onMessage",
+    "params": {
+        "message": "1234567890"
     }
 }
 ```

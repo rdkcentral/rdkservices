@@ -1949,6 +1949,22 @@
                 ]
             }            
         },
+        "onNetworkStandbyModeChanged":{
+            "summary": "Triggered when the network standby mode setting changes",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "nwStandby": {
+                        "summary": "Network standby mode",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "nwStandby"
+                ]
+            }
+        },
         "onRebootRequest":{
             "summary": "Triggered when an application invokes the reboot method",
             "params": {
@@ -2001,22 +2017,6 @@
                 "required": [
                     "powerState",
                     "currentPowerState"
-                ]
-            }
-        },
-        "onNetworkStandbyModeChanged":{
-            "summary": "Triggered when the network standby mode setting changed",
-            "params": {
-                "type" :"object",
-                "properties": {
-                    "nwStandby": {
-                        "summary": "Network standby mode",
-                        "type": "boolean",
-                        "example": true
-                    }
-                },
-                "required": [
-                    "nwStandby"
                 ]
             }
         },

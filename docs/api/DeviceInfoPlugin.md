@@ -90,7 +90,7 @@ DeviceInfo interface properties:
 
 
 <a name="systeminfo"></a>
-## *systeminfo [<sup>property</sup>](#Properties)*
+## *systeminfo*
 
 Provides access to the provides access to system general information.
 
@@ -142,7 +142,7 @@ Provides access to the provides access to system general information.
 ```
 
 <a name="addresses"></a>
-## *addresses [<sup>property</sup>](#Properties)*
+## *addresses*
 
 Provides access to the network interface addresses.
 
@@ -190,7 +190,7 @@ Provides access to the network interface addresses.
 ```
 
 <a name="socketinfo"></a>
-## *socketinfo [<sup>property</sup>](#Properties)*
+## *socketinfo*
 
 Provides access to the socket information.
 
