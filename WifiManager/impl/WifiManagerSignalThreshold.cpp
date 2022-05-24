@@ -19,7 +19,7 @@
 
 #include "WifiManagerSignalThreshold.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 
 #include <chrono>
 

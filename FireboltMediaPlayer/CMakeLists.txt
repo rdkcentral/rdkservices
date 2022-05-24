@@ -25,7 +25,6 @@ find_package(CompileSettingsDebug CONFIG REQUIRED)
 add_library(${MODULE_NAME} SHARED
     Module.cpp
     FireboltMediaPlayer.cpp
-    ../helpers/utils.cpp
 )
 
 set(MEDIAPLAYERS "AampMediaPlayer")

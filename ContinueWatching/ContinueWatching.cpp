@@ -44,6 +44,7 @@
 #include "cJSON.h"
 #include "openssl/sha.h"
 #include "base64.h"
+#include "UtilsJsonRpc.h"
 #define SEC_OBJECTID_CW_NETFLIX_STORAGE_KEY     0x0361000003610001ULL
 #define SEC_OBJECTID_CW_YOUTUBE_STORAGE_KEY     0x0361000003610002ULL
 #define SEC_OBJECTID_CW_HLU_STORAGE_KEY         0x0361000003610003ULL

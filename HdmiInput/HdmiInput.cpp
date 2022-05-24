@@ -18,7 +18,8 @@
 **/
 
 #include "HdmiInput.h"
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 #include "hdmiIn.hpp"
 #include "exception.hpp"
