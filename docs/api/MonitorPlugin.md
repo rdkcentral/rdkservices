@@ -261,7 +261,7 @@ Monitor interface properties:
 
 
 <a name="status"></a>
-## *status [<sup>property</sup>](#Properties)*
+## *status*
 
 Provides access to the service statistics.
 

@@ -88,7 +88,7 @@ DeviceIdentification interface properties:
 
 
 <a name="deviceidentification"></a>
-## *deviceidentification [<sup>property</sup>](#Properties)*
+## *deviceidentification*
 
 Provides access to the device platform specific information.
 
