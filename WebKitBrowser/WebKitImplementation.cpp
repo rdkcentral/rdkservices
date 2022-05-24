@@ -825,8 +825,8 @@ static GSourceFuncs _handlerIntervention =
             , _frameCount(0)
             , _lastDumpTime(g_get_monotonic_time())
             , _allowMixedContent(true)
-            , _userScripts()
-            , _userStyleSheets()
+            , _userScript()
+            , _userStyleSheet()
             , _securityProfileName()
         {
             // Register an @Exit, in case we are killed, with an incorrect ref count !!
@@ -866,12 +866,12 @@ static GSourceFuncs _handlerIntervention =
 
     public:
 #ifdef WEBKIT_GLIB_API
-        uint32_t Headers(IStringIterator*& header) const override { return Core::ERROR_UNAVAILABLE; }
-        uint32_t Headers(IStringIterator* const header) override { return Core::ERROR_UNAVAILABLE; }
-        uint32_t UserScripts(IStringIterator*& uris) const override { return Core::ERROR_UNAVAILABLE; }
-        uint32_t UserScripts(IStringIterator* const uris) override { return Core::ERROR_UNAVAILABLE; }
-        uint32_t UserStyleSheets(IStringIterator*& uris) const override { return Core::ERROR_UNAVAILABLE; }
-        uint32_t UserStyleSheets(IStringIterator* const uris) override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t Headers(string& header) const override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t Headers(const string& header) override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t UserScripts(string& uri) const override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t UserScripts(const string& uri) override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t UserStyleSheets(string& uri) const override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t UserStyleSheets(const string& uri) override { return Core::ERROR_UNAVAILABLE; }
         uint32_t HeaderList(string& headerlist) const override { return Core::ERROR_UNAVAILABLE; }
         uint32_t HeaderList(const string& headerlist) override { return Core::ERROR_UNAVAILABLE; }
         uint32_t UserAgent(string& ua) const override { return Core::ERROR_UNAVAILABLE; }
@@ -885,39 +885,31 @@ static GSourceFuncs _handlerIntervention =
         uint32_t MixedContentPolicy(MixedContentPolicyType& policy) const override { return Core::ERROR_UNAVAILABLE; }
         uint32_t MixedContentPolicy(const MixedContentPolicyType policy) override { return Core::ERROR_UNAVAILABLE; }
 #else
-        uint32_t Headers(IStringIterator*& header) const override
+        uint32_t Headers(string& header) const override
         {
             return Core::ERROR_NONE;
         }
 
-        uint32_t Headers(IStringIterator* const header) override
+        uint32_t Headers(const string& header) override
         {
             return Core::ERROR_NONE;
         }
 
-       uint32_t UserScripts(IStringIterator*& uris) const override
+       uint32_t UserScripts(string& uri) const override
         {
             _adminLock.Lock();
-            uris = Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(_userScripts);
+            uri = _userScript;
             _adminLock.Unlock();
             return Core::ERROR_NONE;
         }
 
-        uint32_t UserScripts(IStringIterator* const uris) override
+        uint32_t UserScripts(const string& uri) override
         {
-            string entry;
-            std::vector<string> userScriptsContent;
-            std::list<string> userScriptsUris;
-            while (uris->Next(entry)) {
-                auto content = GetFileContent(entry);
-                if (!content.empty()) {
-                        userScriptsUris.push_back(entry);
-                        userScriptsContent.push_back(content);
-                }
-                TRACE_L1("Adding user's script (uri: %s, empty: %d)", entry.c_str(), content.empty());
-            }
-            using SetUserScriptsData = std::tuple<WebKitImplementation*, std::list<string>, std::vector<string>>;
-            auto* data = new SetUserScriptsData(this, userScriptsUris, userScriptsContent);
+            const auto content = GetFileContent(uri);
+            TRACE_L1("Setting user's script (uri: %s, empty: %d)", uri.c_str(), content.empty());
+            
+            using SetUserScriptsData = std::tuple<WebKitImplementation*, string, string>;
+            auto* data = new SetUserScriptsData(this, uri, content);
 
             g_main_context_invoke_full(
                 _context,
@@ -925,20 +917,21 @@ static GSourceFuncs _handlerIntervention =
                 [](gpointer customdata) -> gboolean {
                     auto& data = *static_cast<SetUserScriptsData*>(customdata);
                     WebKitImplementation* object = std::get<0>(data);
-                    std::list<string> scriptsUris = std::get<1>(data);
-                    std::vector<string> scriptsContent = std::get<2>(data);
+                    const auto& scriptUri = std::get<1>(data);
+                    const auto& scriptContent = std::get<2>(data);
 
                     object->_adminLock.Lock();
-                    object->_userScripts = scriptsUris;
+                    object->_userScript = scriptUri;
                     object->_adminLock.Unlock();
 
                     // Remove all user scripts
                     WKPageGroupRemoveAllUserScripts(object->_pageGroup);
-
-                    for (string entry : scriptsContent) {
+                    // ARRISEOS-41993 / ONEMUI-28568
+                    // "clear" word workarounds thunderjs issue: if empty string is passed as a json-rpc argment, then it's being skiped
+                    if (scriptUri != "clear" && !scriptContent.empty()) {
                         WKPageGroupAddUserScript(
                                 object->_pageGroup,
-                                WKStringCreateWithUTF8CString(entry.c_str()),
+                                WKStringCreateWithUTF8CString(scriptContent.c_str()),
                                 nullptr,
                                 nullptr,
                                 nullptr,
@@ -946,6 +939,7 @@ static GSourceFuncs _handlerIntervention =
                                 kWKInjectAtDocumentStart);
                     }
 
+              
                     return G_SOURCE_REMOVE;
                 },
                 data,
@@ -956,28 +950,20 @@ static GSourceFuncs _handlerIntervention =
             return Core::ERROR_NONE;
         }
 
-        uint32_t UserStyleSheets(IStringIterator*& uris) const override
+        uint32_t UserStyleSheets(string& uri) const override
         {
             _adminLock.Lock();
-            uris = Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(_userStyleSheets);
+            uri = _userStyleSheet;
             _adminLock.Unlock();
             return Core::ERROR_NONE;
         }
-        uint32_t UserStyleSheets(IStringIterator* const uris) override
+        uint32_t UserStyleSheets(const string& uri) override
         {
-            string entry;
-            std::vector<string> userStyleSheetsContent;
-            std::list<string> userStyleSheetsUris;
-            while (uris->Next(entry)) {
-                auto content = GetFileContent(entry);
-                if (!content.empty()) {
-                        userStyleSheetsUris.push_back(entry);
-                        userStyleSheetsContent.push_back(content);
-                }
-                TRACE_L1("Adding user's style sheet (uri: %s, empty: %d)", entry.c_str(), content.empty());
-            }
-            using SetUserStyleSheetsData = std::tuple<WebKitImplementation*, std::list<string>, std::vector<string>>;
-            auto* data = new SetUserStyleSheetsData(this, userStyleSheetsUris, userStyleSheetsContent);
+            const auto content = GetFileContent(uri);
+            TRACE_L1("Setting user's style sheet (uri: %s, empty: %d)", uri.c_str(), content.empty());
+
+            using SetUserStyleSheetsData = std::tuple<WebKitImplementation*, string, string>;
+            auto* data = new SetUserStyleSheetsData(this, uri, content);
 
             g_main_context_invoke_full(
                 _context,
@@ -985,20 +971,21 @@ static GSourceFuncs _handlerIntervention =
                 [](gpointer customdata) -> gboolean {
                     auto& data = *static_cast<SetUserStyleSheetsData*>(customdata);
                     WebKitImplementation* object = std::get<0>(data);
-                    std::list<string> styleSheetsUris = std::get<1>(data);
-                    std::vector<string> styleSheetsContent = std::get<2>(data);
+                    const auto& styleSheetUri = std::get<1>(data);
+                    const auto& styleSheetContent = std::get<2>(data);
 
                     object->_adminLock.Lock();
-                    object->_userStyleSheets = styleSheetsUris;
+                    object->_userStyleSheet = styleSheetUri;
                     object->_adminLock.Unlock();
 
                     // Remove all style sheets
                     WKPageGroupRemoveAllUserStyleSheets(object->_pageGroup);
-
-                    for (string entry : styleSheetsContent) {
+                    // ARRISEOS-41993 / ONEMUI-28568
+                    // "clear" word workarounds thunderjs issue: if empty string is passed as a json-rpc argment, then it's being skiped
+                    if (styleSheetUri != "clear" && !styleSheetContent.empty()) {
                         WKPageGroupAddUserStyleSheet(
                                 object->_pageGroup,
-                                WKStringCreateWithUTF8CString(entry.c_str()),
+                                WKStringCreateWithUTF8CString(styleSheetContent.c_str()),
                                 nullptr,
                                 nullptr,
                                 nullptr,
@@ -3163,8 +3150,8 @@ static GSourceFuncs _handlerIntervention =
         unsigned _frameCount;
         gint64 _lastDumpTime;
         bool _allowMixedContent;
-        std::list<string> _userScripts;
-        std::list<string> _userStyleSheets;
+        string _userScript;
+        string _userStyleSheet;
         string _securityProfileName;
     };
 
