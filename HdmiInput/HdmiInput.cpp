@@ -483,7 +483,12 @@ namespace WPEFramework
                         params["height"] = 720;
                         break;
 
-                    case dsVIDEO_PIXELRES_1920x1080:
+                    case dsVIDEO_PIXELRES_1280x1024:
+                        params["width"] = 1280;
+                        params["height"] = 1024;
+                        break;
+                    
+		    case dsVIDEO_PIXELRES_1920x1080:
                         params["width"] = 1920;
                         params["height"] = 1080;
                         break;
