@@ -27,7 +27,6 @@
 #include "Module.h"
 #include "tracing/Logging.h"
 #include "utils.h"
-#include "AbstractPlugin.h"
 #include "SystemServicesHelper.h"
 #include "platformcaps/platformcaps.h"
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
@@ -85,7 +84,7 @@ namespace WPEFramework {
             int duration;  // duration in seconds
         };
 
-        class SystemServices : public AbstractPlugin {
+        class SystemServices : public PluginHost::IPlugin, public PluginHost::JSONRPC {
             private:
                 typedef Core::JSON::String JString;
                 typedef Core::JSON::ArrayType<JString> JStringArray;
@@ -148,6 +147,13 @@ namespace WPEFramework {
                 static SystemServices* _instance;
                 virtual const string Initialize(PluginHost::IShell* service) override;
                 virtual void Deinitialize(PluginHost::IShell* service) override;
+                virtual string Information() const override { return {}; }
+
+                BEGIN_INTERFACE_MAP(SystemServices)
+                INTERFACE_ENTRY(PluginHost::IPlugin)
+                INTERFACE_ENTRY(PluginHost::IDispatcher)
+                END_INTERFACE_MAP
+
                 static int runScript(const std::string& script,
                         const std::string& args, string *output = NULL,
                         string *error = NULL, int timeout = 30000);

@@ -516,6 +516,7 @@ private:
             virtual ~HdmiCecSink();
             virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
             static HdmiCecSink* _instance;
 			CECDeviceParams deviceList[16];
 			std::vector<HdmiPortMap> hdmiInputs;
@@ -676,6 +677,7 @@ private:
             void Send_Request_Arc_Termination_Message();
             void Send_Report_Arc_Terminated_Message();
             void arcStartStopTimerFunction();
+            void getHdmiArcPortID();
         };
 	} // namespace Plugin
 } // namespace WPEFramework

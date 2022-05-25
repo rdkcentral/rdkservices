@@ -74,7 +74,7 @@
     },
     "methods": {
         "configureVoice": {
-            "summary": "Configures the RDK's voice stack. NOTE: The URL Scheme determines which VREX API protocol is used. Supported URL schemes include:  \n* http/https - VREX Legacy HTTP API  \n* ws/wss - VREX XR18 WS API  \n* vrng/vrngs - VREX NextGen WS API",
+            "summary": "Configures the RDK's voice stack. NOTE: The URL Scheme determines which VREX API protocol is used. Supported URL schemes include:  \n* http/https - VREX Legacy HTTP API  \n* ws/wss - VREX XR18 WS API  \n* vrng/vrngs - VREX NextGen WS API.\n\n### Events\n\n No Events.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -135,23 +135,27 @@
             }
         },
         "sendVoiceMessage": {
-            "summary": "Sends a message to the Voice Server. The specification of this message is not in the scope of this document. Example use cases for this API call include sending context or sending ASR blobs to the server.",
+            "summary": "Sends a message to the Voice Server. The specification of this message is not in the scope of this document. Example use cases for this API call include sending context or sending ASR blobs to the server.\n\n### Events\n\n No Events",
             "params":{
                 "type": "object",
                 "properties": {
                     "msgType": {
+                        "summary":"msg type expected from server",
                         "type": "string",
                         "example": "ars"
                     },
                     "trx": {
+                        "summary":"The unique id of the voice session",
                         "type": "string",
                         "example": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
                     },
                     "created": {
+                        "summary":"The timestamp for server information",
                         "type": "number",
                         "example": 91890278389232
                     },
                     "msgPayload":{
+                        "summary":"NA",
                         "type": "object",
                         "properties": {
 
@@ -165,7 +169,7 @@
             }
         },
         "setVoiceInit": {
-            "summary": "Sets the application metadata in the INIT message that gets sent to the Voice Server. The specification of this blob is not in the scope of this document, but it MUST be a JSON blob",
+            "summary": "Sets the application metadata in the INIT message that gets sent to the Voice Server. The specification of this blob is not in the scope of this document, but it MUST be a JSON blob.\n\n### Events\n\n No Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -173,6 +177,7 @@
                         "$ref": "#/definitions/capabilities"
                     },
                     "language": {
+                        "summary":"Preferred user interface language",
                         "type": "string",
                         "example": "eng-USA"
                     }
@@ -184,7 +189,15 @@
             }
         },
         "voiceSessionByText": {
-            "summary": "Sends a voice session with a transcription string to simulate a real voice session for QA. Example use cases for this API call include rack and automation testing.",
+            "summary": "Sends a voice session with a transcription string to simulate a real voice session for QA. Example use cases for this API call include rack and automation testing.\n\n### Events\n\n| Event | Description |\n| :-------- | :-------- |\n| `onSessionBegin` |Triggers if the voice session begins |\n| `onStreamBegin` |Triggers if a device starts streaming voice data to the RDK|\n| `onServerMessage` |Triggers if a message is received from the Voice Server |\n| `onStreamEnd` |Triggers if streaming audio is stopped from the device |\n| `onSessionEnd` |Triggers if interaction with the server is end|",
+            "events":[
+                "onSessionBegin",
+                "onStreamBegin",
+                "onServerMessage",
+                "onStreamEnd",
+                "onSessionEnd"
+
+            ],
             "params":{
                 "type": "object",
                 "properties": {
@@ -208,7 +221,7 @@
             }
         },
         "voiceStatus": {
-            "summary": "Returns the current status of the RDK voice stack. This includes which URLs the stack is currently configured for along with the status for each device type.",
+            "summary": "Returns the current status of the RDK voice stack. This includes which URLs the stack is currently configured for along with the status for each device type.\n\n### Events\n\n No Events.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -308,10 +321,38 @@
         },
         "onServerMessage": {
             "summary": "Triggered when a message is received from the Voice Server. The `params` value is a contract between the Voice Server and the Application. The definition of this object is outside of the scope of this document.",
-            "params": {
+            "params":{
                 "type": "object",
                 "properties": {
-                }
+                    "msgType": {
+                        "summary": "Message type from the server",
+                        "type": "string",
+                        "example": "ars"
+                    },
+                    "trx": {
+                        "summary":"The unique id of the voice session",
+                        "type": "string",
+                        "example": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
+                    },
+                    "created": {
+                        "summary":"The timestamp for server information",
+                        "type": "number",
+                        "example": 91890278389232
+                    },
+                    "msgPayload":{
+                        "summary":"Vrex server information",
+                        "type": "object",
+                        "properties": {
+
+                        }
+                    }
+                },
+                "required": [
+                    "msgType",
+                    "trx",
+                    "created",
+                    "msgPayload"
+                ]
             }
         },
         "onSessionBegin": {
@@ -354,6 +395,32 @@
             "params": {
                 "type": "object",
                 "properties": {
+                    "serverStats":{
+                        "summary":"Returns the voice server stats",
+                        "type":"object",
+                        "properties": {
+                            "dnsTime":{
+                                "summary":"The DNS time of the voice server",
+                                "type":"number",
+                                "example": 1.0
+                            },
+                            "serverIp" :{
+                                "summary":"The ip of the voice server",
+                                "type":"string",
+                                "example": ""
+                            },
+                            "connectTime":{
+                                "summary":"The connection time of the voice server",
+                                "type":"number",
+                                "example": 1.0
+                            }
+                        },
+                        "required":[
+                            "dnsTime",
+                            "serverIp",
+                            "connectTime"
+                        ]
+                    },
                     "remoteId": {
                         "$ref": "#/definitions/remoteId"
                     },
