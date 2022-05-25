@@ -1280,6 +1280,20 @@
                 ]
             }
         },
+	"getTerritory":{
+		"summary": "Geta the territory.",
+		"params":{
+			"type" : "object",
+			"properties": {
+				"territory":{
+					"$ref":"#/definitions/territory"
+				}
+			}
+		},
+		"result":{
+			"$ref": "#/definitions/result"
+		}
+	},
         "hasRebootBeenRequested":{
             "summary": "Checks whether a reboot has been requested.\n \n### Events\n \n No Events.",
             "result": {
@@ -1807,6 +1821,12 @@
             }
         }
     },
+    "setTeritory":{
+	    "summary": "Sets the territory and region",
+	    "result":{
+		    "$ref":"#/definitions/territory"
+	    }
+    },
     "events": {
         "onFirmwarePendingReboot":{
             "summary": "(Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked",
@@ -2023,7 +2043,7 @@
                     }
                 },
                 "required": [
-                    "nwStandby",
+                    "nwStandby"
                 ]
             }
         },
@@ -2056,6 +2076,65 @@
                     "temperature"
                 ]
             }
-        }
+        },
+	"onTerritoryChanged":{
+		"summary": "Triggered when territory is changed",
+		"params": {
+			"type" :"object",
+			"properties": {
+				"currentTerritory":{
+					"summary": " Existing Territory",
+					"type": "string",
+					"example": "GBR"
+				},
+				"terriTory":{
+					"summary": " New Territory",
+					"type": "string",
+					"example": "USA"
+				},
+				"currentRegion":{
+					"summary": " Current Region",
+					"type": "string",
+					"example": "GB-ENG"
+				},
+				"region":{
+					"summary": " New Region",
+					"type": "string",
+					"example": "US-NY"
+				}
+			},
+			"required":[
+				"currentTerritory",
+				"terriTory",
+				"currentRegion",
+				"region"
+			]
+			
+		}
+	
+	},
+	"onTimeZoneDSTChanged":{
+		"summary": "Triggered when the Time zone changed",
+		"params":{
+			"type": "object",
+			"properties": {
+				"currentDSTTime":{
+					"summary": " Current Time zone",
+					"type": "string",
+					"example": "America/New_York"
+				},
+				"oldDSTTime":{
+					"summary": " Current Time zone",
+					"type": "string",
+					"example": "Europe/London"
+				}
+			},
+			"required":[
+				"currentDSTTime",
+				"oldDSTTime"
+			]
+		}
+	}
+
     }
 }

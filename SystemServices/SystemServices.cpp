@@ -2179,6 +2179,7 @@ namespace WPEFramework {
 		bool resp = false;
 		if (parameters.HasLabel("timeZone")) {
 			std::string dir = dirnameOf(TZ_FILE);
+			std::string oldTimeZoneDST = getDSTTimeZone();
 			std::string timeZone = "";
 			try {
 				timeZone = parameters["timeZone"].String();
@@ -2200,6 +2201,7 @@ namespace WPEFramework {
 						fflush(f);
 						fsync(fileno(f));
 						fclose(f);
+						onTimeZoneDSTChanged(timeZone, oldTimeZoneDST);
 						resp = true;
 					} else {
 						LOGERR("Unable to open %s file.\n", TZ_FILE);
@@ -2214,6 +2216,126 @@ namespace WPEFramework {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
 		}
 		returnResponse(resp);
+	}
+
+
+	uint32_t SystemServices::setTerritory(const JsonObject& parameters, JsonObject& response)
+	{
+		bool resp = false;
+		if(parameters.HasLabel("territory")){
+			if(!Utils::fileExists(TERRITORYFILE)){
+				LOGWARN(" Territory : Subdirectories created : %d",val );
+			}
+			readTerritoryFromFile();
+			ofstream outdata(TERRITORYFILE);
+			string territoryStr = parameters["territory"].String();
+			LOGWARN(" Territory Value : %s ", territoryStr.c_str());
+			if(!outdata){
+				LOGWARN(" Territory : Failed to open the file");
+				returnResponse(resp);
+			}
+			try{
+				if((territoryStr.length() == 3) && (isStrAlphaUpper(territoryStr) == true)){
+					LOGWARN(" Territory : Valid territory name ");
+					m_strTerritory = "";
+					m_strRegion = "";
+					outdata << "territory:" + territoryStr;
+					resp = true;
+				}
+				else {
+					LOGWARN("Please enter valid territory Parameter value.");
+					returnResponse(resp);
+				}
+				string regionStr = "";
+				if(parameters.HasLabel("region")){
+					regionStr = parameters["region"].String();
+					outdata << "region:" + regionStr;
+				}
+				outdata.close();
+				if(resp == true)
+					onTerritoryChanged(territoryStr,m_strTerritory,m_strRegion, regionStr  );
+			}
+			catch(...){
+				LOGWARN(" caught exception...");
+			}
+		}
+		else{
+			LOGWARN("Please enter valid territory Parameter name.");
+			resp = false;
+		}
+		returnResponse(resp);
+	}
+
+	uint32_t SystemServices::getTerritory(const JsonObject& parameters, JsonObject& response)
+	{
+		bool resp = false;
+		if(readTerritoryFromFile()){
+			response["territory"] = m_strTerritory;
+			response["region"] = m_strRegion;
+			resp = true;
+		}
+		else{
+			LOGWARN("Error: Failed to read from territory file");
+		}
+		LOGWARN("Error: Failed to read from territory file");
+	}
+
+	bool SystemServices::readTerritoryFromFile()
+	{
+		bool retValue = false;
+		if(Utils::fileExists(TERRITORYFILE)){
+			ifstream inFile(TERRITORYFILE);
+			string str;
+			getline (inFile, str);
+			if(str.length() > 0){
+				retValue = true;
+				m_strTerritory = str.substr(str.find(":")+1,str.length());
+				getline (inFile, str);
+				if(str.length() > 0){
+					m_strRegion = str.substr(str.find(":")+1,str.length());
+				}
+			}
+			else{
+				LOGERR("Error: Invalid territory file");
+			}
+			inFile.close();
+		}
+		else{
+			LOGERR("Error: Territory file not exist");
+		}
+		return retValue;
+	}
+
+	bool isStrAlphaUpper(string strVal)
+	{
+		try{
+			for(int i=0; i<= strVal.length()-1; i++)
+			{
+				if((isalpha(strVal[i])== 0) || (isupper(strVal[i])==0))
+				{
+					LOGERR(" -- Invalid Territory ");
+					return false;
+					break;
+				}
+			}
+		}
+		catch(...){
+			LOGERR(" Exception caught");
+			return false;
+		}
+		return true;
+	}
+
+	string SystemServices::getDSTTimeZone()
+	{
+		std::string timezone = "";
+		if (Utils::fileExists(TZ_FILE)) {
+			if(readFromFile(TZ_FILE, timezone)) {
+				LOGWARN("Fetch DST TimeZone: %s\n", timezone.c_str());
+			}
+
+		}
+		return timezone;
 	}
 
         /***
