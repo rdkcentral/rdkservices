@@ -1414,12 +1414,17 @@ namespace WPEFramework {
                 {
                     std::cout << "Received power state change to sleep " << std::endl;
                     JsonObject request, response;
+                    request["visible"] = false;
                     int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchResidentApp", request, response);
                 }
  
                 if ((prevState == "STANDBY" || prevState == "LIGHT_SLEEP" || prevState == "DEEP_SLEEP" || prevState == "OFF")
                     && powerState == "ON")
                 {
+                    JsonObject request, response;
+                    request["callsign"] = "ResidentApp";
+                    request["visible"] = true;
+                    int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "setVisibility", request, response);
                     gRdkShellMutex.lock();
                     CompositorController::getLastKeyPress(mLastWakeupKeyCode, mLastWakeupKeyModifiers, mLastWakeupKeyTimestamp);
                     gRdkShellMutex.unlock();
@@ -4765,6 +4770,11 @@ namespace WPEFramework {
                 {
                     ret = true;
                 }
+            }
+
+            if (parameters.HasLabel("visible"))
+            {
+                setVisibility("ResidentApp", parameters["visible"].Boolean());
             }
 
             if (!updatedUrl.empty())

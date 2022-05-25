@@ -321,8 +321,14 @@ namespace WPEFramework {
                         LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
                     } 
                     if (portName == "HDMI_ARC0") {
-                        //Set audio port config. ARC will be set up by onTimer()		
-                        if(isPortPersistenceValEnabled &&  m_hdmiCecAudioDeviceDetected) { 
+                        //Set audio port config. ARC will be set up by onTimer()
+                        #ifdef APP_CONTROL_AUDIOPORT_INIT
+                        if(isPortPersistenceValEnabled ) {
+                            LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Enabled\n");
+                        #else if
+                        if(isPortPersistenceValEnabled &&  m_hdmiCecAudioDeviceDetected) {
+                            LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Disabled\n");
+                        #endif 
                             m_audioOutputPortConfig["HDMI_ARC"] = true;
                         }
                         else {
@@ -417,7 +423,13 @@ namespace WPEFramework {
   
                         aPortHdmiEnableParam.Set(_T("audioPort"), portName); //aPortHdmiEnableParam.Set(_T("audioPort"),"HDMI0");
                         //Get value from ds srv persistence
+                        #ifdef APP_CONTROL_AUDIOPORT_INIT
+                        if(isPortPersistenceValEnabled) {
+                           LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Enabled\n");
+                        #else if
                         if(isPortPersistenceValEnabled || !m_hdmiCecAudioDeviceDetected) {
+                           LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Disabled\n");
+                        #endif
                             aPortHdmiEnableParam.Set(_T("enable"),true);
                         }
                         else {
@@ -4021,7 +4033,7 @@ namespace WPEFramework {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
 
                     aPort.getSupportedARCTypes(&types);
-                    if((aPort.isConnected()) && (m_hdmiInAudioDeviceConnected == true)) {
+                    if((aPort.isConnected()) && (m_hdmiCecAudioDeviceDetected)) {
                         LOGINFO("DisplaySettings::setEnableAudioPort Configuring User set Audio mode before starting ARC/eARC Playback...\n");
                         if(aPort.getStereoAuto() == true) {
                             if(types & dsAUDIOARCSUPPORT_eARC) {

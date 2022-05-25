@@ -93,24 +93,22 @@ Messenger interface methods:
 <a name="join"></a>
 ## *join*
 
-Joins a messaging room. The room is created if specified room does not exist.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `roomupdate`| Triggered if a room is created or destroyed|
-| `userupdate`| Triggered if the user join or leave a messaging room |.
+Joins a messaging room.
 
-Also see: [roomupdate](#roomupdate), [userupdate](#userupdate)
+### Description
+
+Use this method to join a room. If the specified room does not exist, then it will be created.
+
+Also see: [userupdate](#userupdate)
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.user | string | The user name to join the room under (must not be empty) |
-| params.room | string | The name of the room to join (must not be empty) |
-| params?.secure | string | <sup>*(optional)*</sup> Room security (must be one of the following: insecure, secure) |
+| params.user | string | User name to join the room under (must not be empty) |
+| params.room | string | Name of the room to join (must not be empty) |
+| params?.secure | string | <sup>*(optional)*</sup> Room security (must be one of the following: *insecure*, *secure*) |
 | params?.acl | array | <sup>*(optional)*</sup> Access-control list for secure room |
 | params?.acl[#] | string | <sup>*(optional)*</sup> URL origin with possible wildcards |
 
@@ -164,15 +162,13 @@ Also see: [roomupdate](#roomupdate), [userupdate](#userupdate)
 <a name="leave"></a>
 ## *leave*
 
-Leaves a messaging room.The room is destroyed and its resources are freed, once all users left the room and room id becomes invalid.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `roomupdate`| Triggered if a room is created or destroyed |
-| `userupdate`| Triggered if the user join or leave a messaging room |.
+Leaves a messaging room.
 
-Also see: [roomupdate](#roomupdate), [userupdate](#userupdate)
+### Description
+
+Use this method to leave a room. The room ID becomes invalid after this call. If there are no more users, the room will be destroyed and related resources freed.
+
+Also see: [userupdate](#userupdate)
 
 ### Parameters
 
@@ -222,11 +218,10 @@ Also see: [roomupdate](#roomupdate), [userupdate](#userupdate)
 ## *send*
 
 Sends a message to a room.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `message`| Triggered if the user sends message to a room |.
+
+### Description
+
+Use this method to send a message to a room.
 
 Also see: [message](#message)
 
@@ -295,7 +290,11 @@ Messenger interface events:
 <a name="roomupdate"></a>
 ## *roomupdate*
 
-Notifies about room status updates. Registering to this event the listener will sequentially receive updates of all rooms that have been created so far.
+Notifies about room status updates.
+
+### Description
+
+Register to this event to be notified about room status updates. Immediately after registering to this notification the listener will sequentially receive updates of all rooms that have been created so far.
 
 ### Parameters
 
@@ -323,7 +322,11 @@ Notifies about room status updates. Registering to this event the listener will 
 <a name="userupdate"></a>
 ## *userupdate*
 
-Notifies about user status updates. Registering to this event the listener will sequentially receive updates of all users that have joined the room so far.
+Notifies about user status updates.
+
+### Description
+
+Register to this event to be notified about room status updates. Immediately after registering to this notification the listener will sequentially receive updates of all users that have joined the room so far.
 
 ### Parameters
 
@@ -351,7 +354,11 @@ Notifies about user status updates. Registering to this event the listener will 
 <a name="message"></a>
 ## *message*
 
-Notifies about new messages in a room. Registering to this event the listener will be notified about new messages in a room.
+Notifies about new messages in a room.
+
+### Description
+
+Register to this event to be notified about new messages in a room.
 
 ### Parameters
 

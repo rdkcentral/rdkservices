@@ -157,7 +157,7 @@ LocationSync interface properties:
 
 
 <a name="location"></a>
-## *location [<sup>property</sup>](#Properties)*
+## *location*
 
 Provides access to the location information.
 
