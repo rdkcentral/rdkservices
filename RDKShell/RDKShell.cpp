@@ -5536,10 +5536,9 @@ namespace WPEFramework {
                 JsonObject joAgingResult;
                 joAgingParams.Set("namespace","FactoryTest");
                 joAgingParams.Set("key","AgingState");
-                std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
 
                 std::cout << "attempting to check aging state \n";
-                uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+                uint32_t status = JSONRPCDirectLink(mCurrentService, PERSISTENT_STORE_CALLSIGN).Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "getValue", joAgingParams, joAgingResult);
                 std::cout << "get status for aging state: " << status << std::endl;
 
                 if ((status == 0) && (joAgingResult.HasLabel("value")))
@@ -5559,7 +5558,7 @@ namespace WPEFramework {
                 joFactoryModeParams.Set("key","FactoryMode");
 
                 std::cout << "attempting to check factory mode \n";
-                status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
+                status = JSONRPCDirectLink(mCurrentService, PERSISTENT_STORE_CALLSIGN).Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "getValue", joFactoryModeParams, joFactoryModeResult);
                 std::cout << "get status for factory mode: " << status << std::endl;
 
                 if ((status == 0) && (joFactoryModeResult.HasLabel("value")))
