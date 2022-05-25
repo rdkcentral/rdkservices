@@ -50,10 +50,11 @@ class ControlSettingsSTB : public AbstractPlugin {
 	~ControlSettingsSTB();
         ControlSettingsSTB *instance;
         std::string getErrorString (tvError_t eReturn);
-
-    public:
         void Initialize();
         void Deinitialize();
+    
+    protected:
+        static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 };
 
 }//namespace Plugin

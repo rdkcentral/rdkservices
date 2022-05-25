@@ -68,6 +68,13 @@ namespace Plugin {
         return "TV UNKNOWN ERROR";
     }
 
+    //Event
+    void ControlSettingsTV::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    {
+        LOGINFO("Entry %s\n",__FUNCTION__);
+        LOGINFO("Exit %s\n",__FUNCTION__);
+    }
+
     uint32_t ControlSettingsTV::getBacklight(const JsonObject& parameters, JsonObject& response)
     {
 
