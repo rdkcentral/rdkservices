@@ -2188,9 +2188,8 @@ namespace WPEFramework {
 					if (!dirExists(dir)) {
 						std::string command = "mkdir -p " + dir + " \0";
 						Utils::cRunScript(command.c_str());
-					} else {
-						//Do nothing//
 					}
+					std::string oldTimeZoneDST = getTimeZoneDSTHelper();
 
 					FILE *f = fopen(TZ_FILE, "w");
 					if (f) {
@@ -2200,6 +2199,8 @@ namespace WPEFramework {
 						fflush(f);
 						fsync(fileno(f));
 						fclose(f);
+						if (SystemServices::_instance)
+							SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone);
 						resp = true;
 					} else {
 						LOGERR("Unable to open %s file.\n", TZ_FILE);
@@ -2215,6 +2216,148 @@ namespace WPEFramework {
 		}
 		returnResponse(resp);
 	}
+
+
+	uint32_t SystemServices::setTerritory(const JsonObject& parameters, JsonObject& response)
+	{
+		bool resp = false;
+		if(parameters.HasLabel("territory")){
+			if(!Utils::fileExists(TERRITORYFILE)){
+				LOGWARN(" Territory : Subdirectories created : %d",val );
+			}
+			ofstream outdata(TERRITORYFILE);
+			string territoryStr = parameters["territory"].String();
+			LOGWARN(" Territory Value : %s ", territoryStr.c_str());
+			if(!outdata){
+				LOGWARN(" Territory : Failed to open the file");
+				returnResponse(resp);
+			}
+			try{
+				if((territoryStr.length() == 3) && (isStrAlphaUpper(territoryStr) == true)){
+					LOGWARN(" Territory : Valid territory name ");
+					m_strTerritory = "";
+					m_strRegion = "";
+					outdata << "territory:" + territoryStr+"\n";
+					resp = true;
+				}
+				else {
+					LOGWARN("Please enter valid territory Parameter value.");
+					returnResponse(resp);
+				}
+				string regionStr = "";
+				if(parameters.HasLabel("region")){
+					regionStr = parameters["region"].String();
+					outdata << "region:" + regionStr+"\n";
+				}
+				outdata.close();
+				if(resp == true){
+					readTerritoryFromFile();//Read existing territory and Region from file
+					//call event on Territory changed
+					if (SystemServices::_instance)
+                            			SystemServices::_instance->onTerritoryChanged(m_strTerritory,territoryStr,m_strRegion,regionStr);
+				}
+			}
+			catch(...){
+				LOGWARN(" caught exception...");
+			}
+		}
+		else{
+			LOGWARN("Please enter valid territory Parameter name.");
+			resp = false;
+		}
+		returnResponse(resp);
+	}
+
+	uint32_t SystemServices::getTerritory(const JsonObject& parameters, JsonObject& response)
+	{
+		bool resp = false;
+		if(readTerritoryFromFile()){
+			response["territory"] = m_strTerritory;
+			response["region"] = m_strRegion;
+			resp = true;
+		}
+		else{
+			LOGWARN("Error: Failed to read from territory file");
+		}
+		returnResponse(resp);
+	}
+
+	bool SystemServices::readTerritoryFromFile()
+	{
+		bool retValue = false;
+		if(Utils::fileExists(TERRITORYFILE)){
+			ifstream inFile(TERRITORYFILE);
+			string str;
+			getline (inFile, str);
+			if(str.length() > 0){
+				retValue = true;
+				m_strTerritory = str.substr(str.find(":")+1,str.length());
+				getline (inFile, str);
+				if(str.length() > 0){
+					m_strRegion = str.substr(str.find(":")+1,str.length());
+				}
+			}
+			else{
+				LOGERR("Error: Invalid territory file");
+			}
+			inFile.close();
+		}
+		else{
+			LOGERR("Error: Territory file not exist");
+		}
+		return retValue;
+	}
+
+	bool SystemServices::isStrAlphaUpper(string strVal)
+	{
+		try{
+			for(int i=0; i<= strVal.length()-1; i++)
+			{
+				if((isalpha(strVal[i])== 0) || (isupper(strVal[i])==0))
+				{
+					LOGERR(" -- Invalid Territory ");
+					return false;
+					break;
+				}
+			}
+		}
+		catch(...){
+			LOGERR(" Exception caught");
+			return false;
+		}
+		return true;
+	}
+
+	void SystemServices::onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion, string newRegion)
+	{
+		JsonObject params;
+		params["oldTerritory"] = oldTerritory;
+		params["newTerritory"] = newTerritory;
+		LOGWARN(" Notifying Territory changed - oldTerritory: %s - newTerritory: %s",oldTerritory,newTerritory);
+
+		if(newRegion != "")
+		{
+			params["oldRegion"] = oldRegion;
+			params["newRegion"] = newRegion;
+			LOGWARN(" Notifying Region changed - oldRegion: %s - newRegion: %s",oldRegion,newRegion);
+		}
+		//Notify territory changed
+		sendNotify(EVT_ONTERRITORYCHNAGED, params);
+		GetHandler(2)->Notify(EVT_ONTERRITORYCHNAGED, params);
+	}
+
+	void SystemServices::onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone)
+	{
+		JsonObject params;
+		params["oldTimeZone"] = oldTimeZone;
+		params["newTimeZone"] = newTimeZone;
+		LOGWARN(" Notifying TimeZone changed - oldTimeZone: %s - newTimeZone: %s",oldTimeZone,newTimeZone);
+		//Notify TimeZone changed
+		sendNotify(EVT_ONTIMEZONEDSTCHANGED, params);
+		GetHandler(2)->Notify(EVT_ONTIMEZONEDSTCHANGED, params);
+	}
+
+
 
         /***
          * @brief : To fetch timezone from TZ_FILE.
