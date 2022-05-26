@@ -21,7 +21,7 @@
 
 #include "wifiSrvMgrIarmIf.h"
 #include "libIBus.h"
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 
 #include <cstring>
 

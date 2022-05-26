@@ -21,7 +21,6 @@
 
 #include <chrono>
 #include "Module.h"
-#include "utils.h"
 #include "motionDetector.h"
 
 namespace WPEFramework {

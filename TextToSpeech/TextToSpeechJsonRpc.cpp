@@ -18,6 +18,8 @@
  */
 
 #include "TextToSpeech.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsUnused.h"
 
 namespace WPEFramework {
 namespace Plugin {

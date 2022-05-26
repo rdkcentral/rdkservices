@@ -28,7 +28,6 @@
 #include "impl/WifiManagerSignalThreshold.h"
 #include "impl/WifiManagerScan.h"
 #include "impl/WifiManagerEvents.h"
-#include "utils.h"
 
 namespace WPEFramework {
 

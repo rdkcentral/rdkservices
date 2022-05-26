@@ -18,7 +18,7 @@
 **/
 
 #include "UserPreferences.h"
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 
 #include <glib.h>
 #include <glib/gstdio.h>

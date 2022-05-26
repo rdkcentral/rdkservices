@@ -33,7 +33,6 @@
 
 #include "Module.h"
 #include "tracing/Logging.h"
-#include "utils.h"
 
 #include "TextToSpeechImplementation.h"
 

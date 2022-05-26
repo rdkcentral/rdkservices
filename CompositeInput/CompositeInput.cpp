@@ -18,7 +18,8 @@
 **/
 
 #include "CompositeInput.h"
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 #include "compositeIn.hpp"
 #include "exception.hpp"
