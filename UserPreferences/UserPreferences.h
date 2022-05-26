@@ -20,7 +20,6 @@
 #pragma once
 
 #include "Module.h"
-#include "utils.h"
 
 namespace WPEFramework {
     namespace Plugin {

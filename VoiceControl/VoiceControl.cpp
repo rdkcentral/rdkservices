@@ -2,6 +2,8 @@
 #include "VoiceControl.h"
 #include "libIBusDaemon.h"
 #include <stdlib.h>
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 
 using namespace std;
