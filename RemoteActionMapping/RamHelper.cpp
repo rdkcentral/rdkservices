@@ -18,7 +18,8 @@
 **/
 
 #include "RamHelper.h"
-#include "utils.h"
+#include "UtilsLogging.h"
+#include "UtilsUnused.h"
 
 // IR-RF Database RF descriptors, needed for all original configurable keys
 // Discrete Power ON/OFF use actual RF keycodes (0x6D, 0x6C), the rest are all XRC ghost codes

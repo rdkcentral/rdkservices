@@ -23,8 +23,6 @@
 #include "libIBus.h"
 #include "irMgr.h"
 
-#include "utils.h"
-
 namespace WPEFramework {
 
     namespace Plugin {

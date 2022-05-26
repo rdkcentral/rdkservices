@@ -22,7 +22,6 @@
 #include "libIBus.h"
 
 #include "Module.h"
-#include "utils.h"
 #include "dsTypes.h"
 
 namespace WPEFramework {

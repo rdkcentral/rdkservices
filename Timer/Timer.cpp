@@ -25,7 +25,8 @@
 #include "ccec/drivers/CecIARMBusMgr.h"
 #endif
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 // Methods
 #define TIMER_METHOD_START_TIMER          "startTimer"
