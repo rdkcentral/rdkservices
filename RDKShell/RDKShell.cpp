@@ -5587,6 +5587,7 @@ namespace WPEFramework {
                 returnResponse(false);
             }
 
+            lockRdkShellMutex();
             JsonObject properties = parameters["properties"].Object();
             if (properties.HasLabel("position") && properties.HasLabel("size"))
             {
@@ -5653,7 +5654,8 @@ namespace WPEFramework {
             {
 
             }
-
+            
+            gRdkShellMutex.unlock();
             returnResponse(true);
         }
 
