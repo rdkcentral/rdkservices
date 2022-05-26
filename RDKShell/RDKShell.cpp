@@ -5645,8 +5645,8 @@ namespace WPEFramework {
 
             if (properties.HasLabel("visibility"))
             {
-                std::cout << "setPropertiesWrapper visibility: " << properties["visibility"].Number() << "\n";
-                CompositorController::setOpacity(id, properties["visibility"].Number());
+                std::cout << "setPropertiesWrapper visibility: " << properties["visibility"].Boolean() << "\n";
+                CompositorController::setVisibility(id, properties["visibility"].Boolean());
             }
 
             if (properties.HasLabel("blendingFactors"))
