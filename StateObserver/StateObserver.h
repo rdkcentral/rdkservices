@@ -33,9 +33,7 @@
 #include <cjson/cJSON.h>
 
 #include "Module.h"
-#include "libIBus.h"
-#include "utils.h"
-#include "utils.h"
+#include "libIARM.h"
 
 //State Observer Properties
 const string SYSTEM_EXIT_OK    = "com.comcast.exit-ok_key_sequence";

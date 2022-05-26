@@ -64,8 +64,7 @@ if (GSTREAMER_FOUND)
             ${DS_LIBRARIES})
         target_sources(${MODULE_NAME}
             PRIVATE
-                DeviceSettings/PlatformImplementation.cpp
-                ../helpers/utils.cpp)
+                DeviceSettings/PlatformImplementation.cpp)
     else()
         target_sources(${MODULE_NAME}
             PRIVATE
