@@ -4083,8 +4083,13 @@ namespace WPEFramework {
 			       // For certain ARC devices, we get ARC initiate message even when ARC device is in standby
 			       // Wake up the device always before audio routing
 			       sendHdmiCecSinkAudioDevicePowerOn();
-                               aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
-                               m_arcAudioEnabled = true;
+			       if(m_arcAudioEnabled == false) {
+                                   aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
+                                   m_arcAudioEnabled = true;
+			       }
+			       else {
+			           LOGINFO("ARC is already enabled. Value of m_arcAudioEnabled is %d: \n", m_arcAudioEnabled);
+			       }
 			   }
 			   else {
                                LOGINFO("%s: Disable ARC \n",__FUNCTION__);
@@ -4437,9 +4442,11 @@ namespace WPEFramework {
                         }
 
                         if(aPortConfig["HDMI_ARC"].Boolean()) {
-                            LOGINFO("onARCInitiationEventHandler: Enable ARC\n");
-                            aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
-                            m_arcAudioEnabled = true;
+                            if(m_arcAudioEnabled == false) {
+			        LOGINFO("onARCInitiationEventHandler: Enable ARC\n");
+                                aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
+                                m_arcAudioEnabled = true;
+			    }
                         }
                         else {
                            LOGINFO("onARCInitiationEventHandler: HDMI_ARC0 Port not enabled. Skip Audio Routing !!!\n");
