@@ -192,8 +192,8 @@ namespace WPEFramework {
                         bool exceed, float temperature);
                 void onRebootRequest(string reason);
                 void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
-		void onTerritoryChanged(string currentTerritory, string terriTory, string currentRegion="", string region="");
-                void onTimeZoneDSTChanged(string currentDSTTime, string oldDSTTime);
+		void onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion="", string newRegion="");
+                void onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone);
                 /* Events : End */
 
                 /* Methods : Begin */
@@ -242,7 +242,7 @@ namespace WPEFramework {
 		uint32_t setTerritory(const JsonObject& parameters, JsonObject& response);
                 uint32_t getTerritory(const JsonObject& parameters, JsonObject& response);
                 bool readTerritoryFromFile();
-                std::string getDSTTimeZone();
+		bool isStrAlphaUpper(string strVal);
                 uint32_t getXconfParams(const JsonObject& parameters, JsonObject& response);
                 uint32_t getSerialNumber(const JsonObject& parameters, JsonObject& response);
                 bool getSerialNumberTR069(JsonObject& response);

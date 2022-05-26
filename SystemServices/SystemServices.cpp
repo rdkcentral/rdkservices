@@ -2179,7 +2179,6 @@ namespace WPEFramework {
 		bool resp = false;
 		if (parameters.HasLabel("timeZone")) {
 			std::string dir = dirnameOf(TZ_FILE);
-			std::string oldTimeZoneDST = getDSTTimeZone();
 			std::string timeZone = "";
 			try {
 				timeZone = parameters["timeZone"].String();
@@ -2189,9 +2188,8 @@ namespace WPEFramework {
 					if (!dirExists(dir)) {
 						std::string command = "mkdir -p " + dir + " \0";
 						Utils::cRunScript(command.c_str());
-					} else {
-						//Do nothing//
 					}
+					std::string oldTimeZoneDST = getTimeZoneDSTHelper();
 
 					FILE *f = fopen(TZ_FILE, "w");
 					if (f) {
@@ -2201,7 +2199,8 @@ namespace WPEFramework {
 						fflush(f);
 						fsync(fileno(f));
 						fclose(f);
-						onTimeZoneDSTChanged(timeZone, oldTimeZoneDST);
+						if (SystemServices::_instance)
+							SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone);
 						resp = true;
 					} else {
 						LOGERR("Unable to open %s file.\n", TZ_FILE);
@@ -2226,7 +2225,6 @@ namespace WPEFramework {
 			if(!Utils::fileExists(TERRITORYFILE)){
 				LOGWARN(" Territory : Subdirectories created : %d",val );
 			}
-			readTerritoryFromFile();
 			ofstream outdata(TERRITORYFILE);
 			string territoryStr = parameters["territory"].String();
 			LOGWARN(" Territory Value : %s ", territoryStr.c_str());
@@ -2239,7 +2237,7 @@ namespace WPEFramework {
 					LOGWARN(" Territory : Valid territory name ");
 					m_strTerritory = "";
 					m_strRegion = "";
-					outdata << "territory:" + territoryStr;
+					outdata << "territory:" + territoryStr+"\n";
 					resp = true;
 				}
 				else {
@@ -2249,11 +2247,15 @@ namespace WPEFramework {
 				string regionStr = "";
 				if(parameters.HasLabel("region")){
 					regionStr = parameters["region"].String();
-					outdata << "region:" + regionStr;
+					outdata << "region:" + regionStr+"\n";
 				}
 				outdata.close();
-				if(resp == true)
-					onTerritoryChanged(territoryStr,m_strTerritory,m_strRegion, regionStr  );
+				if(resp == true){
+					readTerritoryFromFile();//Read existing territory and Region from file
+					//call event on Territory changed
+					if (SystemServices::_instance)
+                            			SystemServices::_instance->onTerritoryChanged(m_strTerritory,territoryStr,m_strRegion,regionStr);
+				}
 			}
 			catch(...){
 				LOGWARN(" caught exception...");
@@ -2277,7 +2279,7 @@ namespace WPEFramework {
 		else{
 			LOGWARN("Error: Failed to read from territory file");
 		}
-		LOGWARN("Error: Failed to read from territory file");
+		returnResponse(resp);
 	}
 
 	bool SystemServices::readTerritoryFromFile()
@@ -2306,7 +2308,7 @@ namespace WPEFramework {
 		return retValue;
 	}
 
-	bool isStrAlphaUpper(string strVal)
+	bool SystemServices::isStrAlphaUpper(string strVal)
 	{
 		try{
 			for(int i=0; i<= strVal.length()-1; i++)
@@ -2326,17 +2328,36 @@ namespace WPEFramework {
 		return true;
 	}
 
-	string SystemServices::getDSTTimeZone()
+	void SystemServices::onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion, string newRegion)
 	{
-		std::string timezone = "";
-		if (Utils::fileExists(TZ_FILE)) {
-			if(readFromFile(TZ_FILE, timezone)) {
-				LOGWARN("Fetch DST TimeZone: %s\n", timezone.c_str());
-			}
+		JsonObject params;
+		params["oldTerritory"] = oldTerritory;
+		params["newTerritory"] = newTerritory;
+		LOGWARN(" Notifying Territory changed - oldTerritory: %s - newTerritory: %s",oldTerritory,newTerritory);
 
+		if(newRegion != "")
+		{
+			params["oldRegion"] = oldRegion;
+			params["newRegion"] = newRegion;
+			LOGWARN(" Notifying Region changed - oldRegion: %s - newRegion: %s",oldRegion,newRegion);
 		}
-		return timezone;
+		//Notify territory changed
+		sendNotify(EVT_ONTERRITORYCHNAGED, params);
+		GetHandler(2)->Notify(EVT_ONTERRITORYCHNAGED, params);
 	}
+
+	void SystemServices::onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone)
+	{
+		JsonObject params;
+		params["oldTimeZone"] = oldTimeZone;
+		params["newTimeZone"] = newTimeZone;
+		LOGWARN(" Notifying TimeZone changed - oldTimeZone: %s - newTimeZone: %s",oldTimeZone,newTimeZone);
+		//Notify TimeZone changed
+		sendNotify(EVT_ONTIMEZONEDSTCHANGED, params);
+		GetHandler(2)->Notify(EVT_ONTIMEZONEDSTCHANGED, params);
+	}
+
+
 
         /***
          * @brief : To fetch timezone from TZ_FILE.

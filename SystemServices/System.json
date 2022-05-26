@@ -1821,7 +1821,7 @@
             }
         }
     },
-    "setTeritory":{
+    "setTerritory":{
 	    "summary": "Sets the territory and region",
 	    "result":{
 		    "$ref":"#/definitions/territory"
@@ -2082,32 +2082,32 @@
 		"params": {
 			"type" :"object",
 			"properties": {
-				"currentTerritory":{
-					"summary": " Existing Territory",
+				"oldTerritory":{
+					"summary": "Old Territory",
 					"type": "string",
 					"example": "GBR"
 				},
-				"terriTory":{
-					"summary": " New Territory",
+				"newTerritory":{
+					"summary": "New Territory",
 					"type": "string",
 					"example": "USA"
 				},
-				"currentRegion":{
-					"summary": " Current Region",
+				"oldRegion":{
+					"summary": "Old Region",
 					"type": "string",
 					"example": "GB-ENG"
 				},
-				"region":{
-					"summary": " New Region",
+				"newRegion":{
+					"summary": "New Region",
 					"type": "string",
 					"example": "US-NY"
 				}
 			},
 			"required":[
-				"currentTerritory",
-				"terriTory",
-				"currentRegion",
-				"region"
+				"oldTerritory",
+				"newTerriTory",
+				"oldRegion",
+				"newRegion"
 			]
 			
 		}
@@ -2118,20 +2118,20 @@
 		"params":{
 			"type": "object",
 			"properties": {
-				"currentDSTTime":{
-					"summary": " Current Time zone",
+				"oldTimeZone":{
+					"summary": "Old Time zone",
 					"type": "string",
 					"example": "America/New_York"
 				},
-				"oldDSTTime":{
-					"summary": " Current Time zone",
+				"newTimeZone":{
+					"summary": "New Time zone",
 					"type": "string",
 					"example": "Europe/London"
 				}
 			},
 			"required":[
-				"currentDSTTime",
-				"oldDSTTime"
+				"oldTimeZone",
+				"newTimeZone"
 			]
 		}
 	}
