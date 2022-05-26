@@ -331,6 +331,63 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
+        },
+        "getSupportedGameFeatures":{
+            "summary": "Returns the list of supported game features.\n \n### Events\n \nNo Events.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "suppoortedGameFeatures": {
+                        "summary": "The supported game Features",
+                        "type": "string",
+                        "example": "ALLM"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "suppoortedGameFeatures",
+                    "success"
+                ]
+            }
+        },
+       "getHdmiGameFeatureStatus":{
+            "summary": "Returns the Game Feature(ALLM) Status.\n \n### Events\n \nNo Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    },
+                     "gameFeature": {
+                        "summary": "Game Feature to which currunt status requested",
+                        "type": "string",
+                        "example": "ALLM"
+                    }
+               },
+                "required": [
+                    "portid",
+		    "gameFeature"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "mode": {
+                        "summary": "The currunt game feature(ALLM) status",
+                        "type": "boolean",
+                        "example": "true"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "mode",
+                    "success"
+                ]
+            }
         }
     },
     "events": {
@@ -441,6 +498,32 @@
                     "progressive",
                     "frameRateN",
                     "frameRateD"
+                ]
+            }
+        },
+        "hdmiGameFeatureStatusUpdate": {
+            "summary": "Triggered whenever game feature(ALLM) status changes for an HDMI Input",
+            "params": {
+                "type": "object",
+                "properties": {
+                   "portId": {
+                        "$ref": "#/definitions/portId"
+                    },
+                     "gameFeature": {
+                        "summary": "Game Feature to which currunt status requested",
+                        "type": "string",
+                        "example": "ALLM"
+                    },
+                    "mode": {
+                        "summary": "The currunt game feature(ALLM) status",
+                        "type": "boolean",
+                        "example": "true"
+                    }
+                },
+                "required": [
+                    "portId",
+                    "gameFeature",
+                    "mode"
                 ]
             }
         }
