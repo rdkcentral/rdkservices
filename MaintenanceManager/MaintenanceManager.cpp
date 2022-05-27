@@ -274,7 +274,7 @@ namespace WPEFramework {
             // Unsolicited part comes here
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-                for( i = 0; i < tasks.size(); i++) {
+                for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
                     LOGINFO("waiting to unlock.. [%d/%d]",i,tasks.size());
                     task_thread.wait(lck);
                     cmd = tasks[i];
@@ -299,7 +299,7 @@ namespace WPEFramework {
                 LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
                 system(cmd.c_str());
                 cmd="";
-                for( i = 1; i < tasks.size(); i++){
+                for( i = 1; i < tasks.size() && !m_abort_flag; i++){
                     LOGINFO("Waiting to unlock.. [%d/%d]",i,tasks.size());
                     task_thread.wait(lck);
                     cmd = tasks[i];
@@ -509,6 +509,7 @@ namespace WPEFramework {
         void MaintenanceManager::Deinitialize(PluginHost::IShell*)
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+            stopMaintenanceTasks();
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
         }
@@ -820,10 +821,6 @@ namespace WPEFramework {
                 IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT));
                 MaintenanceManager::_instance = nullptr;
             }
-
-            if(m_thread.joinable()){
-                m_thread.join();
-            }
         }
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
@@ -1123,6 +1120,12 @@ namespace WPEFramework {
         uint32_t MaintenanceManager::stopMaintenance(const JsonObject& parameters,
                 JsonObject& response){
 
+                bool result=false;
+                result=stopMaintenanceTasks();
+                returnResponse(result);
+        }
+
+        bool MaintenanceManager::stopMaintenanceTasks(){
             pid_t pid_num=-1;
 
             int k_ret=EINVAL;
@@ -1209,12 +1212,17 @@ namespace WPEFramework {
                 else {
                     LOGERR("Failed to stopMaintenance without starting maintenance \n");
                 }
-                m_statusMutex.unlock();
+                task_thread.notify_one();
+
+                if(m_thread.joinable()){
+                    m_thread.join();
+                }
+		m_statusMutex.unlock();
             }
             else {
                 LOGERR("Failed to initiate stopMaintenance, RFC is set as False \n");
             }
-            returnResponse(result);
+            return result;
         }
 
         bool MaintenanceManager::checkAbortFlag(){
