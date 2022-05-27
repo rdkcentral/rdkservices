@@ -2223,7 +2223,8 @@ namespace WPEFramework {
 		bool resp = false;
 		if(parameters.HasLabel("territory")){
 			if(!Utils::fileExists(TERRITORYFILE)){
-				LOGWARN(" Territory : Subdirectories created : %d",val );
+				system("mkdir -p /opt/secure/persistent/System/");
+				LOGWARN(" Territory : Subdirectories created " );
 			}
 			ofstream outdata(TERRITORYFILE);
 			string territoryStr = parameters["territory"].String();
