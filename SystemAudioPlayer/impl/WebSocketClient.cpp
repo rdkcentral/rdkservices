@@ -223,7 +223,7 @@ void WebSocketClient::createWebsocketContext()
 {
     //create protocol info
     m_webSocketProtocols = new lws_protocols[2];
-    static const char *protocol = "ws";
+    static const char *protocol = "";
 
     m_webSocketProtocols[0].name = protocol;
 

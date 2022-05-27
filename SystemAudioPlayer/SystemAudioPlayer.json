@@ -303,18 +303,18 @@
                         "type": "double",
                         "example": "0.1"
                     },
-					"playerDetectTimeMs": { 
+	            "playerDetectTimeMs": { 
                         "summary": "the duration that playerAudioLevelThreshold must be detected for before primary audio ducking is started. Range: Above 0 (in milliseconds) .",
                         "type": "int",
                         "example": "200"
                     },
-					"playerHoldTimeMs": { 
+		    "playerHoldTimeMs": { 
                         "summary": "the duration that primary audio ducking is enabled for, after the playerAudioLevelThreshold trigger is no longer met before primary audio ducking is stopped. Range: Above 0 (in milliseconds).",
                         "type": "int",
                         "example": "1000"
                     },
-					"primaryDuckingPercent": { 
-                        "summary": "Primary Volume duck percent. Valid values are `0` to `100` where `0` is the minimum and `100` is the maximum volume.",
+		    "primaryDuckingPercent": { 
+                        "summary":"the percentage to duck the primary audio volume. If setMixerLevels has been called, then this percentage is scaled to the params.primVolume range. Range: 0 to 100 (in percentage) ",
                         "type": "int",
                         "example": "1"
                     }

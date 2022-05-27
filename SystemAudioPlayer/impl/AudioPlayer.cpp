@@ -1078,10 +1078,10 @@ void AudioPlayer::setHoldTime( int holdTimeMs)
 #ifdef PLATFORM_AMLOGIC
     guint64 holdTimeNs = holdTimeMs * 1000000;
 
-    guint64 cutter_detecttimeNs;
-    g_object_get(G_OBJECT(m_audioCutter), "run-length", &cutter_detecttimeNs, NULL);
+    guint64 cutter_holdtimeNs;
+    g_object_get(G_OBJECT(m_audioCutter), "run-length", &cutter_holdtimeNs, NULL);
 
-    SAPLOG_INFO(" Player get HoldTimeNs=%" G_GUINT64_FORMAT " set HoldTimeNs=%" G_GUINT64_FORMAT "\n",cutter_detecttimeNs, holdTimeNs );
+    SAPLOG_INFO(" Player get HoldTimeNs=%" G_GUINT64_FORMAT " set HoldTimeNs=%" G_GUINT64_FORMAT "\n",cutter_holdtimeNs, holdTimeNs );
 
     g_object_set(G_OBJECT(m_audioCutter), "run-length", holdTimeNs, NULL);
 #endif
