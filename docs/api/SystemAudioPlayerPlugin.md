@@ -96,7 +96,6 @@ SystemAudioPlayer interface methods:
 | [playbuffer](#playbuffer) | Buffers the audio playback on the specified player |
 | [resume](#resume) | Resumes playback on the specified player |
 | [setMixerLevels](#setMixerLevels) | Sets the audio level on the specified player |
-| [setSmartVolControl](#setSmartVolControl) | Sets the smart audio volume level on the specified player |
 | [stop](#stop) | Stops playback on the specified player |
 | [getPlayerSessionId](#getPlayerSessionId) | Get the session ID by providing the URL as the input parameter |
 
