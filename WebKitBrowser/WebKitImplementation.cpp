@@ -2651,16 +2651,7 @@ static GSourceFuncs _handlerIntervention =
 #ifdef WEBKIT_GLIB_API
             std::string activeURL(webkit_web_view_get_uri(_view));
             if (_webprocessPID == -1) {
-              // FIXME: need a webkit_ API to query process id
-              _webprocessPID = ([]() -> pid_t {
-                auto children = Core::ProcessInfo::Iterator(Core::ProcessInfo().Id());
-                while (children.Next()) {
-                  if (children.Current().Name() == "WPEWebProcess") {
-                    return children.Current().Id();
-                  }
-                }
-                return -1;
-              })();
+              _webprocessPID = webkit_web_view_get_web_process_identifier(_view);
             }
             pid_t webprocessPID = _webprocessPID;
 #else
