@@ -2611,7 +2611,15 @@ static GSourceFuncs _handlerIntervention =
             _webProcessCheckInProgress = true;
 
 #ifdef WEBKIT_GLIB_API
-            DidReceiveWebProcessResponsivenessReply(webkit_web_view_get_is_web_process_responsive(_view));
+            webkit_web_view_is_web_process_responsive_async(
+                _view,
+                nullptr,
+                [](GObject* object, GAsyncResult* result, gpointer user_data) {
+                    bool isWebProcessResponsive = webkit_web_view_is_web_process_responsive_finish(WEBKIT_WEB_VIEW(object), result, nullptr);
+                    WebKitImplementation* webkit_impl = static_cast<WebKitImplementation*>(user_data);
+                    webkit_impl->DidReceiveWebProcessResponsivenessReply(isWebProcessResponsive);
+                },
+                this);
 #else
             WKPageIsWebProcessResponsive(
                 _page,
