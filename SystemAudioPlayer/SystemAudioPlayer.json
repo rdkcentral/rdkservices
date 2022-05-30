@@ -285,6 +285,53 @@
                 "$ref": "#/definitions/result"
             }
         },
+        "setSmartVolControl": {
+            "summary": "Sets the smart volume audio control on the specified player. The `SystemAudioPlayer` plugin can control the smart volume of the content being played back as well as the primary program audio; thus, an application can duck down the volume on the primary program audio when system audio is played and then restore it back when the system audio playback is complete.\n \n### Events \n\n No Events.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/definitions/id"
+                    },
+                    "enable": {
+                        "summary": "Smart Volume control identifier for a enable/disable.",
+                        "type": "bool",
+                        "example": "true"
+                    },
+                    "playerAudioLevelThreshold": { 
+                        "summary": "the minimum audio level threshold in the player source stream, above which triggers smart audio mixing detection. Range: 0 to 1 (in real number).",
+                        "type": "double",
+                        "example": "0.1"
+                    },
+	            "playerDetectTimeMs": { 
+                        "summary": "the duration that playerAudioLevelThreshold must be detected for before primary audio ducking is started. Range: Above 0 (in milliseconds) .",
+                        "type": "int",
+                        "example": "200"
+                    },
+		    "playerHoldTimeMs": { 
+                        "summary": "the duration that primary audio ducking is enabled for, after the playerAudioLevelThreshold trigger is no longer met before primary audio ducking is stopped. Range: Above 0 (in milliseconds).",
+                        "type": "int",
+                        "example": "1000"
+                    },
+		    "primaryDuckingPercent": { 
+                        "summary":"the percentage to duck the primary audio volume. If setMixerLevels has been called, then this percentage is scaled to the params.primVolume range. Range: 0 to 100 (in percentage) ",
+                        "type": "int",
+                        "example": "1"
+                    }
+                },
+                "required": [
+                    "id",
+                    "enable",
+                    "playerAudioLevelThreshold"
+					"playerDetectTimeMs"
+					"playerHoldTimeMs"
+					"primaryDuckingPercent"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
         "stop": {
             "summary": "Stops playback on the specified player.\n \n### Events \n\n No Events.",
             "params": {
