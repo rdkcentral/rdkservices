@@ -26,8 +26,6 @@
 #include "Module.h"
 #include "NetUtils.h"
 #include "utils.h"
-#include "AbstractPlugin.h"
-#include "upnpdiscoverymanager.h"
 
 
 // Define this to use netlink calls (where there may be an alternative method but netlink could provide
@@ -86,7 +84,7 @@ namespace WPEFramework {
         // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
         // this class exposes a public method called, Notify(), using this methods, all subscribed clients
         // will receive a JSONRPC message as a notification, in case this method is called.
-        class Network : public AbstractPlugin {
+        class Network : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
 
             // We do not allow this plugin to be copied !!

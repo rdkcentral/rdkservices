@@ -1,9 +1,0 @@
-[package]
-name = "rust_adapter_process"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-thunder_rs = {git ="https://github.com/mrcomcast123/thunder_rs.git", branch="main"}
-libloading = "0.7.3"
-byteorder = "1.4.3"

@@ -103,7 +103,10 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
     if(!configuration.language.empty() && configuration.voice.empty()) {
         std::vector<std::string> voices;
         listVoices(configuration.language, voices);
-        updated |= m_defaultConfiguration.setVoice(voices.front());
+        if(voices.empty())
+            TTSLOG_WARNING("voice is empty and no voices are defined for the specified language ('%s')!!!", configuration.language.c_str());
+        else
+            updated |= m_defaultConfiguration.setVoice(voices.front());
     }
     else
         updated |= m_defaultConfiguration.setVoice(configuration.voice);

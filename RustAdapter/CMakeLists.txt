@@ -38,16 +38,3 @@ target_link_libraries(${MODULE_NAME} PRIVATE
 
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
-
-add_custom_target(
-    rust_adapter_process
-    COMMAND cargo build 
-      --manifest-path ${CMAKE_CURRENT_SOURCE_DIR}/rust_adapter_process/Cargo.toml 
-      --target-dir ${CMAKE_CURRENT_BINARY_DIR}/rust_adapter_process
-      #--release
-)
-add_dependencies(${MODULE_NAME} rust_adapter_process)
-
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/rust_adapter_process/debug/rust_adapter_process 
-  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-  DESTINATION bin)

@@ -287,6 +287,7 @@
     },
     "methods": {
         "cacheContains": {
+            "deprecated" : true,
             "summary": "Checks if a key is present in the cache.\n \n### Events\n \n No Events.",
             "params": {
                 "type": "object",
@@ -380,6 +381,7 @@
             }
         },
         "getCachedValue":{
+            "deprecated" : true,
             "summary": "Gets the value of a key in the cache.\n \n### Events\n \n No Events.",
             "params": {
                 "type": "object",
@@ -681,6 +683,7 @@
             }
         },
         "getMilestones": {
+	    "deprecated" : true,
             "summary": "Returns the list of milestones.\n \n### Events\n \n No Events.",
             "result": {
                 "type": "object",
@@ -1277,6 +1280,20 @@
                 ]
             }
         },
+	"getTerritory":{
+		"summary": "Geta the territory.",
+		"params":{
+			"type" : "object",
+			"properties": {
+				"territory":{
+					"$ref":"#/definitions/territory"
+				}
+			}
+		},
+		"result":{
+			"$ref": "#/definitions/result"
+		}
+	},
         "hasRebootBeenRequested":{
             "summary": "Checks whether a reboot has been requested.\n \n### Events\n \n No Events.",
             "result": {
@@ -1298,6 +1315,7 @@
             }
         },
         "isGzEnabled":{
+	    "deprecated" : true,
             "summary": "Checks whether GZ is enabled.\n \n### Events\n \n No Events.",
             "result": {
                 "type": "object",
@@ -1389,6 +1407,7 @@
             }
         },
         "removeCacheKey":{
+            "deprecated" : true,
             "summary": "Removes the cache key.\n \n### Events\n \n No Events.",
             "params": {
                 "type":"object",
@@ -1426,6 +1445,7 @@
             }
         },
         "setCachedValue": {
+            "deprecated" : true,
             "summary": "Sets the value for a key in the cache.\n \n### Events\n \n No Events.",
             "params": {
                 "type":"object",
@@ -1504,6 +1524,7 @@
             }
         },
         "setGzEnabled": {
+            "deprecated" : true,
             "summary": "Enables or disables GZ.\n \n### Events\n \n No Events.",
             "params": {
                 "type":"object",
@@ -1800,6 +1821,12 @@
             }
         }
     },
+    "setTerritory":{
+	    "summary": "Sets the territory and region",
+	    "result":{
+		    "$ref":"#/definitions/territory"
+	    }
+    },
     "events": {
         "onFirmwarePendingReboot":{
             "summary": "(Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked",
@@ -2016,7 +2043,7 @@
                     }
                 },
                 "required": [
-                    "nwStandby",
+                    "nwStandby"
                 ]
             }
         },
@@ -2049,6 +2076,65 @@
                     "temperature"
                 ]
             }
-        }
+        },
+	"onTerritoryChanged":{
+		"summary": "Triggered when territory is changed",
+		"params": {
+			"type" :"object",
+			"properties": {
+				"oldTerritory":{
+					"summary": "Old Territory",
+					"type": "string",
+					"example": "GBR"
+				},
+				"newTerritory":{
+					"summary": "New Territory",
+					"type": "string",
+					"example": "USA"
+				},
+				"oldRegion":{
+					"summary": "Old Region",
+					"type": "string",
+					"example": "GB-ENG"
+				},
+				"newRegion":{
+					"summary": "New Region",
+					"type": "string",
+					"example": "US-NY"
+				}
+			},
+			"required":[
+				"oldTerritory",
+				"newTerriTory",
+				"oldRegion",
+				"newRegion"
+			]
+			
+		}
+	
+	},
+	"onTimeZoneDSTChanged":{
+		"summary": "Triggered when the Time zone changed",
+		"params":{
+			"type": "object",
+			"properties": {
+				"oldTimeZone":{
+					"summary": "Old Time zone",
+					"type": "string",
+					"example": "America/New_York"
+				},
+				"newTimeZone":{
+					"summary": "New Time zone",
+					"type": "string",
+					"example": "Europe/London"
+				}
+			},
+			"required":[
+				"oldTimeZone",
+				"newTimeZone"
+			]
+		}
+	}
+
     }
 }

@@ -22,8 +22,6 @@
 #include "libIBus.h"
 
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 #include "dsTypes.h"
 
 namespace WPEFramework {
@@ -42,7 +40,7 @@ namespace WPEFramework {
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class HdmiInput : public AbstractPlugin {
+        class HdmiInput : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -92,9 +90,16 @@ namespace WPEFramework {
         public:
             HdmiInput();
             virtual ~HdmiInput();
+            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
 
             void terminate();
+
+            BEGIN_INTERFACE_MAP(HdmiInput)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         public:
             static HdmiInput* _instance;
