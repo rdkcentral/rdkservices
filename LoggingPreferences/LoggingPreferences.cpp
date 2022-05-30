@@ -18,6 +18,8 @@
 **/
 
 #include "LoggingPreferences.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 #include <sysMgr.h>
 
 using namespace std;

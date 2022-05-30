@@ -20,7 +20,8 @@
 #include "ControlService.h"
 #include "libIBusDaemon.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 #include "irMgr.h"
 #include "comcastIrKeyCodes.h"

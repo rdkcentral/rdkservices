@@ -28,8 +28,7 @@ add_library(${MODULE_NAME} SHARED
         impl/WifiManagerState.cpp
         impl/WifiManagerConnect.cpp
         impl/WifiManagerScan.cpp
-        impl/WifiManagerEvents.cpp
-        ../helpers/utils.cpp)
+        impl/WifiManagerEvents.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11

@@ -20,7 +20,9 @@
 #include "RemoteActionMapping.h"
 #include "libIBusDaemon.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
+#include "UtilsUnused.h"
 #include <exception>
 
 const int supported_ked_keynames[] =
