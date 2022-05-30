@@ -18,7 +18,8 @@
 **/
 
 #include "HdmiInput.h"
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 #include "hdmiIn.hpp"
 #include "exception.hpp"
@@ -59,24 +60,31 @@ namespace WPEFramework
         HdmiInput* HdmiInput::_instance = nullptr;
 
         HdmiInput::HdmiInput()
-        : AbstractPlugin(2)
+        : PluginHost::JSONRPC()
         {
             HdmiInput::_instance = this;
 
             InitializeIARM();
 
-            registerMethod(HDMIINPUT_METHOD_GET_HDMI_INPUT_DEVICES, &HdmiInput::getHDMIInputDevicesWrapper, this);
-            registerMethod(HDMIINPUT_METHOD_WRITE_EDID, &HdmiInput::writeEDIDWrapper, this);
-            registerMethod(HDMIINPUT_METHOD_READ_EDID, &HdmiInput::readEDIDWrapper, this);
-	    //version2 api start
-            registerMethod(HDMIINPUT_METHOD_READ_RAWHDMISPD, &HdmiInput::getRawHDMISPDWrapper, this, {2});
-            registerMethod(HDMIINPUT_METHOD_READ_HDMISPD, &HdmiInput::getHDMISPDWrapper, this, {2});
-	    //version2 api end
-            registerMethod(HDMIINPUT_METHOD_SET_EDID_VERSION, &HdmiInput::setEdidVersionWrapper, this, {2});
-            registerMethod(HDMIINPUT_METHOD_GET_EDID_VERSION, &HdmiInput::getEdidVersionWrapper, this, {2});
-            registerMethod(HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
-            registerMethod(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
-            registerMethod(HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
+            CreateHandler({2});
+
+            Register(HDMIINPUT_METHOD_GET_HDMI_INPUT_DEVICES, &HdmiInput::getHDMIInputDevicesWrapper, this);
+            Register(HDMIINPUT_METHOD_WRITE_EDID, &HdmiInput::writeEDIDWrapper, this);
+            Register(HDMIINPUT_METHOD_READ_EDID, &HdmiInput::readEDIDWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_READ_RAWHDMISPD, &HdmiInput::getRawHDMISPDWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_READ_HDMISPD, &HdmiInput::getHDMISPDWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_SET_EDID_VERSION, &HdmiInput::setEdidVersionWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_GET_EDID_VERSION, &HdmiInput::getEdidVersionWrapper, this);
+            Register(HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
+            Register(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
+            Register(HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
+
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_GET_HDMI_INPUT_DEVICES, &HdmiInput::getHDMIInputDevicesWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_WRITE_EDID, &HdmiInput::writeEDIDWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_READ_EDID, &HdmiInput::readEDIDWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
         }
 
         HdmiInput::~HdmiInput()
@@ -369,6 +377,7 @@ namespace WPEFramework
             JsonObject params;
             params["devices"] = getHDMIInputDevices();
             sendNotify(HDMIINPUT_EVENT_ON_DEVICES_CHANGED, params);
+            GetHandler(2)->Notify(HDMIINPUT_EVENT_ON_DEVICES_CHANGED, params);
         }
 
         /**
@@ -411,6 +420,7 @@ namespace WPEFramework
             }
 
             sendNotify(HDMIINPUT_EVENT_ON_SIGNAL_CHANGED, params);
+            GetHandler(2)->Notify(HDMIINPUT_EVENT_ON_SIGNAL_CHANGED, params);
         }
 
         /**
@@ -438,6 +448,7 @@ namespace WPEFramework
             }
 
             sendNotify(HDMIINPUT_EVENT_ON_STATUS_CHANGED, params);
+            GetHandler(2)->Notify(HDMIINPUT_EVENT_ON_STATUS_CHANGED, params);
         }
 
         /**
@@ -544,6 +555,7 @@ namespace WPEFramework
             }
 
             sendNotify(HDMIINPUT_EVENT_ON_VIDEO_MODE_UPDATED, params);
+            GetHandler(2)->Notify(HDMIINPUT_EVENT_ON_VIDEO_MODE_UPDATED, params);
         }
 
         void HdmiInput::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)

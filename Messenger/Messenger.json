@@ -1,439 +1,246 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
-    "jsonrpc": "2.0",
-    "info": {
-      "title": "Messenger API",
-      "class": "Messenger",
-      "description": "The `Messenger` plugin allows exchanging text messages between users gathered in virtual rooms. The rooms are dynamically created and destroyed based on user attendance. Upon joining a room, the client receives a unique token (room ID) to be used for sending and receiving the messages."
+  "$schema": "interface.schema.json",
+  "jsonrpc": "2.0",
+  "info": {
+    "title": "Messenger API",
+    "class": "Messenger",
+    "description": "Messenger JSON-RPC interface"
+  },
+  "common": {
+    "$ref": "common.json"
+  },
+  "definitions": {
+    "secure": {
+      "type": "string",
+      "enum": [
+        "insecure",
+        "secure"
+      ],
+      "example": "secure"
     },
-    "common": {
-        "errors": {
-            "general": {
-                "code": 1,
-                "message": "ERROR_GENERAL"
-            },
-            "unavailable": {
-                "code": 2,
-                "message": "ERROR_UNAVAILABLE"
-            },
-            "asyncfailed": {
-                "code": 3,
-                "message": "ERROR_ASYNC_FAILED"
-            },
-            "asyncaborted": {
-                "code": 4,
-                "message": "ERROR_ASYNC_ABORTED"
-            },
-            "illegalstate": {
-                "code": 5,
-                "message": "ERROR_ILLEGAL_STATE"
-            },
-            "openingfailed": {
-                "code": 6,
-                "message": "ERROR_OPENING_FAILED"
-            },
-            "acceptfailed": {
-                "code": 7,
-                "message": "ERROR_ACCEPT_FAILED"
-            },
-            "pendingshutdown": {
-                "code": 8,
-                "message": "ERROR_PENDING_SHUTDOWN"
-            },
-            "alreadyconnected": {
-                "code": 9,
-                "message": "ERROR_ALREADY_CONNECTED"
-            },
-            "connectionclosed": {
-                "code": 10,
-                "message": "ERROR_CONNECTION_CLOSED"
-            },
-            "timedout": {
-                "code": 11,
-                "message": "ERROR_TIMEDOUT"
-            },
-            "inprogress": {
-                "code": 12,
-                "message": "ERROR_INPROGRESS",
-                "description": "Operation in progress"
-            },
-            "couldnotsetaddress": {
-                "code": 13,
-                "message": "ERROR_COULD_NOT_SET_ADDRESS"
-            },
-            "incorrecthash": {
-                "code": 14,
-                "message": "ERROR_INCORRECT_HASH",
-                "description": "Incorrect hash given"
-            },
-            "incorrecturl": {
-                "code": 15,
-                "message": "ERROR_INCORRECT_URL",
-                "description": "Incorrect URL given"
-            },
-            "invalidinputlength": {
-                "code": 16,
-                "message": "ERROR_INVALID_INPUT_LENGTH"
-            },
-            "destructionsucceeded": {
-                "code": 17,
-                "message": "ERROR_DESTRUCTION_SUCCEEDED"
-            },
-            "destructionfailed": {
-                "code": 18,
-                "message": "ERROR_DESTRUCTION_FAILED"
-            },
-            "closingfailed": {
-                "code": 19,
-                "message": "ERROR_CLOSING_FAILED"
-            },
-            "processterminated": {
-                "code": 20,
-                "message": "ERROR_PROCESS_TERMINATED"
-            },
-            "processkilled": {
-                "code": 21,
-                "message": "ERROR_PROCESS_KILLED"
-            },
-            "unknownkey": {
-                "code": 22,
-                "message": "ERROR_UNKNOWN_KEY"
-            },
-            "incompleteconfig": {
-                "code": 23,
-                "message": "ERROR_INCOMPLETE_CONFIG"
-            },
-            "privilegedrequest": {
-                "code": 24,
-                "message": "ERROR_PRIVILEGED_REQUEST"
-            },
-            "rpccallfailed": {
-                "code": 25,
-                "message": "ERROR_RPC_CALL_FAILED"
-            },
-            "unreachablenetwork": {
-                "code": 26,
-                "message": "ERROR_UNREACHABLE_NETWORK"
-            },
-            "requestsubmitted": {
-                "code": 27,
-                "message": "ERROR_REQUEST_SUBMITTED"
-            },
-            "unknowntable": {
-                "code": 28,
-                "message": "ERROR_UNKNOWN_TABLE"
-            },
-            "duplicatekey": {
-                "code": 29,
-                "message": "ERROR_DUPLICATE_KEY"
-            },
-            "badrequest": {
-                "code": 30,
-                "message": "ERROR_BAD_REQUEST"
-            },
-            "pendingconditions": {
-                "code": 31,
-                "message": "ERROR_PENDING_CONDITIONS"
-            },
-            "surfaceunavailable": {
-                "code": 32,
-                "message": "ERROR_SURFACE_UNAVAILABLE"
-            },
-            "playerunavailable": {
-                "code": 33,
-                "message": "ERROR_PLAYER_UNAVAILABLE"
-            },
-            "firstresourcenotfound": {
-                "code": 34,
-                "message": "ERROR_FIRST_RESOURCE_NOT_FOUND"
-            },
-            "secondsourcenotfound": {
-                "code": 35,
-                "message": "ERROR_SECOND_RESOURCE_NOT_FOUND"
-            },
-            "alreadyreleased": {
-                "code": 36,
-                "message": "ERROR_ALREADY_RELEASED"
-            },
-            "negtiveacknowledge": {
-                "code": 37,
-                "message": "ERROR_NEGATIVE_ACKNOWLEDGE"
-            },
-            "invalidsignature": {
-                "code": 38,
-                "message": "ERROR_INVALID_SIGNATURE"
-            },
-            "readerror": {
-                "code": 39,
-                "message": "ERROR_READ_ERROR"
-            },
-            "writeerror": {
-                "code": 40,
-                "message": "ERROR_WRITE_ERROR"
-            },
-            "invaliddesignator": {
-                "code": 41,
-                "message": "ERROR_INVALID_DESIGNATOR"
-            },
-            "unauthenticated": {
-                "code": 42,
-                "message": "ERROR_UNAUTHENTICATED"
-            },
-            "notexist": {
-                "code": 43,
-                "message": "ERROR_NOT_EXIST"
-            },
-            "notsupported": {
-                "code": 44,
-                "message": "ERROR_NOT_SUPPORTED"
-            }
-        },
-        "results": {
-            "void": {
-                "type": "null",
-                "default": null,
-                "description": "Always null"
-            }
-        }
-    },
-    "definitions": {
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        }
-    },
-    "methods": {
-        "join": {
-            "summary":"Joins a messaging room. The room is created if specified room does not exist.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `roomupdate`| Triggered if a room is created or destroyed|\n| `userupdate`| Triggered if the user join or leave a messaging room |",
-            "events": [
-                "roomupdate",
-                "userupdate"
-            ],
-            "params": {
-                "type": "object",
-                "properties": {
-                    "user": {
-                        "description": "The user name to join the room under (must not be empty)",
-                        "type": "string",
-                        "example": "Bob"
-                    },
-                    "room": {
-                        "description": "The name of the room to join (must not be empty)",
-                        "type": "string",
-                        "example": "Lounge"
-                    },
-                    "secure": {
-                        "description": "Room security (must be one of the following: insecure, secure)",
-                        "type":"string",
-                        "example":"secure"
-                    },
-                    "acl":{
-                        "description": "Access-control list for secure room",
-                        "type":"array",
-                        "items":{
-                            "type":"string",
-                            "description": "URL origin with possible wildcards",
-                            "example": "https://*.github.io"
-                        }
-                    }
-                },
-                "required": [
-                    "user",
-                    "room"
-                ]
-            },
-            "result": {
-                "type": "object",
-                "properties": {
-                    "roomid": {
-                        "description": "Unique ID of the room",
-                        "type": "string",
-                        "example": "1e217990dd1cd4f66124"
-                    }
-                }
-            },
-            "errors": [
-                {
-                    "description": "User name is already taken (i.e. the user has already joined the room)",
-                    "$ref": "#/common/errors/illegalstate"
-                },
-                {
-                    "description": "User name or room name was invalid",
-                    "$ref": "#/common/errors/badrequest"
-                },
-                {
-                    "description": "Room security errors",
-                    "$ref": "#/common/errors/privilegedrequest"
-                }
-            ]
-        },
-        "leave": {
-            "summary": "Leaves a messaging room.The room is destroyed and its resources are freed, once all users left the room and room id becomes invalid.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `roomupdate`| Triggered if a room is created or destroyed |\n| `userupdate`| Triggered if the user join or leave a messaging room |",
-            "events": [
-                "roomupdate",
-                "userupdate"
-            ],
-            "params": {
-                "type": "object",
-                "properties": {
-                    "roomid": {
-                        "description": "ID of the room to leave",
-                        "type": "string",
-                        "example": "1e217990dd1cd4f66124"
-                    }
-                }
-            },
-            "result": {
-                "$ref": "#/common/results/void"
-            },
-            "errors": [
-                {
-                    "description": "The given room ID was invalid",
-                    "$ref": "#/common/errors/unknownkey"
-                }
-            ]
-        },
-        "send": {
-            "summary": "Sends a message to a room.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `message`| Triggered if the user sends message to a room |",
-            "events": [
-                "message"
-            ],
-            "params": {
-                "type": "object",
-                "properties": {
-                    "roomid": {
-                        "description": "ID of the room to send the message to",
-                        "type": "string",
-                        "example": "1e217990dd1cd4f66124"
-                    },
-                    "message": {
-                        "description": "The message content to send",
-                        "type": "string",
-                        "example": "Hello!"
-                    }
-                },
-                "required": [
-                    "roomid",
-                    "message"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/results/void"
-            },
-            "errors": [
-                {
-                    "description": "The given room ID was invalid",
-                    "$ref": "#/common/errors/unknownkey"
-                }
-            ]
-        }
-    },
-    "events": {
-        "roomupdate": {
-            "summary": "Notifies about room status updates. Registering to this event the listener will sequentially receive updates of all rooms that have been created so far.",
-            "statuslistener": true,
-            "params": {
-                "type": "object",
-                "properties": {
-                    "room": {
-                        "description": "Name of the room this notification relates to",
-                        "type": "string",
-                        "example": "Lounge"
-                    },
-                    "secure":{
-                        "description": "Room security",
-                        "type": "string",
-                        "enum": [
-                            "insecure",
-                            "secure"
-                        ],
-                        "example": "secure"                    },
-                    "action": {
-                        "description": "Specifies the room status change, e.g. created or destroyed",
-                        "type": "string",
-                        "enum": [
-                            "created",
-                            "destroyed"
-                        ],
-                        "default": "created",
-                        "example": "created"
-                    }
-                },
-                "required": [
-                    "room",
-                    "action"
-                ]
-            }
-        },
-        "userupdate": {
-            "summary": "Notifies about user status updates. Registering to this event the listener will sequentially receive updates of all users that have joined the room so far.",
-            "statuslistener": true,
-            "id": {
-                "name": "room ID",
-                "example": "1e217990dd1cd4f66124"
-            },
-            "params": {
-                "type": "object",
-                "properties": {
-                    "user": {
-                        "description": "Name of the user that has this notification relates to",
-                        "type": "string",
-                        "example": "Bob"
-                    },
-                    "action": {
-                        "description": "Specifies the user status change, e.g. join or leave a room",
-                        "type": "string",
-                        "enum": [
-                            "joined",
-                            "left"
-                        ],
-                        "default": "joined",
-                        "example": "joined"
-                    }
-                },
-                "required": [
-                    "user",
-                    "action"
-                ]
-            }
-        },
-        "message": {
-            "summary": "Notifies about new messages in a room. Registering to this event the listener will be notified about new messages in a room.",
-            "id": {
-                "name": "room ID",
-                "example": "1e217990dd1cd4f66124"
-            },
-            "params": {
-                "type": "object",
-                "properties": {
-                    "user": {
-                        "description": "Name of the user that has sent the message",
-                        "type": "string",
-                        "example": "Bob"
-                    },
-                    "message": {
-                        "description": "Content of the message",
-                        "type": "string",
-                        "example": "Hello!"
-                    }
-                },
-                "required": [
-                    "user",
-                    "message"
-                ]
-            }
-        }
+    "acl": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "URL origin with possible wildcards",
+        "example": "https://*.github.io"
+      }
     }
+  },
+  "methods": {
+    "Messenger.1.join": {
+      "summary": "Joins a messaging room",
+      "description": "Use this method to join a room. If the specified room does not exist, then it will be created.",
+      "events": [
+        "userupdate"
+      ],
+      "params": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "description": "User name to join the room under (must not be empty)",
+            "type": "string",
+            "example": "Bob"
+          },
+          "room": {
+            "description": "Name of the room to join (must not be empty)",
+            "type": "string",
+            "example": "Lounge"
+          },
+          "secure": {
+            "description": "Room security",
+            "$ref": "#/definitions/secure"
+          },
+          "acl": {
+            "description": "Access-control list for secure room",
+            "$ref": "#/definitions/acl"
+          }
+        },
+        "required": [
+          "user",
+          "room"
+        ]
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "roomid": {
+            "description": "Unique ID of the room",
+            "type": "string",
+            "example": "1e217990dd1cd4f66124"
+          }
+        }
+      },
+      "errors": [
+        {
+          "description": "User name is already taken (i.e. the user has already joined the room)",
+          "$ref": "#/common/errors/illegalstate"
+        },
+        {
+          "description": "User name or room name was invalid",
+          "$ref": "#/common/errors/badrequest"
+        },
+        {
+          "description": "Room security errors",
+          "$ref": "#/common/errors/privilegedrequest"
+        }
+      ]
+    },
+    "Messenger.1.leave": {
+      "summary": "Leaves a messaging room",
+      "description": "Use this method to leave a room. The room ID becomes invalid after this call. If there are no more users, the room will be destroyed and related resources freed.",
+      "events": [
+        "userupdate"
+      ],
+      "params": {
+        "type": "object",
+        "properties": {
+          "roomid": {
+            "description": "ID of the room to leave",
+            "type": "string",
+            "example": "1e217990dd1cd4f66124"
+          }
+        }
+      },
+      "result": {
+        "$ref": "#/common/results/void"
+      },
+      "errors": [
+        {
+          "description": "The given room ID was invalid",
+          "$ref": "#/common/errors/unknownkey"
+        }
+      ]
+    },
+    "Messenger.1.send": {
+      "summary": "Sends a message to a room",
+      "description": "Use this method to send a message to a room.",
+      "events": [
+        "message"
+      ],
+      "params": {
+        "type": "object",
+        "properties": {
+          "roomid": {
+            "description": "ID of the room to send the message to",
+            "type": "string",
+            "example": "1e217990dd1cd4f66124"
+          },
+          "message": {
+            "description": "The message content to send",
+            "type": "string",
+            "example": "Hello!"
+          }
+        },
+        "required": [
+          "roomid",
+          "message"
+        ]
+      },
+      "result": {
+        "$ref": "#/common/results/void"
+      },
+      "errors": [
+        {
+          "description": "The given room ID was invalid",
+          "$ref": "#/common/errors/unknownkey"
+        }
+      ]
+    }
+  },
+  "events": {
+    "roomupdate": {
+      "summary": "Notifies about room status updates",
+      "description": "Register to this event to be notified about room status updates. Immediately after registering to this notification the listener will sequentially receive updates of all rooms that have been created so far.",
+      "statuslistener": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "description": "Name of the room this notification relates to",
+            "type": "string",
+            "example": "Lounge"
+          },
+          "secure": {
+            "description": "Room security",
+            "$ref": "#/definitions/secure"
+          },
+          "action": {
+            "description": "Specifies the room status change, e.g. created or destroyed",
+            "type": "string",
+            "enum": [
+              "created",
+              "destroyed"
+            ],
+            "default": "created",
+            "example": "created"
+          }
+        },
+        "required": [
+          "room",
+          "action"
+        ]
+      }
+    },
+    "userupdate": {
+      "summary": "Notifies about user status updates.",
+      "description": "Register to this event to be notified about room status updates. Immediately after registering to this notification the listener will sequentially receive updates of all users that have joined the room so far.",
+      "statuslistener": true,
+      "id": {
+        "name": "room ID",
+        "example": "1e217990dd1cd4f66124"
+      },
+      "params": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "description": "Name of the user that has this notification relates to",
+            "type": "string",
+            "example": "Bob"
+          },
+          "action": {
+            "description": "Specifies the user status change, e.g. join or leave a room",
+            "type": "string",
+            "enum": [
+              "joined",
+              "left"
+            ],
+            "default": "joined",
+            "example": "joined"
+          }
+        },
+        "required": [
+          "user",
+          "action"
+        ]
+      }
+    },
+    "message": {
+      "summary": "Notifies about new messages in a room",
+      "description": "Register to this event to be notified about new messages in a room.",
+      "id": {
+        "name": "room ID",
+        "example": "1e217990dd1cd4f66124"
+      },
+      "params": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "description": "Name of the user that has sent the message",
+            "type": "string",
+            "example": "Bob"
+          },
+          "message": {
+            "description": "Content of the message",
+            "type": "string",
+            "example": "Hello!"
+          }
+        },
+        "required": [
+          "user",
+          "message"
+        ]
+      }
+    }
+  }
 }

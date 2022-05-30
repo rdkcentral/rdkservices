@@ -42,12 +42,18 @@ public:
     Config() : Core::JSON::Container(), OutOfProcess(true)
     {
       Add(_T("outofprocess"), &OutOfProcess);
+      Add(_T("address"), &Address);
+      Add(_T("port"), &Port);
+      Add(_T("autoexec"), &AutoExec);
     }
     ~Config()
     {
     }
   public:
     Core::JSON::Boolean OutOfProcess;
+    Core::JSON::String Address;
+    Core::JSON::DecUInt16 Port;
+    Core::JSON::Boolean AutoExec;
   };
 
   /**
@@ -66,7 +72,7 @@ public:
   /**
    * IPlugin::Initialize
    */
-  const std::string Initialize(PluginHost::IShell *shell) override;
+  const string Initialize(PluginHost::IShell *shell) override;
 
   /**
    * IPlugin::Deinitialize
@@ -76,7 +82,7 @@ public:
   /**
    * IPlugin Information
    */
-  std::string Information() const override;
+  string Information() const override;
 
   /**
    * IDispatcher -> IUknown -> IReferenceCounted::AddRef
@@ -114,7 +120,7 @@ public:
   /**
    *
    */
-  Core::ProxyType<Core::JSON::IElement> Inbound(const std::string &identifier) override;
+  Core::ProxyType<Core::JSON::IElement> Inbound(const string &identifier) override;
   Core::ProxyType<Core::JSON::IElement> Inbound(const uint32_t id,
     const Core::ProxyType<Core::JSON::IElement> &element) override;
 
@@ -125,8 +131,13 @@ public:
   INTERFACE_ENTRY(PluginHost::IWebSocket)
   END_INTERFACE_MAP
 
+  const Config& GetConfig() const
+  {
+    return m_config;
+  }
 private:
   std::unique_ptr<Rust::IPlugin> m_impl;
+  Config m_config;
 
   // needs to be mutable because Release() is const
   mutable std::atomic<uint32_t> m_refcount;

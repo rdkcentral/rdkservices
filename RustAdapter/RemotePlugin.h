@@ -29,7 +29,7 @@ public:
   /**
    *
    */
-  RemotePlugin();
+  RemotePlugin(RustAdapter* rustAdapter);
 
   /**
    *
@@ -42,7 +42,7 @@ public:
   /**
    * IPlugin::Initialize
    */
-  const std::string Initialize(PluginHost::IShell *shell) override;
+  const string Initialize(PluginHost::IShell *shell) override;
 
   /**
    * IPlugin::Deinitialize
@@ -52,7 +52,7 @@ public:
   /**
    * IPlugin Information
    */
-  std::string Information() const override;
+  string Information() const override;
 
   /**
    * IDispatcher -> IUknown -> IReferenceCounted::AddRef
@@ -97,24 +97,25 @@ public:
   /**
    *
    */
-  Core::ProxyType<Core::JSON::IElement> Inbound(const std::string &identifier) override;
+  Core::ProxyType<Core::JSON::IElement> Inbound(const string &identifier) override;
   Core::ProxyType<Core::JSON::IElement> Inbound(const uint32_t id,
     const Core::ProxyType<Core::JSON::IElement> &element) override;
 
   void onRead(const Response& rsp);
 private:
   static int LaunchRemoteProcess(const string& rust_shared_lib, const string& host_ip, int port);
+  void SendTo(uint32_t channel_id, const char *json);
 
   // we keep a pointer to this to allow rust code to callback into
   // the Adapter and send messages/events asynchronously
   // XXX: We could also capture a reference to the channel during
   // attach/detach, but that may require API changes to Thunder/internal
   PluginHost::IShell *m_service;
-
   int m_remotePid;
   SocketServer m_stream;
+  RustAdapter* m_rustAdapter;
 private:
-  void SendTo(uint32_t channel_id, const char *json);
+  
 };
 
 } } }

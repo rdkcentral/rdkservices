@@ -33,7 +33,6 @@
 
 #include "Module.h"
 #include "utils.h"
-#include "AbstractPlugin.h"
 #include "tptimer.h"
 #include <thread>
 #include <mutex>
@@ -470,7 +469,7 @@ private:
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class HdmiCecSink : public AbstractPlugin {
+        class HdmiCecSink : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 
 		enum {
 			POLL_THREAD_STATE_NONE,
@@ -515,7 +514,9 @@ private:
         public:
             HdmiCecSink();
             virtual ~HdmiCecSink();
+            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
             static HdmiCecSink* _instance;
 			CECDeviceParams deviceList[16];
 			std::vector<HdmiPortMap> hdmiInputs;
@@ -543,7 +544,7 @@ private:
                         void stopArc();
                         void Process_InitiateArc();
                         void Process_TerminateArc();
-                        void updateArcState(int portId);
+                        void updateArcState();
                         void requestShortaudioDescriptor();
                         void Send_ShortAudioDescriptor_Event(JsonArray audiodescriptor);
 		        void Process_ShortAudioDescriptor_msg(const ReportShortAudioDescriptor  &msg);
@@ -560,6 +561,12 @@ private:
 			void sendGiveAudioStatusMsg();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
 			bool m_audioDevicePowerStatusRequested;
+
+            BEGIN_INTERFACE_MAP(HdmiCecSink)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
+
         private:
             // We do not allow this plugin to be copied !!
             HdmiCecSink(const HdmiCecSink&) = delete;
@@ -643,7 +650,7 @@ private:
             static void pwrMgrModeChangeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void onCECDaemonInit();
             void cecStatusUpdated(void *evtStatus);
-            void onHdmiHotPlug(int portId, int connectStatus, int portType);
+            void onHdmiHotPlug(int portId, int connectStatus);
 	    void wakeupFromStandby();
             bool loadSettings();
             void persistSettings(bool enableStatus);
@@ -670,6 +677,7 @@ private:
             void Send_Request_Arc_Termination_Message();
             void Send_Report_Arc_Terminated_Message();
             void arcStartStopTimerFunction();
+            void getHdmiArcPortID();
         };
 	} // namespace Plugin
 } // namespace WPEFramework

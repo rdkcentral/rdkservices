@@ -27,8 +27,6 @@
 #include "Module.h"
 #include "tracing/Logging.h"
 #include "utils.h"
-#include "AbstractPlugin.h"
-#include "SystemServicesHelper.h"
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
 #include "libIBus.h"
@@ -39,7 +37,6 @@
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
 #include "sysMgr.h"
-#include "cTimer.h"
 #include "rfcapi.h"
 #include "cSettings.h"
 
@@ -113,7 +110,7 @@ namespace WPEFramework {
         // this class exposes a public method called, Notify(), using this methods, all subscribed clients
         // will receive a JSONRPC message as a notification, in case this method is called.
 
-        class MaintenanceManager : public AbstractPlugin {
+        class MaintenanceManager : public PluginHost::IPlugin, public PluginHost::JSONRPC {
             private:
                 typedef Core::JSON::String JString;
                 typedef Core::JSON::ArrayType<JString> JStringArray;
@@ -150,6 +147,7 @@ namespace WPEFramework {
                 void maintenanceManagerOnBootup();
                 bool checkAutoRebootFlag();
                 bool checkAbortFlag();
+                bool stopMaintenanceTasks();
                 bool checkNetwork();
                 bool getActivatedStatus(bool &skipFirmwareCheck);
                 const string checkActivatedStatus(void);
@@ -177,9 +175,15 @@ namespace WPEFramework {
                 static MaintenanceManager* _instance;
                 virtual const string Initialize(PluginHost::IShell* service) override;
                 virtual void Deinitialize(PluginHost::IShell* service) override;
+                virtual string Information() const override { return {}; }
                 static int runScript(const std::string& script,
                         const std::string& args, string *output = NULL,
                         string *error = NULL, int timeout = 30000);
+
+                BEGIN_INTERFACE_MAP(MaintenanceManager)
+                INTERFACE_ENTRY(PluginHost::IPlugin)
+                INTERFACE_ENTRY(PluginHost::IDispatcher)
+                END_INTERFACE_MAP
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
                 void InitializeIARM();

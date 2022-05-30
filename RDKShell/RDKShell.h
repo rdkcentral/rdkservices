@@ -25,7 +25,6 @@
 #include <rdkshell/rdkshellevents.h>
 #include <rdkshell/rdkshell.h>
 #include <rdkshell/linuxkeys.h>
-#include "AbstractPlugin.h"
 #include "tptimer.h"
 
 namespace WPEFramework {
@@ -38,13 +37,18 @@ namespace WPEFramework {
             JsonObject mRequest;
         };
 
-        class RDKShell :  public AbstractPlugin {
+        class RDKShell :  public PluginHost::IPlugin, public PluginHost::JSONRPC {
         public:
             RDKShell();
             virtual ~RDKShell();
             virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override;
+
+            BEGIN_INTERFACE_MAP(RDKShell)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         public/*members*/:
             static RDKShell* _instance;
@@ -125,8 +129,18 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_ENABLE_EASTER_EGGS;
             static const string RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING;
             static const string RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED;
+            static const string RDKSHELL_METHOD_SHOW_CURSOR;
+            static const string RDKSHELL_METHOD_HIDE_CURSOR;
+            static const string RDKSHELL_METHOD_GET_CURSOR_SIZE;
+            static const string RDKSHELL_METHOD_SET_CURSOR_SIZE;
             static const string RDKSHELL_METHOD_IGNORE_KEY_INPUTS;
-	    static const string RDKSHELL_METHOD_SET_FRAME_RATE;
+            static const string RDKSHELL_METHOD_ADD_EASTER_EGGS;
+            static const string RDKSHELL_METHOD_REMOVE_EASTER_EGGS;
+            static const string RDKSHELL_METHOD_GET_EASTER_EGGS;
+            static const string RDKSHELL_METHOD_ENABLE_INPUT_EVENTS;
+            static const string RDKSHELL_METHOD_KEY_REPEAT_CONFIG;
+            static const string RDKSHELL_METHOD_SET_FRAME_RATE;
+
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -229,8 +243,17 @@ namespace WPEFramework {
             uint32_t enableEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableLogsFlushingWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getLogsFlushingEnabledWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t showCursorWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t hideCursorWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setCursorSizeWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getCursorSizeWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t ignoreKeyInputsWrapper(const JsonObject& parameters, JsonObject& response);
-	    uint32_t setFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t addEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t removeEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t enableInputEventsWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
 
 
         private/*internal methods*/:
@@ -277,7 +300,7 @@ namespace WPEFramework {
             void onLaunched(const std::string& client, const string& launchType);
             void onSuspended(const std::string& client);
             void onDestroyed(const std::string& client);
-            bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
+            bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & availableKb, uint32_t & usedSwapKb);
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
             bool showWatermark(const bool enable);
             bool showFullScreenImage(std::string& path);
@@ -299,6 +322,12 @@ namespace WPEFramework {
             void removeFactoryModeEasterEggs();
             void enableLogsFlushing(const bool enable);
             void getLogsFlushingEnabled(bool &enabled);
+            bool enableInputEvents(const JsonArray& clients, bool enable);
+
+            bool showCursor();
+            bool hideCursor();
+            bool setCursorSize(uint32_t width, uint32_t height);
+            bool getCursorSize(uint32_t& width, uint32_t& height);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
@@ -328,10 +357,10 @@ namespace WPEFramework {
                 virtual void onApplicationResumed(const std::string& client);
                 virtual void onApplicationActivated(const std::string& client);
                 virtual void onUserInactive(const double minutes);
-                virtual void onDeviceLowRamWarning(const int32_t freeKb);
-                virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb);
-                virtual void onDeviceLowRamWarningCleared(const int32_t freeKb);
-                virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb);
+                virtual void onDeviceLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb);
+                virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb);
+                virtual void onDeviceLowRamWarningCleared(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb);
+                virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb);
                 virtual void onEasterEgg(const std::string& name, const std::string& actionJson);
                 virtual void onPowerKey();
                 virtual void onSizeChangeComplete(const std::string& client);

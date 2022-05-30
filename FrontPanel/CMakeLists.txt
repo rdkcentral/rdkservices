@@ -24,8 +24,7 @@ add_library(${MODULE_NAME} SHARED
         FrontPanel.cpp
         Module.cpp
         ../helpers/frontpanel.cpp
-        ../helpers/powerstate.cpp
-        ../helpers/utils.cpp)
+        ../helpers/powerstate.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11

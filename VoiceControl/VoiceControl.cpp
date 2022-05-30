@@ -2,6 +2,8 @@
 #include "VoiceControl.h"
 #include "libIBusDaemon.h"
 #include <stdlib.h>
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 
 using namespace std;
@@ -15,19 +17,19 @@ namespace WPEFramework {
         VoiceControl* VoiceControl::_instance = nullptr;
 
         VoiceControl::VoiceControl()
-            : AbstractPlugin()
+            : PluginHost::JSONRPC()
             , m_apiVersionNumber((uint32_t)-1)   /* default max uint32_t so everything gets enabled */
         {
             LOGINFO("ctor");
             VoiceControl::_instance = this;
 
-            registerMethod("getApiVersionNumber",   &VoiceControl::getApiVersionNumber, this);
+            Register("getApiVersionNumber",   &VoiceControl::getApiVersionNumber, this);
 
-            registerMethod("voiceStatus",           &VoiceControl::voiceStatus,         this);
-            registerMethod("configureVoice",        &VoiceControl::configureVoice,      this);
-            registerMethod("setVoiceInit",          &VoiceControl::setVoiceInit,        this);
-            registerMethod("sendVoiceMessage",      &VoiceControl::sendVoiceMessage,    this);
-            registerMethod("voiceSessionByText",    &VoiceControl::voiceSessionByText,  this);
+            Register("voiceStatus",           &VoiceControl::voiceStatus,         this);
+            Register("configureVoice",        &VoiceControl::configureVoice,      this);
+            Register("setVoiceInit",          &VoiceControl::setVoiceInit,        this);
+            Register("sendVoiceMessage",      &VoiceControl::sendVoiceMessage,    this);
+            Register("voiceSessionByText",    &VoiceControl::voiceSessionByText,  this);
 
             setApiVersionNumber(1);
         }

@@ -18,7 +18,9 @@
  **/
 
 #include "RtXcastConnector.h"
-#include "utils.h"
+#include "Module.h"
+#include "UtilsJsonRpc.h"
+#include "rfcapi.h"
 #include <cjson/cJSON.h>
 
 using namespace std;

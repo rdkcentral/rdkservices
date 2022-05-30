@@ -89,7 +89,7 @@ namespace Plugin {
     }
 
     SystemAudioPlayer::SystemAudioPlayer()
-            : AbstractPlugin()
+            : PluginHost::JSONRPC()
             , _apiVersionNumber(API_VERSION_NUMBER)
             , _notification(this)
     {

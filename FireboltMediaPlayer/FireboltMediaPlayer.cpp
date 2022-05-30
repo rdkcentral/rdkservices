@@ -18,7 +18,7 @@
  **/
 
 #include "FireboltMediaPlayer.h"
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 #include "Module.h"
 
 namespace WPEFramework {
