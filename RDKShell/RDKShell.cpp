@@ -1164,7 +1164,7 @@ namespace WPEFramework {
                   if (needsScreenshot)
                   {
                       uint8_t* data = nullptr;
-                      size_t size;
+                      uint32_t size;
                       string screenshotBase64;
                       CompositorController::screenShot(data, size);
                       size_t encodedImageSize = b64_get_encoded_buffer_size(size);
