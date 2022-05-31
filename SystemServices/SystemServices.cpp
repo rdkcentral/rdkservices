@@ -2228,6 +2228,7 @@ namespace WPEFramework {
 				system("mkdir -p /opt/secure/persistent/System/");
 				LOGWARN(" Territory : Subdirectories created " );
 			}
+			readTerritoryFromFile();//Read existing territory and Region from file
 			ofstream outdata(TERRITORYFILE);
 			string territoryStr = parameters["territory"].String();
 			LOGWARN(" Territory Value : %s ", territoryStr.c_str());
@@ -2250,11 +2251,11 @@ namespace WPEFramework {
 				string regionStr = "";
 				if(parameters.HasLabel("region")){
 					regionStr = parameters["region"].String();
-					outdata << "region:" + regionStr+"\n";
+					if(regionStr != "")
+						outdata << "region:" + regionStr+"\n";
 				}
 				outdata.close();
 				if(resp == true){
-					readTerritoryFromFile();//Read existing territory and Region from file
 					//call event on Territory changed
 					if (SystemServices::_instance)
                             			SystemServices::_instance->onTerritoryChanged(m_strTerritory,territoryStr,m_strRegion,regionStr);
@@ -2276,7 +2277,8 @@ namespace WPEFramework {
 		bool resp = false;
 		if(readTerritoryFromFile()){
 			response["territory"] = m_strTerritory;
-			response["region"] = m_strRegion;
+			if(m_strRegion != "")
+				response["region"] = m_strRegion;
 			resp = true;
 		}
 		else{
@@ -2336,13 +2338,13 @@ namespace WPEFramework {
 		JsonObject params;
 		params["oldTerritory"] = oldTerritory;
 		params["newTerritory"] = newTerritory;
-		LOGWARN(" Notifying Territory changed - oldTerritory: %s - newTerritory: %s",oldTerritory,newTerritory);
+		LOGWARN(" Notifying Territory changed - oldTerritory: %s - newTerritory: %s",oldTerritory.c_str(),newTerritory.c_str());
 
 		if(newRegion != "")
 		{
 			params["oldRegion"] = oldRegion;
 			params["newRegion"] = newRegion;
-			LOGWARN(" Notifying Region changed - oldRegion: %s - newRegion: %s",oldRegion,newRegion);
+			LOGWARN(" Notifying Region changed - oldRegion: %s - newRegion: %s",oldRegion.c_str(),newRegion.c_str());
 		}
 		//Notify territory changed
 		sendNotify(EVT_ONTERRITORYCHNAGED, params);
@@ -2354,7 +2356,7 @@ namespace WPEFramework {
 		JsonObject params;
 		params["oldTimeZone"] = oldTimeZone;
 		params["newTimeZone"] = newTimeZone;
-		LOGWARN(" Notifying TimeZone changed - oldTimeZone: %s - newTimeZone: %s",oldTimeZone,newTimeZone);
+		LOGWARN(" Notifying TimeZone changed - oldTimeZone: %s - newTimeZone: %s",oldTimeZone.c_str(),newTimeZone.c_str());
 		//Notify TimeZone changed
 		sendNotify(EVT_ONTIMEZONEDSTCHANGED, params);
 		GetHandler(2)->Notify(EVT_ONTIMEZONEDSTCHANGED, params);
