@@ -90,10 +90,14 @@ public:
   /**
    * WPEFramework::PluginHost::IDispatcher::Invoke
    */
+#if JSON_RPC_CONTEXT   
   Core::ProxyType<Core::JSONRPC::Message> Invoke(
     const Core::JSONRPC::Context& context,
     const Core::JSONRPC::Message& message) override;
-
+#else
+  Core::ProxyType<Core::JSONRPC::Message> Invoke(
+    const string& token, const uint32_t channelId, const Core::JSONRPC::Message& req) override;
+#endif
   /**
    *
    */

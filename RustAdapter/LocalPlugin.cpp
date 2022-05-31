@@ -192,6 +192,7 @@ WPEFramework::Plugin::Rust::LocalPlugin::SendTo(uint32_t channel_id, const char 
   m_service->Submit(channel_id, Core::ProxyType<Core::JSON::IElement>(res));
 }
 
+#if JSON_RPC_CONTEXT
 WPEFramework::Core::ProxyType<WPEFramework::Core::JSONRPC::Message>
 WPEFramework::Plugin::Rust::LocalPlugin::Invoke(
   const WPEFramework::Core::JSONRPC::Context &ctx,
@@ -206,7 +207,21 @@ WPEFramework::Plugin::Rust::LocalPlugin::Invoke(
   // indicates to Thunder that this request is being processed asynchronously
   return {};
 }
+#else
+WPEFramework::Core::ProxyType<WPEFramework::Core::JSONRPC::Message>
+  WPEFramework::Plugin::Rust::LocalPlugin::Invoke(
+    const string& token, const uint32_t channelId, const Core::JSONRPC::Message& req)
+{
+  Rust::RequestContext req_ctx;
+  req_ctx.channel_id = channelId;
+  req_ctx.auth_token = token.c_str();
 
+  m_rust_plugin_invoke(m_rust_plugin, to_string(req).c_str(), req_ctx);
+
+  // indicates to Thunder that this request is being processed asynchronously
+  return {};
+}
+#endif
 void
 WPEFramework::Plugin::Rust::LocalPlugin::Activate(
   WPEFramework::PluginHost::IShell *shell)
