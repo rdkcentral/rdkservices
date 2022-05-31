@@ -81,10 +81,13 @@ namespace WPEFramework {
     namespace Plugin {
 
         CapsParser::CapsParser() 
-        : _mediaTag("original-media-type")
+        : _lastHash(0)
+        , _mediaTag("original-media-type")
         , _widthTag("width")
         , _heightTag("height")
-        , _lastHash(0)
+        , _mediaType(CDMi::Unknown)
+        , _width(0)
+        , _height(0)
         {
             char* envTraceLog = getenv("GSTCAPS_ENABLE_TRACE_LOGGING");
             if(envTraceLog && strcasecmp(envTraceLog, "true") == 0) {
@@ -158,7 +161,7 @@ namespace WPEFramework {
                 _mediaType = CDMi::Audio;
             }
             else {
-                LOG(eError, "Found and unknown media type %s\n", media);
+                LOG(eError, "Found and unknown media type %s\n", media.c_str());
                 _mediaType = CDMi::Unknown;
             }
         }
