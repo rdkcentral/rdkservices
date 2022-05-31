@@ -33,7 +33,6 @@
 
 #include "Module.h"
 #include "tracing/Logging.h"
-#include "utils.h"
 
 #include "SystemAudioPlayerImplementation.h"
 
@@ -112,6 +111,7 @@ namespace Plugin {
         uint32_t Stop(const JsonObject& parameters, JsonObject& response);
         uint32_t Close(const JsonObject& parameters, JsonObject& response);
         uint32_t SetMixerLevels(const JsonObject& parameters, JsonObject& response);
+        uint32_t SetSmartVolControl(const JsonObject& parameters, JsonObject& response);
         uint32_t IsPlaying(const JsonObject& parameters, JsonObject& response);
 	uint32_t Config(const JsonObject& parameters, JsonObject& response);
         uint32_t GetPlayerSessionId(const JsonObject& parameters, JsonObject& response);

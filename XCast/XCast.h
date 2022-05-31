@@ -21,7 +21,6 @@
 
 #include "tptimer.h"
 #include "Module.h"
-#include "utils.h"
 #include "RtNotifier.h"
 #include "libIBus.h"
 #include "libIBusDaemon.h"

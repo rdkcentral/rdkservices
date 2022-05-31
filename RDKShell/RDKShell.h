@@ -25,6 +25,7 @@
 #include <rdkshell/rdkshellevents.h>
 #include <rdkshell/rdkshell.h>
 #include <rdkshell/linuxkeys.h>
+#include <interfaces/ICapture.h>
 #include "tptimer.h"
 
 namespace WPEFramework {
@@ -48,6 +49,7 @@ namespace WPEFramework {
             BEGIN_INTERFACE_MAP(RDKShell)
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
+            INTERFACE_AGGREGATE(Exchange::ICapture, (&mScreenCapture))
             END_INTERFACE_MAP
 
         public/*members*/:
@@ -296,7 +298,7 @@ namespace WPEFramework {
             void onLaunched(const std::string& client, const string& launchType);
             void onSuspended(const std::string& client);
             void onDestroyed(const std::string& client);
-            bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb);
+            bool systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & availableKb, uint32_t & usedSwapKb);
             bool pluginMemoryUsage(const string callsign, JsonArray& memoryInfo);
             bool showWatermark(const bool enable);
             bool showFullScreenImage(std::string& path);
@@ -353,10 +355,10 @@ namespace WPEFramework {
                 virtual void onApplicationResumed(const std::string& client);
                 virtual void onApplicationActivated(const std::string& client);
                 virtual void onUserInactive(const double minutes);
-                virtual void onDeviceLowRamWarning(const int32_t freeKb);
-                virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb);
-                virtual void onDeviceLowRamWarningCleared(const int32_t freeKb);
-                virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb);
+                virtual void onDeviceLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb);
+                virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb);
+                virtual void onDeviceLowRamWarningCleared(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb);
+                virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb);
                 virtual void onEasterEgg(const std::string& name, const std::string& actionJson);
                 virtual void onPowerKey();
                 virtual void onSizeChangeComplete(const std::string& client);
@@ -393,6 +395,28 @@ namespace WPEFramework {
                   RDKShell& mShell;
             };
 
+            class ScreenCapture : public Exchange::ICapture {
+                public:
+                ScreenCapture(RDKShell *shell) : mShell(shell) { }
+                ScreenCapture(const ScreenCapture& copy) : mShell(copy.mShell) { }
+
+                BEGIN_INTERFACE_MAP(ScreenCapture)
+                INTERFACE_ENTRY(Exchange::ICapture)
+                END_INTERFACE_MAP
+
+                virtual void AddRef() const {}
+                virtual uint32_t Release() const { return 0; }
+                virtual const TCHAR* Name() const override { return "ScreenCapture"; }
+
+                virtual bool Capture(ICapture::IStore& storer) override;
+                void onScreenCapture(const unsigned char *data, unsigned int width, unsigned int height);
+
+            private:
+                ScreenCapture() = delete;
+                RDKShell* mShell;
+                std::vector<ICapture::IStore *>mCaptureStorers;
+            };
+
         private/*members*/:
             bool mRemoteShell;
             bool mEnableUserInactivityNotification;
@@ -405,6 +429,7 @@ namespace WPEFramework {
             uint64_t mLastWakeupKeyTimestamp;
             TpTimer m_timer;
             bool mEnableEasterEggs;
+            ScreenCapture mScreenCapture;
         };
 
         struct PluginData

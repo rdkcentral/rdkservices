@@ -19,7 +19,8 @@
 
 #include "XCast.h"
 #include "tracing/Logging.h"
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 #ifdef RFC_ENABLED
 #include "rfcapi.h"
 #endif //RFC_ENABLED

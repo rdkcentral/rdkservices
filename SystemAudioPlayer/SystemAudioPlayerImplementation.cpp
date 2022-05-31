@@ -21,6 +21,7 @@
 #include <sys/prctl.h>
 #include "impl/Helper.h"
 #include "base64.h"
+#include "UtilsJsonRpc.h"
 
 #define SAP_MAJOR_VERSION 1
 #define SAP_MINOR_VERSION 0
@@ -321,6 +322,50 @@ namespace Plugin {
             result = false;
         }
         returnResponse(result);
+    }
+
+    uint32_t SystemAudioPlayerImplementation::SetSmartVolControl(const string &input, string &output)
+    {
+        SAPLOG_INFO("SystemAudioPlayerImplementation Got SetSmartVolControl request :%s\n",input.c_str());
+        CONVERT_PARAMETERS_TOJSON();
+        CHECK_SAP_PARAMETER_RETURN_ON_FAIL("id");
+        CHECK_SAP_PARAMETER_RETURN_ON_FAIL("enable");
+        CHECK_SAP_PARAMETER_RETURN_ON_FAIL("playerAudioLevelThreshold");
+        CHECK_SAP_PARAMETER_RETURN_ON_FAIL("playerDetectTimeMs");
+        CHECK_SAP_PARAMETER_RETURN_ON_FAIL("playerHoldTimeMs");
+        CHECK_SAP_PARAMETER_RETURN_ON_FAIL("primaryDuckingPercent");
+        bool result = false;
+        double thresHold = 0.0;
+        int detectTimeMs = -1;
+        int holdTimeMs = -1;
+        int duckPercent = -1;
+        bool smartVolumeEnable = false;
+        AudioPlayer *player;
+        int playerId;
+        getNumberParameter("id", playerId);
+        getBoolParameter("enable",smartVolumeEnable);
+        getFloatParameter("playerAudioLevelThreshold", thresHold);
+        getNumberParameter("playerDetectTimeMs", detectTimeMs);
+        getNumberParameter("playerHoldTimeMs", holdTimeMs);
+        getNumberParameter("primaryDuckingPercent", duckPercent);
+
+        SAPLOG_INFO("SAP: SetSmartVolControl Player Obj=%p isEnable=%d thresHold=%f detectTimeMs=%d holdTimeMs=%d duckPercent=%d", player,smartVolumeEnable,thresHold, detectTimeMs,holdTimeMs,duckPercent);
+
+        _adminLock.Lock();
+        player = getObjectFromMap(playerId);
+        _adminLock.Unlock();
+        if (player != NULL &&  ( thresHold >= 0.0 && detectTimeMs >= 0 && holdTimeMs >= 0 && duckPercent >= 0 ) )
+        {
+            player->SetSmartVolControl( smartVolumeEnable, thresHold, detectTimeMs, holdTimeMs, duckPercent);
+            result = true;
+        }
+        else
+        {
+            SAPLOG_ERROR("SAP: SetSmartVolControl failed Player Obj=%p isActive=%d thresHold=%f detectTimeMs=%d holdTimeMs=%d duckPercent=%d", player,smartVolumeEnable, thresHold, detectTimeMs,holdTimeMs,duckPercent);
+            result = false;
+        }
+        returnResponse(result);
+
     }
 
     uint32_t SystemAudioPlayerImplementation::Pause(const string &input, string &output)

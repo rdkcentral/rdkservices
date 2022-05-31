@@ -776,8 +776,29 @@ namespace WPEFramework {
             }
         }
 
+        bool RDKShell::ScreenCapture::Capture(ICapture::IStore& storer)
+        {
+            mCaptureStorers.push_back(&storer);
+
+            JsonObject parameters, response;
+            mShell->getScreenshotWrapper(parameters, response);
+            return true;
+        }
+
+        void RDKShell::ScreenCapture::onScreenCapture(const unsigned char *data, unsigned int width, unsigned int height)
+        {
+            if (mCaptureStorers.size() > 0)
+            {
+                for (unsigned int n = 0; n < mCaptureStorers.size(); n++)
+                {    
+                    mCaptureStorers[n]->R8_G8_B8_A8(data, width, height);
+                }
+                mCaptureStorers.clear();
+            }
+        }
+
         RDKShell::RDKShell()
-                : PluginHost::JSONRPC(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0), mEnableEasterEggs(true)
+                : PluginHost::JSONRPC(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0), mEnableEasterEggs(true), mScreenCapture(this)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -1147,7 +1168,7 @@ namespace WPEFramework {
                   if (needsScreenshot)
                   {
                       uint8_t* data = nullptr;
-                      size_t size;
+                      uint32_t size;
                       string screenshotBase64;
                       CompositorController::screenShot(data, size);
                       size_t encodedImageSize = b64_get_encoded_buffer_size(size);
@@ -1165,6 +1186,10 @@ namespace WPEFramework {
                       // Calling Notify instead of  RDKShell::notify to avoid logging of entire screen content
                       LOGINFO("Notify %s", RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE.c_str());
                       Notify(RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE, params);
+
+                      unsigned int width = 0,height = 0;
+                      if (CompositorController::getScreenResolution(width, height))
+                          mScreenCapture.onScreenCapture(&data[0], width, height);
 
                       free(encodedImage);
                       free(data);
@@ -1350,6 +1375,7 @@ namespace WPEFramework {
         {
             LOGINFO("Deinitialize");
             gRdkShellMutex.lock();
+            RdkShell::deinitialize();
             sRunning = false;
             gRdkShellMutex.unlock();
             shellThread.join();
@@ -1514,35 +1540,43 @@ namespace WPEFramework {
           mShell.notify(RDKSHELL_EVENT_ON_USER_INACTIVITY, params);
         }
 
-        void RDKShell::RdkShellListener::onDeviceLowRamWarning(const int32_t freeKb)
+        void RDKShell::RdkShellListener::onDeviceLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb)
         {
-          std::cout << "RDKShell onDeviceLowRamWarning event received ..." << freeKb << std::endl;
+          std::cout << "RDKShell onDeviceLowRamWarning event received ..." << "free memory - " << freeKb << ", available memory - " << availableKb << ", swap used - " << usedSwapKb << std::endl;
           JsonObject params;
           params["ram"] = freeKb;
+          params["availablememory"] = availableKb;
+          params["usedswap"] = usedSwapKb;
           mShell.notify(RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING, params);
         }
 
-        void RDKShell::RdkShellListener::onDeviceCriticallyLowRamWarning(const int32_t freeKb)
+        void RDKShell::RdkShellListener::onDeviceCriticallyLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb)
         {
-          std::cout << "RDKShell onDeviceCriticallyLowRamWarning event received ..." << freeKb << std::endl;
+          std::cout << "RDKShell onDeviceCriticallyLowRamWarning event received ..." << "free memory - " << freeKb << ", available memory - " << availableKb << ", swap used - " << usedSwapKb << std::endl;
           JsonObject params;
           params["ram"] = freeKb;
+          params["availablememory"] = availableKb;
+          params["usedswap"] = usedSwapKb;
           mShell.notify(RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING, params);
         }
 
-        void RDKShell::RdkShellListener::onDeviceLowRamWarningCleared(const int32_t freeKb)
+        void RDKShell::RdkShellListener::onDeviceLowRamWarningCleared(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb)
         {
-          std::cout << "RDKShell onDeviceLowRamWarningCleared event received ..." << freeKb << std::endl;
+          std::cout << "RDKShell onDeviceLowRamWarningCleared event received ..." << "free memory - " << freeKb << ", available memory - " << availableKb << ", swap used - " << usedSwapKb << std::endl;
           JsonObject params;
           params["ram"] = freeKb;
+          params["availablememory"] = availableKb;
+          params["usedswap"] = usedSwapKb;
           mShell.notify(RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED, params);
         }
 
-        void RDKShell::RdkShellListener::onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb)
+        void RDKShell::RdkShellListener::onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb)
         {
-          std::cout << "RDKShell onDeviceCriticallyLowRamWarningCleared event received ..." << freeKb << std::endl;
+          std::cout << "RDKShell onDeviceCriticallyLowRamWarningCleared event received ..." << "free memory - " << freeKb << ", available memory - " << availableKb << ", swap used - " << usedSwapKb << std::endl;
           JsonObject params;
           params["ram"] = freeKb;
+          params["availablememory"] = availableKb;
+          params["usedswap"] = usedSwapKb;
           mShell.notify(RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED, params);
         }
 
@@ -4400,8 +4434,8 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            uint32_t freeKb=0, usedSwapKb=0, totalKb=0;
-            result = systemMemory(freeKb, totalKb, usedSwapKb);
+            uint32_t freeKb=0, usedSwapKb=0, totalKb=0, availableKb=0;
+            result = systemMemory(freeKb, totalKb, availableKb, usedSwapKb);
             if (!result) {
               response["message"] = "failed to get system Ram";
             }
@@ -4410,6 +4444,7 @@ namespace WPEFramework {
               response["freeRam"] = freeKb;
               response["swapRam"] = usedSwapKb;
               response["totalRam"] = totalKb;
+              response["availablememory"] = availableKb;
             }
             returnResponse(result);
         }
@@ -5526,10 +5561,9 @@ namespace WPEFramework {
                 JsonObject joAgingResult;
                 joAgingParams.Set("namespace","FactoryTest");
                 joAgingParams.Set("key","AgingState");
-                std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
 
                 std::cout << "attempting to check aging state \n";
-                uint32_t status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+                uint32_t status = JSONRPCDirectLink(mCurrentService, PERSISTENT_STORE_CALLSIGN).Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "getValue", joAgingParams, joAgingResult);
                 std::cout << "get status for aging state: " << status << std::endl;
 
                 if ((status == 0) && (joAgingResult.HasLabel("value")))
@@ -5549,7 +5583,7 @@ namespace WPEFramework {
                 joFactoryModeParams.Set("key","FactoryMode");
 
                 std::cout << "attempting to check factory mode \n";
-                status = getThunderControllerClient()->Invoke(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
+                status = JSONRPCDirectLink(mCurrentService, PERSISTENT_STORE_CALLSIGN).Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "getValue", joFactoryModeParams, joFactoryModeResult);
                 std::cout << "get status for factory mode: " << status << std::endl;
 
                 if ((status == 0) && (joFactoryModeResult.HasLabel("value")))
@@ -6390,10 +6424,10 @@ namespace WPEFramework {
             notify(RDKSHELL_EVENT_ON_DESTROYED, params);
         }
 
-        bool RDKShell::systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & usedSwapKb)
+        bool RDKShell::systemMemory(uint32_t &freeKb, uint32_t & totalKb, uint32_t & availableKb, uint32_t & usedSwapKb)
         {
             lockRdkShellMutex();
-            bool ret = RdkShell::systemRam(freeKb, totalKb, usedSwapKb);
+            bool ret = RdkShell::systemRam(freeKb, totalKb, availableKb, usedSwapKb);
             gRdkShellMutex.unlock();
             return ret;
         }

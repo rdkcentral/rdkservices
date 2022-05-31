@@ -28,7 +28,8 @@
 #include "libIBus.h"
 #include "rdk/iarmmgrs-hal/pwrMgr.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 #define SERVICE_NAME "FrontPanelService"
 #define METHOD_FP_SET_BRIGHTNESS "setBrightness"

@@ -24,8 +24,7 @@ add_library(${MODULE_NAME} SHARED
         XCast.cpp
         Module.cpp
         RtXcastConnector.cpp
-	../helpers/tptimer.cpp
-        ../helpers/utils.cpp)
+	../helpers/tptimer.cpp)
 
 find_package(RFC)
 find_package(IARMBus)

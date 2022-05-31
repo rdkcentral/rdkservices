@@ -41,12 +41,9 @@
 #include <string.h>
 #include <mutex>
 #include "Module.h"
-#include "utils.h"
 #if !defined(DISABLE_SECAPI)
 #include "sec_security_datatype.h"
 #endif
-
-#include "utils.h"
 
 #define CW_LOCAL_FILE  "/opt/continuewatching.json"
 #define NETFLIX_CONTINUEWATCHING_APP_NAME  "netflix"

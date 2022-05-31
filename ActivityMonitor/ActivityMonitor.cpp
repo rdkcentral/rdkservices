@@ -19,7 +19,7 @@
 
 #include "ActivityMonitor.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 
 
 #define ACTIVITY_MONITOR_METHOD_GET_APPLICATION_MEMORY_USAGE "getApplicationMemoryUsage"

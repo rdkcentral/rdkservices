@@ -22,7 +22,7 @@
 #include "wifiSrvMgrIarmIf.h"
 #include "netsrvmgrIarm.h"
 #include "libIBus.h"
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 
 
 using namespace WPEFramework::Plugin;
