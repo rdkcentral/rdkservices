@@ -595,7 +595,6 @@ Sets the audio level on the specified player. The `SystemAudioPlayer` plugin can
     }
 }
 ```
-
 <a name="stop"></a>
 ## *stop*
 
@@ -729,6 +728,7 @@ The following events are supported.
 | NETWORK_ERROR | Triggered when a playback network error occurs (httpsrc/web socket) |  
 | PLAYBACK_ERROR| Triggered when any other playback error occurs (internal issue)|  
 | NEED_DATA|  Triggered when the buffer needs more data to play|.
+| PLAYBACK_INPROGRESS| Triggered when playback is in progress |
 
 ### Parameters
 

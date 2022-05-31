@@ -397,6 +397,8 @@ namespace WPEFramework {
             registerMethod("setNetworkStandbyMode", &SystemServices::setNetworkStandbyMode, this);
             registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
             registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
+	    registerMethod("setTerritory", &SystemServices::setTerritory, this);
+            registerMethod("getTerritory", &SystemServices::getTerritory, this);
 #ifdef ENABLE_SET_WAKEUP_SRC_CONFIG
             registerMethod("setWakeupSrcConfiguration", &SystemServices::setWakeupSrcConfiguration, this);
 #endif //ENABLE_SET_WAKEUP_SRC_CONFIG
@@ -2223,7 +2225,8 @@ namespace WPEFramework {
 		bool resp = false;
 		if(parameters.HasLabel("territory")){
 			if(!Utils::fileExists(TERRITORYFILE)){
-				LOGWARN(" Territory : Subdirectories created : %d",val );
+				system("mkdir -p /opt/secure/persistent/System/");
+				LOGWARN(" Territory : Subdirectories created " );
 			}
 			ofstream outdata(TERRITORYFILE);
 			string territoryStr = parameters["territory"].String();

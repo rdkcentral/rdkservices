@@ -31,15 +31,26 @@ namespace Rust {
   };
 
   struct PluginContext {
+    uint32_t id;
     std::function<void (uint32_t channel_id, const char *json_res)> send_to;
   };
+
+
 } } }
 
 namespace {
+  std::atomic_int ctx_next_id = {1};
+  std::vector< WPEFramework::Plugin::Rust::PluginContext * > ctx_array;
+
   // this function is passed into Rust as a pointer
-  extern "C" void wpe_send_to(uint32_t channel_id, const char *json, WPEFramework::Plugin::Rust::PluginContext *p_ctx)
+  extern "C" void wpe_send_to(uint32_t channel_id, const char *json, uint32_t ctx_id)
   {
-    p_ctx->send_to(channel_id, json);
+    for (WPEFramework::Plugin::Rust::PluginContext *ctx : ctx_array) {
+      if (ctx->id == ctx_id) {
+        ctx->send_to(channel_id, json);
+        break;
+      }
+    }
   }
 
   std::vector<string> get_library_search_paths()
@@ -147,14 +158,16 @@ WPEFramework::Plugin::Rust::LocalPlugin::Initialize(PluginHost::IShell *shell)
   m_rust_plugin_on_client_disconnect = (RustPlugin_OnClientDisconnect)
     dlsym(m_rust_plugin_lib, "wpe_rust_plugin_on_client_disconnect");
 
-  Rust::PluginContext *m_plugin_ctx = new Rust::PluginContext();
-  m_plugin_ctx->send_to = std::bind(&LocalPlugin::SendTo, this,
+  Rust::PluginContext *plugin_ctx = new Rust::PluginContext();
+  plugin_ctx->send_to = std::bind(&LocalPlugin::SendTo, this,
     std::placeholders::_1, std::placeholders::_2);
+  plugin_ctx->id = ctx_next_id++;
+  ctx_array.push_back(plugin_ctx);
 
   void *metadata = dlsym(m_rust_plugin_lib, "thunder_service_metadata");
 
   // create and initialize the rust plugin
-  m_rust_plugin = m_rust_plugin_create(shell->ClassName().c_str(), &wpe_send_to, m_plugin_ctx, metadata);
+  m_rust_plugin = m_rust_plugin_create(shell->ClassName().c_str(), &wpe_send_to, plugin_ctx->id, metadata);
 
   // XXX: The call to "init" doesn't seem necessary
   m_rust_plugin_init(m_rust_plugin, nullptr);
@@ -179,6 +192,7 @@ WPEFramework::Plugin::Rust::LocalPlugin::SendTo(uint32_t channel_id, const char 
   m_service->Submit(channel_id, Core::ProxyType<Core::JSON::IElement>(res));
 }
 
+#if JSON_RPC_CONTEXT
 WPEFramework::Core::ProxyType<WPEFramework::Core::JSONRPC::Message>
 WPEFramework::Plugin::Rust::LocalPlugin::Invoke(
   const WPEFramework::Core::JSONRPC::Context &ctx,
@@ -193,7 +207,21 @@ WPEFramework::Plugin::Rust::LocalPlugin::Invoke(
   // indicates to Thunder that this request is being processed asynchronously
   return {};
 }
+#else
+WPEFramework::Core::ProxyType<WPEFramework::Core::JSONRPC::Message>
+  WPEFramework::Plugin::Rust::LocalPlugin::Invoke(
+    const string& token, const uint32_t channelId, const Core::JSONRPC::Message& req)
+{
+  Rust::RequestContext req_ctx;
+  req_ctx.channel_id = channelId;
+  req_ctx.auth_token = token.c_str();
 
+  m_rust_plugin_invoke(m_rust_plugin, to_string(req).c_str(), req_ctx);
+
+  // indicates to Thunder that this request is being processed asynchronously
+  return {};
+}
+#endif
 void
 WPEFramework::Plugin::Rust::LocalPlugin::Activate(
   WPEFramework::PluginHost::IShell *shell)
