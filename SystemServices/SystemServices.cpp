@@ -2228,6 +2228,8 @@ namespace WPEFramework {
 				system("mkdir -p /opt/secure/persistent/System/");
 				LOGWARN(" Territory : Subdirectories created " );
 			}
+			m_strTerritory = "";
+			m_strRegion = "";
 			readTerritoryFromFile();//Read existing territory and Region from file
 			ofstream outdata(TERRITORYFILE);
 			string territoryStr = parameters["territory"].String();
@@ -2239,8 +2241,6 @@ namespace WPEFramework {
 			try{
 				if((territoryStr.length() == 3) && (isStrAlphaUpper(territoryStr) == true)){
 					LOGWARN(" Territory : Valid territory name ");
-					m_strTerritory = "";
-					m_strRegion = "";
 					outdata << "territory:" + territoryStr+"\n";
 					resp = true;
 				}
