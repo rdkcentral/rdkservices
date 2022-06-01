@@ -168,10 +168,10 @@ namespace Plugin {
         void Deactivated(RPC::IRemoteConnection* connection);
 
     private:
-        uint8_t _skipURL;
-        uint32_t _connectionId;
-        PluginHost::IShell* _service;
-        Exchange::ITextToSpeech* _tts;
+        uint8_t _skipURL{};
+        uint32_t _connectionId{};
+        PluginHost::IShell* _service{};
+        Exchange::ITextToSpeech* _tts{};
         Core::Sink<Notification> _notification;
         uint32_t _apiVersionNumber;
         bool m_AclCalled;
