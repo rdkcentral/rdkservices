@@ -119,7 +119,6 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_FRAME_RATE = "getFrameRate";
-
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_EASTER_EGGS = "addEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_EASTER_EGGS = "removeEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_EASTER_EGGS = "getEasterEggs";
