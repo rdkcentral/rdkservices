@@ -86,6 +86,7 @@ namespace Plugin {
     static void didFailProvisionalNavigation(WKPageRef page, WKNavigationRef, WKErrorRef error, WKTypeRef, const void *clientInfo);
     static void didFailNavigation(WKPageRef page, WKNavigationRef, WKErrorRef error, WKTypeRef, const void *clientInfo);
     static void webProcessDidCrash(WKPageRef page, const void* clientInfo);
+    static void willAddDetailedMessageToConsole(WKPageRef, WKStringRef source, WKStringRef, uint64_t line, uint64_t column, WKStringRef message, WKStringRef, const void* clientInfo);
 
     struct GCharDeleter {
         void operator()(gchar* ptr) const { g_free(ptr); }
@@ -229,10 +230,7 @@ namespace Plugin {
         nullptr, // checkUserMediaPermissionForOrigin
         nullptr, // runBeforeUnloadConfirmPanel
         nullptr, // fullscreenMayReturnToInline
-        // willAddDetailedMessageToConsole
-        [](WKPageRef, WKStringRef source, WKStringRef, uint64_t line, uint64_t column, WKStringRef message, WKStringRef, const void* clientInfo) {
-            TRACE_GLOBAL(BrowserConsoleLog, (message, line, column));
-        },
+        willAddDetailedMessageToConsole,
     };
 
     WKNotificationProviderV0 _handlerNotificationProvider = {
@@ -1657,6 +1655,9 @@ static GSourceFuncs _handlerIntervention =
 
         uint32_t Configure(PluginHost::IShell* service) override
         {
+            #ifndef WEBKIT_GLIB_API
+            _consoleLogPrefix = service->Callsign();
+            #endif
             _service = service;
 
             _dataPath = service->DataPath();
@@ -1923,6 +1924,11 @@ static GSourceFuncs _handlerIntervention =
         WKPageRef GetPage() const
         {
             return _page;
+        }
+
+        string GetConsoleLogPrefix() const
+        {
+            return _consoleLogPrefix;
         }
 #endif
         BEGIN_INTERFACE_MAP(WebKitImplementation)
@@ -2492,6 +2498,7 @@ static GSourceFuncs _handlerIntervention =
                 WKContextSetAutomationClient(wkContext, &_handlerAutomation.base);
             }
 
+            _handlerPageUI.base.clientInfo = static_cast<void*>(this);
             WKPageSetPageUIClient(_page, &_handlerPageUI.base);
 
             WKPageLoaderClientV0 pageLoadClient;
@@ -2753,6 +2760,7 @@ static GSourceFuncs _handlerIntervention =
         WKNotificationManagerRef _notificationManager;
         WKHTTPCookieAcceptPolicy _httpCookieAcceptPolicy;
         WKNavigationRef _navigationRef;
+        string _consoleLogPrefix;
 #endif
         mutable Core::CriticalSection _adminLock;
         uint32_t _fps;
@@ -2945,6 +2953,12 @@ static GSourceFuncs _handlerIntervention =
     {
         SYSLOG(Trace::Fatal, (_T("CRASH: WebProcess crashed, exiting...")));
         exit(1);
+    }
+
+    /* static */ void willAddDetailedMessageToConsole(WKPageRef, WKStringRef source, WKStringRef, uint64_t line, uint64_t column, WKStringRef message, WKStringRef, const void* clientInfo)
+    {
+        auto &self = *const_cast<WebKitImplementation*>(static_cast<const WebKitImplementation*>(clientInfo));
+        TRACE_GLOBAL(BrowserConsoleLog, (self.GetConsoleLogPrefix(), message, line, column));
     }
 #endif // !WEBKIT_GLIB_API
 } // namespace Plugin
