@@ -115,6 +115,7 @@ namespace Plugin {
             , _player(nullptr)
             , _audioCodecs(nullptr)
             , _videoCodecs(nullptr)
+            , _dolbyOut(nullptr)
             , _notification(this)
             , _service(nullptr)
             , _rcnotification(this)
