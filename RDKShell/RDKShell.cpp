@@ -126,6 +126,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SHOW_CURSOR = "show
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_CURSOR = "hideCursor";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_CURSOR_SIZE = "getCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_CURSOR_SIZE = "setCursorSize";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_SCREEN_CAPTURE = "enableScreenCapture";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SHARED_MEMORY_KEY = "getSharedMemoryKey";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -863,6 +865,8 @@ namespace WPEFramework {
             registerMethod(RDKSHELL_METHOD_HIDE_CURSOR, &RDKShell::hideCursorWrapper, this);
             registerMethod(RDKSHELL_METHOD_GET_CURSOR_SIZE, &RDKShell::getCursorSizeWrapper, this);
             registerMethod(RDKSHELL_METHOD_SET_CURSOR_SIZE, &RDKShell::setCursorSizeWrapper, this);
+            registerMethod(RDKSHELL_METHOD_ENABLE_SCREEN_CAPTURE, &RDKShell::enableScreenCaptureWrapper, this);
+            registerMethod(RDKSHELL_METHOD_GET_SHARED_MEMORY_KEY, &RDKShell::getSharedMemoryKeyWrapper, this);
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -6709,6 +6713,36 @@ namespace WPEFramework {
             bool ret = CompositorController::getCursorSize(width, height);
             gRdkShellMutex.unlock();
             return ret;
+        }
+
+        uint32_t RDKShell::enableScreenCaptureWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            if (!parameters.HasLabel("enable"))
+            {
+                response["message"] = "Missing 'enable' parameter"
+                returnResponse(false);
+            }
+
+            lockRdkShellMutex();
+            CompositorController::enableScreenCapture(parameters["enable"].Boolean());
+            gRdkShellMutex.unlock();
+
+            returnResponse(true);
+        }
+
+        uint32_t RDKShell::getSharedMemoryKeyWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            lockRdkShellMutex();
+            int key;
+            CompositorController::getSharedMemoryKey(key);
+            gRdkShellMutex.unlock();
+
+            response["key"] = key;
+            returnResponse(true);
         }
 
         // Internal methods end
