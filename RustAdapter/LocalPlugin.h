@@ -88,10 +88,14 @@ public:
   /**
    * WPEFramework::PluginHost::IDispatcher::Invoke
    */
+#if JSON_RPC_CONTEXT
   Core::ProxyType<Core::JSONRPC::Message> Invoke(
     const Core::JSONRPC::Context& context,
     const Core::JSONRPC::Message& message) override;
-
+#else
+  Core::ProxyType<Core::JSONRPC::Message> Invoke(
+    const string& token, const uint32_t channelId, const Core::JSONRPC::Message& req) override;
+#endif
   /**
    *
    */
@@ -100,9 +104,9 @@ public:
     const Core::ProxyType<Core::JSON::IElement> &element) override;
 
 private:
-  using RustPlugin_SendTo = void (*)(uint32_t, const char *, Rust::PluginContext *);
-  using RustPlugin_Create = Rust::Plugin *(*)(const char *name, RustPlugin_SendTo send_to, Rust::PluginContext *,
-    void *);
+  using RustPlugin_SendTo = void (*)(uint32_t, const char *, uint32_t ctx_id);
+  using RustPlugin_Create = Rust::Plugin *(*)(const char *name, RustPlugin_SendTo send_to,
+    uint32_t plugin_ctx_id, void *);
   using RustPlugin_Destroy = void (*)(Rust::Plugin *p);
   using RustPlugin_Init = void (*)(Rust::Plugin *p, const char *json);
   using RustPlugin_Invoke = void (*)(Rust::Plugin *p, const char *json_req,

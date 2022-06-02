@@ -25,6 +25,7 @@
 #include <rdkshell/rdkshellevents.h>
 #include <rdkshell/rdkshell.h>
 #include <rdkshell/linuxkeys.h>
+#include <interfaces/ICapture.h>
 #include "tptimer.h"
 
 namespace WPEFramework {
@@ -48,6 +49,7 @@ namespace WPEFramework {
             BEGIN_INTERFACE_MAP(RDKShell)
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
+            INTERFACE_AGGREGATE(Exchange::ICapture, (&mScreenCapture))
             END_INTERFACE_MAP
 
         public/*members*/:
@@ -395,6 +397,28 @@ namespace WPEFramework {
                   RDKShell& mShell;
             };
 
+            class ScreenCapture : public Exchange::ICapture {
+                public:
+                ScreenCapture(RDKShell *shell) : mShell(shell) { }
+                ScreenCapture(const ScreenCapture& copy) : mShell(copy.mShell) { }
+
+                BEGIN_INTERFACE_MAP(ScreenCapture)
+                INTERFACE_ENTRY(Exchange::ICapture)
+                END_INTERFACE_MAP
+
+                virtual void AddRef() const {}
+                virtual uint32_t Release() const { return 0; }
+                virtual const TCHAR* Name() const override { return "ScreenCapture"; }
+
+                virtual bool Capture(ICapture::IStore& storer) override;
+                void onScreenCapture(const unsigned char *data, unsigned int width, unsigned int height);
+
+            private:
+                ScreenCapture() = delete;
+                RDKShell* mShell;
+                std::vector<ICapture::IStore *>mCaptureStorers;
+            };
+
         private/*members*/:
             bool mRemoteShell;
             bool mEnableUserInactivityNotification;
@@ -407,6 +431,7 @@ namespace WPEFramework {
             uint64_t mLastWakeupKeyTimestamp;
             TpTimer m_timer;
             bool mEnableEasterEggs;
+            ScreenCapture mScreenCapture;
         };
 
         struct PluginData

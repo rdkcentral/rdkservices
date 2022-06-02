@@ -2611,7 +2611,15 @@ static GSourceFuncs _handlerIntervention =
             _webProcessCheckInProgress = true;
 
 #ifdef WEBKIT_GLIB_API
-            DidReceiveWebProcessResponsivenessReply(webkit_web_view_get_is_web_process_responsive(_view));
+            webkit_web_view_is_web_process_responsive_async(
+                _view,
+                nullptr,
+                [](GObject* object, GAsyncResult* result, gpointer user_data) {
+                    bool isWebProcessResponsive = webkit_web_view_is_web_process_responsive_finish(WEBKIT_WEB_VIEW(object), result, nullptr);
+                    WebKitImplementation* webkit_impl = static_cast<WebKitImplementation*>(user_data);
+                    webkit_impl->DidReceiveWebProcessResponsivenessReply(isWebProcessResponsive);
+                },
+                this);
 #else
             WKPageIsWebProcessResponsive(
                 _page,
@@ -2643,16 +2651,7 @@ static GSourceFuncs _handlerIntervention =
 #ifdef WEBKIT_GLIB_API
             std::string activeURL(webkit_web_view_get_uri(_view));
             if (_webprocessPID == -1) {
-              // FIXME: need a webkit_ API to query process id
-              _webprocessPID = ([]() -> pid_t {
-                auto children = Core::ProcessInfo::Iterator(Core::ProcessInfo().Id());
-                while (children.Next()) {
-                  if (children.Current().Name() == "WPEWebProcess") {
-                    return children.Current().Id();
-                  }
-                }
-                return -1;
-              })();
+              _webprocessPID = webkit_web_view_get_web_process_identifier(_view);
             }
             pid_t webprocessPID = _webprocessPID;
 #else

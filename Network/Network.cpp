@@ -1344,6 +1344,15 @@ namespace WPEFramework
             JsonObject params;
             params["interface"] = m_netUtils.getInterfaceDescription(interface);
             params["status"] = string (connected ? "CONNECTED" : "DISCONNECTED");
+            m_useInterfacesCache = false;
+            m_useStbIPCache = false;
+            m_useDefInterfaceCache = false;
+            m_useIpv4WifiCache = false;
+            m_useIpv6WifiCache = false;
+            m_useIpv4EthCache = false;
+            m_useIpv6EthCache = false;
+            m_defIpversionCache = "";
+            m_defInterfaceCache = "";
             sendNotify("onConnectionStatusChanged", params);
             GetHandler(2)->Notify("onConnectionStatusChanged", params);
         }

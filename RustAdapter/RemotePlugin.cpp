@@ -96,7 +96,7 @@ RemotePlugin::SendTo(uint32_t channel_id, const char *json)
   res->FromString(json);
   m_service->Submit(channel_id, Core::ProxyType<Core::JSON::IElement>(res));
 }
-
+#if JSON_RPC_CONTEXT
 WPEFramework::Core::ProxyType<WPEFramework::Core::JSONRPC::Message>
 RemotePlugin::Invoke(
   const WPEFramework::Core::JSONRPC::Context &ctx,
@@ -107,7 +107,17 @@ RemotePlugin::Invoke(
   m_stream.SendInvoke(ctx.ChannelId(), ctx.Token(), json);
   return {};
 }
-
+#else
+WPEFramework::Core::ProxyType<WPEFramework::Core::JSONRPC::Message>
+RemotePlugin::Invoke(
+    const string& token, const uint32_t channelId, const Core::JSONRPC::Message& req)
+{
+  string json;
+  req.ToString(json);
+  m_stream.SendInvoke(channelId, token, json);
+  return {};
+}
+#endif
 void
 RemotePlugin::Activate(
   WPEFramework::PluginHost::IShell *shell)
