@@ -57,6 +57,7 @@ public:
 
     bool setEndPoint(const std::string endpoint);
     bool setSecureEndPoint(const std::string endpoint);
+    bool setApiKey(const std::string apikey);
     bool setLanguage(const std::string language);
     bool setVoice(const std::string voice);
     bool setEnabled(const bool dnabled);
@@ -66,6 +67,7 @@ public:
 
     const std::string &endPoint() { return m_ttsEndPoint; }
     const std::string &secureEndPoint() { return m_ttsEndPointSecured; }
+    const std::string &apiKey() { return m_apiKey; }
     const std::string &language() { return m_language; }
     const double &volume() { return m_volume; }
     const uint8_t &rate() { return m_rate; }
@@ -83,6 +85,7 @@ public:
 private:
     std::string m_ttsEndPoint;
     std::string m_ttsEndPointSecured;
+    std::string m_apiKey;
     std::string m_language;
     std::string m_voice;
     double m_volume;
