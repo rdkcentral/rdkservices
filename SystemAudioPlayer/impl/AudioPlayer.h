@@ -1,13 +1,16 @@
 #ifndef AUDIO_PLAYER
 #define AUDIO_PLAYER
+#include <atomic>
 #include <gst/gst.h>
 #include <gst/audio/audio.h>
 #include <string>
 #include "BufferQueue.h"
-#include "WebSocketClient.h"
+#include "IWebSocketClient.h"
+#include "SecurityParameters.h"
 #include <condition_variable>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 #if defined(PLATFORM_AMLOGIC)
 #include "audio_if.h"
@@ -97,7 +100,9 @@ class AudioPlayer
         MIXGAIN_TTS //tts=mode=true, AML calls it app mode
     };
 #endif
-    WebSocketClient *webClient;
+    impl::WebSocketClientPtr webClient;
+    impl::SecurityParameters m_secParams;
+    std::atomic_bool m_fallbackToUnsecuredConnection{false};
     BufferQueue *bufferQueue;
     GstElement  *m_source;
     AudioType audioType;
@@ -126,7 +131,7 @@ class AudioPlayer
     AudioPlayer() {}
     AudioPlayer(AudioType,SourceType,PlayMode,int objectIdentifier);
     ~AudioPlayer();
-    void Play(std::string url);
+    void Play(std::string url, const impl::SecurityParameters& secParams);
     void PlayBuffer(const char*,int);
     bool Resume();
     bool Pause();

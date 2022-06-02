@@ -199,6 +199,25 @@
                         "summary": "The source URL. If no port number is provided for a web socket source, then the player uses `40001` as the default port ",
                         "type": "string",
                         "example": "http://localhost:50050/nuanceEve/tts?voice=ava&language=en-US&rate=50&text=SETTINGS"
+                    },
+                    "securityParameters": {
+                        "summary": "Optional parameters, needed to establish secured websocket connection.",
+                        "type": "object",
+                        "properties": {
+                            "CAFileNames": {
+                                "summary": "Array of strings with full file names of Certificate Authorities. If empty, code will try to load CAs from default system path for wss connection.",
+                                "type": "array",
+                                "example": "[\"/etc/ssl/certs/Xfinity_Subscriber_ECC_Root.pem\", \"/etc/ssl/certs/Xfinity_Subscriber_RSA_Root.pem\"]"
+                            },
+                            "certFileName": {
+                                "summary": "Full file name of cert file. Needs to be in pem format. If not provided, other end of communication needs to be configured to not validate client cert.",
+                                "type": "string"
+                            },
+                            "keyFileName": {
+                                "summary": "Full file name of key file. Needs to be in pem format. Needs to be provided if cert file name is provided",
+                                "type": "string"
+                            }
+                        }
                     }
                 },
                 "required": [

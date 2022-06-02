@@ -398,6 +398,10 @@ Also see: [onsapevents](#onsapevents)
 | params | object |  |
 | params.id | integer | A unique identifier for a player instance |
 | params.url | string | The source URL. If no port number is provided for a web socket source, then the player uses `40001` as the default port  |
+| params.securityParameters | object | Optional parameters, needed to establish secured websocket connection. |
+| params.securityParameters.CAFileNames | array | Array of strings with full file names of Certificate Authorities. If empty, code will try to load CAs from default system path for wss connection. |
+| params.securityParameters.certFileName | string | Full file name of cert file. Needs to be in pem format. If not provided, other end of communication needs to be configured to not validate client cert. |
+| params.securityParameters.keyFileName | string | Full file name of key file. Needs to be in pem format. Needs to be provided if cert file name is provided |
 
 ### Result
 
@@ -428,6 +432,40 @@ Also see: [onsapevents](#onsapevents)
 {
     "jsonrpc": "2.0",
     "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 43,
+    "method": "org.rdk.SystemAudioPlayer.1.play",
+    "params": {
+        "id": 1,
+        "url": "wss://localhost:40005",
+        "securityParameters": {
+            "CAFileNames": [
+                "/etc/ssl/certs/Xfinity_Subscriber_ECC_Root.pem",
+                "/etc/ssl/certs/Xfinity_Subscriber_RSA_Root.pem"
+            ],
+            "certFileName": "/media/apps/cert.pem",
+            "keyFileName": "/media/apps/key.pem"
+        }
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 43,
     "result": {
         "success": true
     }

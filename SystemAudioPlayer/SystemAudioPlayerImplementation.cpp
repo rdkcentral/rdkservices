@@ -206,7 +206,7 @@ namespace Plugin {
             if(SameModeNotPlaying(player,id))
             {
                 _adminLock.Unlock();
-                player->Play(url);
+                player->Play(url, extractSecurityParams(parameters));
                 returnResponse(true);
             }
             _adminLock.Unlock();
@@ -368,6 +368,32 @@ namespace Plugin {
         _adminLock.Lock();
 
         _adminLock.Unlock();
+    }
+
+    impl::SecurityParameters SystemAudioPlayerImplementation::extractSecurityParams(const JsonObject& params) const
+    {
+        impl::SecurityParameters output;
+        if (params.HasLabel("securityParameters"))
+        {
+            const auto& secParams = params.Get("securityParameters").Object();
+            if (secParams.HasLabel("CAFileNames"))
+            {
+                const auto& CAFileNames = secParams.Get("CAFileNames").Array();
+                for (int i = 0; i < CAFileNames.Length(); ++i)
+                {
+                    output.CAFileNames.push_back(CAFileNames[i].String());
+                }
+            }
+            if (secParams.HasLabel("certFileName"))
+            {
+                output.certFileName = secParams.Get("certFileName").String();
+            }
+            if (secParams.HasLabel("keyFileName"))
+            {
+                output.keyFileName = secParams.Get("keyFileName").String();
+            }
+        }
+        return output;
     }
 
     void SystemAudioPlayerImplementation::dispatchEvent(Event event, JsonObject &params)

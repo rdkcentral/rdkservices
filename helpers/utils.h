@@ -43,10 +43,10 @@
 #define UNUSED(expr)(void)(expr)
 #define C_STR(x) (x).c_str()
 
-#define LOGINFO(fmt, ...) do { fprintf(stderr, "[%d] INFO [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
-#define LOGDBG(fmt, ...) do { fprintf(stderr, "[%d] DEBUG [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
-#define LOGWARN(fmt, ...) do { fprintf(stderr, "[%d] WARN [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
-#define LOGERR(fmt, ...) do { fprintf(stderr, "[%d] ERROR [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); Utils::Telemetry::sendError(fmt, ##__VA_ARGS__); } while (0)
+#define LOGINFO(fmt, ...) do { fprintf(stderr, "[%d] INFO [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), WPEFramework::Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
+#define LOGDBG(fmt, ...) do { fprintf(stderr, "[%d] DEBUG [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), WPEFramework::Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
+#define LOGWARN(fmt, ...) do { fprintf(stderr, "[%d] WARN [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), WPEFramework::Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); } while (0)
+#define LOGERR(fmt, ...) do { fprintf(stderr, "[%d] ERROR [%s:%d] %s: " fmt "\n", (int)syscall(SYS_gettid), WPEFramework::Core::FileNameOnly(__FILE__), __LINE__, __FUNCTION__, ##__VA_ARGS__); fflush(stderr); Utils::Telemetry::sendError(fmt, ##__VA_ARGS__); } while (0)
 
 #define LOGINFOMETHOD() { std::string json; parameters.ToString(json); LOGINFO( "params=%s", json.c_str() );  }
 #define LOGTRACEMETHODFIN() do { std::string json; response.ToString(json); LOGINFO( "response=%s", json.c_str() );  } while (0)
@@ -78,7 +78,7 @@
     { \
         response["success"] = success; \
         LOGTRACEMETHODFIN(); \
-        return (Core::ERROR_NONE); \
+        return (WPEFramework::Core::ERROR_NONE); \
     }
 
 #define returnIfWrongApiVersion(version)\
@@ -96,35 +96,35 @@
     }
 
 #define returnIfStringParamNotFound(param, name) \
-    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::STRING) \
+    if (!param.HasLabel(name) || param[name].Content() != WPEFramework::Core::JSON::Variant::type::STRING) \
     {\
         LOGERR("No argument '%s' or it has incorrect type", name); \
         returnResponse(false); \
     }
 
 #define returnIfBooleanParamNotFound(param, name) \
-    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::BOOLEAN) \
+    if (!param.HasLabel(name) || param[name].Content() != WPEFramework::Core::JSON::Variant::type::BOOLEAN) \
     { \
         LOGERR("No argument '%s' or it has incorrect type", name); \
         returnResponse(false); \
     }
 
 #define returnIfArrayParamNotFound(param, name) \
-    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::ARRAY) \
+    if (!param.HasLabel(name) || param[name].Content() != WPEFramework::Core::JSON::Variant::type::ARRAY) \
     { \
         LOGERR("No argument '%s' or it has incorrect type", name); \
         returnResponse(false); \
     }
 
 #define returnIfNumberParamNotFound(param, name) \
-    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::NUMBER) \
+    if (!param.HasLabel(name) || param[name].Content() != WPEFramework::Core::JSON::Variant::type::NUMBER) \
     { \
         LOGERR("No argument '%s' or it has incorrect type", name); \
         returnResponse(false); \
     }
 
 #define returnIfObjectParamNotFound(param, name) \
-    if (!param.HasLabel(name) || param[name].Content() != Core::JSON::Variant::type::OBJECT) \
+    if (!param.HasLabel(name) || param[name].Content() != WPEFramework::Core::JSON::Variant::type::OBJECT) \
     { \
         LOGERR("No argument '%s' or it has incorrect type", name); \
         returnResponse(false); \
@@ -138,7 +138,7 @@
 }
 
 #define getNumberParameter(paramName, param) { \
-    if (Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
+    if (WPEFramework::Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
         param = parameters[paramName].Number(); \
     else \
         try { param = std::stoi( parameters[paramName].String()); } \
@@ -147,7 +147,7 @@
 
 #define getDefaultNumberParameter(paramName, param, default) { \
     if (parameters.HasLabel(paramName)) { \
-        if (Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
+        if (WPEFramework::Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
             param = parameters[paramName].Number(); \
         else \
             try { param = std::stoi( parameters[paramName].String()); } \
@@ -157,7 +157,7 @@
 
 #define getDefaultStringParameter(paramName, param, default) { \
     if (parameters.HasLabel(paramName)) { \
-        if (Core::JSON::Variant::type::STRING == parameters[paramName].Content()) \
+        if (WPEFramework::Core::JSON::Variant::type::STRING == parameters[paramName].Content()) \
             param = parameters[paramName].String(); \
         else \
             param = default; \
@@ -165,7 +165,7 @@
 }
 
 #define getNumberParameterObject(parameters, paramName, param) { \
-    if (Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
+    if (WPEFramework::Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
         param = parameters[paramName].Number(); \
     else \
         try {param = std::stoi( parameters[paramName].String());} \
@@ -173,7 +173,7 @@
 }
 
 #define getBoolParameter(paramName, param) { \
-    if (Core::JSON::Variant::type::BOOLEAN == parameters[paramName].Content()) \
+    if (WPEFramework::Core::JSON::Variant::type::BOOLEAN == parameters[paramName].Content()) \
         param = parameters[paramName].Boolean(); \
     else \
         param = parameters[paramName].String() == "true" || parameters[paramName].String() == "1"; \
@@ -181,7 +181,7 @@
 
 #define getDefaultBoolParameter(paramName, param, default) { \
     if (parameters.HasLabel(paramName)) { \
-        if (Core::JSON::Variant::type::BOOLEAN == parameters[paramName].Content()) \
+        if (WPEFramework::Core::JSON::Variant::type::BOOLEAN == parameters[paramName].Content()) \
             param = parameters[paramName].Boolean(); \
         else \
             param = parameters[paramName].String() == "true" || parameters[paramName].String() == "1"; \
@@ -189,7 +189,7 @@
 }
 
 #define getStringParameter(paramName, param) { \
-    if (Core::JSON::Variant::type::STRING == parameters[paramName].Content()) \
+    if (WPEFramework::Core::JSON::Variant::type::STRING == parameters[paramName].Content()) \
         param = parameters[paramName].String(); \
 }
 

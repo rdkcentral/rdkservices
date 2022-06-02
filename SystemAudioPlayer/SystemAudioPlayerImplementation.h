@@ -27,6 +27,7 @@
 #include "ISystemAudioPlayer.h"
 #include "impl/AudioPlayer.h"
 #include "impl/logger.h"
+#include "impl/SecurityParameters.h"
 #include <vector>
 
 #define CHECK_SAP_PARAMETER_RETURN_ON_FAIL(param) do {\
@@ -134,6 +135,7 @@ namespace Plugin {
         bool GetSessionFromUrl(string url,int &playerid);
         bool SameModeNotPlaying(AudioPlayer*,int &playerid);
         bool CloseMapping(int key);
+        impl::SecurityParameters extractSecurityParams(const JsonObject& params) const;
 
     public:
         SystemAudioPlayerImplementation();
