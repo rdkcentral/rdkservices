@@ -2228,68 +2228,88 @@ namespace WPEFramework {
 				system("mkdir -p /opt/secure/persistent/System/");
 				LOGWARN(" Territory : Subdirectories created " );
 			}
-			m_strTerritory = "";
-			m_strRegion = "";
+			string regionStr = "";
 			readTerritoryFromFile();//Read existing territory and Region from file
-			ofstream outdata(TERRITORYFILE);
 			string territoryStr = parameters["territory"].String();
 			LOGWARN(" Territory Value : %s ", territoryStr.c_str());
-			if(!outdata){
-				LOGWARN(" Territory : Failed to open the file");
-				returnResponse(resp);
-			}
 			try{
 				if((territoryStr.length() == 3) && (isStrAlphaUpper(territoryStr) == true)){
-					LOGWARN(" Territory : Valid territory name ");
-					outdata << "territory:" + territoryStr+"\n";
-					resp = true;
-				}
-				else {
+					if(parameters.HasLabel("region")){
+						regionStr = parameters["region"].String();
+						if(regionStr != ""){
+							if(isRegionValid(regionStr)){
+								resp = writeTerriytory(territoryStr,regionStr);
+								LOGWARN(" territory name ", territoryStr.c_str());
+								LOGWARN(" region name ", regionStr.c_str());
+							}else{
+								response["message"] = "Invalid region";
+								LOGWARN("Please enter valid region");
+								returnResponse(resp);
+							}
+						}
+					}else{
+						resp = writeTerriytory(territoryStr,regionStr);
+						LOGWARN(" territory name ", territoryStr.c_str());
+					}
+				}else{
+					response["message"] = "Invalid territory";
 					LOGWARN("Please enter valid territory Parameter value.");
 					returnResponse(resp);
 				}
-				string regionStr = "";
-				if(parameters.HasLabel("region")){
-					regionStr = parameters["region"].String();
-					if(regionStr != "")
-						outdata << "region:" + regionStr+"\n";
-				}
-				outdata.close();
 				if(resp == true){
 					//call event on Territory changed
 					if (SystemServices::_instance)
-                            			SystemServices::_instance->onTerritoryChanged(m_strTerritory,territoryStr,m_strRegion,regionStr);
+						 SystemServices::_instance->onTerritoryChanged(m_strTerritory,territoryStr,m_strRegion,regionStr);
 				}
 			}
 			catch(...){
-				LOGWARN(" caught exception...");
+				 LOGWARN(" caught exception...");
 			}
-		}
-		else{
+		}else{
 			LOGWARN("Please enter valid territory Parameter name.");
+			response["message"] = "Invalid territory parameter name");
 			resp = false;
 		}
 		returnResponse(resp);
 	}
 
-	uint32_t SystemServices::getTerritory(const JsonObject& parameters, JsonObject& response)
+	uint32_t SystemServices::writeTerriytory(string territory, string region)
 	{
 		bool resp = false;
-		if(readTerritoryFromFile()){
-			response["territory"] = m_strTerritory;
-			if(m_strRegion != "")
-				response["region"] = m_strRegion;
+		ofstream outdata(TERRITORYFILE);
+		if(!outdata){
+			LOGWARN(" Territory : Failed to open the file");
+			return resp;
+		}
+		if (territory != ""){
+			outdata << "territory:" + territory+"\n";
 			resp = true;
 		}
-		else{
-			LOGWARN("Error: Failed to read from territory file");
+		if (region != ""){
+			outdata << "region:" + region+"\n";
+			resp = true;
+		}
+		outdata.close();
+		return resp;
+	}
+	uint32_t SystemServices::getTerritory(const JsonObject& parameters, JsonObject& response)
+	{
+		bool resp = true;
+		m_strTerritory = "";
+		m_strRegion = "";
+		resp = readTerritoryFromFile();
+		if(resp == true){
+			if(m_strTerritory != "")
+				response["territory"] = m_strTerritory;
+			if(m_strRegion != "")
+				response["region"] = m_strRegion;
 		}
 		returnResponse(resp);
 	}
 
 	bool SystemServices::readTerritoryFromFile()
 	{
-		bool retValue = false;
+		bool retValue = true;
 		if(Utils::fileExists(TERRITORYFILE)){
 			ifstream inFile(TERRITORYFILE);
 			string str;
@@ -2303,12 +2323,12 @@ namespace WPEFramework {
 				}
 			}
 			else{
-				LOGERR("Error: Invalid territory file");
+				LOGERR("Invalid territory file");
 			}
 			inFile.close();
 		}
 		else{
-			LOGERR("Error: Territory file not exist");
+			LOGERR("Territory is not set");
 		}
 		return retValue;
 	}

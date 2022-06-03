@@ -243,6 +243,7 @@ namespace WPEFramework {
                 uint32_t getTerritory(const JsonObject& parameters, JsonObject& response);
                 bool readTerritoryFromFile();
 		bool isStrAlphaUpper(string strVal);
+		uint32_t writeTerriytory(string territory, string region);
                 uint32_t getXconfParams(const JsonObject& parameters, JsonObject& response);
                 uint32_t getSerialNumber(const JsonObject& parameters, JsonObject& response);
                 bool getSerialNumberTR069(JsonObject& response);
