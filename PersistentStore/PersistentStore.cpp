@@ -59,7 +59,7 @@ const string PersistentStore::Initialize(PluginHost::IShell *service)
                      "\"path\":\"/opt/secure/persistent/rdkservicestore\",\n"
                      "\"key\":null,\n"
                      "\"maxsize\":1000000,\n"
-                     "\"maxvalue\":1000\n"
+                     "\"maxvalue\":4096\n"
                      "}";
     }
 
