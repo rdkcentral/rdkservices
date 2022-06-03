@@ -316,7 +316,7 @@ namespace WPEFramework
             bool retAPIStatus = false;
 	    std::vector<string> milestones;
 
-            if (Core::File(MILESTONES_LOG_FILE).Exists()) {
+            if (Core::File(string(MILESTONES_LOG_FILE)).Exists()) {
                 retAPIStatus = getFileContent(MILESTONES_LOG_FILE, milestones);
                 if (retAPIStatus) {
                     setJSONResponseArray(response, "milestones", milestones);
