@@ -2,16 +2,16 @@ name: unit-tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ sprint/2206 ]
 
   pull_request:
     # By default: opened, synchronize, or reopened.
-    branches: [ main ]
+    branches: [ sprint/2206 ]
 
 env:
   BUILD_TYPE: Debug
 
-  # Refs for stable2.
+  # Refs for 2206_sprint.
   THUNDER_REF: "331ee30b1eaf82a7e8944ee00b8cb1d1d0aca682"
   INTERFACES_REF: "4ec7c6f8e14b152143a105a41f4c62b6723372c4"
 
