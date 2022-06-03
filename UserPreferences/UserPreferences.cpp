@@ -18,7 +18,7 @@
 **/
 
 #include "UserPreferences.h"
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 
 #include <glib.h>
 #include <glib/gstdio.h>
@@ -38,12 +38,12 @@ namespace WPEFramework {
         UserPreferences* UserPreferences::_instance = nullptr;
 
         UserPreferences::UserPreferences()
-                : AbstractPlugin()
+                : PluginHost::JSONRPC()
         {
             LOGINFO("ctor");
             UserPreferences::_instance = this;
-            registerMethod("getUILanguage", &UserPreferences::getUILanguage, this);
-            registerMethod("setUILanguage", &UserPreferences::setUILanguage, this);
+            Register("getUILanguage", &UserPreferences::getUILanguage, this);
+            Register("setUILanguage", &UserPreferences::setUILanguage, this);
         }
 
         UserPreferences::~UserPreferences()

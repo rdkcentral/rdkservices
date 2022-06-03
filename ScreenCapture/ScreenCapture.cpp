@@ -57,7 +57,7 @@ namespace WPEFramework
         SERVICE_REGISTRATION(ScreenCapture, 1, 0);
 
         ScreenCapture::ScreenCapture()
-        : AbstractPlugin()
+        : PluginHost::JSONRPC()
         {
             #ifdef PLATFORM_BROADCOM
             inNexus = false;

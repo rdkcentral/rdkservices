@@ -40,12 +40,14 @@ namespace WPEFramework
         Telemetry* Telemetry::_instance = nullptr;
 
         Telemetry::Telemetry()
-        : AbstractPlugin()
+        : PluginHost::JSONRPC()
         {
             Telemetry::_instance = this;
 
-            registerMethod(TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS, &Telemetry::setReportProfileStatus, this);
-            registerMethod(TELEMETRY_METHOD_LOG_APPLICATION_EVENT, &Telemetry::logApplicationEvent, this);
+            Register(TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS, &Telemetry::setReportProfileStatus, this);
+            Register(TELEMETRY_METHOD_LOG_APPLICATION_EVENT, &Telemetry::logApplicationEvent, this);
+
+            Utils::Telemetry::init();
         }
 
         Telemetry::~Telemetry()
@@ -180,7 +182,7 @@ namespace WPEFramework
 
                 LOGINFO("eventName:%s, eventValue:%s", eventName.c_str(), eventValue.c_str());
 
-                LOGT2((char *)eventName.c_str(), (char *)eventValue.c_str());
+                Utils::Telemetry::sendMessage((char *)eventName.c_str(), (char *)eventValue.c_str());
             }
             else
             {

@@ -18,7 +18,8 @@
 **/
 
 #include "CompositeInput.h"
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 #include "compositeIn.hpp"
 #include "exception.hpp"
@@ -47,16 +48,16 @@ namespace WPEFramework
         CompositeInput* CompositeInput::_instance = nullptr;
 
         CompositeInput::CompositeInput()
-        : AbstractPlugin()
+        : PluginHost::JSONRPC()
         {
             CompositeInput::_instance = this;
 
             InitializeIARM();
 
-            registerMethod(COMPOSITEINPUT_METHOD_GET_COMPOSITE_INPUT_DEVICES, &CompositeInput::getCompositeInputDevicesWrapper, this);
-            registerMethod(COMPOSITEINPUT_METHOD_START_COMPOSITE_INPUT, &CompositeInput::startCompositeInput, this);
-            registerMethod(COMPOSITEINPUT_METHOD_STOP_COMPOSITE_INPUT, &CompositeInput::stopCompositeInput, this);
-            registerMethod(COMPOSITEINPUT_METHOD_SCALE_COMPOSITE_INPUT, &CompositeInput::setVideoRectangleWrapper, this);
+            Register(COMPOSITEINPUT_METHOD_GET_COMPOSITE_INPUT_DEVICES, &CompositeInput::getCompositeInputDevicesWrapper, this);
+            Register(COMPOSITEINPUT_METHOD_START_COMPOSITE_INPUT, &CompositeInput::startCompositeInput, this);
+            Register(COMPOSITEINPUT_METHOD_STOP_COMPOSITE_INPUT, &CompositeInput::stopCompositeInput, this);
+            Register(COMPOSITEINPUT_METHOD_SCALE_COMPOSITE_INPUT, &CompositeInput::setVideoRectangleWrapper, this);
         }
 
         CompositeInput::~CompositeInput()

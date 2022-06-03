@@ -24,7 +24,7 @@
 
 #include "WifiManagerEvents.h"
 #include "../WifiManager.h" // Need access to WifiManager::getInstance so can't use 'WifiManagerInterface.h'
-#include "utils.h"
+#include "UtilsIarm.h"
 
 // RDK
 #include "rdk/iarmbus/libIBus.h"

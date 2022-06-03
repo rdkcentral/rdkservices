@@ -23,8 +23,7 @@
 
 #include "Module.h"
 
-#include "utils.h"
-#include "AbstractPlugin.h"
+#include "libIARM.h"
 
 #include "frontpanel.h"
 
@@ -81,7 +80,7 @@ namespace WPEFramework {
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class FrontPanel : public AbstractPlugin {
+        class FrontPanel : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
             // We do not allow this plugin to be copied !!
             FrontPanel(const FrontPanel&) = delete;
@@ -125,10 +124,16 @@ namespace WPEFramework {
         public:
             FrontPanel();
             virtual ~FrontPanel();
+            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
 
             void updateLedTextPattern();
 
+            BEGIN_INTERFACE_MAP(FrontPanel)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
         private:
             const void InitializeIARM();
             void DeinitializeIARM();

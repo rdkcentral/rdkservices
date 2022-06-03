@@ -19,7 +19,8 @@
 
 #include "XCast.h"
 #include "tracing/Logging.h"
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 #ifdef RFC_ENABLED
 #include "rfcapi.h"
 #endif //RFC_ENABLED
@@ -82,7 +83,7 @@ string strDyAppConfig = "";
 
 IARM_Bus_PWRMgr_PowerState_t XCast::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
 
-XCast::XCast() : AbstractPlugin()
+XCast::XCast() : PluginHost::JSONRPC()
 , m_apiVersionNumber(1)
 {
     InitializeIARM();
@@ -90,16 +91,16 @@ XCast::XCast() : AbstractPlugin()
     if(XCast::isCastEnabled)
     {
         LOGINFO("XcastService::Register methods and create onLocateCastTimer ");
-        registerMethod(METHOD_GET_API_VERSION_NUMBER, &XCast::getApiVersionNumber, this);
-        registerMethod(METHOD_ON_APPLICATION_STATE_CHANGED , &XCast::applicationStateChanged, this);
-        registerMethod(METHOD_SET_ENABLED, &XCast::setEnabled, this);
-        registerMethod(METHOD_GET_ENABLED, &XCast::getEnabled, this);
-        registerMethod(METHOD_GET_STANDBY_BEHAVIOR, &XCast::getStandbyBehavior, this);
-        registerMethod(METHOD_SET_STANDBY_BEHAVIOR, &XCast::setStandbyBehavior, this);
-        registerMethod(METHOD_GET_FRIENDLYNAME, &XCast::getFriendlyName, this);
-        registerMethod(METHOD_SET_FRIENDLYNAME, &XCast::setFriendlyName, this);
-        registerMethod(METHOD_REG_APPLICATIONS, &XCast::registerApplications, this);
-        registerMethod(METHOD_GET_PROTOCOLVERSION, &XCast::getProtocolVersion, this);
+        Register(METHOD_GET_API_VERSION_NUMBER, &XCast::getApiVersionNumber, this);
+        Register(METHOD_ON_APPLICATION_STATE_CHANGED , &XCast::applicationStateChanged, this);
+        Register(METHOD_SET_ENABLED, &XCast::setEnabled, this);
+        Register(METHOD_GET_ENABLED, &XCast::getEnabled, this);
+        Register(METHOD_GET_STANDBY_BEHAVIOR, &XCast::getStandbyBehavior, this);
+        Register(METHOD_SET_STANDBY_BEHAVIOR, &XCast::setStandbyBehavior, this);
+        Register(METHOD_GET_FRIENDLYNAME, &XCast::getFriendlyName, this);
+        Register(METHOD_SET_FRIENDLYNAME, &XCast::setFriendlyName, this);
+        Register(METHOD_REG_APPLICATIONS, &XCast::registerApplications, this);
+        Register(METHOD_GET_PROTOCOLVERSION, &XCast::getProtocolVersion, this);
         
         m_locateCastTimer.connect( bind( &XCast::onLocateCastTimer, this ));
     }

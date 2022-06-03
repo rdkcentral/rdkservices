@@ -28,7 +28,8 @@
 #include "libIBus.h"
 #include "rdk/iarmmgrs-hal/pwrMgr.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 #define SERVICE_NAME "FrontPanelService"
 #define METHOD_FP_SET_BRIGHTNESS "setBrightness"
@@ -157,25 +158,25 @@ namespace WPEFramework
         int FrontPanel::m_LedDisplayPatternUpdateTimerInterval = DEFAULT_TEXT_PATTERN_UPDATE_INTERVAL;
 
         FrontPanel::FrontPanel()
-        : AbstractPlugin()
+        : PluginHost::JSONRPC()
         , m_updateTimer(this)
         {
             FrontPanel::_instance = this;
 
-            registerMethod(METHOD_FP_SET_BRIGHTNESS, &FrontPanel::setBrightnessWrapper, this);
-            registerMethod(METHOD_FP_GET_BRIGHTNESS, &FrontPanel::getBrightnessWrapper, this);
-            registerMethod(METHOD_FP_POWER_LED_ON, &FrontPanel::powerLedOnWrapper, this);
-            registerMethod(METHOD_FP_POWER_LED_OFF, &FrontPanel::powerLedOffWrapper, this);
-            registerMethod(METHOD_CLOCK_SET_BRIGHTNESS, &FrontPanel::setClockBrightnessWrapper, this);
-            registerMethod(METHOD_CLOCK_GET_BRIGHTNESS, &FrontPanel::getClockBrightnessWrapper, this);
-            registerMethod(METHOD_GET_FRONT_PANEL_LIGHTS, &FrontPanel::getFrontPanelLightsWrapper, this);
-            registerMethod(METHOD_FP_GET_PREFERENCES, &FrontPanel::getPreferencesWrapper, this);
-            registerMethod(METHOD_FP_SET_PREFERENCES, &FrontPanel::setPreferencesWrapper, this);
-            registerMethod(METHOD_FP_SET_LED, &FrontPanel::setLEDWrapper, this);
-            registerMethod(METHOD_FP_SET_BLINK, &FrontPanel::setBlinkWrapper, this);
-            registerMethod(METHOD_FP_SET_24_HOUR_CLOCK, &FrontPanel::set24HourClockWrapper, this);
-            registerMethod(METHOD_FP_IS_24_HOUR_CLOCK, &FrontPanel::is24HourClockWrapper, this);
-            registerMethod(METHOD_FP_SET_CLOCKTESTPATTERN, &FrontPanel::setClockTestPatternWrapper, this);
+            Register(METHOD_FP_SET_BRIGHTNESS, &FrontPanel::setBrightnessWrapper, this);
+            Register(METHOD_FP_GET_BRIGHTNESS, &FrontPanel::getBrightnessWrapper, this);
+            Register(METHOD_FP_POWER_LED_ON, &FrontPanel::powerLedOnWrapper, this);
+            Register(METHOD_FP_POWER_LED_OFF, &FrontPanel::powerLedOffWrapper, this);
+            Register(METHOD_CLOCK_SET_BRIGHTNESS, &FrontPanel::setClockBrightnessWrapper, this);
+            Register(METHOD_CLOCK_GET_BRIGHTNESS, &FrontPanel::getClockBrightnessWrapper, this);
+            Register(METHOD_GET_FRONT_PANEL_LIGHTS, &FrontPanel::getFrontPanelLightsWrapper, this);
+            Register(METHOD_FP_GET_PREFERENCES, &FrontPanel::getPreferencesWrapper, this);
+            Register(METHOD_FP_SET_PREFERENCES, &FrontPanel::setPreferencesWrapper, this);
+            Register(METHOD_FP_SET_LED, &FrontPanel::setLEDWrapper, this);
+            Register(METHOD_FP_SET_BLINK, &FrontPanel::setBlinkWrapper, this);
+            Register(METHOD_FP_SET_24_HOUR_CLOCK, &FrontPanel::set24HourClockWrapper, this);
+            Register(METHOD_FP_IS_24_HOUR_CLOCK, &FrontPanel::is24HourClockWrapper, this);
+            Register(METHOD_FP_SET_CLOCKTESTPATTERN, &FrontPanel::setClockTestPatternWrapper, this);
 
             InitializeIARM();
 

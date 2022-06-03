@@ -27,13 +27,13 @@ endif()
 add_library(${MODULE_NAME} SHARED
         SystemServices.cpp
         Module.cpp
-        ../helpers/cTimer.cpp
+        cTimer.cpp
         ../helpers/cSettings.cpp
         ../helpers/powerstate.cpp
-        ../helpers/thermonitor.cpp
-        ../helpers/SystemServicesHelper.cpp
+        thermonitor.cpp
+        SystemServicesHelper.cpp
         ../helpers/utils.cpp
-        ../helpers/uploadlogs.cpp
+        uploadlogs.cpp
         platformcaps/platformcaps.cpp
         platformcaps/platformcapsdata.cpp
         platformcaps/platformcapsdatarpc.cpp

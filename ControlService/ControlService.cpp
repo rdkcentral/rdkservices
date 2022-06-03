@@ -20,7 +20,8 @@
 #include "ControlService.h"
 #include "libIBusDaemon.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 #include "irMgr.h"
 #include "comcastIrKeyCodes.h"
@@ -65,30 +66,30 @@ namespace WPEFramework {
         ControlService* ControlService::_instance = nullptr;
 
         ControlService::ControlService()
-            : AbstractPlugin()
+            : PluginHost::JSONRPC()
             , m_apiVersionNumber((uint32_t)-1)   /* default max uint32_t so everything gets enabled */    //TODO(MROLLINS) Can't we access this from jsonrpc interface?
         {
             LOGINFO("ctor");
             ControlService::_instance = this;
 
-            registerMethod("getApiVersionNumber", &ControlService::getApiVersionNumber, this);
-            registerMethod("getQuirks", &ControlService::getQuirks, this);
+            Register("getApiVersionNumber", &ControlService::getApiVersionNumber, this);
+            Register("getQuirks", &ControlService::getQuirks, this);
 
-            registerMethod("getAllRemoteData", &ControlService::getAllRemoteDataWrapper, this);
-            registerMethod("getSingleRemoteData", &ControlService::getSingleRemoteDataWrapper, this);
-            registerMethod("getLastKeypressSource", &ControlService::getLastKeypressSourceWrapper, this);
-            registerMethod("getLastPairedRemoteData", &ControlService::getLastPairedRemoteDataWrapper, this);
+            Register("getAllRemoteData", &ControlService::getAllRemoteDataWrapper, this);
+            Register("getSingleRemoteData", &ControlService::getSingleRemoteDataWrapper, this);
+            Register("getLastKeypressSource", &ControlService::getLastKeypressSourceWrapper, this);
+            Register("getLastPairedRemoteData", &ControlService::getLastPairedRemoteDataWrapper, this);
 
-            registerMethod("setValues", &ControlService::setValuesWrapper, this);
-            registerMethod("getValues", &ControlService::getValuesWrapper, this);
+            Register("setValues", &ControlService::setValuesWrapper, this);
+            Register("getValues", &ControlService::getValuesWrapper, this);
 
-            registerMethod("startPairingMode", &ControlService::startPairingModeWrapper, this);
-            registerMethod("endPairingMode", &ControlService::endPairingModeWrapper, this);
+            Register("startPairingMode", &ControlService::startPairingModeWrapper, this);
+            Register("endPairingMode", &ControlService::endPairingModeWrapper, this);
 
-            registerMethod("canFindMyRemote", &ControlService::canFindMyRemoteWrapper, this);
-            registerMethod("findLastUsedRemote", &ControlService::findLastUsedRemoteWrapper, this);
+            Register("canFindMyRemote", &ControlService::canFindMyRemoteWrapper, this);
+            Register("findLastUsedRemote", &ControlService::findLastUsedRemoteWrapper, this);
 
-            registerMethod("checkRf4ceChipConnectivity", &ControlService::checkRf4ceChipConnectivityWrapper, this);
+            Register("checkRf4ceChipConnectivity", &ControlService::checkRf4ceChipConnectivityWrapper, this);
 
             setApiVersionNumber(7);
         }

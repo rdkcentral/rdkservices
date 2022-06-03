@@ -19,7 +19,7 @@
 
 #include "ActivityMonitor.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 
 
 #define ACTIVITY_MONITOR_METHOD_GET_APPLICATION_MEMORY_USAGE "getApplicationMemoryUsage"
@@ -114,16 +114,16 @@ namespace WPEFramework
 
 
         ActivityMonitor::ActivityMonitor()
-        : AbstractPlugin()
+        : PluginHost::JSONRPC()
         , m_monitorParams(NULL)
         , m_stopMonitoring(false)
         {
             ActivityMonitor::_instance = this;
 
-            registerMethod(ACTIVITY_MONITOR_METHOD_GET_APPLICATION_MEMORY_USAGE, &ActivityMonitor::getApplicationMemoryUsage, this);
-            registerMethod(ACTIVITY_MONITOR_METHOD_GET_ALL_MEMORY_USAGE, &ActivityMonitor::getAllMemoryUsage, this);
-            registerMethod(ACTIVITY_MONITOR_METHOD_ENABLE_MONITORING, &ActivityMonitor::enableMonitoring, this);
-            registerMethod(ACTIVITY_MONITOR_METHOD_DISABLE_MONITORING, &ActivityMonitor::disableMonitoring, this);
+            Register(ACTIVITY_MONITOR_METHOD_GET_APPLICATION_MEMORY_USAGE, &ActivityMonitor::getApplicationMemoryUsage, this);
+            Register(ACTIVITY_MONITOR_METHOD_GET_ALL_MEMORY_USAGE, &ActivityMonitor::getAllMemoryUsage, this);
+            Register(ACTIVITY_MONITOR_METHOD_ENABLE_MONITORING, &ActivityMonitor::enableMonitoring, this);
+            Register(ACTIVITY_MONITOR_METHOD_DISABLE_MONITORING, &ActivityMonitor::disableMonitoring, this);
         }
 
         ActivityMonitor::~ActivityMonitor()

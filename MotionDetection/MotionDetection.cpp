@@ -23,7 +23,7 @@
 #include "MotionDetection.h"
 #include "tracing/Logging.h"
 #include <syscall.h>
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 
 #define NO_DETECTORS_FOUND    "0"
 #define MOTION_DETECTOR_INDEX "FP_MD"
@@ -52,7 +52,7 @@ namespace WPEFramework {
         }
 
         MotionDetection::MotionDetection()
-            : AbstractPlugin()
+            : PluginHost::JSONRPC()
         {
             LOGINFO("MotionDetection ctor");
             MotionDetection::_instance = this;
