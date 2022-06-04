@@ -711,7 +711,7 @@ namespace WPEFramework {
                 {
                     IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                     int hdcpStatus = eventData->data.hdmi_hdcp.hdcpStatus;
-                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDCP_STATUS  event data:%d ", hdcpStatus);
+                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDCP_STATUS powerState: %d  event data:%d ",m_powerState , hdcpStatus);
                     ServiceManagerNotifier::getInstance()->notifyHdmiOutputHDCPStatus(hdcpStatus);
                 }
                 break;
