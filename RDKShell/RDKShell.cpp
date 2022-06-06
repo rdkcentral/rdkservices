@@ -118,6 +118,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SCREENSHOT = "g
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_EASTER_EGGS = "enableEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING = "enableLogsFlushing";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED = "getLogsFlushingEnabled";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_DISPLAY_FRAME_RATE = "getDisplayFrameRate";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_DISPLAY_FRAME_RATE = "setDisplayFrameRate";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_EASTER_EGGS = "addEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_REMOVE_EASTER_EGGS = "removeEasterEggs";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_EASTER_EGGS = "getEasterEggs";
@@ -877,6 +879,8 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_ENABLE_LOGS_FLUSHING, &RDKShell::enableLogsFlushingWrapper, this);
             Register(RDKSHELL_METHOD_GET_LOGS_FLUSHING_ENABLED, &RDKShell::getLogsFlushingEnabledWrapper, this);
             Register(RDKSHELL_METHOD_IGNORE_KEY_INPUTS, &RDKShell::ignoreKeyInputsWrapper, this);
+            Register(RDKSHELL_METHOD_GET_DISPLAY_FRAME_RATE, &RDKShell::getDisplayFrameRateWrapper, this);
+            Register(RDKSHELL_METHOD_SET_DISPLAY_FRAME_RATE, &RDKShell::setDisplayFrameRateWrapper, this);
             Register(RDKSHELL_METHOD_ADD_EASTER_EGGS, &RDKShell::addEasterEggsWrapper, this);
             Register(RDKSHELL_METHOD_REMOVE_EASTER_EGGS, &RDKShell::removeEasterEggsWrapper, this);
             Register(RDKSHELL_METHOD_GET_EASTER_EGGS, &RDKShell::getEasterEggsWrapper, this);
@@ -5419,6 +5423,36 @@ namespace WPEFramework {
             }
             returnResponse(ret);
         }
+
+	uint32_t RDKShell::getDisplayFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            lockRdkShellMutex();
+            unsigned int value = gCurrentFramerate;
+            gRdkShellMutex.unlock();
+            response["framerate"] = value;
+            returnResponse(true);
+        }
+
+        uint32_t RDKShell::setDisplayFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
+         {
+             LOGINFOMETHOD();
+             bool result = true;
+
+             if (!parameters.HasLabel("framerate"))
+             {
+                result = false;
+                response["message"] = "please specify frame rate";
+             }
+             if (result)
+             {
+                unsigned int framerate = parameters["framerate"].Number();
+                lockRdkShellMutex();
+                gCurrentFramerate = framerate;
+                gRdkShellMutex.unlock();
+             }
+             returnResponse(result);
+         }
 
         uint32_t RDKShell::keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response)
         {
