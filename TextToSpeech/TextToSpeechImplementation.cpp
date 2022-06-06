@@ -189,6 +189,15 @@ namespace Plugin {
             config.rate = static_cast<uint8_t>(rate);
         }
 
+        if(parameters.HasLabel("authinfo")) {
+            JsonObject auth;
+            auth = parameters["authinfo"].Object();
+            if(((auth["type"].String()).compare("apikey")) == 0)
+            {
+                config.apiKey = GET_STR(auth,"value", "");
+            }
+        }
+
         _adminLock.Lock();
 
         auto status = _ttsManager->setConfiguration(config);
