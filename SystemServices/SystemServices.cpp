@@ -2372,7 +2372,7 @@ namespace WPEFramework {
 					}
 				}
 			}
-			retrun retVal;	
+			return retVal;	
 	}
 
 	void SystemServices::onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion, string newRegion)
