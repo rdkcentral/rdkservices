@@ -3421,7 +3421,7 @@ namespace WPEFramework {
 #endif
                 }
 
-                if (!type.empty() && type == "SearchAndDiscoveryApp" )
+                if (!type.empty() && (type == "SearchAndDiscoveryApp" || type == "JSPP" ))
                 {
 #ifdef RFC_ENABLED
                     RFC_ParamData_t param;
