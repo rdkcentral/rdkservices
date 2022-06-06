@@ -243,6 +243,16 @@ namespace WPEFramework {
 
         static void _powerEventHandler(const char *owner, IARM_EventId_t eventId,
                 void *data, size_t len);
+		static  IARM_Result_t _FactoryReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len);
+		static  IARM_Result_t _WareHouseReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len);
+        static  IARM_Result_t _WareHouseClear(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len);
+        static  IARM_Result_t _ColdFactoryReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len);
+        static  IARM_Result_t _UserFactoryReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len);				
 
 #ifdef ENABLE_THERMAL_PROTECTION
         static void handleThermalLevelChange(IARM_Bus_PWRMgr_EventData_t *param);
@@ -466,6 +476,11 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED, _powerEventHandler));
                 
+				IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_FactoryReset, _FactoryReset));
+				IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseReset, _WareHouseReset));
+				IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseClear, _WareHouseClear));
+				IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_ColdFactoryReset, _ColdFactoryReset));
+				IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_UserFactoryReset, _UserFactoryReset));
                 
 #ifdef ENABLE_THERMAL_PROTECTION
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler));
@@ -3660,6 +3675,80 @@ namespace WPEFramework {
         }
 #endif //ENABLE_SET_WAKEUP_SRC_CONFIG
 
+		int SystemServices::processFactoryReset()
+		{
+
+			/*Code copied from X1.. Needs modification*/
+			//LOG("\n Reset: Processing Factory Reset\n");
+			fflush(stdout);
+			//LOG("Reset: ...Clearing data from your box before reseting \n");
+			fflush(stdout);
+			/*Execute the script for Factory Reset*/
+			system("sh /lib/rdk/deviceReset.sh factory");
+
+			system("echo 0 > /opt/.rebootFlag");
+			system(" echo `/bin/timestamp` -------------Rebooting due to Factory Reset process-------------- >> /opt/logs/receiver.log");
+			//system("sleep 5; /rebootNow.sh");
+			return 1;
+		}
+		
+		/*int processWHReset()
+		{
+
+			LOG("\n Reset: Processing Ware House Reset\n");
+			fflush(stdout);
+
+			//Execute the script for Ware House Reset
+			system("echo 0 > /opt/.rebootFlag");
+			system("touch /tmp/.warehouse-reset");
+			system("echo `/bin/timestamp` ------------- Rebooting due to Warehouse Reset process--------------- >> /opt/logs/receiver.log");
+
+			return system("sh /lib/rdk/deviceReset.sh warehouse");
+		}
+		
+		int processWHClear()
+		{
+			//Code copied from X1.. Needs modification
+			LOG("\n Clear: Processing Ware House Clear\n");
+			fflush(stdout);
+
+			system("echo 0 > /opt/.rebootFlag");
+			system("touch /tmp/.warehouse-clear");
+			system("echo `/bin/timestamp` ------------- Warehouse Clear  --------------- >> /opt/logs/receiver.log");
+			system("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR");
+
+			return 1;
+		}*/
+		
+		int processColdFactoryReset()
+		{
+			/*Code copied from X1.. Needs modification*/
+			//LOG("\n Reset: Processing Cold Factory Reset\n");
+			fflush(stdout);
+			//LOG(" Reset: ...Clearing data from your box before reseting \n");
+			fflush(stdout);
+			/*Execute the script for Cold Factory Reset*/
+			system("sh /lib/rdk/deviceReset.sh coldfactory");
+
+			system("echo 0 > /opt/.rebootFlag");
+			system(" echo `/bin/timestamp` ------------- Rebooting due to Cold Factory Reset process --------------- >> /opt/logs/receiver.log");
+			system("sleep 5; /rebootNow.sh -s PowerMgr_coldFactoryReset -o 'Rebooting the box due to Cold Factory Reset process ...'");
+			return 1;
+		}
+		
+		int processUserFactoryReset()
+		{
+
+			//LOG("\n Reset: Processing User Factory Reset\n");
+			fflush(stdout);
+
+			/*Execute the script for User Factory Reset*/
+			system("echo 0 > /opt/.rebootFlag");
+			system("echo `/bin/timestamp` ------------- Rebooting due to User Factory Reset process--------------- >> /opt/logs/receiver.log");
+
+			return system("sh /lib/rdk/deviceReset.sh userfactory");
+		}
+
         /***
          * @brief : To handle the event of Power State change.
          *     The event is registered to the IARM event handle on powerStateChange.
@@ -3740,8 +3829,233 @@ namespace WPEFramework {
                 }
 
                 break;
+				
+	
             }
         }
+
+        /***
+         * @brief : To handle the reset requests events.
+         *     The event is registered to the IARM event handle on reset event requests.
+         *
+         * @param1[in]  : owner of the event
+         * @param2[in]  : eventID of the event
+         * @param3[in]  : data passed from the IARMBUS event
+         * @param4[in]  : len
+         * @return      : <void>
+         */
+		IARM_Result_t _FactoryReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+		{
+			int res = IARM_RESULT_SUCCESS;
+			if (SystemServices::_instance) 
+					{
+						res = SystemServices::_instance->processFactoryReset();
+						//LOG("_FactoryReset returned : %d\r\n", res);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+			else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_FactoryReset Case.\n");
+					}		
+			return 	res;	
+		}
+		
+		/*IARM_Result_t _WareHouseReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+		{
+			int res = IARM_RESULT_SUCCESS;
+			if (SystemServices::_instance) 
+					{
+						res = SystemServices::_instance->processWHReset();
+						//LOG("_WareHouseReset returned : %d\r\n", res);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+			else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_WareHouseReset Case.\n");
+					}		
+			return 	res;	
+		}
+		
+		IARM_Result_t _WareHouseClear(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+		{
+			int res = IARM_RESULT_SUCCESS;
+			if (SystemServices::_instance) 
+					{
+						res = SystemServices::_instance->processWHClear();
+						//LOG("_WareHouseClear returned : %d\r\n", res);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+			else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_WareHouseClear Case.\n");
+					}		
+			return 	res;	
+		}*/
+		
+		IARM_Result_t _ColdFactoryReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+		{
+			int res = IARM_RESULT_SUCCESS;
+			if (SystemServices::_instance) 
+					{
+						res = SystemServices::_instance->processColdFactoryReset();
+						//LOG("_ColdFactoryReset returned : %d\r\n", res);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+			else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_ColdFactoryReset Case.\n");
+					}		
+			return 	res;	
+		}
+		
+		IARM_Result_t _UserFactoryReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+		{
+			int res = IARM_RESULT_SUCCESS;
+			if (SystemServices::_instance) 
+					{
+						res = SystemServices::_instance->processUserFactoryReset();
+						//LOG("_UserFactoryReset returned : %d\r\n", res);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+			else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_UserFactoryReset Case.\n");
+					}		
+			return 	res;	
+		}
+		 
+        /*IARM_Result_t _resetEventHandler(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+		{
+			int res = IARM_RESULT_SUCCESS;
+			switch (eventId) 
+			{
+				case IARM_BUS_PWRMGR_API_FactoryReset:
+				{
+					if (SystemServices::_instance) 
+					{
+						res = SystemServices::_instance->processFactoryReset();
+						//LOG("_FactoryReset returned : %d\r\n", res);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+					else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_FactoryReset Case.\n");
+					}
+				}
+					break;
+				
+				case IARM_BUS_PWRMGR_API_WareHouseReset:
+				{
+				    if (SystemServices::_instance) 
+					{
+						//res = SystemServices::_instance->processWHReset();
+						//LOG("_WareHouseReset returned : %d\r\n", ret);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+					else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_WareHouseReset Case.\n");
+					}
+				}		
+					break;
+					
+				case IARM_BUS_PWRMGR_API_WareHouseClear:
+				{
+				if (SystemServices::_instance) 
+					{
+						//res = SystemServices::_instance->processWHClear();
+						//LOG("_WareHouseClear returned : %d\r\n", ret);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+					else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_WareHouseClear Case.\n");
+					}	
+				}
+					break;
+					
+				case IARM_BUS_PWRMGR_API_ColdFactoryReset:
+				{
+				if (SystemServices::_instance) 
+					{
+						res = SystemServices::_instance->processColdFactoryReset();
+						//LOG("_ColdFactoryReset returned : %d\r\n", ret);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+					else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_ColdFactoryReset Case.\n");
+					}		
+                }
+                    break;	
+
+				case IARM_BUS_PWRMGR_API_UserFactoryReset:
+				{
+				if (SystemServices::_instance) 
+					{
+						res = SystemServices::_instance->processUserFactoryReset();
+						//LOG("_UserFactoryReset returned : %d\r\n", ret);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+					else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_UserFactoryReset Case.\n");
+					}		
+                }
+					break;
+					
+				default:
+					break;
+			}
+			
+			return res;
+		}*/
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         /***
