@@ -285,6 +285,12 @@ namespace WPEFramework {
                 uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
                 uint32_t getStoreDemoLink(const JsonObject& parameters, JsonObject& response);
                 uint32_t deletePersistentPath(const JsonObject& parameters, JsonObject& response);
+				uint32_t processFactoryReset();
+				uint32_t processWHReset();
+				uint32_t processWHClear();
+				uint32_t processColdFactoryReset();
+				uint32_t processUserFactoryReset();
+				
 #ifdef ENABLE_SET_WAKEUP_SRC_CONFIG
                 uint32_t setWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
 #endif //ENABLE_SET_WAKEUP_SRC_CONFIG
