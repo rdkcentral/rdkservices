@@ -31,7 +31,9 @@ find_package(Curl)
 
 set(AUDIO_CLIENT_LIB "")
 if (BUILD_AMLOGIC)
-set(AUDIO_CLIENT_LIB "audio_client")
+    set(AUDIO_CLIENT_LIB "audio_client")
+elseif (BUILD_REALTEK)
+    set(AUDIO_CLIENT_LIB "RtkHALMisc") 
 endif()
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${GSTREAMER_INCLUDES})
