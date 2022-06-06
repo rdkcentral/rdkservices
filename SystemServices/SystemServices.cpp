@@ -2239,8 +2239,8 @@ namespace WPEFramework {
 						if(regionStr != ""){
 							if(isRegionValid(regionStr)){
 								resp = writeTerritory(territoryStr,regionStr);
-								LOGWARN(" territory name ", territoryStr.c_str());
-								LOGWARN(" region name ", regionStr.c_str());
+								LOGWARN(" territory name %s ", territoryStr.c_str());
+								LOGWARN(" region name %s", regionStr.c_str());
 							}else{
 								JsonObject error;
 								error["message"] = "Invalid region";
@@ -2251,7 +2251,7 @@ namespace WPEFramework {
 						}
 					}else{
 						resp = writeTerritory(territoryStr,regionStr);
-						LOGWARN(" territory name ", territoryStr.c_str());
+						LOGWARN(" territory name %s ", territoryStr.c_str());
 					}
 				}else{
 					JsonObject error;
@@ -2372,7 +2372,8 @@ namespace WPEFramework {
 					}
 				}
 			}
-			return retVal;	
+		}
+		return retVal;	
 	}
 
 	void SystemServices::onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion, string newRegion)
