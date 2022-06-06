@@ -35,6 +35,7 @@ struct Configuration {
     std::string ttsEndPointSecured;
     std::string language;
     std::string voice;
+    std::string apiKey;
     double volume;
     uint8_t rate;
 };
