@@ -773,8 +773,29 @@ namespace WPEFramework {
             }
         }
 
+        bool RDKShell::ScreenCapture::Capture(ICapture::IStore& storer)
+        {
+            mCaptureStorers.push_back(&storer);
+
+            JsonObject parameters, response;
+            mShell->getScreenshotWrapper(parameters, response);
+            return true;
+        }
+
+        void RDKShell::ScreenCapture::onScreenCapture(const unsigned char *data, unsigned int width, unsigned int height)
+        {
+            if (mCaptureStorers.size() > 0)
+            {
+                for (unsigned int n = 0; n < mCaptureStorers.size(); n++)
+                {    
+                    mCaptureStorers[n]->R8_G8_B8_A8(data, width, height);
+                }
+                mCaptureStorers.clear();
+            }
+        }
+
         RDKShell::RDKShell()
-                : PluginHost::JSONRPC(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0), mEnableEasterEggs(true)
+                : PluginHost::JSONRPC(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0), mEnableEasterEggs(true), mScreenCapture(this)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -1159,6 +1180,10 @@ namespace WPEFramework {
                       // Calling Notify instead of  RDKShell::notify to avoid logging of entire screen content
                       LOGINFO("Notify %s", RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE.c_str());
                       Notify(RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE, params);
+
+                      unsigned int width = 0,height = 0;
+                      if (CompositorController::getScreenResolution(width, height))
+                          mScreenCapture.onScreenCapture(&data[0], width, height);
 
                       free(encodedImage);
                       free(data);
