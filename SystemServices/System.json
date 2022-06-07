@@ -283,7 +283,17 @@
             "summary": "Whether the request succeeded",
             "type": "boolean",
             "example": "true"
-        }
+        },
+	"territory":{
+		"summary":"territory name",
+		"type": "string",
+		"example":"USA"
+	},
+	"region":{
+		"summary":"region name",
+		"type":"string",
+		"example":"US-NY"
+	}
     },
     "methods": {
         "cacheContains": {
@@ -1278,12 +1288,15 @@
             }
         },
 	"getTerritory":{
-		"summary": "Geta the territory.",
+		"summary": "Gets the configured system territory and region.",
 		"params":{
 			"type" : "object",
 			"properties": {
 				"territory":{
 					"$ref":"#/definitions/territory"
+				},
+				"region":{
+					"$ref":"#/definitions/region"
 				}
 			}
 		},
@@ -1815,9 +1828,24 @@
         }
     },
     "setTerritory":{
-	    "summary": "Sets the territory and region",
+	    "summary": "Sets the system territory and region",
+	    "params": {
+		    "type" :"object",
+		    "properties": {
+			    "territory":{
+				    "$ref":"#/definitions/territory"
+			    },
+			    "region":{
+				    "$ref":"#/definitions/region"
+			    }
+		    },
+		    "required": [
+			    "territory",
+			    "region"
+		    ]
+	    },
 	    "result":{
-		    "$ref":"#/definitions/territory"
+		    "$ref": "#/definitions/result"
 	    }
 	},
     "events": {

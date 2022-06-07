@@ -63,7 +63,7 @@ using std::ofstream;
 #define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
 #define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
-#define EVT_ONTERRITORYCHNAGED            "onTerritoryChanged"
+#define EVT_ONTERRITORYCHANGED            "onTerritoryChanged"
 #define EVT_ONTIMEZONEDSTCHANGED          "onTimeZoneDSTChanged"
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
