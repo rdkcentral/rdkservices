@@ -2391,8 +2391,7 @@ namespace WPEFramework {
 			LOGWARN(" Notifying Region changed - oldRegion: %s - newRegion: %s",oldRegion.c_str(),newRegion.c_str());
 		}
 		//Notify territory changed
-		sendNotify(EVT_ONTERRITORYCHNAGED, params);
-		GetHandler()->Notify(EVT_ONTERRITORYCHANGED, params);
+		sendNotify(EVT_ONTERRITORYCHANGED, params);
 	}
 
 	void SystemServices::onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone)
@@ -2403,7 +2402,6 @@ namespace WPEFramework {
 		LOGWARN(" Notifying TimeZone changed - oldTimeZone: %s - newTimeZone: %s",oldTimeZone.c_str(),newTimeZone.c_str());
 		//Notify TimeZone changed
 		sendNotify(EVT_ONTIMEZONEDSTCHANGED, params);
-		GetHandler()->Notify(EVT_ONTIMEZONEDSTCHANGED, params);
 	}
 
         /***
