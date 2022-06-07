@@ -145,6 +145,7 @@ namespace Plugin {
     public:
         WebKitBrowser()
             : _skipURL(0)
+            , _connectionId(0)
             , _service(nullptr)
             , _browser(nullptr)
             , _memory(nullptr)

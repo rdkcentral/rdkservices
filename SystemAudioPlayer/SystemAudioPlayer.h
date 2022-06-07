@@ -123,10 +123,10 @@ namespace Plugin {
         void Deactivated(RPC::IRemoteConnection* connection);
 
     private:
-        uint8_t _skipURL;
-        uint32_t _connectionId;
-        PluginHost::IShell* _service;
-        Exchange::ISystemAudioPlayer* _sap;
+        uint8_t _skipURL{};
+        uint32_t _connectionId{};
+        PluginHost::IShell* _service{};
+        Exchange::ISystemAudioPlayer* _sap{};
         Core::Sink<Notification> _notification;
         uint32_t _apiVersionNumber;
         
