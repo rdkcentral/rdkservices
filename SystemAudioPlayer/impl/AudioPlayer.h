@@ -70,10 +70,16 @@ class AudioPlayer
     GstElement  *m_audioSink;
     GstElement  *m_audioVolume;
     GstElement  *m_capsfilter;
+    GstElement  *m_audioCutter;
     int m_primVolume;
     int m_prevPrimVolume; 
     int m_thisVolume; //Player Volume
     int m_prevThisVolume;
+    double m_thresHold;
+    double m_thresHold_dB;
+    int m_detectTimeMs;
+    int m_holdTimeMs;
+    int m_duckPercent;
     static GMainLoop   *m_main_loop;
     static GThread     *m_main_loop_thread;
     static SAPEventCallback *m_callback;
@@ -109,9 +115,10 @@ class AudioPlayer
     std::string m_PCMFormat;
     std::string m_Layout;
     int  m_Rate;
-    int  m_Channels;    
-    void createPipeline();
+    int  m_Channels;
+    void createPipeline(bool smartVolumeControl);    
     void resetPipeline();
+    void resetPipelineForSmartVolumeControl(bool smartVolumeEnable);
     void destroyPipeline();
 #if defined(PLATFORM_AMLOGIC)
     bool setMixGain(MixGain gain, int val);
@@ -119,6 +126,10 @@ class AudioPlayer
 #endif
     void setVolume( int Vol);
     void setPrimaryVolume( int Vol);
+    void setDetectTime( int detectTime);
+    void setHoldTime( int holdTime);
+    void setThreshold( double thresHold);
+    void setThresholdDB( double thresHold_dB);
     bool waitForStatus(GstState expected_state, uint32_t timeout_ms);
     GstCaps * getPCMAudioCaps( const std::string format, int rate, int channels, const std::string layout);
 
@@ -132,6 +143,7 @@ class AudioPlayer
     bool Pause();
     void Stop();
     void SetMixerLevels(int primVol, int thisVol);
+    void SetSmartVolControl(bool smartVolumeEnable,double threshold, int detectTimeMs, int  holdTimeMs, int duckPercent);
     AudioType getAudioType();
     PlayMode  getPlayMode();
     SourceType getSourceType();
