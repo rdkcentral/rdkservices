@@ -2391,7 +2391,7 @@ namespace WPEFramework {
 			LOGWARN(" Notifying Region changed - oldRegion: %s - newRegion: %s",oldRegion.c_str(),newRegion.c_str());
 		}
 		//Notify territory changed
-		sendNotify(EVT_ONTERRITORYCHNAGED, params);
+		sendNotify(EVT_ONTERRITORYCHANGED, params);
 		GetHandler()->Notify(EVT_ONTERRITORYCHANGED, params);
 	}
 
