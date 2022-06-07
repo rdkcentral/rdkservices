@@ -50,24 +50,6 @@ namespace Plugin {
        LOGINFO("Exit\n");
     }
 
-    std::string ControlSettingsTV::getErrorString (tvError_t eReturn)
-    {
-        switch (eReturn)
-        {
-            case tvERROR_NONE:
-                return "TV API SUCCESS";
-            case tvERROR_GENERAL:
-                return "TV API FAILED";
-            case tvERROR_OPERATION_NOT_SUPPORTED:
-                return "TV OPERATION NOT SUPPORTED ERROR";
-            case tvERROR_INVALID_PARAM:
-                return "TV INVALID PARAM ERROR";
-            case tvERROR_INVALID_STATE:
-                return "TV INVALID STATE ERROR";
-        }
-        return "TV UNKNOWN ERROR";
-    }
-
     //Event
     void ControlSettingsTV::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
@@ -79,7 +61,7 @@ namespace Plugin {
     {
 
         LOGINFO("Entry %s\n",__FUNCTION__);
-        PLUGIN_Lock(tvLock);
+        PLUGIN_Lock(Lock);
         tvError_t ret = tvERROR_NONE;
 
         if(ret != tvERROR_NONE) {
@@ -95,7 +77,7 @@ namespace Plugin {
     {
 
         LOGINFO("Entry\n");
-        PLUGIN_Lock(tvLock);
+        PLUGIN_Lock(Lock);
         tvError_t ret = tvERROR_NONE;
 
         if(ret != tvERROR_NONE) {

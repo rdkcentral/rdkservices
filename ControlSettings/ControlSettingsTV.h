@@ -50,7 +50,6 @@ class ControlSettingsTV : public AbstractPlugin {
         ControlSettingsTV();
         ~ControlSettingsTV();
         ControlSettingsTV *instance;
-        std::string getErrorString (tvError_t eReturn);
         void Initialize();
         void Deinitialize();
    

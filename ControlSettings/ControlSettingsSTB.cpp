@@ -50,24 +50,6 @@ namespace Plugin {
        LOGINFO("Exit\n");
     }
 
-    std::string ControlSettingsSTB::getErrorString (tvError_t eReturn)
-    {
-        switch (eReturn)
-        {
-            case tvERROR_NONE:
-                return "TV API SUCCESS";
-            case tvERROR_GENERAL:
-                return "TV API FAILED";
-            case tvERROR_OPERATION_NOT_SUPPORTED:
-                return "TV OPERATION NOT SUPPORTED ERROR";
-            case tvERROR_INVALID_PARAM:
-                return "TV INVALID PARAM ERROR";
-            case tvERROR_INVALID_STATE:
-                return "TV INVALID STATE ERROR";
-        }
-        return "TV UNKNOWN ERROR";
-    }
-
     //Event
     void ControlSettingsSTB::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
@@ -79,37 +61,19 @@ namespace Plugin {
     {
 
         LOGINFO("Entry\n");
-        PLUGIN_Lock(tvLock);
-        tvError_t ret = tvERROR_NONE;
-
-        if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
-        }
-        else {
-            LOGINFO("Exit : %s\n",__FUNCTION__);
-            returnResponse(true, "success");
-        }
+        PLUGIN_Lock(Lock);
+        LOGINFO("Exit : %s\n",__FUNCTION__);
+        returnResponse(true, "success");
     }
 
     uint32_t ControlSettingsSTB::setVolume(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
-        PLUGIN_Lock(tvLock);
-        tvError_t ret = tvERROR_NONE;
-
-
-        if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
-        }
-        else {
-            LOGINFO("Exit : %s\n",__FUNCTION__);
-            returnResponse(true, "success");
-        }
+        PLUGIN_Lock(Lock);
+        LOGINFO("Exit : %s\n",__FUNCTION__);
+        returnResponse(true, "success");
     }
-
-
-
 
 
 }//namespace Plugin

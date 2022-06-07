@@ -49,7 +49,6 @@ class ControlSettingsSTB : public AbstractPlugin {
 	ControlSettingsSTB();
 	~ControlSettingsSTB();
         ControlSettingsSTB *instance;
-        std::string getErrorString (tvError_t eReturn);
         void Initialize();
         void Deinitialize();
     

@@ -29,7 +29,7 @@ uint32_t method(const JsonObject& parameters, JsonObject& response);
     {response["success"] = return_status; \
     if(!return_status) \
         response["error_message"] = _T(error_log); \
-    PLUGIN_Unlock(tvLock); \
+    PLUGIN_Unlock(Lock); \
     return (Core::ERROR_NONE);}
 
 #define returnIfParamNotFound(param)\
@@ -39,6 +39,25 @@ uint32_t method(const JsonObject& parameters, JsonObject& response);
         returnResponse(false,"missing parameter");\
     }
 
-static pthread_mutex_t tvLock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t Lock = PTHREAD_MUTEX_INITIALIZER;
+
+static std::string getErrorString (tvError_t eReturn)
+    {
+        switch (eReturn)
+        {
+            case tvERROR_NONE:
+                return "API SUCCESS";
+            case tvERROR_GENERAL:
+                return "API FAILED";
+            case tvERROR_OPERATION_NOT_SUPPORTED:
+                return "OPERATION NOT SUPPORTED ERROR";
+            case tvERROR_INVALID_PARAM:
+                return "INVALID PARAM ERROR";
+            case tvERROR_INVALID_STATE:
+                return "INVALID STATE ERROR";
+        }
+        return "UNKNOWN ERROR";
+    }
+
 
 #endif
