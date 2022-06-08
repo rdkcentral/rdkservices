@@ -3197,12 +3197,21 @@ namespace WPEFramework
       void HdmiCecSink::getHdmiArcPortID()
       {
          int portId = -1;
+         LOGWARN("HDMI ARC port ID getHdmiArcPortID\n");
+#if 0
          device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
          aPort.getHdmiArcPortId(&portId);
          if(portId >= 0) {
               HdmiArcPortID = portId;
               LOGWARN("HDMI ARC port ID hdmiArcPortId=%d\n",HdmiArcPortID);
          } 
+#endif
+           portId = 1;
+           if(portId >= 0) {
+              HdmiArcPortID = portId;
+              LOGWARN("HDMI ARC port ID hdmiArcPortId=%d\n",HdmiArcPortID);
+         }
+
       }
 
     } // namespace Plugin
