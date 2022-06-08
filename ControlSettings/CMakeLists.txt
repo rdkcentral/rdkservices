@@ -22,9 +22,10 @@ Project(CONTROLSETTINGS-PLUGINS)
 set(CMAKE_BUILD_TYPE "Debug")
 
 set(PLUGIN_NAME ControlSettings)
+
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
-set(PLUGIN_CONTROLSETTINGS_AUTOSTART false CACHE STRING "Automatically start Tvmgr plugin")
+set(PLUGIN_CONTROLSETTINGS_AUTOSTART "false" CACHE STRING "Automatically start Tvmgr plugin")
 
 find_package(WPEFramework)
 find_package(${NAMESPACE}Plugins REQUIRED)
@@ -42,11 +43,11 @@ include_directories(${STAGING_INCDIR}/rdk/ds-hal)
 include_directories(${STAGING_INCDIR}/rdk/ds-rpc)
 include_directories(${STAGING_INCDIR}/rdk/ds)
 
+
 add_library(${MODULE_NAME} SHARED
-    ControlSettings.cpp 
-    Device.cpp
-    TV.cpp
-    STB.cpp
+    ControlSettingsTV.cpp 
+    ControlSettingsSTB.cpp
+    ControlSettings.cpp
     Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -59,6 +60,7 @@ list(APPEND CMAKE_MODULE_PATH
 find_package(DS)
 
 target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
+target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
 target_link_libraries(${MODULE_NAME} 
     PRIVATE

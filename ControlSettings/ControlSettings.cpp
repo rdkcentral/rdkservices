@@ -20,33 +20,18 @@
 #include <string>
 #include "ControlSettings.h"
 
-#define returnResponse(return_status, error_log) \
-    {response["success"] = return_status; \
-    if(!return_status) \
-        response["error_message"] = _T(error_log); \
-    PLUGIN_Unlock(tvLock); \
-    return (Core::ERROR_NONE);}
-
-#define returnIfParamNotFound(param)\
-    if(param.empty())\
-    {\
-        LOGERR("missing parameter %s\n",#param);\
-        returnResponse(false,"missing parameter");\
-    }
-#define PLUGIN_Lock(lock) pthread_mutex_lock(&lock)
-#define PLUGIN_Unlock(lock) pthread_mutex_unlock(&lock)
 
 #define VIDEO_DESCRIPTION_MAX (25)
 #define VIDEO_DESCRIPTION_NAME_SIZE (25)
 
 const char* PLUGIN_IARM_BUS_NAME = "Thunder_Plugins";
 static char videoDescBuffer[VIDEO_DESCRIPTION_MAX*VIDEO_DESCRIPTION_NAME_SIZE] = {0};
-static pthread_mutex_t tvLock = PTHREAD_MUTEX_INITIALIZER;
 
 namespace WPEFramework {
 namespace Plugin {
 
     SERVICE_REGISTRATION(ControlSettings,1, 0);
+
     ControlSettings* ControlSettings::_instance = nullptr;
 
     static void tvVideoFormatChangeHandler(tvVideoHDRFormat_t format, void *userData)
@@ -123,23 +108,6 @@ namespace Plugin {
         return supportedResolution;
    }
 
-   std::string ControlSettings::getErrorString (tvError_t eReturn)
-    {
-        switch (eReturn)
-        {
-            case tvERROR_NONE:
-                return "TV API SUCCESS";
-            case tvERROR_GENERAL:
-                return "TV API FAILED";
-            case tvERROR_OPERATION_NOT_SUPPORTED:
-                return "TV OPERATION NOT SUPPORTED ERROR";
-            case tvERROR_INVALID_PARAM:
-                return "TV INVALID PARAM ERROR";
-            case tvERROR_INVALID_STATE:
-                return "TV INVALID STATE ERROR";
-        }
-        return "TV UNKNOWN ERROR";
-    }
 
     static const char *getVideoFormatTypeToString(tvVideoHDRFormat_t format)
     {
@@ -241,36 +209,19 @@ namespace Plugin {
 
 
     ControlSettings::ControlSettings()
-               : AbstractPlugin(3)
-               , _skipURL(0)
+               : _skipURL(0)
                , m_currentHdmiInResoluton (dsVIDEO_PIXELRES_1920x1080)
                , m_videoZoomMode (tvDisplayMode_NORMAL)
                , m_isDisabledHdmiIn4KZoom (false)
     {
         LOGINFO("Entry\n");
-#ifndef ENABLE_TV_SUPPORT
-        devicePtr = new STB;
-#else
-        devicePtr = new TV;
-#endif
 
 	ControlSettings::_instance = this;
 	InitializeIARM();
 
-        if(devicePtr->isTvSupportEnabled())//TV Specific API
-	{
-            registerMethod("getBacklight", &ControlSettings::getBacklight, this, {2});
-            registerMethod("setBacklight", &ControlSettings::setBacklight, this, {2});
-        }else 
-	{//STB Specific API
-	    registerMethod("getVolume", &ControlSettings::getVolume, this, {2});
-            registerMethod("setVolume", &ControlSettings::setVolume, this, {2});
-	}
-
         //Common API Registration
-	registerMethod("getAspectRatio", &ControlSettings::getAspectRatio, this, {2});
-        registerMethod("setAspectRatio", &ControlSettings::setAspectRatio, this, {2});
-
+	registerMethod("getAspectRatio", &ControlSettings::getAspectRatio, this, {1});
+        registerMethod("setAspectRatio", &ControlSettings::setAspectRatio, this, {1});
         LOGINFO("Exit \n");
     }
 
@@ -322,17 +273,9 @@ namespace Plugin {
         tvVideoFrameRateCallbackData FpscallbackData = {this,tvVideoFrameRateChangeHandler};
         RegisterVideoFrameRateChangeCB(FpscallbackData);
 
-	devicePtr->Initialize();//Call Factory Initialize---Platform specific Initsequence willbe invoked
+	instance->Initialize();
 	LOGINFO("Exit\n");
-
         return (service != nullptr ? _T("") : _T("No service."));
-
-    }
-
-    std::string ControlSettings::Information() const
-    {
-        // No additional info to report.
-        return (std::string());
     }
 
     void ControlSettings::Deinitialize(PluginHost::IShell* service)
@@ -349,6 +292,8 @@ namespace Plugin {
         }
         ControlSettings::_instance = nullptr;
         DeinitializeIARM();
+
+	instance->Deinitialize();
     }
 
     void ControlSettings::InitializeIARM()
@@ -359,6 +304,7 @@ namespace Plugin {
             IARM_Result_t res;
             IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
             IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
+            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
         }
 #endif
     }
@@ -371,6 +317,7 @@ namespace Plugin {
             IARM_Result_t res;
             IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS) );
             IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE) );
+            IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
         }
 #endif
     }
@@ -485,7 +432,7 @@ namespace Plugin {
     uint32_t ControlSettings::getVideoFormat(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO();
-        PLUGIN_Lock(tvLock);
+        PLUGIN_Lock(Lock);
         tvVideoHDRFormat_t videoFormat;
         tvError_t ret = GetCurrentVideoFormat(&videoFormat);
         response["supportedVideoFormat"] = getSupportedVideoFormat();
@@ -511,7 +458,7 @@ namespace Plugin {
     uint32_t ControlSettings::getVideoResolution(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO();
-        PLUGIN_Lock(tvLock);
+        PLUGIN_Lock(Lock);
         tvResolutionParam_t videoResolution;
         tvError_t ret = GetVideoResolution(&videoResolution);
         response["supportedVideoResolution"] = getSupportedVideoResolution();
@@ -537,7 +484,7 @@ namespace Plugin {
     uint32_t ControlSettings::getVideoFrameRate(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO();
-        PLUGIN_Lock(tvLock);
+        PLUGIN_Lock(Lock);
         tvVideoFrameRate_t videoFramerate;
         tvError_t ret = GetVideoFrameRate(&videoFramerate);
         response["supportedFrameRate"] = getSupportedVideoFrameRate();
@@ -557,64 +504,34 @@ namespace Plugin {
     {
 
         LOGINFO("Entry %s\n",__FUNCTION__);
-        PLUGIN_Lock(tvLock);
-	devicePtr->getAspectRatio();
-	LOGINFO("Exit : %s\n",__FUNCTION__);
-	returnResponse(true, "success");
+        PLUGIN_Lock(Lock);
+	tvError_t ret = tvERROR_NONE;
+
+	if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            LOGINFO("Exit : %s\n",__FUNCTION__);
+            returnResponse(true, "success");
+        }
     }
 
     uint32_t ControlSettings::setAspectRatio(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry%s\n",__FUNCTION__);
-        PLUGIN_Lock(tvLock);
-	devicePtr->setAspectRatio(); 
-        LOGINFO("Exit : %s\n",__FUNCTION__);
-        returnResponse(true, "success");
+        PLUGIN_Lock(Lock);
+	tvError_t ret = tvERROR_NONE;
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            LOGINFO("Exit : %s\n",__FUNCTION__);
+            returnResponse(true, "success");
+        }
     }
     
-    //Backlight
-    uint32_t ControlSettings::getBacklight(const JsonObject& parameters, JsonObject& response)
-    {
-
-        LOGINFO("Entry %s\n",__FUNCTION__);
-        PLUGIN_Lock(tvLock);
-        devicePtr->getBacklight(); 
-        LOGINFO("Exit : %s\n",__FUNCTION__);
-        returnResponse(true, "success");
-    }
-
-    uint32_t ControlSettings::setBacklight(const JsonObject& parameters, JsonObject& response)
-    {
-
-        LOGINFO("Entry\n");
-        PLUGIN_Lock(tvLock);
-        devicePtr->setBacklight();
-        LOGINFO("Exit : %s\n",__FUNCTION__);
-        returnResponse(true, "success");
-    }
-
-    //Volume -STB
-    uint32_t ControlSettings::getVolume(const JsonObject& parameters, JsonObject& response)
-    {
-
-        LOGINFO("Entry\n");
-        PLUGIN_Lock(tvLock);
-        devicePtr->getVolume();
-        LOGINFO("Exit : %s\n",__FUNCTION__);
-        returnResponse(true, "success");
-    }
-
-    uint32_t ControlSettings::setVolume(const JsonObject& parameters, JsonObject& response)
-    {
-
-        LOGINFO("Entry\n");
-        PLUGIN_Lock(tvLock);
-        devicePtr->setVolume(); 
-        LOGINFO("Exit : %s\n",__FUNCTION__);
-        returnResponse(true, "success");
-    }
-
 } //namespace WPEFramework
 
 } //namespace Plugin

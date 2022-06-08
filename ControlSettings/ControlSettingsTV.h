@@ -17,27 +17,44 @@
 * limitations under the License.
 */
 
-#ifndef TV_H
-#define TV_H
+#ifndef ControlSettingsTV_H
+#define ControlSettingsTV_H
+
 #include "string.h"
-#include "Device.h"
+
+#include "tvTypes.h"
+#include "tvLog.h"
+#include "tvSettings.h"
+#include <pthread.h>
+#include "Module.h"
+#include "tvTypes.h"
+#include "tvError.h"
+
+#include "AbstractPlugin.h"
+#include "utils.h"
+#include "ControlSettingsCommon.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-class TV : public Device {
+class ControlSettingsTV : public AbstractPlugin {
     private:
-        TV(const TV&) = delete;
-        TV& operator=(const TV&) = delete;
+        ControlSettingsTV(const ControlSettingsTV&) = delete;
+        ControlSettingsTV& operator=(const ControlSettingsTV&) = delete;
+
+	DECLARE_JSON_RPC_METHOD(getBacklight)
+        DECLARE_JSON_RPC_METHOD(setBacklight)
+
 
     public:
-        TV();
-        ~TV();
-        void getBacklight();
-        void setBacklight();
+        ControlSettingsTV();
+        ~ControlSettingsTV();
+        ControlSettingsTV *instance;
         void Initialize();
-        void DeInitialize();
-	bool isTvSupportEnabled() { return true; }
+        void Deinitialize();
+   
+    protected:
+        static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 };
 
 }//namespace Plugin

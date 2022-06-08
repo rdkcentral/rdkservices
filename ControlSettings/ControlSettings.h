@@ -42,35 +42,25 @@
 #include "utils.h"
 #include "tvTypes.h"
 #include "tvError.h"
-#include "Device.h"
-#include "TV.h"
-#include "STB.h"
 
 #include "tr181api.h"
-#include "AbstractPlugin.h"
 #include <sys/stat.h>
 #include <vector>
-
-#define DECLARE_JSON_RPC_METHOD(method) \
-uint32_t method(const JsonObject& parameters, JsonObject& response);
+#include "ControlSettingsTV.h"
+#include "ControlSettingsSTB.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-    class ControlSettings : public AbstractPlugin {
+    class ControlSettings : public DEVICE_TYPE {
 
     private:
         ControlSettings(const ControlSettings&) = delete;
         ControlSettings& operator=(const ControlSettings&) = delete;
-	WPEFramework::Plugin::Device *devicePtr;
 
 	DECLARE_JSON_RPC_METHOD(getAspectRatio)
         DECLARE_JSON_RPC_METHOD(setAspectRatio)
         DECLARE_JSON_RPC_METHOD(getVideoFormat)
-        DECLARE_JSON_RPC_METHOD(getVolume)
-        DECLARE_JSON_RPC_METHOD(setVolume)
-	DECLARE_JSON_RPC_METHOD(getBacklight)
-        DECLARE_JSON_RPC_METHOD(setBacklight)
         DECLARE_JSON_RPC_METHOD(getVideoFrameRate)
         DECLARE_JSON_RPC_METHOD(getVideoResolution)
 
@@ -82,12 +72,6 @@ namespace Plugin {
         void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
         void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
 
-
-        BEGIN_INTERFACE_MAP(ControlSettings)
-        INTERFACE_ENTRY(PluginHost::IPlugin)
-        INTERFACE_ENTRY(PluginHost::IDispatcher)
-        END_INTERFACE_MAP
-    
     private:
         uint8_t _skipURL;
         int m_currentHdmiInResoluton;
@@ -100,14 +84,12 @@ namespace Plugin {
         static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
-        std::string getErrorString (tvError_t eReturn);
 
     public:
         //   IPlugin methods
         // -------------------------------------------------------------------------------------------------------
-        virtual const std::string Initialize(PluginHost::IShell* service);
-        virtual void Deinitialize(PluginHost::IShell* service);
-        virtual std::string Information() const;
+        const std::string Initialize(PluginHost::IShell* service);
+        void Deinitialize(PluginHost::IShell* service);
    };
 }
 }

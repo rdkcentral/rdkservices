@@ -17,28 +17,43 @@
 * limitations under the License.
 */
 
-#ifndef STB_H
-#define STB_H
+#ifndef ControlSettingsSTB_H
+#define ControlSettingsSTB_H
 
 #include "string.h"
-#include "Device.h"
+
+#include "tvTypes.h"
+#include "tvLog.h"
+#include "tvSettings.h"
+#include <pthread.h>
+#include "Module.h"
+#include "tvTypes.h"
+#include "tvError.h"
+
+#include "AbstractPlugin.h"
+#include "utils.h"
+#include "ControlSettingsCommon.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-class STB : public Device {
+class ControlSettingsSTB : public AbstractPlugin {
     private:
-        STB(const STB&) = delete;
-        STB& operator=(const STB&) = delete;
+        ControlSettingsSTB(const ControlSettingsSTB&) = delete;
+        ControlSettingsSTB& operator=(const ControlSettingsSTB&) = delete;
+
+	DECLARE_JSON_RPC_METHOD(getVolume)
+        DECLARE_JSON_RPC_METHOD(setVolume)
 
     public:
-	STB();
-	~STB();
+	ControlSettingsSTB();
+	~ControlSettingsSTB();
+        ControlSettingsSTB *instance;
         void Initialize();
-        void DeInitialize();
-        void getVolume();
-        void setVolume();
-        bool isTvSupportEnabled() { return false; }
+        void Deinitialize();
+    
+    protected:
+        static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 };
 
 }//namespace Plugin
