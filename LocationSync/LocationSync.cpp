@@ -26,8 +26,7 @@ namespace Plugin {
 
     SERVICE_REGISTRATION(LocationSync, 1, 0);
 
-    const u_int32_t NETCONTROL_CHECK_TIME_IN_MILLISECONDS(1000);
-    const u_int32_t NETCONTROL_CHECK_MAX_ATTEMPTS(10);
+    const u_int32_t NETCONTROL_CHECK_TIME_IN_MILLISECONDS(5500);
     static Core::ProxyPoolType<Web::Response> responseFactory(4);
     static Core::ProxyPoolType<Web::JSONBodyType<LocationSync::Data>> jsonResponseFactory(4);
 
@@ -183,27 +182,18 @@ namespace Plugin {
 
     void LocationSync::onNetControlTimer()
     {
-        static int remainingAttempts = NETCONTROL_CHECK_MAX_ATTEMPTS;
         WPE_INET_Result connectivity = getConnectivity(_source);
         bool networkReachable = (connectivity == WPE_INET_CONNECTED);
-        remainingAttempts--;
         TRACE(Trace::Fatal, (_T("Network is %s"), networkReachable ? "REACHABLE" : "UNREACHABLE"));
-        bool done = networkReachable || (remainingAttempts <= 0);
-        if (done)
+        if (networkReachable)
         {
             _netControlTimer.stop();
             TRACE(Trace::Fatal, (_T("Network reachability monitoring stopped.")));
-            if (!networkReachable)
-            {
-                TRACE(Trace::Fatal, (_T("LocationSync was unable to reach an external endpoint, hence the Internet precondition could not be fulfilled.")));
-            }
-        } else {
-            TRACE(Trace::Fatal, (_T("Doing one more reachability check in %2.2f sec."),(float)NETCONTROL_CHECK_TIME_IN_MILLISECONDS / 1000));
-        }
-        if (networkReachable)
-        {
-            TRACE(Trace::Fatal, (_T("Proceeding with LocationSync init.")));
+            TRACE(Trace::Fatal, (_T("Proceeding with LocationService init.")));
             _sink.Initialize(_source, _interval, _retries);
+
+        } else {
+            TRACE(Trace::Information, (_T("Doing one more reachability check in %2.2f sec."),(float)NETCONTROL_CHECK_TIME_IN_MILLISECONDS / 1000));
         }
     }
 
@@ -241,7 +231,7 @@ namespace Plugin {
         urls.emplace_back("example.com");
 
         std::string url = urls.at(idx);
-        TRACE(Trace::Fatal, (_T("Checking connectivity against %s. Test method: getting HTTP headers, max-time: %ld s"), url.c_str(), connect_timeout));
+        TRACE(Trace::Information, (_T("Checking connectivity against %s. Test method: getting HTTP headers, max-time: %ld s"), url.c_str(), connect_timeout));
 
         list = curl_slist_append(list, "Connection: close");
         if (curl_handle &&
