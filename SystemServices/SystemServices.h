@@ -23,6 +23,12 @@
 #include <stdint.h>
 #include <thread>
 #include <regex.h>
+#include <cctype>
+#include <fstream>
+#include <cstring>
+using std::ofstream;
+#include <cstdlib>
+#include <iostream>
 
 #include "Module.h"
 #include "tracing/Logging.h"
@@ -57,6 +63,9 @@
 #define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
 #define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
+#define EVT_ONTERRITORYCHANGED            "onTerritoryChanged"
+#define EVT_ONTIMEZONEDSTCHANGED          "onTimeZoneDSTChanged"
+#define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
 namespace WPEFramework {
     namespace Plugin {
@@ -125,6 +134,9 @@ namespace WPEFramework {
                 std::string m_powerStateBeforeReboot;
                 bool m_powerStateBeforeRebootValid;
 
+		std::string m_strTerritory;
+                std::string m_strRegion;
+
                 static void startModeTimer(int duration);
                 static void stopModeTimer();
                 static void updateDuration();
@@ -178,6 +190,8 @@ namespace WPEFramework {
                         bool exceed, float temperature);
                 void onRebootRequest(string reason);
                 void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
+		void onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion="", string newRegion="");
+		void onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone);
                 /* Events : End */
 
                 /* Methods : Begin */
@@ -223,6 +237,12 @@ namespace WPEFramework {
 		uint32_t getWakeupReason(const JsonObject& parameters, JsonObject& response);
                 uint32_t getLastWakeupKeyCode(const JsonObject& parameters, JsonObject& response);
 #endif
+		uint32_t setTerritory(const JsonObject& parameters, JsonObject& response);
+		uint32_t getTerritory(const JsonObject& parameters, JsonObject& response);
+		bool readTerritoryFromFile();
+		bool isStrAlphaUpper(string strVal);
+		bool isRegionValid(string regionStr);
+		uint32_t writeTerritory(string territory, string region);
                 uint32_t getXconfParams(const JsonObject& parameters, JsonObject& response);
                 uint32_t getSerialNumber(const JsonObject& parameters, JsonObject& response);
                 bool getSerialNumberTR069(JsonObject& response);
