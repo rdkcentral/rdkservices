@@ -69,6 +69,8 @@ using namespace std;
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 
+#define RFC_PWRMGR2 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.PwrMgr2.Enable"
+
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
 
 #define DEVICE_PROPERTIES_FILE "/etc/device.properties"
@@ -303,6 +305,8 @@ namespace WPEFramework {
 
             m_networkStandbyModeValid = false;
             m_powerStateBeforeRebootValid = false;
+            m_PwrMgrDeepSleepEnabled = false;
+
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
 	    m_ManufacturerDataHardwareIdValid = false;
 	    m_ManufacturerDataModelNameValid = false;
@@ -425,6 +429,15 @@ namespace WPEFramework {
             GetHandler(2)->Register<JsonObject, JsonObject>("deletePersistentPath", &SystemServices::deletePersistentPath, this);
             GetHandler(2)->Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
                 &SystemServices::getPlatformConfiguration, this);
+
+            {
+                RFC_ParamData_t param;
+                bool ret = Utils::getRFCConfig(RFC_PWRMGR2, param);
+                if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+                {
+                    m_PwrMgrDeepSleepEnabled = true;
+                }
+            }
         }
 
 
@@ -1671,7 +1684,7 @@ namespace WPEFramework {
 	    DeepSleep_WakeupReason_t param;
 	    std::string wakeupReason = "WAKEUP_REASON_UNKNOWN";
 
-	    IARM_Result_t res = IARM_Bus_Call(IARM_BUS_DEEPSLEEPMGR_NAME,
+	        IARM_Result_t res = IARM_Bus_Call((m_PwrMgrDeepSleepEnabled)? IARM_BUS_PWRMGR_NAME : IARM_BUS_DEEPSLEEPMGR_NAME,
 			IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason, (void *)&param,
 			sizeof(param));
 
@@ -1737,7 +1750,7 @@ namespace WPEFramework {
               IARM_Bus_DeepSleepMgr_WakeupKeyCode_Param_t param;
               uint32_t wakeupKeyCode = 0;
 
-              IARM_Result_t res = IARM_Bus_Call(IARM_BUS_DEEPSLEEPMGR_NAME,
+              IARM_Result_t res = IARM_Bus_Call((m_PwrMgrDeepSleepEnabled)? IARM_BUS_PWRMGR_NAME : IARM_BUS_DEEPSLEEPMGR_NAME,
                          IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupKeyCode, (void *)&param,
                          sizeof(param));
               if (IARM_RESULT_SUCCESS == res)

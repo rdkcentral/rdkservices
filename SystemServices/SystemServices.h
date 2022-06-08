@@ -133,7 +133,7 @@ namespace WPEFramework {
 
                 std::string m_powerStateBeforeReboot;
                 bool m_powerStateBeforeRebootValid;
-
+                bool m_PwrMgrDeepSleepEnabled;
 		std::string m_strTerritory;
                 std::string m_strRegion;
 
