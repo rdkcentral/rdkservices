@@ -1302,8 +1302,7 @@
                         "$ref": "#/definitions/success"
                     }
 			}
-		}
-		
+		}		
 	},
 	"setTerritory":{
 	    "summary": "Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (https://en.wikipedia.org/wiki/ISO_3166-2)",
