@@ -207,8 +207,8 @@ namespace Plugin {
         uint32_t get_keysystems(const string& index, Core::JSON::ArrayType<Core::JSON::String>& response) const;
 
     private:
-        uint8_t _skipURL;
-        uint32_t _connectionId;
+        uint8_t _skipURL{};
+        uint32_t _connectionId{};
         PluginHost::IShell* _service;
         Exchange::IContentDecryption* _opencdmi;
         Exchange::IMemory* _memory;

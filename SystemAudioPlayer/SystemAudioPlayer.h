@@ -111,6 +111,7 @@ namespace Plugin {
         uint32_t Stop(const JsonObject& parameters, JsonObject& response);
         uint32_t Close(const JsonObject& parameters, JsonObject& response);
         uint32_t SetMixerLevels(const JsonObject& parameters, JsonObject& response);
+        uint32_t SetSmartVolControl(const JsonObject& parameters, JsonObject& response);
         uint32_t IsPlaying(const JsonObject& parameters, JsonObject& response);
 	uint32_t Config(const JsonObject& parameters, JsonObject& response);
         uint32_t GetPlayerSessionId(const JsonObject& parameters, JsonObject& response);
@@ -122,10 +123,10 @@ namespace Plugin {
         void Deactivated(RPC::IRemoteConnection* connection);
 
     private:
-        uint8_t _skipURL;
-        uint32_t _connectionId;
-        PluginHost::IShell* _service;
-        Exchange::ISystemAudioPlayer* _sap;
+        uint8_t _skipURL{};
+        uint32_t _connectionId{};
+        PluginHost::IShell* _service{};
+        Exchange::ISystemAudioPlayer* _sap{};
         Core::Sink<Notification> _notification;
         uint32_t _apiVersionNumber;
         
