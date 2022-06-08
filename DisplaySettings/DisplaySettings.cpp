@@ -54,6 +54,8 @@ using namespace std;
 
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
 
+#define HDMI_IN_ARC_PORT_ID 1
+
 
 #define HDMICECSINK_CALLSIGN "org.rdk.HdmiCecSink"
 #define HDMICECSINK_CALLSIGN_VER HDMICECSINK_CALLSIGN".1"
@@ -75,7 +77,7 @@ using namespace std;
 
 static bool isCecArcRoutingThreadEnabled = false;
 static bool isCecEnabled = false;
-static int  hdmiArcPortId = -1;
+
 #ifdef USE_IARM
 namespace
 {
@@ -246,7 +248,6 @@ namespace WPEFramework {
             registerMethod("setPreferredColorDepth", &DisplaySettings::setPreferredColorDepth, this);
             registerMethod("getPreferredColorDepth", &DisplaySettings::getPreferredColorDepth, this);
             registerMethod("getColorDepthCapabilities", &DisplaySettings::getColorDepthCapabilities, this);
-            
 
 	    m_subscribed = false; //HdmiCecSink event subscription
 	    m_hdmiInAudioDeviceConnected = false;
@@ -324,13 +325,6 @@ namespace WPEFramework {
                         LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
                     } 
                     if (portName == "HDMI_ARC0") {
-                        int portId = -1;
-                        vPort.getHdmiArcPortId(&portId);
-                        if(portId >= 0) {
-                           hdmiArcPortId = portId;
-                           LOGWARN("HDMI ARC port ID hdmiArcPortId=%d\n",hdmiArcPortId);
-                        }
-
                         //Set audio port config. ARC will be set up by onTimer()
                         #ifdef APP_CONTROL_AUDIOPORT_INIT
                         if(isPortPersistenceValEnabled ) {
@@ -742,7 +736,7 @@ namespace WPEFramework {
 	                return;
             }
 
-		    if(hdmiin_hotplug_port == hdmiArcPortId) { //HDMI ARC/eARC Port Handling
+		    if(hdmiin_hotplug_port == HDMI_IN_ARC_PORT_ID) { //HDMI ARC/eARC Port Handling
 			bool arc_port_enabled =  false;
 
                         JsonObject audioOutputPortConfig = DisplaySettings::_instance->getAudioOutputPortConfig();
