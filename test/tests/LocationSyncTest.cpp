@@ -102,7 +102,7 @@ TEST_F(LocationSyncTestFixture, probeTest)
 
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
-    EXPECT_EQ(Core::ERROR_INPROGRESS, handler.Invoke(connection, _T("sync"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sync"), _T("{}"), response));
     EXPECT_EQ(response,
         _T(""));
 
