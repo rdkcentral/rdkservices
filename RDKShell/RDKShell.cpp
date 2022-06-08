@@ -127,6 +127,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_CURSOR = "hide
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_CURSOR_SIZE = "getCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_CURSOR_SIZE = "setCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_AV_BLOCKED = "setAVBlocked";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AV_BLOCKED_APPS = "getBlockedAVApplications";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -886,6 +888,8 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_GET_CURSOR_SIZE, &RDKShell::getCursorSizeWrapper, this);
             Register(RDKSHELL_METHOD_SET_CURSOR_SIZE, &RDKShell::setCursorSizeWrapper, this);
             Register(RDKSHELL_METHOD_KEY_REPEAT_CONFIG, &RDKShell::keyRepeatConfigWrapper, this);
+            Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
+            Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -3106,6 +3110,7 @@ namespace WPEFramework {
                 bool suspend = false;
                 bool visible = true;
                 bool focused = true;
+                bool blockAV = false;
                 string configuration;
                 string behind;
 
@@ -3200,6 +3205,10 @@ namespace WPEFramework {
                 if (parameters.HasLabel("autodestroy"))
                 {
                   autoDestroy = parameters["autodestroy"].Boolean();
+                }
+                if (parameters.HasLabel("blockAV"))
+                {
+                    blockAV = parameters["blockAV"].Boolean();
                 }
 
                 //check to see if plugin already exists
@@ -3756,6 +3765,8 @@ namespace WPEFramework {
                             std::cout << "failed to set url to " << uri << " with status code " << status << std::endl;
                         }
                     }
+
+                    setAVBlocked(callsign, blockAV);
                 }
 
                 if (status > 0 || !result)
@@ -5498,6 +5509,57 @@ namespace WPEFramework {
 
             returnResponse(result);
         }
+
+        uint32_t RDKShell::getBlockedAVApplicationsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool status = true;
+#ifdef ENABLE_ERM
+            bool enabled = false;
+            JsonArray appsList = JsonArray();
+            status = getBlockedAVApplications(appsList);
+            if (true == status)
+            {
+                response["getBlockedAVApplications"]=appsList;
+            }
+#else
+            response["message"] = "ERM not enabled";
+#endif
+            returnResponse(status);
+        }
+
+        uint32_t RDKShell::setAVBlockedWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool status = true;
+#ifdef ENABLE_ERM
+            const JsonArray apps = parameters.HasLabel("applications") ? parameters["applications"].Array() : JsonArray();
+            JsonArray result;
+            for (int i=0; i< apps.Length(); i++) {
+                const JsonObject& appInfo = apps[i].Object();
+                if (appInfo.HasLabel("callsign") && appInfo.HasLabel("callsign"))
+                {
+                    std::string app = appInfo["callsign"].String();
+                    bool blockAV    = appInfo["blocked"].Boolean();
+                    cout<<"callsign : "<< app << std::endl;
+                    cout<<"blocked  : "<<std::boolalpha << blockAV << std::endl;
+
+                    status = (status && setAVBlocked(app, blockAV));
+                    cout<< "EssRMgrAddToBlackList returned : "<<std::boolalpha <<status<< std::endl;
+                }
+                else
+                {
+                    std::string jsonstr;
+                    appInfo.ToString(jsonstr);
+                    cout<<"ERROR: callsign and callsign status required in "<< jsonstr << std::endl;
+                }
+            }
+#else
+            response["message"] = "ERM not enabled";
+#endif
+            returnResponse(status);
+        }
+
         // Registered methods end
 
         // Events begin
@@ -6832,6 +6894,40 @@ namespace WPEFramework {
             bool ret = CompositorController::getCursorSize(width, height);
             gRdkShellMutex.unlock();
             return ret;
+        }
+
+        bool RDKShell::setAVBlocked(const string callsign, bool blockAV)
+        {
+            bool status = true;
+#ifdef ENABLE_ERM
+            gRdkShellMutex.lock();
+            status = CompositorController::setAVBlocked(callsign, blockAV);
+            gRdkShellMutex.unlock();
+            if (false == status)
+            {
+                std::cout << "setAVBlocked failed for " << callsign << std::endl;
+            }
+#endif
+            return status;
+        }
+
+        bool RDKShell::getBlockedAVApplications(JsonArray& appsList)
+        {
+            bool status = true;
+#ifdef ENABLE_ERM
+            std::vector<std::string> apps;
+            gRdkShellMutex.lock();
+            status = CompositorController::getBlockedAVApplications(apps);
+            gRdkShellMutex.unlock();
+            if (true == status)
+            {
+                for (std::vector<std::string>::iterator appsItr = apps.begin(); appsItr != apps.end(); appsItr++)
+                {
+                    appsList.Add(*appsItr);
+                }
+            }
+#endif
+            return status;
         }
 
         // Internal methods end
