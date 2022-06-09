@@ -305,7 +305,7 @@ namespace WPEFramework {
 
             m_networkStandbyModeValid = false;
             m_powerStateBeforeRebootValid = false;
-            m_PwrMgrDeepSleepEnabled = false;
+            m_isPwrMgr2RFCEnabled = false;
 
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
 	    m_ManufacturerDataHardwareIdValid = false;
@@ -435,7 +435,7 @@ namespace WPEFramework {
                 bool ret = Utils::getRFCConfig(RFC_PWRMGR2, param);
                 if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
                 {
-                    m_PwrMgrDeepSleepEnabled = true;
+                    m_isPwrMgr2RFCEnabled = true;
                 }
             }
         }
@@ -1684,7 +1684,7 @@ namespace WPEFramework {
 	    DeepSleep_WakeupReason_t param;
 	    std::string wakeupReason = "WAKEUP_REASON_UNKNOWN";
 
-	        IARM_Result_t res = IARM_Bus_Call((m_PwrMgrDeepSleepEnabled)? IARM_BUS_PWRMGR_NAME : IARM_BUS_DEEPSLEEPMGR_NAME,
+	        IARM_Result_t res = IARM_Bus_Call((m_isPwrMgr2RFCEnabled)? IARM_BUS_PWRMGR_NAME : IARM_BUS_DEEPSLEEPMGR_NAME,
 			IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason, (void *)&param,
 			sizeof(param));
 
@@ -1750,7 +1750,7 @@ namespace WPEFramework {
               IARM_Bus_DeepSleepMgr_WakeupKeyCode_Param_t param;
               uint32_t wakeupKeyCode = 0;
 
-              IARM_Result_t res = IARM_Bus_Call((m_PwrMgrDeepSleepEnabled)? IARM_BUS_PWRMGR_NAME : IARM_BUS_DEEPSLEEPMGR_NAME,
+              IARM_Result_t res = IARM_Bus_Call((m_isPwrMgr2RFCEnabled)? IARM_BUS_PWRMGR_NAME : IARM_BUS_DEEPSLEEPMGR_NAME,
                          IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupKeyCode, (void *)&param,
                          sizeof(param));
               if (IARM_RESULT_SUCCESS == res)
