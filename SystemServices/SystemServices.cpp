@@ -3698,7 +3698,7 @@ namespace WPEFramework {
         }
 #endif //ENABLE_SET_WAKEUP_SRC_CONFIG
 
-		int SystemServices::processFactoryReset()
+		uint32_t SystemServices::processFactoryReset()
 		{
 
 			/*Code copied from X1.. Needs modification*/
@@ -3715,7 +3715,7 @@ namespace WPEFramework {
 			return 1;
 		}
 		
-		/*int processWHReset()
+		/*uint32_t processWHReset()
 		{
 
 			LOG("\n Reset: Processing Ware House Reset\n");
@@ -3729,7 +3729,7 @@ namespace WPEFramework {
 			return system("sh /lib/rdk/deviceReset.sh warehouse");
 		}
 		
-		int processWHClear()
+		uint32_t processWHClear()
 		{
 			//Code copied from X1.. Needs modification
 			LOG("\n Clear: Processing Ware House Clear\n");
@@ -3743,7 +3743,7 @@ namespace WPEFramework {
 			return 1;
 		}*/
 		
-		int processColdFactoryReset()
+		uint32_t processColdFactoryReset()
 		{
 			/*Code copied from X1.. Needs modification*/
 			//LOG("\n Reset: Processing Cold Factory Reset\n");
@@ -3759,7 +3759,7 @@ namespace WPEFramework {
 			return 1;
 		}
 		
-		int processUserFactoryReset()
+		uint32_t processUserFactoryReset()
 		{
 
 			//LOG("\n Reset: Processing User Factory Reset\n");
