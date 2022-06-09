@@ -69,6 +69,13 @@ using std::ofstream;
 #define EVT_ONTIMEZONEDSTCHANGED          "onTimeZoneDSTChanged"
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
+#define IARM_BUS_PWRMGR_API_WareHouseReset		"WareHouseReset"
+#define IARM_BUS_PWRMGR_API_WareHouseClear "WarehouseClear" /*!< */
+#define IARM_BUS_PWRMGR_API_ColdFactoryReset "ColdFactoryReset" /*!< Reset the box to cold factory state*/
+#define IARM_BUS_PWRMGR_API_FactoryReset "FactoryReset" /*!< Reset the box to factory state*/
+#define IARM_BUS_PWRMGR_API_UserFactoryReset "UserFactoryReset" /*!< Reset the box to user factory state*/
+
+
 namespace WPEFramework {
     namespace Plugin {
 
