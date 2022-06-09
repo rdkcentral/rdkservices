@@ -7,7 +7,7 @@
     "description": "Messenger JSON-RPC interface"
   },
   "common": {
-    "$ref": "common.json"
+    "$ref": "../common/common.json"
   },
   "definitions": {
     "secure": {
