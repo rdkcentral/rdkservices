@@ -208,7 +208,7 @@ namespace Plugin {
     LocationSync::WPE_INET_Result
     LocationSync::getConnectivity(const std::string& source)
     {
-        TRACE(Trace::Fatal, (_T("Using internal connectivity check")));
+        TRACE(Trace::Information, (_T("Using internal connectivity check")));
         WPE_INET_Result connectivity = WPE_INET_DISCONNECTED;
         std::string response;
         long http_code = 200;
@@ -258,8 +258,8 @@ namespace Plugin {
         if (res == CURLE_OK) {
             connectivity = WPE_INET_CONNECTED;
         } else {
-            TRACE(Trace::Fatal, (_T("Reachability check failure; curl response: %d, http code: %ld"), res, http_code));
-            TRACE(Trace::Fatal, (_T("Assuming Network is not ready yet")));
+            TRACE(Trace::Information, (_T("Reachability check failure; curl response: %d, http code: %ld"), res, http_code));
+            TRACE(Trace::Information, (_T("Assuming Network is not ready yet")));
             connectivity = WPE_INET_DISCONNECTED;
         }
         ++idx;
