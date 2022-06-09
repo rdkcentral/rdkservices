@@ -18,25 +18,27 @@
  */
 
 #include "TextToSpeech.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsUnused.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
     void TextToSpeech::RegisterAll()
     {
-        registerMethod("enabletts", &TextToSpeech::Enable, this);
-        registerMethod("listvoices", &TextToSpeech::ListVoices, this);
-        registerMethod("setttsconfiguration", &TextToSpeech::SetConfiguration, this);
-        registerMethod("getttsconfiguration", &TextToSpeech::GetConfiguration, this);
-        registerMethod("isttsenabled", &TextToSpeech::IsEnabled, this);
-        registerMethod("speak", &TextToSpeech::Speak, this);
-        registerMethod("cancel", &TextToSpeech::Cancel, this);
-        registerMethod("pause", &TextToSpeech::Pause, this);
-        registerMethod("resume", &TextToSpeech::Resume, this);
-        registerMethod("isspeaking", &TextToSpeech::IsSpeaking, this);
-        registerMethod("getspeechstate", &TextToSpeech::GetSpeechState, this);
-        registerMethod("setACL", &TextToSpeech::SetACL, this);
-        registerMethod("getapiversion", &TextToSpeech::getapiversion, this);
+        Register("enabletts", &TextToSpeech::Enable, this);
+        Register("listvoices", &TextToSpeech::ListVoices, this);
+        Register("setttsconfiguration", &TextToSpeech::SetConfiguration, this);
+        Register("getttsconfiguration", &TextToSpeech::GetConfiguration, this);
+        Register("isttsenabled", &TextToSpeech::IsEnabled, this);
+        Register("speak", &TextToSpeech::Speak, this);
+        Register("cancel", &TextToSpeech::Cancel, this);
+        Register("pause", &TextToSpeech::Pause, this);
+        Register("resume", &TextToSpeech::Resume, this);
+        Register("isspeaking", &TextToSpeech::IsSpeaking, this);
+        Register("getspeechstate", &TextToSpeech::GetSpeechState, this);
+        Register("setACL", &TextToSpeech::SetACL, this);
+        Register("getapiversion", &TextToSpeech::getapiversion, this);
     }
     
     bool TextToSpeech::AddToAccessList(const string &key,const string &value)

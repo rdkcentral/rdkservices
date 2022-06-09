@@ -39,6 +39,8 @@
 #include "iarmUtil.h"
 #include "sysMgr.h"
 
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 #define STATEOBSERVER_MAJOR_VERSION 1
 #define STATEOBSERVER_MINOR_VERSION 0
@@ -62,7 +64,7 @@ namespace WPEFramework {
 
 
 		StateObserver::StateObserver()
-		: AbstractPlugin()
+		: PluginHost::JSONRPC()
 		, m_apiVersionNumber((uint32_t)-1)
 		{
 			StateObserver::_instance = this;
