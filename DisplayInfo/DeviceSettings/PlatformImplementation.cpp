@@ -33,7 +33,7 @@
 #include "audioOutputPortConfig.hpp"
 #include "manager.hpp"
 #include "edid-parser.hpp"
-#include "utils.h"
+#include "UtilsIarm.h"
 
 #include "libIBus.h"
 #include "libIBusDaemon.h"

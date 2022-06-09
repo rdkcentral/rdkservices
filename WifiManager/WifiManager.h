@@ -28,8 +28,6 @@
 #include "impl/WifiManagerSignalThreshold.h"
 #include "impl/WifiManagerScan.h"
 #include "impl/WifiManagerEvents.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 
 namespace WPEFramework {
 
@@ -46,7 +44,7 @@ namespace WPEFramework {
         // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
         // this class exposes a public method called, Notify(), using this methods, all subscribed clients
         // will receive a JSONRPC message as a notification, in case this method is called.
-        class WifiManager : public WifiManagerInterface, public AbstractPlugin {
+        class WifiManager : public WifiManagerInterface, public PluginHost::IPlugin, public PluginHost::JSONRPC {
         public:
             WifiManager();
             virtual ~WifiManager();

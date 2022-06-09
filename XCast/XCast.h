@@ -21,8 +21,6 @@
 
 #include "tptimer.h"
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 #include "RtNotifier.h"
 #include "libIBus.h"
 #include "libIBusDaemon.h"
@@ -43,7 +41,7 @@ namespace Plugin {
 // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 // this class exposes a public method called, Notify(), using this methods, all subscribed clients
 // will receive a JSONRPC message as a notification, in case this method is called.
-class XCast : public AbstractPlugin, public RtNotifier {
+class XCast : public PluginHost::IPlugin, public PluginHost::JSONRPC, public RtNotifier {
 private:
     
     // We do not allow this plugin to be copied !!

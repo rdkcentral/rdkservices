@@ -23,14 +23,11 @@
 #include "libIBus.h"
 #include "irMgr.h"
 
-#include "utils.h"
-#include "AbstractPlugin.h"
-
 namespace WPEFramework {
 
     namespace Plugin {
 
-        class LoggingPreferences : public AbstractPlugin {
+        class LoggingPreferences : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
 
             LoggingPreferences(const LoggingPreferences&) = delete;
@@ -52,6 +49,12 @@ namespace WPEFramework {
             //IPlugin methods
             virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
+
+            BEGIN_INTERFACE_MAP(LoggingPreferences)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         private:
             void InitializeIARM();

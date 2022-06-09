@@ -33,10 +33,7 @@
 #include <cjson/cJSON.h>
 
 #include "Module.h"
-#include "libIBus.h"
-#include "utils.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
+#include "libIARM.h"
 
 //State Observer Properties
 const string SYSTEM_EXIT_OK    = "com.comcast.exit-ok_key_sequence";
@@ -97,7 +94,7 @@ namespace WPEFramework {
 		 *
  		 */
 
-		class StateObserver : public AbstractPlugin {
+		class StateObserver : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 		public:
 			static const string STATE_OBSERVER_PLUGIN_NAME;
 			static const string EVT_STATE_OBSERVER_PROPERTY_CHANGED;
@@ -138,9 +135,15 @@ namespace WPEFramework {
 			//IPlugin methods
 			virtual const string Initialize(PluginHost::IShell* service) override;
 			virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
 			static void onReportStateObserverEvents(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 			void notify(std::string eventname, JsonObject& param);
 			void setProp(JsonObject& params,std::string propName,int state,int error);
+
+            BEGIN_INTERFACE_MAP(StateObserver)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
 		public:
 			static StateObserver* _instance;

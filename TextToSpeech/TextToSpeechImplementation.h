@@ -22,8 +22,6 @@
 #include "Module.h"
 #include <interfaces/Ids.h>
 #include "tracing/Logging.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 
 #include "ITextToSpeech.h"
 #include "impl/TTSManager.h"

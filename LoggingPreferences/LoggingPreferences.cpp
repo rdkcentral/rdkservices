@@ -18,6 +18,8 @@
 **/
 
 #include "LoggingPreferences.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 #include <sysMgr.h>
 
 using namespace std;
@@ -31,12 +33,12 @@ namespace WPEFramework {
         LoggingPreferences* LoggingPreferences::_instance = nullptr;
 
         LoggingPreferences::LoggingPreferences()
-            : AbstractPlugin()
+            : PluginHost::JSONRPC()
         {
             LOGINFO("ctor");
             LoggingPreferences::_instance = this;
-            registerMethod("isKeystrokeMaskEnabled", &LoggingPreferences::isKeystrokeMaskEnabled, this);
-            registerMethod("setKeystrokeMaskEnabled", &LoggingPreferences::setKeystrokeMaskEnabled, this);
+            Register("isKeystrokeMaskEnabled", &LoggingPreferences::isKeystrokeMaskEnabled, this);
+            Register("setKeystrokeMaskEnabled", &LoggingPreferences::setKeystrokeMaskEnabled, this);
         }
 
         LoggingPreferences::~LoggingPreferences()

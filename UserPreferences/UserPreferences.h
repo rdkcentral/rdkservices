@@ -20,13 +20,11 @@
 #pragma once
 
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 
 namespace WPEFramework {
     namespace Plugin {
 
-        class UserPreferences : public AbstractPlugin {
+        class UserPreferences : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
 
             UserPreferences(const UserPreferences&) = delete;
@@ -43,8 +41,14 @@ namespace WPEFramework {
         public:
             UserPreferences();
             virtual ~UserPreferences();
+            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
 
+            BEGIN_INTERFACE_MAP(UserPreferences)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         public:
             static UserPreferences* _instance;

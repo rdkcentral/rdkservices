@@ -67,8 +67,7 @@ if (USE_DEVICESETTINGS)
         ${DS_LIBRARIES})
     target_sources(${MODULE_NAME}
         PRIVATE
-            DeviceSettings/PlatformImplementation.cpp
-            ../helpers/utils.cpp)
+            DeviceSettings/PlatformImplementation.cpp)
 elseif (NXCLIENT_FOUND AND NEXUS_FOUND)
     target_sources(${MODULE_NAME}
         PRIVATE

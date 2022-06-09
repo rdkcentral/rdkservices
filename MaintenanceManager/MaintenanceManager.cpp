@@ -40,6 +40,9 @@
 #include "MaintenanceManager.h"
 #include "utils.h"
 
+enum eRetval { E_NOK = -1,
+    E_OK };
+
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
 
@@ -190,7 +193,7 @@ namespace WPEFramework {
          * Register MaintenanceManager module as wpeframework plugin
          */
         MaintenanceManager::MaintenanceManager()
-            :AbstractPlugin()
+            :PluginHost::JSONRPC()
         {
             MaintenanceManager::_instance = this;
 
@@ -198,14 +201,14 @@ namespace WPEFramework {
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
              */
 #ifdef DEBUG
-            registerMethod("sampleMaintenanceManagerAPI", &MaintenanceManager::sampleAPI, this);
+            Register("sampleMaintenanceManagerAPI", &MaintenanceManager::sampleAPI, this);
 #endif /* DEBUG */
-            registerMethod("getMaintenanceActivityStatus", &MaintenanceManager::getMaintenanceActivityStatus,this);
-            registerMethod("getMaintenanceStartTime", &MaintenanceManager::getMaintenanceStartTime,this);
-            registerMethod("setMaintenanceMode", &MaintenanceManager::setMaintenanceMode,this);
-            registerMethod("startMaintenance", &MaintenanceManager::startMaintenance,this);
-            registerMethod("stopMaintenance", &MaintenanceManager::stopMaintenance,this);
-            registerMethod("getMaintenanceMode", &MaintenanceManager::getMaintenanceMode,this);
+            Register("getMaintenanceActivityStatus", &MaintenanceManager::getMaintenanceActivityStatus,this);
+            Register("getMaintenanceStartTime", &MaintenanceManager::getMaintenanceStartTime,this);
+            Register("setMaintenanceMode", &MaintenanceManager::setMaintenanceMode,this);
+            Register("startMaintenance", &MaintenanceManager::startMaintenance,this);
+            Register("stopMaintenance", &MaintenanceManager::stopMaintenance,this);
+            Register("getMaintenanceMode", &MaintenanceManager::getMaintenanceMode,this);
 
 
             MaintenanceManager::m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=false;
@@ -927,6 +930,59 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
+        /***
+        * @brief	: Used to read file contents into a vector
+        * @param1[in]	: Complete file name with path
+        * @param2[in]	: Destination vector buffer to be filled with file contents
+        * @return	: <bool>; TRUE if operation success; else FALSE.
+        */
+        bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs)
+        {
+            bool retStatus = false;
+            std::ifstream inFile(fileName.c_str(), ios::in);
+
+            if (!inFile.is_open())
+                return retStatus;
+
+            std::string line;
+            retStatus = true;
+            while (std::getline(inFile, line)) {
+                if (line.size() > 0) {
+                    vecOfStrs.push_back(line);
+                }
+            }
+            inFile.close();
+            return retStatus;
+        }
+
+        /* Utility API for parsing the  DCM/Device properties file */
+        bool parseConfigFile(const char* filename, string findkey, string &value)
+        {
+            vector<std::string> lines;
+            bool found=false;
+            getFileContent(filename,lines);
+            for (vector<std::string>::const_iterator i = lines.begin();
+                 i != lines.end(); ++i){
+                string line = *i;
+                size_t eq = line.find_first_of("=");
+                if (std::string::npos != eq) {
+                    std::string key = line.substr(0, eq);
+                    if (key == findkey) {
+                        value = line.substr(eq + 1);
+                        found=true;
+                        break;
+                    }
+                }
+            }
+
+            if(found){
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+
         /*
          * @brief This function returns Mode of the maintenance.
          * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.1.getMaintenanceMode","params":{}}''
@@ -1047,7 +1103,6 @@ namespace WPEFramework {
             else {
                 /* havent got the correct label */
                 LOGERR("SetMaintenanceMode Missing Key Values\n");
-                populateResponseWithError(SysSrv_MissingKeyValues,response);
             }
 
             returnResponse(result);
