@@ -2253,21 +2253,25 @@ namespace WPEFramework {
 						regionStr = parameters["region"].String();
 						if(regionStr != ""){
 							if(isRegionValid(regionStr)){
-								resp = writeTerriytory(territoryStr,regionStr);
-								LOGWARN(" territory name ", territoryStr.c_str());
-								LOGWARN(" region name ", regionStr.c_str());
+								resp = writeTerritory(territoryStr,regionStr);
+								LOGWARN(" territory name %s ", territoryStr.c_str());
+								LOGWARN(" region name %s", regionStr.c_str());
 							}else{
-								response["message"] = "Invalid region";
+								JsonObject error;
+								error["message"] = "Invalid region";
+								response["error"] = error;
 								LOGWARN("Please enter valid region");
 								returnResponse(resp);
 							}
 						}
 					}else{
-						resp = writeTerriytory(territoryStr,regionStr);
-						LOGWARN(" territory name ", territoryStr.c_str());
+						resp = writeTerritory(territoryStr,regionStr);
+						LOGWARN(" territory name %s ", territoryStr.c_str());
 					}
 				}else{
-					response["message"] = "Invalid territory";
+					JsonObject error;
+					error["message"] =  "Invalid territory";
+					response["error"] = error;
 					LOGWARN("Please enter valid territory Parameter value.");
 					returnResponse(resp);
 				}
@@ -2281,14 +2285,16 @@ namespace WPEFramework {
 				 LOGWARN(" caught exception...");
 			}
 		}else{
+			JsonObject error;
+			error["message"] =  "Invalid territory name";
+			response["error"] = error;
 			LOGWARN("Please enter valid territory Parameter name.");
-			response["message"] = "Invalid territory parameter name");
 			resp = false;
 		}
 		returnResponse(resp);
 	}
 
-	uint32_t SystemServices::writeTerriytory(string territory, string region)
+	uint32_t SystemServices::writeTerritory(string territory, string region)
 	{
 		bool resp = false;
 		ofstream outdata(TERRITORYFILE);
@@ -2366,6 +2372,23 @@ namespace WPEFramework {
 			return false;
 		}
 		return true;
+	}
+
+	bool SystemServices::isRegionValid(string regionStr)
+	{
+		bool retVal = false;
+		if(regionStr.length() < 7){
+			string strRegion = regionStr.substr(0,regionStr.find("-"));
+			if( strRegion.length() == 2){
+				if (isStrAlphaUpper(strRegion)){
+					strRegion = regionStr.substr(regionStr.find("-")+1,regionStr.length());
+					if(strRegion.length() >= 2){
+						retVal = isStrAlphaUpper(strRegion);
+					}
+				}
+			}
+		}
+		return retVal;	
 	}
 
 	void SystemServices::onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion, string newRegion)
