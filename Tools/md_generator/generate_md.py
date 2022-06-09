@@ -40,7 +40,7 @@ def postprocess_md():
             rplce_file_Org = rplce_file
             list_rplce = (" [<sup>method</sup>](#head.Methods)",
                           " [<sup>event</sup>](#head.Notifications)",
-                          " [<sup>property</sup>](#Properties)",
+                          " [<sup>property</sup>](#head.Properties)",
                           "head.", "method.", "acronym.", "term.", "event.", "ref.", "property.")
             print("postprocessing filename:", file)
 
