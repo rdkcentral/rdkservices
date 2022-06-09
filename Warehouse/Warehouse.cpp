@@ -44,6 +44,8 @@
 #define WAREHOUSE_HWHEALTH_EXECUTE_RFC_PARAM    "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.ExecuteTest"
 #define WAREHOUSE_HWHEALTH_RESULTS_RFC_PARAM    "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.Results"
 
+#define RFC_PWRMGR2                             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.PwrMgr2.Enable"
+
 #define WAREHOUSE_METHOD_RESET_DEVICE "resetDevice"
 #define WAREHOUSE_METHOD_GET_DEVICE_INFO "getDeviceInfo"
 #define WAREHOUSE_METHOD_SET_FRONT_PANEL_STATE "setFrontPanelState"
@@ -90,7 +92,7 @@ namespace WPEFramework
         {
             LOGWARN ("Ctor:%d", __LINE__);
             Warehouse::_instance = this;
-
+            m_isPwrMgr2RFCEnabled = false;
             CreateHandler({2});
 
             Register(WAREHOUSE_METHOD_RESET_DEVICE, &Warehouse::resetDeviceWrapper, this);
@@ -106,6 +108,14 @@ namespace WPEFramework
             GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_INTERNAL_RESET, &Warehouse::internalResetWrapper, this);
             GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_LIGHT_RESET, &Warehouse::lightResetWrapper, this);
             GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_IS_CLEAN, &Warehouse::isCleanWrapper, this);
+            {
+                RFC_ParamData_t param;
+                bool ret = Utils::getRFCConfig(RFC_PWRMGR2, param);
+                if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+                {
+                    m_isPwrMgr2RFCEnabled = true;
+                }
+            }
         }
 
         Warehouse::~Warehouse()
@@ -209,17 +219,32 @@ namespace WPEFramework
             if (resetType.compare("COLD") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_ColdFactoryReset, nullptr, 0);
+                if (m_isPwrMgr2RFCEnabled) {
+                    processColdFactoryReset();
+                }
+                else {
+                    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_ColdFactoryReset, nullptr, 0);
+                }
             }
             else if (resetType.compare("FACTORY") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_FactoryReset, nullptr, 0);
+                if (m_isPwrMgr2RFCEnabled) {
+                    processFactoryReset();
+                }
+                else {
+                    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_FactoryReset, nullptr, 0);
+                }
             }
             else if (resetType.compare("USERFACTORY") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_UserFactoryReset, nullptr, 0);
+                if (m_isPwrMgr2RFCEnabled) {
+                    processUserFactoryReset();
+                }
+                else {
+                    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_UserFactoryReset, nullptr, 0);
+                }
             }
             else if (resetType.compare("WAREHOUSE_CLEAR") == 0)
             {
@@ -962,6 +987,76 @@ namespace WPEFramework
 		LOGINFO("Notify %s %s\n", WAREHOUSE_EVT_RESET_DONE, json.c_str());
 		Warehouse::_instance->Notify(WAREHOUSE_EVT_RESET_DONE, params);
             }
+        }
+
+
+        uint32_t Warehouse::processColdFactoryReset()
+        {
+            /*Code copied from X1.. Needs modification*/
+            LOGINFO("\n Reset: Processing Cold Factory Reset\n");
+            fflush(stdout);
+            LOGINFO(" Reset: ...Clearing data from your box before reseting \n");
+            fflush(stdout);
+            /*Execute the script for Cold Factory Reset*/
+            system("sh /lib/rdk/deviceReset.sh coldfactory");
+            system("echo 0 > /opt/.rebootFlag");
+            system(" echo `/bin/timestamp` ------------- Rebooting due to Cold Factory Reset process --------------- >> /opt/logs/receiver.log");
+            system("sleep 5; /rebootNow.sh -s PowerMgr_coldFactoryReset -o 'Rebooting the box due to Cold Factory Reset process ...'");
+            return 1;
+        }
+
+        uint32_t Warehouse::processFactoryReset()
+        {
+            /*Code copied from X1.. Needs modification*/
+            LOGINFO("\n Reset: Processing Factory Reset\n");
+            fflush(stdout);
+            LOGINFO("Reset: ...Clearing data from your box before reseting \n");
+            fflush(stdout);
+            /*Execute the script for Factory Reset*/
+            system("sh /lib/rdk/deviceReset.sh factory");
+            system("echo 0 > /opt/.rebootFlag");
+            system(" echo `/bin/timestamp` -------------Rebooting due to Factory Reset process-------------- >> /opt/logs/receiver.log");
+            return 1;
+        }
+
+        uint32_t Warehouse::processWareHouseReset()
+        {
+            return 1;
+        }
+
+        uint32_t Warehouse::processWHReset()
+        {
+            return 1;
+        }
+
+        uint32_t Warehouse::processCustomerReset()
+        {
+            /*Code copied from X1.. Needs modification*/
+            LOGINFO("\n Reset: Processing Customer Reset\n");
+            fflush(stdout);
+            LOGINFO("... Reset: Clearing data from your box before reseting \n");
+            fflush(stdout);
+            /*Execute the script for Customer Reset*/
+            system("sh /lib/rdk/deviceReset.sh customer");
+            system("echo 0 > /opt/.rebootFlag");
+            system(" echo `/bin/timestamp` ------------- Rebooting due to Customer Reset process --------------- >> /opt/logs/receiver.log");
+            system("sleep 5; /rebootNow.sh -s PowerMgr_CustomerReset -o 'Rebooting the box due to Customer Reset process ...'");
+            return 1;
+        }
+
+        uint32_t Warehouse::processPersonalityReset()
+        {
+            return 1;
+        }
+
+        uint32_t Warehouse::processUserFactoryReset()
+        {
+            LOGINFO("\n Reset: Processing User Factory Reset\n");
+            fflush(stdout);
+            /*Execute the script for User Factory Reset*/
+            system("echo 0 > /opt/.rebootFlag");
+            system("echo `/bin/timestamp` ------------- Rebooting due to User Factory Reset process--------------- >> /opt/logs/receiver.log");
+            return system("sh /lib/rdk/deviceReset.sh userfactory");
         }
 
     } // namespace Plugin
