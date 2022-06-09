@@ -1,0 +1,13 @@
+{
+  "$schema": "plugin.schema.json",
+  "info": {
+    "title": "Linear Playback Control Plugin",
+    "callsign": "LinearPlaybackControl",
+    "locator": "libWPEFrameworkLinearPlaybackControl.so",
+    "status": "alpha",
+    "version": "1.0"
+  },
+  "interface": {
+    "$ref": "{interfacedir}/LinearPlaybackControl.json"
+  }
+}

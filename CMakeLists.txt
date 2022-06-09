@@ -320,6 +320,10 @@ if(PLUGIN_WEBBRIDGE)
     add_subdirectory(WebBridge)
 endif()
 
+if(PLUGIN_LINEARPLAYBACKCONTROL)
+    add_subdirectory(LinearPlaybackControl)
+endif()
+
 if(RDK_SERVICES_TEST)
     add_subdirectory(test)
 endif()
