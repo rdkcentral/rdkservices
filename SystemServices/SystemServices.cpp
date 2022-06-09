@@ -3870,7 +3870,7 @@ namespace WPEFramework {
 		IARM_Result_t _FactoryReset(const char *owner, IARM_EventId_t eventId,
                 void *data, size_t len)
 		{
-			int res = IARM_RESULT_SUCCESS;
+			IARM_Result_t res = IARM_RESULT_SUCCESS;
 			if (SystemServices::_instance) 
 					{
 						res = SystemServices::_instance->processFactoryReset();
@@ -3891,7 +3891,7 @@ namespace WPEFramework {
 		/*IARM_Result_t _WareHouseReset(const char *owner, IARM_EventId_t eventId,
                 void *data, size_t len)
 		{
-			int res = IARM_RESULT_SUCCESS;
+			IARM_Result_t res = IARM_RESULT_SUCCESS;
 			if (SystemServices::_instance) 
 					{
 						res = SystemServices::_instance->processWHReset();
@@ -3912,7 +3912,7 @@ namespace WPEFramework {
 		IARM_Result_t _WareHouseClear(const char *owner, IARM_EventId_t eventId,
                 void *data, size_t len)
 		{
-			int res = IARM_RESULT_SUCCESS;
+			IARM_Result_t res = IARM_RESULT_SUCCESS;
 			if (SystemServices::_instance) 
 					{
 						res = SystemServices::_instance->processWHClear();
@@ -3933,7 +3933,7 @@ namespace WPEFramework {
 		IARM_Result_t _ColdFactoryReset(const char *owner, IARM_EventId_t eventId,
                 void *data, size_t len)
 		{
-			int res = IARM_RESULT_SUCCESS;
+			IARM_Result_t res = IARM_RESULT_SUCCESS;
 			if (SystemServices::_instance) 
 					{
 						res = SystemServices::_instance->processColdFactoryReset();
@@ -3954,7 +3954,7 @@ namespace WPEFramework {
 		IARM_Result_t _UserFactoryReset(const char *owner, IARM_EventId_t eventId,
                 void *data, size_t len)
 		{
-			int res = IARM_RESULT_SUCCESS;
+			IARM_Result_t res = IARM_RESULT_SUCCESS;
 			if (SystemServices::_instance) 
 					{
 						res = SystemServices::_instance->processUserFactoryReset();
