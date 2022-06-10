@@ -278,8 +278,8 @@ namespace WPEFramework {
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
                 for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
-                    LOGINFO("waiting to unlock.. [%d/%d]",i,tasks.size());
-                    task_thread.wait(lck);
+                    //LOGINFO("waiting to unlock.. [%d/%d]",i,tasks.size());
+                    //task_thread.wait(lck);
                     cmd = tasks[i];
                     cmd += " &";
                     cmd += "\0";
