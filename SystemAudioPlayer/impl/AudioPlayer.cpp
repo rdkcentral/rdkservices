@@ -11,6 +11,7 @@
 #define NETWORK_ERROR "NETWORK_ERROR"
 #define PLAYBACK_ERROR "PLAYBACK_ERROR"
 #define NEED_DATA "NEED_DATA"
+#define PLAYBACK_INPROGRESS "PLAYBACK_INPROGRESS"
 
 GMainLoop* AudioPlayer::m_main_loop=NULL;
 GThread* AudioPlayer::m_main_loop_thread=NULL;
@@ -26,6 +27,8 @@ AudioPlayer::AudioPlayer(AudioType audioType,SourceType sourceType,PlayMode play
     this->sourceType = sourceType;
     this->playMode = playMode;
     this->objectIdentifier = objectIdentifier;
+    m_audioCutter=NULL;
+    m_thresHold_dB=  -40.0000;
     m_isPaused = false;
     state = READY;
     SAPLOG_INFO("SAP: AudioPlayer Constructor\n");    
@@ -56,7 +59,7 @@ AudioPlayer::AudioPlayer(AudioType audioType,SourceType sourceType,PlayMode play
 
     }
 
-    createPipeline();
+    createPipeline(false);
     SAPLOG_INFO("AudioPlayer AudioType:%d,SourceType:%d,playMode:%d,object id:%d\n",getAudioType(),getSourceType(),getPlayMode(),getObjectIdentifier());
     //Set mixter levels, this can be reflected when playing
     m_primVolume = DEFAULT_PRIM_VOL_LEVEL;
@@ -216,7 +219,7 @@ bool AudioPlayer::isPlaying()
     return playing;
 }
 
-void AudioPlayer::createPipeline()
+void AudioPlayer::createPipeline(bool smartVolumeEnable)
 {
     GstCaps *audiocaps = NULL;
     SAPLOG_INFO("SAP: Creating Pipeline...\n");
@@ -232,6 +235,14 @@ void AudioPlayer::createPipeline()
     GstElement *resample = gst_element_factory_make("audioresample", NULL);
     m_audioSink = gst_element_factory_make("amlhalasink", NULL);
     m_audioVolume = m_audioSink;
+    if(smartVolumeEnable)
+    {
+       m_audioCutter = gst_element_factory_make("cutter", "NULL");
+       //set defaul db level for cutter
+       SAPLOG_INFO("SAP : set Default threshold-dB=%f",m_thresHold_dB);
+       g_object_set(G_OBJECT(m_audioCutter), "threshold-dB", m_thresHold_dB, NULL);
+    }
+
 #else
     m_audioSink = gst_element_factory_make("autoaudiosink", NULL); 
 #endif 
@@ -282,8 +293,16 @@ void AudioPlayer::createPipeline()
             //g_signal_connect (m_source, "enough-data", G_CALLBACK (stop_feed), this);
 	    g_object_set(m_source, "format", GST_FORMAT_TIME, NULL);
 	    #if defined(PLATFORM_AMLOGIC)
-            gst_bin_add_many(GST_BIN(m_pipeline), m_source, convert, resample, m_audioSink, NULL);
-            result = gst_element_link_many (m_source,convert,resample,m_audioSink,NULL);
+            if(smartVolumeEnable)
+            {
+               gst_bin_add_many(GST_BIN(m_pipeline), m_source, m_audioCutter, convert, resample, m_audioSink, NULL);
+               result = gst_element_link_many (m_source,m_audioCutter,convert,resample,m_audioSink,NULL);
+            }
+            else
+            {
+               gst_bin_add_many(GST_BIN(m_pipeline), m_source, convert, resample, m_audioSink, NULL);
+               result = gst_element_link_many (m_source,convert,resample,m_audioSink,NULL);
+            }
 	    #else
             gst_bin_add_many(GST_BIN(m_pipeline), m_source, m_audioSink, NULL);
             result = gst_element_link_many (m_source,m_audioSink,NULL);
@@ -304,8 +323,16 @@ void AudioPlayer::createPipeline()
             }
 	
             #if defined(PLATFORM_AMLOGIC)
-	    gst_bin_add_many(GST_BIN(m_pipeline), m_source, m_capsfilter, convert, resample, m_audioSink, NULL);
-            result = gst_element_link_many (m_source,m_capsfilter,convert,resample,m_audioSink,NULL);
+            if(smartVolumeEnable)
+            {
+               gst_bin_add_many(GST_BIN(m_pipeline), m_source, m_capsfilter, m_audioCutter, convert, resample, m_audioSink, NULL);
+               result = gst_element_link_many (m_source,m_capsfilter,m_audioCutter,convert,resample,m_audioSink,NULL);
+            }
+            else
+            {
+               gst_bin_add_many(GST_BIN(m_pipeline), m_source, m_capsfilter, convert, resample, m_audioSink, NULL);
+               result = gst_element_link_many (m_source,m_capsfilter,convert,resample,m_audioSink,NULL);
+            }
             #else
 	    gst_bin_add_many(GST_BIN(m_pipeline), m_source, m_capsfilter, m_audioSink, NULL);
 	    result = gst_element_link_many (m_source,m_capsfilter,m_audioSink,NULL);
@@ -331,8 +358,17 @@ void AudioPlayer::createPipeline()
         }
         GstElement *wavparser = gst_element_factory_make("wavparse", NULL);
         #if defined(PLATFORM_AMLOGIC)
-        gst_bin_add_many(GST_BIN(m_pipeline), m_source, wavparser, convert, resample, m_audioSink, NULL);
-        result = gst_element_link_many (m_source,wavparser,convert,resample,m_audioSink,NULL);
+        if(smartVolumeEnable)
+        {
+           gst_bin_add_many(GST_BIN(m_pipeline), m_source, wavparser, m_audioCutter, convert, resample, m_audioSink, NULL);
+           result = gst_element_link_many (m_source,wavparser,m_audioCutter,convert,resample,m_audioSink,NULL);
+        }
+        else
+        {
+           gst_bin_add_many(GST_BIN(m_pipeline), m_source, wavparser, convert, resample, m_audioSink, NULL);
+           result = gst_element_link_many (m_source,wavparser,convert,resample,m_audioSink,NULL);
+        }
+
         #endif
     }
 
@@ -353,7 +389,15 @@ void AudioPlayer::createPipeline()
 	gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, decodebin, convert, resample, m_audioSink, NULL);
         result &= gst_element_link (m_source, parser);
         result &= gst_element_link (parser, decodebin);
-        result &= gst_element_link (decodebin, convert);
+        if(smartVolumeEnable)
+        {
+           result &= gst_element_link (decodebin, m_audioCutter);
+           result &= gst_element_link (m_audioCutter, convert);
+        }
+        else
+        {
+           result &= gst_element_link (decodebin, convert);
+        }
         result &= gst_element_link (convert, resample);
         result &= gst_element_link (resample, m_audioSink);
         #endif
@@ -528,6 +572,33 @@ bool AudioPlayer::handleMessage(GstMessage *message)
             }
             break;
 
+        case GST_MESSAGE_ELEMENT:{
+                const GstStructure* structure = gst_message_get_structure(message);
+                if (gst_structure_has_name(structure, "cutter")) {
+                     gboolean signal_status;
+                     gst_structure_get_boolean(structure,"above", &signal_status);
+                     if(signal_status) {
+                         SAPLOG_INFO("Speech Started.! Player Volume=%d .setting Player Hold Time=%d ",m_thisVolume, m_holdTimeMs);
+			 SAPLOG_INFO("SAP: Primary program volume is set to <%d> percent",m_duckPercent);
+                         if(m_thisVolume != 0 )
+                         {
+                            setHoldTime(m_holdTimeMs);
+                            setPrimaryVolume(m_duckPercent);
+                         }
+                     }
+                     else {
+                         SAPLOG_INFO("Speech Ends.! Player Volume=%d .setting Player Detect Time=%d ",m_thisVolume,m_detectTimeMs);
+                         SAPLOG_INFO("SAP: Primary program volume is set to <%d> percent",m_primVolume);
+                         if(m_thisVolume != 0 )
+                         {
+                            setDetectTime(m_detectTimeMs);
+                            setPrimaryVolume(m_primVolume );
+                         }
+                      }
+                  }
+           }
+           break;
+
         case GST_MESSAGE_DURATION_CHANGED: {
                 gst_element_query_duration(m_pipeline, GST_FORMAT_TIME, &m_duration);
                 SAPLOG_INFO("Duration %" GST_TIME_FORMAT, GST_TIME_ARGS(m_duration));
@@ -645,13 +716,27 @@ void AudioPlayer::resetPipeline()
     if(!m_pipeline) 
     {
         // If pipe line is NULL, create one
-        createPipeline();
+        createPipeline(false);
     } 
     else 
     {
         // If pipeline is present, bring it to NULL state
         gst_element_set_state(m_pipeline, GST_STATE_NULL);
         while(!waitForStatus(GST_STATE_NULL, 300));
+    }
+}
+
+void AudioPlayer::resetPipelineForSmartVolumeControl(bool smartVolumeEnable)
+{
+    SAPLOG_WARNING("Resetting Pipeline Smart Volume Control...player id %d\n",getObjectIdentifier());
+
+    destroyPipeline();
+
+
+    if(!m_pipeline)
+    {
+       //re-create pipeline for smartVolumeControl Enable/Disable
+       createPipeline(smartVolumeEnable);
     }
 }
 
@@ -875,9 +960,21 @@ void AudioPlayer::setPrimaryVolume( int primVol)
     if( m_prevPrimVolume != primVol )
     {
         //Prim Mix gain
-        double primVolGain = (double)primVol/100;
-        //convert voltage gain/loss to db
-        double primdbOut = round(1000000*20*(std::log(primVolGain)/std::log(10)))/1000000;
+	double primVolGain, primdbOut;
+	if( primVol != 0 )
+	{
+	   primVolGain = (double)primVol/100;
+	   //convert voltage gain/loss to db
+	   primdbOut = round(1000000*20*(std::log(primVolGain)/std::log(10)))/1000000;
+	}
+	else
+	{
+           SAPLOG_INFO( "SAP: Applying Minimum dBout");
+           primVolGain = 0.00000;
+           //minimum dBout value -96dB
+           primdbOut = -96.00000;
+ 	}
+
         setMixGain(MIXGAIN_PRIM,round(primdbOut));
         m_prevPrimVolume = primVol;
     }
@@ -897,9 +994,21 @@ void AudioPlayer::setVolume( int thisVol)
     {
         if( m_prevThisVolume != thisVol)
         { 
-            double thisvolGain = (double)thisVol/100;
-            //convert voltage gain/loss to db
-            double dbOut = round(1000000*20*(std::log(thisvolGain)/std::log(10)))/1000000;
+               double thisvolGain=0.0, dbOut=0.0;
+               if( thisVol != 0)
+               {
+                   thisvolGain = (double)thisVol/100;
+                  //convert voltage gain/loss to db
+                  dbOut = round(1000000*20*(std::log(thisvolGain)/std::log(10)))/1000000;
+               }
+               else
+               {
+                  SAPLOG_INFO( "SAP: Applying Minimum dBout");
+                  thisvolGain = 0.00000;
+		  //minimum dBout value -96dB
+                  dbOut = -96.00000;
+               }
+
             if( playMode == SYSTEM)
                 setMixGain(MIXGAIN_SYS,round(dbOut));
             else if( playMode == APP)
@@ -944,4 +1053,109 @@ void AudioPlayer::setAppSysPlayingSate(bool state)
 
 }
 #endif
+//Player set DetectTime
+void AudioPlayer::setDetectTime( int detectTimeMs)
+{
+    SAPLOG_INFO(" Player Req detectTimeMs=%d",detectTimeMs );
+#ifdef PLATFORM_AMLOGIC
+    guint64 detectTimeNs = detectTimeMs * 1000000;
+
+
+    guint64 cutter_detecttimeNs;
+    g_object_get(G_OBJECT(m_audioCutter), "run-length", &cutter_detecttimeNs, NULL);
+
+    SAPLOG_INFO(" Player cur detectTimeNs=%" G_GUINT64_FORMAT " set detectTimeNs=%" G_GUINT64_FORMAT "\n",cutter_detecttimeNs, detectTimeNs );
+
+    g_object_set(G_OBJECT(m_audioCutter), "run-length", detectTimeNs, NULL);
+#endif
+    return;
+}
+
+//Player set HoldTime
+void AudioPlayer::setHoldTime( int holdTimeMs)
+{
+    SAPLOG_INFO(" Player Req holdTimeMs=%d",holdTimeMs );
+#ifdef PLATFORM_AMLOGIC
+    guint64 holdTimeNs = holdTimeMs * 1000000;
+
+    guint64 cutter_holdtimeNs;
+    g_object_get(G_OBJECT(m_audioCutter), "run-length", &cutter_holdtimeNs, NULL);
+
+    SAPLOG_INFO(" Player get HoldTimeNs=%" G_GUINT64_FORMAT " set HoldTimeNs=%" G_GUINT64_FORMAT "\n",cutter_holdtimeNs, holdTimeNs );
+
+    g_object_set(G_OBJECT(m_audioCutter), "run-length", holdTimeNs, NULL);
+#endif
+    return;
+}
+
+//Player set Threshold
+void AudioPlayer::setThreshold( double thresHold)
+{
+    SAPLOG_INFO(" Player Req thresHold=%f \n",thresHold );
+#ifdef PLATFORM_AMLOGIC
+    g_object_set(G_OBJECT(m_audioCutter), "threshold", thresHold, NULL);
+#endif
+    return;
+}
+
+//Player set ThresholdDB Level
+void AudioPlayer::setThresholdDB( double thresHold_dB)
+{
+
+    SAPLOG_INFO(" Player Req thresHold_dB=%f \n",thresHold_dB );
+#ifdef PLATFORM_AMLOGIC
+    g_object_set(G_OBJECT(m_audioCutter), "threshold-dB", thresHold_dB, NULL);
+#endif
+    return;
+}
+
+// Provision for Volume Control
+void AudioPlayer::SetSmartVolControl(bool smartVolumeEnable, double threshold, int detectTimeMs, int holdTimeMs, int duckPercent)
+{
+   if( isPlaying())
+   {
+      SAPLOG_ERROR("playback is in progress, smart volume control cannot be applied");
+      m_callback->onSAPEvent(getObjectIdentifier(),PLAYBACK_INPROGRESS);
+      return ;
+   }
+
+
+   SAPLOG_INFO("SAP: smartVolumeActive=%d playervolume=%d threshold=%f detectTimeMs=%d holdTimeMs=%d duckPercent=%d \n", smartVolumeEnable, m_thisVolume, threshold, detectTimeMs, holdTimeMs, duckPercent);
+
+    if ( smartVolumeEnable )
+    {
+       m_thresHold=0.0, m_detectTimeMs=0, m_holdTimeMs=0,m_duckPercent=0;
+
+       SAPLOG_INFO("SAP: Smart Volume Control is enabled");
+       if(m_audioCutter == NULL)
+       {
+          SAPLOG_INFO("SAP: %s:%d Resetting Pipeline for Smart Volume Enabled.",__FUNCTION__ ,__LINE__ );
+          resetPipelineForSmartVolumeControl(smartVolumeEnable);
+       }
+
+
+       m_thresHold = threshold;
+       m_detectTimeMs = detectTimeMs;
+       m_holdTimeMs = holdTimeMs;
+       if (m_primVolume > 0)
+       {
+           m_duckPercent = (m_primVolume * duckPercent) / 100 ;
+       }
+
+       SAPLOG_INFO("SAP:GLOBAL m_thresHold=%f m_detectTimeMs=%d m_holdTimeMs=%d m_duckPercent=%d \n",m_thresHold, m_detectTimeMs, m_holdTimeMs, m_duckPercent );
+       setHoldTime(m_holdTimeMs);
+       setThreshold(m_thresHold);
+    }
+    else
+    {
+       SAPLOG_INFO("SAP: Smart Volume Control is disabled");
+       if ( m_audioCutter != NULL)
+       {
+          SAPLOG_INFO("SAP: %s:%d Resetting Pipeline due to Smart Volume Disabled.",__FUNCTION__ ,__LINE__ );
+          resetPipelineForSmartVolumeControl(smartVolumeEnable);
+          m_audioCutter = NULL;
+       }
+    }
+    return;
+}
 
