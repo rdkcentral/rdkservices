@@ -100,6 +100,29 @@
                 ]
             }
         },
+	"getMilestones": {
+            "summary": "Returns the list of milestones.\n \n### Events\n \n No Events.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "milestones": {
+                        "summary": "A string [] of milestones",
+                        "type": "array",
+                        "items": {
+                            "type":"string",
+                            "example": "2020 Jan 28 08:24:06.762355 arrisxi6 systemd[1]: Starting Log RDK Started Service..."
+                        }
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "milestones",
+                    "success"
+                ]
+            }
+        },
         "getAVDecoderStatus":{
             "summary": "Gets the most active status of audio/video decoder/pipeline. This API doesn't track individual pipelines. It will aggregate and report the pipeline status, and the pipeline states are prioritized from High to Low (`ACTIVE`, `PAUSED`, and `IDLE`). Therefore, if any of the pipelines is in active state, then `getAVDecoderStatus` will return `ACTIVE`. If none of the pipelines are active but one is in a paused state, then `getAVDecoderStatus` will return `PAUSED`, and if all the pipelines are idle only then, `IDLE` will be returned.\n \n### Events \n \nNo events.",
             "result":{
