@@ -32,6 +32,7 @@ namespace Plugin {
         Register("stop", &SystemAudioPlayer::Stop, this);
         Register("close", &SystemAudioPlayer::Close, this);
         Register("setMixerLevels", &SystemAudioPlayer::SetMixerLevels, this);
+        Register("setSmartVolControl", &SystemAudioPlayer::SetSmartVolControl, this);
         Register("isspeaking", &SystemAudioPlayer::IsPlaying, this);
 	Register("config", &SystemAudioPlayer::Config, this);
         Register("getPlayerSessionId", &SystemAudioPlayer::GetPlayerSessionId, this);
@@ -135,6 +136,17 @@ namespace Plugin {
         return Core::ERROR_NONE;
     }
 
+    uint32_t SystemAudioPlayer::SetSmartVolControl(const JsonObject& parameters, JsonObject& response)
+    {
+        if(_sap) {
+            string params, result;
+            parameters.ToString(params);
+            uint32_t ret= _sap->SetSmartVolControl(params, result);
+            response.FromString(result);
+            return ret;
+        }
+        return Core::ERROR_NONE;
+    }
 
     uint32_t SystemAudioPlayer::Pause(const JsonObject& parameters, JsonObject& response)
     {
