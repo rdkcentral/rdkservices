@@ -278,8 +278,6 @@ namespace WPEFramework {
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
                 for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
-                    //LOGINFO("waiting to unlock.. [%d/%d]",i,tasks.size());
-                    //task_thread.wait(lck);
                     cmd = tasks[i];
                     cmd += " &";
                     cmd += "\0";
@@ -303,8 +301,6 @@ namespace WPEFramework {
                 system(cmd.c_str());
                 cmd="";
                 for( i = 1; i < tasks.size() && !m_abort_flag; i++){
-                    LOGINFO("Waiting to unlock.. [%d/%d]",i,tasks.size());
-                    task_thread.wait(lck);
                     cmd = tasks[i];
                     cmd += " &";
                     cmd += "\0";
@@ -640,7 +636,6 @@ namespace WPEFramework {
                             else {
                                  SET_STATUS(g_task_status,RFC_SUCCESS);
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
-                                 task_thread.notify_one();
                                  m_task_map[task_names_foreground[0].c_str()]=false;
                             }
                             break;
@@ -652,7 +647,6 @@ namespace WPEFramework {
                             else {
                                 SET_STATUS(g_task_status,DCM_SUCCESS);
                                 SET_STATUS(g_task_status,DCM_COMPLETE);
-                                task_thread.notify_one();
                                 m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=false;
                             }
                             break;
@@ -664,7 +658,6 @@ namespace WPEFramework {
                             else {
                                 SET_STATUS(g_task_status,DIFD_SUCCESS);
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
-                                task_thread.notify_one();
                                 m_task_map[task_names_foreground[1].c_str()]=false;
                             }
                             break;
@@ -691,7 +684,6 @@ namespace WPEFramework {
                             SET_STATUS(g_task_status,TASK_SKIPPED);
                             /* we say FW update task complete */
                             SET_STATUS(g_task_status,DIFD_COMPLETE);
-                            task_thread.notify_one();
                             m_task_map[task_names_foreground[1].c_str()]=false;
                             LOGINFO("FW Download task aborted \n");
                             break;
@@ -701,7 +693,6 @@ namespace WPEFramework {
                             }
                             else {
                                 SET_STATUS(g_task_status,DCM_COMPLETE);
-                                task_thread.notify_one();
                                 LOGINFO("Error encountered in DCM script task \n");
                                 m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=false;
                             }
@@ -713,7 +704,6 @@ namespace WPEFramework {
                             }
                             else {
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
-                                 task_thread.notify_one();
                                  LOGINFO("Error encountered in RFC script task \n");
                                  m_task_map[task_names_foreground[0].c_str()]=false;
                             }
@@ -738,7 +728,6 @@ namespace WPEFramework {
                             }
                             else {
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
-                                task_thread.notify_one();
                                 LOGINFO("Error encountered in SWUPDATE script task \n");
                                 m_task_map[task_names_foreground[1].c_str()]=false;
                             }
@@ -1269,7 +1258,6 @@ namespace WPEFramework {
                 else {
                     LOGERR("Failed to stopMaintenance without starting maintenance \n");
                 }
-                task_thread.notify_one();
 
                 if(m_thread.joinable()){
                     m_thread.join();
