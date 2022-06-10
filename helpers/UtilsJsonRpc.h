@@ -64,3 +64,10 @@
     if (Core::JSON::Variant::type::STRING == parameters[paramName].Content()) \
         param = parameters[paramName].String(); \
 }
+#define getFloatParameter(paramName, param) { \
+    if (Core::JSON::Variant::type::FLOAT == parameters[paramName].Content()) \
+        param = parameters[paramName].Float(); \
+    else \
+        try { param = std::stof( parameters[paramName].String()); } \
+        catch (...) { param = 0; } \
+}
