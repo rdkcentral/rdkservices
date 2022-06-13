@@ -78,7 +78,7 @@ namespace WPEFramework {
             // We do not allow this plugin to be copied !!
             Warehouse(const Warehouse&) = delete;
             Warehouse& operator=(const Warehouse&) = delete;
-            bool m_isPwrMgr2RFCEnabled;
+
             void resetDevice();
             void resetDevice(bool suppressReboot, const string& resetType = string());
             std::vector<std::string>  getAllowedCNameTails();
@@ -143,6 +143,19 @@ namespace WPEFramework {
 #endif
         public:
             static Warehouse* _instance;
+            bool m_isPwrMgr2RFCEnabled;
+
+            uint32_t processColdFactoryReset();
+            uint32_t processFactoryReset();
+            uint32_t processWareHouseReset();
+            uint32_t processWHReset();
+            uint32_t processWHResetNoReboot();
+            uint32_t processWHClear();
+            uint32_t processWHClearNoReboot();
+            uint32_t processCustomerReset();
+            uint32_t processPersonalityReset();
+            uint32_t processUserFactoryReset();
+
         };
 	} // namespace Plugin
 } // namespace WPEFramework
