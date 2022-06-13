@@ -89,6 +89,7 @@ SystemAudioPlayer interface methods:
 | :-------- | :-------- |
 | [close](#close) | Closes the system audio player with the specified ID |
 | [config](#config) | Configures playback for a PCM audio source (audio/x-raw) on the specified player |
+| [getPlayerSessionId](#getPlayerSessionId) | Gets the session ID from the provided the URL |
 | [isspeaking](#isspeaking) | Checks if playback is in progress |
 | [open](#open) | Opens a player instance and assigns it a unique ID |
 | [pause](#pause) | Pauses playback on the specified player |
@@ -96,8 +97,8 @@ SystemAudioPlayer interface methods:
 | [playbuffer](#playbuffer) | Buffers the audio playback on the specified player |
 | [resume](#resume) | Resumes playback on the specified player |
 | [setMixerLevels](#setMixerLevels) | Sets the audio level on the specified player |
+| [setSmartVolControl](#setSmartVolControl) | Sets the smart volume audio control on the specified player |
 | [stop](#stop) | Stops playback on the specified player |
-| [getPlayerSessionId](#getPlayerSessionId) | Get the session ID by providing the URL as the input parameter |
 
 
 <a name="close"></a>
@@ -208,6 +209,58 @@ Configures playback for a PCM audio source (audio/x-raw) on the specified player
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "success": true
+    }
+}
+```
+
+<a name="getPlayerSessionId"></a>
+## *getPlayerSessionId*
+
+Gets the session ID from the provided the URL. The session is the ID returned in open cal. 
+ 
+### Events 
+
+ No Events .
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.url | string | The URL for returning the session ID |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.sessionId | integer | A unique identifier for a player instance |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.SystemAudioPlayer.1.getPlayerSessionId",
+    "params": {
+        "url": "http://localhost:50050/nuanceEve/tts?voice=ava&language=en-US&rate=50&text=SETTINGS"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "sessionId": 1,
         "success": true
     }
 }
@@ -595,6 +648,67 @@ Sets the audio level on the specified player. The `SystemAudioPlayer` plugin can
     }
 }
 ```
+
+<a name="setSmartVolControl"></a>
+## *setSmartVolControl*
+
+Sets the smart volume audio control on the specified player. The plugin can control the smart volume of the content being played back as well as the primary program audio; thus, an application can duck down the volume on the primary program audio when system audio is played and then restore it back when the system audio playback is complete.
+ 
+### Events 
+
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.id | integer | A unique identifier for a player instance |
+| params.enable | boolean | Enables or disables smart volume control |
+| params.playerAudioLevelThreshold | number | The minimum audio level threshold in the player source stream above which smart audio mixing detection is triggered. Range: 0 to 1 (in real number) |
+| params.playerDetectTimeMs | integer | The duration that the `playerAudioLevelThreshold` value must be detected before primary audio ducking is started. Range: Above 0 (in milliseconds) |
+| params.playerHoldTimeMs | integer | The duration that primary audio ducking is enabled after the 'playerAudioLevelThreshold' value is no longer met and before primary audio ducking is stopped. Range: Above 0 (in milliseconds) |
+| params.primaryDuckingPercent | integer | The percentage to duck the primary audio volume. If `setMixerLevels` has been called, then this percentage is scaled to the `params.primVolume` range. Range: 0 to 100 (in percentage)  |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.SystemAudioPlayer.1.setSmartVolControl",
+    "params": {
+        "id": 1,
+        "enable": true,
+        "playerAudioLevelThreshold": 0.1,
+        "playerDetectTimeMs": 200,
+        "playerHoldTimeMs": 1000,
+        "primaryDuckingPercent": 1
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="stop"></a>
 ## *stop*
 
@@ -645,58 +759,6 @@ Stops playback on the specified player.
 }
 ```
 
-<a name="getPlayerSessionId"></a>
-## *getPlayerSessionId*
-
-Get the session ID by providing the URL as the input parameter. Session is nothing but the id returned in open cal
- 
-### Events 
-
- No Events .
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.url | string | url queried to get the session id |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.sessionId | integer | A unique identifier for a player instance |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.SystemAudioPlayer.1.getPlayerSessionId",
-    "params": {
-        "url": "http://localhost:50050/nuanceEve/tts?voice=ava&language=en-US&rate=50&text=SETTINGS"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "sessionId": 1,
-        "success": true
-    }
-}
-```
-
 <a name="Notifications"></a>
 # Notifications
 
@@ -728,7 +790,6 @@ The following events are supported.
 | NETWORK_ERROR | Triggered when a playback network error occurs (httpsrc/web socket) |  
 | PLAYBACK_ERROR| Triggered when any other playback error occurs (internal issue)|  
 | NEED_DATA|  Triggered when the buffer needs more data to play|.
-| PLAYBACK_INPROGRESS| Triggered when playback is in progress |
 
 ### Parameters
 

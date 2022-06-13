@@ -409,6 +409,15 @@ namespace WPEFramework {
                                     }
                                     else {
                                         LOGINFO("%s: Connected Device doesn't have ARC/eARC capability... \n", __FUNCTION__);
+                                    //ARC/eARC capability is not recognized even after Audio Device Detection & explicit sendHdmiCecSinkAudioDevicePowerOn
+                                    //Audio device could be in a process of powering on. Trigger Audio device power state request & normal audio routing should resume from onAudioDevicePowerStatusEventHandler
+                                        LOGINFO("Trigger Audio Device Power State Request status ... \n");
+                                        {
+                                           std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
+                                           m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_REQUEST;
+                                           m_cecArcRoutingThreadRun = true;
+                                           arcRoutingCV.notify_one();
+                                        }
                                     }
                                 }
                                 catch (const device::Exception& err){

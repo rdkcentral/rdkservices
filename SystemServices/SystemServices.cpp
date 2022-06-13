@@ -2591,6 +2591,7 @@ namespace WPEFramework {
 			JsonObject& response)
 	{
 		bool retStat = false;
+		bool deprecated = true;
 		if (parameters.HasLabel("key")) {
 			std::string key = parameters["key"].String();
 			LOGWARN("key: '%s'\n", key.c_str());
@@ -2604,6 +2605,7 @@ namespace WPEFramework {
 		} else {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
 		}
+		response["deprecated"] = deprecated;
 		returnResponse(retStat);
 	}
 
@@ -2617,7 +2619,8 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStat = false;
-	    
+	    bool deprecated = true;
+
 	    if (parameters.HasLabel("key") && parameters.HasLabel("value")) {
 		    std::string key = parameters["key"].String();
 		    std::string value = parameters["value"].String();
@@ -2635,6 +2638,7 @@ namespace WPEFramework {
 	    } else {
 		    populateResponseWithError(SysSrv_MissingKeyValues, response);
 	    }
+	    response["deprecated"] = deprecated;
 	    returnResponse(retStat);
         }
 
@@ -2648,6 +2652,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
 		bool retStat = false;
+		bool deprecated = true;
 		if (parameters.HasLabel("key")) {
 			std::string key = parameters["key"].String();
 			if (key.length()) {
@@ -2663,6 +2668,7 @@ namespace WPEFramework {
 		} else {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
 		}
+		response["deprecated"] = deprecated;
 		returnResponse(retStat);
         }
 
@@ -2676,6 +2682,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
 		bool retStat = false;
+		bool deprecated = true;
 		if (parameters.HasLabel("key")) {
 			std::string key = parameters["key"].String();
 			if (key.length()) {
@@ -2691,6 +2698,7 @@ namespace WPEFramework {
 		} else {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
 		}
+		response["deprecated"] = deprecated;
 		returnResponse(retStat);
         }
 
@@ -3088,7 +3096,8 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retAPIStatus = false;
-            vector<string> milestones;
+	    bool deprecated = true;
+	    std::vector<string> milestones;
 
             if (Utils::fileExists(MILESTONES_LOG_FILE)) {
                 retAPIStatus = getFileContent(MILESTONES_LOG_FILE, milestones);
@@ -3100,6 +3109,7 @@ namespace WPEFramework {
             } else {
                 populateResponseWithError(SysSrv_FileNotPresent, response);
             }
+	    response["deprecated"] = deprecated;
             returnResponse(retAPIStatus);
         }
 
@@ -3359,6 +3369,7 @@ namespace WPEFramework {
         {
             bool enabled = false;
 	    bool result = false;
+	    bool deprecated = true;
 	    int32_t retVal = E_NOK;
 	    if (parameters.HasLabel("enabled")) {
 		    enabled = parameters["enabled"].Boolean();
@@ -3371,6 +3382,7 @@ namespace WPEFramework {
 	    } else {
 		    populateResponseWithError(SysSrv_MissingKeyValues, response);
 	    }
+	    response["deprecated"] = deprecated;
             returnResponse(( E_OK == retVal)? true: false);
         } //ent of SetGZEnabled
 
@@ -3385,9 +3397,11 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool enabled = false;
+	    bool deprecated = true;
 
             isGzEnabledHelper(enabled);
             response["enabled"] = enabled;
+	    response["deprecated"] = deprecated;
 
             returnResponse(true);
         } //end of isGZEnbaled
