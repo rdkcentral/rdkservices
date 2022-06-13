@@ -216,11 +216,14 @@ namespace WPEFramework
         {
             IARM_Result_t err;
             bool isWareHouse = false;
+            if (NULL == Warehouse::_instance) {
+                return;
+            }
             if (resetType.compare("COLD") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                if (m_isPwrMgr2RFCEnabled) {
-                    processColdFactoryReset();
+                if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
+                    Warehouse::_instance->processColdFactoryReset();
                 }
                 else {
                     err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_ColdFactoryReset, nullptr, 0);
@@ -229,8 +232,8 @@ namespace WPEFramework
             else if (resetType.compare("FACTORY") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                if (m_isPwrMgr2RFCEnabled) {
-                    processFactoryReset();
+                if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
+                    Warehouse::_instance->processFactoryReset();
                 }
                 else {
                     err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_FactoryReset, nullptr, 0);
@@ -239,8 +242,8 @@ namespace WPEFramework
             else if (resetType.compare("USERFACTORY") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                if (m_isPwrMgr2RFCEnabled) {
-                    processUserFactoryReset();
+                if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
+                    Warehouse::_instance->processUserFactoryReset();
                 }
                 else {
                     err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_UserFactoryReset, nullptr, 0);
