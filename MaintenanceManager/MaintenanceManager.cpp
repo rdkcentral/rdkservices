@@ -592,8 +592,9 @@ namespace WPEFramework {
             /* only when dcm is getting a DCM_SUCCESS/DCM_ERROR we say
              * Maintenance is started until then we say MAITENANCE_IDLE */
             if(m_thread.joinable()){
-                m_thread.join();
-            }
+		    m_thread.join();
+             }
+		
             LOGINFO("EL: Invoking task_execution_thread from maintenanceManagerOnBootup() \n");	
             m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
         }
@@ -684,7 +685,6 @@ namespace WPEFramework {
                             else {
                                 SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
-                                task_thread.notify_one();
                                 m_task_map[task_names_foreground[2].c_str()]=false;
                             }
 
@@ -700,6 +700,7 @@ namespace WPEFramework {
                             SET_STATUS(g_task_status,TASK_SKIPPED);
                             /* we say FW update task complete */
                             SET_STATUS(g_task_status,DIFD_COMPLETE);
+                            task_thread.notify_one();
                             m_task_map[task_names_foreground[1].c_str()]=false;
                             LOGINFO("FW Download task aborted \n");
                             break;
@@ -1164,10 +1165,6 @@ namespace WPEFramework {
                         }
 
                         m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
-
-			if(m_thread.joinable()){
-                            m_thread.join();
-                        }
 
                         result=true;
                     }
