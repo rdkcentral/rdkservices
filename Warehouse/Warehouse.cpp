@@ -81,6 +81,16 @@ namespace WPEFramework
 {
     namespace Plugin
     {
+		static  IARM_Result_t _FactoryReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len);
+		static  IARM_Result_t _WareHouseReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len);
+        static  IARM_Result_t _WareHouseClear(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len);
+        static  IARM_Result_t _ColdFactoryReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len);
+        static  IARM_Result_t _UserFactoryReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len);	
         SERVICE_REGISTRATION(Warehouse, 2, 0);
         Warehouse* Warehouse::_instance = nullptr;
         Warehouse::Warehouse()
@@ -143,6 +153,12 @@ namespace WPEFramework
             if (Utils::IARM::init()) {
                IARM_Result_t res;
                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_WAREHOUSEOPS_STATUSCHANGED, dsWareHouseOpnStatusChanged) );
+			   
+			   IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_FactoryReset, _FactoryReset));
+			   IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseReset, _WareHouseReset));
+			   IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseClear, _WareHouseClear));
+			   IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_ColdFactoryReset, _ColdFactoryReset));
+			   IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_UserFactoryReset, _UserFactoryReset));
             }
         }
 
@@ -1058,6 +1074,112 @@ namespace WPEFramework
             system("echo `/bin/timestamp` ------------- Rebooting due to User Factory Reset process--------------- >> /opt/logs/receiver.log");
             return system("sh /lib/rdk/deviceReset.sh userfactory");
         }
+		
+		IARM_Result_t _FactoryReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+		{
+			IARM_Result_t res = IARM_RESULT_SUCCESS;
+			if (SystemServices::_instance) 
+					{
+						res = SystemServices::_instance->processFactoryReset();
+						//LOG("_FactoryReset returned : %d\r\n", res);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+			else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_FactoryReset Case.\n");
+					}		
+			return 	res;	
+		}
+		
+		/*IARM_Result_t _WareHouseReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+		{
+			IARM_Result_t res = IARM_RESULT_SUCCESS;
+			if (SystemServices::_instance) 
+					{
+						res = SystemServices::_instance->processWHReset();
+						//LOG("_WareHouseReset returned : %d\r\n", res);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+			else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_WareHouseReset Case.\n");
+					}		
+			return 	res;	
+		}
+		
+		IARM_Result_t _WareHouseClear(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+		{
+			IARM_Result_t res = IARM_RESULT_SUCCESS;
+			if (SystemServices::_instance) 
+					{
+						res = SystemServices::_instance->processWHClear();
+						//LOG("_WareHouseClear returned : %d\r\n", res);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+			else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_WareHouseClear Case.\n");
+					}		
+			return 	res;	
+		}*/
+		
+		IARM_Result_t _ColdFactoryReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+		{
+			IARM_Result_t res = IARM_RESULT_SUCCESS;
+			if (SystemServices::_instance) 
+					{
+						res = SystemServices::_instance->processColdFactoryReset();
+						//LOG("_ColdFactoryReset returned : %d\r\n", res);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+			else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_ColdFactoryReset Case.\n");
+					}		
+			return 	res;	
+		}
+		
+		IARM_Result_t _UserFactoryReset(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+		{
+			IARM_Result_t res = IARM_RESULT_SUCCESS;
+			if (SystemServices::_instance) 
+					{
+						res = SystemServices::_instance->processUserFactoryReset();
+						//LOG("_UserFactoryReset returned : %d\r\n", res);
+						fflush(stdout);
+						if (res == 0)
+							res = IARM_RESULT_SUCCESS;
+						else
+							res = IARM_RESULT_IPCCORE_FAIL;
+					}
+			else
+					{
+						LOGERR("SystemServices::_instance is NULL in IARM_BUS_PWRMGR_API_UserFactoryReset Case.\n");
+					}		
+			return 	res;	
+		}
+		 
 
     } // namespace Plugin
 } // namespace WPEFramework
