@@ -834,65 +834,6 @@
         }
       ]
     },
-    "DeviceInfo.1.displaysettings": {
-      "summary": "Current output settings on the selected video display port",
-      "params": {
-        "type": "object",
-        "properties": {
-          "videoDisplay": {
-            "description": "Video display port name",
-            "type": "string",
-            "example": "HDMI0",
-            "default": "HDMI0"
-          }
-        },
-        "required": [
-        ]
-      },
-      "result": {
-        "type": "object",
-        "properties": {
-          "colorSpace": {
-            "summary": "The color space. Possible values: 0 (dsDISPLAY_COLORSPACE_UNKNOWN), 1 (sDISPLAY_COLORSPACE_RGB, 2 (dsDISPLAY_COLORSPACE_YCbCr422), 3 (dsDISPLAY_COLORSPACE_YCbCr444), 4 (dsDISPLAY_COLORSPACE_YCbCr420), 5 (dsDISPLAY_COLORSPACE_AUTO)",
-            "type": "integer",
-            "example": 5
-          },
-          "colorDepth": {
-            "summary": "The color depth",
-            "type": "integer",
-            "example": 0
-          },
-          "matrixCoefficients": {
-            "summary": "matrix coefficients. Possible values: 0 (dsDISPLAY_MATRIXCOEFFICIENT_UNKNOWN), 1 (dsDISPLAY_MATRIXCOEFFICIENT_BT_709), 2 (dsDISPLAY_MATRIXCOEFFICIENT_BT_470_2_BG), 3 (dsDISPLAY_MATRIXCOEFFICIENT_SMPTE_170M), 4 (dsDISPLAY_MATRIXCOEFFICIENT_XvYCC_709), 5 (dsDISPLAY_MATRIXCOEFFICIENT_eXvYCC_601), 6 (dsDISPLAY_MATRIXCOEFFICIENT_BT_2020_NCL), 7 (dsDISPLAY_MATRIXCOEFFICIENT_BT_2020_CL)",
-            "type": "integer",
-            "example": 0
-          },
-          "videoEOTF": {
-            "summary": "HDR standard. Possible values: 0x0 (dsHDRSTANDARD_NONE), 0x01 (dsHDRSTANDARD_HDR10), 0x02 (dsHDRSTANDARD_HLG), 0x04 (dsHDRSTANDARD_DolbyVision), 0x08 (dsHDRSTANDARD_TechnicolorPrime), 0x80 (dsHDRSTANDARD_Invalid)",
-            "type": "integer",
-            "example": 0
-          },
-          "quantizationRange": {
-            "summary": "The supported quantization range",
-            "type": "integer",
-            "example": 235
-          }
-        },
-        "required": [
-          "colorSpace",
-          "colorDepth",
-          "matrixCoefficients",
-          "videoEOTF",
-          "quantizationRange"
-        ]
-      },
-      "errors": [
-        {
-          "description": "General error",
-          "$ref": "#/common/errors/general"
-        }
-      ]
-    },
     "DeviceInfo.1.audiocapabilities": {
       "summary": "Audio capabilities for the specified audio port",
       "params": {
@@ -978,7 +919,7 @@
         "type": "object",
         "properties": {
           "supportedMS12AudioProfiles": {
-            "summary": "An array of of MS12 audio profiles",
+            "summary": "An array of MS12 audio profiles",
             "type": "array",
             "items": {
               "type": "string",

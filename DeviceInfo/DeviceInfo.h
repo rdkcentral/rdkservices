@@ -54,6 +54,7 @@ namespace Plugin {
                 Add(_T("rfcpartnerid"), &RfcPartnerId);
                 Add(_T("rfcmodelname"), &RfcModelName);
                 Add(_T("rfcserialnumber"), &RfcSerialNumber);
+                Add(_T("defaultaudioport"), &DefaultAudioPort);
             }
             ~Config()
             {
@@ -68,6 +69,7 @@ namespace Plugin {
             Core::JSON::String RfcPartnerId;
             Core::JSON::String RfcModelName;
             Core::JSON::String RfcSerialNumber;
+            Core::JSON::String DefaultAudioPort;
         };
 
     public:
@@ -165,7 +167,6 @@ namespace Plugin {
         uint32_t endpoint_defaultresolution(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::DefaultresolutionResultData& response) const;
         uint32_t endpoint_supportedresolutions(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::SupportedresolutionsResultData& response) const;
         uint32_t endpoint_supportedhdcp(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::SupportedhdcpResultData& response) const;
-        uint32_t endpoint_displaysettings(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::DisplaysettingsResultData& response) const;
         uint32_t endpoint_audiocapabilities(const JsonData::DeviceInfo::AudiocapabilitiesParamsInfo& params, JsonData::DeviceInfo::AudiocapabilitiesResultData& response) const;
         uint32_t endpoint_ms12capabilities(const JsonData::DeviceInfo::AudiocapabilitiesParamsInfo& params, JsonData::DeviceInfo::Ms12capabilitiesResultData& response) const;
         uint32_t endpoint_supportedms12audioprofiles(const JsonData::DeviceInfo::AudiocapabilitiesParamsInfo& params, JsonData::DeviceInfo::Supportedms12audioprofilesResultData& response) const;
@@ -186,7 +187,6 @@ namespace Plugin {
         uint32_t DefaultResolution(const string& videoDisplay, OutputResolutionJsonEnum& defaultResolution) const;
         uint32_t SupportedResolutions(const string& videoDisplay, Core::JSON::ArrayType<OutputResolutionJsonEnum>& supportedResolutions) const;
         uint32_t SupportedHdcp(const string& videoDisplay, CopyProtectionJsonEnum& supportedHDCPVersion) const;
-        uint32_t DisplaySettings(const string& videoDisplay, Core::JSON::DecUInt32& colorSpace, Core::JSON::DecUInt32& colorDepth, Core::JSON::DecUInt32& matrixCoefficients, Core::JSON::DecUInt32& videoEOTF, Core::JSON::DecUInt32& quantizationRange) const;
         uint32_t AudioCapabilities(const string& audioPort, Core::JSON::ArrayType<AudioCapabilityJsonEnum>& audioCapabilities) const;
         uint32_t MS12Capabilities(const string& audioPort, Core::JSON::ArrayType<Ms12capabilityJsonEnum>& ms12Capabilities) const;
         uint32_t SupportedMS12AudioProfiles(const string& audioPort, Core::JSON::ArrayType<Core::JSON::String>& supportedMS12AudioProfiles) const;

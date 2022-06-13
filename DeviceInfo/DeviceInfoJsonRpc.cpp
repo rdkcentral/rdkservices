@@ -46,7 +46,6 @@ namespace Plugin {
         Register<SupportedresolutionsParamsInfo, DefaultresolutionResultData>(_T("defaultresolution"), &DeviceInfo::endpoint_defaultresolution, this);
         Register<SupportedresolutionsParamsInfo, SupportedresolutionsResultData>(_T("supportedresolutions"), &DeviceInfo::endpoint_supportedresolutions, this);
         Register<SupportedresolutionsParamsInfo, SupportedhdcpResultData>(_T("supportedhdcp"), &DeviceInfo::endpoint_supportedhdcp, this);
-        Register<SupportedresolutionsParamsInfo, DisplaysettingsResultData>(_T("displaysettings"), &DeviceInfo::endpoint_displaysettings, this);
         Register<AudiocapabilitiesParamsInfo, AudiocapabilitiesResultData>(_T("audiocapabilities"), &DeviceInfo::endpoint_audiocapabilities, this);
         Register<AudiocapabilitiesParamsInfo, Ms12capabilitiesResultData>(_T("ms12capabilities"), &DeviceInfo::endpoint_ms12capabilities, this);
         Register<AudiocapabilitiesParamsInfo, Supportedms12audioprofilesResultData>(_T("supportedms12audioprofiles"), &DeviceInfo::endpoint_supportedms12audioprofiles, this);
@@ -70,7 +69,6 @@ namespace Plugin {
         Unregister(_T("defaultresolution"));
         Unregister(_T("supportedresolutions"));
         Unregister(_T("supportedhdcp"));
-        Unregister(_T("displaysettings"));
         Unregister(_T("audiocapabilities"));
         Unregister(_T("ms12capabilities"));
         Unregister(_T("supportedms12audioprofiles"));
@@ -221,15 +219,6 @@ namespace Plugin {
     uint32_t DeviceInfo::endpoint_supportedhdcp(const SupportedresolutionsParamsInfo& params, SupportedhdcpResultData& response) const
     {
         return SupportedHdcp(params.VideoDisplay.Value(), response.SupportedHDCPVersion);
-    }
-
-    // Method: displaysettings - Current output settings on the selected video display port
-    // Return codes:
-    //  - ERROR_NONE: Success
-    //  - ERROR_GENERAL: General error
-    uint32_t DeviceInfo::endpoint_displaysettings(const JsonData::DeviceInfo::SupportedresolutionsParamsInfo& params, JsonData::DeviceInfo::DisplaysettingsResultData& response) const
-    {
-        return DisplaySettings(params.VideoDisplay.Value(), response.ColorSpace, response.ColorDepth, response.MatrixCoefficients, response.VideoEOTF, response.QuantizationRange);
     }
 
     // Method: audiocapabilities - Audio capabilities for the specified audio port

@@ -25,7 +25,6 @@
 #include "rfcapi.h"
 
 #include "host.hpp"
-#include "videoOutputPort.hpp"
 #include "videoOutputPortConfig.hpp"
 
 namespace WPEFramework {
@@ -418,11 +417,7 @@ namespace Plugin {
         try {
             auto strVideoPort = videoDisplay.empty() ? device::Host::getInstance().getDefaultVideoPortName() : videoDisplay;
             auto& vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort);
-            if (vPort.isDisplayConnected()) {
-                defaultResolution = OutputResolutionEnum(vPort.getDefaultResolution().getName().c_str()).Value();
-            } else {
-                result = Core::ERROR_GENERAL;
-            }
+            defaultResolution = OutputResolutionEnum(vPort.getDefaultResolution().getName().c_str()).Value();
         } catch (...) {
             result = Core::ERROR_GENERAL;
         }
@@ -472,31 +467,6 @@ namespace Plugin {
         return result;
     }
 
-    uint32_t DeviceInfo::DisplaySettings(const string& videoDisplay, Core::JSON::DecUInt32& colorSpace, Core::JSON::DecUInt32& colorDepth, Core::JSON::DecUInt32& matrixCoefficients, Core::JSON::DecUInt32& videoEOTF, Core::JSON::DecUInt32& quantizationRange) const
-    {
-        uint32_t result = Core::ERROR_NONE;
-
-        try {
-            auto strVideoPort = videoDisplay.empty() ? device::Host::getInstance().getDefaultVideoPortName() : videoDisplay;
-            auto& vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort);
-            if (vPort.isDisplayConnected()) {
-                int _videoEOTF, _matrixCoefficients, _colorSpace, _colorDepth, _quantizationRange;
-                vPort.getCurrentOutputSettings(_videoEOTF, _matrixCoefficients, _colorSpace, _colorDepth, _quantizationRange);
-                colorSpace = _colorSpace;
-                colorDepth = _colorDepth;
-                matrixCoefficients = _matrixCoefficients;
-                videoEOTF = _videoEOTF;
-                quantizationRange = _quantizationRange;
-            } else {
-                result = Core::ERROR_GENERAL;
-            }
-        } catch (...) {
-            result = Core::ERROR_GENERAL;
-        }
-
-        return result;
-    }
-
     uint32_t DeviceInfo::AudioCapabilities(const string& audioPort, Core::JSON::ArrayType<AudioCapabilityJsonEnum>& audioCapabilities) const
     {
         uint32_t result = Core::ERROR_NONE;
@@ -504,7 +474,7 @@ namespace Plugin {
         int capabilities = dsAUDIOSUPPORT_NONE;
 
         try {
-            auto strAudioPort = audioPort.empty() ? "HDMI0" : audioPort;
+            auto strAudioPort = audioPort.empty() ? _config.DefaultAudioPort.Value() : audioPort;
             auto& aPort = device::Host::getInstance().getAudioOutputPort(strAudioPort);
             aPort.getAudioCapabilities(&capabilities);
         } catch (...) {
@@ -536,7 +506,7 @@ namespace Plugin {
         int capabilities = dsMS12SUPPORT_NONE;
 
         try {
-            auto strAudioPort = audioPort.empty() ? "HDMI0" : audioPort;
+            auto strAudioPort = audioPort.empty() ? _config.DefaultAudioPort.Value() : audioPort;
             auto& aPort = device::Host::getInstance().getAudioOutputPort(strAudioPort);
             aPort.getMS12Capabilities(&capabilities);
         } catch (...) {
@@ -560,7 +530,7 @@ namespace Plugin {
         uint32_t result = Core::ERROR_NONE;
 
         try {
-            auto strAudioPort = audioPort.empty() ? "HDMI0" : audioPort;
+            auto strAudioPort = audioPort.empty() ? _config.DefaultAudioPort.Value() : audioPort;
             auto& aPort = device::Host::getInstance().getAudioOutputPort(strAudioPort);
             const auto supportedProfiles = aPort.getMS12AudioProfileList();
             for (size_t i = 0; i < supportedProfiles.size(); i++) {

@@ -6,7 +6,7 @@
 
 **Status: :black_circle::black_circle::black_circle:**
 
-A DeviceInfo plugin for Thunder framework.
+DeviceInfo plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -82,7 +82,7 @@ The table below lists configuration options of the plugin.
 
 This plugin implements the following interfaces:
 
-- [DeviceInfo.json](https://github.com/rdkcentral/ThunderInterfaces/blob/master/interfaces/DeviceInfo.json)
+- [DeviceInfo.json](https://github.com/rdkcentral/ThunderInterfaces/blob/master/interfaces/DeviceInfo.json) (version 1.0.0)
 
 <a name="head.Methods"></a>
 # Methods
@@ -96,7 +96,6 @@ DeviceInfo interface methods:
 | [supportedresolutions](#method.supportedresolutions) | Supported resolutions on the selected video display port |
 | [defaultresolution](#method.defaultresolution) | Default resolution on the selected video display port |
 | [supportedhdcp](#method.supportedhdcp) | Supported HDCP version on the selected video display port |
-| [displaysettings](#method.displaysettings) | Current output settings on the selected video display port |
 | [audiocapabilities](#method.audiocapabilities) | Audio capabilities for the specified audio port |
 | [ms12capabilities](#method.ms12capabilities) | MS12 audio capabilities for the specified audio port |
 | [supportedms12audioprofiles](#method.supportedms12audioprofiles) | Supported MS12 audio profiles for the specified audio port |
@@ -261,66 +260,6 @@ Supported HDCP version on the selected video display port.
 }
 ```
 
-<a name="method.displaysettings"></a>
-## *displaysettings [<sup>method</sup>](#head.Methods)*
-
-Current output settings on the selected video display port.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params?.videoDisplay | string | <sup>*(optional)*</sup> Video display port name |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.colorSpace | integer | The color space. Possible values: 0 (dsDISPLAY_COLORSPACE_UNKNOWN), 1 (sDISPLAY_COLORSPACE_RGB, 2 (dsDISPLAY_COLORSPACE_YCbCr422), 3 (dsDISPLAY_COLORSPACE_YCbCr444), 4 (dsDISPLAY_COLORSPACE_YCbCr420), 5 (dsDISPLAY_COLORSPACE_AUTO) |
-| result.colorDepth | integer | The color depth |
-| result.matrixCoefficients | integer | matrix coefficients. Possible values: 0 (dsDISPLAY_MATRIXCOEFFICIENT_UNKNOWN), 1 (dsDISPLAY_MATRIXCOEFFICIENT_BT_709), 2 (dsDISPLAY_MATRIXCOEFFICIENT_BT_470_2_BG), 3 (dsDISPLAY_MATRIXCOEFFICIENT_SMPTE_170M), 4 (dsDISPLAY_MATRIXCOEFFICIENT_XvYCC_709), 5 (dsDISPLAY_MATRIXCOEFFICIENT_eXvYCC_601), 6 (dsDISPLAY_MATRIXCOEFFICIENT_BT_2020_NCL), 7 (dsDISPLAY_MATRIXCOEFFICIENT_BT_2020_CL) |
-| result.videoEOTF | integer | HDR standard. Possible values: 0x0 (dsHDRSTANDARD_NONE), 0x01 (dsHDRSTANDARD_HDR10), 0x02 (dsHDRSTANDARD_HLG), 0x04 (dsHDRSTANDARD_DolbyVision), 0x08 (dsHDRSTANDARD_TechnicolorPrime), 0x80 (dsHDRSTANDARD_Invalid) |
-| result.quantizationRange | integer | The supported quantization range |
-
-### Errors
-
-| Code | Message | Description |
-| :-------- | :-------- | :-------- |
-| 1 | ```ERROR_GENERAL``` | General error |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "DeviceInfo.1.displaysettings",
-    "params": {
-        "videoDisplay": "HDMI0"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "colorSpace": 5,
-        "colorDepth": 0,
-        "matrixCoefficients": 0,
-        "videoEOTF": 0,
-        "quantizationRange": 235
-    }
-}
-```
-
 <a name="method.audiocapabilities"></a>
 ## *audiocapabilities [<sup>method</sup>](#head.Methods)*
 
@@ -448,7 +387,7 @@ Supported MS12 audio profiles for the specified audio port.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.supportedMS12AudioProfiles | array | An array of of MS12 audio profiles |
+| result.supportedMS12AudioProfiles | array | An array of MS12 audio profiles |
 | result.supportedMS12AudioProfiles[#] | string |  |
 
 ### Errors
