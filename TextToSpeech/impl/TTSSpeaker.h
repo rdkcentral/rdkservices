@@ -35,6 +35,8 @@
 
 #if defined(PLATFORM_AMLOGIC)
 #include "audio_if.h"
+#elif defined(PLATFORM_REALTEK)
+#include "RtkHALMisc.h" 
 #endif
 // --- //
 
@@ -181,12 +183,12 @@ private:
     bool        m_pcmAudioEnabled;
 #if defined(PLATFORM_AMLOGIC)
     audio_hw_device_t *m_audio_dev;
-    enum MixGain {
-	MIXGAIN_PRIM,
-	MIXGAIN_SYS, //direct-mode=false
-	MIXGAIN_TTS //tts=mode=true
-    };
 #endif
+    enum MixGain {
+        MIXGAIN_PRIM,
+        MIXGAIN_SYS, //direct-mode=false
+        MIXGAIN_TTS //tts=mode=true
+    };
     bool        m_ensurePipeline;
     std::thread *m_gstThread;
     guint       m_busWatch;
@@ -195,9 +197,9 @@ private:
     const uint8_t     m_maxPipelineConstructionFailures;
 
 #if defined(PLATFORM_AMLOGIC)
-    bool setMixGain(MixGain gain, int val);
     bool loadInitAudioDev();
 #endif
+    void setMixGain(MixGain gain, int val);
     static void GStreamerThreadFunc(void *ctx);
     void createPipeline();
     void resetPipeline();
