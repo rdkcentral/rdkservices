@@ -222,6 +222,7 @@ namespace WPEFramework
             if (resetType.compare("COLD") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
+
                 if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
                     Warehouse::_instance->processColdFactoryReset();
                 }
@@ -232,6 +233,7 @@ namespace WPEFramework
             else if (resetType.compare("FACTORY") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
+
                 if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
                     Warehouse::_instance->processFactoryReset();
                 }
@@ -242,6 +244,7 @@ namespace WPEFramework
             else if (resetType.compare("USERFACTORY") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
+
                 if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
                     Warehouse::_instance->processUserFactoryReset();
                 }
