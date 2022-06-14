@@ -2235,7 +2235,7 @@ namespace WPEFramework {
 			string territoryStr = parameters["territory"].String();
 			LOGWARN(" Territory Value : %s ", territoryStr.c_str());
 			try{
-				if((territoryStr.length() == 3) && (isStrAlphaUpper(territoryStr) == true)){
+				if((territoryStr.length() == 3) && /*(isStrAlphaUpper(territoryStr)*/(getTerritoryList(territoryStr) == true)){
 					if(parameters.HasLabel("region")){
 						regionStr = parameters["region"].String();
 						if(regionStr != ""){
@@ -2307,12 +2307,8 @@ namespace WPEFramework {
 		m_strTerritory = "";
 		m_strRegion = "";
 		resp = readTerritoryFromFile();
-		if(resp == true){
-			if(m_strTerritory != "")
-				response["territory"] = m_strTerritory;
-			if(m_strRegion != "")
-				response["region"] = m_strRegion;
-		}
+		response["territory"] = m_strTerritory;
+		response["region"] = m_strRegion;
 		returnResponse(resp);
 	}
 
@@ -2341,6 +2337,31 @@ namespace WPEFramework {
 		return retValue;
 	}
 
+	bool SystemServices::getTerritoryList(string strTerritory)
+	{
+		bool retValue = false;
+		if(Utils::fileExists(TERRITORYLIST)){
+			ifstream inFile(TERRITORYLIST);
+                        string str;
+                        getline (inFile, str);
+                        if(str.length() > 0){
+				if( str.find(strTerritory) >=0){
+					LOGWARN(" Territory is found : " + strTerritory.c_str());
+					retValue = true;
+				}
+				else
+					 LOGWARN(" Territory is not found: " + strTerritory.c_str());
+			}
+			else{
+				retValue = false;
+				 LOGWARN(" Failed to get Territory List: " + strTerritory.c_str());
+			}
+		}else
+			 LOGWARN(" Failed to get Territory List file ");
+
+		return retValue;	
+	}
+
 	bool SystemServices::isStrAlphaUpper(string strVal)
 	{
 		try{
@@ -2348,7 +2369,7 @@ namespace WPEFramework {
 			{
 				if((isalpha(strVal[i])== 0) || (isupper(strVal[i])==0))
 				{
-					LOGERR(" -- Invalid Territory ");
+					LOGERR(" Invalid Territory ");
 					return false;
 					break;
 				}
@@ -2378,6 +2399,7 @@ namespace WPEFramework {
 		}
 		return retVal;
 	}
+
 
 	void SystemServices::onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion, string newRegion)
 	{
