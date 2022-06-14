@@ -56,7 +56,7 @@ namespace WPEFramework {
 
             //Begin methods
             virtual uint32_t getQuirks(const JsonObject& parameters, JsonObject& response) const override;
-            virtual uint32_t getCurrentState(const JsonObject& parameters, JsonObject& response) const override;
+            virtual uint32_t getCurrentState(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t startScan(const JsonObject& parameters, JsonObject& response) const override;
             virtual uint32_t stopScan(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t getConnectedSSID(const JsonObject& parameters, JsonObject& response) const override;
@@ -68,9 +68,9 @@ namespace WPEFramework {
             virtual uint32_t cancelWPSPairing(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t saveSSID(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t clearSSID(const JsonObject& parameters, JsonObject& response) override;
-            virtual uint32_t getPairedSSID(const JsonObject& parameters, JsonObject& response) const override;
-            virtual uint32_t getPairedSSIDInfo(const JsonObject& parameters, JsonObject& response) const override;
-            virtual uint32_t isPaired(const JsonObject& parameters, JsonObject& response) const override;
+            virtual uint32_t getPairedSSID(const JsonObject& parameters, JsonObject& response) override;
+            virtual uint32_t getPairedSSIDInfo(const JsonObject& parameters, JsonObject& response) override;
+            virtual uint32_t isPaired(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t setSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t isSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response) const;
             virtual uint32_t getSupportedSecurityModes(const JsonObject& parameters, JsonObject& response) override;
