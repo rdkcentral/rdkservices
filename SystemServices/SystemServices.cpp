@@ -2346,15 +2346,15 @@ namespace WPEFramework {
                         getline (inFile, str);
                         if(str.length() > 0){
 				if( str.find(strTerritory) >=0){
-					LOGWARN(" Territory is found : " + strTerritory.c_str());
+					LOGWARN(" Territory is found : " , strTerritory.c_str());
 					retValue = true;
 				}
 				else
-					 LOGWARN(" Territory is not found: " + strTerritory.c_str());
+					 LOGWARN(" Territory is not found: ", strTerritory.c_str());
 			}
 			else{
 				retValue = false;
-				 LOGWARN(" Failed to get Territory List: " + strTerritory.c_str());
+				 LOGWARN(" Failed to get Territory List: " ,strTerritory.c_str());
 			}
 		}else
 			 LOGWARN(" Failed to get Territory List file ");
