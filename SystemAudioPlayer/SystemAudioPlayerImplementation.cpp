@@ -126,7 +126,7 @@ namespace Plugin {
         CONVERT_PARAMETERS_TOJSON();
         CHECK_SAP_PARAMETER_RETURN_ON_FAIL("id");
         int id, rate, channels;
-        bool ret;
+        bool ret = false;
         string format, layout;
         AudioPlayer *player;
         getNumberParameter("id", id);
@@ -150,8 +150,13 @@ namespace Plugin {
                 getNumberConfigParameter("channels",channels);
                 SAPLOG_INFO("SAP: Do PCM config ");
                 ret= player->configPCMCaps(format,rate,channels,layout);
-                returnResponse(ret);
             }
+            if (player->getSourceType() == SourceType::WEBSOCKET && parameters.HasLabel("websocketsecparam"))
+            {
+                SAPLOG_INFO("Configuring security parameters for websocket audio player.");
+                player->configWsSecParams(extractSecurityParams(parameters));
+            }
+            returnResponse(ret);
 
         }
         returnResponse(false);
@@ -413,6 +418,36 @@ namespace Plugin {
         _adminLock.Lock();
 
         _adminLock.Unlock();
+    }
+
+    impl::SecurityParameters SystemAudioPlayerImplementation::extractSecurityParams(const JsonObject& params) const
+    {
+        impl::SecurityParameters output;
+        const auto& secParams = params.Get("websocketsecparam").Object();
+        if (secParams.HasLabel("cafilenames"))
+        {
+            const auto& CAFileNames = secParams.Get("cafilenames").Array();
+            for (int i = 0; i < CAFileNames.Length(); ++i)
+            {
+                if (CAFileNames[i].Object().HasLabel("cafilename"))
+                {
+                    output.CAFileNames.push_back(CAFileNames[i].Object().Get("cafilename").String());
+                }
+                else
+                {
+                    SAPLOG_ERROR("Malformed CA file name entry detected at index: %d.", i);
+                }
+            }
+        }
+        if (secParams.HasLabel("certfilename"))
+        {
+            output.certFileName = secParams.Get("certfilename").String();
+        }
+        if (secParams.HasLabel("keyfilename"))
+        {
+            output.keyFileName = secParams.Get("keyfilename").String();
+        }
+        return output;
     }
 
     void SystemAudioPlayerImplementation::dispatchEvent(Event event, JsonObject &params)
