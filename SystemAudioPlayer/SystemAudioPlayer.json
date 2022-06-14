@@ -77,6 +77,25 @@
                             }
                         },
                         "required": []
+                    },
+                    "websocketsecparam": {
+                        "summary": "Optional parameters, needed to establish secured websocket connection.",
+                        "type": "object",
+                        "properties": {
+                            "cafilenames": {
+                                "summary": "Array of objects with full file names of Certificate Authorities. If empty, code will try to load CAs from default system path for wss connection.",
+                                "type": "array",
+                                "example": "[ {\"cafilename\": \"/etc/ssl/certs/Xfinity_Subscriber_ECC_Root.pem\"}, {\"cafilename\": \"/etc/ssl/certs/Xfinity_Subscriber_RSA_Root.pem\"} ]"
+                            },
+                            "certfilename": {
+                                "summary": "Full file name of cert file. Needs to be in pem format. If not provided, other end of communication needs to be configured to not validate client cert.",
+                                "type": "string"
+                            },
+                            "keyfilename": {
+                                "summary": "Full file name of key file. Needs to be in pem format. Needs to be provided if cert file name is provided",
+                                "type": "string"
+                            }
+                        }
                     }
                 },
                 "required": [
