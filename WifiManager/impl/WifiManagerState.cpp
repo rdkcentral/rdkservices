@@ -46,7 +46,7 @@ namespace {
 WifiManagerState::WifiManagerState()
 {
     m_useWifiStateCache = false;
-    m_wifiStateCache = -1;
+    m_wifiStateCache = WIFI_FAILED;
 }
 
 WifiManagerState::~WifiManagerState()
