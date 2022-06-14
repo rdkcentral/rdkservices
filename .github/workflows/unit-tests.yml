@@ -226,12 +226,18 @@ jobs:
           -d build/rdkservices
 
       - name: Filter coverage
+        # Absolute path patterns.
         run: >
           lcov
           -r coverage.info
           '/usr/include/*'
           '*/build/rdkservices/_deps/*'
           '*/install/usr/include/*'
+          '*/test/headers/*'
+          '*/test/mocks/*'
+          '*/test/source/*'
+          '*/test/tests/*'
+          '*/DeviceIdentification/Implementation/Realtek/*'
           -o filtered_coverage.info
 
       - name: Generate HTML
