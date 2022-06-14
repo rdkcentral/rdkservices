@@ -21,21 +21,16 @@
 #define DEVICEINFO_DEVICEINFO_H
 
 #include "Module.h"
+#include <interfaces/IDeviceInfo.h>
 #include <interfaces/json/JsonData_DeviceInfo.h>
 
 namespace WPEFramework {
 namespace Plugin {
 
-    class DeviceInfo : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
-    private:
-        typedef Core::JSON::EnumType<JsonData::DeviceInfo::DistributoridData::DistributoridType> DistributoridJsonEnum;
-        typedef Core::JSON::EnumType<JsonData::DeviceInfo::DevicetypeData::DevicetypeType> DevicetypeJsonEnum;
-        typedef Core::JSON::EnumType<JsonData::DeviceInfo::MakeData::MakeType> MakeJsonEnum;
-        typedef Core::JSON::EnumType<JsonData::DeviceInfo::ModelidData::SkuType> SkuJsonEnum;
-        typedef Core::JSON::EnumType<JsonData::DeviceInfo::Output_resolutionType> OutputResolutionJsonEnum;
-        typedef Core::JSON::EnumType<JsonData::DeviceInfo::Copy_protectionType> CopyProtectionJsonEnum;
-        typedef Core::JSON::EnumType<JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType> AudioCapabilityJsonEnum;
-        typedef Core::JSON::EnumType<JsonData::DeviceInfo::Ms12capabilitiesResultData::Ms12capabilityType> Ms12capabilityJsonEnum;
+    class DeviceInfo : public PluginHost::IPlugin,
+                       public PluginHost::IWeb,
+                       public PluginHost::JSONRPC,
+                       public Exchange::IDeviceCapabilities {
 
     private:
         class Config : public Core::JSON::Container {
@@ -72,6 +67,37 @@ namespace Plugin {
             Core::JSON::String DefaultAudioPort;
         };
 
+        class FirmwareVersionImpl : public Exchange::IDeviceCapabilities::IFirmwareVersion {
+        public:
+            FirmwareVersionImpl() = delete;
+            FirmwareVersionImpl(const FirmwareVersionImpl&) = delete;
+            FirmwareVersionImpl& operator=(const FirmwareVersionImpl&) = delete;
+
+            FirmwareVersionImpl(const string& imagename, const string& sdk, const string& mediarite, string yocto)
+                : _imagename(imagename)
+                , _sdk(sdk)
+                , _mediarite(mediarite)
+                , _yocto(yocto)
+            {
+            }
+
+            BEGIN_INTERFACE_MAP(FirmwareVersionImpl)
+            INTERFACE_ENTRY(Exchange::IDeviceCapabilities::IFirmwareVersion)
+            END_INTERFACE_MAP
+
+            // IFirmwareVersion methods
+            string Imagename() const override { return _imagename; }
+            string Sdk() const override { return _sdk; }
+            string Mediarite() const override { return _mediarite; }
+            string Yocto() const override { return _yocto; }
+
+        private:
+            string _imagename;
+            string _sdk;
+            string _mediarite;
+            string _yocto;
+        };
+
     public:
         class Data : public Core::JSON::Container {
         public:
@@ -83,13 +109,6 @@ namespace Plugin {
                 Add(_T("addresses"), &Addresses);
                 Add(_T("systeminfo"), &SystemInfo);
                 Add(_T("sockets"), &Sockets);
-                Add(_T("firmwareversion"), &FirmwareVersion);
-                Add(_T("serialnumber"), &SerialNumber);
-                Add(_T("sku"), &Sku);
-                Add(_T("make"), &Make);
-                Add(_T("model"), &Model);
-                Add(_T("devicetype"), &DeviceType);
-                Add(_T("distributorid"), &DistributorId);
             }
 
             virtual ~Data()
@@ -100,13 +119,6 @@ namespace Plugin {
             Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData> Addresses;
             JsonData::DeviceInfo::SysteminfoData SystemInfo;
             JsonData::DeviceInfo::SocketinfoData Sockets;
-            JsonData::DeviceInfo::FirmwareversionData FirmwareVersion;
-            Core::JSON::String SerialNumber;
-            SkuJsonEnum Sku;
-            MakeJsonEnum Make;
-            Core::JSON::String Model;
-            DevicetypeJsonEnum DeviceType;
-            DistributoridJsonEnum DistributorId;
         };
 
     private:
@@ -132,6 +144,7 @@ namespace Plugin {
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IWeb)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
+        INTERFACE_ENTRY(Exchange::IDeviceCapabilities)
         END_INTERFACE_MAP
 
     public:
@@ -174,22 +187,26 @@ namespace Plugin {
         void SysInfo(JsonData::DeviceInfo::SysteminfoData& systemInfo) const;
         void AddressInfo(Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& addressInfo) const;
         void SocketPortInfo(JsonData::DeviceInfo::SocketinfoData& socketPortInfo) const;
-        uint32_t FirmwareVersion(JsonData::DeviceInfo::FirmwareversionData& firmwareVersion) const;
-        uint32_t SerialNumber(Core::JSON::String& serialNumber) const;
-        uint32_t Sku(SkuJsonEnum& sku) const;
-        uint32_t Make(MakeJsonEnum& make) const;
-        uint32_t Model(Core::JSON::String& model) const;
-        uint32_t DeviceType(DevicetypeJsonEnum& deviceType) const;
-        uint32_t DistributorId(DistributoridJsonEnum& distributorId) const;
-        uint32_t SupportedAudioPorts(Core::JSON::ArrayType<Core::JSON::String>& supportedAudioPorts) const;
-        uint32_t SupportedVideoDisplays(Core::JSON::ArrayType<Core::JSON::String>& supportedVideoDisplays) const;
-        uint32_t HostEDID(Core::JSON::String& edid) const;
-        uint32_t DefaultResolution(const string& videoDisplay, OutputResolutionJsonEnum& defaultResolution) const;
-        uint32_t SupportedResolutions(const string& videoDisplay, Core::JSON::ArrayType<OutputResolutionJsonEnum>& supportedResolutions) const;
-        uint32_t SupportedHdcp(const string& videoDisplay, CopyProtectionJsonEnum& supportedHDCPVersion) const;
-        uint32_t AudioCapabilities(const string& audioPort, Core::JSON::ArrayType<AudioCapabilityJsonEnum>& audioCapabilities) const;
-        uint32_t MS12Capabilities(const string& audioPort, Core::JSON::ArrayType<Ms12capabilityJsonEnum>& ms12Capabilities) const;
-        uint32_t SupportedMS12AudioProfiles(const string& audioPort, Core::JSON::ArrayType<Core::JSON::String>& supportedMS12AudioProfiles) const;
+
+    private:
+        //   IDeviceCapabilities methods
+        // -------------------------------------------------------------------------------------------------------
+        uint32_t FirmwareVersion(Exchange::IDeviceCapabilities::IFirmwareVersion*& firmwareVersion) const override;
+        uint32_t SerialNumber(string& serialNumber) const override;
+        uint32_t Sku(string& sku) const override;
+        uint32_t Make(string& make) const override;
+        uint32_t Model(string& model) const override;
+        uint32_t DeviceType(string& deviceType) const override;
+        uint32_t DistributorId(string& distributorId) const override;
+        uint32_t SupportedAudioPorts(RPC::IStringIterator*& supportedAudioPorts) const override;
+        uint32_t SupportedVideoDisplays(RPC::IStringIterator*& supportedVideoDisplays) const override;
+        uint32_t HostEDID(string& edid) const override;
+        uint32_t DefaultResolution(const string& videoDisplay, string& defaultResolution) const override;
+        uint32_t SupportedResolutions(const string& videoDisplay, RPC::IStringIterator*& supportedResolutions) const override;
+        uint32_t SupportedHdcp(const string& videoDisplay, Exchange::IDeviceCapabilities::CopyProtection& supportedHDCPVersion) const override;
+        uint32_t AudioCapabilities(const string& audioPort, Exchange::IDeviceCapabilities::IAudioCapabilityIterator*& audioCapabilities) const override;
+        uint32_t MS12Capabilities(const string& audioPort, Exchange::IDeviceCapabilities::IMS12CapabilityIterator*& ms12Capabilities) const override;
+        uint32_t SupportedMS12AudioProfiles(const string& audioPort, RPC::IStringIterator*& supportedMS12AudioProfiles) const override;
 
     private:
         uint8_t _skipURL;

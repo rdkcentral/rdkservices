@@ -110,7 +110,18 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::get_firmwareversion(FirmwareversionData& response) const
     {
-        return FirmwareVersion(response);
+        Exchange::IDeviceCapabilities::IFirmwareVersion* firmwareVersion = nullptr;
+
+        auto result = FirmwareVersion(firmwareVersion);
+        if (result == Core::ERROR_NONE) {
+            response.Imagename = firmwareVersion->Imagename();
+            response.Sdk = firmwareVersion->Sdk();
+            response.Mediarite = firmwareVersion->Mediarite();
+            response.Yocto = Core::EnumerateType<FirmwareversionData::YoctoType>(firmwareVersion->Yocto().c_str()).Value();
+            firmwareVersion->Release();
+        }
+
+        return result;
     }
 
     // Property: serialnumber - Serial number set by manufacturer
@@ -119,7 +130,14 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::get_serialnumber(SerialnumberData& response) const
     {
-        return SerialNumber(response.Serialnumber);
+        string serialNumber;
+
+        auto result = SerialNumber(serialNumber);
+        if (result == Core::ERROR_NONE) {
+            response.Serialnumber = serialNumber;
+        }
+
+        return result;
     }
 
     // Property: modelid - Device model number or SKU
@@ -128,7 +146,14 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::get_modelid(ModelidData& response) const
     {
-        return Sku(response.Sku);
+        string sku;
+
+        auto result = Sku(sku);
+        if (result == Core::ERROR_NONE) {
+            response.Sku = Core::EnumerateType<JsonData::DeviceInfo::ModelidData::SkuType>(sku.c_str()).Value();
+        }
+
+        return result;
     }
 
     // Property: make - Device manufacturer
@@ -137,7 +162,14 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::get_make(MakeData& response) const
     {
-        return Make(response.Make);
+        string make;
+
+        auto result = Make(make);
+        if (result == Core::ERROR_NONE) {
+            response.Make = Core::EnumerateType<JsonData::DeviceInfo::MakeData::MakeType>(make.c_str()).Value();
+        }
+
+        return result;
     }
 
     // Property: modelname - Friendly device model name
@@ -146,7 +178,14 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::get_modelname(ModelnameData& response) const
     {
-        return Model(response.Model);
+        string model;
+
+        auto result = Model(model);
+        if (result == Core::ERROR_NONE) {
+            response.Model = model;
+        }
+
+        return result;
     }
 
     // Property: devicetype - Device type
@@ -155,7 +194,14 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::get_devicetype(DevicetypeData& response) const
     {
-        return DeviceType(response.Devicetype);
+        string deviceType;
+
+        auto result = DeviceType(deviceType);
+        if (result == Core::ERROR_NONE) {
+            response.Devicetype = Core::EnumerateType<JsonData::DeviceInfo::DevicetypeData::DevicetypeType>(deviceType.c_str()).Value();
+        }
+
+        return result;
     }
 
     // Property: distributorid - Partner ID or distributor ID for device
@@ -164,7 +210,14 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::get_distributorid(DistributoridData& response) const
     {
-        return DistributorId(response.Distributorid);
+        string distributorId;
+
+        auto result = DistributorId(distributorId);
+        if (result == Core::ERROR_NONE) {
+            response.Distributorid = Core::EnumerateType<JsonData::DeviceInfo::DistributoridData::DistributoridType>(distributorId.c_str()).Value();
+        }
+
+        return result;
     }
 
     // Property: supportedaudioports - Audio ports supported on the device (all ports that are physically present)
@@ -173,7 +226,18 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::get_supportedaudioports(SupportedaudioportsData& response) const
     {
-        return SupportedAudioPorts(response.SupportedAudioPorts);
+        RPC::IStringIterator* supportedAudioPorts = nullptr;
+
+        auto result = SupportedAudioPorts(supportedAudioPorts);
+        if (result == Core::ERROR_NONE) {
+            string element;
+            while (supportedAudioPorts->Next(element) == true) {
+                response.SupportedAudioPorts.Add() = element;
+            }
+            supportedAudioPorts->Release();
+        }
+
+        return result;
     }
 
     // Property: supportedvideodisplays - Video ports supported on the device (all ports that are physically present)
@@ -182,7 +246,18 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::get_supportedvideodisplays(SupportedvideodisplaysData& response) const
     {
-        return SupportedVideoDisplays(response.SupportedVideoDisplays);
+        RPC::IStringIterator* supportedVideoDisplays = nullptr;
+
+        auto result = SupportedVideoDisplays(supportedVideoDisplays);
+        if (result == Core::ERROR_NONE) {
+            string element;
+            while (supportedVideoDisplays->Next(element) == true) {
+                response.SupportedVideoDisplays.Add() = element;
+            }
+            supportedVideoDisplays->Release();
+        }
+
+        return result;
     }
 
     // Property: hostedid - EDID of the host
@@ -191,7 +266,14 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::get_hostedid(JsonData::DeviceInfo::HostedidData& response) const
     {
-        return HostEDID(response.EDID);
+        string edid;
+
+        auto result = HostEDID(edid);
+        if (result == Core::ERROR_NONE) {
+            response.EDID = edid;
+        }
+
+        return result;
     }
 
     // Method: defaultresolution - Default resolution on the selected video display port
@@ -200,7 +282,14 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::endpoint_defaultresolution(const SupportedresolutionsParamsInfo& params, DefaultresolutionResultData& response) const
     {
-        return DefaultResolution(params.VideoDisplay.Value(), response.DefaultResolution);
+        string defaultResolution;
+
+        auto result = DefaultResolution(params.VideoDisplay.Value(), defaultResolution);
+        if (result == Core::ERROR_NONE) {
+            response.DefaultResolution = Core::EnumerateType<JsonData::DeviceInfo::Output_resolutionType>(defaultResolution.c_str()).Value();
+        }
+
+        return result;
     }
 
     // Method: supportedresolutions - Supported resolutions on the selected video display port
@@ -209,7 +298,18 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::endpoint_supportedresolutions(const SupportedresolutionsParamsInfo& params, SupportedresolutionsResultData& response) const
     {
-        return SupportedResolutions(params.VideoDisplay.Value(), response.SupportedResolutions);
+        RPC::IStringIterator* supportedResolutions = nullptr;
+
+        auto result = SupportedResolutions(params.VideoDisplay.Value(), supportedResolutions);
+        if (result == Core::ERROR_NONE) {
+            string element;
+            while (supportedResolutions->Next(element) == true) {
+                response.SupportedResolutions.Add() = Core::EnumerateType<JsonData::DeviceInfo::Output_resolutionType>(element.c_str()).Value();
+            }
+            supportedResolutions->Release();
+        }
+
+        return result;
     }
 
     // Method: supportedhdcp - Supported HDCP version on the selected video display port
@@ -218,7 +318,14 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::endpoint_supportedhdcp(const SupportedresolutionsParamsInfo& params, SupportedhdcpResultData& response) const
     {
-        return SupportedHdcp(params.VideoDisplay.Value(), response.SupportedHDCPVersion);
+        Exchange::IDeviceCapabilities::CopyProtection supportedHDCPVersion;
+
+        auto result = SupportedHdcp(params.VideoDisplay.Value(), supportedHDCPVersion);
+        if (result == Core::ERROR_NONE) {
+            response.SupportedHDCPVersion = JsonData::DeviceInfo::Copy_protectionType(supportedHDCPVersion);
+        }
+
+        return result;
     }
 
     // Method: audiocapabilities - Audio capabilities for the specified audio port
@@ -227,7 +334,18 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::endpoint_audiocapabilities(const JsonData::DeviceInfo::AudiocapabilitiesParamsInfo& params, JsonData::DeviceInfo::AudiocapabilitiesResultData& response) const
     {
-        return AudioCapabilities(params.AudioPort.Value(), response.AudioCapabilities);
+        Exchange::IDeviceCapabilities::IAudioCapabilityIterator* audioCapabilities = nullptr;
+
+        auto result = AudioCapabilities(params.AudioPort.Value(), audioCapabilities);
+        if (result == Core::ERROR_NONE) {
+            Exchange::IDeviceCapabilities::AudioCapability element;
+            while (audioCapabilities->Next(element) == true) {
+                response.AudioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType(element);
+            }
+            audioCapabilities->Release();
+        }
+
+        return result;
     }
 
     // Method: ms12capabilities - MS12 audio capabilities for the specified audio port
@@ -236,7 +354,18 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::endpoint_ms12capabilities(const JsonData::DeviceInfo::AudiocapabilitiesParamsInfo& params, JsonData::DeviceInfo::Ms12capabilitiesResultData& response) const
     {
-        return MS12Capabilities(params.AudioPort.Value(), response.MS12Capabilities);
+        Exchange::IDeviceCapabilities::IMS12CapabilityIterator* ms12Capabilities = nullptr;
+
+        auto result = MS12Capabilities(params.AudioPort.Value(), ms12Capabilities);
+        if (result == Core::ERROR_NONE) {
+            Exchange::IDeviceCapabilities::MS12Capability element;
+            while (ms12Capabilities->Next(element) == true) {
+                response.MS12Capabilities.Add() = JsonData::DeviceInfo::Ms12capabilitiesResultData::Ms12capabilityType(element);
+            }
+            ms12Capabilities->Release();
+        }
+
+        return result;
     }
 
     // Method: supportedms12audioprofiles - Supported MS12 audio profiles for the specified audio port
@@ -245,7 +374,18 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::endpoint_supportedms12audioprofiles(const JsonData::DeviceInfo::AudiocapabilitiesParamsInfo& params, JsonData::DeviceInfo::Supportedms12audioprofilesResultData& response) const
     {
-        return SupportedMS12AudioProfiles(params.AudioPort.Value(), response.SupportedMS12AudioProfiles);
+        RPC::IStringIterator* supportedMS12AudioProfiles = nullptr;
+
+        auto result = SupportedMS12AudioProfiles(params.AudioPort.Value(), supportedMS12AudioProfiles);
+        if (result == Core::ERROR_NONE) {
+            string element;
+            while (supportedMS12AudioProfiles->Next(element) == true) {
+                response.SupportedMS12AudioProfiles.Add() = element;
+            }
+            supportedMS12AudioProfiles->Release();
+        }
+
+        return result;
     }
 
 } // namespace Plugin

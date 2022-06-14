@@ -30,13 +30,6 @@
 namespace WPEFramework {
 namespace Plugin {
 
-    typedef Core::EnumerateType<JsonData::DeviceInfo::DistributoridData::DistributoridType> DistributoridEnum;
-    typedef Core::EnumerateType<JsonData::DeviceInfo::DevicetypeData::DevicetypeType> DevicetypeEnum;
-    typedef Core::EnumerateType<JsonData::DeviceInfo::MakeData::MakeType> MakeEnum;
-    typedef Core::EnumerateType<JsonData::DeviceInfo::ModelidData::SkuType> SkuEnum;
-    typedef Core::EnumerateType<JsonData::DeviceInfo::FirmwareversionData::YoctoType> YoctoEnum;
-    typedef Core::EnumerateType<JsonData::DeviceInfo::Output_resolutionType> OutputResolutionEnum;
-
     SERVICE_REGISTRATION(DeviceInfo, 1, 0);
 
     static Core::ProxyPoolType<Web::JSONBodyType<DeviceInfo::Data>> jsonResponseFactory(4);
@@ -107,13 +100,6 @@ namespace Plugin {
                 AddressInfo(response->Addresses);
                 SysInfo(response->SystemInfo);
                 SocketPortInfo(response->Sockets);
-                FirmwareVersion(response->FirmwareVersion);
-                SerialNumber(response->SerialNumber);
-                Sku(response->Sku);
-                Make(response->Make);
-                Model(response->Model);
-                DeviceType(response->DeviceType);
-                DistributorId(response->DistributorId);
             } else if (index.Current() == "Adresses") {
                 AddressInfo(response->Addresses);
             } else if (index.Current() == "System") {
@@ -176,9 +162,14 @@ namespace Plugin {
         socketPortInfo.Runs = Core::ResourceMonitor::Instance().Runs();
     }
 
-    uint32_t DeviceInfo::FirmwareVersion(JsonData::DeviceInfo::FirmwareversionData& firmwareVersion) const
+    uint32_t DeviceInfo::FirmwareVersion(Exchange::IDeviceCapabilities::IFirmwareVersion*& firmwareVersion) const
     {
         uint32_t result = Core::ERROR_GENERAL;
+
+        string imagename;
+        string sdk;
+        string mediarite;
+        string yocto;
 
         std::ifstream file(_config.VersionFile.Value());
 
@@ -187,22 +178,26 @@ namespace Plugin {
 
             while (std::getline(file, line)) {
                 if (line.rfind(_T("imagename"), 0) == 0) {
-                    firmwareVersion.Imagename = line.substr(line.find(':') + 1);
+                    imagename = line.substr(line.find(':') + 1);
                     result = Core::ERROR_NONE;
                 } else if (line.rfind(_T("YOCTO_VERSION"), 0) == 0) {
-                    firmwareVersion.Yocto = YoctoEnum(line.substr(line.find('=') + 1).c_str()).Value();
+                    yocto = line.substr(line.find('=') + 1);
                 } else if (line.rfind(_T("SDK_VERSION"), 0) == 0) {
-                    firmwareVersion.Sdk = line.substr(line.find('=') + 1);
+                    sdk = line.substr(line.find('=') + 1);
                 } else if (line.rfind(_T("MEDIARITE"), 0) == 0) {
-                    firmwareVersion.Mediarite = line.substr(line.find('=') + 1);
+                    mediarite = line.substr(line.find('=') + 1);
                 }
             }
+        }
+
+        if (result == Core::ERROR_NONE) {
+            firmwareVersion = (Core::Service<FirmwareVersionImpl>::Create<Exchange::IDeviceCapabilities::IFirmwareVersion>(imagename, sdk, mediarite, yocto));
         }
 
         return result;
     }
 
-    uint32_t DeviceInfo::SerialNumber(Core::JSON::String& serialNumber) const
+    uint32_t DeviceInfo::SerialNumber(string& serialNumber) const
     {
         uint32_t result = Core::ERROR_GENERAL;
 
@@ -228,7 +223,7 @@ namespace Plugin {
         return result;
     }
 
-    uint32_t DeviceInfo::Sku(SkuJsonEnum& sku) const
+    uint32_t DeviceInfo::Sku(string& sku) const
     {
         uint32_t result = Core::ERROR_GENERAL;
 
@@ -237,7 +232,7 @@ namespace Plugin {
         auto status = getRFCParameter(nullptr, _config.RfcModelName.Value().c_str(), &param);
 
         if (status == WDMP_SUCCESS) {
-            sku = SkuEnum(param.value).Value();
+            sku = param.value;
             result = Core::ERROR_NONE;
         } else {
             std::ifstream file(_config.DeviceProperties.Value());
@@ -246,7 +241,7 @@ namespace Plugin {
                 string line;
                 while (std::getline(file, line)) {
                     if (line.rfind(_T("MODEL_NUM"), 0) == 0) {
-                        sku = SkuEnum(line.substr(line.find('=') + 1).c_str()).Value();
+                        sku = line.substr(line.find('=') + 1);
                         result = Core::ERROR_NONE;
 
                         break;
@@ -258,7 +253,7 @@ namespace Plugin {
         return result;
     }
 
-    uint32_t DeviceInfo::Make(MakeJsonEnum& make) const
+    uint32_t DeviceInfo::Make(string& make) const
     {
         uint32_t result = Core::ERROR_GENERAL;
 
@@ -268,7 +263,7 @@ namespace Plugin {
             string line;
             while (std::getline(file, line)) {
                 if (line.rfind(_T("MFG_NAME"), 0) == 0) {
-                    make = MakeEnum(line.substr(line.find('=') + 1).c_str()).Value();
+                    make = line.substr(line.find('=') + 1);
                     result = Core::ERROR_NONE;
 
                     break;
@@ -279,7 +274,7 @@ namespace Plugin {
         return result;
     }
 
-    uint32_t DeviceInfo::Model(Core::JSON::String& model) const
+    uint32_t DeviceInfo::Model(string& model) const
     {
         uint32_t result = Core::ERROR_GENERAL;
 
@@ -302,7 +297,7 @@ namespace Plugin {
         return result;
     }
 
-    uint32_t DeviceInfo::DeviceType(DevicetypeJsonEnum& deviceType) const
+    uint32_t DeviceInfo::DeviceType(string& deviceType) const
     {
         uint32_t result = Core::ERROR_GENERAL;
 
@@ -312,7 +307,7 @@ namespace Plugin {
             string line;
             while (std::getline(file, line)) {
                 if (line.rfind(_T("deviceType"), 0) == 0) {
-                    deviceType = DevicetypeEnum(line.substr(line.find('=') + 1).c_str()).Value();
+                    deviceType = line.substr(line.find('=') + 1);
                     result = Core::ERROR_NONE;
 
                     break;
@@ -323,7 +318,7 @@ namespace Plugin {
         return result;
     }
 
-    uint32_t DeviceInfo::DistributorId(DistributoridJsonEnum& distributorId) const
+    uint32_t DeviceInfo::DistributorId(string& distributorId) const
     {
         uint32_t result = Core::ERROR_GENERAL;
 
@@ -332,7 +327,7 @@ namespace Plugin {
         auto status = getRFCParameter(nullptr, _config.RfcPartnerId.Value().c_str(), &param);
 
         if (status == WDMP_SUCCESS) {
-            distributorId = DistributoridEnum(param.value).Value();
+            distributorId = param.value;
             result = Core::ERROR_NONE;
         } else {
             std::ifstream file(_config.PartnerIdFile.Value());
@@ -340,7 +335,7 @@ namespace Plugin {
             if (file) {
                 string line;
                 if (std::getline(file, line)) {
-                    distributorId = DistributoridEnum(line.c_str()).Value();
+                    distributorId = line;
                     result = Core::ERROR_NONE;
                 }
             }
@@ -349,39 +344,51 @@ namespace Plugin {
         return result;
     }
 
-    uint32_t DeviceInfo::SupportedAudioPorts(Core::JSON::ArrayType<Core::JSON::String>& supportedAudioPorts) const
+    uint32_t DeviceInfo::SupportedAudioPorts(RPC::IStringIterator*& supportedAudioPorts) const
     {
         uint32_t result = Core::ERROR_NONE;
+
+        std::list<string> list;
 
         try {
             const auto& aPorts = device::Host::getInstance().getAudioOutputPorts();
             for (size_t i = 0; i < aPorts.size(); i++) {
-                supportedAudioPorts.Add() = aPorts.at(i).getName();
+                list.emplace_back(aPorts.at(i).getName());
             }
         } catch (...) {
             result = Core::ERROR_GENERAL;
         }
 
+        if (result == Core::ERROR_NONE) {
+            supportedAudioPorts = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(list));
+        }
+
         return result;
     }
 
-    uint32_t DeviceInfo::SupportedVideoDisplays(Core::JSON::ArrayType<Core::JSON::String>& supportedVideoDisplays) const
+    uint32_t DeviceInfo::SupportedVideoDisplays(RPC::IStringIterator*& supportedVideoDisplays) const
     {
         uint32_t result = Core::ERROR_NONE;
+
+        std::list<string> list;
 
         try {
             const auto& vPorts = device::Host::getInstance().getVideoOutputPorts();
             for (size_t i = 0; i < vPorts.size(); i++) {
-                supportedVideoDisplays.Add() = vPorts.at(i).getName();
+                list.emplace_back(vPorts.at(i).getName());
             }
         } catch (...) {
             result = Core::ERROR_GENERAL;
         }
 
+        if (result == Core::ERROR_NONE) {
+            supportedVideoDisplays = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(list));
+        }
+
         return result;
     }
 
-    uint32_t DeviceInfo::HostEDID(Core::JSON::String& edid) const
+    uint32_t DeviceInfo::HostEDID(string& edid) const
     {
         uint32_t result = Core::ERROR_NONE;
 
@@ -410,14 +417,14 @@ namespace Plugin {
         return result;
     }
 
-    uint32_t DeviceInfo::DefaultResolution(const string& videoDisplay, OutputResolutionJsonEnum& defaultResolution) const
+    uint32_t DeviceInfo::DefaultResolution(const string& videoDisplay, string& defaultResolution) const
     {
         uint32_t result = Core::ERROR_NONE;
 
         try {
             auto strVideoPort = videoDisplay.empty() ? device::Host::getInstance().getDefaultVideoPortName() : videoDisplay;
             auto& vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort);
-            defaultResolution = OutputResolutionEnum(vPort.getDefaultResolution().getName().c_str()).Value();
+            defaultResolution = vPort.getDefaultResolution().getName();
         } catch (...) {
             result = Core::ERROR_GENERAL;
         }
@@ -425,25 +432,31 @@ namespace Plugin {
         return result;
     }
 
-    uint32_t DeviceInfo::SupportedResolutions(const string& videoDisplay, Core::JSON::ArrayType<OutputResolutionJsonEnum>& supportedResolutions) const
+    uint32_t DeviceInfo::SupportedResolutions(const string& videoDisplay, RPC::IStringIterator*& supportedResolutions) const
     {
         uint32_t result = Core::ERROR_NONE;
+
+        std::list<string> list;
 
         try {
             auto strVideoPort = videoDisplay.empty() ? device::Host::getInstance().getDefaultVideoPortName() : videoDisplay;
             auto& vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort);
             const auto resolutions = device::VideoOutputPortConfig::getInstance().getPortType(vPort.getType().getId()).getSupportedResolutions();
             for (size_t i = 0; i < resolutions.size(); i++) {
-                supportedResolutions.Add() = OutputResolutionEnum(resolutions.at(i).getName().c_str()).Value();
+                list.emplace_back(resolutions.at(i).getName());
             }
         } catch (...) {
             result = Core::ERROR_GENERAL;
         }
 
+        if (result == Core::ERROR_NONE) {
+            supportedResolutions = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(list));
+        }
+
         return result;
     }
 
-    uint32_t DeviceInfo::SupportedHdcp(const string& videoDisplay, CopyProtectionJsonEnum& supportedHDCPVersion) const
+    uint32_t DeviceInfo::SupportedHdcp(const string& videoDisplay, Exchange::IDeviceCapabilities::CopyProtection& supportedHDCPVersion) const
     {
         uint32_t result = Core::ERROR_NONE;
 
@@ -452,10 +465,10 @@ namespace Plugin {
             auto& vPort = device::VideoOutputPortConfig::getInstance().getPort(strVideoPort);
             switch (vPort.getHDCPProtocol()) {
             case dsHDCP_VERSION_2X:
-                supportedHDCPVersion = JsonData::DeviceInfo::Copy_protectionType::HDCP_22;
+                supportedHDCPVersion = Exchange::IDeviceCapabilities::CopyProtection::HDCP_22;
                 break;
             case dsHDCP_VERSION_1X:
-                supportedHDCPVersion = JsonData::DeviceInfo::Copy_protectionType::HDCP_14;
+                supportedHDCPVersion = Exchange::IDeviceCapabilities::CopyProtection::HDCP_14;
                 break;
             default:
                 result = Core::ERROR_GENERAL;
@@ -467,9 +480,11 @@ namespace Plugin {
         return result;
     }
 
-    uint32_t DeviceInfo::AudioCapabilities(const string& audioPort, Core::JSON::ArrayType<AudioCapabilityJsonEnum>& audioCapabilities) const
+    uint32_t DeviceInfo::AudioCapabilities(const string& audioPort, Exchange::IDeviceCapabilities::IAudioCapabilityIterator*& audioCapabilities) const
     {
         uint32_t result = Core::ERROR_NONE;
+
+        std::list<Exchange::IDeviceCapabilities::AudioCapability> list;
 
         int capabilities = dsAUDIOSUPPORT_NONE;
 
@@ -482,26 +497,32 @@ namespace Plugin {
         }
 
         if (!capabilities)
-            audioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType::NONE;
+            list.emplace_back(Exchange::IDeviceCapabilities::AudioCapability::AUDIOCAPABILITY_NONE);
         if (capabilities & dsAUDIOSUPPORT_ATMOS)
-            audioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType::ATMOS;
+            list.emplace_back(Exchange::IDeviceCapabilities::AudioCapability::ATMOS);
         if (capabilities & dsAUDIOSUPPORT_DD)
-            audioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType::DD;
+            list.emplace_back(Exchange::IDeviceCapabilities::AudioCapability::DD);
         if (capabilities & dsAUDIOSUPPORT_DDPLUS)
-            audioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType::DDPLUS;
+            list.emplace_back(Exchange::IDeviceCapabilities::AudioCapability::DDPLUS);
         if (capabilities & dsAUDIOSUPPORT_DAD)
-            audioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType::DAD;
+            list.emplace_back(Exchange::IDeviceCapabilities::AudioCapability::DAD);
         if (capabilities & dsAUDIOSUPPORT_DAPv2)
-            audioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType::DAPV2;
+            list.emplace_back(Exchange::IDeviceCapabilities::AudioCapability::DAPV2);
         if (capabilities & dsAUDIOSUPPORT_MS12)
-            audioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType::MS12;
+            list.emplace_back(Exchange::IDeviceCapabilities::AudioCapability::MS12);
+
+        if (result == Core::ERROR_NONE) {
+            audioCapabilities = (Core::Service<RPC::IteratorType<Exchange::IDeviceCapabilities::IAudioCapabilityIterator>>::Create<Exchange::IDeviceCapabilities::IAudioCapabilityIterator>(list));
+        }
 
         return result;
     }
 
-    uint32_t DeviceInfo::MS12Capabilities(const string& audioPort, Core::JSON::ArrayType<Ms12capabilityJsonEnum>& ms12Capabilities) const
+    uint32_t DeviceInfo::MS12Capabilities(const string& audioPort, Exchange::IDeviceCapabilities::IMS12CapabilityIterator*& ms12Capabilities) const
     {
         uint32_t result = Core::ERROR_NONE;
+
+        std::list<Exchange::IDeviceCapabilities::MS12Capability> list;
 
         int capabilities = dsMS12SUPPORT_NONE;
 
@@ -514,30 +535,40 @@ namespace Plugin {
         }
 
         if (!capabilities)
-            ms12Capabilities.Add() = JsonData::DeviceInfo::Ms12capabilitiesResultData::Ms12capabilityType::NONE;
+            list.emplace_back(Exchange::IDeviceCapabilities::MS12Capability::MS12CAPABILITY_NONE);
         if (capabilities & dsMS12SUPPORT_DolbyVolume)
-            ms12Capabilities.Add() = JsonData::DeviceInfo::Ms12capabilitiesResultData::Ms12capabilityType::DOLBYVOLUME;
+            list.emplace_back(Exchange::IDeviceCapabilities::MS12Capability::DOLBYVOLUME);
         if (capabilities & dsMS12SUPPORT_InteligentEqualizer)
-            ms12Capabilities.Add() = JsonData::DeviceInfo::Ms12capabilitiesResultData::Ms12capabilityType::INTELIGENTEQUALIZER;
+            list.emplace_back(Exchange::IDeviceCapabilities::MS12Capability::INTELIGENTEQUALIZER);
         if (capabilities & dsMS12SUPPORT_DialogueEnhancer)
-            ms12Capabilities.Add() = JsonData::DeviceInfo::Ms12capabilitiesResultData::Ms12capabilityType::DIALOGUEENHANCER;
+            list.emplace_back(Exchange::IDeviceCapabilities::MS12Capability::DIALOGUEENHANCER);
+
+        if (result == Core::ERROR_NONE) {
+            ms12Capabilities = (Core::Service<RPC::IteratorType<Exchange::IDeviceCapabilities::IMS12CapabilityIterator>>::Create<Exchange::IDeviceCapabilities::IMS12CapabilityIterator>(list));
+        }
 
         return result;
     }
 
-    uint32_t DeviceInfo::SupportedMS12AudioProfiles(const string& audioPort, Core::JSON::ArrayType<Core::JSON::String>& supportedMS12AudioProfiles) const
+    uint32_t DeviceInfo::SupportedMS12AudioProfiles(const string& audioPort, RPC::IStringIterator*& supportedMS12AudioProfiles) const
     {
         uint32_t result = Core::ERROR_NONE;
+
+        std::list<string> list;
 
         try {
             auto strAudioPort = audioPort.empty() ? _config.DefaultAudioPort.Value() : audioPort;
             auto& aPort = device::Host::getInstance().getAudioOutputPort(strAudioPort);
             const auto supportedProfiles = aPort.getMS12AudioProfileList();
             for (size_t i = 0; i < supportedProfiles.size(); i++) {
-                supportedMS12AudioProfiles.Add() = supportedProfiles.at(i);
+                list.emplace_back(supportedProfiles.at(i));
             }
         } catch (...) {
             result = Core::ERROR_GENERAL;
+        }
+
+        if (result == Core::ERROR_NONE) {
+            supportedMS12AudioProfiles = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(list));
         }
 
         return result;
