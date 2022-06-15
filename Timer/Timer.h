@@ -97,10 +97,13 @@ namespace WPEFramework {
             void onTimerCallback();
             void getTimerStatus(int timerId, JsonObject& output, bool writeTimerId = false);
 
+        protected:
+            void InitializeIARM();
+
         public:
             Timer();
             virtual ~Timer();
-            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
+            virtual const string Initialize(PluginHost::IShell* shell) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override { return {}; }
 

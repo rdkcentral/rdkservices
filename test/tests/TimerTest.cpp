@@ -38,9 +38,78 @@ protected:
     Core::ProxyType<TimerTestMock> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
+<<<<<<< HEAD
+=======
+    string response;
+>>>>>>> 89632f91 (RDK-36576: Add Unit Tests for RDKServices Timer Plugin)
 };
 
 TEST_F(TimerTestFixture, registeredMethods)
 {
+<<<<<<< HEAD
     GTEST_SKIP();
 }
+=======
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("startTimer")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("cancel")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("suspend")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("resume")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getTimerStatus")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getTimers")));
+}
+
+TEST_F(TimerTestFixture, paramsMissing)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), _T("{}"), response));
+    EXPECT_EQ(response,
+       _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cancel"), _T("{}"), response));
+    EXPECT_EQ(response,
+       _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("suspend"), _T("{}"), response));
+    EXPECT_EQ(response,
+       _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resume"), _T("{}"), response));
+    EXPECT_EQ(response,
+       _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimerStatus"), _T("{}"), response));
+    EXPECT_EQ(response,
+       _T("{\"success\":false}"));
+}
+
+TEST_F(TimerTestFixture, timerAPITest)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), _T("{\"interval\":10}"), response));
+    //EXPECT_THAT(response, testing::MatchesRegex("timerId*"));
+    EXPECT_THAT(response, testing::HasSubstr("timerId"));
+    EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
+
+    //Extract timer id from response
+    JsonObject params;
+    EXPECT_TRUE(params.FromString(response));
+    EXPECT_TRUE(params.HasLabel(_T("timerId")));
+    string stimerID = params["timerId"].String();
+    std::string str = "{\"timerId\":" + stimerID + "}";
+
+    //get timer status
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimerStatus"), str.c_str(), response));
+    EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
+
+    //get all timers
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimers"), _T("{}"), response));
+    EXPECT_THAT(response, testing::HasSubstr("timerId"));
+
+    //Suspend the timer
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("suspend"), str.c_str(), response));
+    EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
+
+    //Resume the timer
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resume"), str.c_str(), response));
+    EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
+
+    //Cancel the timer
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cancel"), str.c_str(), response));
+    EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
+}
+
+>>>>>>> 89632f91 (RDK-36576: Add Unit Tests for RDKServices Timer Plugin)
