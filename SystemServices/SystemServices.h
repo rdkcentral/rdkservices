@@ -66,7 +66,7 @@ using std::ofstream;
 #define EVT_ONTERRITORYCHANGED            "onTerritoryChanged"
 #define EVT_ONTIMEZONEDSTCHANGED          "onTimeZoneDSTChanged"
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
-#define TERRITORYLIST			  "/opt/secure/TerritoryList"
+#define TERRITORYLIST			  "/opt/secure/TerritoryList.txt"
 
 namespace WPEFramework {
     namespace Plugin {
