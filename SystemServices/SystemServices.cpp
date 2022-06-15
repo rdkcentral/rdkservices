@@ -2224,8 +2224,15 @@ namespace WPEFramework {
 
 	uint32_t SystemServices::setTerritory(const JsonObject& parameters, JsonObject& response)
 	{
+
 		bool resp = false;
 		if(parameters.HasLabel("territory")){
+			struct stat st = {0};
+
+			if (stat("/opt/secure/persistent/System", &st) == -1) {
+    				int ret = mkdir("/opt/secure/persistent/System", 0700);
+				LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
+			}
 			if(!Utils::fileExists(TERRITORYFILE)){
 				system("mkdir -p /opt/secure/persistent/System/");
 				LOGWARN(" Territory : Subdirectories created " );
