@@ -128,9 +128,22 @@ namespace Plugin {
         systemInfo.Uptime = singleton.GetUpTime();
         systemInfo.Freeram = singleton.GetFreeRam();
         systemInfo.Totalram = singleton.GetTotalRam();
+        systemInfo.Totalswap = singleton.GetTotalSwap();
+        systemInfo.Freeswap = singleton.GetFreeSwap();
         systemInfo.Devicename = singleton.GetHostName();
         systemInfo.Cpuload = Core::NumberType<uint32_t>(static_cast<uint32_t>(singleton.GetCpuLoad())).Text();
         systemInfo.Serialnumber = _systemId;
+
+        auto cpuloadavg = singleton.GetCpuLoadAvg();
+        if (cpuloadavg != nullptr) {
+            systemInfo.Cpuloadavg.Avg1min = *(cpuloadavg);
+            if (++cpuloadavg != nullptr) {
+                systemInfo.Cpuloadavg.Avg5min = *(cpuloadavg);
+                if (++cpuloadavg != nullptr) {
+                    systemInfo.Cpuloadavg.Avg15min = *(cpuloadavg);
+                }
+            }
+        }
     }
 
     void DeviceInfo::AddressInfo(Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& addressInfo) const

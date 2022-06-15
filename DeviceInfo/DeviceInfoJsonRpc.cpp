@@ -322,7 +322,7 @@ namespace Plugin {
 
         auto result = SupportedHdcp(params.VideoDisplay.Value(), supportedHDCPVersion);
         if (result == Core::ERROR_NONE) {
-            response.SupportedHDCPVersion = JsonData::DeviceInfo::Copy_protectionType(supportedHDCPVersion);
+            response.SupportedHDCPVersion = JsonData::DeviceInfo::SupportedhdcpResultData::Copy_protectionType(supportedHDCPVersion);
         }
 
         return result;

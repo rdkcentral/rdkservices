@@ -434,7 +434,6 @@ DeviceInfo interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [stbcapabilities](#property.stbcapabilities) <sup>RO</sup> | Capabilities of the STB |
 | [systeminfo](#property.systeminfo) <sup>RO</sup> | System general information |
 | [addresses](#property.addresses) <sup>RO</sup> | Network interface addresses |
 | [socketinfo](#property.socketinfo) <sup>RO</sup> | Socket information |
@@ -449,65 +448,6 @@ DeviceInfo interface properties:
 | [supportedvideodisplays](#property.supportedvideodisplays) <sup>RO</sup> | Video ports supported on the device (all ports that are physically present) |
 | [hostedid](#property.hostedid) <sup>RO</sup> | EDID of the host |
 
-
-<a name="property.stbcapabilities"></a>
-## *stbcapabilities [<sup>property</sup>](#head.Properties)*
-
-Provides access to the capabilities of the STB.
-
-> This property is **read-only**.
-
-### Value
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| (property) | object | Capabilities of the STB |
-| (property).hdr | boolean | Is HDR supported by this device |
-| (property).atmos | boolean | Is Atmos supported by this device |
-| (property).cec | boolean | Is CEC supported by this device |
-| (property).hdcp | string | HDCP support (must be one of the following: *unavailable*, *1.4*, *2.0*, *2.1*, *2.2*) |
-| (property).audio_outputs | array | Audio Output support |
-| (property).audio_outputs[#] | string | Audio output supported by the STB (must be one of the following: *other*, *rf_modulator*, *analog*, *spdif*, *hdmi*, *displayport*) |
-| (property).video_outputs | array | Video Output support |
-| (property).video_outputs[#] | string | Video output supported by the STB (must be one of the following: *other*, *rf_modulator*, *composite*, *svideo*, *component*, *scart_rgb*, *hdmi*, *displayport*) |
-| (property).output_resolutions | array | Supported resolutions |
-| (property).output_resolutions[#] | string | Resolution supported by the STB (must be one of the following: *unknown*, *480i*, *480p*, *576i*, *576p*, *576p50*, *720p*, *720p50*, *1080i*, *1080i25*, *1080i50*, *1080p*, *1080p24*, *1080p25*, *1080p30*, *1080p50*, *1080p60*, *2160p30*, *2160p50*, *2160p60*, *4320p30*, *4320p60*) |
-
-### Example
-
-#### Get Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "DeviceInfo.1.stbcapabilities"
-}
-```
-
-#### Get Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "hdr": false,
-        "atmos": false,
-        "cec": true,
-        "hdcp": "2.0",
-        "audio_outputs": [
-            "analog"
-        ],
-        "video_outputs": [
-            "displayport"
-        ],
-        "output_resolutions": [
-            "1080p"
-        ]
-    }
-}
-```
 
 <a name="property.systeminfo"></a>
 ## *systeminfo [<sup>property</sup>](#head.Properties)*
@@ -634,11 +574,6 @@ Provides access to the socket information.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | (property) | object | Socket information |
-| (property)?.total | number | <sup>*(optional)*</sup>  |
-| (property)?.open | number | <sup>*(optional)*</sup>  |
-| (property)?.link | number | <sup>*(optional)*</sup>  |
-| (property)?.exception | number | <sup>*(optional)*</sup>  |
-| (property)?.shutdown | number | <sup>*(optional)*</sup>  |
 | (property).runs | number | Number of runs |
 
 ### Example
@@ -660,11 +595,6 @@ Provides access to the socket information.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "total": 0,
-        "open": 0,
-        "link": 0,
-        "exception": 0,
-        "shutdown": 0,
         "runs": 1
     }
 }

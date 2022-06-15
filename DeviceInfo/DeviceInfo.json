@@ -39,52 +39,6 @@
         "avg15min"
       ]
     },
-    "audio_output": {
-      "type": "string",
-      "enum": [
-        "other",
-        "rf_modulator",
-        "analog",
-        "spdif",
-        "hdmi",
-        "displayport"
-      ],
-      "enumvalues": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5
-      ],
-      "description": "Audio output supported by the STB",
-      "example": "analog"
-    },
-    "video_output": {
-      "type": "string",
-      "enum": [
-        "other",
-        "rf_modulator",
-        "composite",
-        "svideo",
-        "component",
-        "scart_rgb",
-        "hdmi",
-        "displayport"
-      ],
-      "enumvalues": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7
-      ],
-      "description": "Video output supported by the STB",
-      "example": "displayport"
-    },
     "output_resolution": {
       "type": "string",
       "enum": [
@@ -111,6 +65,30 @@
         "4320p30",
         "4320p60"
       ],
+      "enumids": [
+        "RESOLUTION_UNKNOWN",
+        "RESOLUTION_480I",
+        "RESOLUTION_480P",
+        "RESOLUTION_576I",
+        "RESOLUTION_576P",
+        "RESOLUTION_576P50",
+        "RESOLUTION_720P",
+        "RESOLUTION_720P50",
+        "RESOLUTION_1080I",
+        "RESOLUTION_1080I25",
+        "RESOLUTION_1080I50",
+        "RESOLUTION_1080P",
+        "RESOLUTION_1080P24",
+        "RESOLUTION_1080P25",
+        "RESOLUTION_1080P30",
+        "RESOLUTION_1080P50",
+        "RESOLUTION_1080P60",
+        "RESOLUTION_2160P30",
+        "RESOLUTION_2160P50",
+        "RESOLUTION_2160P60",
+        "RESOLUTION_4320P30",
+        "RESOLUTION_4320P60"
+      ],
       "description": "Resolution supported by the STB",
       "example": "1080p"
     },
@@ -124,7 +102,7 @@
         "2.2"
       ],
       "enumids": [
-        "UNAVAILABLE",
+        "HDCP_UNAVAILABLE",
         "HDCP_14",
         "HDCP_20",
         "HDCP_21",
@@ -132,18 +110,6 @@
       ],
       "description": "HDCP support",
       "example": "2.0"
-    },
-    "audio_outputs": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/audio_output"
-      }
-    },
-    "video_outputs": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/video_output"
-      }
     },
     "output_resolutions": {
       "type": "array",
@@ -289,63 +255,6 @@
     }
   },
   "properties": {
-    "stbcapabilities": {
-      "summary": "Capabilities of the STB",
-      "readonly": true,
-      "params": {
-        "type": "object",
-        "properties": {
-          "hdr": {
-            "description": "Is HDR supported by this device",
-            "type": "boolean",
-            "example": false
-          },
-          "atmos": {
-            "description": "Is Atmos supported by this device",
-            "type": "boolean",
-            "example": false
-          },
-          "cec": {
-            "description": "Is CEC supported by this device",
-            "type": "boolean",
-            "example": true
-          },
-          "hdcp": {
-            "description": "HDCP support",
-            "type": "string",
-            "$ref": "#/definitions/copy_protection",
-            "example": "2.0"
-          },
-          "audio_outputs": {
-            "description": "Audio Output support",
-            "type": "string",
-            "$ref": "#/definitions/audio_outputs",
-            "example": "[hdmi, spdif]"
-          },
-          "video_outputs": {
-            "description": "Video Output support",
-            "type": "string",
-            "$ref": "#/definitions/video_outputs",
-            "example": "[hdmi, displayport]"
-          },
-          "output_resolutions": {
-            "description": "Supported resolutions",
-            "type": "string",
-            "$ref": "#/definitions/output_resolutions",
-            "example": "[1080p, 720p]"
-          }
-        },
-        "required": [
-          "hdr",
-          "atmos",
-          "cec",
-          "hdcp",
-          "audio_outputs",
-          "video_outputs",
-          "output_resolutions"
-        ]
-      }
-    },
     "systeminfo": {
       "summary": "System general information",
       "readonly": true,
@@ -467,26 +376,6 @@
       "params": {
         "type": "object",
         "properties": {
-          "total": {
-            "type": "number",
-            "example": 0
-          },
-          "open": {
-            "type": "number",
-            "example": 0
-          },
-          "link": {
-            "type": "number",
-            "example": 0
-          },
-          "exception": {
-            "type": "number",
-            "example": 0
-          },
-          "shutdown": {
-            "type": "number",
-            "example": 0
-          },
           "runs": {
             "description": "Number of runs",
             "type": "number",
