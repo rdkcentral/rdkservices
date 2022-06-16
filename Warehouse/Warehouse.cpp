@@ -265,6 +265,7 @@ namespace WPEFramework
 						LOGINFO("Notify %s %s\n", WAREHOUSE_EVT_RESET_DONE, json.c_str());
 						Warehouse::_instance->Notify(WAREHOUSE_EVT_RESET_DONE, params);
 						isWareHouse = true;
+					}	
 					else {
                         params[PARAM_ERROR] = "Reset failed";
 					}
@@ -289,6 +290,7 @@ namespace WPEFramework
 						LOGINFO("Notify %s %s\n", WAREHOUSE_EVT_RESET_DONE, json.c_str());
 						Warehouse::_instance->Notify(WAREHOUSE_EVT_RESET_DONE, params);
 						isWareHouse = true;
+					}	
 					else {
                         params[PARAM_ERROR] = "Reset failed";
 					}
