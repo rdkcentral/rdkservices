@@ -2238,7 +2238,7 @@ namespace WPEFramework {
 			string territoryStr = parameters["territory"].String();
 			LOGWARN(" Territory Value : %s ", territoryStr.c_str());
 			try{
-				if((territoryStr.length() == 3) && (getTerritoryList(territoryStr) == true)){
+				if((territoryStr.length() == 3) && (isStandardTerritory(territoryStr) == true)){
 					if(parameters.HasLabel("region")){
 						regionStr = parameters["region"].String();
 						if(regionStr != ""){
@@ -2340,7 +2340,7 @@ namespace WPEFramework {
 		return retValue;
 	}
 
-	bool SystemServices::getTerritoryList(string strTerritory)
+	bool SystemServices::isStandardTerritory(string strTerritory)
 	{
 		bool retValue = false;
 		if(Utils::fileExists(TERRITORYLIST)){
@@ -2348,7 +2348,8 @@ namespace WPEFramework {
                         string str;
                         getline (inFile, str);
                         if(str.length() > 0){
-				if( str.find(strTerritory) >=0){
+				int index = str.find(strTerritory);
+				if( index >= 0 && index < 1000){
 					LOGWARN(" Territory is found : " , strTerritory.c_str());
 					retValue = true;
 				}
@@ -2356,7 +2357,6 @@ namespace WPEFramework {
 					 LOGWARN(" Territory is not found: ", strTerritory.c_str());
 			}
 			else{
-				retValue = false;
 				 LOGWARN(" Failed to get Territory List: " ,strTerritory.c_str());
 			}
 		}else
