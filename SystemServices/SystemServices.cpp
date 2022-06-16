@@ -2231,18 +2231,14 @@ namespace WPEFramework {
 
 			if (stat("/opt/secure/persistent/System", &st) == -1) {
     				int ret = mkdir("/opt/secure/persistent/System", 0700);
-				LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
-			}
-			if(!Utils::fileExists(TERRITORYFILE)){
-				system("mkdir -p /opt/secure/persistent/System/");
-				LOGWARN(" Territory : Subdirectories created " );
+				LOGWARN(" SubDirectories created from mkdir %d ", ret);
 			}
 			string regionStr = "";
 			readTerritoryFromFile();//Read existing territory and Region from file
 			string territoryStr = parameters["territory"].String();
 			LOGWARN(" Territory Value : %s ", territoryStr.c_str());
 			try{
-				if((territoryStr.length() == 3) && /*(isStrAlphaUpper(territoryStr)*/(getTerritoryList(territoryStr) == true)){
+				if((territoryStr.length() == 3) && (getTerritoryList(territoryStr) == true)){
 					if(parameters.HasLabel("region")){
 						regionStr = parameters["region"].String();
 						if(regionStr != ""){
