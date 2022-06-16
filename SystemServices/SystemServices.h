@@ -29,6 +29,9 @@
 using std::ofstream;
 #include <cstdlib>
 #include <iostream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "Module.h"
 #include "tracing/Logging.h"
@@ -140,6 +143,7 @@ namespace WPEFramework {
                 static void startModeTimer(int duration);
                 static void stopModeTimer();
                 static void updateDuration();
+		std::string  m_strStandardTerritoryList;
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
                 bool getManufacturerData(const string& parameter, JsonObject& response);
                 uint32_t getMfgSerialNumber(const JsonObject& parameters, JsonObject& response);
