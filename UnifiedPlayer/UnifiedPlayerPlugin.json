@@ -1,0 +1,14 @@
+{
+  "$schema": "plugin.schema.json",
+  "info": {
+    "title": "Unified Player Plugin",
+    "callsign": "UnifiedPlayer",
+    "locator": "libWPEFrameworkUnifiedPlayer.so",
+    "status": "production",
+    "description": "The UnifiedPlayer plugin provides a JSON-RPC interface to the RT Player.",
+    "version": "1.0"
+  },
+  "interface": {
+    "$ref": "{interfacedir}/UnifiedPlayer.json#"
+  }
+}
