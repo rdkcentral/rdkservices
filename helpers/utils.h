@@ -33,10 +33,6 @@
 #include <telemetry_busmessage_sender.h>
 #endif
 
-// std
-#include <string>
-#include <thread>
-
 #define UNUSED(expr)(void)(expr)
 #define C_STR(x) (x).c_str()
 
@@ -244,24 +240,6 @@ namespace Utils
     bool isValidUnsignedInt(char* x);
     void syncPersistFile (const string file);
     void persistJsonSettings(const string file, const string strKey, const JsonValue& jsValue);
-
-    //class for std::thread RAII
-    class ThreadRAII 
-    {
-        public:
-            ThreadRAII() {}
-            ThreadRAII(std::thread&& t);
-            ~ThreadRAII(); 
-            
-            //support moving
-            ThreadRAII(ThreadRAII&&) = default;
-            ThreadRAII& operator=(ThreadRAII&&) = default;
-
-            std::thread& get() { return t; }
-
-        private:
-            std::thread t;
-    };
 
     struct Telemetry
     {

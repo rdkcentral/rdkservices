@@ -36,6 +36,7 @@ using std::ofstream;
 #include "Module.h"
 #include "tracing/Logging.h"
 #include "utils.h"
+#include "UtilsThreadRAII.h"
 #include "SystemServicesHelper.h"
 #include "platformcaps/platformcaps.h"
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)

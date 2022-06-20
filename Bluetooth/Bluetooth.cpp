@@ -21,8 +21,10 @@
 
 #include "Bluetooth.h"
 
+#include "UtilsCStr.h"
 #include "UtilsIarm.h"
 #include "UtilsString.h"
+#include "UtilsJsonRpc.h"
 
 #include <stdlib.h>
 
