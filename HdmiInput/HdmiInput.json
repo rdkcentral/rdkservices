@@ -337,7 +337,7 @@
             "result": {
                 "type": "object",
                 "properties": {
-                    "suppoortedGameFeatures": {
+                    "supportedGameFeatures": {
                         "summary": "The supported game Features",
                         "type": "string",
                         "example": "ALLM"
@@ -347,7 +347,7 @@
                     }
                 },
                 "required": [
-                    "suppoortedGameFeatures",
+                    "supportedGameFeatures",
                     "success"
                 ]
             }
