@@ -21,6 +21,7 @@
 
 #include "Bluetooth.h"
 
+#include "UtilsUnused.h"
 #include "UtilsCStr.h"
 #include "UtilsIarm.h"
 #include "UtilsString.h"

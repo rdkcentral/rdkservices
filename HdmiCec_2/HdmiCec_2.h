@@ -32,6 +32,7 @@
 #undef Assert // this define from Connection.hpp conflicts with WPEFramework
 
 #include "Module.h"
+#include "utils.h"
 
 namespace WPEFramework {
 
