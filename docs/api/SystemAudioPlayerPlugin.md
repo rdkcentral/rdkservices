@@ -173,6 +173,10 @@ Configures playback for a PCM audio source (audio/x-raw) on the specified player
 | params.pcmconfig?.rate | string | <sup>*(optional)*</sup>  |
 | params.pcmconfig?.channels | string | <sup>*(optional)*</sup>  |
 | params.pcmconfig?.layout | string | <sup>*(optional)*</sup>  |
+| params.websocketsecparam? | object | Optional parameters, needed to establish secured websocket connection. |
+| params.websocketsecparam?.cafilenames | array | Array of objects with full file names of Certificate Authorities. If empty, code will try to load CAs from default system path for wss connection. |
+| params.websocketsecparam?.certfilename | string | Full file name of cert file. Needs to be in pem format. If not provided, other end of communication needs to be configured to not validate client cert. |
+| params.websocketsecparam?.keyfilename | string | Full file name of key file. Needs to be in pem format. Needs to be provided if cert file name is provided |
 
 ### Result
 
@@ -208,6 +212,45 @@ Configures playback for a PCM audio source (audio/x-raw) on the specified player
 {
     "jsonrpc": "2.0",
     "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 43,
+    "method": "org.rdk.SystemAudioPlayer.1.config",
+    "params": {
+        "id": 1,
+        "pcmconfig": {
+            "format": "S16LE",
+            "rate": "22050",
+            "channels": "1",
+            "layout": "interleaved"
+        },
+        "websocketsecparam": {
+            "cafilenames": [
+                { "cafilename": "/etc/ssl/certs/Xfinity_Subscriber_ECC_Root.pem" },
+                { "cafilename": "/etc/ssl/certs/Xfinity_Subscriber_RSA_Root.pem" }
+            ],
+            "certfilename": "/media/apps/cert.pem",
+            "keyfilename": "/media/apps/key.pem"
+        }
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 43,
     "result": {
         "success": true
     }
