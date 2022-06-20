@@ -521,15 +521,13 @@ void TTSSpeaker::createPipeline() {
     m_audioVolume = m_audioSink;
 #elif defined(PLATFORM_REALTEK)
     GstElement *parse = gst_element_factory_make("mpegaudioparse", NULL);
-    GstElement *decodebin = gst_element_factory_make("omxmp3dec", NULL);
+    GstElement *decodebin = gst_element_factory_make("avdec_mp3", NULL);
     GstElement *convert = gst_element_factory_make("audioconvert", NULL);
     GstElement *resample = gst_element_factory_make("audioresample", NULL);
     GstElement *audiofilter = gst_element_factory_make("capsfilter", NULL);
     m_source = gst_element_factory_make("souphttpsrc", NULL);
     m_audioVolume = gst_element_factory_make("volume", NULL);
     m_audioSink = gst_element_factory_make("rtkaudiosink", NULL);
-    g_object_set(G_OBJECT(decodebin), "audio-tunnel-mode",  FALSE, NULL);
-    g_object_set(G_OBJECT(decodebin), "enable-ms12",  FALSE, NULL);
     g_object_set(G_OBJECT(m_audioSink), "media-tunnel",  FALSE, NULL);
     g_object_set(G_OBJECT(m_audioSink), "audio-service",  TRUE, NULL);
 #endif
@@ -572,7 +570,11 @@ void TTSSpeaker::createPipeline() {
     }
 
     // set the TTS volume to max.
+    #if defined(PLATFORM_REALTEK)
+    g_object_set(G_OBJECT(m_audioVolume), "volume", (double) 4.0 * (m_defaultConfig.volume() / MAX_VOLUME), NULL);
+    #else
     g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (m_defaultConfig.volume() / MAX_VOLUME), NULL);
+    #endif
 
     // Add elements to pipeline and link
     if(m_pcmAudioEnabled) {
@@ -927,7 +929,11 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
 
         g_object_set(G_OBJECT(m_source), "location", constructURL(config, data).c_str(), NULL);
         // PCM Sink seems to be accepting volume change before PLAYING state
+        #if defined(PLATFORM_REALTEK)
+        g_object_set(G_OBJECT(m_audioVolume), "volume", (double) 4.0 * (data.client->configuration()->volume() / MAX_VOLUME), NULL);
+        #else
         g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
+        #endif
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
         #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
         setMixGain(MIXGAIN_PRIM,25);
