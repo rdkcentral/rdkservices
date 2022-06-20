@@ -21,6 +21,8 @@
 
 #include "Bluetooth.h"
 
+#include "UtilsIarm.h"
+
 #include <stdlib.h>
 
 // IMPLEMENTATION NOTE

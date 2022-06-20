@@ -23,6 +23,7 @@
 
 #include "Module.h"
 #include "utils.h"
+#include "libIARM.h"
 
 namespace WPEFramework {
 

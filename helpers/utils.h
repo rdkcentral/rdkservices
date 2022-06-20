@@ -33,9 +33,6 @@
 #include <telemetry_busmessage_sender.h>
 #endif
 
-// IARM
-#include "rdk/iarmbus/libIARM.h"
-
 // std
 #include <string>
 #include <thread>
@@ -201,29 +198,8 @@
         param = parameters[paramName].String(); \
 }
 
-#define IARM_CHECK(FUNC) { \
-    if ((res = FUNC) != IARM_RESULT_SUCCESS) { \
-        LOGINFO("IARM %s: %s", #FUNC, \
-            res == IARM_RESULT_INVALID_PARAM ? "invalid param" : ( \
-            res == IARM_RESULT_INVALID_STATE ? "invalid state" : ( \
-            res == IARM_RESULT_IPCCORE_FAIL ? "ipcore fail" : ( \
-            res == IARM_RESULT_OOM ? "oom" : "unknown")))); \
-    } \
-    else \
-    { \
-        LOGINFO("IARM %s: success", #FUNC); \
-    } \
-}
-
 namespace Utils
 {
-    struct IARM {
-        static bool init();
-        static bool isConnected();
-
-        static const char* NAME;
-    };
-
     namespace String
     {
         // locale-wise comparison
@@ -329,15 +305,6 @@ namespace Utils
             return stringContains(s1, std::string(s2));
         }
     }
-
-    /**
-     * @brief Format an IARM_Result_t value for error reporting.
-     *
-     * @param result The result of an IARM bus call.
-     * @return       A corresponding string.
-     *
-     */
-    std::string formatIARMResult(IARM_Result_t result);
 
     /***
      * @brief	: Execute shell script and get response
