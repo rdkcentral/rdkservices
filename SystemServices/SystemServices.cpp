@@ -40,6 +40,7 @@
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
 #include "utils.h"
+#include "UtilsString.h"
 #include "uploadlogs.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)

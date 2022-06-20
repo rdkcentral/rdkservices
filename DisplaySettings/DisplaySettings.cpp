@@ -46,6 +46,7 @@
 #include <syscall.h>
 #include "utils.h"
 #include "UtilsIarm.h"
+#include "UtilsString.h"
 #include "dsError.h"
 
 using namespace std;

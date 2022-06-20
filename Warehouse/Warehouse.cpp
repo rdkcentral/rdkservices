@@ -31,6 +31,7 @@
 #endif
 
 #include "utils.h"
+#include "UtilsString.h"
 
 #include "frontpanel.h"
 

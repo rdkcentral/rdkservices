@@ -22,6 +22,7 @@
 #include "Bluetooth.h"
 
 #include "UtilsIarm.h"
+#include "UtilsString.h"
 
 #include <stdlib.h>
 
