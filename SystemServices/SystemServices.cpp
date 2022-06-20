@@ -1550,7 +1550,6 @@ namespace WPEFramework {
              JsonObject& response)
          {
              bool status = false;
-#if defined(PLATFORM_AMLOGIC) || defined(SKY_BUILD)  
              IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t param;
              if (parameters.HasLabel("nwStandby")) {
                  param.bStandbyMode = parameters["nwStandby"].Boolean();
@@ -1569,10 +1568,6 @@ namespace WPEFramework {
              } else {
                  populateResponseWithError(SysSrv_MissingKeyValues, response);
              }
-#else
-            m_networkStandbyModeValid = false;
-            populateResponseWithError(SysSrv_SupportNotAvailable,response);
-#endif        
              returnResponse(status);
         }
 
