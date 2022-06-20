@@ -140,9 +140,8 @@ namespace WPEFramework
 
         void Warehouse::InitializeIARM()
         {
-            if (Utils::IARM::init()) {
-               IARM_Result_t res;
-               IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_WAREHOUSEOPS_STATUSCHANGED, dsWareHouseOpnStatusChanged) );
+            if (!Utils::IARM::init()) {
+	        LOGWARN ("Warehouse::InitializeIARM failed line:%d", __LINE__);
             }
         }
 
