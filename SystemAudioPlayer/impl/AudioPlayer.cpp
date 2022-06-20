@@ -1,6 +1,8 @@
 #include "AudioPlayer.h"
 #include "logger.h"
 #include <gst/app/gstappsrc.h>
+#include "SecuredWebSocketClient.h"
+#include "UnsecuredWebSocketClient.h"
 
 #include <cmath>
 #define AUDIO_GST_FRAGMENT_MAX_SIZE     (128 * 1024)
@@ -36,7 +38,6 @@ AudioPlayer::AudioPlayer(AudioType audioType,SourceType sourceType,PlayMode play
     {
         m_running = true;
         appsrc_firstpacket = true;
-        webClient = NULL;
         bufferQueue = new BufferQueue(1000);
         m_thread= new std::thread(&AudioPlayer::PushDataAppSrc, this);
     }
@@ -505,7 +506,24 @@ void AudioPlayer::wsConnectionStatus(WSStatus status)
     {
         case CONNECTED:     break;
         case DISCONNECTED:  break;
-        case NETWORKERROR: m_callback->onSAPEvent(getObjectIdentifier(),NETWORK_ERROR); break;
+        case NETWORKERROR: 
+        {
+            if (webClient->getConnectionType() == impl::ConnectionType::Secured)
+            {
+                SAPLOG_WARNING("Secured connection to %s failed. Retrying with unsecured.", m_url.c_str());
+                m_fallbackToUnsecuredConnection = true;
+                // This callback is called on websocket thread so cannot destroy websocket on it.
+                // WebSocket needs to be destroyed on different thread, for example on gstreamer one.
+                gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
+                gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
+            }
+            else
+            {
+                SAPLOG_ERROR("Connection to %s failed.", m_url.c_str());
+                m_callback->onSAPEvent(getObjectIdentifier(),NETWORK_ERROR);
+            }
+            break;
+        }
     } 
 }
 
@@ -637,11 +655,28 @@ bool AudioPlayer::handleMessage(GstMessage *message)
 			    SAPLOG_INFO("moved to playing state id:%d\n",getObjectIdentifier());
 			    state = PLAYING;
                             //Fix audio delay for web socket
-                            if(sourceType == WEBSOCKET && !webClient)
-                            {                     
-                                webClient = new WebSocketClient(this);
-                                webClient->connect(m_url);
+                            if(sourceType == WEBSOCKET)
+                            {
+                                if (nullptr == webClient)
+                                {
+                                    if (impl::ConnectionType::Secured == impl::getConnectionType(m_url))
+                                        webClient.reset(new impl::SecuredWebSocketClient(this, m_secParams));
+                                    else
+                                        webClient.reset(new impl::UnsecuredWebSocketClient(this));
+                                    webClient->connect(m_url);
+                                }
+                                else if (impl::ConnectionType::Secured == webClient->getConnectionType() && m_fallbackToUnsecuredConnection)
+                                {
+                                    SAPLOG_INFO("Fallback to unsecured websocket connection requested. Changing sockets.");
+                                    m_fallbackToUnsecuredConnection = false;
+                                    webClient->disconnect();
+                                    webClient.reset();
+                                    SAPLOG_INFO("Secured websocket client destroyed. Creating unsecured one and connecting to %s.", m_url.c_str());
+                                    webClient.reset(new impl::UnsecuredWebSocketClient(this));
+                                    webClient->connect(m_url);
+                                }
                             }
+
                             if(sourceType != WEBSOCKET && sourceType != DATA)
                             {
                                 if(m_isPaused)
@@ -779,7 +814,7 @@ void AudioPlayer::destroyPipeline()
 void AudioPlayer::Play(std::string url)
 {
     std::lock_guard<std::mutex> lock(m_playMutex);
-    m_url = url;   
+    m_url = url;
     SAPLOG_INFO("SAP: AudioPlayer Play invoked Playerid %d..URL %s\n",getObjectIdentifier(),m_url.c_str());
     if(m_pipeline)
     {
@@ -793,7 +828,15 @@ void AudioPlayer::Play(std::string url)
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
     }    
 }
-   
+
+void AudioPlayer::configWsSecParams(const impl::SecurityParameters& secParams)
+{
+    std::lock_guard<std::mutex> lock(m_playMutex);
+    m_secParams = secParams;
+    SAPLOG_INFO("SAP: AudioPlayer configuring websocket security parameters with %i CA files, cert file: %s and key file: %s",
+        m_secParams.CAFileNames.size(), m_secParams.certFileName.c_str(), m_secParams.keyFileName.c_str());
+}
+
 void AudioPlayer::PlayBuffer(const char *data,int length)
 {  
     std::lock_guard<std::mutex> lock(m_apiMutex);
@@ -834,11 +877,10 @@ void AudioPlayer::Stop()
     std::lock_guard<std::mutex> lock(m_apiMutex);
     if(sourceType == DATA || sourceType == WEBSOCKET )
     {
-        if(webClient != NULL)
+        if(webClient != nullptr)
         {
             webClient->disconnect();
-            delete webClient;
-            webClient = NULL;
+            webClient.reset();
         }
 
         appsrc_firstpacket = true;
