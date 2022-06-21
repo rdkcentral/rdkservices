@@ -28,6 +28,9 @@
 class TimerTestMock : public WPEFramework::Plugin::Timer {
 public:
     virtual ~TimerTestMock() = default;
+
+    MOCK_METHOD(void, sendTimerExpired, (int timerId), (override));
+    MOCK_METHOD(void, sendTimerExpiryReminder, (int timerId), (override));
 };
 
 #endif //TIMERTESTEMOCK_H

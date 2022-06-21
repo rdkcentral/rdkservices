@@ -54,23 +54,18 @@ TEST_F(TimerTestFixture, registeredMethods)
 TEST_F(TimerTestFixture, paramsMissing)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), _T("{}"), response));
-    EXPECT_EQ(response,
-       _T("{\"success\":false}"));
+    EXPECT_EQ(response, _T("{\"success\":false}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cancel"), _T("{}"), response));
-    EXPECT_EQ(response,
-       _T("{\"success\":false}"));
+    EXPECT_EQ(response, _T("{\"success\":false}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("suspend"), _T("{}"), response));
-    EXPECT_EQ(response,
-       _T("{\"success\":false}"));
+    EXPECT_EQ(response, _T("{\"success\":false}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resume"), _T("{}"), response));
-    EXPECT_EQ(response,
-       _T("{\"success\":false}"));
+    EXPECT_EQ(response, _T("{\"success\":false}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimerStatus"), _T("{}"), response));
-    EXPECT_EQ(response,
-       _T("{\"success\":false}"));
+    EXPECT_EQ(response, _T("{\"success\":false}"));
 }
 
-TEST_F(TimerTestFixture, timerAPITest)
+TEST_F(TimerTestFixture, jsonRpc)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), _T("{\"interval\":10}"), response));
     //EXPECT_THAT(response, testing::MatchesRegex("timerId*"));
@@ -94,13 +89,42 @@ TEST_F(TimerTestFixture, timerAPITest)
 
     //Suspend the timer
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("suspend"), str.c_str(), response));
-    EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
 
     //Resume the timer
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resume"), str.c_str(), response));
-    EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
 
     //Cancel the timer
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cancel"), str.c_str(), response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
+}
+
+TEST_F(TimerTestFixture, timerExpiry)
+{
+    //Create a timer of 1 sec with a reminder of 0.2 sec
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), 
+                        _T("{\"interval\":1, \"remindBefore\": 0.2}"), response));
+    EXPECT_THAT(response, testing::HasSubstr("timerId"));
     EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
+
+    //Extract timer id from response
+    JsonObject params;
+    EXPECT_TRUE(params.FromString(response));
+    EXPECT_TRUE(params.HasLabel(_T("timerId")));
+    string stimerId = params["timerId"].String();
+    int nTimerId = std::stoi(stimerId);
+
+    EXPECT_CALL(*plugin, sendTimerExpiryReminder(nTimerId))
+        .Times(1)
+        .WillOnce(
+            ::testing::Return());
+
+    EXPECT_CALL(*plugin, sendTimerExpired(nTimerId))
+        .Times(1)
+        .WillOnce(
+            ::testing::Return());
+
+    //Wait for timer expiry & reminder calls
+   sleep(2);
 }
