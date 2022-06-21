@@ -157,8 +157,14 @@ namespace WPEFramework
 
         void Warehouse::InitializeIARM()
         {
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)		
             if (!Utils::IARM::init()) {
 	        LOGWARN ("Warehouse::InitializeIARM failed line:%d", __LINE__);
+            }
+#endif
+	    if (Utils::IARM::init()) {
+               IARM_Result_t res;
+               IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_WAREHOUSEOPS_STATUSCHANGED, dsWareHouseOpnStatusChanged) );
             }
         }
 
@@ -1016,6 +1022,34 @@ namespace WPEFramework
             return(result);
         }
 #endif
+
+	 void Warehouse::dsWareHouseOpnStatusChanged(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if (NULL == Warehouse::_instance) {
+                return;
+            }
+            if (IARM_BUS_PWRMGR_EVENT_WAREHOUSEOPS_STATUSCHANGED == eventId)
+            {
+		IARM_BUS_PWRMgr_WareHouseOpn_EventData_t *eventData = (IARM_BUS_PWRMgr_WareHouseOpn_EventData_t *) data;
+		if (NULL == eventData) {
+                    LOGWARN("dsWareHouseOpnStatusChanged eventData is NULL. exiting");
+		    //Unexpected case
+		    return;
+		}
+		JsonObject params;
+		if (IARM_BUS_PWRMGR_WAREHOUSE_COMPLETED == eventData->status) {
+                    params[PARAM_SUCCESS] = 0;
+		}
+		else {
+                    params[PARAM_ERROR] = "Reset failed";
+		}
+                string json;
+		params.ToString(json);
+		LOGINFO("Notify %s %s\n", WAREHOUSE_EVT_RESET_DONE, json.c_str());
+		Warehouse::_instance->Notify(WAREHOUSE_EVT_RESET_DONE, params);
+            }
+        }
+
         uint32_t Warehouse::processColdFactoryReset()
         {
             /*Code copied from X1.. Needs modification*/
