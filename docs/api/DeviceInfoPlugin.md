@@ -612,7 +612,7 @@ Provides access to the versions maintained in version.txt.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | (property) | object | Versions maintained in version.txt |
-| (property)?.imagename | string | <sup>*(optional)*</sup>  |
+| (property).imagename | string |  |
 | (property)?.sdk | string | <sup>*(optional)*</sup>  |
 | (property)?.mediarite | string | <sup>*(optional)*</sup>  |
 | (property)?.yocto | string | <sup>*(optional)*</sup> Yocto version (must be one of the following: *dunfell*, *morty*, *daisy*) |

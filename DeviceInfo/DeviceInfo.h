@@ -22,6 +22,7 @@
 
 #include "Module.h"
 #include <interfaces/IDeviceInfo.h>
+#include <interfaces/IFirmwareVersion.h>
 #include <interfaces/json/JsonData_DeviceInfo.h>
 
 namespace WPEFramework {
@@ -30,7 +31,8 @@ namespace Plugin {
     class DeviceInfo : public PluginHost::IPlugin,
                        public PluginHost::IWeb,
                        public PluginHost::JSONRPC,
-                       public Exchange::IDeviceCapabilities {
+                       public Exchange::IDeviceCapabilities,
+                       public Exchange::IFirmwareVersion {
 
     private:
         class Config : public Core::JSON::Container {
@@ -65,37 +67,6 @@ namespace Plugin {
             Core::JSON::String RfcModelName;
             Core::JSON::String RfcSerialNumber;
             Core::JSON::String DefaultAudioPort;
-        };
-
-        class FirmwareVersionImpl : public Exchange::IDeviceCapabilities::IFirmwareVersion {
-        public:
-            FirmwareVersionImpl() = delete;
-            FirmwareVersionImpl(const FirmwareVersionImpl&) = delete;
-            FirmwareVersionImpl& operator=(const FirmwareVersionImpl&) = delete;
-
-            FirmwareVersionImpl(const string& imagename, const string& sdk, const string& mediarite, string yocto)
-                : _imagename(imagename)
-                , _sdk(sdk)
-                , _mediarite(mediarite)
-                , _yocto(yocto)
-            {
-            }
-
-            BEGIN_INTERFACE_MAP(FirmwareVersionImpl)
-            INTERFACE_ENTRY(Exchange::IDeviceCapabilities::IFirmwareVersion)
-            END_INTERFACE_MAP
-
-            // IFirmwareVersion methods
-            string Imagename() const override { return _imagename; }
-            string Sdk() const override { return _sdk; }
-            string Mediarite() const override { return _mediarite; }
-            string Yocto() const override { return _yocto; }
-
-        private:
-            string _imagename;
-            string _sdk;
-            string _mediarite;
-            string _yocto;
         };
 
     public:
@@ -145,6 +116,7 @@ namespace Plugin {
         INTERFACE_ENTRY(PluginHost::IWeb)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
         INTERFACE_ENTRY(Exchange::IDeviceCapabilities)
+        INTERFACE_ENTRY(Exchange::IFirmwareVersion)
         END_INTERFACE_MAP
 
     public:
@@ -191,7 +163,6 @@ namespace Plugin {
     private:
         //   IDeviceCapabilities methods
         // -------------------------------------------------------------------------------------------------------
-        uint32_t FirmwareVersion(Exchange::IDeviceCapabilities::IFirmwareVersion*& firmwareVersion) const override;
         uint32_t SerialNumber(string& serialNumber) const override;
         uint32_t Sku(string& sku) const override;
         uint32_t Make(string& make) const override;
@@ -207,6 +178,13 @@ namespace Plugin {
         uint32_t AudioCapabilities(const string& audioPort, Exchange::IDeviceCapabilities::IAudioCapabilityIterator*& audioCapabilities) const override;
         uint32_t MS12Capabilities(const string& audioPort, Exchange::IDeviceCapabilities::IMS12CapabilityIterator*& ms12Capabilities) const override;
         uint32_t SupportedMS12AudioProfiles(const string& audioPort, RPC::IStringIterator*& supportedMS12AudioProfiles) const override;
+
+        //   IFirmwareVersion methods
+        // -------------------------------------------------------------------------------------------------------
+        uint32_t Imagename(string& imagename) const override;
+        uint32_t Sdk(string& sdk) const override;
+        uint32_t Mediarite(string& mediarite) const override;
+        uint32_t Yocto(string& yocto) const override;
 
     private:
         uint8_t _skipURL;

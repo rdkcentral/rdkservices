@@ -110,15 +110,20 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::get_firmwareversion(FirmwareversionData& response) const
     {
-        Exchange::IDeviceCapabilities::IFirmwareVersion* firmwareVersion = nullptr;
+        auto result = Core::ERROR_GENERAL;
 
-        auto result = FirmwareVersion(firmwareVersion);
-        if (result == Core::ERROR_NONE) {
-            response.Imagename = firmwareVersion->Imagename();
-            response.Sdk = firmwareVersion->Sdk();
-            response.Mediarite = firmwareVersion->Mediarite();
-            response.Yocto = Core::EnumerateType<FirmwareversionData::YoctoType>(firmwareVersion->Yocto().c_str()).Value();
-            firmwareVersion->Release();
+        // imagename is required
+        string value;
+        if (Imagename(value) == Core::ERROR_NONE) {
+            response.Imagename = value;
+            result = Core::ERROR_NONE;
+
+            if (Sdk(value) == Core::ERROR_NONE)
+                response.Sdk = value;
+            if (Mediarite(value) == Core::ERROR_NONE)
+                response.Mediarite = value;
+            if (Yocto(value) == Core::ERROR_NONE)
+                response.Yocto = Core::EnumerateType<FirmwareversionData::YoctoType>(value.c_str()).Value();
         }
 
         return result;

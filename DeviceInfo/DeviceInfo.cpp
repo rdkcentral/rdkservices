@@ -175,36 +175,85 @@ namespace Plugin {
         socketPortInfo.Runs = Core::ResourceMonitor::Instance().Runs();
     }
 
-    uint32_t DeviceInfo::FirmwareVersion(Exchange::IDeviceCapabilities::IFirmwareVersion*& firmwareVersion) const
+    uint32_t DeviceInfo::Imagename(string& imagename) const
     {
         uint32_t result = Core::ERROR_GENERAL;
-
-        string imagename;
-        string sdk;
-        string mediarite;
-        string yocto;
 
         std::ifstream file(_config.VersionFile.Value());
 
         if (file) {
             string line;
-
             while (std::getline(file, line)) {
                 if (line.rfind(_T("imagename"), 0) == 0) {
                     imagename = line.substr(line.find(':') + 1);
                     result = Core::ERROR_NONE;
-                } else if (line.rfind(_T("YOCTO_VERSION"), 0) == 0) {
-                    yocto = line.substr(line.find('=') + 1);
-                } else if (line.rfind(_T("SDK_VERSION"), 0) == 0) {
-                    sdk = line.substr(line.find('=') + 1);
-                } else if (line.rfind(_T("MEDIARITE"), 0) == 0) {
-                    mediarite = line.substr(line.find('=') + 1);
+
+                    break;
                 }
             }
         }
 
-        if (result == Core::ERROR_NONE) {
-            firmwareVersion = (Core::Service<FirmwareVersionImpl>::Create<Exchange::IDeviceCapabilities::IFirmwareVersion>(imagename, sdk, mediarite, yocto));
+        return result;
+    }
+
+    uint32_t DeviceInfo::Sdk(string& sdk) const
+    {
+        uint32_t result = Core::ERROR_GENERAL;
+
+        std::ifstream file(_config.VersionFile.Value());
+
+        if (file) {
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(_T("SDK_VERSION"), 0) == 0) {
+                    sdk = line.substr(line.find('=') + 1);
+                    result = Core::ERROR_NONE;
+
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    uint32_t DeviceInfo::Mediarite(string& mediarite) const
+    {
+        uint32_t result = Core::ERROR_GENERAL;
+
+        std::ifstream file(_config.VersionFile.Value());
+
+        if (file) {
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(_T("MEDIARITE"), 0) == 0) {
+                    mediarite = line.substr(line.find('=') + 1);
+                    result = Core::ERROR_NONE;
+
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    uint32_t DeviceInfo::Yocto(string& yocto) const
+    {
+        uint32_t result = Core::ERROR_GENERAL;
+
+        std::ifstream file(_config.VersionFile.Value());
+
+        if (file) {
+            string line;
+            while (std::getline(file, line)) {
+                if (line.rfind(_T("YOCTO_VERSION"), 0) == 0) {
+                    yocto = line.substr(line.find('=') + 1);
+                    result = Core::ERROR_NONE;
+
+                    break;
+                }
+            }
         }
 
         return result;

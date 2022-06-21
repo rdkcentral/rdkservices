@@ -411,7 +411,7 @@
           }
         },
         "required": [
-          "firmware"
+          "imagename"
         ]
       },
       "errors": [
