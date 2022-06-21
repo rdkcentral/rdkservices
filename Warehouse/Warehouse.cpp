@@ -25,12 +25,13 @@
 #include <regex.h>
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-#include "libIBus.h"
+#include "UtilsIarm.h"
 #include "sysMgr.h"
 #include "pwrMgr.h"
 #endif
 
 #include "utils.h"
+#include "UtilsString.h"
 
 #include "frontpanel.h"
 
@@ -74,6 +75,22 @@
 #define FRONT_PANEL_FAILED 3
 #define FRONT_PANEL_INTERVAL 5000
 
+namespace Utils {
+std::string formatIARMResult(IARM_Result_t result)
+{
+    switch (result) {
+    case IARM_RESULT_SUCCESS:       return std::string("IARM_RESULT_SUCCESS [success]");
+    case IARM_RESULT_INVALID_PARAM: return std::string("IARM_RESULT_INVALID_PARAM [invalid input parameter]");
+    case IARM_RESULT_INVALID_STATE: return std::string("IARM_RESULT_INVALID_STATE [invalid state encountered]");
+    case IARM_RESULT_IPCCORE_FAIL:  return std::string("IARM_RESULT_IPCORE_FAIL [underlying IPC failure]");
+    case IARM_RESULT_OOM:           return std::string("IARM_RESULT_OOM [out of memory]");
+    default:
+        std::ostringstream tmp;
+        tmp << result << " [unknown IARM_Result_t]";
+        return tmp.str();
+    }
+}
+}
 
 namespace WPEFramework
 {

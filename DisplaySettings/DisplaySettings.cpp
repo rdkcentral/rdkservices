@@ -23,7 +23,6 @@
 #include "DisplaySettings.h"
 #include <algorithm>
 #include "dsMgr.h"
-#include "libIBusDaemon.h"
 #include "host.hpp"
 #include "exception.hpp"
 #include "videoOutputPort.hpp"
@@ -37,8 +36,6 @@
 #include "dsUtl.h"
 #include "dsError.h"
 #include "list.hpp"
-#include "libIBus.h"
-#include "libIBusDaemon.h"
 #include "dsDisplay.h"
 #include "rdk/iarmmgrs-hal/pwrMgr.h"
 #include "pwrMgr.h"
@@ -48,6 +45,8 @@
 #include "tracing/Logging.h"
 #include <syscall.h>
 #include "utils.h"
+#include "UtilsIarm.h"
+#include "UtilsString.h"
 #include "dsError.h"
 
 using namespace std;
