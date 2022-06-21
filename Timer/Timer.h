@@ -84,8 +84,8 @@ namespace WPEFramework {
             //End methods
 
             //Begin events
-            void sendTimerExpired(int timerId);
-            void sendTimerExpiryReminder(int timerId);
+            virtual void sendTimerExpired(int timerId);
+            virtual void sendTimerExpiryReminder(int timerId);
             //End events
 
             void checkTimers();
