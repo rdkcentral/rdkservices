@@ -27,6 +27,12 @@
 #define TTS_CONFIGURATION_STORE "/opt/persistent/tts.setting.ini"
 #define UPDATE_AND_RETURN(o, n) if(o != n) { o = n; return true; }
 
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
+{
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
+
 namespace WPEFramework {
 namespace Plugin {
 bool _readFromFile(std::string filename, TTS::TTSConfiguration &ttsConfig);
@@ -42,6 +48,7 @@ TTSConfiguration::TTSConfiguration() :
     m_ttsEndPoint(""),
     m_ttsEndPointSecured(""),
     m_language("en-US"),
+    m_apiKey(""),
     m_voice(""),
     m_volume(MAX_VOLUME),
     m_rate(DEFAULT_RATE),
@@ -67,6 +74,16 @@ bool TTSConfiguration::setSecureEndPoint(const std::string endpoint) {
     }
     else
         TTSLOG_VERBOSE("Invalid Secured TTSEndPoint input \"%s\"", endpoint.c_str());
+    return false;
+}
+
+bool TTSConfiguration::setApiKey(const std::string apikey) {
+    if(!apikey.empty())
+    {
+        UPDATE_AND_RETURN(m_apiKey, apikey);
+    }
+    else
+        TTSLOG_VERBOSE("Invalid api key input \"%s\"", apikey.c_str());
     return false;
 }
 
@@ -540,11 +557,11 @@ void TTSSpeaker::createPipeline() {
         if(m_pcmAudioEnabled) {
             //Raw PCM audio does not work with souphhtpsrc on Amlogic alsaasink
             m_source = gst_element_factory_make("httpsrc", NULL);
-            g_object_set(G_OBJECT(m_audioSink), "tts-mode", TRUE, NULL);
         }
         else {
             m_source = gst_element_factory_make("souphttpsrc", NULL);
         }
+        g_object_set(G_OBJECT(m_audioSink), "tts-mode", TRUE, NULL);
 #endif
 
         g_object_set(G_OBJECT(m_source), "location", tts_url.c_str(), NULL);
@@ -818,33 +835,80 @@ std::string TTSSpeaker::constructURL(TTSConfiguration &config, SpeechData &d) {
 
     // EndPoint URL
     std::string tts_request;
-    if(d.secure)
-        tts_request.append(config.secureEndPoint());
-    else
-        tts_request.append(config.endPoint());
+    if(!(config.apiKey().empty()))
+    {
+        CURL *curl;
+        CURLcode res;
+        struct curl_slist *list = NULL;
+        std::string readBuffer;
+        curl = curl_easy_init();
+        if(curl)
+        {
+            JsonObject jsonConfig;
+            JsonObject parameters;
+            std::string post_data;
+            jsonConfig["input"] = d.text;
+            jsonConfig["language"] = config.language();
+            jsonConfig["voice"] = config.voice();
+            jsonConfig["encoding"] = "mp3";
+            jsonConfig.ToString(post_data);
+            TTSLOG_INFO("gcd postdata :%s\n",post_data.c_str());
 
-    // Voice
-    if(!config.voice().empty()) {
+            curl_easy_setopt(curl, CURLOPT_URL,config.secureEndPoint().c_str());
+            curl_easy_setopt(curl, CURLOPT_POST, 1L);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.c_str());
+            list = curl_slist_append(list, "content-type: application/json");
+            list = curl_slist_append(list, (std::string("x-api-key: ") +
+                                            config.apiKey()).c_str() );
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+            res = curl_easy_perform(curl);
+            if ( res != CURLE_OK )
+            {
+                TTSLOG_ERROR("TTS: Error in interacting with endpoint. CURL error is:  %s\n", curl_easy_strerror(res));
+            }
+            else
+            {
+                TTSLOG_INFO("gcd curl response :%s\n",readBuffer.c_str());
+                parameters.FromString(readBuffer);
+                tts_request.assign(parameters["url"].String());
+            }
+            curl_slist_free_all(list);
+            curl_easy_cleanup(curl);
+        }
+    }
+    else
+    {
+        if(d.secure)
+            tts_request.append(config.secureEndPoint());
+        else
+            tts_request.append(config.endPoint());
+
+        // Voice
+        if(!config.voice().empty()) {
         tts_request.append("voice=");
         tts_request.append(config.voice());
-    }
+        } 
 
-    // Language
-    if(!config.language().empty()) {
+        // Language
+        if(!config.language().empty()) {
         tts_request.append("&language=");
         tts_request.append(config.language());
+        }
+
+        // Rate / speed
+        tts_request.append("&rate=");
+        tts_request.append(std::to_string(config.rate() > 100 ? 100 : config.rate()));
+
+        // Sanitize String
+        std::string sanitizedString;
+        sanitizeString(d.text, sanitizedString);
+
+        tts_request.append("&text=");
+        tts_request.append(sanitizedString);
     }
-
-    // Rate / speed
-    tts_request.append("&rate=");
-    tts_request.append(std::to_string(config.rate() > 100 ? 100 : config.rate()));
-
-    // Sanitize String
-    std::string sanitizedString;
-    sanitizeString(d.text, sanitizedString);
-
-    tts_request.append("&text=");
-    tts_request.append(sanitizedString);
 
     TTSLOG_WARNING("Constructured final URL is %s", tts_request.c_str());
     return tts_request;

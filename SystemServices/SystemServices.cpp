@@ -2228,66 +2228,94 @@ namespace WPEFramework {
 				system("mkdir -p /opt/secure/persistent/System/");
 				LOGWARN(" Territory : Subdirectories created " );
 			}
-			ofstream outdata(TERRITORYFILE);
+			string regionStr = "";
+			readTerritoryFromFile();//Read existing territory and Region from file
 			string territoryStr = parameters["territory"].String();
 			LOGWARN(" Territory Value : %s ", territoryStr.c_str());
-			if(!outdata){
-				LOGWARN(" Territory : Failed to open the file");
-				returnResponse(resp);
-			}
 			try{
 				if((territoryStr.length() == 3) && (isStrAlphaUpper(territoryStr) == true)){
-					LOGWARN(" Territory : Valid territory name ");
-					m_strTerritory = "";
-					m_strRegion = "";
-					outdata << "territory:" + territoryStr+"\n";
-					resp = true;
-				}
-				else {
+					if(parameters.HasLabel("region")){
+						regionStr = parameters["region"].String();
+						if(regionStr != ""){
+							if(isRegionValid(regionStr)){
+								resp = writeTerritory(territoryStr,regionStr);
+								LOGWARN(" territory name %s ", territoryStr.c_str());
+								LOGWARN(" region name %s", regionStr.c_str());
+							}else{
+								JsonObject error;
+								error["message"] = "Invalid region";
+								response["error"] = error;
+								LOGWARN("Please enter valid region");
+								returnResponse(resp);
+							}
+						}
+					}else{
+						resp = writeTerritory(territoryStr,regionStr);
+						LOGWARN(" territory name %s ", territoryStr.c_str());
+					}
+				}else{
+					JsonObject error;
+					error["message"] =  "Invalid territory";
+					response["error"] = error;
 					LOGWARN("Please enter valid territory Parameter value.");
 					returnResponse(resp);
 				}
-				string regionStr = "";
-				if(parameters.HasLabel("region")){
-					regionStr = parameters["region"].String();
-					outdata << "region:" + regionStr+"\n";
-				}
-				outdata.close();
 				if(resp == true){
-					readTerritoryFromFile();//Read existing territory and Region from file
 					//call event on Territory changed
 					if (SystemServices::_instance)
-                            			SystemServices::_instance->onTerritoryChanged(m_strTerritory,territoryStr,m_strRegion,regionStr);
+						 SystemServices::_instance->onTerritoryChanged(m_strTerritory,territoryStr,m_strRegion,regionStr);
 				}
 			}
 			catch(...){
-				LOGWARN(" caught exception...");
+				 LOGWARN(" caught exception...");
 			}
-		}
-		else{
+		}else{
+			JsonObject error;
+			error["message"] =  "Invalid territory name";
+			response["error"] = error;
 			LOGWARN("Please enter valid territory Parameter name.");
 			resp = false;
 		}
 		returnResponse(resp);
 	}
 
-	uint32_t SystemServices::getTerritory(const JsonObject& parameters, JsonObject& response)
+	uint32_t SystemServices::writeTerritory(string territory, string region)
 	{
 		bool resp = false;
-		if(readTerritoryFromFile()){
-			response["territory"] = m_strTerritory;
-			response["region"] = m_strRegion;
+		ofstream outdata(TERRITORYFILE);
+		if(!outdata){
+			LOGWARN(" Territory : Failed to open the file");
+			return resp;
+		}
+		if (territory != ""){
+			outdata << "territory:" + territory+"\n";
 			resp = true;
 		}
-		else{
-			LOGWARN("Error: Failed to read from territory file");
+		if (region != ""){
+			outdata << "region:" + region+"\n";
+			resp = true;
+		}
+		outdata.close();
+		return resp;
+	}
+	uint32_t SystemServices::getTerritory(const JsonObject& parameters, JsonObject& response)
+	{
+		bool resp = true;
+		m_strTerritory = "";
+		m_strRegion = "";
+		resp = readTerritoryFromFile();
+		if(resp == true){
+			if(m_strTerritory != "")
+				response["territory"] = m_strTerritory;
+			if(m_strRegion != "")
+				response["region"] = m_strRegion;
 		}
 		returnResponse(resp);
 	}
 
 	bool SystemServices::readTerritoryFromFile()
 	{
-		bool retValue = false;
+		bool retValue = true;
 		if(Utils::fileExists(TERRITORYFILE)){
 			ifstream inFile(TERRITORYFILE);
 			string str;
@@ -2301,12 +2329,12 @@ namespace WPEFramework {
 				}
 			}
 			else{
-				LOGERR("Error: Invalid territory file");
+				LOGERR("Invalid territory file");
 			}
 			inFile.close();
 		}
 		else{
-			LOGERR("Error: Territory file not exist");
+			LOGERR("Territory is not set");
 		}
 		return retValue;
 	}
@@ -2331,18 +2359,35 @@ namespace WPEFramework {
 		return true;
 	}
 
+	bool SystemServices::isRegionValid(string regionStr)
+	{
+		bool retVal = false;
+		if(regionStr.length() < 7){
+			string strRegion = regionStr.substr(0,regionStr.find("-"));
+			if( strRegion.length() == 2){
+				if (isStrAlphaUpper(strRegion)){
+					strRegion = regionStr.substr(regionStr.find("-")+1,regionStr.length());
+					if(strRegion.length() >= 2){
+						retVal = isStrAlphaUpper(strRegion);
+					}
+				}
+			}
+		}
+		return retVal;	
+	}
+
 	void SystemServices::onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion, string newRegion)
 	{
 		JsonObject params;
 		params["oldTerritory"] = oldTerritory;
 		params["newTerritory"] = newTerritory;
-		LOGWARN(" Notifying Territory changed - oldTerritory: %s - newTerritory: %s",oldTerritory,newTerritory);
+		LOGWARN(" Notifying Territory changed - oldTerritory: %s - newTerritory: %s",oldTerritory.c_str(),newTerritory.c_str());
 
 		if(newRegion != "")
 		{
 			params["oldRegion"] = oldRegion;
 			params["newRegion"] = newRegion;
-			LOGWARN(" Notifying Region changed - oldRegion: %s - newRegion: %s",oldRegion,newRegion);
+			LOGWARN(" Notifying Region changed - oldRegion: %s - newRegion: %s",oldRegion.c_str(),newRegion.c_str());
 		}
 		//Notify territory changed
 		sendNotify(EVT_ONTERRITORYCHNAGED, params);
@@ -2354,7 +2399,7 @@ namespace WPEFramework {
 		JsonObject params;
 		params["oldTimeZone"] = oldTimeZone;
 		params["newTimeZone"] = newTimeZone;
-		LOGWARN(" Notifying TimeZone changed - oldTimeZone: %s - newTimeZone: %s",oldTimeZone,newTimeZone);
+		LOGWARN(" Notifying TimeZone changed - oldTimeZone: %s - newTimeZone: %s",oldTimeZone.c_str(),newTimeZone.c_str());
 		//Notify TimeZone changed
 		sendNotify(EVT_ONTIMEZONEDSTCHANGED, params);
 		GetHandler(2)->Notify(EVT_ONTIMEZONEDSTCHANGED, params);

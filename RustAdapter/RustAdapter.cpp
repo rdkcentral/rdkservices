@@ -81,6 +81,7 @@ WPEFramework::Plugin::RustAdapter::Release() const
   return Core::ERROR_NONE;
 }
 
+#if JSON_RPC_CONTEXT
 WPEFramework::Core::ProxyType<WPEFramework::Core::JSONRPC::Message>
 WPEFramework::Plugin::RustAdapter::Invoke(
   const WPEFramework::Core::JSONRPC::Context &ctx,
@@ -88,6 +89,14 @@ WPEFramework::Plugin::RustAdapter::Invoke(
 {
   return m_impl->Invoke(ctx, req);
 }
+#else
+WPEFramework::Core::ProxyType<WPEFramework::Core::JSONRPC::Message> 
+  WPEFramework::Plugin::RustAdapter::Invoke(
+    const string& token, const uint32_t channelId, const WPEFramework::Core::JSONRPC::Message& req)
+{
+  return m_impl->Invoke(token, channelId, req);
+}
+#endif
 
 void
 WPEFramework::Plugin::RustAdapter::Activate(
