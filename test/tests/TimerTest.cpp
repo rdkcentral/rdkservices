@@ -104,4 +104,3 @@ TEST_F(TimerTestFixture, timerAPITest)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cancel"), str.c_str(), response));
     EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
 }
-
