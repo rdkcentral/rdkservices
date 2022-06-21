@@ -119,8 +119,13 @@ TEST_F(TimerTestFixture, timerExpiry)
     JsonObject params;
     EXPECT_TRUE(params.FromString(response));
     EXPECT_TRUE(params.HasLabel(_T("timerId")));
+<<<<<<< HEAD
     string stimerID = params["timerId"].String();
     int nTimerId = std::stoi(stimerID);
+=======
+    string stimerId = params["timerId"].String();
+    int nTimerId = std::stoi(stimerId);
+>>>>>>> c26ed4e4 (RDK-36576 : Add Unit Tests for RDKServices Timer Plugin)
 
     EXPECT_CALL(*plugin, sendTimerExpiryReminder(nTimerId))
         .Times(1)
@@ -132,6 +137,10 @@ TEST_F(TimerTestFixture, timerExpiry)
         .WillOnce(
             ::testing::Return());
 
+<<<<<<< HEAD
+=======
+    //Wait for timer expiry & reminder calls
+>>>>>>> c26ed4e4 (RDK-36576 : Add Unit Tests for RDKServices Timer Plugin)
    sleep(2);
 }
 
