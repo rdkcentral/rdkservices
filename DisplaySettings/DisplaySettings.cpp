@@ -4088,10 +4088,15 @@ namespace WPEFramework {
                     }
 
                     if(types & dsAUDIOARCSUPPORT_eARC) {
-                        if(pEnable) {
-                            LOGINFO("DisplaySettings::setEnableAudioPort Enable eARC !!!");
-                            aPort.enableARC(dsAUDIOARCSUPPORT_eARC, true);
-                            m_arcAudioEnabled = true;
+			if(m_arcAudioEnabled == false) {
+			    if(pEnable) {
+				LOGINFO("DisplaySettings::setEnableAudioPort Enable eARC !!!");
+				aPort.enableARC(dsAUDIOARCSUPPORT_eARC, true);
+				m_arcAudioEnabled = true;
+			    }
+			    else {
+				LOGINFO("eARC is already enabled. Value of m_arcAudioEnabled is %d: \n", m_arcAudioEnabled);
+			    }
                         }
                         else{
                             LOGINFO("DisplaySettings::setEnableAudioPort Disable eARC !!!");
