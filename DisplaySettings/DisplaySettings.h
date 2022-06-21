@@ -25,8 +25,7 @@
 #include "utils.h"
 #include "dsTypes.h"
 #include "tptimer.h"
-#include "libIBus.h"
-#include "libIBusDaemon.h"
+#include "libIARM.h"
 #include "irMgr.h"
 #include "pwrMgr.h"
 
