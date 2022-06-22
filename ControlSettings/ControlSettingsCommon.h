@@ -19,6 +19,26 @@
 #ifndef CONTROLSETTINGS_COMMON_H
 #define CONTROLSETTINGS_COMMON_H
 
+#define RFC_BUFF_MAX 100
+#define VIDEO_DESCRIPTION_MAX (25)
+#define VIDEO_DESCRIPTION_NAME_SIZE (25)
+
+#define PIC_MODES_SUPPORTED_MAX   (15)
+#define SOURCES_SUPPORTED_MAX   (15)
+
+#define TVSETTINGS_RFC_CALLERID        "tvsettings"
+#define TVSETTINGS_GENERIC_STRING_RFC_PARAM    "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings."
+#define TVSETTINGS_PICTUREMODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.PictureMode"
+#define TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.PictureModeString"
+#define TVSETTINGS_BACKLIGHT_CONTROL_USE_GBF_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.UseGBFForBacklightControl"
+
+#define STRING_PICMODE  "PicMode."
+#define STRING_FORMAT  "Format."
+#define STRING_DEFAULT  "Default"
+#define STRING_SOURCE    "Source."
+
+
+
 #define DECLARE_JSON_RPC_METHOD(method) \
 uint32_t method(const JsonObject& parameters, JsonObject& response);
 
@@ -41,6 +61,7 @@ uint32_t method(const JsonObject& parameters, JsonObject& response);
 
 static pthread_mutex_t Lock = PTHREAD_MUTEX_INITIALIZER;
 
+
 static std::string getErrorString (tvError_t eReturn)
     {
         switch (eReturn)
@@ -58,6 +79,5 @@ static std::string getErrorString (tvError_t eReturn)
         }
         return "UNKNOWN ERROR";
     }
-
 
 #endif

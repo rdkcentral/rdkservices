@@ -27,9 +27,9 @@
 #include "tvSettings.h"
 #include <pthread.h>
 #include "Module.h"
-#include "tvTypes.h"
 #include "tvError.h"
-
+#include "tvTypes.h"
+#include "tr181api.h"
 #include "AbstractPlugin.h"
 #include "utils.h"
 #include "ControlSettingsCommon.h"
@@ -44,6 +44,8 @@ class ControlSettingsTV : public AbstractPlugin {
 
 	DECLARE_JSON_RPC_METHOD(getBacklight)
         DECLARE_JSON_RPC_METHOD(setBacklight)
+        DECLARE_JSON_RPC_METHOD(setBrightness)
+        DECLARE_JSON_RPC_METHOD(getBrightness )
 
 
     public:
@@ -52,9 +54,23 @@ class ControlSettingsTV : public AbstractPlugin {
         ControlSettingsTV *instance;
         void Initialize();
         void Deinitialize();
+	int getCurrentPictureMode(char *picMode);
+        virtual tvError_t UpdatePQParamToLocalCache(const char* forParam, int source, int pqmode, int format, int value,bool setNotDelete) = 0;
+	virtual int UpdatePQParamsToCache( const char *action, const char *tr181ParamName, const char *pqmode, const char *source, const char *format, tvPQParameterIndex_t pqParamIndex, int params[] )=0;
+        virtual uint32_t generateStorageIdentifier(std::string &key,const char * forParam,int contentFormat, int pqmode, int source) = 0;
+	void GetParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
+        int getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
    
     protected:
+        int numberModesSupported;
+        bool appUsesGlobalBackLightFactor;
+        char rfc_caller_id[RFC_BUFF_MAX];
+        int pic_mode_index[PIC_MODES_SUPPORTED_MAX];
+        int numberSourcesSupported;
+        int source_index[SOURCES_SUPPORTED_MAX];
         static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        bool isBacklightUsingGlobalBacklightFactor(void);
+        int GetLocalparam(const char * forParam,int formatIndex,int pqIndex,int sourceIndex,int &value);
 };
 
 }//namespace Plugin

@@ -51,6 +51,7 @@ class ControlSettingsSTB : public AbstractPlugin {
         ControlSettingsSTB *instance;
         void Initialize();
         void Deinitialize();
+        virtual int UpdatePQParamsToCache( const char *action, const char *tr181ParamName, const char *pqmode, const char *source, const char *format, tvPQParameterIndex_t pqParamIndex, int params[] ) = 0;
     
     protected:
         static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
