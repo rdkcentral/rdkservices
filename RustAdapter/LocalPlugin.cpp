@@ -111,7 +111,7 @@ namespace {
   }
 }
 
-WPEFramework::Plugin::Rust::LocalPlugin::LocalPlugin()
+WPEFramework::Plugin::Rust::LocalPlugin::LocalPlugin(const RustAdapter::Config &config)
   : m_rust_plugin_create(nullptr)
   , m_rust_plugin_destroy(nullptr)
   , m_rust_plugin_init(nullptr)
@@ -122,6 +122,7 @@ WPEFramework::Plugin::Rust::LocalPlugin::LocalPlugin()
   , m_rust_plugin(nullptr)
   , m_rust_plugin_lib(nullptr)
   , m_service(nullptr)
+  , m_config(config)
 {
 }
 
@@ -130,17 +131,13 @@ WPEFramework::Plugin::Rust::LocalPlugin::Initialize(PluginHost::IShell *shell)
 {
   m_service = shell;
 
-  std::stringstream shared_library_name;
-  shared_library_name << "lib";
-  for (char c : shell->Callsign())
-    shared_library_name << static_cast<char>(std::tolower(c));
-  shared_library_name << ".so";
+  std::string lib_name = RustAdapter::GetLibraryPathOrName(m_config.LibName.Value(), shell->Callsign());
 
-  m_rust_plugin_lib = find_rust_plugin(shared_library_name.str());
+  m_rust_plugin_lib = find_rust_plugin(lib_name);
   if (!m_rust_plugin_lib) {
     std::stringstream buff;
     buff << "cannot find ";
-    buff << shared_library_name.str();
+    buff << lib_name;
     return buff.str();
   }
 

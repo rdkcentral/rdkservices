@@ -39,14 +39,15 @@ WPEFramework::Plugin::RustAdapter::Initialize(PluginHost::IShell *shell)
      We run the rust plugin itself either in-process or out-of-process
      base the config setting */
 
-  m_config.FromString(shell->ConfigLine());     
+  RustAdapter::Config conf;
+  conf.FromString(shell->ConfigLine());
 
   LOGINFO("RustAdapter::Initialize Config=%s", shell->ConfigLine().c_str());
 
-  if (m_config.OutOfProcess)
-    m_impl.reset(new WPEFramework::Plugin::Rust::RemotePlugin(this));
+  if (conf.OutOfProcess)
+    m_impl.reset(new WPEFramework::Plugin::Rust::RemotePlugin(conf));
   else
-    m_impl.reset(new WPEFramework::Plugin::Rust::LocalPlugin());
+    m_impl.reset(new WPEFramework::Plugin::Rust::LocalPlugin(conf));
 
   return m_impl->Initialize(shell);
 }
@@ -134,4 +135,21 @@ WPEFramework::Plugin::RustAdapter::Inbound(const uint32_t id,
     const Core::ProxyType<Core::JSON::IElement> &element)
 {
   return m_impl->Inbound(id, element);
+}
+
+std::string
+WPEFramework::Plugin::RustAdapter::GetLibraryPathOrName(
+  const std::string &lib_name,
+  const std::string &callsign)
+{
+  std::stringstream shared_library_name;
+  if (!lib_name.empty())
+    shared_library_name << lib_name;
+  else {
+    shared_library_name << "lib";
+    for (char c : callsign)
+      shared_library_name << static_cast<char>(std::tolower(c));
+    shared_library_name << ".so";
+  }
+  return shared_library_name.str();
 }

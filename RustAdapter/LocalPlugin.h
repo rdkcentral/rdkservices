@@ -27,7 +27,7 @@ public:
   /**
    *
    */
-  LocalPlugin();
+  LocalPlugin(const RustAdapter::Config &config);
 
   /**
    *
@@ -136,6 +136,7 @@ private:
   // XXX: We could also capture a reference to the channel during
   // attach/detach, but that may require API changes to Thunder/internal
   PluginHost::IShell *m_service;
+  RustAdapter::Config m_config;
 
 private:
   void SendTo(uint32_t channel_id, const char *json);

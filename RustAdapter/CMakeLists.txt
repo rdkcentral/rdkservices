@@ -21,6 +21,10 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
+if (WITH_RPC_CONTEXT)
+  set(CMAKE_CXX_FLAGS "-DJSON_RPC_CONTEXT ${CMAKE_CXX_FLAGS}")
+endif()
+
 add_library(${MODULE_NAME} SHARED
     RustAdapter.cpp
     LocalPlugin.cpp
@@ -35,6 +39,7 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 target_link_libraries(${MODULE_NAME} PRIVATE
     CompileSettingsDebug::CompileSettingsDebug
     ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
+
 
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

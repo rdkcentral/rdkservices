@@ -29,7 +29,7 @@ public:
   /**
    *
    */
-  RemotePlugin(RustAdapter* rustAdapter);
+  RemotePlugin(const RustAdapter::Config &conf);
 
   /**
    *
@@ -117,9 +117,7 @@ private:
   PluginHost::IShell *m_service;
   int m_remotePid;
   SocketServer m_stream;
-  RustAdapter* m_rustAdapter;
-private:
-  
+  RustAdapter::Config m_config;
 };
 
 } } }

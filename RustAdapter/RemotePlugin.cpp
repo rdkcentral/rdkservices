@@ -26,8 +26,9 @@ namespace WPEFramework {
 namespace Plugin {
 namespace Rust {
 
-RemotePlugin::RemotePlugin(RustAdapter* rustAdapter)
-  : m_remotePid(0), m_rustAdapter(rustAdapter)
+RemotePlugin::RemotePlugin(const RustAdapter::Config &conf)
+  : m_remotePid(0)
+  , m_config(conf)
 {
 }
 
@@ -36,19 +37,13 @@ RemotePlugin::Initialize(PluginHost::IShell *shell)
 {
   m_service = shell;
 
-  std::stringstream shared_library_name;
-  shared_library_name << "lib";
-  for (char c : shell->Callsign())
-    shared_library_name << static_cast<char>(std::tolower(c));
-  shared_library_name << ".so";
-
-  string address = m_rustAdapter->GetConfig().Address.Value();
+  string address = m_config.Address.Value();
   printf("ADDR=%s\n", address.c_str());
   if (address.empty())
     address = "127.0.0.1";
 
   if (m_stream.Open(address, 
-                    m_rustAdapter->GetConfig().Port.Value(), 
+                    m_config.Port.Value(),
                     std::bind(&RemotePlugin::onRead, this, std::placeholders::_1)) < 0)
   {
     return string("RustAdapter RemotePlugin couldn't open socket stream");
@@ -59,9 +54,10 @@ RemotePlugin::Initialize(PluginHost::IShell *shell)
     return string("RustAdapter RemotePlugin failed to run stream thread");
   }
 
-  if (m_rustAdapter->GetConfig().AutoExec)
+  if (m_config.AutoExec)
   {
-    if ((m_remotePid = LaunchRemoteProcess(shared_library_name.str(), m_stream.GetAddress(), m_stream.GetPort())) < 0)
+    std::string lib_name = RustAdapter::GetLibraryPathOrName(m_config.LibName.Value(), shell->Callsign());
+    if ((m_remotePid = LaunchRemoteProcess(lib_name, m_stream.GetAddress(), m_stream.GetPort())) < 0)
     {
       return string("RustAdapter RemotePlugin failed spawn remote process");
     }
