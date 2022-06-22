@@ -642,7 +642,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.suppoortedGameFeatures | string | The supported game Features |
+| result.supportedGameFeatures | string | The supported game Features |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -664,7 +664,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "suppoortedGameFeatures": "ALLM",
+        "supportedGameFeatures": "ALLM",
         "success": true
     }
 }
