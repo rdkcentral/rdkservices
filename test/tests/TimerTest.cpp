@@ -112,8 +112,13 @@ TEST_F(TimerTestFixture, timerExpiry)
     JsonObject params;
     EXPECT_TRUE(params.FromString(response));
     EXPECT_TRUE(params.HasLabel(_T("timerId")));
+<<<<<<< HEAD
     string stimerId = params["timerId"].String();
     int nTimerId = std::stoi(stimerId);
+=======
+    string stimerID = params["timerId"].String();
+    int nTimerId = std::stoi(stimerID);
+>>>>>>> 08f7c4ec93083fabcf37f745eb81b7dadbfb52fa
 
     EXPECT_CALL(*plugin, sendTimerExpiryReminder(nTimerId))
         .Times(1)
@@ -125,6 +130,9 @@ TEST_F(TimerTestFixture, timerExpiry)
         .WillOnce(
             ::testing::Return());
 
+<<<<<<< HEAD
     //Wait for timer expiry & reminder calls
+=======
+>>>>>>> 08f7c4ec93083fabcf37f745eb81b7dadbfb52fa
    sleep(2);
 }
