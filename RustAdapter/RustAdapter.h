@@ -36,15 +36,29 @@ public:
   class Config : public Core::JSON::Container
   {
   private:
-    Config(const Config&);
     Config& operator=(const Config&);
   public:
+    Config(const Config &rhs)
+    {
+      Add(_T("outofprocess"), &OutOfProcess);
+      Add(_T("address"), &Address);
+      Add(_T("port"), &Port);
+      Add(_T("autoexec"), &AutoExec);
+      Add(_T("libname"), &LibName);
+      OutOfProcess = rhs.OutOfProcess;;
+      Address = rhs.Address;
+      Port = rhs.Port;
+      AutoExec = rhs.AutoExec;
+      LibName = rhs.LibName;
+    }
+
     Config() : Core::JSON::Container(), OutOfProcess(true)
     {
       Add(_T("outofprocess"), &OutOfProcess);
       Add(_T("address"), &Address);
       Add(_T("port"), &Port);
       Add(_T("autoexec"), &AutoExec);
+      Add(_T("libname"), &LibName);
     }
     ~Config()
     {
@@ -54,6 +68,7 @@ public:
     Core::JSON::String Address;
     Core::JSON::DecUInt16 Port;
     Core::JSON::Boolean AutoExec;
+    Core::JSON::String LibName;
   };
 
   /**
@@ -136,13 +151,12 @@ public:
   INTERFACE_ENTRY(PluginHost::IWebSocket)
   END_INTERFACE_MAP
 
-  const Config& GetConfig() const
-  {
-    return m_config;
-  }
+  static std::string GetLibraryPathOrName(
+    const std::string& libname,
+    const std::string& callsign);
+
 private:
   std::unique_ptr<Rust::IPlugin> m_impl;
-  Config m_config;
 
   // needs to be mutable because Release() is const
   mutable std::atomic<uint32_t> m_refcount;
