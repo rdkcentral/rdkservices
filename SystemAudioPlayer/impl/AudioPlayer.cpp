@@ -18,7 +18,7 @@
 GMainLoop* AudioPlayer::m_main_loop=NULL;
 GThread* AudioPlayer::m_main_loop_thread=NULL;
 SAPEventCallback* AudioPlayer::m_callback=NULL;
-audio_hw_device_t* AudioPlayer::m_audio_dev=NULL;
+
 //TODO Dock primary volume , if both APP & SYSTEM mode are playing
 //static bool app_playing =false;
 //static bool sys_playing =false;
@@ -92,27 +92,7 @@ void AudioPlayer::Init(SAPEventCallback *callback)
         gst_init(NULL,NULL);
     m_main_loop_thread = g_thread_new("BusWatch", (void* (*)(void*)) event_loop, NULL);
     m_callback = callback;
-#if defined(PLATFORM_AMLOGIC)
-    if(!m_audio_dev)
-    {
-        int ret = audio_hw_load_interface(&m_audio_dev);
-        if (ret) 
-        {
-            SAPLOG_ERROR("SAP: Amlogic audio_hw_load_interface failed:%d, can not control mix gain", ret);
-            return;
-        }
-        int inited = m_audio_dev->init_check(m_audio_dev);
-        if (inited) 
-        {
-            SAPLOG_ERROR("SAP: Amlogic audio device not inited, can not control mix gain\n");
-            audio_hw_unload_interface(m_audio_dev);
-            m_audio_dev = NULL;
-            return;
-        }  
-        SAPLOG_INFO("SAP: Amlogic audio device loaded, can control mix gain");
-        return ;
-    }
-#endif
+    Soc_Initialize();
 }
 
 void AudioPlayer::DeInit()
@@ -121,14 +101,7 @@ void AudioPlayer::DeInit()
     if(g_main_loop_is_running(m_main_loop))
         g_main_loop_quit(m_main_loop);
     g_thread_join(m_main_loop_thread);
-   
-#if defined(PLATFORM_AMLOGIC)
-    if(m_audio_dev)
-    {
-        audio_hw_unload_interface(m_audio_dev);
-        m_audio_dev = NULL;
-    }
-#endif
+    Soc_Deinitialize();
     SAPLOG_INFO("SAP: AudioPlayer DeInit last\n");
 }
 
@@ -231,9 +204,9 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
         return;
     }
      // create soc specific elements..generic elements
-#if defined(PLATFORM_AMLOGIC)
     GstElement *convert = gst_element_factory_make("audioconvert", NULL);
     GstElement *resample = gst_element_factory_make("audioresample", NULL);
+#if defined(PLATFORM_AMLOGIC)
     m_audioSink = gst_element_factory_make("amlhalasink", NULL);
     m_audioVolume = m_audioSink;
     if(smartVolumeEnable)
@@ -243,7 +216,15 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
        SAPLOG_INFO("SAP : set Default threshold-dB=%f",m_thresHold_dB);
        g_object_set(G_OBJECT(m_audioCutter), "threshold-dB", m_thresHold_dB, NULL);
     }
-
+#elif defined(PLATFORM_REALTEK)
+    GstElement *audiofilter = gst_element_factory_make("capsfilter", NULL);
+    m_audioSink = gst_element_factory_make("rtkaudiosink", NULL);
+    m_audioVolume = gst_element_factory_make("volume", NULL);
+    audiocaps = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, "rate", G_TYPE_INT, 48000, NULL);
+    g_object_set( G_OBJECT(audiofilter),  "caps",  audiocaps, NULL );
+    gst_caps_unref(audiocaps);
+    g_object_set(G_OBJECT(m_audioSink), "media-tunnel",  FALSE, NULL);
+    g_object_set(G_OBJECT(m_audioSink), "audio-service",  TRUE, NULL);
 #else
     m_audioSink = gst_element_factory_make("autoaudiosink", NULL); 
 #endif 
@@ -304,6 +285,10 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
                gst_bin_add_many(GST_BIN(m_pipeline), m_source, convert, resample, m_audioSink, NULL);
                result = gst_element_link_many (m_source,convert,resample,m_audioSink,NULL);
             }
+            #elif defined(PLATFORM_REALTEK)
+            g_object_set(G_OBJECT(m_audioSink), "async",  FALSE, NULL);
+            gst_bin_add_many(GST_BIN(m_pipeline), m_source, convert, resample, audiofilter, m_audioSink,m_audioVolume,NULL);
+            result = gst_element_link_many (m_source,convert,resample,audiofilter,m_audioVolume,m_audioSink,NULL);
 	    #else
             gst_bin_add_many(GST_BIN(m_pipeline), m_source, m_audioSink, NULL);
             result = gst_element_link_many (m_source,m_audioSink,NULL);
@@ -334,6 +319,9 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
                gst_bin_add_many(GST_BIN(m_pipeline), m_source, m_capsfilter, convert, resample, m_audioSink, NULL);
                result = gst_element_link_many (m_source,m_capsfilter,convert,resample,m_audioSink,NULL);
             }
+            #elif defined(PLATFORM_REALTEK)
+            gst_bin_add_many(GST_BIN(m_pipeline), m_source, m_capsfilter, convert, resample,audiofilter,m_audioVolume,m_audioSink, NULL);
+            result = gst_element_link_many (m_source,m_capsfilter,convert,resample,audiofilter,m_audioVolume,m_audioSink,NULL);
             #else
 	    gst_bin_add_many(GST_BIN(m_pipeline), m_source, m_capsfilter, m_audioSink, NULL);
 	    result = gst_element_link_many (m_source,m_capsfilter,m_audioSink,NULL);
@@ -369,7 +357,9 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
            gst_bin_add_many(GST_BIN(m_pipeline), m_source, wavparser, convert, resample, m_audioSink, NULL);
            result = gst_element_link_many (m_source,wavparser,convert,resample,m_audioSink,NULL);
         }
-
+        #elif defined(PLATFORM_REALTEK)
+        gst_bin_add_many(GST_BIN(m_pipeline), m_source, wavparser, convert, resample,audiofilter,m_audioVolume,m_audioSink, NULL);
+        result = gst_element_link_many (m_source,wavparser,convert,resample,audiofilter,m_audioVolume,m_audioSink,NULL);
         #endif
     }
 
@@ -384,8 +374,8 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
             g_object_set(G_OBJECT(m_audioSink), "direct-mode", FALSE, NULL);
             #endif
         }
-        #if defined(PLATFORM_AMLOGIC)
         GstElement *parser = gst_element_factory_make("mpegaudioparse", NULL);
+        #if defined(PLATFORM_AMLOGIC)
         GstElement *decodebin = gst_element_factory_make("avdec_mp3", NULL);
 	gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, decodebin, convert, resample, m_audioSink, NULL);
         result &= gst_element_link (m_source, parser);
@@ -401,6 +391,10 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
         }
         result &= gst_element_link (convert, resample);
         result &= gst_element_link (resample, m_audioSink);
+        #elif defined(PLATFORM_REALTEK)
+        GstElement *decodebin = gst_element_factory_make("avdec_mp3", NULL);
+        gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, convert, resample, audiofilter, decodebin, m_audioSink, m_audioVolume, NULL);
+        gst_element_link_many (m_source, parser, decodebin, convert, resample, audiofilter, m_audioVolume, m_audioSink, NULL);
         #endif
     }
 
@@ -564,11 +558,8 @@ bool AudioPlayer::handleMessage(GstMessage *message)
                     m_callback->onSAPEvent(getObjectIdentifier(),PLAYBACK_ERROR);
                 }
                 state = PLAYBACKERROR;
-                if(sourceType == WEBSOCKET || sourceType == DATA)
-                {
-                    Stop();
-                }
-		
+                Stop();
+               		
             }
             break;
 
@@ -585,6 +576,7 @@ bool AudioPlayer::handleMessage(GstMessage *message)
                     appsrc_firstpacket = true;
                     SAPLOG_INFO("Playback Finished event\n");
                     m_callback->onSAPEvent(getObjectIdentifier(),PLAYBACK_FINISHED);
+                    Stop();
                     state = READY;
                 }
             }
@@ -935,95 +927,15 @@ std::string AudioPlayer::getUrl()
     return m_url;
 }
 
-bool AudioPlayer::loadInitAudioDev()
-{
-    //TTSLOG_WARNING("Destroying Pipeline...");
-
-    int ret = audio_hw_load_interface(&m_audio_dev);
-    if (ret) {
-        //TRACE(Trace::Error, (_T("Failed to delete %s\n"), fullPath.c_str()));
-        //TRACE(Trace::Error, (_T("Amlogic audio_hw_load_interface failed:%d, can not control mix gain\n"), ret));
-        return false;
-    }
-    int inited = m_audio_dev->init_check(m_audio_dev);
-    if (inited) {
-       // TRACE(Trace::Error, (_T("Amlogic audio device not inited, can not control mix gain\n")));
-        audio_hw_unload_interface(m_audio_dev);
-        m_audio_dev = NULL;
-        return false;
-    }
-  //TRACE(Trace::Information, (_T("Amlogic audio device loaded, can control mix gain\n")));
-  return true;
-}
-
-/*
- * Control gain of
- * primary audio (direct-mode=true),
- * system audio  (direct-mode=false)
- * app audio     (tts-mode=true)
- * mixgain value from 0 to -96  in db
- * 0   -> Maximum
- * -96 -> Minimum
-*/
-bool AudioPlayer::setMixGain(MixGain gain, int val)
-{
-     int ret;
-     bool status = false;
-     char mixgain_cmd[32];
-     if(gain == MIXGAIN_PRIM)
-         snprintf(mixgain_cmd, sizeof(mixgain_cmd), "prim_mixgain=%d", val);
-        else if( gain == MIXGAIN_SYS )
-                snprintf(mixgain_cmd, sizeof(mixgain_cmd), "syss_mixgain=%d",val);
-        else if(gain == MIXGAIN_TTS)
-                snprintf(mixgain_cmd, sizeof(mixgain_cmd), "apps_mixgain=%d",val);
-         else {
-                SAPLOG_ERROR("SAP: Unsuported Gain type=%d",gain);
-                return false;
-        }
-
-      if(m_audio_dev) {
-         ret = m_audio_dev->set_parameters(m_audio_dev, mixgain_cmd );
-         if(!ret) {
-             SAPLOG_INFO("SAP: Amlogic audio dev  set param=%s success\n",mixgain_cmd);
-             status = true;
-         }
-          else {
-                SAPLOG_ERROR("SAP: Amlogic audio dev  set_param=%s failed  error=%d\n",mixgain_cmd,ret);
-                status = false;
-          }
-     }
- return status;
-}
-
 //Primary Audio control/dock
 void AudioPlayer::setPrimaryVolume( int primVol)
 {
-#ifdef PLATFORM_AMLOGIC
     if( m_prevPrimVolume != primVol )
     {
         //Prim Mix gain
-	double primVolGain, primdbOut;
-	if( primVol != 0 )
-	{
-	   primVolGain = (double)primVol/100;
-	   //convert voltage gain/loss to db
-	   primdbOut = round(1000000*20*(std::log(primVolGain)/std::log(10)))/1000000;
-	}
-	else
-	{
-           SAPLOG_INFO( "SAP: Applying Minimum dBout");
-           primVolGain = 0.00000;
-           //minimum dBout value -96dB
-           primdbOut = -96.00000;
- 	}
-
-        setMixGain(MIXGAIN_PRIM,round(primdbOut));
+        SoC_ChangePrimaryVol(MIXGAIN_PRIM,primVol);
         m_prevPrimVolume = primVol;
     }
-#else
-    //TODO for Other platforms
-    SAPLOG_ERROR(" Audio docking not Implemented" );
-#endif
     return;
 }
 
@@ -1036,26 +948,11 @@ void AudioPlayer::setVolume( int thisVol)
     {
         if( m_prevThisVolume != thisVol)
         { 
-               double thisvolGain=0.0, dbOut=0.0;
-               if( thisVol != 0)
-               {
-                   thisvolGain = (double)thisVol/100;
-                  //convert voltage gain/loss to db
-                  dbOut = round(1000000*20*(std::log(thisvolGain)/std::log(10)))/1000000;
-               }
-               else
-               {
-                  SAPLOG_INFO( "SAP: Applying Minimum dBout");
-                  thisvolGain = 0.00000;
-		  //minimum dBout value -96dB
-                  dbOut = -96.00000;
-               }
-
             if( playMode == SYSTEM)
-                setMixGain(MIXGAIN_SYS,round(dbOut));
+                SoC_ChangePrimaryVol(MIXGAIN_SYS,thisVol);
             else if( playMode == APP)
-                setMixGain(MIXGAIN_TTS,round(dbOut));
-            SAPLOG_INFO("SAP: Cur vol=%0.5f thisvolGain=%0.5f dbOut =%0.5f", thisVol,thisvolGain,dbOut);
+                SoC_ChangePrimaryVol(MIXGAIN_TTS,thisVol);
+       
             m_prevThisVolume = thisVol;
         } 
     }
@@ -1063,8 +960,8 @@ void AudioPlayer::setVolume( int thisVol)
     { 
         g_object_set(G_OBJECT(m_audioVolume), "stream-volume", (double)thisVol/100, NULL);
     }
-#else
-    g_object_set(G_OBJECT(m_audioVolume), "volume", (double)thisVol/100, NULL);
+#elif defined(PLATFORM_REALTEK)
+    g_object_set(G_OBJECT(m_audioVolume), "volume", (double) 4.0 * (thisVol/100), NULL);
 #endif
     return;
 }

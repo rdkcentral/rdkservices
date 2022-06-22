@@ -696,7 +696,7 @@ namespace WPEFramework
                 returnResponse(false);
             }
             else {
-                setResponseArray(response, "suppoortedGameFeatures", supportedFeatures);
+                setResponseArray(response, "supportedGameFeatures", supportedFeatures);
                 returnResponse(true);
             }
         }
