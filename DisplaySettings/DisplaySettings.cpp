@@ -2657,7 +2657,7 @@ namespace WPEFramework {
                 try {
                         newGain = stof(sGain);
                          if ((newGain < -2080) || (newGain > 480)) {
-                            LOGERR("Gain (value = " + sGain + ") being set to an invalid value \n");
+                            LOGERR("Gain value being set to an invalid value newGain: %f \n",newGain);
                             returnResponse(false);
                         }
                 }catch (const device::Exception& err) {
