@@ -98,7 +98,7 @@
             "example": 0
         },
         "gain": {
-            "summary": "Value between 0 and 100, where 0 means no gain and 100 means maximum gain",
+            "summary": "Value between -2080 and 480, where -2080 means negative gain and 480 means maximum gain",
             "type": "number",
             "example": "10.000000"
         },
