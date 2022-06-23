@@ -317,7 +317,7 @@ namespace WPEFramework
             // Hence checking for status only when SuppressReboot is true.
             if(suppressReboot)
             {
-                ok = ((err == IARM_RESULT_SUCCESS)|| (ret == Core::ERROR_NONR) );
+                ok = ((err == IARM_RESULT_SUCCESS)|| (ret == Core::ERROR_NONE));
             }
             
             if (!( true == isWareHouse && true == suppressReboot)) {
@@ -1133,7 +1133,8 @@ namespace WPEFramework
             /*Execute the script for User Factory Reset*/
             system("echo 0 > /opt/.rebootFlag");
             system("echo `/bin/timestamp` ------------- Rebooting due to User Factory Reset process--------------- >> /opt/logs/receiver.log");
-            return system("sh /lib/rdk/deviceReset.sh userfactory");
+            system("sh /lib/rdk/deviceReset.sh userfactory");
+            return Core::ERROR_NONE;
         }
     } // namespace Plugin
 } // namespace WPEFramework
