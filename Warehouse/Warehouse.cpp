@@ -97,7 +97,7 @@ std::string formatIARMResult(IARM_Result_t result)
 namespace WPEFramework
 {
     namespace Plugin
-    {
+    {	
         SERVICE_REGISTRATION(Warehouse, 2, 0);
         Warehouse* Warehouse::_instance = nullptr;
         Warehouse::Warehouse()
@@ -157,7 +157,7 @@ namespace WPEFramework
 
         void Warehouse::InitializeIARM()
         {
-            if (Utils::IARM::init()) {
+        if (Utils::IARM::init()) {
                IARM_Result_t res;
                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_WAREHOUSEOPS_STATUSCHANGED, dsWareHouseOpnStatusChanged) );
             }
@@ -232,6 +232,8 @@ namespace WPEFramework
         static void WareHouseResetIARM(Warehouse *wh, bool suppressReboot, const string& resetType)
         {
             IARM_Result_t err;
+            uint32_t ret = Core::ERROR_GENERAL;
+            JsonObject params;
             bool isWareHouse = false;
             if (NULL == Warehouse::_instance) {
                 return;
@@ -241,7 +243,7 @@ namespace WPEFramework
                 LOGINFO("%s reset...", resetType.c_str());
 
                 if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
-                    Warehouse::_instance->processColdFactoryReset();
+                    ret = Warehouse::_instance->processColdFactoryReset();
                 }
                 else {
                     err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_ColdFactoryReset, nullptr, 0);
@@ -252,7 +254,7 @@ namespace WPEFramework
                 LOGINFO("%s reset...", resetType.c_str());
 
                 if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
-                    Warehouse::_instance->processFactoryReset();
+                    ret = Warehouse::_instance->processFactoryReset();
                 }
                 else {
                     err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_FactoryReset, nullptr, 0);
@@ -263,7 +265,7 @@ namespace WPEFramework
                 LOGINFO("%s reset...", resetType.c_str());
 
                 if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
-                    Warehouse::_instance->processUserFactoryReset();
+                    ret = Warehouse::_instance->processUserFactoryReset();
                 }
                 else {
                     err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_UserFactoryReset, nullptr, 0);
@@ -272,18 +274,40 @@ namespace WPEFramework
             else if (resetType.compare("WAREHOUSE_CLEAR") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                IARM_Bus_PWRMgr_WareHouseReset_Param_t whParam;
-                whParam.suppressReboot = suppressReboot;
-                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseClear, &whParam, sizeof(whParam));
-                isWareHouse = true;
+                if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
+                    ret = suppressReboot ?  Warehouse::_instance->processWHClearNoReboot(): Warehouse::_instance->processWHClear();
+                    if (ret == Core::ERROR_NONE) {
+                        isWareHouse = true;
+                    }
+                    else {
+                        params[PARAM_ERROR] = "Reset failed";
+                    }
+                }
+                else {
+                    IARM_Bus_PWRMgr_WareHouseReset_Param_t whParam;
+                    whParam.suppressReboot = suppressReboot;
+                    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseClear, &whParam, sizeof(whParam));
+                    isWareHouse = true;
+                }
             }
             else // WAREHOUSE
             {
                 LOGINFO("WAREHOUSE reset...");
-                IARM_Bus_PWRMgr_WareHouseReset_Param_t whParam;
-                whParam.suppressReboot = suppressReboot;
-                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseReset, &whParam, sizeof(whParam));
-                isWareHouse = true;
+                if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
+                    ret = suppressReboot ?  Warehouse::_instance->processWHResetNoReboot(): Warehouse::_instance->processWHReset();
+                    if (ret == Core::ERROR_NONE) {
+                        isWareHouse = true;
+                    }
+                    else {
+                        params[PARAM_ERROR] = "Reset failed";
+                    }
+                }
+                else {
+                    IARM_Bus_PWRMgr_WareHouseReset_Param_t whParam;
+                    whParam.suppressReboot = suppressReboot;
+                    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseReset, &whParam, sizeof(whParam));
+                    isWareHouse = true;
+                }
             }
 
             bool ok = true;
@@ -293,11 +317,10 @@ namespace WPEFramework
             // Hence checking for status only when SuppressReboot is true.
             if(suppressReboot)
             {
-                ok = (err == IARM_RESULT_SUCCESS);
+                ok = ((err == IARM_RESULT_SUCCESS)|| (ret == Core::ERROR_NONR) );
             }
             
             if (!( true == isWareHouse && true == suppressReboot)) {
-                JsonObject params;
                 params[PARAM_SUCCESS] = ok;
 
                 if (!ok)
@@ -985,6 +1008,7 @@ namespace WPEFramework
             return(result);
         }
 #endif
+
         void Warehouse::dsWareHouseOpnStatusChanged(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             if (NULL == Warehouse::_instance) {
@@ -992,26 +1016,25 @@ namespace WPEFramework
             }
             if (IARM_BUS_PWRMGR_EVENT_WAREHOUSEOPS_STATUSCHANGED == eventId)
             {
-		IARM_BUS_PWRMgr_WareHouseOpn_EventData_t *eventData = (IARM_BUS_PWRMgr_WareHouseOpn_EventData_t *) data;
-		if (NULL == eventData) {
+                IARM_BUS_PWRMgr_WareHouseOpn_EventData_t *eventData = (IARM_BUS_PWRMgr_WareHouseOpn_EventData_t *) data;
+                if (NULL == eventData) {
                     LOGWARN("dsWareHouseOpnStatusChanged eventData is NULL. exiting");
-		    //Unexpected case
-		    return;
-		}
-		JsonObject params;
-		if (IARM_BUS_PWRMGR_WAREHOUSE_COMPLETED == eventData->status) {
+                    //Unexpected case
+                    return;
+                }
+                JsonObject params;
+                if (IARM_BUS_PWRMGR_WAREHOUSE_COMPLETED == eventData->status) {
                     params[PARAM_SUCCESS] = 0;
-		}
-		else {
+                }
+                else {
                     params[PARAM_ERROR] = "Reset failed";
-		}
+                }
                 string json;
-		params.ToString(json);
-		LOGINFO("Notify %s %s\n", WAREHOUSE_EVT_RESET_DONE, json.c_str());
-		Warehouse::_instance->Notify(WAREHOUSE_EVT_RESET_DONE, params);
+                params.ToString(json);
+                LOGINFO("Notify %s %s\n", WAREHOUSE_EVT_RESET_DONE, json.c_str());
+                Warehouse::_instance->Notify(WAREHOUSE_EVT_RESET_DONE, params);
             }
         }
-
 
         uint32_t Warehouse::processColdFactoryReset()
         {
@@ -1025,7 +1048,7 @@ namespace WPEFramework
             system("echo 0 > /opt/.rebootFlag");
             system(" echo `/bin/timestamp` ------------- Rebooting due to Cold Factory Reset process --------------- >> /opt/logs/receiver.log");
             system("sleep 5; /rebootNow.sh -s PowerMgr_coldFactoryReset -o 'Rebooting the box due to Cold Factory Reset process ...'");
-            return 1;
+            return Core::ERROR_NONE;
         }
 
         uint32_t Warehouse::processFactoryReset()
@@ -1039,17 +1062,48 @@ namespace WPEFramework
             system("sh /lib/rdk/deviceReset.sh factory");
             system("echo 0 > /opt/.rebootFlag");
             system(" echo `/bin/timestamp` -------------Rebooting due to Factory Reset process-------------- >> /opt/logs/receiver.log");
-            return 1;
-        }
-
-        uint32_t Warehouse::processWareHouseReset()
-        {
-            return 1;
+            return Core::ERROR_NONE;
         }
 
         uint32_t Warehouse::processWHReset()
         {
-            return 1;
+            LOGINFO("\n Reset: Processing Ware House Reset\n");
+            fflush(stdout);
+            /*Execute the script for Ware House Reset*/
+            system("echo 0 > /opt/.rebootFlag");
+            system("touch /tmp/.warehouse-reset"); 
+            system("echo `/bin/timestamp` ------------- Rebooting due to Warehouse Reset process--------------- >> /opt/logs/receiver.log");
+            return system("sh /lib/rdk/deviceReset.sh warehouse");
+        }
+
+        uint32_t Warehouse::processWHClear()
+        {
+            /*Code copied from X1.. Needs modification*/
+            LOGINFO("\n Clear: Processing Ware House Clear\n");
+            fflush(stdout);
+            system("echo 0 > /opt/.rebootFlag");
+            system("touch /tmp/.warehouse-clear"); 
+            system("echo `/bin/timestamp` ------------- Warehouse Clear  --------------- >> /opt/logs/receiver.log");
+            system("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR");
+            return Core::ERROR_NONE;
+        }
+
+        uint32_t Warehouse::processWHClearNoReboot()
+        {
+            LOGINFO("\n Clear: Invoking Ware House Clear Request from APP\n");
+            LOGINFO("\n Clear: Invoking Ware House Clear Request from APP\n");
+            fflush(stdout);
+            system("touch /tmp/.warehouse-clear");
+            return system("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR --suppressReboot");
+        }
+
+        uint32_t Warehouse::processWHResetNoReboot()
+        {
+            LOGINFO("\n Reset: Invoking Ware House Reset Request from APP\n");
+            fflush(stdout);
+            /*Execute the script for Ware House Reset*/
+            system("touch /tmp/.warehouse-reset");
+            return system("sh /lib/rdk/deviceReset.sh warehouse --suppressReboot &");
         }
 
         uint32_t Warehouse::processCustomerReset()
@@ -1064,12 +1118,12 @@ namespace WPEFramework
             system("echo 0 > /opt/.rebootFlag");
             system(" echo `/bin/timestamp` ------------- Rebooting due to Customer Reset process --------------- >> /opt/logs/receiver.log");
             system("sleep 5; /rebootNow.sh -s PowerMgr_CustomerReset -o 'Rebooting the box due to Customer Reset process ...'");
-            return 1;
+            return Core::ERROR_NONE;
         }
 
         uint32_t Warehouse::processPersonalityReset()
         {
-            return 1;
+            return Core::ERROR_NONE;
         }
 
         uint32_t Warehouse::processUserFactoryReset()
@@ -1081,6 +1135,5 @@ namespace WPEFramework
             system("echo `/bin/timestamp` ------------- Rebooting due to User Factory Reset process--------------- >> /opt/logs/receiver.log");
             return system("sh /lib/rdk/deviceReset.sh userfactory");
         }
-
     } // namespace Plugin
 } // namespace WPEFramework
