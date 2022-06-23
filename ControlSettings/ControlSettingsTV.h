@@ -41,7 +41,7 @@ class ControlSettingsTV : public AbstractPlugin {
     private:
         ControlSettingsTV(const ControlSettingsTV&) = delete;
         ControlSettingsTV& operator=(const ControlSettingsTV&) = delete;
-
+    public:
 	DECLARE_JSON_RPC_METHOD(getBacklight)
         DECLARE_JSON_RPC_METHOD(setBacklight)
         DECLARE_JSON_RPC_METHOD(setBrightness)
@@ -60,6 +60,9 @@ class ControlSettingsTV : public AbstractPlugin {
         virtual uint32_t generateStorageIdentifier(std::string &key,const char * forParam,int contentFormat, int pqmode, int source) = 0;
 	void GetParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
         int getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
+
+	virtual void AddRef() const { }
+        virtual uint32_t Release() const {return 0; }
    
     protected:
         int numberModesSupported;

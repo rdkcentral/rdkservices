@@ -30,8 +30,6 @@
 #include "dsMgr.h"
 #include "hdmiIn.hpp"
 
-#include "bl_table.h"
-#include "als_bl_iniparser.h"
 #include <iostream>
 
 #include "tvTypes.h"
@@ -57,7 +55,7 @@ namespace Plugin {
     private:
         ControlSettings(const ControlSettings&) = delete;
         ControlSettings& operator=(const ControlSettings&) = delete;
-
+   public : 
 	DECLARE_JSON_RPC_METHOD(getAspectRatio)
         DECLARE_JSON_RPC_METHOD(setAspectRatio)
         DECLARE_JSON_RPC_METHOD(getVideoFormat)
@@ -96,6 +94,8 @@ namespace Plugin {
         // -------------------------------------------------------------------------------------------------------
         const std::string Initialize(PluginHost::IShell* service);
         void Deinitialize(PluginHost::IShell* service);
+	virtual void AddRef() const { }
+	virtual uint32_t Release() const {return 0; }
    };
 }
 }
