@@ -138,6 +138,8 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_IGNORE_KEY_INPUTS;
 	    static const string RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE;
             static const string RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE;
+            static const string RDKSHELL_METHOD_SET_AV_BLOCKED;
+            static const string RDKSHELL_METHOD_GET_AV_BLOCKED_APPS;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -247,6 +249,8 @@ namespace WPEFramework {
             uint32_t ignoreKeyInputsWrapper(const JsonObject& parameters, JsonObject& response);
 	    uint32_t getGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setAVBlockedWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getBlockedAVApplicationsWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -319,6 +323,8 @@ namespace WPEFramework {
             bool hideCursor();
             bool setCursorSize(uint32_t width, uint32_t height);
             bool getCursorSize(uint32_t& width, uint32_t& height);
+            bool setAVBlocked(const string callsign, bool blockAV);
+            bool getBlockedAVApplications(JsonArray& appsList);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
@@ -422,6 +428,7 @@ namespace WPEFramework {
             TpTimer m_timer;
             bool mEnableEasterEggs;
             ScreenCapture mScreenCapture;
+            bool mErmEnabled;
         };
 
         struct PluginData
