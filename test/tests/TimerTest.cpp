@@ -18,27 +18,28 @@
  **/
 
 #include "gtest/gtest.h"
-
-#include "TimerTestMock.h"
+#include "Timer.h"
+#include "ServiceMock.h"
 
 using namespace WPEFramework;
 
 class TimerTestFixture : public ::testing::Test {
 protected:
+    Core::ProxyType<Plugin::Timer> plugin;
+    Core::JSONRPC::Handler& handler;
+    Core::JSONRPC::Connection connection;
+    string response;
+    ServiceMock service;
+
     TimerTestFixture()
-        : plugin(Core::ProxyType<TimerTestMock>::Create())
-        , handler(*plugin)
+        : plugin(Core::ProxyType<Plugin::Timer>::Create())
+        , handler(*(plugin))
         , connection(1, 0)
     {
     }
     virtual ~TimerTestFixture()
     {
     }
-
-    Core::ProxyType<TimerTestMock> plugin;
-    Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
-    string response;
 };
 
 TEST_F(TimerTestFixture, registeredMethods)
@@ -102,6 +103,28 @@ TEST_F(TimerTestFixture, jsonRpc)
 
 TEST_F(TimerTestFixture, timerExpiry)
 {
+    // called by Timer::sendTimerExpired
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{"
+                                          "\"jsonrpc\":\"2.0\","
+                                          "\"method\":\"client.events.1.timerExpired\","
+                                          "\"params\":{\"timerId\":0,"
+                                           "\"mode\":\"GENERIC\","
+                                           "\"status\":0}"
+                                          "}")));
+
+                return Core::ERROR_NONE;
+            }));
+
+
+    // Initialize
+    EXPECT_EQ(string(""), plugin->Initialize(nullptr));
+
     //Create a timer of 1 sec with a reminder of 0.2 sec
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), 
                         _T("{\"interval\":1, \"remindBefore\": 0.2}"), response));
@@ -112,19 +135,24 @@ TEST_F(TimerTestFixture, timerExpiry)
     JsonObject params;
     EXPECT_TRUE(params.FromString(response));
     EXPECT_TRUE(params.HasLabel(_T("timerId")));
-    string stimerId = params["timerId"].String();
-    int nTimerId = std::stoi(stimerId);
+//    string stimerId = params["timerId"].String();
+//    int nTimerId = std::stoi(stimerId);
 
-    EXPECT_CALL(*plugin, sendTimerExpiryReminder(nTimerId))
-        .Times(1)
-        .WillOnce(
-            ::testing::Return());
 
-    EXPECT_CALL(*plugin, sendTimerExpired(nTimerId))
-        .Times(1)
-        .WillOnce(
-            ::testing::Return());
+    // JSON-RPC events
+    auto dispatcher = static_cast<PluginHost::IDispatcher*>(
+        plugin->QueryInterface(PluginHost::IDispatcher::ID));
+    EXPECT_TRUE(dispatcher != nullptr);
+
+    dispatcher->Activate(&service);
 
     //Wait for timer expiry & reminder calls
    sleep(2);
+
+    dispatcher->Deactivate();
+    dispatcher->Release();
+
+    // Deinitialize
+    plugin->Deinitialize(nullptr);
+
 }
