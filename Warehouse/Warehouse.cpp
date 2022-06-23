@@ -1088,7 +1088,7 @@ namespace WPEFramework
             return Core::ERROR_NONE;
         }
 
-        int processWHClearNoReboot()
+        uint32_t Warehouse::processWHClearNoReboot()
         {
             LOGINFO("\n Clear: Invoking Ware House Clear Request from APP\n");
             LOGINFO("\n Clear: Invoking Ware House Clear Request from APP\n");
@@ -1097,7 +1097,7 @@ namespace WPEFramework
             return system("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR --suppressReboot");
         }
 
-        int processWHResetNoReboot()
+        uint32_t Warehouse::processWHResetNoReboot()
         {
             LOGINFO("\n Reset: Invoking Ware House Reset Request from APP\n");
             fflush(stdout);
@@ -1126,7 +1126,7 @@ namespace WPEFramework
             return Core::ERROR_NONE;
         }
 
-        IARM_Result_t Warehouse::processUserFactoryReset()
+        uint32_t Warehouse::processUserFactoryReset()
         {
             LOGINFO("\n Reset: Processing User Factory Reset\n");
             fflush(stdout);
