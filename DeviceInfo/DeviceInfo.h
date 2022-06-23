@@ -30,44 +30,7 @@ namespace Plugin {
 
     class DeviceInfo : public PluginHost::IPlugin,
                        public PluginHost::IWeb,
-                       public PluginHost::JSONRPC,
-                       public Exchange::IDeviceCapabilities,
-                       public Exchange::IFirmwareVersion {
-
-    private:
-        class Config : public Core::JSON::Container {
-        private:
-            Config(const Config&) = delete;
-            Config& operator=(const Config&) = delete;
-
-        public:
-            Config()
-            {
-                Add(_T("deviceproperties"), &DeviceProperties);
-                Add(_T("authserviceconf"), &AuthserviceConf);
-                Add(_T("versionfile"), &VersionFile);
-                Add(_T("serialnumberfile"), &SerialNumberFile);
-                Add(_T("partneridfile"), &PartnerIdFile);
-                Add(_T("rfcpartnerid"), &RfcPartnerId);
-                Add(_T("rfcmodelname"), &RfcModelName);
-                Add(_T("rfcserialnumber"), &RfcSerialNumber);
-                Add(_T("defaultaudioport"), &DefaultAudioPort);
-            }
-            ~Config()
-            {
-            }
-
-        public:
-            Core::JSON::String DeviceProperties;
-            Core::JSON::String AuthserviceConf;
-            Core::JSON::String VersionFile;
-            Core::JSON::String SerialNumberFile;
-            Core::JSON::String PartnerIdFile;
-            Core::JSON::String RfcPartnerId;
-            Core::JSON::String RfcModelName;
-            Core::JSON::String RfcSerialNumber;
-            Core::JSON::String DefaultAudioPort;
-        };
+                       public PluginHost::JSONRPC {
 
     public:
         class Data : public Core::JSON::Container {
@@ -102,6 +65,9 @@ namespace Plugin {
             , _service(nullptr)
             , _subSystem(nullptr)
             , _systemId()
+            , _connectionId(0)
+            , _deviceCapabilities(nullptr)
+            , _firmwareVersion(nullptr)
         {
             RegisterAll();
         }
@@ -115,8 +81,8 @@ namespace Plugin {
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IWeb)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
-        INTERFACE_ENTRY(Exchange::IDeviceCapabilities)
-        INTERFACE_ENTRY(Exchange::IFirmwareVersion)
+        INTERFACE_AGGREGATE(Exchange::IDeviceCapabilities, _deviceCapabilities)
+        INTERFACE_AGGREGATE(Exchange::IFirmwareVersion, _firmwareVersion)
         END_INTERFACE_MAP
 
     public:
@@ -161,37 +127,13 @@ namespace Plugin {
         void SocketPortInfo(JsonData::DeviceInfo::SocketinfoData& socketPortInfo) const;
 
     private:
-        //   IDeviceCapabilities methods
-        // -------------------------------------------------------------------------------------------------------
-        uint32_t SerialNumber(string& serialNumber) const override;
-        uint32_t Sku(string& sku) const override;
-        uint32_t Make(string& make) const override;
-        uint32_t Model(string& model) const override;
-        uint32_t DeviceType(string& deviceType) const override;
-        uint32_t DistributorId(string& distributorId) const override;
-        uint32_t SupportedAudioPorts(RPC::IStringIterator*& supportedAudioPorts) const override;
-        uint32_t SupportedVideoDisplays(RPC::IStringIterator*& supportedVideoDisplays) const override;
-        uint32_t HostEDID(string& edid) const override;
-        uint32_t DefaultResolution(const string& videoDisplay, string& defaultResolution) const override;
-        uint32_t SupportedResolutions(const string& videoDisplay, RPC::IStringIterator*& supportedResolutions) const override;
-        uint32_t SupportedHdcp(const string& videoDisplay, Exchange::IDeviceCapabilities::CopyProtection& supportedHDCPVersion) const override;
-        uint32_t AudioCapabilities(const string& audioPort, Exchange::IDeviceCapabilities::IAudioCapabilityIterator*& audioCapabilities) const override;
-        uint32_t MS12Capabilities(const string& audioPort, Exchange::IDeviceCapabilities::IMS12CapabilityIterator*& ms12Capabilities) const override;
-        uint32_t SupportedMS12AudioProfiles(const string& audioPort, RPC::IStringIterator*& supportedMS12AudioProfiles) const override;
-
-        //   IFirmwareVersion methods
-        // -------------------------------------------------------------------------------------------------------
-        uint32_t Imagename(string& imagename) const override;
-        uint32_t Sdk(string& sdk) const override;
-        uint32_t Mediarite(string& mediarite) const override;
-        uint32_t Yocto(string& yocto) const override;
-
-    private:
         uint8_t _skipURL;
         PluginHost::IShell* _service;
         PluginHost::ISubSystem* _subSystem;
         string _systemId;
-        Config _config;
+        uint32_t _connectionId;
+        Exchange::IDeviceCapabilities* _deviceCapabilities;
+        Exchange::IFirmwareVersion* _firmwareVersion;
     };
 
 } // namespace Plugin
