@@ -49,7 +49,7 @@ uint32_t method(const JsonObject& parameters, JsonObject& response);
     {response["success"] = return_status; \
     if(!return_status) \
         response["error_message"] = _T(error_log); \
-    PLUGIN_Unlock(Lock); \
+/*    PLUGIN_Unlock(Lock);*/ \
     return (Core::ERROR_NONE);}
 
 #define returnIfParamNotFound(param)\

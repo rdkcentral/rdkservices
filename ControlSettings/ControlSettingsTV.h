@@ -61,9 +61,6 @@ class ControlSettingsTV : public AbstractPlugin {
 	void GetParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
         int getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
 
-	virtual void AddRef() const { }
-        virtual uint32_t Release() const {return 0; }
-   
     protected:
         int numberModesSupported;
         bool appUsesGlobalBackLightFactor;

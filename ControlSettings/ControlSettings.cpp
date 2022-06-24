@@ -430,7 +430,7 @@ namespace Plugin {
     uint32_t ControlSettings::getVideoFormat(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO();
-        PLUGIN_Lock(Lock);
+        //PLUGIN_Lock(Lock);
         tvVideoHDRFormat_t videoFormat;
         tvError_t ret = GetCurrentVideoFormat(&videoFormat);
         response["supportedVideoFormat"] = getSupportedVideoFormat();
@@ -456,7 +456,7 @@ namespace Plugin {
     uint32_t ControlSettings::getVideoResolution(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO();
-        PLUGIN_Lock(Lock);
+        //PLUGIN_Lock(Lock);
         tvResolutionParam_t videoResolution;
         tvError_t ret = GetVideoResolution(&videoResolution);
         response["supportedVideoResolution"] = getSupportedVideoResolution();
@@ -482,7 +482,7 @@ namespace Plugin {
     uint32_t ControlSettings::getVideoFrameRate(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO();
-        PLUGIN_Lock(Lock);
+        //PLUGIN_Lock(Lock);
         tvVideoFrameRate_t videoFramerate;
         tvError_t ret = GetVideoFrameRate(&videoFramerate);
         response["supportedFrameRate"] = getSupportedVideoFrameRate();
@@ -502,7 +502,7 @@ namespace Plugin {
     {
 
         LOGINFO("Entry %s\n",__FUNCTION__);
-        PLUGIN_Lock(Lock);
+        //PLUGIN_Lock(Lock);
 	tvError_t ret = tvERROR_NONE;
 
 	if(ret != tvERROR_NONE) {
@@ -518,7 +518,7 @@ namespace Plugin {
     {
 
         LOGINFO("Entry%s\n",__FUNCTION__);
-        PLUGIN_Lock(Lock);
+        //PLUGIN_Lock(Lock);
 	tvError_t ret = tvERROR_NONE;
 
         if(ret != tvERROR_NONE) {

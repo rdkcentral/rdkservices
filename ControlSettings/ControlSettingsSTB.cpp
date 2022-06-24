@@ -61,7 +61,7 @@ namespace Plugin {
     {
 
         LOGINFO("Entry\n");
-        PLUGIN_Lock(Lock);
+        //PLUGIN_Lock(Lock);
         LOGINFO("Exit : %s\n",__FUNCTION__);
         returnResponse(true, "success");
     }
@@ -70,7 +70,7 @@ namespace Plugin {
     {
 
         LOGINFO("Entry\n");
-        PLUGIN_Lock(Lock);
+        //PLUGIN_Lock(Lock);
         LOGINFO("Exit : %s\n",__FUNCTION__);
         returnResponse(true, "success");
     }

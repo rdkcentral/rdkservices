@@ -84,7 +84,7 @@ namespace Plugin {
     {
 
         LOGINFO("Entry %s\n",__FUNCTION__);
-        PLUGIN_Lock(Lock);
+       // PLUGIN_Lock(Lock);
         tvError_t ret = tvERROR_NONE;
 
         if(ret != tvERROR_NONE) {
@@ -100,7 +100,7 @@ namespace Plugin {
     {
 
         LOGINFO("Entry\n");
-        PLUGIN_Lock(Lock);
+      //  PLUGIN_Lock(Lock);
         tvError_t ret = tvERROR_NONE;
 
         if(ret != tvERROR_NONE) {
@@ -115,7 +115,7 @@ namespace Plugin {
     uint32_t ControlSettingsTV::getBrightness(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        PLUGIN_Lock(Lock);
+    //    PLUGIN_Lock(Lock);
 
         std::string pqmode;
         std::string source;
@@ -157,7 +157,7 @@ namespace Plugin {
     {
 
         LOGINFO("Entry\n");
-        PLUGIN_Lock(Lock);
+       // PLUGIN_Lock(Lock);
 
         std::string value;
         std::string pqmode;
