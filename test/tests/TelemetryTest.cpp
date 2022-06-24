@@ -21,14 +21,14 @@ protected:
     Core::JSONRPC::Message message;
     FactoriesImplementation factoriesImplementation;
 
-    TelemetryTestFixtureTestFixture()
+    TelemetryTestFixture()
         : plugin(Core::ProxyType<Plugin::Telemetry>::Create())
         , handler(*(plugin))
         , connection(1, 0)
     {
         PluginHost::IFactories::Assign(&factoriesImplementation);
     }
-    virtual ~TelemetryTestFixtureTestFixture()
+    virtual ~TelemetryTestFixture()
     {
         PluginHost::IFactories::Assign(nullptr);
     }
