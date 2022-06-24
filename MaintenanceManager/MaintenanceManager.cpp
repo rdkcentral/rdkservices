@@ -600,7 +600,9 @@ namespace WPEFramework {
             m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
 	    
 	    if(m_thread.joinable()){
+	        LOGINFO("EL: Thread is joinable \n");
                 m_thread.join();
+		LOGINFO("EL: Thread joined successfully \n");
             }
         }
 
