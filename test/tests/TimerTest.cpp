@@ -20,8 +20,14 @@
 #include "gtest/gtest.h"
 #include "Timer.h"
 #include "ServiceMock.h"
+#include "IarmBusMock.h"
+#include "FactoriesImplementation.h"
 
 using namespace WPEFramework;
+
+namespace {
+const string iarmName = _T("Thunder_Plugins");
+}
 
 class TimerTestFixture : public ::testing::Test {
 protected:
@@ -30,15 +36,30 @@ protected:
     Core::JSONRPC::Connection connection;
     string response;
     ServiceMock service;
+    Core::JSONRPC::Message message;
+    IarmBusImplMock iarmBusImplMock;
+    FactoriesImplementation factoriesImplementation;
 
     TimerTestFixture()
         : plugin(Core::ProxyType<Plugin::Timer>::Create())
         , handler(*(plugin))
         , connection(1, 0)
     {
+        PluginHost::IFactories::Assign(&factoriesImplementation);
     }
     virtual ~TimerTestFixture()
     {
+        PluginHost::IFactories::Assign(nullptr);
+    }
+
+    virtual void SetUp()
+    {
+        IarmBus::getInstance().impl = &iarmBusImplMock;
+    }
+
+    virtual void TearDown()
+    {
+        IarmBus::getInstance().impl = nullptr;
     }
 };
 
@@ -103,31 +124,94 @@ TEST_F(TimerTestFixture, jsonRpc)
 
 TEST_F(TimerTestFixture, timerExpiry)
 {
-    // called by Timer::sendTimerExpired
-    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+    /////////////// IARM expectations - Begin ////////////////////////////
+
+    // called by Timer::InitializeIARM, Timer::DeinitializeIARM
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
+        .Times(3)
+        .WillOnce(::testing::Invoke(
+            [](const char* memberName, int* isRegistered) {
+                if (iarmName == string(memberName)) {
+                    *isRegistered = 0;
+                    return IARM_RESULT_SUCCESS;
+                }
+                return IARM_RESULT_INVALID_PARAM;
+            }))
+        .WillOnce(::testing::Invoke(
+            [](const char* memberName, int* isRegistered) {
+                if (iarmName == string(memberName)) {
+                    *isRegistered = 1;
+                    return IARM_RESULT_SUCCESS;
+                }
+                return IARM_RESULT_INVALID_PARAM;
+            }))
+        .WillOnce(::testing::Invoke(
+            [](const char* memberName, int* isRegistered) {
+                if (iarmName == string(memberName)) {
+                    *isRegistered = 1;
+                    return IARM_RESULT_SUCCESS;
+                }
+                return IARM_RESULT_INVALID_PARAM;
+            }));
+
+    // called by Timer::InitializeIARM
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Init(::testing::_))
         .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](const char* name) {
+                if (iarmName == string(name)) {
+                    return IARM_RESULT_SUCCESS;
+                }
+                return IARM_RESULT_INVALID_PARAM;
+            }));
+
+    // called by Timer::InitializeIARM
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Connect())
+        .Times(1)
+        .WillOnce(::testing::Return(IARM_RESULT_SUCCESS));
+
+    /////////////// IARM expectations - End //////////////////////////////
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(2)
+        // called by Timer::sendTimerExpiryReminder
         .WillOnce(::testing::Invoke(
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
                 EXPECT_TRUE(json->ToString(text));
                 EXPECT_EQ(text, string(_T("{"
                                           "\"jsonrpc\":\"2.0\","
-                                          "\"method\":\"client.events.1.timerExpired\","
+                                          "\"method\":\"org.rdk.Timer.timerExpiryReminder\","
                                           "\"params\":{\"timerId\":0,"
-                                           "\"mode\":\"GENERIC\","
+                                           "\"mode\":\"WAKE\","
+                                           "\"timeRemaining\":0}"
+                                          "}")));
+
+                return Core::ERROR_NONE;
+            }))
+    
+        // called by Timer::sendTimerExpired
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{"
+                                          "\"jsonrpc\":\"2.0\","
+                                          "\"method\":\"org.rdk.Timer.timerExpired\","
+                                          "\"params\":{\"timerId\":0,"
+                                           "\"mode\":\"WAKE\","
                                            "\"status\":0}"
                                           "}")));
 
                 return Core::ERROR_NONE;
             }));
 
-
     // Initialize
     EXPECT_EQ(string(""), plugin->Initialize(nullptr));
 
     //Create a timer of 1 sec with a reminder of 0.2 sec
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), 
-                        _T("{\"interval\":1, \"remindBefore\": 0.2}"), response));
+                        _T("{\"interval\":1, \"mode\":\"WAKE\", \"remindBefore\": 0.2}"), response));
     EXPECT_THAT(response, testing::HasSubstr("timerId"));
     EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
 
@@ -135,9 +219,6 @@ TEST_F(TimerTestFixture, timerExpiry)
     JsonObject params;
     EXPECT_TRUE(params.FromString(response));
     EXPECT_TRUE(params.HasLabel(_T("timerId")));
-//    string stimerId = params["timerId"].String();
-//    int nTimerId = std::stoi(stimerId);
-
 
     // JSON-RPC events
     auto dispatcher = static_cast<PluginHost::IDispatcher*>(
@@ -146,13 +227,18 @@ TEST_F(TimerTestFixture, timerExpiry)
 
     dispatcher->Activate(&service);
 
+    handler.Subscribe(0, _T("timerExpiryReminder"), _T("org.rdk.Timer"), message);
+    handler.Subscribe(0, _T("timerExpired"), _T("org.rdk.Timer"), message);
+
     //Wait for timer expiry & reminder calls
-   sleep(2);
+    sleep(2);
+
+    handler.Unsubscribe(0, _T("timerExpiryReminder"), _T("org.rdk.Timer"), message);
+    handler.Unsubscribe(0, _T("timerExpired"), _T("org.rdk.Timer"), message);
 
     dispatcher->Deactivate();
     dispatcher->Release();
 
     // Deinitialize
     plugin->Deinitialize(nullptr);
-
 }
