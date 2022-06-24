@@ -20,7 +20,7 @@
 #pragma once
 
 #include "Module.h"
-#include "UtilsLogging.h"
+#include "UtilsJsonRpc.h"
 
 namespace WPEFramework {
 

@@ -19,7 +19,10 @@
 
 #include "Telemetry.h"
 
-#include "utils.h"
+#include "UtilsTelemetry.h"
+
+#include "rfcapi.h"
+//#include "rfcapitest.h"
 
 // Methods
 #define TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS"setReportProfileStatus"
