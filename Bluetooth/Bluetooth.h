@@ -22,7 +22,7 @@
 #include <thread>
 
 #include "Module.h"
-#include "utils.h"
+#include "UtilsThreadRAII.h"
 
 #include "btmgr.h" //TODO: can we move it to the module? Required by notifyEventWrapper()
 

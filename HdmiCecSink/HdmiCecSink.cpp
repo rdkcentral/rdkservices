@@ -36,6 +36,7 @@
 #include "websocket/URL.h"
 
 #include "utils.h"
+#include "UtilsIarm.h"
 
 #define HDMICECSINK_METHOD_SET_ENABLED 			"setEnabled"
 #define HDMICECSINK_METHOD_GET_ENABLED 			"getEnabled"
@@ -3196,13 +3197,17 @@ namespace WPEFramework
        
       void HdmiCecSink::getHdmiArcPortID()
       {
-         int portId = -1;
-         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
-         aPort.getHdmiArcPortId(&portId);
-         if(portId >= 0) {
-              HdmiArcPortID = portId;
-              LOGWARN("HDMI ARC port ID hdmiArcPortId=%d\n",HdmiArcPortID);
-         } 
+         int err;
+         dsGetHDMIARCPortIdParam_t param;
+         err = IARM_Bus_Call(IARM_BUS_DSMGR_NAME,
+                            (char *)IARM_BUS_DSMGR_API_dsGetHDMIARCPortId,
+                            (void *)&param,
+                            sizeof(param));
+          if (IARM_RESULT_SUCCESS == err)
+          {
+             LOGINFO("HDMI ARC port ID HdmiArcPortID=[%d] \n", param.portId);
+             HdmiArcPortID = param.portId;
+          }
       }
 
     } // namespace Plugin

@@ -25,6 +25,7 @@
 #include <rdkshell/rdkshellevents.h>
 #include <rdkshell/rdkshell.h>
 #include <rdkshell/linuxkeys.h>
+#include <interfaces/ICapture.h>
 #include "tptimer.h"
 
 namespace WPEFramework {
@@ -48,6 +49,7 @@ namespace WPEFramework {
             BEGIN_INTERFACE_MAP(RDKShell)
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
+            INTERFACE_AGGREGATE(Exchange::ICapture, (&mScreenCapture))
             END_INTERFACE_MAP
 
         public/*members*/:
@@ -136,6 +138,8 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_IGNORE_KEY_INPUTS;
 	    static const string RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE;
             static const string RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE;
+            static const string RDKSHELL_METHOD_SET_AV_BLOCKED;
+            static const string RDKSHELL_METHOD_GET_AV_BLOCKED_APPS;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -245,6 +249,8 @@ namespace WPEFramework {
             uint32_t ignoreKeyInputsWrapper(const JsonObject& parameters, JsonObject& response);
 	    uint32_t getGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setAVBlockedWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getBlockedAVApplicationsWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -317,6 +323,8 @@ namespace WPEFramework {
             bool hideCursor();
             bool setCursorSize(uint32_t width, uint32_t height);
             bool getCursorSize(uint32_t& width, uint32_t& height);
+            bool setAVBlocked(const string callsign, bool blockAV);
+            bool getBlockedAVApplications(JsonArray& appsList);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
@@ -368,7 +376,6 @@ namespace WPEFramework {
                   MonitorClients(RDKShell* shell)
                       : mShell(*shell)
                   {
-                      ASSERT(mShell != nullptr);
                   }
                   ~MonitorClients()
                   {
@@ -386,6 +393,28 @@ namespace WPEFramework {
                   RDKShell& mShell;
             };
 
+            class ScreenCapture : public Exchange::ICapture {
+                public:
+                ScreenCapture(RDKShell *shell) : mShell(shell) { }
+                ScreenCapture(const ScreenCapture& copy) : mShell(copy.mShell) { }
+
+                BEGIN_INTERFACE_MAP(ScreenCapture)
+                INTERFACE_ENTRY(Exchange::ICapture)
+                END_INTERFACE_MAP
+
+                virtual void AddRef() const {}
+                virtual uint32_t Release() const { return 0; }
+                virtual const TCHAR* Name() const override { return "ScreenCapture"; }
+
+                virtual bool Capture(ICapture::IStore& storer) override;
+                void onScreenCapture(const unsigned char *data, unsigned int width, unsigned int height);
+
+            private:
+                ScreenCapture() = delete;
+                RDKShell* mShell;
+                std::vector<ICapture::IStore *>mCaptureStorers;
+            };
+
         private/*members*/:
             bool mRemoteShell;
             bool mEnableUserInactivityNotification;
@@ -398,6 +427,8 @@ namespace WPEFramework {
             uint64_t mLastWakeupKeyTimestamp;
             TpTimer m_timer;
             bool mEnableEasterEggs;
+            ScreenCapture mScreenCapture;
+            bool mErmEnabled;
         };
 
         struct PluginData

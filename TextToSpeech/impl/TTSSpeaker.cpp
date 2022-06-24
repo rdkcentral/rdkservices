@@ -439,7 +439,7 @@ bool TTSSpeaker::loadInitAudioDev()
   TTSLOG_INFO("Amlogic audio device loaded, can control mix gain");
   return true;
 }
-
+#endif
 /*
  * Control gain of
  * primary audio (direct-mode=true),
@@ -449,36 +449,40 @@ bool TTSSpeaker::loadInitAudioDev()
  * 0   -> Maximum
  * -96 -> Minimum
 */
-bool TTSSpeaker::setMixGain(MixGain gain, int val)
+void TTSSpeaker::setMixGain(MixGain gain, int volume)
 {
+#if defined(PLATFORM_AMLOGIC)
+     //Prim Mix gain
+     double volGain = (double)volume/100;
+     //convert voltage gain/loss to db
+     double dbOut = round(1000000*20*(std::log(volGain)/std::log(10)))/1000000;
      int ret;
-     bool status = false;
      char mixgain_cmd[32];
      if(gain == MIXGAIN_PRIM)
-         snprintf(mixgain_cmd, sizeof(mixgain_cmd), "prim_mixgain=%d", val);
+         snprintf(mixgain_cmd, sizeof(mixgain_cmd), "prim_mixgain=%d", (int)round(dbOut));
 	else if( gain == MIXGAIN_SYS )
-		snprintf(mixgain_cmd, sizeof(mixgain_cmd), "syss_mixgain=%d",val);
+		snprintf(mixgain_cmd, sizeof(mixgain_cmd), "syss_mixgain=%d",(int)round(dbOut));
 	else if(gain == MIXGAIN_TTS)
-		snprintf(mixgain_cmd, sizeof(mixgain_cmd), "apps_mixgain=%d",val);
+		snprintf(mixgain_cmd, sizeof(mixgain_cmd), "apps_mixgain=%d",(int)round(dbOut));
 	 else {
 		TTSLOG_ERROR("Unsuported Gain type=%d",gain);
-		return false;
+                return;
 	}
 
       if(m_audio_dev) {
          ret = m_audio_dev->set_parameters(m_audio_dev, mixgain_cmd );
          if(!ret) {
              TTSLOG_INFO("Amlogic audio dev  set param=%s success",mixgain_cmd);
-	     status = true;
          }
 	  else {
 		TTSLOG_ERROR("Amlogic audio dev  set_param=%s failed  error=%d",mixgain_cmd,ret);
-	        status = false;
 	  }
      }
- return status;
-}
+#elif defined(PLATFORM_REALTEK)
+    hal_set_audio_volume(volume);	
 #endif
+}
+
 // GStreamer Releated members
 void TTSSpeaker::createPipeline() {
     m_isEOS = false;
@@ -517,15 +521,13 @@ void TTSSpeaker::createPipeline() {
     m_audioVolume = m_audioSink;
 #elif defined(PLATFORM_REALTEK)
     GstElement *parse = gst_element_factory_make("mpegaudioparse", NULL);
-    GstElement *decodebin = gst_element_factory_make("omxmp3dec", NULL);
+    GstElement *decodebin = gst_element_factory_make("avdec_mp3", NULL);
     GstElement *convert = gst_element_factory_make("audioconvert", NULL);
     GstElement *resample = gst_element_factory_make("audioresample", NULL);
     GstElement *audiofilter = gst_element_factory_make("capsfilter", NULL);
     m_source = gst_element_factory_make("souphttpsrc", NULL);
     m_audioVolume = gst_element_factory_make("volume", NULL);
     m_audioSink = gst_element_factory_make("rtkaudiosink", NULL);
-    g_object_set(G_OBJECT(decodebin), "audio-tunnel-mode",  FALSE, NULL);
-    g_object_set(G_OBJECT(decodebin), "enable-ms12",  FALSE, NULL);
     g_object_set(G_OBJECT(m_audioSink), "media-tunnel",  FALSE, NULL);
     g_object_set(G_OBJECT(m_audioSink), "audio-service",  TRUE, NULL);
 #endif
@@ -568,7 +570,11 @@ void TTSSpeaker::createPipeline() {
     }
 
     // set the TTS volume to max.
+    #if defined(PLATFORM_REALTEK)
+    g_object_set(G_OBJECT(m_audioVolume), "volume", (double) 4.0 * (m_defaultConfig.volume() / MAX_VOLUME), NULL);
+    #else
     g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (m_defaultConfig.volume() / MAX_VOLUME), NULL);
+    #endif
 
     // Add elements to pipeline and link
     if(m_pcmAudioEnabled) {
@@ -923,12 +929,15 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
 
         g_object_set(G_OBJECT(m_source), "location", constructURL(config, data).c_str(), NULL);
         // PCM Sink seems to be accepting volume change before PLAYING state
+        #if defined(PLATFORM_REALTEK)
+        g_object_set(G_OBJECT(m_audioVolume), "volume", (double) 4.0 * (data.client->configuration()->volume() / MAX_VOLUME), NULL);
+        #else
         g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
+        #endif
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
-#if defined(PLATFORM_AMLOGIC)
-        //-12db is almost 25%
-        setMixGain(MIXGAIN_PRIM,-12);
-#endif
+        #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+        setMixGain(MIXGAIN_PRIM,25);
+        #endif
         TTSLOG_VERBOSE("Speaking.... ( %d, \"%s\")", data.id, data.text.c_str());
 
         //Wait for EOS with a timeout incase EOS never comes
@@ -1012,11 +1021,13 @@ void TTSSpeaker::GStreamerThreadFunc(void *ctx) {
         if(!speaker->m_flushed) {
             speaker->speakText(*data.client->configuration(), data);
         }
-#if defined(PLATFORM_AMLOGIC)
+
 	// when not speaking, set primary mixgain back to default.
-	if(speaker->m_flushed || speaker->m_networkError || !speaker->m_pipeline || speaker->m_pipelineError)
-	   speaker->setMixGain(MIXGAIN_PRIM,0);
-#endif
+	if(speaker->m_flushed || speaker->m_networkError || !speaker->m_pipeline || speaker->m_pipelineError) {
+           #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+	   speaker->setMixGain(MIXGAIN_PRIM,100);
+           #endif
+        }
         // Inform the client after speaking
         if(speaker->m_flushed)
             data.client->interrupted(data.id);
@@ -1025,9 +1036,9 @@ void TTSSpeaker::GStreamerThreadFunc(void *ctx) {
         else if(!speaker->m_pipeline || speaker->m_pipelineError)
             data.client->playbackerror(data.id);
         else {
-#if defined(PLATFORM_AMLOGIC)
-	    speaker->setMixGain(MIXGAIN_PRIM,0);
-#endif
+            #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+	    speaker->setMixGain(MIXGAIN_PRIM,100);
+            #endif
             data.client->spoke(data.id, data.text);
 	}
         speaker->setSpeakingState(false);
@@ -1114,10 +1125,10 @@ bool TTSSpeaker::handleMessage(GstMessage *message) {
                     if(m_clientSpeaking) {
                         if(m_isPaused) {
                             m_isPaused = false;
-#if defined(PLATFORM_AMLOGIC)
 			    // -12db is almost 25%
-			    setMixGain(MIXGAIN_PRIM,-12);
-#endif
+                            #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+			    setMixGain(MIXGAIN_PRIM,25);
+                            #endif
                             m_clientSpeaking->resumed(m_currentSpeech->id);
                             m_condition.notify_one();
                         } else {
@@ -1127,9 +1138,9 @@ bool TTSSpeaker::handleMessage(GstMessage *message) {
                 } else if (oldstate == GST_STATE_PLAYING && newstate == GST_STATE_PAUSED) {
                     std::lock_guard<std::mutex> lock(m_stateMutex);
                     if(m_clientSpeaking && m_isPaused) {
-#if defined(PLATFORM_AMLOGIC)
-			setMixGain(MIXGAIN_PRIM,0);
-#endif
+                        #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+			setMixGain(MIXGAIN_PRIM,100);
+                        #endif
                         m_clientSpeaking->paused(m_currentSpeech->id);
                         m_condition.notify_one();
                     }
