@@ -598,6 +598,10 @@ namespace WPEFramework {
 		
             LOGINFO("EL: Invoking task_execution_thread from maintenanceManagerOnBootup() \n");	
             m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
+	    
+	    if(m_thread.joinable()){
+                m_thread.join();
+            }
         }
 
         void MaintenanceManager::_MaintenanceMgrEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
