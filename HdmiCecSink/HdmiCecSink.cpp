@@ -992,10 +992,12 @@ namespace WPEFramework
             if(!HdmiCecSink::_instance)
                return;
 			LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
-            params["muteStatus"]  = msg.status.getAudioMuteStatus();
-            params["volumeLevel"] = msg.status.getAudioVolume();
-            sendNotify(eventString[HDMICECSINK_EVENT_REPORT_AUDIO_STATUS], params);
-
+            if (_instance->deviceList[_instance->m_logicalAddressAllocated].m_isDevicePresent &&
+                 _instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus.toInt() == PowerStatus::ON) {
+                    params["muteStatus"]  = msg.status.getAudioMuteStatus();
+                    params["volumeLevel"] = msg.status.getAudioVolume();
+                    sendNotify(eventString[HDMICECSINK_EVENT_REPORT_AUDIO_STATUS], params);
+            }
          }
 		 void HdmiCecSink::sendKeyPressEvent(const int logicalAddress, int keyCode)
 		 {
