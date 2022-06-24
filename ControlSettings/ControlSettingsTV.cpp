@@ -35,7 +35,25 @@ namespace Plugin {
         registerMethod("setBacklight", &ControlSettingsTV::setBacklight, this, {1});
         registerMethod("getBrightness", &ControlSettingsTV::getBrightness, this, {1});
         registerMethod("setBrightness", &ControlSettingsTV::setBrightness, this, {1});
-        LOGINFO("Exit\n");
+
+	//Get number of pqmode supported
+        numberModesSupported=GetNumberOfModesupported();
+
+        //UpdatePicModeIndex
+        GetAllSupportedPicModeIndex(pic_mode_index);
+
+        //Get number of pqmode supported
+        numberSourcesSupported=GetNumberOfSourceSupported();
+
+        //UpdatePicModeIndex
+        GetAllSupportedSourceIndex(source_index);
+
+
+        LocatePQSettingsFile(rfc_caller_id);
+
+        appUsesGlobalBackLightFactor = isBacklightUsingGlobalBacklightFactor();
+
+        LOGINFO("Exit numberModesSupported =%d numberSourcesSupported=%d\n",numberModesSupported,numberSourcesSupported);
     }
     
     ControlSettingsTV :: ~ControlSettingsTV()
@@ -115,7 +133,6 @@ namespace Plugin {
     uint32_t ControlSettingsTV::getBrightness(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-    //    PLUGIN_Lock(Lock);
 
         std::string pqmode;
         std::string source;
@@ -140,7 +157,7 @@ namespace Plugin {
 
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness);
-        if( err = 0 ) {
+        if( err == 0 ) {
             brightness = std::stoi(param.value);
             response["brightness"] = std::to_string(brightness);
             LOGINFO("Exit : Brightness Value: %d\n", brightness);
@@ -157,7 +174,6 @@ namespace Plugin {
     {
 
         LOGINFO("Entry\n");
-       // PLUGIN_Lock(Lock);
 
         std::string value;
         std::string pqmode;
@@ -265,6 +281,8 @@ namespace Plugin {
         else
             formatIndex = ConvertHDRFormatToContentFormat((tvhdr_type_t)ConvertFormatStringToHDRFormat(format.c_str()));
 
+        LOGINFO("%s: Exit sourceIndex = %d pqmodeIndex = %d formatIndex = %d\n",sourceIndex,pqmodeIndex,formatIndex);
+
     }
 
     int ControlSettingsTV::getContentFormatIndex(tvVideoHDRFormat_t formatToConvert)
@@ -300,6 +318,8 @@ namespace Plugin {
 
     int ControlSettingsTV::GetLocalparam(const char * forParam,int formatIndex,int pqIndex,int sourceIndex,int &value)
     {
+        LOGINFO("Entry : %s\n",__FUNCTION__);
+
         string key;
         TR181_ParamData_t param={0};
 
@@ -311,6 +331,7 @@ namespace Plugin {
         }
 
        tr181ErrorCode_t err=getLocalParam(rfc_caller_id, key.c_str(), &param);
+       LOGINFO("%s: key %s\n",__FUNCTION__,key.c_str());
        if ( tr181Success == err )
        {
            if(strncmp(forParam,"ColorTemp",strlen(forParam))==0)
@@ -340,6 +361,7 @@ namespace Plugin {
             key+=std::string(TVSETTINGS_GENERIC_STRING_RFC_PARAM);
             key+=STRING_SOURCE+std::string("ALL")+std::string(".")+STRING_PICMODE+std::to_string(pqIndex)+std::string(".")+std::string(STRING_FORMAT)                 +std::to_string(formatIndex)+std::string(".")+forParam;
             err=getLocalParam(rfc_caller_id, key.c_str(), &param);
+            LOGINFO("%s: key %s\n",__FUNCTION__,key.c_str());
             if ( tr181Success == err ) {
                 value=std::stoi(param.value);
                 LOGINFO("GetPQParamsToSync : found default %d \n",value);
