@@ -113,7 +113,7 @@ namespace WPEFramework
                         }
                         else
                         {
-                            LOGERR("Got wrong number of bytes, %d instead of %lld", rs, file.Size());
+                            LOGERR("Got wrong number of bytes, %d instead of %d", rs, (int)file.Size());
                         }
                     }
                     else
