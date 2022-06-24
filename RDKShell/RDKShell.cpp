@@ -126,6 +126,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_GRAPHICS_FRAME_
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE = "setGraphicsFrameRate";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_AV_BLOCKED = "setAVBlocked";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AV_BLOCKED_APPS = "getBlockedAVApplications";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -884,6 +885,7 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE, &RDKShell::setGraphicsFrameRateWrapper, this);
             Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
             Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
+            Register(RDKSHELL_METHOD_KEY_REPEAT_CONFIG, &RDKShell::keyRepeatConfigWrapper, this);    
       	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -5514,6 +5516,63 @@ namespace WPEFramework {
             }
             returnResponse(status);
         }
+
+        uint32_t RDKShell::keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (parameters.HasLabel("input"))
+            {
+                string input = parameters["input"].String();
+
+                if (input != "default" || input != "keyboard")
+                {
+                    response["message"] = "not supported input type";
+                    returnResponse(false);
+                }
+            }
+
+            bool enabled = false;
+            int32_t initialDelay = 0;
+            int32_t repeatInterval = 0;
+
+            if (parameters.HasLabel("enabled"))
+            {
+                enabled = parameters["enabled"].Boolean();
+            }
+            else
+            {
+                response["message"] = "please specify enabled parameter";
+                returnResponse(false);
+            }
+
+            if (parameters.HasLabel("initialDelay"))
+            {
+                initialDelay = parameters["initialDelay"].Number();
+            }
+            else
+            {
+                response["message"] = "please specify initialDelay parameter";
+                returnResponse(false);
+            }
+
+            if (parameters.HasLabel("repeatInterval"))
+            {
+                repeatInterval = parameters["repeatInterval"].Number();
+            }
+            else
+            {
+                response["message"] = "please specify repeatInterval parameter";
+                returnResponse(false);
+            }
+
+            gRdkShellMutex.lock();
+            CompositorController::setKeyRepeatConfig(enabled, initialDelay, repeatInterval);
+            gRdkShellMutex.unlock();
+            returnResponse(true);
+        }
+        
         // Registered methods end
 
         // Events begin
