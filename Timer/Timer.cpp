@@ -87,6 +87,10 @@ namespace WPEFramework
         {
             Utils::IARM::init();
         }
+        void Timer::DeinitializeIARM()
+        {
+            if (Utils::IARM::isConnected()) { }
+        }
 
         const string Timer::Initialize(PluginHost::IShell * /* service */)
         {
@@ -97,6 +101,7 @@ namespace WPEFramework
 
         void Timer::Deinitialize(PluginHost::IShell* /* service */)
         {
+            DeinitializeIARM();
             Timer::_instance = nullptr;
         }
 

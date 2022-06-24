@@ -99,6 +99,7 @@ namespace WPEFramework {
 
         protected:
             void InitializeIARM();
+            void DeinitializeIARM();
 
         public:
             Timer();
