@@ -25,7 +25,7 @@
 //#include "rfcapitest.h"
 
 // Methods
-#define TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS"setReportProfileStatus"
+#define TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS "setReportProfileStatus"
 #define TELEMETRY_METHOD_LOG_APPLICATION_EVENT "logApplicationEvent"
 
 #define RFC_CALLERID "Telemetry"
@@ -97,7 +97,7 @@ namespace WPEFramework
 
                             std::stringstream ss;
                             // Escaping quotes
-                            for (int n = 0; n < rs; n++)
+                            for (uint32_t n = 0; n < rs; n++)
                             {
                                 char ch = defaultProfile.data()[n];
                                 if ('\"' == ch)
@@ -105,7 +105,7 @@ namespace WPEFramework
                                 ss << ch;
                             }
 
-                            WDMP_STATUS wdmpStatus = setRFCParameter(RFC_CALLERID, RFC_REPORT_PROFILES, ss.str().c_str(), WDMP_STRING);
+                            WDMP_STATUS wdmpStatus = setRFCParameter((char *)RFC_CALLERID, RFC_REPORT_PROFILES, ss.str().c_str(), WDMP_STRING);
                             if (WDMP_SUCCESS != wdmpStatus)
                             {
                                 LOGERR("Failed to set Device.X_RDKCENTRAL-COM_T2.ReportProfiles: %d", wdmpStatus);
@@ -113,7 +113,7 @@ namespace WPEFramework
                         }
                         else
                         {
-                            LOGERR("Got wrong number of bytes, %d instead of %d", rs, file.Size());
+                            LOGERR("Got wrong number of bytes, %d instead of %lld", rs, file.Size());
                         }
                     }
                     else
@@ -150,7 +150,7 @@ namespace WPEFramework
                     returnResponse(false);
                 }
 
-                WDMP_STATUS wdmpStatus = setRFCParameter(RFC_CALLERID, RFC_REPORT_DEFAULT_PROFILE_ENABLE, status == "COMPLETE" ? "true" : "false", WDMP_BOOLEAN);
+                WDMP_STATUS wdmpStatus = setRFCParameter((char *)RFC_CALLERID, RFC_REPORT_DEFAULT_PROFILE_ENABLE, status == "COMPLETE" ? "true" : "false", WDMP_BOOLEAN);
                 if (WDMP_SUCCESS != wdmpStatus)
                 {
                     LOGERR("Failed to set %s: %d", RFC_REPORT_DEFAULT_PROFILE_ENABLE, wdmpStatus);
