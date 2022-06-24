@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "Telemetry.h"
+#include "ServiceMock.h"
 
 #include "FactoriesImplementation.h"
 
