@@ -6,7 +6,10 @@
 #include "rfcapi.h"
 
 #include "host.hpp"
+#include "manager.hpp"
 #include "videoOutputPortConfig.hpp"
+
+#include "UtilsIarm.h"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -23,6 +26,28 @@ namespace Plugin {
     }
 
     SERVICE_REGISTRATION(DeviceCapabilities, 1, 0);
+
+    DeviceCapabilities::DeviceCapabilities()
+    {
+        // DeviceCapabilities runs in a separate process so need to prepare DS
+
+        // Not obvious but otherwise DS seg faults
+        Utils::IARM::init();
+
+        try {
+            // Also not obvious but otherwise DS fails
+            device::Manager::Initialize();
+        } catch (...) {
+        }
+    }
+
+    DeviceCapabilities::~DeviceCapabilities()
+    {
+        try {
+            device::Manager::DeInitialize();
+        } catch (...) {
+        }
+    }
 
     uint32_t DeviceCapabilities::SerialNumber(string& serialNumber) const
     {

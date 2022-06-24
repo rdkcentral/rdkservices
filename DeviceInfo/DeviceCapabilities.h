@@ -12,7 +12,8 @@ namespace Plugin {
         DeviceCapabilities& operator=(const DeviceCapabilities&) = delete;
 
     public:
-        DeviceCapabilities() = default;
+        DeviceCapabilities();
+        ~DeviceCapabilities() override;
 
         BEGIN_INTERFACE_MAP(DeviceCapabilities)
         INTERFACE_ENTRY(Exchange::IDeviceCapabilities)

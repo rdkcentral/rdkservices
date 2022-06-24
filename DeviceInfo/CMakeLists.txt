@@ -23,6 +23,7 @@ find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(RFC REQUIRED)
 find_package(DS REQUIRED)
+find_package(IARMBus)
 
 add_library(${MODULE_NAME} SHARED
         DeviceInfo.cpp
@@ -37,7 +38,9 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 
 target_include_directories(${MODULE_NAME} PRIVATE
         ${RFC_INCLUDE_DIRS}
-        ${DS_INCLUDE_DIRS})
+        ${DS_INCLUDE_DIRS}
+        ${IARMBUS_INCLUDE_DIRS}
+        ../helpers)
 
 target_link_libraries(${MODULE_NAME}
         PRIVATE
@@ -45,7 +48,8 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
         ${RFC_LIBRARIES}
-        ${DS_LIBRARIES})
+        ${DS_LIBRARIES}
+        ${IARMBUS_LIBRARIES})
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
