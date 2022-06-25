@@ -51,31 +51,10 @@ TEST_F(TelemetryTestFixture, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("logApplicationEvent")));
 }
 
-
 TEST_F(TelemetryTestFixture, Plugin)
 {
-    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_ ))
-        .Times(2)
-        .WillOnce(::testing::Invoke(
-            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
-
-                return WDMP_SUCCESS;
-            }))
-        .WillOnce(::testing::Invoke(
-            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
-                return WDMP_SUCCESS;
-            }));
-
     // Initialize
     EXPECT_EQ(string(""), plugin->Initialize(nullptr));
-
-    // JSON-RPC methods
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
-    EXPECT_EQ(response, _T("{\"success\":true}"));
-
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"COMPLETE\"}"), response));
-    EXPECT_EQ(response, _T("{\"success\":true}"));
 
     // Deinitialize
     plugin->Deinitialize(nullptr);
