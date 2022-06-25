@@ -2,6 +2,7 @@
 
 #include "Telemetry.h"
 #include "ServiceMock.h"
+#include "RfcApilMock.h"
 
 #include "FactoriesImplementation.h"
 
