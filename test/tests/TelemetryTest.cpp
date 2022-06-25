@@ -6,6 +6,8 @@
 
 #include "FactoriesImplementation.h"
 
+#define ENABLE_TELEMETRY_LOGGING 1
+
 using namespace WPEFramework;
 
 namespace {
