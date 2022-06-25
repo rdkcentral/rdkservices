@@ -1,3 +1,5 @@
+#define ENABLE_TELEMETRY_LOGGING 1
+
 #include <gtest/gtest.h>
 
 #include "Telemetry.h"
@@ -5,8 +7,6 @@
 #include "RfcApiMock.h"
 
 #include "FactoriesImplementation.h"
-
-#define ENABLE_TELEMETRY_LOGGING 1
 
 using namespace WPEFramework;
 
