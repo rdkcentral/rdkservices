@@ -60,8 +60,6 @@ typedef enum
     WDMP_BLOB
 } DATA_TYPE;
 
-//WDMP_STATUS setRFCParameter(char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType);
-
 class RfcApiImpl {
 public:
     virtual ~RfcApiImpl() = default;

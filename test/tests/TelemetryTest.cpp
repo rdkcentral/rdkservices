@@ -38,10 +38,13 @@ protected:
 
     virtual void SetUp()
     {
+        RfcApi::getInstance().impl = &rfcApiImplMock;
+
     }
 
     virtual void TearDown()
     {
+        RfcApi::getInstance().impl = nullptr;
     }
 };
 
@@ -53,12 +56,25 @@ TEST_F(TelemetryTestFixture, RegisteredMethods)
 
 TEST_F(TelemetryTestFixture, Plugin)
 {
+
+    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_ ))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+                return WDMP_SUCCESS;
+            }));
+
+
     // Initialize
     EXPECT_EQ(string(""), plugin->Initialize(nullptr));
 
     // JSON-RPC methods
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"wrongvalue\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":false}"));
+    
+    // JSON-RPC methods
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
 
     // Deinitialize
     plugin->Deinitialize(nullptr);
