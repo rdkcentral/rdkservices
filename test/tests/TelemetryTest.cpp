@@ -56,6 +56,10 @@ TEST_F(TelemetryTestFixture, Plugin)
     // Initialize
     EXPECT_EQ(string(""), plugin->Initialize(nullptr));
 
+    // JSON-RPC methods
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"wrongvalue\"}"), response));
+    EXPECT_EQ(response, _T("{\"success\":false}"));
+
     // Deinitialize
     plugin->Deinitialize(nullptr);
 
