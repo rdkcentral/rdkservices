@@ -5,6 +5,14 @@ RDK services are a set of JSON-RPC based RESTful services for accessing various 
 [View Latest Documentation](https://rdkcentral.github.io/rdkservices/#/README)
 <br><br>
 
+### Table of Contents ###
+
+[Contributing to RDKServices](#contributing-to-rdkservices)<br>
+[Comcast CI/CD](#comcast-cicd)<br>
+[Documentation](#documentation)<br>
+[Questions?](#questions)<br>
+[Coding Guidelines](#coding-guidelines)<br>
+
 ## Contributing to RDKServices ##
 
 ### **License Requirements** ###
@@ -139,7 +147,7 @@ Use the existing services as a guide when learning the structure of both the plu
 
 ## Questions? ##
 
-If you have any questions or concerns reach out to the RDKServices maintainers - [Vijay Selvaraj](mailto:VijayAnand_Selvaraj@cable.comcast.com) / [Anand Kandasamy](mailto:anand_kandasamy@comcast.com)
+If you have any questions or concerns reach out to [Anand Kandasamy](mailto:anand_kandasamy@comcast.com)
 
 For a plugin specific question, maintainers might refer you to the plugin owner(s).
 <br><br>
@@ -199,3 +207,6 @@ For a plugin specific question, maintainers might refer you to the plugin owner(
     * Prefer to do Plugin Initialization within IPlugin [Initialize()](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h#L71). If there is any error in initialization return non-empty string with useful error information. This will ensure that plugin doesn't get activated and also return this error information to the caller. Ensure that any Initialization done within Initialize() gets cleaned up within IPlugin [Deinitialize()](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h#L80) which gets called when the plugin is deactivated.
     
     * Ensure that any std::threads created are joined within Deinitialize() or the destructor to avoid [std::terminate](https://en.cppreference.com/w/cpp/thread/thread/~thread) exception. Use the [ThreadRAII](https://github.com/rdkcentral/rdkservices/blob/sprint/2103/helpers/utils.h#L359) class for creating threads which will ensure that the thread gets joined before destruction.
+
+8.  Inter-plugin communication
+    * There might be use cases where one RDK Service or plugin needs to call APIs in another RDK Service. Don't use JSON-RPC for such communication since it's an overhead and not preferred for inter-plugin communication. JSON-RPC must be used only by applications. Instead use COM RPC through the IShell Interface API [QueryInterfaceByCallsign()](https://github.com/rdkcentral/Thunder/blob/R2/Source/plugins/IShell.h#L210) exposed for each Plugin. Here is an [example](https://github.com/rdkcentral/rdkservices/blob/main/Messenger/MessengerSecurity.cpp#L35). 
