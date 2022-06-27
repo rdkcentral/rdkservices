@@ -84,6 +84,7 @@ TEST_F(TelemetryTestFixture, Plugin)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char* marker, char* value) {
+                printf("-============== marker = '%s', value = '%s'\n", marker, value);
                 return T2ERROR_SUCCESS;
             }));
 
