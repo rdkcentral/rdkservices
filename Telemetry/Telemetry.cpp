@@ -51,6 +51,8 @@ namespace WPEFramework
             Register(TELEMETRY_METHOD_LOG_APPLICATION_EVENT, &Telemetry::logApplicationEvent, this);
 
             //Utils::Telemetry::init();
+
+            t2_init((char *) "Thunder_Plugins");
         }
 
         Telemetry::~Telemetry()
@@ -186,8 +188,8 @@ namespace WPEFramework
                 LOGINFO("eventName:%s, eventValue:%s", eventName.c_str(), eventValue.c_str());
 
                 //Utils::Telemetry::sendMessage((char *)eventName.c_str(), (char *)eventValue.c_str());
-                //t2_event_s((char *)eventName.c_str(), (char *)eventValue.c_str());
-                
+                t2_event_s((char *)eventName.c_str(), (char *)eventValue.c_str());
+
                 t2_init((char *) "Thunder_Plugins");
             }
             else
