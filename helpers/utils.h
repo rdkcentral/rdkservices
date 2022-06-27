@@ -29,9 +29,7 @@
 #include <math.h>
 
 // telemetry
-#ifdef ENABLE_TELEMETRY_LOGGING
-#include <telemetry_busmessage_sender.h>
-#endif
+#include "UtilsTelemetry.h"
 
 #define UNUSED(expr)(void)(expr)
 #define C_STR(x) (x).c_str()
@@ -241,46 +239,4 @@ namespace Utils
     void syncPersistFile (const string file);
     void persistJsonSettings(const string file, const string strKey, const JsonValue& jsValue);
 
-    struct Telemetry
-    {
-        static void init()
-        {
-#ifdef ENABLE_TELEMETRY_LOGGING
-            t2_init("Thunder_Plugins");
-#endif
-        };
-
-        static void sendMessage(char* message)
-        {
-#ifdef ENABLE_TELEMETRY_LOGGING
-            t2_event_s("THUNDER_MESSAGE", message);
-#endif
-        };
-
-        static void sendMessage(char *marker, char* message)
-        {
-#ifdef ENABLE_TELEMETRY_LOGGING
-            t2_event_s(marker, message);
-#endif
-        };
-
-        static void sendError(const char* format, ...)
-        {
-#ifdef ENABLE_TELEMETRY_LOGGING
-            va_list parameters;
-            va_start(parameters, format);
-            std::string message;
-            WPEFramework::Trace::Format(message, format, parameters);
-            va_end(parameters);
-
-            // get rid of const for t2_event_s
-            char* error = strdup(message.c_str());
-            t2_event_s("THUNDER_ERROR", error);
-            if (error)
-            {
-                free(error);
-            }
-#endif
-        };
-    };
 } // namespace Utils

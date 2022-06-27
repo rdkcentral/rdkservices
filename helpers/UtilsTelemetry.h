@@ -1,5 +1,7 @@
 #pragma once
 
+#define ENABLE_TELEMETRY_LOGGING 1
+
 // telemetry
 #ifdef ENABLE_TELEMETRY_LOGGING
 #include <telemetry_busmessage_sender.h>
