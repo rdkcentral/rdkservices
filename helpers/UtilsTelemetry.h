@@ -1,6 +1,6 @@
 #pragma once
 
-#define ENABLE_TELEMETRY_LOGGING 1
+//#define ENABLE_TELEMETRY_LOGGING 1
 
 // telemetry
 #ifdef ENABLE_TELEMETRY_LOGGING
