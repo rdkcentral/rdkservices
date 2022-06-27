@@ -24,6 +24,7 @@
 #include "videoOutputPort.hpp"
 #include "videoOutputPortConfig.hpp"
 #include "dsMgr.h"
+#include "pwrMgr.h"
 #include "manager.hpp"
 #include "host.hpp"
 
@@ -256,9 +257,11 @@ namespace WPEFramework
             }
             else if (IARM_BUS_DSMGR_EVENT_HDCP_STATUS == eventId)
             {
+                IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+                IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState, (void *)&param, sizeof(param));
                 IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                 int hdcpStatus = eventData->data.hdmi_hdcp.hdcpStatus;
-                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDCP_STATUS  event data:%d \r\n", hdcpStatus);
+                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDCP_STATUS  event data:%d  param.curState: %d \r\n", hdcpStatus,param.curState);
                 HdcpProfile::_instance->onHdmiOutputHDCPStatusEvent(hdcpStatus);
 
             }

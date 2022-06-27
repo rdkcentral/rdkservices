@@ -29,17 +29,19 @@
 using std::ofstream;
 #include <cstdlib>
 #include <iostream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "Module.h"
 #include "tracing/Logging.h"
 #include "utils.h"
+#include "UtilsThreadRAII.h"
 #include "SystemServicesHelper.h"
 #include "platformcaps/platformcaps.h"
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
-#include "libIBus.h"
 #include "irMgr.h"
-#include "libIBusDaemon.h"
 #include "pwrMgr.h"
 #include "host.hpp"
 #include "sleepMode.hpp"
@@ -140,6 +142,7 @@ namespace WPEFramework {
                 static void startModeTimer(int duration);
                 static void stopModeTimer();
                 static void updateDuration();
+		std::string  m_strStandardTerritoryList;
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
                 bool getManufacturerData(const string& parameter, JsonObject& response);
                 uint32_t getMfgSerialNumber(const JsonObject& parameters, JsonObject& response);
