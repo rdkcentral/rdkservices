@@ -142,6 +142,11 @@ endif()
 
 if(PLUGIN_TELEMETRY)
     add_subdirectory(Telemetry)
+
+    if (BUILD_ENABLE_TELEMETRY_LOGGING)
+        message("Building with telemetry logging")
+        add_definitions (-DENABLE_TELEMETRY_LOGGING)
+    endif()
 endif()
 
 if(PLUGIN_WAREHOUSE)
@@ -326,10 +331,6 @@ endif()
 
 if(RDK_SERVICES_TEST)
     add_subdirectory(test)
-endif()
-
-if(PLUGIN_PERFORMANCEMETRICS)
-    add_subdirectory(PerformanceMetrics)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
