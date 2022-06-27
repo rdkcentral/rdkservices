@@ -42,6 +42,7 @@ protected:
     {
         RfcApi::getInstance().impl = &rfcApiImplMock;
         TelemetryApi::getInstance().impl = &telemetryApiImplMock;
+        fprintf(stderr, "-=============== TelemetryApi impl is set to %p\n", &telemetryApiImplMock);
     }
 
     virtual void TearDown()
