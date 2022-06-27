@@ -41,7 +41,7 @@ protected:
     virtual void SetUp()
     {
         RfcApi::getInstance().impl = &rfcApiImplMock;
-        TelemetryApi::getInstance().impl = telemetryApiImplMock;
+        TelemetryApi::getInstance().impl = &telemetryApiImplMock;
     }
 
     virtual void TearDown()
