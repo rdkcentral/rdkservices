@@ -104,7 +104,7 @@ TEST_F(TelemetryTestFixture, Plugin)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"COMPLETE\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE2\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE3\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     // Deinitialize

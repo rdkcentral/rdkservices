@@ -20,7 +20,7 @@
 #include "Telemetry.h"
 
 #include "UtilsTelemetry.h"
-#include <telemetry_busmessage_sender.h>
+//#include <telemetry_busmessage_sender.h>
 
 #include "rfcapi.h"
 
@@ -50,7 +50,7 @@ namespace WPEFramework
             Register(TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS, &Telemetry::setReportProfileStatus, this);
             Register(TELEMETRY_METHOD_LOG_APPLICATION_EVENT, &Telemetry::logApplicationEvent, this);
 
-            Utils::Telemetry::init();
+            //Utils::Telemetry::init();
         }
 
         Telemetry::~Telemetry()
@@ -185,8 +185,8 @@ namespace WPEFramework
 
                 LOGINFO("eventName:%s, eventValue:%s", eventName.c_str(), eventValue.c_str());
 
-                //Utils::Telemetry::sendMessage((char *)eventName.c_str(), (char *)eventValue.c_str());
-                t2_event_s((char *)eventName.c_str(), (char *)eventValue.c_str());
+                Utils::Telemetry::sendMessage((char *)eventName.c_str(), (char *)eventValue.c_str());
+                //t2_event_s((char *)eventName.c_str(), (char *)eventValue.c_str());
             }
             else
             {
