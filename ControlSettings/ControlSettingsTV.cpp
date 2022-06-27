@@ -246,10 +246,10 @@ namespace Plugin {
             returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
         }
         else {
-            GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
             int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness);
             if( err == 0 ) {
-                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",formatIndex, sourceIndex, pqIndex,brightness);
+                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,brightness);
                 ret = SetBrightness(brightness);
             }
             else
