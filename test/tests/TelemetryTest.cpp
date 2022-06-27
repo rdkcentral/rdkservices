@@ -84,7 +84,7 @@ TEST_F(TelemetryTestFixture, Plugin)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char* marker, char* value) {
-                return WDMP_SUCCESS;
+                return T2ERROR_SUCCESS;
             }));
 
 
