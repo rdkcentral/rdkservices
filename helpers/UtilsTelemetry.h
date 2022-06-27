@@ -14,14 +14,14 @@ namespace Utils
         static void init()
         {
 #ifdef ENABLE_TELEMETRY_LOGGING
-            t2_init("Thunder_Plugins");
+            t2_init((char *) "Thunder_Plugins");
 #endif
         };
 
         static void sendMessage(char* message)
         {
 #ifdef ENABLE_TELEMETRY_LOGGING
-            t2_event_s("THUNDER_MESSAGE", message);
+            t2_event_s((char *)"THUNDER_MESSAGE", message);
 #endif
         };
 
