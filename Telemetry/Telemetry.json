@@ -1,77 +1,9 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
-    "jsonrpc": "2.0",
-    "info": {
-        "title": "Telemetry API",
-        "class": "Telemtry",
-        "description": "The `Telemetry` plugin allows you to persist event data for monitoring applications."
-    },
-    "definitions": {
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        }
-    },
-    "methods": {
-        "setReportProfileStatus": {
-            "summary": "Sets the status of telemetry reporting",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "status": {
-                        "summary": "The report status",
-                        "type":"string",
-                        "enum": [
-                            "STARTED",
-                            "COMPLETE"
-                        ],
-                        "example": "STARTED"
-                    }
-                },
-                "required": [
-                    "status"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"        
-            }
-        },
-        "logApplicationEvent": {
-            "summary": "Logs an application event",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "eventName": {
-                        "summary": "The event name",
-                        "type":"string",
-                        "example": ""
-                    },
-                    "eventValue": {
-                        "summary": "The event value",
-                        "type":"string",
-                        "example": ""
-                    }
-                },
-                "required": [
-                    "eventName",
-                    "eventValue"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"        
-            }
-        }
-    }
+ "locator":"libWPEFrameworkTelemetry.so",
+ "classname":"Telemetry",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.Telemetry",
+ "autostart":false
 }
