@@ -160,7 +160,7 @@ jobs:
           -B build/rdkservices
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
-          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system --disable-warnings-as-errors"
+          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system"
           -DCOMCAST_CONFIG=OFF
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
