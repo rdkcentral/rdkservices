@@ -40,10 +40,11 @@
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
 #include "utils.h"
+#include "UtilsString.h"
 #include "uploadlogs.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-#include "libIARM.h"
+#include "UtilsIarm.h"
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
 #ifdef ENABLE_THERMAL_PROTECTION
@@ -270,6 +271,8 @@ namespace WPEFramework {
               , m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE)
         {
             SystemServices::_instance = this;
+	    //Updating the standard territory
+            m_strStandardTerritoryList =   "ABW AFG AGO AIA ALA ALB AND ARE ARG ARM ASM ATA ATF ATG AUS AUT AZE BDI BEL BEN BES BFA BGD BGR BHR BHS BIH BLM BLR BLZ BMU BOL                BRA BRB BRN BTN BVT BWA CAF CAN CCK CHE CHL CHN CIV CMR COD COG COK COL COM CPV CRI CUB Cuba CUW CXR CYM CYP CZE DEU DJI DMA DNK DOM DZA ECU EGY ERI ESH ESP                EST ETH FIN FJI FLK FRA FRO FSM GAB GBR GEO GGY GHA GIB GIN GLP GMB GNB GNQ GRC GRD GRL GTM GUF GUM GUY HKG HMD HND HRV HTI HUN IDN IMN IND IOT IRL IRN IRQ                 ISL ISR ITA JAM JEY JOR JPN KAZ KEN KGZ KHM KIR KNA KOR KWT LAO LBN LBR LBY LCA LIE LKA LSO LTU LUX LVA MAC MAF MAR MCO MDA MDG MDV MEX MHL MKD MLI MLT MMR                 MNE MNG MNP MOZ MRT MSR MTQ MUS MWI MYS MYT NAM NCL NER NFK NGA NIC NIU NLD NOR NPL NRU NZL OMN PAK PAN PCN PER PHL PLW PNG POL PRI PRK PRT PRY PSE PYF QAT                 REU ROU RUS RWA SAU SDN SEN SGP SGS SHN SJM SLB SLE SLV SMR SOM SPM SRB SSD STP SUR SVK SVN SWE SWZ SXM SYC SYR TCA TCD TGO THA TJK TKL TKM TLS TON TTO TUN                 TUR TUV TWN TZA UGA UKR UMI URY USA UZB VAT VCT VEN VGB VIR VNM VUT WLF WSM YEM ZAF ZMB ZWE";
 
             CreateHandler({ 2 });
 
@@ -2226,16 +2229,18 @@ namespace WPEFramework {
 	{
 		bool resp = false;
 		if(parameters.HasLabel("territory")){
-			if(!Utils::fileExists(TERRITORYFILE)){
-				system("mkdir -p /opt/secure/persistent/System/");
-				LOGWARN(" Territory : Subdirectories created " );
+			struct stat st = {0};
+			if (stat("/opt/secure/persistent/System", &st) == -1) {
+				int ret = mkdir("/opt/secure/persistent/System", 0700);
+				LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
 			}
 			string regionStr = "";
 			readTerritoryFromFile();//Read existing territory and Region from file
 			string territoryStr = parameters["territory"].String();
 			LOGWARN(" Territory Value : %s ", territoryStr.c_str());
 			try{
-				if((territoryStr.length() == 3) && (isStrAlphaUpper(territoryStr) == true)){
+				int index = m_strStandardTerritoryList.find(territoryStr);
+				if((territoryStr.length() == 3) && (index >=0 && index <= 1100) ){
 					if(parameters.HasLabel("region")){
 						regionStr = parameters["region"].String();
 						if(regionStr != ""){
@@ -2307,12 +2312,8 @@ namespace WPEFramework {
 		m_strTerritory = "";
 		m_strRegion = "";
 		resp = readTerritoryFromFile();
-		if(resp == true){
-			if(m_strTerritory != "")
-				response["territory"] = m_strTerritory;
-			if(m_strRegion != "")
-				response["region"] = m_strRegion;
-		}
+		response["territory"] = m_strTerritory;
+		response["region"] = m_strRegion;
 		returnResponse(resp);
 	}
 
@@ -2573,6 +2574,7 @@ namespace WPEFramework {
 			JsonObject& response)
 	{
 		bool retStat = false;
+		bool deprecated = true;
 		if (parameters.HasLabel("key")) {
 			std::string key = parameters["key"].String();
 			LOGWARN("key: '%s'\n", key.c_str());
@@ -2586,6 +2588,7 @@ namespace WPEFramework {
 		} else {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
 		}
+		response["deprecated"] = deprecated;
 		returnResponse(retStat);
 	}
 
@@ -2599,7 +2602,8 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStat = false;
-	    
+	    bool deprecated = true;
+
 	    if (parameters.HasLabel("key") && parameters.HasLabel("value")) {
 		    std::string key = parameters["key"].String();
 		    std::string value = parameters["value"].String();
@@ -2617,6 +2621,7 @@ namespace WPEFramework {
 	    } else {
 		    populateResponseWithError(SysSrv_MissingKeyValues, response);
 	    }
+	    response["deprecated"] = deprecated;
 	    returnResponse(retStat);
         }
 
@@ -2630,6 +2635,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
 		bool retStat = false;
+		bool deprecated = true;
 		if (parameters.HasLabel("key")) {
 			std::string key = parameters["key"].String();
 			if (key.length()) {
@@ -2645,6 +2651,7 @@ namespace WPEFramework {
 		} else {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
 		}
+		response["deprecated"] = deprecated;
 		returnResponse(retStat);
         }
 
@@ -2658,6 +2665,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
 		bool retStat = false;
+		bool deprecated = true;
 		if (parameters.HasLabel("key")) {
 			std::string key = parameters["key"].String();
 			if (key.length()) {
@@ -2673,6 +2681,7 @@ namespace WPEFramework {
 		} else {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
 		}
+		response["deprecated"] = deprecated;
 		returnResponse(retStat);
         }
 
@@ -3070,7 +3079,8 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retAPIStatus = false;
-            vector<string> milestones;
+	    bool deprecated = true;
+	    std::vector<string> milestones;
 
             if (Utils::fileExists(MILESTONES_LOG_FILE)) {
                 retAPIStatus = getFileContent(MILESTONES_LOG_FILE, milestones);
@@ -3082,6 +3092,7 @@ namespace WPEFramework {
             } else {
                 populateResponseWithError(SysSrv_FileNotPresent, response);
             }
+	    response["deprecated"] = deprecated;
             returnResponse(retAPIStatus);
         }
 
@@ -3341,6 +3352,7 @@ namespace WPEFramework {
         {
             bool enabled = false;
 	    bool result = false;
+	    bool deprecated = true;
 	    int32_t retVal = E_NOK;
 	    if (parameters.HasLabel("enabled")) {
 		    enabled = parameters["enabled"].Boolean();
@@ -3353,6 +3365,7 @@ namespace WPEFramework {
 	    } else {
 		    populateResponseWithError(SysSrv_MissingKeyValues, response);
 	    }
+	    response["deprecated"] = deprecated;
             returnResponse(( E_OK == retVal)? true: false);
         } //ent of SetGZEnabled
 
@@ -3367,9 +3380,11 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool enabled = false;
+	    bool deprecated = true;
 
             isGzEnabledHelper(enabled);
             response["enabled"] = enabled;
+	    response["deprecated"] = deprecated;
 
             returnResponse(true);
         } //end of isGZEnbaled

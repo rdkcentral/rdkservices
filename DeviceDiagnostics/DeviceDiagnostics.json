@@ -1,5 +1,5 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "DeviceDiagnostics API", 
@@ -96,6 +96,29 @@
                 },
                 "required": [
                     "paramList",
+                    "success"
+                ]
+            }
+        },
+	"getMilestones": {
+            "summary": "Returns the list of milestones.\n \n### Events\n \n No Events.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "milestones": {
+                        "summary": "A string [] of milestones",
+                        "type": "array",
+                        "items": {
+                            "type":"string",
+                            "example": "2020 Jan 28 08:24:06.762355 arrisxi6 systemd[1]: Starting Log RDK Started Service..."
+                        }
+                    },
+                    "success":{
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "milestones",
                     "success"
                 ]
             }

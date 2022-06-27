@@ -39,6 +39,7 @@
 
 #include "MaintenanceManager.h"
 #include "utils.h"
+#include "UtilsIarm.h"
 
 enum eRetval { E_NOK = -1,
     E_OK };
@@ -497,6 +498,9 @@ namespace WPEFramework {
 
         MaintenanceManager::~MaintenanceManager()
         {
+            if(m_thread.joinable()){
+                m_thread.join();
+	    }
             MaintenanceManager::_instance = nullptr;
         }
 

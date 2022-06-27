@@ -1,5 +1,5 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "HdmiInput API", 
@@ -331,6 +331,63 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
+        },
+        "getSupportedGameFeatures":{
+            "summary": "Returns the list of supported game features.\n \n### Events\n \nNo Events.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "supportedGameFeatures": {
+                        "summary": "The supported game Features",
+                        "type": "string",
+                        "example": "ALLM"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "supportedGameFeatures",
+                    "success"
+                ]
+            }
+        },
+       "getHdmiGameFeatureStatus":{
+            "summary": "Returns the Game Feature Status. For example: ALLM\n \n### Events\n \nNo Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    },
+                     "gameFeature": {
+                        "summary": "Game Feature to which current status requested",
+                        "type": "string",
+                        "example": "ALLM"
+                    }
+               },
+                "required": [
+                    "portid",
+		    "gameFeature"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "mode": {
+                        "summary": "The current game feature status. Mode is required only for ALLM. Need to add support for future game features",
+                        "type": "boolean",
+                        "example": "true"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required": [
+                    "mode",
+                    "success"
+                ]
+            }
         }
     },
     "events": {
@@ -441,6 +498,32 @@
                     "progressive",
                     "frameRateN",
                     "frameRateD"
+                ]
+            }
+        },
+        "hdmiGameFeatureStatusUpdate": {
+            "summary": "Triggered whenever game feature(ALLM) status changes for an HDMI Input",
+            "params": {
+                "type": "object",
+                "properties": {
+                   "portId": {
+                        "$ref": "#/definitions/portId"
+                    },
+                     "gameFeature": {
+                        "summary": "Game Feature to which current status requested",
+                        "type": "string",
+                        "example": "ALLM"
+                    },
+                    "mode": {
+                        "summary": "The current game feature status. Mode is required only for ALLM. Need to add support for future game features",
+                        "type": "boolean",
+                        "example": "true"
+                    }
+                },
+                "required": [
+                    "portId",
+                    "gameFeature",
+                    "mode"
                 ]
             }
         }

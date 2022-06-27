@@ -37,6 +37,7 @@
 #include "websocket/URL.h"
 
 #include "utils.h"
+#include "UtilsIarm.h"
 
 #define HDMICEC2_METHOD_SET_ENABLED "setEnabled"
 #define HDMICEC2_METHOD_GET_ENABLED "getEnabled"

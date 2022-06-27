@@ -26,12 +26,9 @@
 
 #include "Module.h"
 #include "tracing/Logging.h"
-#include "utils.h"
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
-#include "libIBus.h"
 #include "irMgr.h"
-#include "libIBusDaemon.h"
 #include "pwrMgr.h"
 #include "maintenanceMGR.h" /* IARM INTERFACE HELPER */
 #endif /* USE_IARMBUS || USE_IARM_BUS */
