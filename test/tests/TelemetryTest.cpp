@@ -79,7 +79,7 @@ TEST_F(TelemetryTestFixture, Plugin)
             }));
 
     EXPECT_CALL(telemetryApiImplMock, t2_event_s(::testing::_, ::testing::_))
-        .Times(2)
+        .Times(1)
         .WillOnce(::testing::Invoke(
             [](char* marker, char* value) {
                 return T2ERROR_SUCCESS;
