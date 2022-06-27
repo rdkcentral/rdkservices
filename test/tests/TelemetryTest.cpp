@@ -73,13 +73,13 @@ TEST_F(TelemetryTestFixture, Plugin)
             }));
 
 
-    EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
+    /*EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *component) {
                 fprintf(stderr, "-============== component = '%s'\n", component);
                 return;
-            }));
+            }));*/
 
     EXPECT_CALL(telemetryApiImplMock, t2_event_s(::testing::_, ::testing::_))
         .Times(1)
@@ -105,7 +105,7 @@ TEST_F(TelemetryTestFixture, Plugin)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"COMPLETE\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE3\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE4\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     // Deinitialize
