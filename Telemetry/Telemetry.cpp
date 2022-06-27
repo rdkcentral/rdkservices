@@ -52,7 +52,7 @@ namespace WPEFramework
 
             //Utils::Telemetry::init();
 
-            t2_init((char *) "Thunder_Plugins");
+            //t2_init((char *) "Thunder_Plugins");
         }
 
         Telemetry::~Telemetry()
