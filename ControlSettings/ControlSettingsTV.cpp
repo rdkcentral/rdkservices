@@ -35,6 +35,7 @@ namespace Plugin {
         registerMethod("setBacklight", &ControlSettingsTV::setBacklight, this, {1});
         registerMethod("getBrightness", &ControlSettingsTV::getBrightness, this, {1});
         registerMethod("setBrightness", &ControlSettingsTV::setBrightness, this, {1});
+        registerMethod("resetBrightness", &ControlSettingsTV::resetBrightness, this, {1});
 
 	//Get number of pqmode supported
         numberModesSupported=GetNumberOfModesupported();
@@ -214,6 +215,59 @@ namespace Plugin {
 
     }
 
+    uint32_t ControlSettingsTV::resetBrightness(const JsonObject& parameters, JsonObject& response)
+    {
+
+        LOGINFO("Entry\n");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int sourceIndex=0,pqIndex=0,formatIndex=0,brightness=0;
+        int params[3]={0};
+        tvError_t ret = tvERROR_NONE;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        int retval= UpdatePQParamsToCache("reset","Brightness",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_BRIGHTNESS,params);
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset Brightness\n");
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+        else {
+            GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+            int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness);
+            if( err == 0 ) {
+                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",formatIndex, sourceIndex, pqIndex,brightness);
+                ret = SetBrightness(brightness);
+            }
+            else
+                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
+        }
+
+        if(ret != tvERROR_NONE)
+        {
+            returnResponse(false, getErrorString(ret));
+        }
+        else
+        {
+            LOGINFO("Exit : resetBrightness Successful to value : %d \n",brightness);
+            returnResponse(true, "success");
+        }
+
+    }
+
     bool ControlSettingsTV::isBacklightUsingGlobalBacklightFactor(void)
     {
         TR181_ParamData_t param;
@@ -274,10 +328,10 @@ namespace Plugin {
 
         if( (strncmp(format.c_str(),"current",strlen(format.c_str())) == 0) || (strncmp(format.c_str(),"Current",strlen(format.c_str())) == 0) )
         {
-            formatIndex = getContentFormatIndex(GetCurrentContentFormat());
+            formatIndex = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
         }
         else
-            formatIndex = ConvertHDRFormatToContentFormat((tvhdr_type_t)ConvertFormatStringToHDRFormat(format.c_str()));
+            formatIndex = ConvertFormatStringToHDRFormat(format.c_str());
 
         LOGINFO("%s: Exit sourceIndex = %d pqmodeIndex = %d formatIndex = %d\n",__FUNCTION__,sourceIndex,pqmodeIndex,formatIndex);
 
@@ -320,6 +374,8 @@ namespace Plugin {
 
         string key;
         TR181_ParamData_t param={0};
+        
+        formatIndex=ConvertHDRFormatToContentFormat((tvhdr_type_t)formatIndex); 
 
         generateStorageIdentifier(key,forParam,formatIndex,pqIndex,sourceIndex);
         if(key.empty())

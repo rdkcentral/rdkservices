@@ -712,11 +712,10 @@ namespace Plugin {
                                 if(sync || reset)
                                 {
                                     int value=0;
-                                    if(!GetPQParamsToSync(tr181ParamName,source,mode,format,value))
-                                        LOGINFO("Found param from tr181 %s pqmode : %d format:%d value:%d\n",tr181ParamName,mode,format,value);
+                                    if(!GetLocalparam(tr181ParamName,format,mode,source,value))
+                                        LOGINFO("Found param from tr181 %s pqmode : %d format:%d  source : %d value:%d\n",tr181ParamName,mode,format,source,value);
                                     else
-                                        LOGINFO("value not found in tr181 %s pqmode : %d format:%d value:%d\n",tr181ParamName,mode,format,value);
-                                  
+                                        LOGINFO("Default1 value not found in tr181 %s pqmode : %d format:%d source : %d value:%d\n",tr181ParamName,mode,format,source,value);
                                     params[0]=value;
                                 }
                                 if(set)

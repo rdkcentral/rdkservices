@@ -46,6 +46,7 @@ class ControlSettingsTV : public AbstractPlugin {
         DECLARE_JSON_RPC_METHOD(setBacklight)
         DECLARE_JSON_RPC_METHOD(setBrightness)
         DECLARE_JSON_RPC_METHOD(getBrightness )
+        DECLARE_JSON_RPC_METHOD(resetBrightness )
 
 
     public:
