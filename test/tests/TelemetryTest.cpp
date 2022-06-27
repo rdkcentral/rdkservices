@@ -73,19 +73,20 @@ TEST_F(TelemetryTestFixture, Plugin)
             }));
 
 
-    /*EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [](char *component) {
-                fprintf(stderr, "-============== component = '%s'\n", component);
-                return;
-            }));*/
 
     EXPECT_CALL(telemetryApiImplMock, t2_event_s(::testing::_, ::testing::_))
         .WillRepeatedly(::testing::Invoke(
             [](char* marker, char* value) {
                 fprintf(stderr, "-============== marker = '%s', value = '%s'\n", marker, value);
                 return T2ERROR_SUCCESS;
+            }));
+
+
+    EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
+        .WillRepeatedly(::testing::Invoke(
+            [](char *component) {
+                fprintf(stderr, "-============== component = '%s'\n", component);
+                return;
             }));
 
 
