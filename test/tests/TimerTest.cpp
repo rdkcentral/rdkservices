@@ -105,19 +105,20 @@ TEST_F(TimerTestFixture, paramsMissing)
 TEST_F(TimerTestFixture, jsonRpc)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), _T("{\"interval\":10}"), response));
-    //EXPECT_THAT(response, testing::MatchesRegex("timerId*"));
-    EXPECT_THAT(response, testing::HasSubstr("timerId"));
-    EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
 
     //Extract timer id from response
     JsonObject params;
     EXPECT_TRUE(params.FromString(response));
     EXPECT_TRUE(params.HasLabel(_T("timerId")));
-    string stimerID = params["timerId"].String();
-    std::string str = "{\"timerId\":" + stimerID + "}";
+    string sTimerID = params["timerId"].String();
+    std::string sTimerStrID = "{\"timerId\":" + sTimerID + "}";
+
+    //Compare response from startTimer call
+    std::string sRespCompare = "{\"timerId\":" + sTimerID + ",\"success\":true}";
+    EXPECT_EQ(response, sRespCompare.c_str());
 
     //get timer status
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimerStatus"), str.c_str(), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimerStatus"), sTimerStrID.c_str(), response));
     EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
 
     //get all timers
@@ -125,15 +126,15 @@ TEST_F(TimerTestFixture, jsonRpc)
     EXPECT_THAT(response, testing::HasSubstr("timerId"));
 
     //Suspend the timer
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("suspend"), str.c_str(), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("suspend"), sTimerStrID.c_str(), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     //Resume the timer
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resume"), str.c_str(), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resume"), sTimerStrID.c_str(), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     //Cancel the timer
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cancel"), str.c_str(), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cancel"), sTimerStrID.c_str(), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 }
 
