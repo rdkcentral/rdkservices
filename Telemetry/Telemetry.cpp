@@ -50,7 +50,7 @@ namespace WPEFramework
             Register(TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS, &Telemetry::setReportProfileStatus, this);
             Register(TELEMETRY_METHOD_LOG_APPLICATION_EVENT, &Telemetry::logApplicationEvent, this);
 
-            //Utils::Telemetry::init();
+            Utils::Telemetry::init();
         }
 
         Telemetry::~Telemetry()
