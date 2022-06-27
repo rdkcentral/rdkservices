@@ -33,7 +33,7 @@ public:
     
     static void t2_init(char *component)
     {
-        getInstance().impl->t2_init(component);
+        //getInstance().impl->t2_init(component);
     }
     
     static T2ERROR t2_event_s(char* marker, char* value)
