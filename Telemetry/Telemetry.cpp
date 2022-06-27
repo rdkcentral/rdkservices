@@ -52,7 +52,7 @@ namespace WPEFramework
 
             //Utils::Telemetry::init();
 
-            //t2_init((char *) "Thunder_Plugins");
+            t2_init((char *) "Thunder_Plugins");
         }
 
         Telemetry::~Telemetry()
@@ -190,7 +190,7 @@ namespace WPEFramework
                 //Utils::Telemetry::sendMessage((char *)eventName.c_str(), (char *)eventValue.c_str());
                 t2_event_s((char *)eventName.c_str(), (char *)eventValue.c_str());
 
-                t2_init((char *) "Thunder_Plugins");
+                //t2_init((char *) "Thunder_Plugins");
             }
             else
             {
