@@ -139,7 +139,6 @@ namespace Plugin {
         std::string format;
 	std::string key;
 	int sourceIndex=0,pqIndex=0,formatIndex=0;
-	TR181_ParamData_t param={0};
         tvError_t ret = tvERROR_NONE;
         int brightness = 0;
 
@@ -158,7 +157,6 @@ namespace Plugin {
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness);
         if( err == 0 ) {
-            brightness = std::stoi(param.value);
             response["brightness"] = std::to_string(brightness);
             LOGINFO("Exit : Brightness Value: %d\n", brightness);
             returnResponse(true, "success");
