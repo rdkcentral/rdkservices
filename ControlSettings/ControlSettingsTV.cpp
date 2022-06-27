@@ -281,7 +281,7 @@ namespace Plugin {
         else
             formatIndex = ConvertHDRFormatToContentFormat((tvhdr_type_t)ConvertFormatStringToHDRFormat(format.c_str()));
 
-        LOGINFO("%s: Exit sourceIndex = %d pqmodeIndex = %d formatIndex = %d\n",sourceIndex,pqmodeIndex,formatIndex);
+        LOGINFO("%s: Exit sourceIndex = %d pqmodeIndex = %d formatIndex = %d\n",__FUNCTION__,sourceIndex,pqmodeIndex,formatIndex);
 
     }
 
