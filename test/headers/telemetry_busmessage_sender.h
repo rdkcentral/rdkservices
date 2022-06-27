@@ -33,8 +33,11 @@ public:
     
     static void t2_init(char *component)
     {
-        //getInstance().impl->t2_init(component);
-        fprintf(stderr, "-=============== TelemetryApi impl = %p\n", getInstance().impl);
+        // Disabled this because it's called from plugin's constructor,
+        // but ::testing::Test::SetUp, which sets pointer to mock is not called at this point
+#if 0
+        getInstance().impl->t2_init(component);
+#endif
     }
     
     static T2ERROR t2_event_s(char* marker, char* value)

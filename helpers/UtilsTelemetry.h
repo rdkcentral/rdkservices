@@ -18,12 +18,12 @@ namespace Utils
 #endif
         };
 
-        /*static void sendMessage(char* message)
+        static void sendMessage(char* message)
         {
 #ifdef ENABLE_TELEMETRY_LOGGING
             t2_event_s((char *)"THUNDER_MESSAGE", message);
 #endif
-        };*/
+        };
 
         static void sendMessage(char *marker, char* message)
         {
