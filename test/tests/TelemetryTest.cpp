@@ -41,13 +41,13 @@ protected:
     virtual void SetUp()
     {
         RfcApi::getInstance().impl = &rfcApiImplMock;
-        telemetryApi::getInstance().impl = telemetryApiImplMock;
+        TelemetryApi::getInstance().impl = telemetryApiImplMock;
     }
 
     virtual void TearDown()
     {
         RfcApi::getInstance().impl = nullptr;
-        telemetryApi::getInstance().impl = nullptr;
+        TelemetryApi::getInstance().impl = nullptr;
     }
 };
 
