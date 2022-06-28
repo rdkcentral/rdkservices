@@ -141,12 +141,12 @@ if(PLUGIN_ACTIVITYMONITOR)
 endif()
 
 if(PLUGIN_TELEMETRY)
-    add_subdirectory(Telemetry)
-endif()
+    if (BUILD_ENABLE_TELEMETRY_LOGGING)
+        message("Building with telemetry logging")
+        add_definitions (-DENABLE_TELEMETRY_LOGGING)
+    endif()
 
-if (BUILD_ENABLE_TELEMETRY_LOGGING)
-    message("Building with telemetry logging")
-    add_definitions (-DENABLE_TELEMETRY_LOGGING)
+    add_subdirectory(Telemetry)
 endif()
 
 if(PLUGIN_WAREHOUSE)
