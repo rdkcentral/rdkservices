@@ -47,12 +47,12 @@ namespace {
         {"getPairedSSIDInfo", &WifiManager::getPairedSSIDInfo},
         {"isPaired", &WifiManager::isPaired},
         {"getCurrentState", &WifiManager::getCurrentState},
+        {"getConnectedSSID", &WifiManager::getConnectedSSID},
     };
 
     std::vector<std::pair<const char*, WifiManagerConstMethod>> constMethods = {
         {"getQuirks", &WifiManager::getQuirks},
         {"startScan", &WifiManager::startScan},
-        {"getConnectedSSID", &WifiManager::getConnectedSSID},
         {"isSignalThresholdChangeEnabled", &WifiManager::isSignalThresholdChangeEnabled}
     };
 }
@@ -160,7 +160,7 @@ namespace WPEFramework
             return result;
         }
 
-        uint32_t WifiManager::getConnectedSSID(const JsonObject &parameters, JsonObject &response) const
+        uint32_t WifiManager::getConnectedSSID(const JsonObject &parameters, JsonObject &response)
         {
             uint32_t result = wifiState.getConnectedSSID(parameters, response);
 
@@ -283,6 +283,7 @@ namespace WPEFramework
             if (!isLNF)
             {
                 wifiState.setWifiStateCache(true, state);
+                wifiState.resetWifiStateConnectedCache(false);
                 wifiWPS.updateWifiWPSCache(false);
             }
             sendNotify("onWIFIStateChanged", params);
@@ -313,6 +314,7 @@ namespace WPEFramework
         void WifiManager::onSSIDsChanged()
         {
             wifiWPS.updateWifiWPSCache(false);
+            wifiState.resetWifiStateConnectedCache(false);
             sendNotify("onSSIDsChanged", JsonObject());
             GetHandler(2)->Notify("onSSIDsChanged", JsonObject());
         }
