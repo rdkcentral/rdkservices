@@ -73,7 +73,6 @@ protected:
 
 TEST_F(LocationSyncTestFixture, probeTest)
 {
-    GTEST_SKIP();
     EXPECT_CALL(service, ConfigLine())
         .Times(1)
         .WillOnce(::testing::Return("{\n"
