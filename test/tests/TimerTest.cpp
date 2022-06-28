@@ -89,7 +89,8 @@ TEST_F(TimerTestFixture, paramsMissing)
 
 TEST_F(TimerTestFixture, jsonRpc)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), _T("{\"interval\":10}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), 
+                _T("{\"interval\":10, \"repeatInterval\":15, \"remindBefore\":5}"), response));
 
     //Extract timer id from response
     JsonObject params;
@@ -104,11 +105,43 @@ TEST_F(TimerTestFixture, jsonRpc)
 
     //get timer status
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimerStatus"), sTimerStrID.c_str(), response));
-    EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
+    EXPECT_TRUE(params.FromString(response));
+
+    //match the response as per https://rdkcentral.github.io/rdkservices/#/api/TimerPlugin?id=gettimerstatus
+    EXPECT_TRUE(params.HasLabel("state"));
+    EXPECT_TRUE(params.HasLabel("mode"));
+    EXPECT_TRUE(params.HasLabel("timeRemaining"));
+    EXPECT_TRUE(params.HasLabel("repeatInterval"));
+    EXPECT_TRUE(params.HasLabel("remindBefore"));
+    EXPECT_TRUE(params.HasLabel("success"));
+    EXPECT_EQ(_T("RUNNING"), params[_T("state")].Value());
+    EXPECT_EQ(_T("GENERIC"), params[_T("mode")].Value());
+    EXPECT_GT(std::stoi(params["timeRemaining"].String()), 0);
+    EXPECT_GT(std::stoi(params["repeatInterval"].String()), 0);
+    EXPECT_GT(std::stoi(params["remindBefore"].String()), 0);
 
     //get all timers
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimers"), _T("{}"), response));
-    EXPECT_THAT(response, testing::HasSubstr("timerId"));
+    EXPECT_TRUE(params.FromString(response));
+    EXPECT_TRUE(params.HasLabel("timers"));
+
+    //match the response as per https://rdkcentral.github.io/rdkservices/#/api/TimerPlugin?id=gettimers
+    JsonArray timersArray = params["timers"].Array();
+    EXPECT_GT(timersArray.Length(), 0);
+    JsonObject timerStatus = timersArray[0].String();
+
+    EXPECT_TRUE(timerStatus.HasLabel("timerId"));
+    EXPECT_TRUE(timerStatus.HasLabel("state"));
+    EXPECT_TRUE(timerStatus.HasLabel("mode"));
+    EXPECT_TRUE(timerStatus.HasLabel("timeRemaining"));
+    EXPECT_TRUE(timerStatus.HasLabel("repeatInterval"));
+    EXPECT_TRUE(timerStatus.HasLabel("remindBefore"));
+    EXPECT_EQ(std::stoi(timerStatus["timerId"].String()), 0);
+    EXPECT_EQ(_T("RUNNING"), timerStatus[_T("state")].Value());
+    EXPECT_EQ(_T("GENERIC"), timerStatus[_T("mode")].Value());
+    EXPECT_GT(std::stoi(timerStatus["timeRemaining"].String()), 0);
+    EXPECT_GT(std::stoi(timerStatus["repeatInterval"].String()), 0);
+    EXPECT_GT(std::stoi(timerStatus["remindBefore"].String()), 0);
 
     //Suspend the timer
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("suspend"), sTimerStrID.c_str(), response));
@@ -210,9 +243,9 @@ TEST_F(TimerTestFixture, timerExpiry)
     // Initialize
     EXPECT_EQ(string(""), plugin->Initialize(nullptr));
 
-    //Create a timer of 1 sec with a reminder of 0.2 sec
+    //Create a timer of 0.2 sec with a reminder of 0.1 sec
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), 
-                        _T("{\"interval\":1, \"mode\":\"WAKE\", \"remindBefore\": 0.2}"), response));
+                        _T("{\"interval\":0.2, \"mode\":\"WAKE\", \"remindBefore\": 0.1}"), response));
     EXPECT_THAT(response, testing::HasSubstr("timerId"));
     EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
 
@@ -232,7 +265,8 @@ TEST_F(TimerTestFixture, timerExpiry)
     handler.Subscribe(0, _T("timerExpired"), _T("org.rdk.Timer"), message);
 
     //Wait for timer expiry & reminder calls
-    sleep(2);
+    Core::Event wait(false, true);
+    wait.Lock(200);
 
     handler.Unsubscribe(0, _T("timerExpiryReminder"), _T("org.rdk.Timer"), message);
     handler.Unsubscribe(0, _T("timerExpired"), _T("org.rdk.Timer"), message);
