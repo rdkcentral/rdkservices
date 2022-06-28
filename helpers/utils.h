@@ -27,6 +27,7 @@
 #include <tracing/tracing.h>
 #include "rfcapi.h"
 #include <math.h>
+#include "rdk_logger_milestone.h"
 
 // telemetry
 #ifdef ENABLE_TELEMETRY_LOGGING
@@ -47,6 +48,8 @@
 #define LOG_DEVICE_EXCEPTION0() LOGWARN("Exception caught: code=%d message=%s", err.getCode(), err.what());
 #define LOG_DEVICE_EXCEPTION1(param1) LOGWARN("Exception caught" #param1 "=%s code=%d message=%s", param1.c_str(), err.getCode(), err.what());
 #define LOG_DEVICE_EXCEPTION2(param1, param2) LOGWARN("Exception caught " #param1 "=%s " #param2 "=%s code=%d message=%s", param1.c_str(), param2.c_str(), err.getCode(), err.what());
+
+#define LOG_MILESTONE(milestone) logMilestone(milestone);
 
 /* a=target variable, b=bit number to act upon 0-n */
 #define BIT_SET(a,b) ((a) |= (1ULL<<(b)))
