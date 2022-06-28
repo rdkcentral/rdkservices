@@ -27,7 +27,10 @@ protected:
     FactoriesImplementation factoriesImplementation;
 
     TelemetryTestFixture()
-        : connection(1, 0)
+        : TelemetryApi::getInstance().impl(&telemetryApiImplMock)
+        , plugin(Core::ProxyType<Plugin::Telemetry>::Create())
+        , handler(*(plugin))
+        , connection(1, 0)
     {
         PluginHost::IFactories::Assign(&factoriesImplementation);
     }
@@ -38,8 +41,6 @@ protected:
 
     virtual void SetUp()
     {
-        plugin = Core::ProxyType<Plugin::Telemetry>::Create();
-        handler = *plugin;
         RfcApi::getInstance().impl = &rfcApiImplMock;
         TelemetryApi::getInstance().impl = &telemetryApiImplMock;
     }
