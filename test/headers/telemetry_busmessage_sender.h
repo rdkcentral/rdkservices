@@ -23,14 +23,14 @@ public:
 
 class TelemetryApi {
 public:
+    static TelemetryApi instance;
+    TelemetryApiImpl* impl;
+
     static TelemetryApi& getInstance()
     {
-        static TelemetryApi instance;
         return instance;
     }
 
-    TelemetryApiImpl* impl;
-    
     static void t2_init(char *component)
     {
         // Disabled this because it's called from plugin's constructor,

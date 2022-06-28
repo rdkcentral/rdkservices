@@ -27,7 +27,7 @@ protected:
     FactoriesImplementation factoriesImplementation;
 
     TelemetryTestFixture()
-        : TelemetryApi::getInstance().impl(&telemetryApiImplMock)
+        : TelemetryApi::instance.impl(&telemetryApiImplMock)
         , plugin(Core::ProxyType<Plugin::Telemetry>::Create())
         , handler(*(plugin))
         , connection(1, 0)
