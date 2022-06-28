@@ -2230,6 +2230,7 @@ static GSourceFuncs _handlerIntervention =
 
             webkit_settings_set_enable_encrypted_media(preferences, TRUE);
             webkit_settings_set_enable_mediasource(preferences, TRUE);
+            webkit_settings_set_enable_media_stream(preferences, TRUE);
 
             // Turn on/off WebGL
             webkit_settings_set_enable_webgl(preferences, _config.WebGLEnabled.Value());
