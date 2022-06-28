@@ -9,10 +9,6 @@
 
 using namespace WPEFramework;
 
-namespace {
-const string iarmName = _T("Thunder_Plugins");
-}
-
 class TelemetryTestFixture : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::Telemetry> plugin;
@@ -27,11 +23,11 @@ protected:
     FactoriesImplementation factoriesImplementation;
 
     TelemetryTestFixture()
-        : TelemetryApi::instance.impl(&telemetryApiImplMock)
-        , plugin(Core::ProxyType<Plugin::Telemetry>::Create())
+        : plugin(Core::ProxyType<Plugin::Telemetry>::Create())
         , handler(*(plugin))
         , connection(1, 0)
     {
+        fprintf(stderr, "TelemetryTestFixture::TelemetryTestFixture()\n");
         PluginHost::IFactories::Assign(&factoriesImplementation);
     }
     virtual ~TelemetryTestFixture()
@@ -60,6 +56,7 @@ TEST_F(TelemetryTestFixture, RegisteredMethods)
 
 TEST_F(TelemetryTestFixture, Plugin)
 {
+    fprintf(stderr, "TelemetryTestFixture start\n");
 
     EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(2)
