@@ -1,12 +1,12 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.TextToSpeech_API"></a>
-# TextToSpeech API
+<a name="head.TextToSpeech_Plugin"></a>
+# TextToSpeech Plugin
 
 **Version: 1.0**
 
-**Status: :black_circle::white_circle::white_circle:**
+**Status: :black_circle::black_circle::black_circle:**
 
-A TextToSpeech plugin for Thunder framework.
+A org.rdk.TextToSpeech plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -22,7 +22,7 @@ A TextToSpeech plugin for Thunder framework.
 <a name="head.Scope"></a>
 ## Scope
 
-This document describes purpose and functionality of the TextToSpeech plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
+This document describes purpose and functionality of the org.rdk.TextToSpeech plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
 <a name="head.Case_Sensitivity"></a>
 ## Case Sensitivity
@@ -60,7 +60,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="head.Description"></a>
 # Description
 
-The `TextToSpeech` plugin provides text-to-speech (TTS) functionality (Voice Guidance & Speech Synthesis) for the client application.
+The `TextToSpeech` plugin provides TTS functionality (Voice Guidance & Speech Synthesis) for the client application.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
@@ -71,13 +71,15 @@ The table below lists configuration options of the plugin.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| classname | string | Class name: *TextToSpeech* |
+| callsign | string | Plugin instance name (default: *org.rdk.TextToSpeech*) |
+| classname | string | Class name: *org.rdk.TextToSpeech* |
+| locator | string | Library name: *libWPEFrameworkTextToSpeech.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
 <a name="head.Methods"></a>
 # Methods
 
-The following methods are provided by the TextToSpeech plugin:
+The following methods are provided by the org.rdk.TextToSpeech plugin:
 
 TextToSpeech interface methods:
 
@@ -133,7 +135,7 @@ Also see: [onspeechinterrupted](#event.onspeechinterrupted)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TextToSpeech.1.cancel",
+    "method": "org.rdk.TextToSpeech.1.cancel",
     "params": {
         "speechid": 1
     }
@@ -189,7 +191,7 @@ Also see: [onttsstatechanged](#event.onttsstatechanged), [onspeechinterrupted](#
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TextToSpeech.1.enabletts",
+    "method": "org.rdk.TextToSpeech.1.enabletts",
     "params": {
         "enabletts": true
     }
@@ -238,7 +240,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TextToSpeech.1.getapiversion"
+    "method": "org.rdk.TextToSpeech.1.getapiversion"
 }
 ```
 
@@ -288,7 +290,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TextToSpeech.1.getspeechstate",
+    "method": "org.rdk.TextToSpeech.1.getspeechstate",
     "params": {
         "speechid": 1
     }
@@ -344,7 +346,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TextToSpeech.1.getttsconfiguration"
+    "method": "org.rdk.TextToSpeech.1.getttsconfiguration"
 }
 ```
 
@@ -400,7 +402,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TextToSpeech.1.isspeaking",
+    "method": "org.rdk.TextToSpeech.1.isspeaking",
     "params": {
         "speechid": 1
     }
@@ -451,7 +453,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TextToSpeech.1.isttsenabled"
+    "method": "org.rdk.TextToSpeech.1.isttsenabled"
 }
 ```
 
@@ -502,7 +504,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TextToSpeech.1.listvoices",
+    "method": "org.rdk.TextToSpeech.1.listvoices",
     "params": {
         "language": "en-US"
     }
@@ -558,7 +560,7 @@ Also see: [onspeechpause](#event.onspeechpause)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TextToSpeech.1.pause",
+    "method": "org.rdk.TextToSpeech.1.pause",
     "params": {
         "speechid": 1
     }
@@ -613,7 +615,7 @@ Also see: [onspeechresume](#event.onspeechresume)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TextToSpeech.1.resume",
+    "method": "org.rdk.TextToSpeech.1.resume",
     "params": {
         "speechid": 1
     }
@@ -676,7 +678,7 @@ Also see: [onvoicechanged](#event.onvoicechanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TextToSpeech.1.setttsconfiguration",
+    "method": "org.rdk.TextToSpeech.1.setttsconfiguration",
     "params": {
         "ttsendpoint": "http://url_for_the_text_to_speech_processing_unit",
         "ttsendpointsecured": "https://url_for_the_text_to_speech_processing_unit",
@@ -747,7 +749,7 @@ Also see: [onwillspeak](#event.onwillspeak), [onspeechstart](#event.onspeechstar
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TextToSpeech.1.speak",
+    "method": "org.rdk.TextToSpeech.1.speak",
     "params": {
         "text": "speech_1",
         "callsign": "WebApp"
@@ -803,7 +805,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TextToSpeech.1.setACL",
+    "method": "org.rdk.TextToSpeech.1.setACL",
     "params": {
         "accesslist": [
             {
@@ -832,7 +834,7 @@ No Events.
 
 Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
 
-The following events are provided by the TextToSpeech plugin:
+The following events are provided by the org.rdk.TextToSpeech plugin:
 
 TextToSpeech interface events:
 
