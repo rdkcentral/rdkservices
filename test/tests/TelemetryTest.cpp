@@ -9,13 +9,15 @@
 
 using namespace WPEFramework;
 
+static TelemetryApiImplMock telemetryApiImplMock;
+
 class TelemetryTestFixture : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::Telemetry> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     RfcApiImplMock rfcApiImplMock;
-    TelemetryApiImplMock telemetryApiImplMock;
+    //TelemetryApiImplMock telemetryApiImplMock;
     
     string response;
     ServiceMock service;
@@ -44,7 +46,7 @@ protected:
     virtual void TearDown()
     {
         RfcApi::getInstance().impl = nullptr;
-        TelemetryApi::getInstance().impl = nullptr;
+        //TelemetryApi::getInstance().impl = nullptr;
     }
 };
 
@@ -110,5 +112,6 @@ TEST_F(TelemetryTestFixture, Plugin)
 
     // Deinitialize
     plugin->Deinitialize(nullptr);
-
+    
+    TelemetryApi::getInstance().impl = nullptr;
 }
