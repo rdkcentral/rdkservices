@@ -23,11 +23,11 @@ public:
 
 class TelemetryApi {
 public:
-    static TelemetryApi instance;
     TelemetryApiImpl* impl;
 
     static TelemetryApi& getInstance()
     {
+        static TelemetryApi instance;
         return instance;
     }
 
