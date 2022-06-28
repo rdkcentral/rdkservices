@@ -27,9 +27,7 @@ protected:
     FactoriesImplementation factoriesImplementation;
 
     TelemetryTestFixture()
-        : plugin(Core::ProxyType<Plugin::Telemetry>::Create())
-        , handler(*(plugin))
-        , connection(1, 0)
+        : connection(1, 0)
     {
         PluginHost::IFactories::Assign(&factoriesImplementation);
     }
@@ -40,6 +38,8 @@ protected:
 
     virtual void SetUp()
     {
+        plugin = Core::ProxyType<Plugin::Telemetry>::Create();
+        handler = *plugin;
         RfcApi::getInstance().impl = &rfcApiImplMock;
         TelemetryApi::getInstance().impl = &telemetryApiImplMock;
     }
@@ -73,7 +73,8 @@ TEST_F(TelemetryTestFixture, Plugin)
             }));
 
     EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
-        .WillRepeatedly(::testing::Invoke(
+        .Times(1)
+        .WillOnce(::testing::Invoke(
             [](char *component) {
                 return;
             }));

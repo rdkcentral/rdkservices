@@ -35,7 +35,7 @@ public:
     {
         // Disabled this because it's called from plugin's constructor,
         // but ::testing::Test::SetUp, which sets pointer to mock is not called at this point
-#if 0
+#if 1
         getInstance().impl->t2_init(component);
 #endif
     }
