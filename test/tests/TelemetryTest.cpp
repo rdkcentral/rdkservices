@@ -39,11 +39,12 @@ protected:
         TelemetryApi::getInstance().impl = &telemetryApiImplMock;
 
         plugin = Core::ProxyType<Plugin::Telemetry>::Create();
-        handler = plugin.operator->();
+        handler = new Core::JSONRPC::Handler(*plugin);
     }
 
     virtual void TearDown()
     {
+        delete handler;
         RfcApi::getInstance().impl = nullptr;
         TelemetryApi::getInstance().impl = nullptr;
     }
@@ -51,8 +52,8 @@ protected:
 
 TEST_F(TelemetryTestFixture, RegisteredMethods)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setReportProfileStatus")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("logApplicationEvent")));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Exists(_T("setReportProfileStatus")));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Exists(_T("logApplicationEvent")));
 }
 
 TEST_F(TelemetryTestFixture, Plugin)
@@ -79,8 +80,8 @@ TEST_F(TelemetryTestFixture, Plugin)
             }));
 
     EXPECT_CALL(telemetryApiImplMock, t2_event_s(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+        .Times(2)
+        .WillRepeatedly(::testing::Invoke(
             [](char* marker, char* value) {
                 return T2ERROR_SUCCESS;
             }));
