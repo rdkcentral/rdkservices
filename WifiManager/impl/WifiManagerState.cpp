@@ -144,7 +144,7 @@ std::map<std::string, std::string> WifiManagerState::retrieveValues(const char *
         if(std::getline(std::getline(mystream, key, '=') >> std::ws, value))
             MyMap[key] = value;
     }
-    fclose(fp);
+    pclose(fp);
 
     return MyMap;
 }
