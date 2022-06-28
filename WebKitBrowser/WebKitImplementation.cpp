@@ -1684,8 +1684,10 @@ static GSourceFuncs _handlerIntervention =
             if (_config.ClientIdentifier.IsSet() == true) {
                 string value(service->Callsign() + ',' + _config.ClientIdentifier.Value());
                 Core::SystemInfo::SetEnvironment(_T("CLIENT_IDENTIFIER"), value, !environmentOverride);
+                Core::SystemInfo::SetEnvironment(_T("ESSRMGR_APPID"), value, !environmentOverride);
             } else {
                 Core::SystemInfo::SetEnvironment(_T("CLIENT_IDENTIFIER"), service->Callsign(), !environmentOverride);
+                Core::SystemInfo::SetEnvironment(_T("ESSRMGR_APPID"), service->Callsign(), !environmentOverride);
             }
 
             // Set dummy window for gst-gl
