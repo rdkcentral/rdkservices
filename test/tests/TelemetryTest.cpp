@@ -9,25 +9,21 @@
 
 using namespace WPEFramework;
 
-static TelemetryApiImplMock telemetryApiImplMock;
-
 class TelemetryTestFixture : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::Telemetry> plugin;
-    Core::JSONRPC::Handler& handler;
+    Core::JSONRPC::Handler *handler;
     Core::JSONRPC::Connection connection;
     RfcApiImplMock rfcApiImplMock;
-    //TelemetryApiImplMock telemetryApiImplMock;
-    
+    TelemetryApiImplMock telemetryApiImplMock;
+
     string response;
     ServiceMock service;
     Core::JSONRPC::Message message;
     FactoriesImplementation factoriesImplementation;
 
     TelemetryTestFixture()
-        : plugin(Core::ProxyType<Plugin::Telemetry>::Create())
-        , handler(*(plugin))
-        , connection(1, 0)
+        : connection(1, 0)
     {
         fprintf(stderr, "TelemetryTestFixture::TelemetryTestFixture()\n");
         PluginHost::IFactories::Assign(&factoriesImplementation);
@@ -41,12 +37,15 @@ protected:
     {
         RfcApi::getInstance().impl = &rfcApiImplMock;
         TelemetryApi::getInstance().impl = &telemetryApiImplMock;
+
+        plugin = Core::ProxyType<Plugin::Telemetry>::Create();
+        handler = plugin.operator->();
     }
 
     virtual void TearDown()
     {
         RfcApi::getInstance().impl = nullptr;
-        //TelemetryApi::getInstance().impl = nullptr;
+        TelemetryApi::getInstance().impl = nullptr;
     }
 };
 
@@ -90,28 +89,26 @@ TEST_F(TelemetryTestFixture, Plugin)
     EXPECT_EQ(string(""), plugin->Initialize(nullptr));
 
     // JSON-RPC methods
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"wrongvalue\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"wrongvalue\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":false}"));
     
     // JSON-RPC methods
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"COMPLETE\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"COMPLETE\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":false}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventValue\":\"VALUE\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("logApplicationEvent"), _T("{\"eventValue\":\"VALUE\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":false}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     // Deinitialize
     plugin->Deinitialize(nullptr);
-    
-    TelemetryApi::getInstance().impl = nullptr;
 }
