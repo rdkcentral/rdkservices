@@ -39,7 +39,6 @@
 
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
-#include "UtilsString.h"
 #include "utils.h"
 #include "uploadlogs.h"
 
