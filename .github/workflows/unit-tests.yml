@@ -160,7 +160,7 @@ jobs:
           -B build/rdkservices
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
-          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system"
+          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system -DENABLE_TELEMETRY_LOGGING"
           -DCOMCAST_CONFIG=OFF
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
@@ -174,7 +174,6 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
           -DPLUGIN_AVINPUT=ON
           -DPLUGIN_TELEMETRY=ON
-          -DCMAKE_CXX_FLAGS="-DENABLE_TELEMETRY_LOGGING"
           -DPLUGIN_USBACCESS=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DRDK_SERVICES_TEST=ON
