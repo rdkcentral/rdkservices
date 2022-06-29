@@ -33,9 +33,6 @@ public:
 
     static void t2_init(char *component)
     {
-        // Disabled this because it's called from plugin's constructor,
-        // but ::testing::Test::SetUp, which sets pointer to mock is not called at this point
-
         if (nullptr != getInstance().impl)
             getInstance().impl->t2_init(component);
         else
