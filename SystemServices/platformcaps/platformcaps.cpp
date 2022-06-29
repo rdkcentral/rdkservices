@@ -26,7 +26,7 @@
 namespace WPEFramework {
 namespace Plugin {
 
-bool PlatformCaps::Load(const string &query) {
+bool PlatformCaps::Load(PluginHost::IShell* service, const string &query) {
   bool result = true;
 
   Reset();
@@ -37,14 +37,14 @@ bool PlatformCaps::Load(const string &query) {
 
   if (query.empty() || !m.empty()) {
     if (query.empty() || (m[1] == _T("AccountInfo"))) {
-      if (!accountInfo.Load(m.size() > 3 ? m[3] : string())) {
+      if (!accountInfo.Load(service, m.size() > 3 ? m[3] : string())) {
         result = false;
       }
       Add(_T("AccountInfo"), &accountInfo);
     }
 
     if (query.empty() || (m[1] == _T("DeviceInfo"))) {
-      if (!deviceInfo.Load(m.size() > 3 ? m[3] : string())) {
+      if (!deviceInfo.Load(service, m.size() > 3 ? m[3] : string())) {
         result = false;
       }
       Add(_T("DeviceInfo"), &deviceInfo);
@@ -61,12 +61,12 @@ bool PlatformCaps::Load(const string &query) {
   return result;
 }
 
-bool PlatformCaps::AccountInfo::Load(const string &query) {
+bool PlatformCaps::AccountInfo::Load(PluginHost::IShell* service, const string &query) {
   bool result = true;
 
   Reset();
 
-  PlatformCapsData data;
+  PlatformCapsData data(service);
 
   if (query.empty() || query == _T("accountId")) {
     accountId = data.GetAccountId();
@@ -101,12 +101,12 @@ bool PlatformCaps::AccountInfo::Load(const string &query) {
   return result;
 }
 
-bool PlatformCaps::DeviceInfo::Load(const string &query) {
+bool PlatformCaps::DeviceInfo::Load(PluginHost::IShell* service, const string &query) {
   bool result = true;
 
   Reset();
 
-  PlatformCapsData data;
+  PlatformCapsData data(service);
 
   if (query.empty() || query == _T("quirks")) {
     quirks.Clear();
