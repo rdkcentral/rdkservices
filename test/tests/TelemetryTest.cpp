@@ -63,12 +63,13 @@ TEST_F(TelemetryTestFixture, RegisteredMethods)
             }));
 
     Core::ProxyType<Plugin::Telemetry> plugin(Core::ProxyType<Plugin::Telemetry>::Create());
-    Core::JSONRPC::Handler* handler(&((Core::JSONRPC::Handler&)(*(plugin))));
+    Core::JSONRPC::Handler& handler(*(plugin));    
 
-    EXPECT_EQ(Core::ERROR_NONE, handler->Exists(_T("setReportProfileStatus")));
-    EXPECT_EQ(Core::ERROR_NONE, handler->Exists(_T("logApplicationEvent")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setReportProfileStatus")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("logApplicationEvent")));
 }
 
+#if 0
 TEST_F(TelemetryTestFixture, InitializeTest)
 {
     EXPECT_CALL(service, ConfigLine())
@@ -163,3 +164,5 @@ TEST_F(TelemetryTestFixture, Plugin)
     // Deinitialize
     plugin->Deinitialize(nullptr);
 }
+
+#endif
