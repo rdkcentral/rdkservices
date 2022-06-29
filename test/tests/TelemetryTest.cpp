@@ -143,7 +143,7 @@ TEST_F(TelemetryTestFixture, Plugin)
 #endif
 
     // Initialize
-    EXPECT_EQ(string(""), plugin->Initialize(nullptr));
+    //EXPECT_EQ(string(""), plugin->Initialize(nullptr));
 
 #if 0
     EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"wrongvalue\"}"), response));
