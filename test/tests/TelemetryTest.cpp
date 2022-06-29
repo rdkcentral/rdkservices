@@ -12,8 +12,7 @@ namespace {
 const string profileFN = _T("/tmp/DefaultProfile.json");
 const string t2PpersistentFolder = _T("/tmp/.t2reportprofiles/");
 
-const char profileContent[] = "{\"profile\":\"default\"}";
-
+const uint8_t profileContent[] = "{\"profile\":\"default\"}";
 }
 
 using namespace WPEFramework;
