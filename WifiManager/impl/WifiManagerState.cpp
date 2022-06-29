@@ -27,6 +27,7 @@
 #define BUFFER_SIZE 512
 #define Command1 "wpa_cli status"
 #define Command2 "wpa_cli signal_poll"
+#define Command3 "wpa_cli status | grep wpa_state"
 
 using namespace WPEFramework::Plugin;
 using namespace std;
@@ -159,8 +160,19 @@ uint32_t WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonOb
     std::string security_mode = "";
     std::string auth = "";
     std::string encryption = "";
+    std::string wifi_wpa_state = "";
 
     memset(&param, '\0', sizeof(param));
+
+    auto statemap = WifiManagerState::retrieveValues(Command3, buff, sizeof (buff));
+
+    auto itr = statemap.find("wpa_state");
+
+    if (itr != statemap.end())
+    {
+        wifi_wpa_state = itr->second;
+    }
+
     if(!m_useWifiConnectedCache)
     {
         auto list = WifiManagerState::retrieveValues(Command1, buff, sizeof (buff));
@@ -169,45 +181,44 @@ uint32_t WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonOb
         {
             for(auto it = list.cbegin(); it != list.cend(); ++it)
             {
-                if (it->first == "ssid")
+                if(wifi_wpa_state == "COMPLETED")
                 {
-                    m_ConnectedSSIDCache = it->second;
-                }
-                else if (it->first == "bssid")
-                {
-                    m_ConnectedBSSIDCache = it->second;
-                }
-                else if (it->first == "pairwise_cipher")
-                {
-                    encryption = it->second.c_str();
-                    if(!encryption.compare("TKIP"))
+                    if (it->first == "ssid")
                     {
-                        encryption.clear();
-                        encryption = "_TKIP";
+                        m_ConnectedSSIDCache = it->second;
                     }
-                    if(!encryption.compare("CCMP"))
+                    else if (it->first == "bssid")
                     {
-                        encryption.clear();
-                        encryption = "_AES";
+                        m_ConnectedBSSIDCache = it->second;
                     }
-                    LOGINFO("Encryption:\n",encryption);
-                 }
-                 else if (it->first == "key_mgmt")
-                 {
-                     auth = it->second.c_str();
-                     std::replace( auth.begin(), auth.end(), '-', '_');
-                     LOGINFO("Authentication:\n",auth);
-                 }
-             }
+                    else if (it->first == "pairwise_cipher")
+                    {
+                        encryption = it->second.c_str();
+                        if(!encryption.compare("TKIP"))
+                        {
+                            encryption.clear();
+                            encryption = "_TKIP";
+                        }
+                        if(!encryption.compare("CCMP"))
+                        {
+                            encryption.clear();
+                            encryption = "_AES";
+                        }
+                    }
+                    else if (it->first == "key_mgmt")
+                    {
+                        auth = it->second.c_str();
+                        std::replace( auth.begin(), auth.end(), '-', '_');
+                    }
+                }
+            }
+            if (auth.empty())
+                security_mode = "NET_WIFI_SECURITY_NONE";
+            else
+                security_mode = "NET_WIFI_SECURITY_" + auth + encryption;
 
-             if (auth.empty())
-                 security_mode = "NET_WIFI_SECURITY_NONE";
-             else
-                 security_mode = "NET_WIFI_SECURITY_" + auth + encryption;
-
-             m_ConnectedSecurityModeCache = static_cast<int>(getSecurityModeValue(security_mode));
-             LOGINFO("Security Mode:\n",param.securityMode);
-             result = true;
+            m_ConnectedSecurityModeCache = static_cast<int>(getSecurityModeValue(security_mode));
+            result = true;
         }
         else
         {
@@ -223,25 +234,28 @@ uint32_t WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonOb
     {
         for(auto it = clist.cbegin(); it != clist.cend(); ++it)
         {
-            if (it->first == "LINKSPEED") // phyRate
+            if(wifi_wpa_state == "COMPLETED")
             {
-                phyrate = atoi(it->second.c_str());
-                param.rate = phyrate;
-            }
-            else if (it->first == "RSSI")
-            {
-                rssi = atoi(it->second.c_str());
-                param.signalStrength  = rssi;
-            }
-            else if (it->first == "NOISE")
-            {
-                noise = atoi(it->second.c_str());
-                param.noise  = noise;
-            }
-            else if (it->first == "FREQUENCY")
-            {
-                freq = atoi(it->second.c_str());
-                param.frequency  = freq;
+                if (it->first == "LINKSPEED") // phyRate
+                {
+                    phyrate = atoi(it->second.c_str());
+                    param.rate = phyrate;
+                }
+                else if (it->first == "RSSI")
+                {
+                    rssi = atoi(it->second.c_str());
+                    param.signalStrength  = rssi;
+                }
+                else if (it->first == "NOISE")
+                {
+                    noise = atoi(it->second.c_str());
+                    param.noise  = noise;
+                }
+                else if (it->first == "FREQUENCY")
+                {
+                    freq = atoi(it->second.c_str());
+                    param.frequency  = freq;
+                }
             }
         }
         result = true;
