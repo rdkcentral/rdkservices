@@ -69,8 +69,6 @@ namespace WPEFramework
         {
             Timer::_instance = this;
 
-            Utils::IARM::init();
-
             Register(TIMER_METHOD_START_TIMER, &Timer::startTimerWrapper, this);
             Register(TIMER_METHOD_CANCEL, &Timer::cancelWrapper, this);
             Register(TIMER_METHOD_SUSPEND, &Timer::suspendWrapper, this);
@@ -84,9 +82,26 @@ namespace WPEFramework
         Timer::~Timer()
         {
         }
+        
+        void Timer::InitializeIARM()
+        {
+            Utils::IARM::init();
+        }
+        void Timer::DeinitializeIARM()
+        {
+            if (Utils::IARM::isConnected()) { }
+        }
+
+        const string Timer::Initialize(PluginHost::IShell * /* service */)
+        {
+            InitializeIARM();
+
+            return (string());
+        }
 
         void Timer::Deinitialize(PluginHost::IShell* /* service */)
         {
+            DeinitializeIARM();
             Timer::_instance = nullptr;
         }
 
