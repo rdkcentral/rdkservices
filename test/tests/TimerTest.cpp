@@ -137,10 +137,10 @@ TEST_F(TimerTestFixture, jsonRpc)
     //Resume the timer
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resume"), _T("{\"timerId\":0}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    //resume the timer - Negative test case - Resume already resumed timer
+    //Resume the timer - Negative test case - Resume already resumed timer
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resume"), _T("{\"timerId\":0}"), response));
     EXPECT_EQ(response, _T("{\"success\":false}"));
-    //resume the timer - Negative test case - Resume a wrong timer
+    //Resume the timer - Negative test case - Resume a wrong timer
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resume"), _T("{\"timerId\":10}"), response));
     EXPECT_EQ(response, _T("{\"success\":false}"));
 
