@@ -62,9 +62,7 @@ namespace WPEFramework
         {
             JsonObject config;
             config.FromString(service->ConfigLine());
-            std::string t2PersistentFolder = config["t2PersistentFolder"].String();
-            if (t2PersistentFolder.empty())
-                t2PersistentFolder = T2_PERSISTENT_FOLDER;
+            std::string t2PersistentFolder = config.HasLabel("t2PersistentFolder") ? config["t2PersistentFolder"].String() : T2_PERSISTENT_FOLDER;
             LOGERR("t2PersistentFolder %s", t2PersistentFolder.c_str());
             bool isEMpty = true;
             DIR *d = opendir(t2PersistentFolder.c_str());
@@ -87,9 +85,7 @@ namespace WPEFramework
             if (isEMpty)
             {
                 Core::File file;
-                std::string defaultProfilesFile = config["defaultProfilesFile"].String();
-                if (defaultProfilesFile.empty())
-                    defaultProfilesFile = DEFAULT_PROFILES_FILE;
+                std::string defaultProfilesFile = config.HasLabel("defaultProfilesFile") ? config["defaultProfilesFile"].String() : DEFAULT_PROFILES_FILE;
                 LOGERR("defaultProfilesFile %s", defaultProfilesFile.c_str());
 
                 file = defaultProfilesFile.c_str();

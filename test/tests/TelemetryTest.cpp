@@ -69,7 +69,7 @@ TEST_F(TelemetryTestFixture, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler->Exists(_T("logApplicationEvent")));
 }
 
-TEST_F(TelemetryTestFixture, InitializeTest)
+TEST_F(TelemetryTestFixture, InitializeDefaultProfile)
 {
     EXPECT_CALL(service, ConfigLine())
         .Times(1)
@@ -109,6 +109,47 @@ TEST_F(TelemetryTestFixture, InitializeTest)
     // Deinitialize
     plugin->Deinitialize(nullptr);
 }
+
+TEST_F(TelemetryTestFixture, InitializePersistentFolder)
+{
+    EXPECT_CALL(service, ConfigLine())
+        .Times(1)
+        .WillOnce(
+            ::testing::Return("{"
+                                "\"t2PersistentFolder\":\"/tmp/.t2reportprofiles/\","
+                                "\"defaultProfilesFile\":\"/tmp/DefaultProfile.json\""
+                              "}"));
+
+    EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](char *component) {
+                return;
+            }));
+
+    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+                return WDMP_SUCCESS;
+            }));
+
+    {
+        Core::Directory(t2PpersistentFolder.c_str()).CreatePath();
+        
+        Core::File file(t2PpersistentFolder + "SomeReport");
+        file.Create();
+    }
+
+    Core::ProxyType<Plugin::Telemetry> plugin(Core::ProxyType<Plugin::Telemetry>::Create());
+    
+    // Initialize
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    // Deinitialize
+    plugin->Deinitialize(nullptr);
+}
+
 
 TEST_F(TelemetryTestFixture, Plugin)
 {
