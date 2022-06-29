@@ -69,7 +69,6 @@ TEST_F(TelemetryTestFixture, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler->Exists(_T("logApplicationEvent")));
 }
 
-#if 0
 TEST_F(TelemetryTestFixture, InitializeTest)
 {
     EXPECT_CALL(service, ConfigLine())
@@ -103,9 +102,13 @@ TEST_F(TelemetryTestFixture, InitializeTest)
     }
 
     Core::ProxyType<Plugin::Telemetry> plugin(Core::ProxyType<Plugin::Telemetry>::Create());
-}
+    
+    // Initialize
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
 
-#endif
+    // Deinitialize
+    plugin->Deinitialize(nullptr);
+}
 
 TEST_F(TelemetryTestFixture, Plugin)
 {
