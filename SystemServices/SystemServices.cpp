@@ -4201,7 +4201,7 @@ namespace WPEFramework {
 
           const string query = parameters.HasLabel("query") ? parameters["query"].String() : "";
 
-          response.Load(query);
+          response.Load(m_shellService, query);
 
           return Core::ERROR_NONE;
         }
