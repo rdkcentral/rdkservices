@@ -2843,6 +2843,7 @@ namespace WPEFramework {
         uint32_t RDKShell::hideSplashLogoWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+            LOG_MILESTONE("HIDE_SPLASH_SCREEN");
             bool result = true;
 
             lockRdkShellMutex();
@@ -3069,6 +3070,10 @@ namespace WPEFramework {
             if (result)
             {
                 appCallsign = parameters["callsign"].String();
+                if (appCallsign.compare("SearchAndDiscovery") == 0)
+                {
+                    LOG_MILESTONE("PLUI_LAUNCH_START");
+                }
                 bool isApplicationBeingDestroyed = false;
                 gLaunchDestroyMutex.lock();
                 if (gDestroyApplications.find(appCallsign) != gDestroyApplications.end())

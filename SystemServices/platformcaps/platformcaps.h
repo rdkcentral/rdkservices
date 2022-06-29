@@ -48,7 +48,7 @@ public:
      * @param query - e.g. "accountId", "" (all)
      * @return
      */
-    bool Load(const string &query = string());
+    bool Load(PluginHost::IShell* service, const string &query = string());
 
     Core::JSON::String accountId;
     Core::JSON::String x1DeviceId;
@@ -66,7 +66,7 @@ public:
      * @param query - e.g. "deviceType", "" (all)
      * @return
      */
-    bool Load(const string &query = string());
+    bool Load(PluginHost::IShell* service, const string &query = string());
 
     Core::JSON::ArrayType <Core::JSON::String> quirks;
     JsonObject mimeTypeExclusions;
@@ -88,7 +88,7 @@ public:
    * @param query - e.g. "AccountInfo.accountId", "DeviceInfo", "" (all)
    * @return
    */
-  bool Load(const string &query = string());
+  bool Load(PluginHost::IShell* service, const string &query = string());
 
   AccountInfo accountInfo;
   DeviceInfo deviceInfo;

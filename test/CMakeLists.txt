@@ -45,6 +45,7 @@ include_directories(../LocationSync
         ../AVInput
         ../DataCapture
         ../UsbAccess
+        ../Timer
         ../helpers
         )
 link_directories(../LocationSync
@@ -56,6 +57,7 @@ link_directories(../LocationSync
         ../AVInput
         ../DataCapture
         ../UsbAccess
+        ../Timer
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -70,6 +72,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}FrameRate
         ${NAMESPACE}AVInput
         ${NAMESPACE}UsbAccess
+        ${NAMESPACE}Timer
         )
 
 target_include_directories(${PROJECT_NAME}
