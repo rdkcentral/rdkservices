@@ -19,6 +19,7 @@
 
 #include "Telemetry.h"
 
+#include "UtilsJsonRpc.h"
 #include "UtilsTelemetry.h"
 
 #include "rfcapi.h"
@@ -30,8 +31,6 @@
 #define RFC_CALLERID "Telemetry"
 #define RFC_REPORT_PROFILES "Device.X_RDKCENTRAL-COM_T2.ReportProfiles"
 #define RFC_REPORT_DEFAULT_PROFILE_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.FTUEReport.Enable"
-#define T2_PERSISTENT_FOLDER "/opt/.t2reportprofiles/"
-#define DEFAULT_PROFILES_FILE "/etc/t2profiles/default.json"
 
 namespace WPEFramework
 {
@@ -59,9 +58,12 @@ namespace WPEFramework
 
         const string Telemetry::Initialize(PluginHost::IShell* service )
         {
+            JsonObject config;
+            config.FromString(service->ConfigLine());
+            std::string t2PersistentFolder = config["t2PersistentFolder"].String();
 
             bool isEMpty = true;
-            DIR *d = opendir(T2_PERSISTENT_FOLDER);
+            DIR *d = opendir(t2PersistentFolder.c_str());
             if (NULL != d)
             {
                 struct dirent *de;
@@ -81,7 +83,8 @@ namespace WPEFramework
             if (isEMpty)
             {
                 Core::File file;
-                file = DEFAULT_PROFILES_FILE;
+                std::string defaultProfilesFile = config["defaultProfilesFile"].String();
+                file = defaultProfilesFile.c_str();
                 file.Open();
                 if (file.IsOpen())
                 {
@@ -117,12 +120,12 @@ namespace WPEFramework
                     }
                     else
                     {
-                        LOGERR("%s is 0 size", DEFAULT_PROFILES_FILE);
+                        LOGERR("%s is 0 size", defaultProfilesFile.c_str());
                     }
                 }
                 else
                 {
-                    LOGERR("Failed to open %s", DEFAULT_PROFILES_FILE);
+                    LOGERR("Failed to open %s", defaultProfilesFile.c_str());
                 }
             }
 

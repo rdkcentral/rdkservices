@@ -7,11 +7,20 @@
 
 #include "FactoriesImplementation.h"
 
+namespace {
+
+const string profileFN = _T("/tmp/DefaultProfile.json");
+const string t2PpersistentFolder = _T("/tmp/.t2reportprofiles/");
+
+const char profileContent[] = "{\"profile\":\"default\"}";
+
+}
+
 using namespace WPEFramework;
 
 class TelemetryTestFixture : public ::testing::Test {
 protected:
-    Core::ProxyType<Plugin::Telemetry> plugin;
+    
     Core::JSONRPC::Connection connection;
     RfcApiImplMock rfcApiImplMock;
     TelemetryApiImplMock telemetryApiImplMock;
@@ -36,8 +45,6 @@ protected:
     {
         RfcApi::getInstance().impl = &rfcApiImplMock;
         TelemetryApi::getInstance().impl = &telemetryApiImplMock;
-
-        //plugin = Core::ProxyType<Plugin::Telemetry>::Create();
     }
 
     virtual void TearDown()
@@ -49,6 +56,29 @@ protected:
 
 TEST_F(TelemetryTestFixture, RegisteredMethods)
 {
+    EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](char *component) {
+                return;
+            }));
+
+    Core::ProxyType<Plugin::Telemetry> plugin(Core::ProxyType<Plugin::Telemetry>::Create());
+    Core::JSONRPC::Handler* handler(&((Core::JSONRPC::Handler&)(*(plugin))));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler->Exists(_T("setReportProfileStatus")));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Exists(_T("logApplicationEvent")));
+}
+
+TEST_F(TelemetryTestFixture, InitializeTest)
+{
+    EXPECT_CALL(service, ConfigLine())
+        .Times(1)
+        .WillOnce(
+            ::testing::Return("{"
+                                "\"t2PersistentFolder\":\"/tmp/.t2reportprofiles/\","
+                                "\"defaultProfilesFile\":\"/tmp/DefaultProfile.json\""
+                              "}"));
 
     EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
         .Times(1)
@@ -57,17 +87,26 @@ TEST_F(TelemetryTestFixture, RegisteredMethods)
                 return;
             }));
 
-    plugin = Core::ProxyType<Plugin::Telemetry>::Create();
-    Core::JSONRPC::Handler& handler(*(plugin));
+    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+                return WDMP_SUCCESS;
+            }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setReportProfileStatus")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("logApplicationEvent")));
+    {
+        Core::Directory(t2PpersistentFolder.c_str()).CreatePath();
+
+        Core::File file(profileFN);
+        file.Create();
+        file.Write(profileContent, sizeof(profileContent));
+    }
+
+    Core::ProxyType<Plugin::Telemetry> plugin(Core::ProxyType<Plugin::Telemetry>::Create());
 }
 
 TEST_F(TelemetryTestFixture, Plugin)
 {
-    fprintf(stderr, "TelemetryTestFixture Plugin start\n");
-
     EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -75,8 +114,8 @@ TEST_F(TelemetryTestFixture, Plugin)
                 return;
             }));
 
-    plugin = Core::ProxyType<Plugin::Telemetry>::Create();
-    Core::JSONRPC::Handler& handler(*(plugin));
+    Core::ProxyType<Plugin::Telemetry> plugin(Core::ProxyType<Plugin::Telemetry>::Create());
+    Core::JSONRPC::Handler* handler(&((Core::JSONRPC::Handler&)(*(plugin))));
 
     EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(2)
@@ -102,24 +141,24 @@ TEST_F(TelemetryTestFixture, Plugin)
     EXPECT_EQ(string(""), plugin->Initialize(nullptr));
 
     // JSON-RPC methods
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"wrongvalue\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"wrongvalue\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":false}"));
     
     // JSON-RPC methods
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"COMPLETE\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"COMPLETE\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":false}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventValue\":\"VALUE\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("logApplicationEvent"), _T("{\"eventValue\":\"VALUE\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":false}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     // Deinitialize
