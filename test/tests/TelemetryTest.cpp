@@ -37,7 +37,7 @@ protected:
         RfcApi::getInstance().impl = &rfcApiImplMock;
         TelemetryApi::getInstance().impl = &telemetryApiImplMock;
 
-        plugin = Core::ProxyType<Plugin::Telemetry>::Create();
+        //plugin = Core::ProxyType<Plugin::Telemetry>::Create();
     }
 
     virtual void TearDown()
@@ -49,14 +49,16 @@ protected:
 
 TEST_F(TelemetryTestFixture, RegisteredMethods)
 {
-    Core::JSONRPC::Handler& handler(*(plugin));
-    
+
     EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *component) {
                 return;
             }));
+
+    plugin = Core::ProxyType<Plugin::Telemetry>::Create();
+    Core::JSONRPC::Handler& handler(*(plugin));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setReportProfileStatus")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("logApplicationEvent")));
@@ -65,7 +67,15 @@ TEST_F(TelemetryTestFixture, RegisteredMethods)
 TEST_F(TelemetryTestFixture, Plugin)
 {
     fprintf(stderr, "TelemetryTestFixture Plugin start\n");
-    
+
+    EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](char *component) {
+                return;
+            }));
+
+    plugin = Core::ProxyType<Plugin::Telemetry>::Create();
     Core::JSONRPC::Handler& handler(*(plugin));
 
     EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
@@ -80,12 +90,6 @@ TEST_F(TelemetryTestFixture, Plugin)
                 return WDMP_SUCCESS;
             }));
 
-    EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [](char *component) {
-                return;
-            }));
 
     EXPECT_CALL(telemetryApiImplMock, t2_event_s(::testing::_, ::testing::_))
         .Times(1)
