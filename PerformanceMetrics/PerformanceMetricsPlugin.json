@@ -1,0 +1,11 @@
+{
+  "$schema": "plugin.schema.json",
+  "info": {
+    "title": "PerformanceMetrics Plugin",
+    "callsign": "PerformanceMetrics",
+    "locator": "libWPEFrameworkPerformanceMetrics.so",
+    "status": "alpha",
+    "description": "The Performance Metrics plugin can output metrics on a plugin (e.g. uptime, resource usage).",
+    "version": "1.0"
+  }
+}
