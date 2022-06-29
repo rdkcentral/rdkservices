@@ -58,6 +58,7 @@ namespace WPEFramework
 
         const string Telemetry::Initialize(PluginHost::IShell* service )
         {
+#if 0
             JsonObject config;
             config.FromString(service->ConfigLine());
             std::string t2PersistentFolder = config["t2PersistentFolder"].String();
@@ -128,7 +129,7 @@ namespace WPEFramework
                     LOGERR("Failed to open %s", defaultProfilesFile.c_str());
                 }
             }
-
+#endif
             return "";
         }
 
