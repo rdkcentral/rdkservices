@@ -209,7 +209,7 @@ TEST_F(TelemetryTestFixture, Plugin)
             [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
                 EXPECT_TRUE(strcmp(pcCallerID, "Telemetry") == 0);
                 EXPECT_TRUE(strcmp(pcParameterName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.FTUEReport.Enable") == 0);
-                EXPECT_TRUE(strcmp(pcParameterValue, "true") == 0);
+                EXPECT_TRUE(strcmp(pcParameterValue, "false") == 0);
                 EXPECT_EQ(eDataType, WDMP_BOOLEAN);
 
                 return WDMP_SUCCESS;
@@ -218,7 +218,7 @@ TEST_F(TelemetryTestFixture, Plugin)
             [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
                 EXPECT_TRUE(strcmp(pcCallerID, "Telemetry") == 0);
                 EXPECT_TRUE(strcmp(pcParameterName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.FTUEReport.Enable") == 0);
-                EXPECT_TRUE(strcmp(pcParameterValue, "false") == 0);
+                EXPECT_TRUE(strcmp(pcParameterValue, "true") == 0);
                 EXPECT_EQ(eDataType, WDMP_BOOLEAN);
 
                 return WDMP_SUCCESS;
