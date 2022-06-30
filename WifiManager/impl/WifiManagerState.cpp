@@ -90,7 +90,6 @@ WifiManagerState::WifiManagerState()
     m_ConnectedSSIDCache = "";
     m_ConnectedBSSIDCache = "";
     m_ConnectedSecurityModeCache = 0;
-
 }
 
 WifiManagerState::~WifiManagerState()
@@ -159,8 +158,10 @@ uint32_t WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonOb
     std::string security_mode = "";
     std::string auth = "";
     std::string encryption = "";
+    std::string wifi_wpa_state = "";
 
     memset(&param, '\0', sizeof(param));
+
     if(!m_useWifiConnectedCache)
     {
         auto list = WifiManagerState::retrieveValues(Command1, buff, sizeof (buff));
@@ -169,7 +170,11 @@ uint32_t WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonOb
         {
             for(auto it = list.cbegin(); it != list.cend(); ++it)
             {
-                if (it->first == "ssid")
+                if (it->first == "wpa_state")
+                {
+                    wifi_wpa_state = it->second;
+                }
+                else if (it->first == "ssid")
                 {
                     m_ConnectedSSIDCache = it->second;
                 }
@@ -190,31 +195,44 @@ uint32_t WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonOb
                         encryption.clear();
                         encryption = "_AES";
                     }
-                    LOGINFO("Encryption:\n",encryption);
-                 }
-                 else if (it->first == "key_mgmt")
-                 {
-                     auth = it->second.c_str();
-                     std::replace( auth.begin(), auth.end(), '-', '_');
-                     LOGINFO("Authentication:\n",auth);
-                 }
+                }
+                else if (it->first == "key_mgmt")
+                {
+                    auth = it->second.c_str();
+                    std::replace( auth.begin(), auth.end(), '-', '_');
+                }
+            }
+            /* if Wifi is Disconnected ,getConnectedSSID api response becomes zero and empty string */
+            if(wifi_wpa_state != "COMPLETED")
+            {
+                result = true;
+                response["ssid"] = "";
+                response["bssid"] = "";
+                response["rate"] = to_string(param.rate);
+                response["noise"] = to_string(param.noise);
+                response["security"] = m_ConnectedSecurityModeCache;
+                response["signalStrength"] = to_string(param.signalStrength);
+                response["frequency"] = to_string(((float)param.frequency)/1000);
+
+                returnResponse(result);
              }
-
-             if (auth.empty())
-                 security_mode = "NET_WIFI_SECURITY_NONE";
              else
-                 security_mode = "NET_WIFI_SECURITY_" + auth + encryption;
+             {
+                 if (auth.empty())
+                     security_mode = "NET_WIFI_SECURITY_NONE";
+                 else
+                     security_mode = "NET_WIFI_SECURITY_" + auth + encryption;
 
-             m_ConnectedSecurityModeCache = static_cast<int>(getSecurityModeValue(security_mode));
-             LOGINFO("Security Mode:\n",param.securityMode);
-             result = true;
+                 m_ConnectedSecurityModeCache = static_cast<int>(getSecurityModeValue(security_mode));
+                 result = true;
+                 m_useWifiConnectedCache = true;
+             }
         }
         else
         {
             LOGERR("Command failed to execute:%s\n",Command1);
             result = false;
         }
-        m_useWifiConnectedCache = true;
     }
 
     auto clist = WifiManagerState::retrieveValues(Command2, buff, sizeof (buff));

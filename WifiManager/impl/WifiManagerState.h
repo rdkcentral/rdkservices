@@ -41,9 +41,9 @@ namespace WPEFramework {
             std::atomic<bool> m_useWifiStateCache;
             WifiState m_wifiStateCache;
             std::atomic<bool> m_useWifiConnectedCache;
-            std::string m_ConnectedSSIDCache = "";
-            std::string m_ConnectedBSSIDCache = "";
-            int m_ConnectedSecurityModeCache = 0;
+            std::string m_ConnectedSSIDCache;
+            std::string m_ConnectedBSSIDCache;
+            int m_ConnectedSecurityModeCache;
 
 	private:
 	    std::map<std::string, std::string> retrieveValues(const char *, char *, size_t );
