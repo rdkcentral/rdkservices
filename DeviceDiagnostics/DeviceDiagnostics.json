@@ -6,6 +6,9 @@
         "class": "DeviceDiagnostics", 
         "description": "The `DeviceDiagnostics` plugin provides an interface for the WebPA service for this device only. It allows you to get device configurations."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
         "audioDecoderStatus":{
             "summary": "The status",
@@ -26,22 +29,6 @@
             ],
             "type": "string",
             "example": "ACTIVE"
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods": {
@@ -91,7 +78,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -114,7 +101,7 @@
                         }
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -132,7 +119,7 @@
                         "$ref": "#/definitions/AVDecoderStatus"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [

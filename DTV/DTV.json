@@ -7,13 +7,7 @@
         "description": "The `DTV` plugin provides access to DVB services provided by a DVB stack."
     },
     "common": {
-        "results": {
-            "void": {
-              "type": "null",
-              "default": null,
-              "description": "Always null"
-            }
-        }
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "countrycode": {

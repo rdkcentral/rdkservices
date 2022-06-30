@@ -6,6 +6,9 @@
         "class": "SystemServices",
         "description": "The `System` plugin is used to manage various system-level features such as power settings and firmware updates."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
         "key": {
             "summary": "The cache key",
@@ -268,22 +271,16 @@
             "type": "string",
             "example": "600"
         },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        }
+        "territory":{
+		    "summary":"territory name",
+		    "type": "string",
+		    "example":"USA"
+	    },
+        "region":{
+		    "summary":"region name",
+		    "type":"string",
+		    "example":"US-NY"
+	    }
     },
     "methods": {
         "cacheContains": {
@@ -301,13 +298,37 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "clearLastDeepSleepReason":{
             "summary": "Clears the last deep sleep reason.\n \n### Events\n \n No Events.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
+            }
+        },
+        "deletePersistentPath": {
+            "summary": "(Version 2) Deletes persistent path associated with a callsign.\n \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "callsign": {
+                        "description": "Callsign of the service to delete persistent path",
+                        "type": "string",
+                        "example": "HtmlApp"
+                    },
+                    "type": {
+                        "description": "The type of execution environment. (can be used instead of callsign)",
+                        "type": "string",
+                        "example": "HtmlApp"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
             }
         },
         "enableMoca":{
@@ -326,7 +347,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "enableXREConnectionRetention":{
@@ -345,7 +366,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "fireFirmwarePendingReboot":{
@@ -354,7 +375,7 @@
                 "onFirmwarePendingReboot"
             ],
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getAvailableStandbyModes": {
@@ -371,7 +392,7 @@
                         }
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -403,7 +424,7 @@
                         "example": "4343.3434"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -421,7 +442,7 @@
                         "$ref": "#/definitions/temperature"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -457,31 +478,11 @@
                         "example": "20:F1:9E:EE:62:08"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
                     "estb_mac",
-                    "success"
-                ]
-            }
-        },
-        "getMfgSerialNumber": {
-            "summary": "Gets the Manufacturing Serial Number.\n \n### Events\n \n No Events.",
-            "result": {
-                "type": "object",
-                "properties": {
-                    "mfgSerialNumber": {
-                        "summary": "Manufacturing Serial Number",
-                        "type": "string",
-                        "example": "F00020CE000003"
-                    },
-                    "success":{
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "mfgSerialNumber",
                     "success"
                 ]
             }
@@ -512,7 +513,7 @@
                         "example": false
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -535,7 +536,7 @@
                         "example": 25
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -565,7 +566,7 @@
                         "$ref": "#/definitions/asyncResponse"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -583,7 +584,7 @@
                         "$ref": "#/definitions/firmwareUpdateState"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -603,7 +604,7 @@
                         "example": "thermal_deepsleep_critical_threshold"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -623,7 +624,7 @@
                         "example": "Image Download Failed - Unable to connect"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -643,7 +644,7 @@
                         "example": "59"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -673,7 +674,7 @@
                         "$ref": "#/definitions/asyncResponse"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -682,8 +683,28 @@
                 ]
             }
         },
+        "getMfgSerialNumber": {
+            "summary": "Gets the Manufacturing Serial Number.\n \n### Events\n \n No Events.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "mfgSerialNumber": {
+                        "summary": "Manufacturing Serial Number",
+                        "type": "string",
+                        "example": "F00020CE000003"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "mfgSerialNumber",
+                    "success"
+                ]
+            }
+        },
         "getMilestones": {
-	    "deprecated" : true,
+	        "deprecated" : true,
             "summary": "Returns the list of milestones.\n \n### Events\n \n No Events.",
             "result": {
                 "type": "object",
@@ -697,7 +718,7 @@
                         }
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -715,7 +736,7 @@
                         "$ref": "#/definitions/modeInfo"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -733,7 +754,7 @@
                         "$ref": "#/definitions/nwStandby"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -751,11 +772,40 @@
                         "$ref": "#/definitions/graceInterval"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
                     "graceInterval",
+                    "success"
+                ]
+            }
+        },
+        "getPlatformConfiguration": {
+            "summary": "(Version 2) Returns the supported features and device/account info.\n \n### Events\n \n No Events.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "description": "Query for support of a particular feature, e.g. AccountInfo.accountId",
+                        "type": "string"
+                    }
+                }
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "AccountInfo": {
+                        "$ref": "#/definitions/accountInfo"
+                    },
+                    "DeviceInfo": {
+                        "$ref": "#/definitions/deviceInfo"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
                     "success"
                 ]
             }
@@ -769,7 +819,7 @@
                         "$ref": "#/definitions/powerState"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -789,7 +839,7 @@
                         "example": "ON"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -809,7 +859,7 @@
                         "example": false
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -827,7 +877,7 @@
                         "$ref": "#/definitions/preferredStandbyMode"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -865,7 +915,7 @@
                         "example": "API Validation"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -915,7 +965,7 @@
                         ]
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -933,7 +983,7 @@
                         "$ref": "#/definitions/reason"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -977,7 +1027,7 @@
                         ]
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -997,7 +1047,7 @@
                         "example": "M11806TK0024"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1030,7 +1080,7 @@
                         "example": 2
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1049,7 +1099,7 @@
                         "example": "http://127.0.0.1:50050/store-mode-video/videoFile.mp4"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1078,7 +1128,7 @@
                         "example": "Thu 09 Jan 2020 04:04:24 AP UTC"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1114,7 +1164,7 @@
                         ]
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1123,23 +1173,27 @@
                 ]
             }
         },
-        "getTimeZoneDST":{
-            "summary": "Get the configured time zone from the file referenced by `TZ_FILE`. If the time zone is not set, then `null` is returned.\n \n### Events\n \n No Events.",
-            "result": {
-                "type": "object",
+        "getTerritory":{
+            "summary": "Gets the configured system territory and region. Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).\n \n### Events\n \n No Events.",
+            "result":{
+                "type" : "object",
                 "properties": {
-                    "timeZone": {
-                        "$ref": "#/definitions/timeZone"
+                    "territory":{
+                        "$ref":"#/definitions/territory"
+                    },
+                    "region":{
+                        "$ref":"#/definitions/region"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
-                    }
+                            "$ref": "#/common/success"
+                        }
                 },
                 "required": [
-                    "timeZone",
+                    "territory",
+                    "region",
                     "success"
                 ]
-            }
+            }		
         },
         "getTimeZones":{
             "summary": "(Version2) Gets the available timezones from the system's time zone database. This method is useful for determining time offsets per zone.\n \n### Events\n \n No Events.",
@@ -1179,16 +1233,32 @@
                                 ]
                             }
                         },
-                        "required": [
-                            ""
-                        ]
+                        "required": []
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
                     "zoneinfo",
+                    "success"
+                ]
+            }
+        },
+        "getTimeZoneDST":{
+            "summary": "Get the configured time zone from the file referenced by `TZ_FILE`. If the time zone is not set, then `null` is returned.\n \n### Events\n \n No Events.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "timeZone": {
+                        "$ref": "#/definitions/timeZone"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "timeZone",
                     "success"
                 ]
             }
@@ -1224,7 +1294,7 @@
                         "example": "WAKEUP_REASON_VOICE"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1271,7 +1341,7 @@
                         ]
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1291,7 +1361,7 @@
                         "example": false
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1310,7 +1380,7 @@
                         "$ref": "#/definitions/enabled"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1328,7 +1398,7 @@
                         "$ref": "#/definitions/Opt-Out"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1349,7 +1419,7 @@
                         "example": true
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1383,7 +1453,7 @@
                         "example": 0
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1407,7 +1477,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "requestSystemUptime":{
@@ -1421,13 +1491,30 @@
                         "example": "1655.92"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
                     "systemUptime",
                     "success"
                 ]
+            }
+        },
+        "setBootLoaderPattern":{
+            "summary": "Sets the boot loader pattern mode in MFR. \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "pattern": {
+                        "$ref": "#/definitions/pattern"
+                    }
+                },
+                "required": [
+                    "pattern"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
             }
         },
         "setCachedValue": {
@@ -1451,7 +1538,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setDeepSleepTimer": {
@@ -1468,7 +1555,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setFirmwareAutoReboot": {
@@ -1487,7 +1574,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setFirmwareRebootDelay": {
@@ -1506,7 +1593,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setGzEnabled": {
@@ -1524,7 +1611,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setMode":{
@@ -1544,7 +1631,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }            
         },
         "setNetworkStandbyMode":{
@@ -1561,24 +1648,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "setBootLoaderPattern":{
-            "summary": "Sets the boot loader pattern mode in MFR \n### Events\n \n No Events.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "pattern": {
-                        "$ref": "#/definitions/pattern"
-                    }
-                },
-                "required": [
-                    "pattern"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setOptOutTelemetry": {
@@ -1595,7 +1665,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setOvertempGraceInterval":{
@@ -1612,7 +1682,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setPowerState":{
@@ -1638,11 +1708,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setPreferredStandbyMode":{
-            "summary": "Sets and persists the preferred standby mode (see `getAvailableStandbyModes` for valid modes). Invoking this function does not change the power state of the device. It only sets the user preference for the preferred action when the `setPowerState` method is invoked with a value of `STANDBY`.\n \n### Events\n \n No Events.",
+            "summary": "Sets and persists the preferred standby mode. See [getAvailableStandbyModes](#getAvailableStandbyModes) for valid modes. Invoking this function does not change the power state of the device. It only sets the user preference for the preferred action when the [setPowerState](#setPowerState) method is invoked with a value of `STANDBY`.\n \n### Events\n \n No Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1655,7 +1725,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setTemperatureThresholds":{
@@ -1684,7 +1754,27 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
+            }
+        },
+        "setTerritory":{
+            "summary": "Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).\n \n### Events\n \n No Events.",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "territory":{
+                        "$ref":"#/definitions/territory"
+                    },
+                    "region":{
+                        "$ref":"#/definitions/region"
+                    }
+                },
+                "required": [
+                    "territory"
+                ]
+            },
+            "result":{
+                "$ref": "#/common/result"
             }
         },
         "setTimeZoneDST":{
@@ -1701,7 +1791,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setWakeupSrcConfiguration": {
@@ -1726,37 +1816,13 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "updateFirmware":{
             "summary": "Initiates a firmware update. This method has no affect if an update is not available.\n \n### Events\n \n No Events.",
             "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "deletePersistentPath": {
-            "summary": "(Version 2) Deletes persistent path associated with a callsign.\n \n### Events\n \n No Events.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "callsign": {
-                        "description": "Callsign of the service to delete persistent path",
-                        "type": "string",
-                        "example": "HtmlApp"
-                    },
-                    "type": {
-                        "description": "The type of execution environment. (can be used instead of callsign)",
-                        "type": "string",
-                        "example": "HtmlApp"
-                    }
-                },
-                "required": [
-                    ""
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "uploadLogs": {
@@ -1774,36 +1840,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "getPlatformConfiguration": {
-            "summary": "(Version 2) Returns the supported features and device/account info.\n \n### Events\n \n No Events.",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "description": "Query for support of a particular feature, e.g. AccountInfo.accountId",
-                        "type": "string"
-                    }
-                }
-            },
-            "result": {
-                "type": "object",
-                "properties": {
-                    "AccountInfo": {
-                        "$ref": "#/definitions/accountInfo"
-                    },
-                    "DeviceInfo": {
-                        "$ref": "#/definitions/deviceInfo"
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "success"
-                ]
+                "$ref": "#/common/result"
             }
         }
     },
@@ -1817,7 +1854,7 @@
                         "$ref": "#/definitions/seconds"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1868,7 +1905,7 @@
                         "example": 0
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1941,7 +1978,7 @@
                         "example": "Details fetch: all are not success"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
