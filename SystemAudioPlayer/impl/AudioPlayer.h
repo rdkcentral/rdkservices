@@ -7,14 +7,12 @@
 #include "BufferQueue.h"
 #include "IWebSocketClient.h"
 #include "SecurityParameters.h"
+#include "SoC_abstraction.h"
 #include <condition_variable>
 #include <mutex>
 #include <thread>
 #include <vector>
 
-#if defined(PLATFORM_AMLOGIC)
-#include "audio_if.h"
-#endif
 //Default Values
 // in Percentage
 #define DEFAULT_PRIM_VOL_LEVEL 25
@@ -98,14 +96,6 @@ class AudioPlayer
     guint       m_busWatch;  
     gint64      m_duration;
     std::thread *m_thread;
-#if defined(PLATFORM_AMLOGIC)
-    static audio_hw_device_t *m_audio_dev;
-    enum MixGain {
-        MIXGAIN_PRIM,
-        MIXGAIN_SYS, //direct-mode=false, aml calls it sys mode
-        MIXGAIN_TTS //tts=mode=true, AML calls it app mode
-    };
-#endif
     impl::WebSocketClientPtr webClient;
     impl::SecurityParameters m_secParams;
     std::atomic_bool m_fallbackToUnsecuredConnection{false};
@@ -125,10 +115,6 @@ class AudioPlayer
     void resetPipeline();
     void resetPipelineForSmartVolumeControl(bool smartVolumeEnable);
     void destroyPipeline();
-#if defined(PLATFORM_AMLOGIC)
-    bool setMixGain(MixGain gain, int val);
-    bool loadInitAudioDev();
-#endif
     void setVolume( int Vol);
     void setPrimaryVolume( int Vol);
     void setDetectTime( int detectTime);
