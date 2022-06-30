@@ -269,7 +269,7 @@ TEST_F(TelemetryTestFixture, Plugin)
         .WillOnce(::testing::Invoke(
             [](char* marker, char* value) {
                 EXPECT_EQ(strcmp(marker, "NAME"), 0);
-                EXPECT_EQ(strcmp(value, "VALUE"). 0);
+                EXPECT_EQ(strcmp(value, "VALUE"), 0);
                 return T2ERROR_SUCCESS;
             }));
 
