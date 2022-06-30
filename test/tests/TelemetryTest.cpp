@@ -110,6 +110,46 @@ TEST_F(TelemetryTestFixture, InitializeDefaultProfile)
     plugin->Deinitialize(nullptr);
 }
 
+TEST_F(TelemetryTestFixture, InitializeZeroSizeDefaultProfile)
+{
+    EXPECT_CALL(service, ConfigLine())
+        .Times(1)
+        .WillOnce(
+            ::testing::Return("{"
+                                "\"t2PersistentFolder\":\"/tmp/.t2reportprofiles/\","
+                                "\"defaultProfilesFile\":\"/tmp/DefaultProfile.json\""
+                              "}"));
+
+    EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](char *component) {
+                return;
+            }));
+
+    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+                return WDMP_SUCCESS;
+            }));
+
+    {
+        Core::Directory(t2PpersistentFolder.c_str()).CreatePath();
+
+        Core::File file(profileFN);
+        file.Create();
+    }
+
+    Core::ProxyType<Plugin::Telemetry> plugin(Core::ProxyType<Plugin::Telemetry>::Create());
+    
+    // Initialize
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    // Deinitialize
+    plugin->Deinitialize(nullptr);
+}
+
 TEST_F(TelemetryTestFixture, InitializePersistentFolder)
 {
     EXPECT_CALL(service, ConfigLine())
@@ -145,6 +185,14 @@ TEST_F(TelemetryTestFixture, InitializePersistentFolder)
 
 TEST_F(TelemetryTestFixture, Plugin)
 {
+    EXPECT_CALL(service, ConfigLine())
+        .Times(1)
+        .WillOnce(
+            ::testing::Return("{"
+                                "\"t2PersistentFolder\":\"\","
+                                "\"defaultProfilesFile\":\"\""
+                              "}"));
+
     EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -159,11 +207,20 @@ TEST_F(TelemetryTestFixture, Plugin)
         .Times(2)
         .WillOnce(::testing::Invoke(
             [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+                EXPECT_TRUE(strcmp(pcCallerID, "Telemetry") == 0);
+                EXPECT_TRUE(strcmp(pcParameterName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.FTUEReport.Enable") == 0);
+                EXPECT_TRUE(strcmp(pcParameterValue, "true") == 0);
+                EXPECT_EQ(eDataType, WDMP_BOOLEAN);
 
                 return WDMP_SUCCESS;
             }))
         .WillOnce(::testing::Invoke(
             [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+                EXPECT_TRUE(strcmp(pcCallerID, "Telemetry") == 0);
+                EXPECT_TRUE(strcmp(pcParameterName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.FTUEReport.Enable") == 0);
+                EXPECT_TRUE(strcmp(pcParameterValue, "false") == 0);
+                EXPECT_EQ(eDataType, WDMP_BOOLEAN);
+
                 return WDMP_SUCCESS;
             }));
 
@@ -172,11 +229,16 @@ TEST_F(TelemetryTestFixture, Plugin)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char* marker, char* value) {
+                EXPECT_TRUE(strcmp(marker, "NAME") == 0);
+                EXPECT_TRUE(strcmp(value, "VALUE") == 0);
                 return T2ERROR_SUCCESS;
             }));
 
     // Initialize
     EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"success\":false}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"wrongvalue\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":false}"));
