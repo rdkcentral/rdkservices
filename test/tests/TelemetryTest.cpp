@@ -127,16 +127,9 @@ TEST_F(TelemetryTestFixture, InitializePersistentFolder)
                 return;
             }));
 
-    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
-                return WDMP_SUCCESS;
-            }));
-
     {
         Core::Directory(t2PpersistentFolder.c_str()).CreatePath();
-        
+
         Core::File file(t2PpersistentFolder + "SomeReport");
         file.Create();
     }
@@ -149,7 +142,6 @@ TEST_F(TelemetryTestFixture, InitializePersistentFolder)
     // Deinitialize
     plugin->Deinitialize(nullptr);
 }
-
 
 TEST_F(TelemetryTestFixture, Plugin)
 {
