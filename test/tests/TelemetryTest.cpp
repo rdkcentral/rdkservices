@@ -83,6 +83,7 @@ TEST_F(TelemetryTestFixture, InitializeDefaultProfile)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *component) {
+                EXPECT_EQ(strcmp(component, "Thunder_Plugins"), 0);
                 return;
             }));
 
@@ -90,6 +91,12 @@ TEST_F(TelemetryTestFixture, InitializeDefaultProfile)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+
+                EXPECT_EQ(strcmp(pcCallerID, "Telemetry"), 0);
+                EXPECT_EQ(strcmp(pcParameterName, "Device.X_RDKCENTRAL-COM_T2.ReportProfiles"), 0);
+                EXPECT_EQ(strcmp(pcParameterValue, profileContent), 0);
+                EXPECT_EQ(eDataType, WDMP_STRING);
+
                 return WDMP_SUCCESS;
             }));
 
@@ -124,6 +131,7 @@ TEST_F(TelemetryTestFixture, InitializeDefaultProfileRFCFailure)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *component) {
+                EXPECT_EQ(strcmp(component, "Thunder_Plugins"), 0);
                 return;
             }));
 
@@ -166,6 +174,7 @@ TEST_F(TelemetryTestFixture, InitializeZeroSizeDefaultProfile)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *component) {
+                EXPECT_EQ(strcmp(component, "Thunder_Plugins"), 0);
                 return;
             }));
 
@@ -199,6 +208,7 @@ TEST_F(TelemetryTestFixture, InitializePersistentFolder)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *component) {
+                EXPECT_EQ(strcmp(component, "Thunder_Plugins"), 0);
                 return;
             }));
 
@@ -232,6 +242,7 @@ TEST_F(TelemetryTestFixture, Plugin)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *component) {
+                EXPECT_EQ(strcmp(component, "Thunder_Plugins"), 0);
                 return;
             }));
 
