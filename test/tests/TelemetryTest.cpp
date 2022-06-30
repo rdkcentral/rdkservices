@@ -95,8 +95,11 @@ TEST_F(TelemetryTestFixture, InitializeDefaultProfile)
 
                 EXPECT_EQ(strcmp(pcCallerID, "Telemetry"), 0);
                 EXPECT_EQ(strcmp(pcParameterName, "Device.X_RDKCENTRAL-COM_T2.ReportProfiles"), 0);
-                EXPECT_EQ(strcmp(pcParameterValue, (const char *)profileContent), 0);
+                
                 EXPECT_EQ(eDataType, WDMP_STRING);
+                
+                const char profileContentCheck[] = "{\\\"profile\\\":\\\"default\\\"}";
+                EXPECT_EQ(strcmp(pcParameterValue, profileContentCheck), 0);
 
                 return WDMP_SUCCESS;
             }));
