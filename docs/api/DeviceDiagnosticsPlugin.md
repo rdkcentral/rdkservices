@@ -86,6 +86,7 @@ DeviceDiagnostics interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [getConfiguration](#getConfiguration) | Gets the values associated with the corresponding property names |
+| [getMilestones](#getMilestones) | Returns the list of milestones |
 | [getAVDecoderStatus](#getAVDecoderStatus) | Gets the most active status of audio/video decoder/pipeline |
 
 
@@ -146,6 +147,55 @@ No events.
                 "name": "Device.X_CISCO_COM_LED.RedPwm",
                 "value": "123"
             }
+        ],
+        "success": true
+    }
+}
+```
+
+<a name="getMilestones"></a>
+## *getMilestones*
+
+Returns the list of milestones.
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.milestones | array | A string [] of milestones |
+| result.milestones[#] | string |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DeviceDiagnostics.1.getMilestones"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "milestones": [
+            "2020 Jan 28 08:24:06.762355 arrisxi6 systemd[1]: Starting Log RDK Started Service..."
         ],
         "success": true
     }
