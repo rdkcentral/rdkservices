@@ -28,14 +28,13 @@ public:
     DeviceDiagnosticsTest()
         : deviceDiagnostic_(Core::ProxyType<Plugin::DeviceDiagnostics>::Create())
         , handler_(*deviceDiagnostic_)
-        , connection_(1, 0)
     {
     }
 
 protected:
     Core::ProxyType<Plugin::DeviceDiagnostics> deviceDiagnostic_;
     Core::JSONRPC::Handler& handler_;
-    Core::JSONRPC::Connection connection_;
+    Core::JSONRPC::Context connection_{};
 };
 
 TEST_F(DeviceDiagnosticsTest, RegisterMethod)

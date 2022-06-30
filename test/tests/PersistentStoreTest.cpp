@@ -28,14 +28,13 @@ class PersistentStoreTestFixture : public ::testing::Test {
 protected:
     Core::ProxyType<PersistentStoreMock> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context connection{};
     ServiceMock service;
     string response;
 
     PersistentStoreTestFixture()
         : plugin(Core::ProxyType<PersistentStoreMock>::Create())
         , handler(*plugin)
-        , connection(1, 0)
     {
     }
     virtual ~PersistentStoreTestFixture()

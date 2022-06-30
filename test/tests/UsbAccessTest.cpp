@@ -12,7 +12,7 @@ protected:
     Core::ProxyType<Plugin::UsbAccess> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Handler& handlerV2;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context connection{};
     UdevImplMock udevImplMock;
     WrapsImplMock wrapsImplMock;
     string response;
@@ -21,7 +21,6 @@ protected:
         : plugin(Core::ProxyType<Plugin::UsbAccess>::Create())
         , handler(*(plugin))
         , handlerV2(*(plugin->GetHandler(2)))
-        , connection(1, 0)
     {
     }
     virtual ~UsbAccessTestFixture()

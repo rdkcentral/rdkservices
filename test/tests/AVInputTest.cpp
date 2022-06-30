@@ -18,7 +18,7 @@ class AVInputTestFixture : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::AVInput> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context connection{};
     IarmBusImplMock iarmBusImplMock;
     HdmiInputImplMock hdmiInputImplMock;
     IARM_EventHandler_t dsHdmiEventHandler;
@@ -30,7 +30,6 @@ protected:
     AVInputTestFixture()
         : plugin(Core::ProxyType<Plugin::AVInput>::Create())
         , handler(*(plugin))
-        , connection(1, 0)
     {
         PluginHost::IFactories::Assign(&factoriesImplementation);
     }

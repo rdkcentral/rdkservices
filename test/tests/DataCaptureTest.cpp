@@ -97,7 +97,6 @@ class DataCaptureTest : public Test {
 public:
     DataCaptureTest()
         : dataCapture_(Core::ProxyType<Plugin::DataCapture>::Create())
-        , connection_(1, 0)
         , handler_(*dataCapture_)
     {
     }
@@ -192,7 +191,7 @@ public:
 
 protected:
     Core::ProxyType<Plugin::DataCapture> dataCapture_;
-    Core::JSONRPC::Connection connection_;
+    Core::JSONRPC::Context connection_{};
     Core::JSONRPC::Handler& handler_;
     NiceMock<IarmBusImplMock> iarmBusImplMock_;
     ServiceMock service_;

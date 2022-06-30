@@ -5,8 +5,7 @@
       "callsign": "org.rdk.HdmiCec_2",
       "locator": "libWPEFrameworkHdmiCec_2.so",
       "status": "production",
-      "description": "The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. The HdmiCec_2 plugin is meant to be used on the source devices where an application relies on the Thunder plugin to handle protocol related messaging. The plugin also provides API's and events to implement the CEC use cases.",
-      "version": "1.0"
+      "description": "The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. The HdmiCec_2 plugin is meant to be used on the source devices where an application relies on the Thunder plugin to handle protocol related messaging. The plugin also provides API's and events to implement the CEC use cases."
     },
     "interface": {
       "$ref": "HdmiCec_2.json#"

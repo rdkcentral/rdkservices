@@ -5,8 +5,7 @@
         "callsign": "Monitor",
         "locator": "libWPEFrameworkMonitor.so",
         "status": "production",
-        "description": "The `Monitor` plugin provides a watchdog-like functionality for framework processes",
-        "version": "1.0"
+        "description": "The `Monitor` plugin provides a watchdog-like functionality for framework processes"
     },
     "interface": {
         "$ref": "Monitor.json#"

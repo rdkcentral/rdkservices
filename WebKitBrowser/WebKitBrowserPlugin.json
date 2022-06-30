@@ -5,8 +5,7 @@
         "callsign": "WebKitBrowser",
         "locator": "libWPEFrameworkWebKitBrowser.so",
         "status": "production",
-        "description": "The `WebKitBrowser` plugin provides web browsing functionality based on the WebKit engine.",
-        "version": "1.0"
+        "description": "The `WebKitBrowser` plugin provides web browsing functionality based on the WebKit engine."
     },
     "configuration": {
         "type": "object",

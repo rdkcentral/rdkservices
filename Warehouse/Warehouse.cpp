@@ -77,6 +77,10 @@
 #define FRONT_PANEL_FAILED 3
 #define FRONT_PANEL_INTERVAL 5000
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace Utils {
 std::string formatIARMResult(IARM_Result_t result)
 {
@@ -96,9 +100,24 @@ std::string formatIARMResult(IARM_Result_t result)
 
 namespace WPEFramework
 {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::Warehouse> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
-    {	
-        SERVICE_REGISTRATION(Warehouse, 2, 0);
+    {
+        SERVICE_REGISTRATION(Warehouse, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
         Warehouse* Warehouse::_instance = nullptr;
         Warehouse::Warehouse()
         : PluginHost::JSONRPC()

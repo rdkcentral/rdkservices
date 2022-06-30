@@ -35,7 +35,7 @@ class TimerTestFixture : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::Timer> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context connection{};
     string response;
     ServiceMock service;
     Core::JSONRPC::Message message;
@@ -47,7 +47,6 @@ protected:
     TimerTestFixture()
         : plugin(Core::ProxyType<Plugin::Timer>::Create())
         , handler(*(plugin))
-        , connection(1, 0)
         , timerExpiryReminder(false, true)
         , timerExpired(false, true)
     {

@@ -20,7 +20,7 @@ using namespace WPEFramework;
 class TelemetryTestFixture : public ::testing::Test {
 protected:
     
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context connection{};
     RfcApiImplMock rfcApiImplMock;
     TelemetryApiImplMock telemetryApiImplMock;
 
@@ -30,7 +30,6 @@ protected:
     FactoriesImplementation factoriesImplementation;
 
     TelemetryTestFixture()
-        : connection(1, 0)
     {
         fprintf(stderr, "TelemetryTestFixture::TelemetryTestFixture()\n");
         PluginHost::IFactories::Assign(&factoriesImplementation);

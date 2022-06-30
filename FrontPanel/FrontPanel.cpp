@@ -63,6 +63,10 @@
 
 #define DEFAULT_TEXT_PATTERN_UPDATE_INTERVAL 5
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace
 {
 
@@ -146,10 +150,23 @@ namespace
 
 namespace WPEFramework
 {
+    namespace {
 
+        static Plugin::Metadata<Plugin::FrontPanel> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+    
     namespace Plugin
     {
-        SERVICE_REGISTRATION(FrontPanel, 1, 0);
+        SERVICE_REGISTRATION(FrontPanel, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         FrontPanel* FrontPanel::_instance = nullptr;
 

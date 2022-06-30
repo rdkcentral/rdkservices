@@ -5,8 +5,7 @@
       "callsign": "org.rdk.FrameRate",
       "locator": "libWPEFrameworkFrameRate.so",
       "status": "production",
-      "description": "The `FrameRate` plugin allows you to collect FPS data.",
-      "version": "2.0"
+      "description": "The `FrameRate` plugin allows you to collect FPS data."
     },
     "interface": {
       "$ref": "FrameRate.json#"

@@ -5,8 +5,7 @@
         "callsign": "TraceControl",
         "locator": "libWPEFrameworkTraceControl.so",
         "status": "production",
-        "description": "The `TraceControl` plugin provides ability to disable/enable trace output and set its verbosity level.",
-        "version": "1.0"
+        "description": "The `TraceControl` plugin provides ability to disable/enable trace output and set its verbosity level."
     },
     "configuration": {
         "type": "object",

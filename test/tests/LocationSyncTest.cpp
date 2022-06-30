@@ -39,7 +39,7 @@ protected:
     Core::Sink<SystemInfo> subSystem;
     Core::ProxyType<Plugin::LocationSync> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context connection{};
     ServiceMock service;
     string response;
 
@@ -48,7 +48,6 @@ protected:
             2, Core::Thread::DefaultStackSize(), 16))
         , plugin(Core::ProxyType<Plugin::LocationSync>::Create())
         , handler(*plugin)
-        , connection(1, 0)
     {
     }
     virtual ~LocationSyncTestFixture()

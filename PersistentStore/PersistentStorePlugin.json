@@ -5,8 +5,7 @@
       "callsign": "org.rdk.PersistentStore",
       "locator": "libWPEFrameworkPersistentStore.so",
       "status": "production",
-      "description": "The `PersistentStore` plugin allows you to persist key/value pairs by namespace",
-      "version": "1.0"
+      "description": "The `PersistentStore` plugin allows you to persist key/value pairs by namespace"
     },
     "interface": {
       "$ref": "PersistentStore.json#"

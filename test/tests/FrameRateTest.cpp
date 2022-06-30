@@ -20,7 +20,7 @@ protected:
     Core::ProxyType<Plugin::FrameRate> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Handler& handlerV2;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context connection{};
     IarmBusImplMock iarmBusImplMock;
     HostImplMock hostImplMock;
     VideoDeviceMock videoDeviceMock;
@@ -37,7 +37,6 @@ protected:
         : plugin(Core::ProxyType<Plugin::FrameRate>::Create())
         , handler(*(plugin))
         , handlerV2(*(plugin->GetHandler(2)))
-        , connection(1, 0)
     {
         PluginHost::IFactories::Assign(&factoriesImplementation);
     }

@@ -46,7 +46,7 @@ class DeviceIdentificationTestFixture : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::DeviceIdentification> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context connection{};
     Core::Sink<SystemInfo> subSystem;
     ServiceMock service;
     string response;
@@ -54,7 +54,6 @@ protected:
     DeviceIdentificationTestFixture()
         : plugin(Core::ProxyType<Plugin::DeviceIdentification>::Create())
         , handler(*plugin)
-        , connection(1, 0)
     {
     }
     virtual ~DeviceIdentificationTestFixture()

@@ -127,8 +127,6 @@ namespace WPEFramework {
 
 
         public:
-            static const short API_VERSION_NUMBER_MAJOR;
-            static const short API_VERSION_NUMBER_MINOR;
             static const string SERVICE_NAME;
             static const string METHOD_START_SCAN;
             static const string METHOD_STOP_SCAN;

@@ -46,7 +46,7 @@ protected:
     Core::Sink<SystemInfo> subSystem;
     Core::ProxyType<Plugin::SecurityAgent> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context connection{};
     ServiceMock service;
     string response;
     string token;
@@ -57,7 +57,6 @@ protected:
             2, Core::Thread::DefaultStackSize(), 16))
         , plugin(Core::ProxyType<Plugin::SecurityAgent>::Create())
         , handler(*plugin)
-        , connection(1, 0)
     {
     }
     virtual ~SecurityAgentTestFixture()

@@ -5,8 +5,7 @@
         "callsign": "SecurityAgent",
         "locator": "libWPEFrameworkSecurityAgent.so",
         "status": "production",
-        "description": "The `SecurityAgent` plugin is responsible for allowing or blocking access to the Thunder APIs",
-        "version": "1.0"
+        "description": "The `SecurityAgent` plugin is responsible for allowing or blocking access to the Thunder APIs"
     },
     "configuration": {
         "type": "object",
