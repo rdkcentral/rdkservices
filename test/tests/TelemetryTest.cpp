@@ -237,10 +237,7 @@ TEST_F(TelemetryTestFixture, Plugin)
     EXPECT_CALL(service, ConfigLine())
         .Times(1)
         .WillOnce(
-            ::testing::Return("{"
-                                "\"t2PersistentFolder\":\"\","
-                                "\"defaultProfilesFile\":\"\""
-                              "}"));
+            ::testing::Return("{}"));
 
     EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
         .Times(1)
