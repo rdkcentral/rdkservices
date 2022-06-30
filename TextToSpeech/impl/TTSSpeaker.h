@@ -35,6 +35,8 @@
 
 #if defined(PLATFORM_AMLOGIC)
 #include "audio_if.h"
+#elif defined(PLATFORM_REALTEK)
+#include "RtkHALMisc.h" 
 #endif
 // --- //
 
@@ -57,6 +59,7 @@ public:
 
     bool setEndPoint(const std::string endpoint);
     bool setSecureEndPoint(const std::string endpoint);
+    bool setApiKey(const std::string apikey);
     bool setLanguage(const std::string language);
     bool setVoice(const std::string voice);
     bool setEnabled(const bool dnabled);
@@ -66,6 +69,7 @@ public:
 
     const std::string &endPoint() { return m_ttsEndPoint; }
     const std::string &secureEndPoint() { return m_ttsEndPointSecured; }
+    const std::string &apiKey() { return m_apiKey; }
     const std::string &language() { return m_language; }
     const double &volume() { return m_volume; }
     const uint8_t &rate() { return m_rate; }
@@ -83,6 +87,7 @@ public:
 private:
     std::string m_ttsEndPoint;
     std::string m_ttsEndPointSecured;
+    std::string m_apiKey;
     std::string m_language;
     std::string m_voice;
     double m_volume;
@@ -178,12 +183,12 @@ private:
     bool        m_pcmAudioEnabled;
 #if defined(PLATFORM_AMLOGIC)
     audio_hw_device_t *m_audio_dev;
-    enum MixGain {
-	MIXGAIN_PRIM,
-	MIXGAIN_SYS, //direct-mode=false
-	MIXGAIN_TTS //tts=mode=true
-    };
 #endif
+    enum MixGain {
+        MIXGAIN_PRIM,
+        MIXGAIN_SYS, //direct-mode=false
+        MIXGAIN_TTS //tts=mode=true
+    };
     bool        m_ensurePipeline;
     std::thread *m_gstThread;
     guint       m_busWatch;
@@ -192,9 +197,9 @@ private:
     const uint8_t     m_maxPipelineConstructionFailures;
 
 #if defined(PLATFORM_AMLOGIC)
-    bool setMixGain(MixGain gain, int val);
     bool loadInitAudioDev();
 #endif
+    void setMixGain(MixGain gain, int val);
     static void GStreamerThreadFunc(void *ctx);
     void createPipeline();
     void resetPipeline();
