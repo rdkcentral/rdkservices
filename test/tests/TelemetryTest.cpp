@@ -59,6 +59,7 @@ TEST_F(TelemetryTestFixture, RegisteredMethods)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *component) {
+                EXPECT_EQ(strcmp(component, "Thunder_Plugins"), 0);
                 return;
             }));
 
@@ -94,7 +95,7 @@ TEST_F(TelemetryTestFixture, InitializeDefaultProfile)
 
                 EXPECT_EQ(strcmp(pcCallerID, "Telemetry"), 0);
                 EXPECT_EQ(strcmp(pcParameterName, "Device.X_RDKCENTRAL-COM_T2.ReportProfiles"), 0);
-                EXPECT_EQ(strcmp(pcParameterValue, profileContent), 0);
+                EXPECT_EQ(strcmp(pcParameterValue, (const char *)profileContent), 0);
                 EXPECT_EQ(eDataType, WDMP_STRING);
 
                 return WDMP_SUCCESS;
