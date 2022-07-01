@@ -106,7 +106,7 @@ public:
 private:
   using RustPlugin_SendTo = void (*)(uint32_t, const char *, uint32_t ctx_id);
   using RustPlugin_Create = Rust::Plugin *(*)(const char *name, RustPlugin_SendTo send_to,
-    uint32_t plugin_ctx_id, void *);
+    uint32_t plugin_ctx_id, const char *jwt, void *);
   using RustPlugin_Destroy = void (*)(Rust::Plugin *p);
   using RustPlugin_Init = void (*)(Rust::Plugin *p, const char *json);
   using RustPlugin_Invoke = void (*)(Rust::Plugin *p, const char *json_req,
@@ -137,6 +137,7 @@ private:
   // attach/detach, but that may require API changes to Thunder/internal
   PluginHost::IShell *m_service;
   RustAdapter::Config m_config;
+  std::string m_auth_token;
 
 private:
   void SendTo(uint32_t channel_id, const char *json);
