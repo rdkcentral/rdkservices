@@ -155,6 +155,8 @@ public:
     const std::string& libname,
     const std::string& callsign);
 
+  static std::string GetAuthToken(const std::string &callsign);
+
 private:
   std::unique_ptr<Rust::IPlugin> m_impl;
 

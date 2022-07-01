@@ -107,7 +107,7 @@ public:
 
   void onRead(const Response& rsp);
 private:
-  static int LaunchRemoteProcess(const string& rust_shared_lib, const string& host_ip, int port);
+  int LaunchRemoteProcess(const string& rust_shared_lib, const string& host_ip, int port);
   void SendTo(uint32_t channel_id, const char *json);
 
   // we keep a pointer to this to allow rust code to callback into
@@ -118,6 +118,7 @@ private:
   int m_remotePid;
   SocketServer m_stream;
   RustAdapter::Config m_config;
+  std::string m_auth_token;
 };
 
 } } }

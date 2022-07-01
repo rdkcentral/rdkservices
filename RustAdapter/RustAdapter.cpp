@@ -153,3 +153,71 @@ WPEFramework::Plugin::RustAdapter::GetLibraryPathOrName(
   }
   return shared_library_name.str();
 }
+
+//
+// TODO: remove this and link directly with security agent. Didn't want to break build
+//
+// copied from securityagent.so (ipclink.cpp)
+int RustGetAuthToken(unsigned short maxLength, unsigned short inLength, unsigned char buffer[])
+{
+  using namespace WPEFramework;
+
+  auto nodeId = Core::NodeId{ "/tmp/SecurityAgent/token" };
+  auto engine = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
+  auto client = Core::ProxyType<RPC::CommunicatorClient>::Create(nodeId, Core::ProxyType<Core::IIPCServer>(engine));
+
+  int result = -1;
+  if ((client.IsValid() == true) && (client->IsOpen() == false)) {
+    PluginHost::IAuthenticate* securityAgentInterface = client->Open<PluginHost::IAuthenticate>("SecurityAgent");
+
+    if (securityAgentInterface != nullptr) {
+      std::string token;
+      uint32_t error = securityAgentInterface->CreateToken(inLength, buffer, token);
+
+      if (error == Core::ERROR_NONE) {
+        result = static_cast<uint32_t>(token.length());
+
+        if (result <= maxLength) {
+          std::copy(std::begin(token), std::end(token), buffer);
+        } else {
+          printf("%s:%d [%s] Received token is too long [%d].\n", __FILE__, __LINE__, __func__, result);
+          result = -result;
+        }
+      } else {
+        result = error;
+        result = -result;
+      }
+
+      securityAgentInterface->Release();
+    }
+
+    client.Release();
+  } else {
+    printf("%s:%d [%s] Could not open link. error=%d\n", __FILE__, __LINE__, __func__, result);
+  }
+
+  return (result);
+}
+
+std::string
+WPEFramework::Plugin::RustAdapter::GetAuthToken(const std::string &callsign)
+{
+  std::string auth_token;
+
+  char buff[256];
+  memset(buff, 0, sizeof(buff));
+
+  int n = snprintf(buff, sizeof(buff), "plugin://%s", callsign.c_str());
+  buff[255] = '\0';
+
+  // GetToken is from securityagent.h in ThunderClientLibraries lib
+  int ret = RustGetAuthToken(sizeof(buff), n, (unsigned char *) buff);
+  if (ret > 0)
+    auth_token = std::string(buff, 0, ret);
+  else {
+    LOGERR("Failed to get authorizaton token for plugin %s. %d",
+      callsign.c_str(), ret);
+  }
+
+  return auth_token;
+}

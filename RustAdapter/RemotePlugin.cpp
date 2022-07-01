@@ -36,6 +36,7 @@ const string
 RemotePlugin::Initialize(PluginHost::IShell *shell)
 {
   m_service = shell;
+  m_auth_token = RustAdapter::GetAuthToken(shell->Callsign());
 
   string address = m_config.Address.Value();
   printf("ADDR=%s\n", address.c_str());
@@ -198,6 +199,10 @@ int RemotePlugin::LaunchRemoteProcess(const string& rust_shared_lib, const strin
       ssPort.str().c_str(), 
       nullptr
     };
+
+
+    if (!m_auth_token.empty())
+      setenv("THUNDER_SECURITY_TOKEN", m_auth_token.c_str(), 1);
 
     if (execvp(appName.c_str(), (char**)argv) < 0)
     {

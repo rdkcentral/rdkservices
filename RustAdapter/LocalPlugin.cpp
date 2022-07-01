@@ -130,6 +130,7 @@ const string
 WPEFramework::Plugin::Rust::LocalPlugin::Initialize(PluginHost::IShell *shell)
 {
   m_service = shell;
+  m_auth_token = RustAdapter::GetAuthToken(shell->Callsign());
 
   std::string lib_name = RustAdapter::GetLibraryPathOrName(m_config.LibName.Value(), shell->Callsign());
 
@@ -164,7 +165,9 @@ WPEFramework::Plugin::Rust::LocalPlugin::Initialize(PluginHost::IShell *shell)
   void *metadata = dlsym(m_rust_plugin_lib, "thunder_service_metadata");
 
   // create and initialize the rust plugin
-  m_rust_plugin = m_rust_plugin_create(shell->ClassName().c_str(), &wpe_send_to, plugin_ctx->id, metadata);
+  m_rust_plugin = m_rust_plugin_create(shell->ClassName().c_str(), &wpe_send_to, plugin_ctx->id,
+    m_auth_token.c_str(),
+    metadata);
 
   // XXX: The call to "init" doesn't seem necessary
   m_rust_plugin_init(m_rust_plugin, nullptr);
