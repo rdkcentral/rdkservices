@@ -332,6 +332,14 @@ if(PLUGIN_PERFORMANCEMETRICS)
     add_subdirectory(PerformanceMetrics)
 endif()
 
+if(PLUGIN_UNIFIEDPLAYER)
+    add_subdirectory(UnifiedPlayer)
+endif()
+
+if(PLUGIN_UNIFIEDCASMANAGEMENT)
+    add_subdirectory(UnifiedCASManagement)
+endif()
+
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
     set(CPACK_DEB_COMPONENT_INSTALL ON)

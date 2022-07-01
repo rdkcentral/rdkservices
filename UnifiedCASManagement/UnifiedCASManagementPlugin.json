@@ -1,0 +1,14 @@
+{
+  "$schema": "plugin.schema.json",
+  "info": {
+    "title": "Unified CAS Management Plugin",
+    "callsign": "UnifiedCASManagement",
+    "locator": "libWPEFrameworkUnifiedCASManagement.so",
+    "status": "production",
+    "description": "Simple service to allow the management of OCDM CAS.",
+    "version": "1.0"
+  },
+  "interface": {
+    "$ref": "{interfacedir}/UnifiedCASManagement.json#"
+  }
+}
