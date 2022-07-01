@@ -2358,7 +2358,7 @@ static GSourceFuncs _handlerIntervention =
             _adminLock.Lock();
             if ((_state == PluginHost::IStateControl::SUSPENDED) || (_state == PluginHost::IStateControl::UNINITIALIZED)) {
                 _state = PluginHost::IStateControl::UNINITIALIZED;
-                wpe_view_backend_add_activity_state(backend, wpe_view_activity_state_visible);
+                wpe_view_backend_add_activity_state(backend, wpe_view_activity_state_visible | wpe_view_activity_state_focused);
                 OnStateChange(PluginHost::IStateControl::SUSPENDED);
             } else {
                 _state = PluginHost::IStateControl::UNINITIALIZED;
