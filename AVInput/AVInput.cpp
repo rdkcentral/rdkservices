@@ -1066,7 +1066,7 @@ std::string AVInput::getRawSPD(int iPort)
         }
 
         LOGINFO("------------getSPD: ");
-        for (int itr =0; itr < spdVect.size(); itr++) {
+        for (size_t itr =0; itr < spdVect.size(); itr++) {
             LOGINFO("%02X ", spdVect[itr]);
         }
         Core::ToString((uint8_t*)&spdVect[0], size, false, spdbase64);
@@ -1099,7 +1099,7 @@ std::string AVInput::getSPD(int iPort)
         }
 
         LOGINFO("------------getSPD: ");
-        for (int itr =0; itr < spdVect.size(); itr++) {
+        for (size_t itr =0; itr < spdVect.size(); itr++) {
           LOGINFO("%02X ", spdVect[itr]);
         }
         if (spdVect.size() > 0) {
