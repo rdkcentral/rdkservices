@@ -1,4 +1,5 @@
 #pragma once
+#include "dsTypes.h"
 
 #define IARM_BUS_DSMGR_NAME "DSMgr"
 
