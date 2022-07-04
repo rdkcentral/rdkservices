@@ -586,7 +586,7 @@ JsonArray AVInput::getInputDevices(int iType)
             }
         }
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         LOGWARN("AVInputService::getInputDevices Failed");
     }
     return list;
@@ -608,7 +608,7 @@ std::string AVInput::readEDID(int iPort)
         //convert to base64
         uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
 
-        LOGWARN("AVInput::readEDID size:%d edidVec.size:%d", size, edidVec.size());
+        LOGWARN("AVInput::readEDID size:%d edidVec.size:%lu", size, edidVec.size());
         if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max()) {
             LOGERR("Size too large to use ToString base64 wpe api");
             return edidbase64;
@@ -932,7 +932,7 @@ uint32_t AVInput::getSupportedGameFeatures(const JsonObject& parameters, JsonObj
         device::HdmiInput::getInstance().getSupportedGameFeatures (supportedFeatures);
         for (size_t i = 0; i < supportedFeatures.size(); i++)
         {
-            LOGINFO("Supported Game Feature [%d]:  %s\n",i,supportedFeatures.at(i).c_str());
+            LOGINFO("Supported Game Feature [%zu]:  %s\n",i,supportedFeatures.at(i).c_str());
         }
     }
     catch (const device::Exception& err)
@@ -1058,7 +1058,7 @@ std::string AVInput::getRawSPD(int iPort)
         //convert to base64
         uint16_t size = min(spdVect.size(), (size_t)numeric_limits<uint16_t>::max());
 
-        LOGWARN("AVInput::getSPD size:%d spdVec.size:%d", size, spdVect.size());
+        LOGWARN("AVInput::getSPD size:%d spdVec.size:%lu", size, spdVect.size());
 
         if(spdVect.size() > (size_t)numeric_limits<uint16_t>::max()) {
             LOGERR("Size too large to use ToString base64 wpe api");
@@ -1091,7 +1091,7 @@ std::string AVInput::getSPD(int iPort)
         //convert to base64
         uint16_t size = min(spdVect.size(), (size_t)numeric_limits<uint16_t>::max());
 
-        LOGWARN("AVInput::getSPD size:%d spdVec.size:%d", size, spdVect.size());
+        LOGWARN("AVInput::getSPD size:%d spdVec.size:%lu", size, spdVect.size());
 
         if(spdVect.size() > (size_t)numeric_limits<uint16_t>::max()) {
             LOGERR("Size too large to use ToString base64 wpe api");
@@ -1206,7 +1206,7 @@ int AVInput::getEdidVersion(int iPort)
 
     try {
         device::HdmiInput::getInstance().getEdidVersion (iPort, &edidVersion);
-        LOGWARN("AVInput::getEdidVersion EDID Version:%d", &edidVersion);
+        LOGWARN("AVInput::getEdidVersion EDID Version:%d", edidVersion);
     }
     catch (const device::Exception& err) {
         LOG_DEVICE_EXCEPTION1(std::to_string(iPort));

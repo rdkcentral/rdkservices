@@ -95,6 +95,20 @@ typedef enum tv_hdmi_edid_version_e {
     HDMI_EDID_VER_MAX,
 } tv_hdmi_edid_version_t;
 
+/** @addtogroup DSHAL_COMPOSITE_IN_TYPES Device Settings HAL Composite IN Signal Status Definitions
+ *  @ingroup DSHAL_COMPOSITE_IN
+ *  @{
+ */
+typedef enum _dsCompInSignalStatus_t
+{
+    dsCOMP_IN_SIGNAL_STATUS_NONE = -1,
+    dsCOMP_IN_SIGNAL_STATUS_NOSIGNAL,
+    dsCOMP_IN_SIGNAL_STATUS_UNSTABLE,
+    dsCOMP_IN_SIGNAL_STATUS_NOTSUPPORTED,
+    dsCOMP_IN_SIGNAL_STATUS_STABLE,
+    dsCOMP_IN_SIGNAL_STATUS_MAX
+} dsCompInSignalStatus_t;
+
  /** @addtogroup DSHAL_HDMI_IN_TYPES Device Settings HAL COMPOSITE IN Type Definitions
  *  @ingroup DSHAL_COMPOSITE_IN
  *  @{
@@ -107,3 +121,16 @@ typedef enum _dsCompositeInPort_t
     dsCOMPOSITE_IN_PORT_MAX
 } dsCompositeInPort_t;
 
+struct dsSpd_infoframe_st {
+    uint8_t pkttype;
+    uint8_t version;
+    uint8_t length;             /*length=25*/
+    uint8_t rsd;
+    uint8_t checksum;
+    /*Vendor Name Character*/
+    uint8_t vendor_name[8];
+    /*Product Description Character*/
+    uint8_t product_des[16];
+    /*byte 25*/
+    uint8_t source_info;
+} ;
