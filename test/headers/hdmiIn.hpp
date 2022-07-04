@@ -11,6 +11,14 @@ public:
     virtual uint8_t getNumberOfInputs() const = 0;
     virtual bool isPortConnected(int8_t Port) const = 0;
     virtual std::string getCurrentVideoMode() const = 0;
+    void selectPort (int8_t Port) const = 0;
+    void scaleVideo (int32_t x, int32_t y, int32_t width, int32_t height) const = 0;
+    void getEDIDBytesInfo (int iHdmiPort, std::vector<uint8_t> &edid) const = 0;
+    void getHDMISPDInfo (int iHdmiPort, std::vector<uint8_t> &data) = 0;
+    void setEdidVersion (int iHdmiPort, int iEdidVersion) = 0;
+    void getEdidVersion (int iHdmiPort, int *iEdidVersion) = 0;
+    void getHdmiALLMStatus (int iHdmiPort, bool *allmStatus) = 0;
+    void getSupportedGameFeatures (std::vector<std::string> &featureList) = 0;
 };
 
 class HdmiInput {
@@ -35,14 +43,38 @@ public:
     {
         return impl->getCurrentVideoMode();
     }
-    void    selectPort               (int8_t Port) const;
-    void    scaleVideo               (int32_t x, int32_t y, int32_t width, int32_t height) const;
-	void getEDIDBytesInfo (int iHdmiPort, std::vector<uint8_t> &edid) const;
-	void getHDMISPDInfo (int iHdmiPort, std::vector<uint8_t> &data);
-    void setEdidVersion (int iHdmiPort, int iEdidVersion);
-    void getEdidVersion (int iHdmiPort, int *iEdidVersion);
-	void getHdmiALLMStatus (int iHdmiPort, bool *allmStatus);
-	void getSupportedGameFeatures (std::vector<std::string> &featureList);
+    void selectPort (int8_t Port) const
+    {
+        return impl->selectPort(Port);
+    }
+    void scaleVideo (int32_t x, int32_t y, int32_t width, int32_t height) const
+    {
+        return impl->scaleVideo (x, y, width, height);
+    }
+    void getEDIDBytesInfo (int iHdmiPort, std::vector<uint8_t> &edid) const
+    {
+        return impl->getEDIDBytesInfo(iHdmiPort, edid);
+    }
+    void getHDMISPDInfo (int iHdmiPort, std::vector<uint8_t> &data)
+    {
+        return impl->getHDMISPDInfo(iHdmiPort, data);
+    }
+    void setEdidVersion (int iHdmiPort, int iEdidVersion)
+    {
+        return impl->setEdidVersion(iHdmiPort, iEdidVersion);
+    }
+    void getEdidVersion (int iHdmiPort, int *iEdidVersion)
+    {
+        return impl->getEdidVersion(iHdmiPort,iEdidVersion);
+    }
+    void getHdmiALLMStatus (int iHdmiPort, bool *allmStatus)
+    {
+        return impl->getHdmiALLMStatus(iHdmiPort, allmStatus);
+    }
+    void getSupportedGameFeatures (std::vector<std::string> &featureList)
+    {
+        return impl->getSupportedGameFeatures(featureList);
+    }
 };
 
 }
