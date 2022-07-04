@@ -35,6 +35,14 @@ public:
     {
         return impl->getCurrentVideoMode();
     }
+    void    selectPort               (int8_t Port) const;
+    void    scaleVideo               (int32_t x, int32_t y, int32_t width, int32_t height) const;
+	void getEDIDBytesInfo (int iHdmiPort, std::vector<uint8_t> &edid) const;
+	void getHDMISPDInfo (int iHdmiPort, std::vector<uint8_t> &data);
+    void setEdidVersion (int iHdmiPort, int iEdidVersion);
+    void getEdidVersion (int iHdmiPort, int *iEdidVersion);
+	void getHdmiALLMStatus (int iHdmiPort, bool *allmStatus);
+	void getSupportedGameFeatures (std::vector<std::string> &featureList);
 };
 
 }
