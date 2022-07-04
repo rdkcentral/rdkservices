@@ -21,6 +21,7 @@
 
 #include "Module.h"
 #include "libIBus.h"
+#include "dsTypes.h"
 
 #define getNumberParameter(paramName, param) { \
 	    if (Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
