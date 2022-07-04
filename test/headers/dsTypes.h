@@ -1,3 +1,6 @@
+#ifndef _DS_TYPES_H_
+#define _DS_TYPES_H_
+
 /**
  * This enumeration defines all of the standard video port resolutions that can be used.
  */
@@ -134,3 +137,5 @@ struct dsSpd_infoframe_st {
     /*byte 25*/
     uint8_t source_info;
 } ;
+
+#endif

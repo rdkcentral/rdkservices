@@ -26,6 +26,7 @@
 #include "exception.hpp"
 #include "dsUtl.h"
 #include "dsError.h"
+#include "dsTypes.h"
 #include <vector>
 #include <algorithm>
 
