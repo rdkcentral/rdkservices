@@ -127,6 +127,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_CURSOR = "hide
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_CURSOR_SIZE = "getCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_CURSOR_SIZE = "setCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_FRAME_RATE = "setFrameRate";
+
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -805,6 +807,7 @@ namespace WPEFramework {
             mEventListener = std::make_shared<RdkShellListener>(this);
 
             mRemoteShell = false;
+
             Register(RDKSHELL_METHOD_MOVE_TO_FRONT, &RDKShell::moveToFrontWrapper, this);
             Register(RDKSHELL_METHOD_MOVE_TO_BACK, &RDKShell::moveToBackWrapper, this);
             Register(RDKSHELL_METHOD_MOVE_BEHIND, &RDKShell::moveBehindWrapper, this);
@@ -886,7 +889,9 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_GET_CURSOR_SIZE, &RDKShell::getCursorSizeWrapper, this);
             Register(RDKSHELL_METHOD_SET_CURSOR_SIZE, &RDKShell::setCursorSizeWrapper, this);
             Register(RDKSHELL_METHOD_KEY_REPEAT_CONFIG, &RDKShell::keyRepeatConfigWrapper, this);
+            Register(RDKSHELL_METHOD_SET_FRAME_RATE, &RDKShell::setFrameRateWrapper, this);
             m_timer.connect(std::bind(&RDKShell::onTimer, this));
+
         }
 
         RDKShell::~RDKShell()
@@ -5418,6 +5423,25 @@ namespace WPEFramework {
                 response["message"] = "key ignore is not allowed";
             }
             returnResponse(ret);
+        }
+        uint32_t RDKShell::setFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("framerate"))
+            {
+                result = false;
+                response["message"] = "please specify frame rate";
+            }
+            if (result)
+            {
+                unsigned int framerate = parameters["framerate"].Number();
+		lockRdkShellMutex();
+		gCurrentFramerate = framerate;
+		gRdkShellMutex.unlock();
+            }
+            returnResponse(result);
         }
 
         uint32_t RDKShell::keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response)
