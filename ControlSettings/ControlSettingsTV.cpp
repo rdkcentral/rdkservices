@@ -37,6 +37,8 @@ namespace Plugin {
         registerMethod("setBrightness", &ControlSettingsTV::setBrightness, this, {1});
         registerMethod("resetBrightness", &ControlSettingsTV::resetBrightness, this, {1});
 
+	this->Initialize();
+
         LOGINFO("Exit\n");
     }
     
