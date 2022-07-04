@@ -30,6 +30,26 @@ typedef enum _dsVideoFrameRate_t{
 }dsVideoFrameRate_t;
 
 /**
+ * This enumeration defines all of the standard video aspect ratios.
+ */
+typedef enum _dsVideoAspectRatio_t{
+    dsVIDEO_ASPECT_RATIO_4x3,     /**< 4:3 aspect ratio.                      */
+    dsVIDEO_ASPECT_RATIO_16x9,    /**< 16:9 aspect ratio.                     */
+    dsVIDEO_ASPECT_RATIO_MAX     /**< Maximum index for video aspect ratios. */
+}dsVideoAspectRatio_t;
+
+/**
+ * This enumeration defines all of the standard video Stereo Scopic modes.
+ */
+typedef enum _dsVideoStereoScopicMode_t {
+    dsVIDEO_SSMODE_UNKNOWN = 0,          /**< Unknown mode.                                */
+    dsVIDEO_SSMODE_2D,                   /**< 2D mode.                                     */
+    dsVIDEO_SSMODE_3D_SIDE_BY_SIDE,      /**< 3D side by side (L/R) stereo mode.           */
+    dsVIDEO_SSMODE_3D_TOP_AND_BOTTOM,    /**< 3D top & bottom stereo mode.                 */
+    dsVIDEO_SSMODE_MAX                   /**< Maximum index for video stereoscopic modes.  */
+}dsVideoStereoScopicMode_t;
+
+/**
  * @ingroup DSHAL_VIDEOPORT_TYPES
  * @brief Structure that defines video port resolution settings of output video device.
  */
@@ -41,6 +61,19 @@ typedef struct _dsVideoPortResolution_t {
     dsVideoFrameRate_t  frameRate;                  /**< The associated frame rate.                               */
     bool interlaced;                                /**< The associated scan mode(@a true if interlaced, @a false if progressive). */
 }dsVideoPortResolution_t;
+ 
+ /** @addtogroup DSHAL_HDMI_IN_TYPES Device Settings HAL HDMI IN Type Definitions
+ *  @ingroup DSHAL_HDMI_IN
+ *  @{
+ */
+typedef enum _dsHdmiInPort_t
+{
+    dsHDMI_IN_PORT_NONE = -1,
+    dsHDMI_IN_PORT_0,
+    dsHDMI_IN_PORT_1,
+    dsHDMI_IN_PORT_2,
+    dsHDMI_IN_PORT_MAX
+} dsHdmiInPort_t;
 
 /** @addtogroup DSHAL_HDMI_IN_TYPES Device Settings HAL HDMI IN Signal Status Definitions
  *  @ingroup DSHAL_HDMI_IN
@@ -61,3 +94,16 @@ typedef enum tv_hdmi_edid_version_e {
     HDMI_EDID_VER_20,
     HDMI_EDID_VER_MAX,
 } tv_hdmi_edid_version_t;
+
+ /** @addtogroup DSHAL_HDMI_IN_TYPES Device Settings HAL COMPOSITE IN Type Definitions
+ *  @ingroup DSHAL_COMPOSITE_IN
+ *  @{
+ */
+typedef enum _dsCompositeInPort_t
+{
+    dsCOMPOSITE_IN_PORT_NONE = -1,
+    dsCOMPOSITE_IN_PORT_0,
+    dsCOMPOSITE_IN_PORT_1,
+    dsCOMPOSITE_IN_PORT_MAX
+} dsCompositeInPort_t;
+
