@@ -28,7 +28,7 @@ typedef enum _dsVideoFrameRate_t{
     dsVIDEO_FRAMERATE_59dot94,    /**< Played at 59.94 frames per second.        */
     dsVIDEO_FRAMERATE_MAX         /**< Maximum index for video frame rates.      */
 }dsVideoFrameRate_t;
-/
+
 /**
  * @ingroup DSHAL_VIDEOPORT_TYPES
  * @brief Structure that defines video port resolution settings of output video device.

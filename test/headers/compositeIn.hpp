@@ -4,7 +4,7 @@
 
 namespace device {
 
-class HdmiInput {
+class CompositeInput {
 public:
     static CompositeInput & getInstance();
 
