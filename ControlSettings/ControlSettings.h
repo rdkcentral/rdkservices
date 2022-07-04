@@ -66,13 +66,10 @@ namespace Plugin {
         ControlSettings();
         ~ControlSettings();
         static ControlSettings* _instance;
+        static ControlSettings* getInstance() { return ControlSettings::_instance; }
 	void NotifyVideoFormatChange(tvVideoHDRFormat_t format);
         void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
         void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
-        uint32_t generateStorageIdentifier(std::string &key,const char * forParam,int contentFormat, int pqmode, int source);
-        int UpdatePQParamsToCache( const char *action, const char *tr181ParamName, const char *pqmode, const char *source, const char *format, tvPQParameterIndex_t pqParamIndex, int params[] );
-        tvError_t UpdatePQParamToLocalCache(const char* forParam, int source, int pqmode, int format, int value,bool setNotDelete);
-        int GetSaveConfig(const char *pqmode, const char *source, const char *format,std::vector<int> &sources,std::vector<int> &picturemodes, std::vector<int> &formats);
 
     private:
         uint8_t _skipURL;
@@ -85,17 +82,12 @@ namespace Plugin {
         bool IARMinit();
         static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        void GetColorTempStringFromEnum(int value, std::string &toStore);
-        int GetPQParamsToSync (const char *forParam,int source, int pqmode,int format, int& value,bool cms=false,int tunnel_type=0);
-
 
     public:
         //   IPlugin methods
         // -------------------------------------------------------------------------------------------------------
         const std::string Initialize(PluginHost::IShell* service);
         void Deinitialize(PluginHost::IShell* service);
-	virtual void AddRef() const { }
-	virtual uint32_t Release() const {return 0; }
    };
 }
 }

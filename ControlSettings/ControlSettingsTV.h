@@ -56,9 +56,10 @@ class ControlSettingsTV : public AbstractPlugin {
         void Initialize();
         void Deinitialize();
 	int getCurrentPictureMode(char *picMode);
-        virtual tvError_t UpdatePQParamToLocalCache(const char* forParam, int source, int pqmode, int format, int value,bool setNotDelete) = 0;
-	virtual int UpdatePQParamsToCache( const char *action, const char *tr181ParamName, const char *pqmode, const char *source, const char *format, tvPQParameterIndex_t pqParamIndex, int params[] )=0;
-        virtual uint32_t generateStorageIdentifier(std::string &key,const char * forParam,int contentFormat, int pqmode, int source) = 0;
+        tvError_t UpdatePQParamToLocalCache(const char* forParam, int source, int pqmode, int format, int value,bool setNotDelete);
+	int UpdatePQParamsToCache( const char *action, const char *tr181ParamName, const char *pqmode, const char *source, const char *format, tvPQParameterIndex_t pqParamIndex, int params[] );
+        uint32_t generateStorageIdentifier(std::string &key,const char * forParam,int contentFormat, int pqmode, int source);
+        int GetSaveConfig(const char *pqmode, const char *source, const char *format,std::vector<int> &sources,std::vector<int> &picturemodes, std::vector<int> &formats);
 	void GetParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
         int getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
 
@@ -72,6 +73,7 @@ class ControlSettingsTV : public AbstractPlugin {
         static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         bool isBacklightUsingGlobalBacklightFactor(void);
         int GetLocalparam(const char * forParam,int formatIndex,int pqIndex,int sourceIndex,int &value);
+        void GetColorTempStringFromEnum(int value, std::string &toStore);
 };
 
 }//namespace Plugin
