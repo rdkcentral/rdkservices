@@ -1,71 +1,70 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.DeviceInfo_Plugin"></a>
+<a name="DeviceInfo_Plugin"></a>
 # DeviceInfo Plugin
 
 **Version: 1.0**
 
 **Status: :black_circle::black_circle::black_circle:**
 
-DeviceInfo plugin for Thunder framework.
+A DeviceInfo plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Interfaces](#head.Interfaces)
-- [Methods](#head.Methods)
-- [Properties](#head.Properties)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Properties](#Properties)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the DeviceInfo plugin. It includes detailed specification about its configuration, methods and properties provided.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `DeviceInfo` plugin allows retrieving of various device-related information.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -77,14 +76,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkDeviceInfo.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Interfaces"></a>
-# Interfaces
-
-This plugin implements the following interfaces:
-
-- [DeviceInfo.json](https://github.com/rdkcentral/ThunderInterfaces/blob/master/interfaces/DeviceInfo.json) (version 1.0.0)
-
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the DeviceInfo plugin:
@@ -93,16 +85,16 @@ DeviceInfo interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [supportedresolutions](#method.supportedresolutions) | Supported resolutions on the selected video display port |
-| [defaultresolution](#method.defaultresolution) | Default resolution on the selected video display port |
-| [supportedhdcp](#method.supportedhdcp) | Supported HDCP version on the selected video display port |
-| [audiocapabilities](#method.audiocapabilities) | Audio capabilities for the specified audio port |
-| [ms12capabilities](#method.ms12capabilities) | MS12 audio capabilities for the specified audio port |
-| [supportedms12audioprofiles](#method.supportedms12audioprofiles) | Supported MS12 audio profiles for the specified audio port |
+| [supportedresolutions](#supportedresolutions) | Supported resolutions on the selected video display port |
+| [defaultresolution](#defaultresolution) | Default resolution on the selected video display port |
+| [supportedhdcp](#supportedhdcp) | Supported HDCP version on the selected video display port |
+| [audiocapabilities](#audiocapabilities) | Audio capabilities for the specified audio port |
+| [ms12capabilities](#ms12capabilities) | MS12 audio capabilities for the specified audio port |
+| [supportedms12audioprofiles](#supportedms12audioprofiles) | Supported MS12 audio profiles for the specified audio port |
 
 
-<a name="method.supportedresolutions"></a>
-## *supportedresolutions [<sup>method</sup>](#head.Methods)*
+<a name="supportedresolutions"></a>
+## *supportedresolutions*
 
 Supported resolutions on the selected video display port.
 
@@ -156,8 +148,8 @@ Supported resolutions on the selected video display port.
 }
 ```
 
-<a name="method.defaultresolution"></a>
-## *defaultresolution [<sup>method</sup>](#head.Methods)*
+<a name="defaultresolution"></a>
+## *defaultresolution*
 
 Default resolution on the selected video display port.
 
@@ -208,8 +200,8 @@ Default resolution on the selected video display port.
 }
 ```
 
-<a name="method.supportedhdcp"></a>
-## *supportedhdcp [<sup>method</sup>](#head.Methods)*
+<a name="supportedhdcp"></a>
+## *supportedhdcp*
 
 Supported HDCP version on the selected video display port.
 
@@ -260,8 +252,8 @@ Supported HDCP version on the selected video display port.
 }
 ```
 
-<a name="method.audiocapabilities"></a>
-## *audiocapabilities [<sup>method</sup>](#head.Methods)*
+<a name="audiocapabilities"></a>
+## *audiocapabilities*
 
 Audio capabilities for the specified audio port.
 
@@ -315,8 +307,8 @@ Audio capabilities for the specified audio port.
 }
 ```
 
-<a name="method.ms12capabilities"></a>
-## *ms12capabilities [<sup>method</sup>](#head.Methods)*
+<a name="ms12capabilities"></a>
+## *ms12capabilities*
 
 MS12 audio capabilities for the specified audio port.
 
@@ -370,8 +362,8 @@ MS12 audio capabilities for the specified audio port.
 }
 ```
 
-<a name="method.supportedms12audioprofiles"></a>
-## *supportedms12audioprofiles [<sup>method</sup>](#head.Methods)*
+<a name="supportedms12audioprofiles"></a>
+## *supportedms12audioprofiles*
 
 Supported MS12 audio profiles for the specified audio port.
 
@@ -425,7 +417,7 @@ Supported MS12 audio profiles for the specified audio port.
 }
 ```
 
-<a name="head.Properties"></a>
+<a name="Properties"></a>
 # Properties
 
 The following properties are provided by the DeviceInfo plugin:
@@ -434,23 +426,23 @@ DeviceInfo interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [systeminfo](#property.systeminfo) <sup>RO</sup> | System general information |
-| [addresses](#property.addresses) <sup>RO</sup> | Network interface addresses |
-| [socketinfo](#property.socketinfo) <sup>RO</sup> | Socket information |
-| [firmwareversion](#property.firmwareversion) <sup>RO</sup> | Versions maintained in version |
-| [serialnumber](#property.serialnumber) <sup>RO</sup> | Serial number set by manufacturer |
-| [modelid](#property.modelid) <sup>RO</sup> | Device model number or SKU |
-| [make](#property.make) <sup>RO</sup> | Device manufacturer |
-| [modelname](#property.modelname) <sup>RO</sup> | Friendly device model name |
-| [devicetype](#property.devicetype) <sup>RO</sup> | Device type |
-| [distributorid](#property.distributorid) <sup>RO</sup> | Partner ID or distributor ID for device |
-| [supportedaudioports](#property.supportedaudioports) <sup>RO</sup> | Audio ports supported on the device (all ports that are physically present) |
-| [supportedvideodisplays](#property.supportedvideodisplays) <sup>RO</sup> | Video ports supported on the device (all ports that are physically present) |
-| [hostedid](#property.hostedid) <sup>RO</sup> | EDID of the host |
+| [systeminfo](#systeminfo) <sup>RO</sup> | System general information |
+| [addresses](#addresses) <sup>RO</sup> | Network interface addresses |
+| [socketinfo](#socketinfo) <sup>RO</sup> | Socket information |
+| [firmwareversion](#firmwareversion) <sup>RO</sup> | Versions maintained in version |
+| [serialnumber](#serialnumber) <sup>RO</sup> | Serial number set by manufacturer |
+| [modelid](#modelid) <sup>RO</sup> | Device model number or SKU |
+| [make](#make) <sup>RO</sup> | Device manufacturer |
+| [modelname](#modelname) <sup>RO</sup> | Friendly device model name |
+| [devicetype](#devicetype) <sup>RO</sup> | Device type |
+| [distributorid](#distributorid) <sup>RO</sup> | Partner ID or distributor ID for device |
+| [supportedaudioports](#supportedaudioports) <sup>RO</sup> | Audio ports supported on the device (all ports that are physically present) |
+| [supportedvideodisplays](#supportedvideodisplays) <sup>RO</sup> | Video ports supported on the device (all ports that are physically present) |
+| [hostedid](#hostedid) <sup>RO</sup> | EDID of the host |
 
 
-<a name="property.systeminfo"></a>
-## *systeminfo [<sup>property</sup>](#head.Properties)*
+<a name="systeminfo"></a>
+## *systeminfo*
 
 Provides access to the system general information.
 
@@ -514,8 +506,8 @@ Provides access to the system general information.
 }
 ```
 
-<a name="property.addresses"></a>
-## *addresses [<sup>property</sup>](#head.Properties)*
+<a name="addresses"></a>
+## *addresses*
 
 Provides access to the network interface addresses.
 
@@ -562,8 +554,8 @@ Provides access to the network interface addresses.
 }
 ```
 
-<a name="property.socketinfo"></a>
-## *socketinfo [<sup>property</sup>](#head.Properties)*
+<a name="socketinfo"></a>
+## *socketinfo*
 
 Provides access to the socket information.
 
@@ -600,8 +592,8 @@ Provides access to the socket information.
 }
 ```
 
-<a name="property.firmwareversion"></a>
-## *firmwareversion [<sup>property</sup>](#head.Properties)*
+<a name="firmwareversion"></a>
+## *firmwareversion*
 
 Provides access to the versions maintained in version.txt.
 
@@ -650,8 +642,8 @@ Provides access to the versions maintained in version.txt.
 }
 ```
 
-<a name="property.serialnumber"></a>
-## *serialnumber [<sup>property</sup>](#head.Properties)*
+<a name="serialnumber"></a>
+## *serialnumber*
 
 Provides access to the serial number set by manufacturer.
 
@@ -694,8 +686,8 @@ Provides access to the serial number set by manufacturer.
 }
 ```
 
-<a name="property.modelid"></a>
-## *modelid [<sup>property</sup>](#head.Properties)*
+<a name="modelid"></a>
+## *modelid*
 
 Provides access to the device model number or SKU.
 
@@ -738,8 +730,8 @@ Provides access to the device model number or SKU.
 }
 ```
 
-<a name="property.make"></a>
-## *make [<sup>property</sup>](#head.Properties)*
+<a name="make"></a>
+## *make*
 
 Provides access to the device manufacturer.
 
@@ -782,8 +774,8 @@ Provides access to the device manufacturer.
 }
 ```
 
-<a name="property.modelname"></a>
-## *modelname [<sup>property</sup>](#head.Properties)*
+<a name="modelname"></a>
+## *modelname*
 
 Provides access to the friendly device model name.
 
@@ -826,8 +818,8 @@ Provides access to the friendly device model name.
 }
 ```
 
-<a name="property.devicetype"></a>
-## *devicetype [<sup>property</sup>](#head.Properties)*
+<a name="devicetype"></a>
+## *devicetype*
 
 Provides access to the device type.
 
@@ -870,8 +862,8 @@ Provides access to the device type.
 }
 ```
 
-<a name="property.distributorid"></a>
-## *distributorid [<sup>property</sup>](#head.Properties)*
+<a name="distributorid"></a>
+## *distributorid*
 
 Provides access to the partner ID or distributor ID for device.
 
@@ -914,8 +906,8 @@ Provides access to the partner ID or distributor ID for device.
 }
 ```
 
-<a name="property.supportedaudioports"></a>
-## *supportedaudioports [<sup>property</sup>](#head.Properties)*
+<a name="supportedaudioports"></a>
+## *supportedaudioports*
 
 Provides access to the audio ports supported on the device (all ports that are physically present).
 
@@ -961,8 +953,8 @@ Provides access to the audio ports supported on the device (all ports that are p
 }
 ```
 
-<a name="property.supportedvideodisplays"></a>
-## *supportedvideodisplays [<sup>property</sup>](#head.Properties)*
+<a name="supportedvideodisplays"></a>
+## *supportedvideodisplays*
 
 Provides access to the video ports supported on the device (all ports that are physically present).
 
@@ -1008,8 +1000,8 @@ Provides access to the video ports supported on the device (all ports that are p
 }
 ```
 
-<a name="property.hostedid"></a>
-## *hostedid [<sup>property</sup>](#head.Properties)*
+<a name="hostedid"></a>
+## *hostedid*
 
 Provides access to the EDID of the host.
 
