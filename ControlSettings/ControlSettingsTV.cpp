@@ -118,7 +118,8 @@ namespace Plugin {
 
     uint32_t ControlSettingsTV::getBrightness(const JsonObject& parameters, JsonObject& response)
     {
-        LOGINFO("Entry\n");
+        long long start =  getCurrentTimeMicro();
+        LOGINFO("Entry start = %lld\n",start);
 
         std::string pqmode;
         std::string source;
@@ -144,7 +145,8 @@ namespace Plugin {
         int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness);
         if( err == 0 ) {
             response["brightness"] = std::to_string(brightness);
-            LOGINFO("Exit : Brightness Value: %d\n", brightness);
+	    long long end =  getCurrentTimeMicro();
+            LOGINFO("Exit : Brightness Value: %d end = %lld  duration = %lld \n", brightness,end,end-start);
             returnResponse(true, "success");
         }
         else {
@@ -156,8 +158,8 @@ namespace Plugin {
 
     uint32_t ControlSettingsTV::setBrightness(const JsonObject& parameters, JsonObject& response)
     {
-
-        LOGINFO("Entry\n");
+        long long start =  getCurrentTimeMicro();
+        LOGINFO("Entry start = %lld\n",start);
 
         std::string value;
         std::string pqmode;
@@ -194,7 +196,8 @@ namespace Plugin {
             if(retval != 0 ) {
                 LOGWARN("Failed to Save Brightness to ssm_data\n");
             }
-            LOGINFO("Exit : setBrightness successful to value: %d\n", brightness);
+	    long long end =  getCurrentTimeMicro();
+            LOGINFO("Exit : setBrightness successful to value: %d end = %lld  duration = %lld \n", brightness,end,end-start);
             returnResponse(true, "success");
         }
 
@@ -203,7 +206,8 @@ namespace Plugin {
     uint32_t ControlSettingsTV::resetBrightness(const JsonObject& parameters, JsonObject& response)
     {
 
-        LOGINFO("Entry\n");
+        long long start =  getCurrentTimeMicro();
+        LOGINFO("Entry start = %lld\n",start);
 
         std::string value;
         std::string pqmode;
@@ -247,7 +251,8 @@ namespace Plugin {
         }
         else
         {
-            LOGINFO("Exit : resetBrightness Successful to value : %d \n",brightness);
+            long long end =  getCurrentTimeMicro();
+            LOGINFO("Exit : resetBrightness Successful to value : %d  end = %lld  duration = %lld \n",brightness,end,end-start);
             returnResponse(true, "success");
         }
 
