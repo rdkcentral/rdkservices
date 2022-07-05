@@ -2137,6 +2137,29 @@
             "result": {
                 "$ref": "#/common/result"
             }
+        },
+        "enableInputEvents": {
+            "summary": "Disable and enable responding to input events for particular clients. \n \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enable": {
+                        "summary": "`true` to enable responding to input events or `false` to disable responding to input events",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "clients": {
+                        "$ref": "#/definitions/clients"
+                    }
+                },
+                "required": [
+                    "enable",
+                    "clients"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
         }
     },
     "events": {
