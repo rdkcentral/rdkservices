@@ -6,6 +6,9 @@
         "class": "AVInput", 
         "description": "The `AVInput` plugin allows you to control the HDMI and Composite Inputs on a TV box."
     },
+	"common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
         "devices":{
             "summary": "An object [] that describes each HDMI/Composite Input port",
@@ -54,22 +57,6 @@
             "summary": "The type of Input - HDMI/COMPOSITE",
             "type": "string",
             "example": "HDMI"
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods": {
@@ -89,7 +76,7 @@
                         "example": true
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -119,7 +106,7 @@
                         "example": "Success"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -150,7 +137,7 @@
                         "example": "Success"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -169,7 +156,7 @@
                         "$ref": "#/definitions/devices"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "typeOfInput": {
                         "$ref": "#/definitions/typeOfInput"
@@ -203,7 +190,7 @@
                         "example": "HDMI2.0"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -234,7 +221,7 @@
                         "example": ""
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -265,7 +252,7 @@
                         "example": ""
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -296,7 +283,7 @@
                         "example": ""
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -327,7 +314,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "stopInput": {
@@ -350,7 +337,7 @@
                 "type": "object",
                 "properties": {
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -378,7 +365,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setVideoRectangle": {
@@ -419,7 +406,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "writeEDID": {
@@ -444,7 +431,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
        "getSupportedGameFeatures":{
@@ -458,7 +445,7 @@
                         "example": "ALLM"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -495,7 +482,7 @@
                         "example": "true"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
