@@ -21,7 +21,8 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 #include "utils.h"
-#include "libIBus.h"
+#include "UtilsIarm.h"
+#include "UtilsString.h"
 
 using namespace std;
 

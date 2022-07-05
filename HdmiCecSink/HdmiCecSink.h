@@ -23,7 +23,7 @@
 #include "ccec/FrameListener.hpp"
 #include "ccec/Connection.hpp"
 
-#include "libIBus.h"
+#include "libIARM.h"
 #include "ccec/Assert.hpp"
 #include "ccec/Messages.hpp"
 #include "ccec/MessageDecoder.hpp"
