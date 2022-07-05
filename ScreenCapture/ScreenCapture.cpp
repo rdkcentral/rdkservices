@@ -19,7 +19,7 @@
 
 #include "ScreenCapture.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 
 #ifdef PLATFORM_BROADCOM
 #include <nexus_config.h>
