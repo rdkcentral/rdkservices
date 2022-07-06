@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "Network API", 
         "class": "Network", 
         "description": "The `Network` plugin allows you to manage network interfaces on a set-top box."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "interface":{
@@ -127,22 +130,7 @@
             "type": "string",
             "example": "<<<traceroute command results>>>"
         },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        },
+        
         "guid": {
             "summary": "The globally unique identifier",
             "type": "string",
@@ -189,7 +177,7 @@
                         "$ref": "#/definitions/interface"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -237,7 +225,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -293,7 +281,7 @@
                         "$ref": "#/definitions/secondarydns"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -323,7 +311,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -341,7 +329,7 @@
                         "$ref": "#/definitions/quirks"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -361,7 +349,7 @@
                         "example": "192.168.1.101"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -394,7 +382,7 @@
                         "example": "192.168.1.101"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -414,7 +402,7 @@
                         "example": true
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -445,7 +433,7 @@
                         "example": true
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -481,7 +469,7 @@
                         "$ref": "#/definitions/target"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "packetsTransmitted": {
                         "$ref": "#/definitions/packetsTransmitted"
@@ -553,7 +541,7 @@
                         "$ref": "#/definitions/target"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "packetsTransmitted": {
                         "$ref": "#/definitions/packetsTransmitted"
@@ -617,7 +605,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setDefaultInterface":{
@@ -646,7 +634,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setInterfaceEnabled":{
@@ -678,7 +666,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setIPSettings":{
@@ -734,7 +722,7 @@
                         "example": true
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -770,7 +758,7 @@
                         "example": "69.136.49.95"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -812,7 +800,7 @@
                 "type": "object",
                 "properties": {
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                },
                 "required": [
@@ -845,7 +833,7 @@
                         "$ref": "#/definitions/target"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "error": {
                         "$ref": "#/definitions/error"
@@ -886,7 +874,7 @@
                         "$ref": "#/definitions/target"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "error": {
                         "$ref": "#/definitions/error"

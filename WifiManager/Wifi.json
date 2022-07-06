@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "Wifi API", 
         "class": "WifiManager",
         "description": "The `Wifi` plugin is used to manage Wifi network connections on a set-top device."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "result_int":{
@@ -51,22 +54,6 @@
             "type": "string",
             "example": "2.442000"
         },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-         },
         "errors": {
             "summary": "Error string of scan failure",
             "type": "string",
@@ -92,7 +79,7 @@
                         "$ref": "#/definitions/result_int"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -113,7 +100,7 @@
                         "$ref": "#/definitions/result_int"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -148,7 +135,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "disconnect":{
@@ -163,7 +150,7 @@
                         "$ref": "#/definitions/result_int"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -205,7 +192,7 @@
                         "$ref": "#/definitions/frequency"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -229,7 +216,7 @@
                         "$ref": "#/definitions/state"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -248,7 +235,7 @@
                         "$ref": "#/definitions/ssid"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -269,7 +256,7 @@
                         "$ref": "#/definitions/bssid"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -352,7 +339,7 @@
                         "required": []
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -374,7 +361,7 @@
                         "$ref": "#/definitions/result_int"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -424,7 +411,7 @@
                         "$ref": "#/definitions/result_int"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -442,7 +429,7 @@
                         "$ref": "#/definitions/result_int"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -460,7 +447,7 @@
                         "$ref": "#/definitions/result_int"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -497,7 +484,7 @@
                         "$ref": "#/definitions/result_int"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -522,7 +509,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setSignalThresholdChangeEnabled":{
@@ -550,7 +537,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "startScan":{
@@ -587,7 +574,7 @@
                   "type": "object",
                   "properties": {
                      "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "error": {
                         "$ref": "#/definitions/errors"
@@ -602,7 +589,7 @@
         "stopScan":{
             "summary": "Stops scanning for SSIDs. Any discovered SSIDs from the call to the `startScan` method up to the point where this method is called are still returned.\n  \n### Events \n\n  No Events",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }
     },

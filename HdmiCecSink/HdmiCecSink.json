@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "HdmiCecSink API", 
         "class": "HdmiCecSink", 
         "description": "The `HdmiCecSink` plugin allows you to manage HDMI Consumer Electronics Control (CEC) sink for connected devices."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "available": {
@@ -81,22 +84,6 @@
            "summary": "Whether device list is printed",
            "type": "boolean",
            "example": true
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods": {
@@ -150,7 +137,7 @@
                         "example": "Playback Device 1(Fire TV Stick)-->HDMI0"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -195,7 +182,7 @@
                         "$ref": "#/definitions/port"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -221,7 +208,7 @@
                        "$ref": "#/definitions/connected"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -286,7 +273,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -305,7 +292,7 @@
                         "$ref": "#/definitions/enabled"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -323,7 +310,7 @@
                         "$ref": "#/definitions/name"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -341,7 +328,7 @@
                         "$ref": "#/definitions/vendorid"                      
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -359,7 +346,7 @@
                         "$ref": "#/definitions/printed"                      
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -376,7 +363,7 @@
                 "onDeviceInfoUpdated"
             ],
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "requestShortAudioDescriptor": {
@@ -385,7 +372,7 @@
                 "shortAudiodesciptorEvent"
             ],
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "sendAudioDevicePowerOnMessage": {
@@ -394,7 +381,7 @@
                 "setSystemAudioModeEvent"
             ],
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "sendGetAudioStatusMessage": {
@@ -403,7 +390,7 @@
                 "reportAudioStatusEvent"
             ],
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "sendKeyPressEvent": {
@@ -426,13 +413,13 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "sendStandbyMessage": {
             "summary": "Sends a CEC \\<Standby\\> message to the logical address of the device.\n  \n### Event \n\n No Events",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setActivePath": {
@@ -451,13 +438,13 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setActiveSource": {
             "summary": "Sets the current active source as TV (physical address 0.0.0.0). This call needs to be made when the TV switches to internal tuner or any apps.\n  \n### Event \n\n No Events",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setEnabled": {
@@ -477,7 +464,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setMenuLanguage": {
@@ -496,7 +483,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setOSDName": {
@@ -513,7 +500,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setRoutingChange":{
@@ -538,7 +525,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setupARCRouting":{
@@ -561,7 +548,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setVendorId":{
@@ -578,7 +565,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }
     },

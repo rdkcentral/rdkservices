@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "ActivityMonitor API", 
         "class": "ActivityMonitor", 
         "description": "Monitor memory and CPU usage by application"
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "pid": {
@@ -17,22 +20,6 @@
             "type": "string",
             "enum": ["exceeded", "receded"],
             "example": "exceeded"
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         },
         "appName": {
             "summary": "The application name associated with `appPid`",
@@ -106,7 +93,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "disableMonitoring":{
@@ -117,7 +104,7 @@
                 "properties": {}
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getApplicationMemoryUsage": {
@@ -157,7 +144,7 @@
                         ]
                     },
                     "success": {
-                       "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -205,7 +192,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 }, 
                 "required": [

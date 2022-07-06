@@ -1,32 +1,19 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "SystemAudioPlayer API", 
         "class": "SystemAudioPlayer",
         "description": "The `SystemAudioPlayer` plugin provides system audio playback functionality for client applications. It supports various audio types (viz., pcm, mp3, wav) and can play them from various sources (viz., websocket, httpsrc, filesrc, data buffer).  \n\n**Note**: MP3 playback development remains a work-in-progress."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
         "id": {
             "summary": "A unique identifier for a player instance.",
             "type": "integer",
             "example": 1
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods": {
@@ -44,7 +31,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "config": {
@@ -79,23 +66,34 @@
                         "required": []
                     },
                     "websocketsecparam": {
-                        "summary": "Optional parameters, needed to establish secured websocket connection.",
+                        "summary": "Parameters that are needed to establish a secured websocket connection",
                         "type": "object",
                         "properties": {
                             "cafilenames": {
-                                "summary": "Array of objects with full file names of Certificate Authorities. If empty, code will try to load CAs from default system path for wss connection.",
+                                "summary": "A list of Certificate Authorities file names. If empty, code will try to load CAs from default system path for wss connection.",
                                 "type": "array",
-                                "example": "[ {\"cafilename\": \"/etc/ssl/certs/Xfinity_Subscriber_ECC_Root.pem\"}, {\"cafilename\": \"/etc/ssl/certs/Xfinity_Subscriber_RSA_Root.pem\"} ]"
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "cafilename": {
+                                            "summary": "A certificate file name in pem format",
+                                            "type": "string",
+                                            "example": "/etc/ssl/certs/Xfinity_Subscriber_ECC_Root.pem"
+                                        }
+                                    },
+                                    "required": []
+                                }
                             },
                             "certfilename": {
-                                "summary": "Full file name of cert file. Needs to be in pem format. If not provided, other end of communication needs to be configured to not validate client cert.",
+                                "summary": "Full file name of cert file in pem format. If a file name is not provided, then the other end of the communication needs to be configured to not validate a client certificate.",
                                 "type": "string"
                             },
                             "keyfilename": {
-                                "summary": "Full file name of key file. Needs to be in pem format. Needs to be provided if cert file name is provided",
+                                "summary": "Full file name of key file in pem format. A key file name must be provided if the certificate file name is provided.",
                                 "type": "string"
                             }
-                        }
+                        },
+                        "required": []
                     }
                 },
                 "required": [
@@ -104,7 +102,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getPlayerSessionId": {
@@ -117,7 +115,6 @@
                         "type": "string",
                         "example": "http://localhost:50050/nuanceEve/tts?voice=ava&language=en-US&rate=50&text=SETTINGS"
                     }
-
                 },
                 "required": [
                     "url"
@@ -130,7 +127,7 @@
                         "$ref": "#/definitions/id"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -153,7 +150,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "open": {
@@ -205,7 +202,7 @@
                         "$ref": "#/definitions/id"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -231,7 +228,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "play": {
@@ -257,7 +254,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "playbuffer": {
@@ -283,7 +280,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "resume": {
@@ -303,7 +300,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setMixerLevels": {
@@ -332,7 +329,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setSmartVolControl": {
@@ -379,7 +376,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "stop": {
@@ -396,7 +393,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }
     },

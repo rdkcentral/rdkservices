@@ -140,6 +140,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE;
             static const string RDKSHELL_METHOD_SET_AV_BLOCKED;
             static const string RDKSHELL_METHOD_GET_AV_BLOCKED_APPS;
+            static const string RDKSHELL_METHOD_ENABLE_INPUT_EVENTS;
             static const string RDKSHELL_METHOD_KEY_REPEAT_CONFIG;
 
             // events
@@ -252,6 +253,7 @@ namespace WPEFramework {
             uint32_t setGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setAVBlockedWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getBlockedAVApplicationsWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t enableInputEventsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
@@ -327,6 +329,7 @@ namespace WPEFramework {
             bool getCursorSize(uint32_t& width, uint32_t& height);
             bool setAVBlocked(const string callsign, bool blockAV);
             bool getBlockedAVApplications(JsonArray& appsList);
+            bool enableInputEvents(const JsonArray& clients, bool enable);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();

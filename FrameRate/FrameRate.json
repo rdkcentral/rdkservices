@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "FrameRate API", 
         "class": "FrameRate", 
         "description": "The `FrameRate` plugin allows you to collect FPS data."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "framerate": {
@@ -28,22 +31,6 @@
             "summary": "New Frames per Second (Fps) value",
             "type": "integer",
             "example": 60
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods": {
@@ -56,7 +43,7 @@
                         "$ref": "#/definitions/framerate"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -74,7 +61,7 @@
                         "$ref": "#/definitions/auto-frm-mode"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -97,7 +84,7 @@
                 }
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setDisplayFrameRate": {
@@ -118,7 +105,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setFrmMode":{
@@ -135,7 +122,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "startFpsCollection":{
@@ -144,7 +131,7 @@
                 "onFpsEvent"
             ],
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "stopFpsCollection":{
@@ -153,7 +140,7 @@
                 "onFpsEvent"
             ],
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "updateFps": {
@@ -170,7 +157,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }
     },

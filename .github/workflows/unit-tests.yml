@@ -2,11 +2,11 @@ name: unit-tests
 
 on:
   push:
-    branches: [ sprint/2206 ]
+    branches: [ main, 'sprint/**', 'release/**' ]
 
   pull_request:
     # By default: opened, synchronize, or reopened.
-    branches: [ sprint/2206 ]
+    branches: [ main, 'sprint/**', 'release/**' ]
 
 env:
   BUILD_TYPE: Debug
@@ -160,12 +160,13 @@ jobs:
           -B build/rdkservices
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
-          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system"
+          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system -DENABLE_TELEMETRY_LOGGING"
           -DCOMCAST_CONFIG=OFF
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
           -DPLUGIN_LOCATIONSYNC=ON
           -DPLUGIN_PERSISTENTSTORE=ON
+          -DPLUGIN_TIMER=ON
           -DPLUGIN_SECURITYAGENT=ON
           -DPLUGIN_DEVICEIDENTIFICATION=ON
           -DBUILD_REALTEK=ON
@@ -173,6 +174,7 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
           -DPLUGIN_AVINPUT=ON
+          -DPLUGIN_TELEMETRY=ON
           -DPLUGIN_USBACCESS=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DRDK_SERVICES_TEST=ON

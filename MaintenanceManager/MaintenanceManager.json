@@ -1,27 +1,19 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "MaintenanceManagerPlugin", 
         "class": "MaintenanceManager", 
         "description": "The `MaintenanceManager` plugin allows you to control and monitor maintenance activities on set-top devices."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
         "maintenanceStatus": {
             "summary": "The current maintenance status",
             "type": "string",
             "example": "MAINTENANCE_STARTED"
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
         },
         "optOut":{
             "summary": "The opt-out mode. See [setMaintenanceMode](#method.setMaintenanceMode) for a description of each opt-out mode",
@@ -34,11 +26,6 @@
             "default": "NONE",
             "type": "string",
             "example": "ENFORCE_OPTOUT"
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods": {
@@ -66,7 +53,7 @@
                         "example": false
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -89,7 +76,7 @@
                         "example": 12345678
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -131,21 +118,21 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "startMaintenance":{
             "summary": "Starts maintenance activities. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onMaintenanceStatusChange` | Triggers whenever the maintenance status changes |.",
             "events": ["onMaintenanceStatusChange"],
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }          
         },
         "stopMaintenance":{
             "summary": "Stops maintenance activities. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onMaintenanceStatusChange` | Triggers whenever the maintenance status changes |.",
             "events": ["onMaintenanceStatusChange"],
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }          
         },
         "getMaintenanceMode":{
@@ -166,7 +153,7 @@
                         "$ref": "#/definitions/optOut"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [

@@ -43,8 +43,10 @@ include_directories(../LocationSync
         ../DeviceDiagnostics
         ../FrameRate
         ../AVInput
+        ../Telemetry
         ../DataCapture
         ../UsbAccess
+        ../Timer
         ../helpers
         )
 link_directories(../LocationSync
@@ -54,8 +56,10 @@ link_directories(../LocationSync
         ../DeviceDiagnostics
         ../FrameRate
         ../AVInput
+        ../Telemetry
         ../DataCapture
         ../UsbAccess
+        ../Timer
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -69,7 +73,9 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}DeviceIdentification
         ${NAMESPACE}FrameRate
         ${NAMESPACE}AVInput
+        ${NAMESPACE}Telemetry
         ${NAMESPACE}UsbAccess
+        ${NAMESPACE}Timer
         )
 
 target_include_directories(${PROJECT_NAME}

@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "DeviceIdentification API",
         "class": "DeviceIdentification",
         "description": "The `DeviceIdentification` allows you to retrieve various device-related information"
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "properties": {
         "deviceidentification": {

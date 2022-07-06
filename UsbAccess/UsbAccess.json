@@ -1,28 +1,16 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "UsbAccess API",
         "class": "UsbAccess",
         "description": "The `UsbAccess` plugin provides the ability to examine the contents on a USB drive and access the content through HTTP URLs."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        }
+ 
     },
     "methods": {
         "clearLink": {
@@ -31,7 +19,7 @@
                 "type": "object",
                 "properties": {
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "error":{
                         "summary": "An error message in case of a failure",
@@ -55,7 +43,7 @@
                         "example": "http://localhost/usbdrive"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "error": {
                         "summary": "An error message in case of a failure",
@@ -84,7 +72,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -133,7 +121,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "error": {
                         "summary": "An error message in case of a failure",
@@ -161,7 +149,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -189,7 +177,7 @@
                 "type": "object",
                 "properties": {
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "error": {
                         "summary": "An error message in case of a failure",
@@ -211,7 +199,7 @@
                 "type":"object",
                 "properties": {
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -261,7 +249,7 @@
                         "example": "none"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[

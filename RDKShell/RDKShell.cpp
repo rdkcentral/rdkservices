@@ -126,6 +126,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_GRAPHICS_FRAME_
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE = "setGraphicsFrameRate";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_AV_BLOCKED = "setAVBlocked";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AV_BLOCKED_APPS = "getBlockedAVApplications";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INPUT_EVENTS = "enableInputEvents";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
@@ -885,7 +886,8 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE, &RDKShell::setGraphicsFrameRateWrapper, this);
             Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
             Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
-            Register(RDKSHELL_METHOD_KEY_REPEAT_CONFIG, &RDKShell::keyRepeatConfigWrapper, this);    
+            Register(RDKSHELL_METHOD_ENABLE_INPUT_EVENTS, &RDKShell::enableInputEventsWrapper, this);
+            Register(RDKSHELL_METHOD_KEY_REPEAT_CONFIG, &RDKShell::keyRepeatConfigWrapper, this);
       	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -2845,6 +2847,7 @@ namespace WPEFramework {
         uint32_t RDKShell::hideSplashLogoWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+            LOG_MILESTONE("HIDE_SPLASH_SCREEN");
             bool result = true;
 
             lockRdkShellMutex();
@@ -3071,6 +3074,10 @@ namespace WPEFramework {
             if (result)
             {
                 appCallsign = parameters["callsign"].String();
+                if (appCallsign.compare("SearchAndDiscovery") == 0)
+                {
+                    LOG_MILESTONE("PLUI_LAUNCH_START");
+                }
                 bool isApplicationBeingDestroyed = false;
                 gLaunchDestroyMutex.lock();
                 if (gDestroyApplications.find(appCallsign) != gDestroyApplications.end())
@@ -5517,6 +5524,29 @@ namespace WPEFramework {
             returnResponse(status);
         }
 
+        uint32_t RDKShell::enableInputEventsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("clients"))
+            {
+                response["message"] = "please specify clients parameter";
+                result = false;
+            }
+            else if (!parameters.HasLabel("enable"))
+            {
+                response["message"] = "please specify enable parameter";
+                result = false;
+            }
+            else
+            {
+                result = enableInputEvents(parameters["clients"].Array(), parameters["enable"].Boolean());
+            }
+
+            returnResponse(result);
+        }
+
         uint32_t RDKShell::keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -5572,7 +5602,6 @@ namespace WPEFramework {
             gRdkShellMutex.unlock();
             returnResponse(true);
         }
-        
         // Registered methods end
 
         // Events begin
@@ -6797,6 +6826,35 @@ namespace WPEFramework {
             }
 
             return status;
+        }
+
+        bool RDKShell::enableInputEvents(const JsonArray& clients, bool enable)
+        {
+            bool result = true;
+
+            gRdkShellMutex.lock();
+            for (int i = 0; i < clients.Length(); i++)
+            {
+                const string& clientName = clients[i].String();
+                if (clientName == "*")
+                {
+                    std::vector<std::string> clientList;
+                   CompositorController::getClients(clientList);
+                    for (size_t i = 0; i < clientList.size(); i++)
+                    {
+                        result = result && CompositorController::enableInputEvents(clientList[i], enable);
+                    }
+
+                    break;
+                }
+                else
+                {
+                    result = result && CompositorController::enableInputEvents(clientName, enable);
+                }
+            }
+            gRdkShellMutex.unlock();
+
+            return result;
         }
 
         // Internal methods end

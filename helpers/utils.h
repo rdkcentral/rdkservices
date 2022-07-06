@@ -27,11 +27,10 @@
 #include <tracing/tracing.h>
 #include "rfcapi.h"
 #include <math.h>
+#include "rdk_logger_milestone.h"
 
 // telemetry
-#ifdef ENABLE_TELEMETRY_LOGGING
-#include <telemetry_busmessage_sender.h>
-#endif
+#include "UtilsTelemetry.h"
 
 #define UNUSED(expr)(void)(expr)
 #define C_STR(x) (x).c_str()
@@ -47,6 +46,8 @@
 #define LOG_DEVICE_EXCEPTION0() LOGWARN("Exception caught: code=%d message=%s", err.getCode(), err.what());
 #define LOG_DEVICE_EXCEPTION1(param1) LOGWARN("Exception caught" #param1 "=%s code=%d message=%s", param1.c_str(), err.getCode(), err.what());
 #define LOG_DEVICE_EXCEPTION2(param1, param2) LOGWARN("Exception caught " #param1 "=%s " #param2 "=%s code=%d message=%s", param1.c_str(), param2.c_str(), err.getCode(), err.what());
+
+#define LOG_MILESTONE(milestone) logMilestone(milestone);
 
 /* a=target variable, b=bit number to act upon 0-n */
 #define BIT_SET(a,b) ((a) |= (1ULL<<(b)))
@@ -241,46 +242,4 @@ namespace Utils
     void syncPersistFile (const string file);
     void persistJsonSettings(const string file, const string strKey, const JsonValue& jsValue);
 
-    struct Telemetry
-    {
-        static void init()
-        {
-#ifdef ENABLE_TELEMETRY_LOGGING
-            t2_init("Thunder_Plugins");
-#endif
-        };
-
-        static void sendMessage(char* message)
-        {
-#ifdef ENABLE_TELEMETRY_LOGGING
-            t2_event_s("THUNDER_MESSAGE", message);
-#endif
-        };
-
-        static void sendMessage(char *marker, char* message)
-        {
-#ifdef ENABLE_TELEMETRY_LOGGING
-            t2_event_s(marker, message);
-#endif
-        };
-
-        static void sendError(const char* format, ...)
-        {
-#ifdef ENABLE_TELEMETRY_LOGGING
-            va_list parameters;
-            va_start(parameters, format);
-            std::string message;
-            WPEFramework::Trace::Format(message, format, parameters);
-            va_end(parameters);
-
-            // get rid of const for t2_event_s
-            char* error = strdup(message.c_str());
-            t2_event_s("THUNDER_ERROR", error);
-            if (error)
-            {
-                free(error);
-            }
-#endif
-        };
-    };
 } // namespace Utils

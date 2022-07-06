@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "RemoteActionMapping API", 
         "class": "RemoteActionMapping",
         "description": "The `RemoteActionMapping` plugin controls and maps remote controllers."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "deviceID": {
@@ -56,22 +59,6 @@
                 "type": "integer",
                 "example": 18
             }                                                
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }  
     },
     "methods":{
@@ -95,7 +82,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -135,7 +122,7 @@
                         "$ref": "#/definitions/status_code"           
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -156,7 +143,7 @@
                         "example": 1
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -216,7 +203,7 @@
                         "$ref": "#/definitions/status_code"           
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -253,7 +240,7 @@
                         "$ref": "#/definitions/status_code"           
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -290,7 +277,7 @@
                         "$ref": "#/definitions/status_code"           
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -355,7 +342,7 @@
                         "$ref": "#/definitions/status_code"           
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -400,7 +387,7 @@
                         "$ref": "#/definitions/status_code"           
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -464,7 +451,7 @@
                         "$ref": "#/definitions/status_code"           
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [

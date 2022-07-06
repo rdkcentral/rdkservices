@@ -59,7 +59,7 @@ namespace WPEFramework {
             virtual uint32_t getCurrentState(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t startScan(const JsonObject& parameters, JsonObject& response) const override;
             virtual uint32_t stopScan(const JsonObject& parameters, JsonObject& response) override;
-            virtual uint32_t getConnectedSSID(const JsonObject& parameters, JsonObject& response) const override;
+            virtual uint32_t getConnectedSSID(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t setEnabled(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t connect(const JsonObject& parameters, JsonObject& response) override;
             virtual uint32_t disconnect(const JsonObject& parameters, JsonObject& response) override;

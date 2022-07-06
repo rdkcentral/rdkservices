@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "ControlService API", 
         "class": "ControlService", 
         "description": "The `ControlService` plugin provides the ability to manage the remote controls of a STB."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "params":{
@@ -91,22 +94,6 @@
             "summary": "The third digit for pairing",
             "type": "integer",
             "example": 5
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods":{
@@ -124,7 +111,7 @@
                         "example": "true"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -147,7 +134,7 @@
                         "example": 1
                     },
                     "success": {
-                        "$ref": "#definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -173,7 +160,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -207,7 +194,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -693,7 +680,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -765,7 +752,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -1168,7 +1155,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -1194,7 +1181,7 @@
                         }
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -1598,7 +1585,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -1643,7 +1630,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -1697,7 +1684,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -1734,7 +1721,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
