@@ -5,6 +5,7 @@
 
 #include "rfcapi.h"
 
+#include "exception.hpp"
 #include "host.hpp"
 #include "manager.hpp"
 #include "videoOutputPortConfig.hpp"
@@ -22,7 +23,7 @@ namespace Plugin {
         constexpr auto* kRfcPartnerId = _T("Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId");
         constexpr auto* kRfcModelName = _T("Device.DeviceInfo.ModelName");
         constexpr auto* kRfcSerialNumber = _T("Device.DeviceInfo.SerialNumber");
-        constexpr auto* kDefaultAudioPort = _T("HDMI0");
+        constexpr auto* kDefaultAudioPort = _T(DEFAULT_AUDIO_PORT);
     }
 
     SERVICE_REGISTRATION(DeviceCapabilities, 1, 0);
@@ -37,6 +38,10 @@ namespace Plugin {
         try {
             // Also not obvious but otherwise DS fails
             device::Manager::Initialize();
+        } catch (const device::Exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+        } catch (const std::exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
         } catch (...) {
         }
     }
@@ -45,6 +50,10 @@ namespace Plugin {
     {
         try {
             device::Manager::DeInitialize();
+        } catch (const device::Exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+        } catch (const std::exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
         } catch (...) {
         }
     }
@@ -207,6 +216,12 @@ namespace Plugin {
             for (size_t i = 0; i < aPorts.size(); i++) {
                 list.emplace_back(aPorts.at(i).getName());
             }
+        } catch (const device::Exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
+        } catch (const std::exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
         } catch (...) {
             result = Core::ERROR_GENERAL;
         }
@@ -229,6 +244,12 @@ namespace Plugin {
             for (size_t i = 0; i < vPorts.size(); i++) {
                 list.emplace_back(vPorts.at(i).getName());
             }
+        } catch (const device::Exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
+        } catch (const std::exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
         } catch (...) {
             result = Core::ERROR_GENERAL;
         }
@@ -249,6 +270,12 @@ namespace Plugin {
             vector<unsigned char> edidVec2;
             device::Host::getInstance().getHostEDID(edidVec2);
             edidVec = edidVec2;
+        } catch (const device::Exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
+        } catch (const std::exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
         } catch (...) {
             result = Core::ERROR_GENERAL;
         }
@@ -277,6 +304,12 @@ namespace Plugin {
             auto strVideoPort = videoDisplay.empty() ? device::Host::getInstance().getDefaultVideoPortName() : videoDisplay;
             auto& vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort);
             defaultResolution = vPort.getDefaultResolution().getName();
+        } catch (const device::Exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
+        } catch (const std::exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
         } catch (...) {
             result = Core::ERROR_GENERAL;
         }
@@ -297,6 +330,12 @@ namespace Plugin {
             for (size_t i = 0; i < resolutions.size(); i++) {
                 list.emplace_back(resolutions.at(i).getName());
             }
+        } catch (const device::Exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
+        } catch (const std::exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
         } catch (...) {
             result = Core::ERROR_GENERAL;
         }
@@ -325,6 +364,12 @@ namespace Plugin {
             default:
                 result = Core::ERROR_GENERAL;
             }
+        } catch (const device::Exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
+        } catch (const std::exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
         } catch (...) {
             result = Core::ERROR_GENERAL;
         }
@@ -344,6 +389,12 @@ namespace Plugin {
             auto strAudioPort = audioPort.empty() ? string(kDefaultAudioPort) : audioPort;
             auto& aPort = device::Host::getInstance().getAudioOutputPort(strAudioPort);
             aPort.getAudioCapabilities(&capabilities);
+        } catch (const device::Exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
+        } catch (const std::exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
         } catch (...) {
             result = Core::ERROR_GENERAL;
         }
@@ -382,6 +433,12 @@ namespace Plugin {
             auto strAudioPort = audioPort.empty() ? string(kDefaultAudioPort) : audioPort;
             auto& aPort = device::Host::getInstance().getAudioOutputPort(strAudioPort);
             aPort.getMS12Capabilities(&capabilities);
+        } catch (const device::Exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
+        } catch (const std::exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
         } catch (...) {
             result = Core::ERROR_GENERAL;
         }
@@ -415,6 +472,12 @@ namespace Plugin {
             for (size_t i = 0; i < supportedProfiles.size(); i++) {
                 list.emplace_back(supportedProfiles.at(i));
             }
+        } catch (const device::Exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
+        } catch (const std::exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+            result = Core::ERROR_GENERAL;
         } catch (...) {
             result = Core::ERROR_GENERAL;
         }
