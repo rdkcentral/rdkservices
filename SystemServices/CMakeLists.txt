@@ -85,8 +85,6 @@ else (RFC_FOUND)
 	message ("RFC lib required.")
 endif (RFC_FOUND)
 
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}SecurityUtil)
-
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ./)
 
