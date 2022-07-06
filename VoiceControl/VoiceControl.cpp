@@ -24,6 +24,7 @@ namespace WPEFramework {
             VoiceControl::_instance = this;
 
             Register("getApiVersionNumber",   &VoiceControl::getApiVersionNumber, this);
+            Register("getQuirks",             &VoiceControl::getQuirks,           this);
 
             Register("voiceStatus",           &VoiceControl::voiceStatus,         this);
             Register("configureVoice",        &VoiceControl::configureVoice,      this);
@@ -176,6 +177,14 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             response["version"] = m_apiVersionNumber;
+            returnResponse(true);
+        }
+
+        uint32_t VoiceControl::getQuirks(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            JsonArray array;
+            response["quirks"] = array;
             returnResponse(true);
         }
 
