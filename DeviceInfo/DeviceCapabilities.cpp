@@ -23,14 +23,14 @@ namespace Plugin {
         constexpr auto* kRfcPartnerId = _T("Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId");
         constexpr auto* kRfcModelName = _T("Device.DeviceInfo.ModelName");
         constexpr auto* kRfcSerialNumber = _T("Device.DeviceInfo.SerialNumber");
-        constexpr auto* kDefaultAudioPort = _T(DEFAULT_AUDIO_PORT);
+        constexpr auto* kDefaultAudioPort = _T("HDMI0");
     }
 
     SERVICE_REGISTRATION(DeviceCapabilities, 1, 0);
 
     DeviceCapabilities::DeviceCapabilities()
     {
-        // DeviceCapabilities runs in a separate process so need to prepare DS
+        // Make sure DS is Initialized
 
         // Not obvious but otherwise DS seg faults
         Utils::IARM::init();
@@ -48,14 +48,16 @@ namespace Plugin {
 
     DeviceCapabilities::~DeviceCapabilities()
     {
-        try {
+        // If other services continue using DS this probably shouldn't be called
+
+        /*try {
             device::Manager::DeInitialize();
         } catch (const device::Exception& e) {
             TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
         } catch (const std::exception& e) {
             TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
         } catch (...) {
-        }
+        }*/
     }
 
     uint32_t DeviceCapabilities::SerialNumber(string& serialNumber) const
