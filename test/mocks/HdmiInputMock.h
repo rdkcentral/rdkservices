@@ -11,4 +11,5 @@ public:
     MOCK_METHOD(uint8_t, getNumberOfInputs, (), (const, override));
     MOCK_METHOD(bool, isPortConnected, (int8_t Port), (const, override));
     MOCK_METHOD(std::string, getCurrentVideoMode, (), (const, override));
+    MOCK_METHOD(std::string, selectPort, (int8_t Port), (const, override))
 };
