@@ -122,8 +122,16 @@ namespace Plugin {
                 response.Sdk = value;
             if (_firmwareVersion->Mediarite(value) == Core::ERROR_NONE)
                 response.Mediarite = value;
-            if (_firmwareVersion->Yocto(value) == Core::ERROR_NONE)
-                response.Yocto = Core::EnumerateType<FirmwareversionData::YoctoType>(value.c_str()).Value();
+
+            if (_firmwareVersion->Yocto(value) == Core::ERROR_NONE) {
+                Core::EnumerateType<FirmwareversionData::YoctoType> yocto(value.c_str(), false);
+                if (yocto.IsSet()) {
+                    response.Yocto = yocto.Value();
+                } else {
+                    TRACE(Trace::Fatal, (_T("Unknown value %s"), value.c_str()));
+                    result = Core::ERROR_GENERAL;
+                }
+            }
         }
 
         return result;
@@ -155,7 +163,13 @@ namespace Plugin {
 
         auto result = _deviceCapabilities->Sku(sku);
         if (result == Core::ERROR_NONE) {
-            response.Sku = Core::EnumerateType<JsonData::DeviceInfo::ModelidData::SkuType>(sku.c_str()).Value();
+            Core::EnumerateType<JsonData::DeviceInfo::ModelidData::SkuType> value(sku.c_str(), false);
+            if (value.IsSet()) {
+                response.Sku = value.Value();
+            } else {
+                TRACE(Trace::Fatal, (_T("Unknown value %s"), sku.c_str()));
+                result = Core::ERROR_GENERAL;
+            }
         }
 
         return result;
@@ -171,7 +185,13 @@ namespace Plugin {
 
         auto result = _deviceCapabilities->Make(make);
         if (result == Core::ERROR_NONE) {
-            response.Make = Core::EnumerateType<JsonData::DeviceInfo::MakeData::MakeType>(make.c_str()).Value();
+            Core::EnumerateType<JsonData::DeviceInfo::MakeData::MakeType> value(make.c_str(), false);
+            if (value.IsSet()) {
+                response.Make = value.Value();
+            } else {
+                TRACE(Trace::Fatal, (_T("Unknown value %s"), make.c_str()));
+                result = Core::ERROR_GENERAL;
+            }
         }
 
         return result;
@@ -203,7 +223,13 @@ namespace Plugin {
 
         auto result = _deviceCapabilities->DeviceType(deviceType);
         if (result == Core::ERROR_NONE) {
-            response.Devicetype = Core::EnumerateType<JsonData::DeviceInfo::DevicetypeData::DevicetypeType>(deviceType.c_str()).Value();
+            Core::EnumerateType<JsonData::DeviceInfo::DevicetypeData::DevicetypeType> value(deviceType.c_str(), false);
+            if (value.IsSet()) {
+                response.Devicetype = value.Value();
+            } else {
+                TRACE(Trace::Fatal, (_T("Unknown value %s"), deviceType.c_str()));
+                result = Core::ERROR_GENERAL;
+            }
         }
 
         return result;
@@ -219,7 +245,13 @@ namespace Plugin {
 
         auto result = _deviceCapabilities->DistributorId(distributorId);
         if (result == Core::ERROR_NONE) {
-            response.Distributorid = Core::EnumerateType<JsonData::DeviceInfo::DistributoridData::DistributoridType>(distributorId.c_str()).Value();
+            Core::EnumerateType<JsonData::DeviceInfo::DistributoridData::DistributoridType> value(distributorId.c_str(), false);
+            if (value.IsSet()) {
+                response.Distributorid = value.Value();
+            } else {
+                TRACE(Trace::Fatal, (_T("Unknown value %s"), distributorId.c_str()));
+                result = Core::ERROR_GENERAL;
+            }
         }
 
         return result;
@@ -291,7 +323,13 @@ namespace Plugin {
 
         auto result = _deviceCapabilities->DefaultResolution(params.VideoDisplay.Value(), defaultResolution);
         if (result == Core::ERROR_NONE) {
-            response.DefaultResolution = Core::EnumerateType<JsonData::DeviceInfo::Output_resolutionType>(defaultResolution.c_str()).Value();
+            Core::EnumerateType<JsonData::DeviceInfo::Output_resolutionType> value(defaultResolution.c_str(), false);
+            if (value.IsSet()) {
+                response.DefaultResolution = value.Value();
+            } else {
+                TRACE(Trace::Fatal, (_T("Unknown value %s"), defaultResolution.c_str()));
+                result = Core::ERROR_GENERAL;
+            }
         }
 
         return result;
@@ -309,7 +347,15 @@ namespace Plugin {
         if (result == Core::ERROR_NONE) {
             string element;
             while (supportedResolutions->Next(element) == true) {
-                response.SupportedResolutions.Add() = Core::EnumerateType<JsonData::DeviceInfo::Output_resolutionType>(element.c_str()).Value();
+                Core::EnumerateType<JsonData::DeviceInfo::Output_resolutionType> value(element.c_str(), false);
+                if (value.IsSet()) {
+                    response.SupportedResolutions.Add() = value.Value();
+                } else {
+                    TRACE(Trace::Fatal, (_T("Unknown value %s"), element.c_str()));
+                    result = Core::ERROR_GENERAL;
+
+                    break;
+                }
             }
             supportedResolutions->Release();
         }
