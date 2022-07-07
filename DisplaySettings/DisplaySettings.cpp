@@ -69,6 +69,8 @@ using namespace std;
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
 #define AUDIO_DEVICE_CONNECTION_CHECK_TIME_IN_MILLISECONDS 3000
 
+#define RFC_PWRMGR2 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.PwrMgr2.Enable"
+
 #define ZOOM_SETTINGS_FILE      "/opt/persistent/rdkservices/zoomSettings.json"
 #define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
 
