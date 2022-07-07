@@ -70,7 +70,6 @@ int getTypeOfInput(string sType)
 
 namespace WPEFramework {
 namespace Plugin {
-
 /*
 namespace {
 void dsHdmiEventHandler(const char *, IARM_EventId_t eventId, void *, size_t)
@@ -94,7 +93,7 @@ void dsHdmiEventHandler(const char *, IARM_EventId_t eventId, void *, size_t)
             LOGERR("Exception caught");
         }
     }
-}
+}*/
 }
 */
 
