@@ -14,7 +14,11 @@ public:
 
 class CompositeInput {
 public:
-    static CompositeInput & getInstance();
+    static CompositeInput & getInstance()
+    {
+        static CompositeInput instance;
+        return instance;
+    }
     
     CompositeInputImpl* impl;
 
