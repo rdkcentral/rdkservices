@@ -19,6 +19,9 @@
 
 #include "DeviceInfo.h"
 
+#include "DeviceCapabilities.h"
+#include "FirmwareVersion.h"
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -40,11 +43,8 @@ namespace Plugin {
 
         ASSERT(_subSystem != nullptr);
 
-        _deviceCapabilities = service->Root<Exchange::IDeviceCapabilities>(_connectionId, 2000, _T("DeviceCapabilities"));
-        ASSERT(_deviceCapabilities != nullptr);
-
-        _firmwareVersion = service->Root<Exchange::IFirmwareVersion>(_connectionId, 2000, _T("FirmwareVersion"));
-        ASSERT(_firmwareVersion != nullptr);
+        _deviceCapabilities = Core::Service<DeviceCapabilities>::Create<DeviceCapabilities>();
+        _firmwareVersion = Core::Service<FirmwareVersion>::Create<FirmwareVersion>();
 
         // On success return empty, to indicate there is no error text.
 
