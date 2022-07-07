@@ -93,7 +93,7 @@ void dsHdmiEventHandler(const char *, IARM_EventId_t eventId, void *, size_t)
             LOGERR("Exception caught");
         }
     }
-}*/
+}
 }
 */
 
