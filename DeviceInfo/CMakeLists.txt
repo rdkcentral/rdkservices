@@ -18,10 +18,6 @@
 set(PLUGIN_NAME DeviceInfo)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
-set(DEFAULT_AUDIO_PORT "HDMI0" CACHE STRING "Default audio output port name")
-
-add_definitions(-DDEFAULT_AUDIO_PORT="${DEFAULT_AUDIO_PORT}")
-
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
