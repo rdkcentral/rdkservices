@@ -502,6 +502,12 @@ void AudioPlayer::wsConnectionStatus(WSStatus status)
         case DISCONNECTED:  break;
         case NETWORKERROR: 
         {
+            if (webClient == nullptr)
+            {
+                SAPLOG_INFO("Secured connection to %s interrupted.", m_url.c_str());
+                break;
+            }
+
             if (webClient->getConnectionType() == impl::ConnectionType::Secured)
             {
                 SAPLOG_WARNING("Secured connection to %s failed. Retrying with unsecured.", m_url.c_str());
