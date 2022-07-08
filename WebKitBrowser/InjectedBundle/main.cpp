@@ -46,6 +46,10 @@
 #include "AAMPJSBindings.h"
 #endif
 
+#if defined(UPDATE_TZ_FROM_FILE)
+#include "TimeZoneSupport.h"
+#endif
+
 using namespace WPEFramework;
 using JavaScript::ClassDefinition;
 
@@ -107,10 +111,17 @@ public:
             Trace::TraceUnit::Instance().Open(_comClient->ConnectionId());
         }
         _whiteListedOriginDomainPairs = WhiteListedOriginDomainsList::RequestFromWPEFramework();
+
+#if defined(UPDATE_TZ_FROM_FILE)
+        _tzSupport.Initialize();
+#endif
     }
 
     void Deinitialize()
     {
+#if defined(UPDATE_TZ_FROM_FILE)
+        _tzSupport.Deinitialize();
+#endif
         if (_comClient.IsValid() == true) {
             _comClient.Release();
         }
@@ -128,6 +139,10 @@ public:
 private:
     Core::ProxyType<RPC::InvokeServerType<2, 0, 4> > _engine;
     Core::ProxyType<RPC::CommunicatorClient> _comClient;
+
+#if defined(UPDATE_TZ_FROM_FILE)
+    TZ::TimeZoneSupport _tzSupport;
+#endif
 
     // White list for CORS.
     std::unique_ptr<WhiteListedOriginDomainsList> _whiteListedOriginDomainPairs;
