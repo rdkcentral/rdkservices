@@ -19,6 +19,9 @@
 
 #include "DeviceInfo.h"
 
+#include "DeviceCapabilities.h"
+#include "FirmwareVersion.h"
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -33,14 +36,15 @@ namespace Plugin {
 
         ASSERT(_subSystem == nullptr);
 
-        Config config;
-        config.FromString(service->ConfigLine());
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
         _subSystem = service->SubSystems();
         _service = service;
         _systemId = Core::SystemInfo::Instance().Id(Core::SystemInfo::Instance().RawDeviceId(), ~0);
 
         ASSERT(_subSystem != nullptr);
+
+        _deviceCapabilities = Core::Service<DeviceCapabilities>::Create<DeviceCapabilities>();
+        _firmwareVersion = Core::Service<FirmwareVersion>::Create<FirmwareVersion>();
 
         // On success return empty, to indicate there is no error text.
 
@@ -50,6 +54,12 @@ namespace Plugin {
     /* virtual */ void DeviceInfo::Deinitialize(PluginHost::IShell* service)
     {
         ASSERT(_service == service);
+
+        _deviceCapabilities->Release();
+        _deviceCapabilities = nullptr;
+
+        _firmwareVersion->Release();
+        _firmwareVersion = nullptr;
 
         if (_subSystem != nullptr) {
             _subSystem->Release();
@@ -121,9 +131,22 @@ namespace Plugin {
         systemInfo.Uptime = singleton.GetUpTime();
         systemInfo.Freeram = singleton.GetFreeRam();
         systemInfo.Totalram = singleton.GetTotalRam();
+        systemInfo.Totalswap = singleton.GetTotalSwap();
+        systemInfo.Freeswap = singleton.GetFreeSwap();
         systemInfo.Devicename = singleton.GetHostName();
         systemInfo.Cpuload = Core::NumberType<uint32_t>(static_cast<uint32_t>(singleton.GetCpuLoad())).Text();
         systemInfo.Serialnumber = _systemId;
+
+        auto cpuloadavg = singleton.GetCpuLoadAvg();
+        if (cpuloadavg != nullptr) {
+            systemInfo.Cpuloadavg.Avg1min = *(cpuloadavg);
+            if (++cpuloadavg != nullptr) {
+                systemInfo.Cpuloadavg.Avg5min = *(cpuloadavg);
+                if (++cpuloadavg != nullptr) {
+                    systemInfo.Cpuloadavg.Avg15min = *(cpuloadavg);
+                }
+            }
+        }
     }
 
     void DeviceInfo::AddressInfo(Core::JSON::ArrayType<JsonData::DeviceInfo::AddressesData>& addressInfo) const
