@@ -1,5 +1,5 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "TextToSpeech API",
@@ -51,6 +51,11 @@
             "summary": "The TTS Rate",
             "type": "number",
             "example": 50
+        },
+        "apikey": {
+            "summary": "x api key(secret key) required for GCD Endpoints",
+            "type": "string",
+            "example": "XXXXXXXXXXXX"
         },
         "text":{
             "summary": "The text input",
@@ -443,7 +448,21 @@
                     },
                     "rate":{
                         "$ref": "#/definitions/rate"
-                    }
+                    },
+                    "authinfo":{
+                        "type": "object",
+                        "properties": {
+                                       "type": {
+                                                 "summary": "type of authentication,at present only apikey is supported",
+                                                 "type": "string",
+                                                 "example": "apikey"
+                                        },
+                                       "value": {
+                                           "$ref": "#/definitions/apikey"
+                                        }
+
+                               }
+                        }     
                 },
                 "required": [
                 ]

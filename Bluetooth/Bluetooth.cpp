@@ -21,6 +21,12 @@
 
 #include "Bluetooth.h"
 
+#include "UtilsUnused.h"
+#include "UtilsCStr.h"
+#include "UtilsIarm.h"
+#include "UtilsString.h"
+#include "UtilsJsonRpc.h"
+
 #include <stdlib.h>
 
 // IMPLEMENTATION NOTE
@@ -131,35 +137,35 @@ namespace WPEFramework
         }
 
         Bluetooth::Bluetooth()
-        : AbstractPlugin()
+        : PluginHost::JSONRPC()
         , m_apiVersionNumber(API_VERSION_NUMBER_MAJOR)
         , m_discoveryRunning(false)
         , m_discoveryTimer(this)
         {
             Bluetooth::_instance = this;
-            registerMethod(METHOD_GET_API_VERSION_NUMBER, &Bluetooth::getApiVersionNumber, this);
-            registerMethod(METHOD_START_SCAN, &Bluetooth::startScanWrapper, this);
-            registerMethod(METHOD_STOP_SCAN, &Bluetooth::stopScanWrapper, this);
-            registerMethod(METHOD_IS_DISCOVERABLE, &Bluetooth::isDiscoverableWrapper, this);
-            registerMethod(METHOD_GET_DISCOVERED_DEVICES, &Bluetooth::getDiscoveredDevicesWrapper, this);
-            registerMethod(METHOD_GET_PAIRED_DEVICES, &Bluetooth::getPairedDevicesWrapper, this);
-            registerMethod(METHOD_GET_CONNECTED_DEVICES, &Bluetooth::getConnectedDevicesWrapper, this);
-            registerMethod(METHOD_CONNECT, &Bluetooth::connectWrapper, this);
-            registerMethod(METHOD_DISCONNECT, &Bluetooth::disconnectWrapper, this);
-            registerMethod(METHOD_SET_AUDIO_STREAM, &Bluetooth::setAudioStreamWrapper, this);
-            registerMethod(METHOD_PAIR, &Bluetooth::pairWrapper, this);
-            registerMethod(METHOD_UNPAIR, &Bluetooth::unpairWrapper, this);
-            registerMethod(METHOD_ENABLE, &Bluetooth::enableWrapper, this);
-            registerMethod(METHOD_DISABLE, &Bluetooth::disableWrapper, this);
-            registerMethod(METHOD_SET_DISCOVERABLE, &Bluetooth::setDiscoverableWrapper, this);
-            registerMethod(METHOD_GET_NAME, &Bluetooth::getNameWrapper, this);
-            registerMethod(METHOD_SET_NAME, &Bluetooth::setNameWrapper, this);
-            registerMethod(METHOD_SET_AUDIO_PLAYBACK_COMMAND, &Bluetooth::sendAudioPlaybackCommandWrapper, this);
-            registerMethod(METHOD_SET_EVENT_RESPONSE, &Bluetooth::setEventResponseWrapper, this);
-            registerMethod(METHOD_GET_DEVICE_INFO, &Bluetooth::getDeviceInfoWrapper, this);
-            registerMethod(METHOD_GET_AUDIO_INFO, &Bluetooth::getMediaTrackInfoWrapper, this);
-            registerMethod(METHOD_GET_DEVICE_VOLUME_MUTE_INFO, &Bluetooth::getDeviceVolumeMuteInfoWrapper, this);
-            registerMethod(METHOD_SET_DEVICE_VOLUME_MUTE_INFO, &Bluetooth::setDeviceVolumeMuteInfoWrapper, this);
+            Register(METHOD_GET_API_VERSION_NUMBER, &Bluetooth::getApiVersionNumber, this);
+            Register(METHOD_START_SCAN, &Bluetooth::startScanWrapper, this);
+            Register(METHOD_STOP_SCAN, &Bluetooth::stopScanWrapper, this);
+            Register(METHOD_IS_DISCOVERABLE, &Bluetooth::isDiscoverableWrapper, this);
+            Register(METHOD_GET_DISCOVERED_DEVICES, &Bluetooth::getDiscoveredDevicesWrapper, this);
+            Register(METHOD_GET_PAIRED_DEVICES, &Bluetooth::getPairedDevicesWrapper, this);
+            Register(METHOD_GET_CONNECTED_DEVICES, &Bluetooth::getConnectedDevicesWrapper, this);
+            Register(METHOD_CONNECT, &Bluetooth::connectWrapper, this);
+            Register(METHOD_DISCONNECT, &Bluetooth::disconnectWrapper, this);
+            Register(METHOD_SET_AUDIO_STREAM, &Bluetooth::setAudioStreamWrapper, this);
+            Register(METHOD_PAIR, &Bluetooth::pairWrapper, this);
+            Register(METHOD_UNPAIR, &Bluetooth::unpairWrapper, this);
+            Register(METHOD_ENABLE, &Bluetooth::enableWrapper, this);
+            Register(METHOD_DISABLE, &Bluetooth::disableWrapper, this);
+            Register(METHOD_SET_DISCOVERABLE, &Bluetooth::setDiscoverableWrapper, this);
+            Register(METHOD_GET_NAME, &Bluetooth::getNameWrapper, this);
+            Register(METHOD_SET_NAME, &Bluetooth::setNameWrapper, this);
+            Register(METHOD_SET_AUDIO_PLAYBACK_COMMAND, &Bluetooth::sendAudioPlaybackCommandWrapper, this);
+            Register(METHOD_SET_EVENT_RESPONSE, &Bluetooth::setEventResponseWrapper, this);
+            Register(METHOD_GET_DEVICE_INFO, &Bluetooth::getDeviceInfoWrapper, this);
+            Register(METHOD_GET_AUDIO_INFO, &Bluetooth::getMediaTrackInfoWrapper, this);
+            Register(METHOD_GET_DEVICE_VOLUME_MUTE_INFO, &Bluetooth::getDeviceVolumeMuteInfoWrapper, this);
+            Register(METHOD_SET_DEVICE_VOLUME_MUTE_INFO, &Bluetooth::setDeviceVolumeMuteInfoWrapper, this);
 
             Utils::IARM::init();
 

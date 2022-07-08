@@ -19,7 +19,7 @@
 
 #include "ScreenCapture.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 
 #ifdef PLATFORM_BROADCOM
 #include <nexus_config.h>
@@ -50,7 +50,7 @@ namespace WPEFramework
         SERVICE_REGISTRATION(ScreenCapture, 1, 0);
 
         ScreenCapture::ScreenCapture()
-        : AbstractPlugin()
+            : PluginHost::JSONRPC()
 #if defined(PLATFORM_AMLOGIC)
         , m_RDKShellRef(nullptr)
         , m_captureRef(nullptr)

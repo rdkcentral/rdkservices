@@ -20,7 +20,9 @@
 #include "RemoteActionMapping.h"
 #include "libIBusDaemon.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
+#include "UtilsUnused.h"
 #include <exception>
 
 const int supported_ked_keynames[] =
@@ -95,23 +97,23 @@ namespace WPEFramework {
 
 
         RemoteActionMapping::RemoteActionMapping()
-            : AbstractPlugin()
+            : PluginHost::JSONRPC()
             , m_apiVersionNumber((uint32_t)-1)   /* default max uint32_t so everything gets enabled */    //TODO(MROLLINS) Can't we access this from jsonrpc interface?
             , m_ribLoadTimeoutImpl(this)
         {
             LOGINFO("ctor");
             RemoteActionMapping::_instance = this;
 
-            registerMethod("getApiVersionNumber",       &RemoteActionMapping::getApiVersionNumber, this);
+            Register("getApiVersionNumber",       &RemoteActionMapping::getApiVersionNumber, this);
 
-            registerMethod("getLastUsedDeviceID",       &RemoteActionMapping::getLastUsedDeviceIDWrapper, this);
-            registerMethod("getKeymap",                 &RemoteActionMapping::getKeymapWrapper, this);
-            registerMethod("setKeyActionMapping",       &RemoteActionMapping::setKeyActionMappingWrapper, this);
-            registerMethod("clearKeyActionMapping",     &RemoteActionMapping::clearKeyActionMappingWrapper, this);
-            registerMethod("getFullKeyActionMapping",   &RemoteActionMapping::getFullKeyActionMappingWrapper, this);
-            registerMethod("getSingleKeyActionMapping", &RemoteActionMapping::getSingleKeyActionMappingWrapper, this);
-            registerMethod("cancelCodeDownload",        &RemoteActionMapping::cancelCodeDownloadWrapper, this);
-            registerMethod("setFiveDigitCode",          &RemoteActionMapping::setFiveDigitCodeWrapper, this);
+            Register("getLastUsedDeviceID",       &RemoteActionMapping::getLastUsedDeviceIDWrapper, this);
+            Register("getKeymap",                 &RemoteActionMapping::getKeymapWrapper, this);
+            Register("setKeyActionMapping",       &RemoteActionMapping::setKeyActionMappingWrapper, this);
+            Register("clearKeyActionMapping",     &RemoteActionMapping::clearKeyActionMappingWrapper, this);
+            Register("getFullKeyActionMapping",   &RemoteActionMapping::getFullKeyActionMappingWrapper, this);
+            Register("getSingleKeyActionMapping", &RemoteActionMapping::getSingleKeyActionMappingWrapper, this);
+            Register("cancelCodeDownload",        &RemoteActionMapping::cancelCodeDownloadWrapper, this);
+            Register("setFiveDigitCode",          &RemoteActionMapping::setFiveDigitCodeWrapper, this);
 
             setApiVersionNumber(3);
         }

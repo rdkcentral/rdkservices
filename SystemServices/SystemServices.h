@@ -23,18 +23,25 @@
 #include <stdint.h>
 #include <thread>
 #include <regex.h>
+#include <cctype>
+#include <fstream>
+#include <cstring>
+using std::ofstream;
+#include <cstdlib>
+#include <iostream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "Module.h"
 #include "tracing/Logging.h"
 #include "utils.h"
-#include "AbstractPlugin.h"
+#include "UtilsThreadRAII.h"
 #include "SystemServicesHelper.h"
 #include "platformcaps/platformcaps.h"
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
-#include "libIBus.h"
 #include "irMgr.h"
-#include "libIBusDaemon.h"
 #include "pwrMgr.h"
 #include "host.hpp"
 #include "sleepMode.hpp"
@@ -58,6 +65,9 @@
 #define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
 #define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
+#define EVT_ONTERRITORYCHANGED            "onTerritoryChanged"
+#define EVT_ONTIMEZONEDSTCHANGED          "onTimeZoneDSTChanged"
+#define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
 namespace WPEFramework {
     namespace Plugin {
@@ -85,7 +95,7 @@ namespace WPEFramework {
             int duration;  // duration in seconds
         };
 
-        class SystemServices : public AbstractPlugin {
+        class SystemServices : public PluginHost::IPlugin, public PluginHost::JSONRPC {
             private:
                 typedef Core::JSON::String JString;
                 typedef Core::JSON::ArrayType<JString> JStringArray;
@@ -126,9 +136,13 @@ namespace WPEFramework {
                 std::string m_powerStateBeforeReboot;
                 bool m_powerStateBeforeRebootValid;
 
+		std::string m_strTerritory;
+                std::string m_strRegion;
+
                 static void startModeTimer(int duration);
                 static void stopModeTimer();
                 static void updateDuration();
+				std::string  m_strStandardTerritoryList;
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
                 bool getManufacturerData(const string& parameter, JsonObject& response);
                 uint32_t getMfgSerialNumber(const JsonObject& parameters, JsonObject& response);
@@ -148,6 +162,13 @@ namespace WPEFramework {
                 static SystemServices* _instance;
                 virtual const string Initialize(PluginHost::IShell* service) override;
                 virtual void Deinitialize(PluginHost::IShell* service) override;
+                virtual string Information() const override { return {}; }
+
+                BEGIN_INTERFACE_MAP(SystemServices)
+                INTERFACE_ENTRY(PluginHost::IPlugin)
+                INTERFACE_ENTRY(PluginHost::IDispatcher)
+                END_INTERFACE_MAP
+
                 static int runScript(const std::string& script,
                         const std::string& args, string *output = NULL,
                         string *error = NULL, int timeout = 30000);
@@ -172,6 +193,8 @@ namespace WPEFramework {
                         bool exceed, float temperature);
                 void onRebootRequest(string reason);
                 void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
+		void onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion="", string newRegion="");
+		void onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone);
                 /* Events : End */
 
                 /* Methods : Begin */
@@ -217,6 +240,12 @@ namespace WPEFramework {
 		uint32_t getWakeupReason(const JsonObject& parameters, JsonObject& response);
                 uint32_t getLastWakeupKeyCode(const JsonObject& parameters, JsonObject& response);
 #endif
+		uint32_t setTerritory(const JsonObject& parameters, JsonObject& response);
+		uint32_t getTerritory(const JsonObject& parameters, JsonObject& response);
+		bool readTerritoryFromFile();
+		bool isStrAlphaUpper(string strVal);
+		bool isRegionValid(string regionStr);
+		uint32_t writeTerritory(string territory, string region);
                 uint32_t getXconfParams(const JsonObject& parameters, JsonObject& response);
                 uint32_t getSerialNumber(const JsonObject& parameters, JsonObject& response);
                 bool getSerialNumberTR069(JsonObject& response);

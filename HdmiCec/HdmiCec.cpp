@@ -34,7 +34,7 @@
 
 #include "websocket/URL.h"
 
-#include "utils.h"
+#include "UtilsIarm.h"
 
 #define HDMICEC_METHOD_SET_ENABLED "setEnabled"
 #define HDMICEC_METHOD_GET_ENABLED "getEnabled"
@@ -158,17 +158,17 @@ namespace WPEFramework
 //=========================================== HdmiCec =========================================
 
         HdmiCec::HdmiCec()
-        : AbstractPlugin(),smConnection(nullptr),cecEnableStatus(false)
+        : PluginHost::JSONRPC(),smConnection(nullptr),cecEnableStatus(false)
         {
             HdmiCec::_instance = this;
             InitializeIARM();
 
-            registerMethod(HDMICEC_METHOD_SET_ENABLED, &HdmiCec::setEnabledWrapper, this);
-            registerMethod(HDMICEC_METHOD_GET_ENABLED, &HdmiCec::getEnabledWrapper, this);
-            registerMethod(HDMICEC_METHOD_GET_CEC_ADDRESSES, &HdmiCec::getCECAddressesWrapper, this);
-            registerMethod(HDMICEC_METHOD_SEND_MESSAGE, &HdmiCec::sendMessageWrapper, this);
-            registerMethod(HDMICEC_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec::getActiveSourceStatus, this);
-            registerMethod("getDeviceList", &HdmiCec::getDeviceList, this);
+            Register(HDMICEC_METHOD_SET_ENABLED, &HdmiCec::setEnabledWrapper, this);
+            Register(HDMICEC_METHOD_GET_ENABLED, &HdmiCec::getEnabledWrapper, this);
+            Register(HDMICEC_METHOD_GET_CEC_ADDRESSES, &HdmiCec::getCECAddressesWrapper, this);
+            Register(HDMICEC_METHOD_SEND_MESSAGE, &HdmiCec::sendMessageWrapper, this);
+            Register(HDMICEC_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec::getActiveSourceStatus, this);
+            Register("getDeviceList", &HdmiCec::getDeviceList, this);
 
             physicalAddress = 0x0F0F0F0F;
 

@@ -23,7 +23,7 @@
 #include "ccec/FrameListener.hpp"
 #include "ccec/Connection.hpp"
 
-#include "libIBus.h"
+#include "libIARM.h"
 #include "ccec/Assert.hpp"
 #include "ccec/Messages.hpp"
 #include "ccec/MessageDecoder.hpp"
@@ -33,7 +33,6 @@
 
 #include "Module.h"
 #include "utils.h"
-#include "AbstractPlugin.h"
 #include "tptimer.h"
 #include <thread>
 #include <mutex>
@@ -470,7 +469,7 @@ private:
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class HdmiCecSink : public AbstractPlugin {
+        class HdmiCecSink : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 
 		enum {
 			POLL_THREAD_STATE_NONE,
@@ -515,7 +514,9 @@ private:
         public:
             HdmiCecSink();
             virtual ~HdmiCecSink();
+            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
             static HdmiCecSink* _instance;
 			CECDeviceParams deviceList[16];
 			std::vector<HdmiPortMap> hdmiInputs;
@@ -560,6 +561,12 @@ private:
 			void sendGiveAudioStatusMsg();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
 			bool m_audioDevicePowerStatusRequested;
+
+            BEGIN_INTERFACE_MAP(HdmiCecSink)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
+
         private:
             // We do not allow this plugin to be copied !!
             HdmiCecSink(const HdmiCecSink&) = delete;

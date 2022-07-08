@@ -23,7 +23,8 @@
 
 #include "Module.h"
 #include "utils.h"
-#include "AbstractPlugin.h"
+#include "UtilsThreadRAII.h"
+#include "libIARM.h"
 
 namespace WPEFramework {
 
@@ -73,7 +74,7 @@ namespace WPEFramework {
         // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
         // this class exposes a public method called, Notify(), using this methods, all subscribed clients
         // will receive a JSONRPC message as a notification, in case this method is called.
-        class Warehouse : public AbstractPlugin {
+        class Warehouse : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -108,8 +109,14 @@ namespace WPEFramework {
             //IPlugin methods
             virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
 
             void onSetFrontPanelStateTimer();
+
+            BEGIN_INTERFACE_MAP(Warehouse)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         private:
             void InitializeIARM();

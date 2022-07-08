@@ -22,12 +22,11 @@
 #include "Module.h"
 #include <interfaces/Ids.h>
 #include "tracing/Logging.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 
 #include "ISystemAudioPlayer.h"
 #include "impl/AudioPlayer.h"
 #include "impl/logger.h"
+#include "impl/SecurityParameters.h"
 #include <vector>
 
 #define CHECK_SAP_PARAMETER_RETURN_ON_FAIL(param) do {\
@@ -113,6 +112,7 @@ namespace Plugin {
         virtual uint32_t Stop(const string &input, string &output /* @out */) override ;
         virtual uint32_t Close(const string &input, string &output /* @out */) override ;
         virtual uint32_t SetMixerLevels(const string &input, string &output /* @out */) override ;
+        virtual uint32_t SetSmartVolControl(const string &input, string &output /* @out */) override ;
         virtual uint32_t IsPlaying(const string &input, string &output /* @out */) override ;
 	virtual uint32_t Config(const string &input, string &output /* @out */) override ;
         virtual uint32_t GetPlayerSessionId(const string &input, string &output /* @out */) override ;
@@ -135,6 +135,7 @@ namespace Plugin {
         bool GetSessionFromUrl(string url,int &playerid);
         bool SameModeNotPlaying(AudioPlayer*,int &playerid);
         bool CloseMapping(int key);
+        impl::SecurityParameters extractSecurityParams(const JsonObject& params) const;
 
     public:
         SystemAudioPlayerImplementation();

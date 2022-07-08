@@ -21,13 +21,55 @@
 
 #include <curl/curl.h>
 #include <time.h>
+#include <fstream>
 
 #include "UtilsJsonRpc.h"
 
 #define DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION  "getConfiguration"
 #define DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS "getAVDecoderStatus"
+#define DEVICE_DIAGNOSTICS_METHOD_GET_MILE_STONES "getMilestones"
 
 #define DEVICE_DIAGNOSTICS_EVT_ON_AV_DECODER_STATUS_CHANGED "onAVDecoderStatusChanged"
+
+#define MILESTONES_LOG_FILE                     "/opt/logs/rdk_milestones.log"
+
+enum SysSrv_ErrorCode {
+    SysSrv_FileNotPresent,
+    SysSrv_FileAccessFailed
+};
+
+/**
+  * @brief : To map the error code with matching error message.
+  * @param1[in] : error code of type SysSrv_ErrorCode.
+  * @return : string; error message.
+  */
+std::string getErrorDescription(int errCode);
+
+/***
+ * @brief  : Used to read file contents into a vector
+ * @param1[in] : Complete file name with path
+ * @param2[in] : Destination vector buffer to be filled with file contents
+ * @return : <bool>; TRUE if operation success; else FALSE.
+ */
+bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs);
+
+/***
+ * @brief  : Used to construct JSON response from Vector.
+ * @param1[in] : Destination JSON response buffer
+ * @param2[in] : JSON "Key"
+ * @param3[in] : Source Vector.
+ * @return : <bool>; TRUE if operation success; else FALSE.
+ */
+void setJSONResponseArray(JsonObject& response, const char* key,
+        const std::vector<string>& items);
+
+/***
+ * @brief   : Used to construct response with module error status.
+ * @param1[in]  : Error Code
+ * @param2[out]: "response" JSON Object which is returned by the API
+   with updated module error status.
+ */
+void populateResponseWithError(int errorCode, JsonObject& response);
 
 namespace WPEFramework
 {
@@ -60,12 +102,14 @@ namespace WPEFramework
 
             Register(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION, &DeviceDiagnostics::getConfigurationWrapper, this);
             Register(DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS, &DeviceDiagnostics::getAVDecoderStatus, this);
+	    Register(DEVICE_DIAGNOSTICS_METHOD_GET_MILE_STONES, &DeviceDiagnostics::getMilestones, this);
         }
 
         DeviceDiagnostics::~DeviceDiagnostics()
         {
             Unregister(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION);
             Unregister(DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS);
+	    Unregister(DEVICE_DIAGNOSTICS_METHOD_GET_MILE_STONES);
         }
 
         /* virtual */ const string DeviceDiagnostics::Initialize(PluginHost::IShell* service)
@@ -259,8 +303,107 @@ namespace WPEFramework
             return result;
         }
 
+	 /***
+         * @brief : To fetch the list of milestones.
+         * @param1[in]  : {params":{}}
+         * @param2[out] : "result":{"milestones":["<string>","<string>","<string>"],
+         *      "success":<bool>}
+         * @return      : Core::<StatusCode>
+         */
+        uint32_t DeviceDiagnostics::getMilestones(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool retAPIStatus = false;
+	    std::vector<string> milestones;
+
+            if (Core::File(string(MILESTONES_LOG_FILE)).Exists()) {
+                retAPIStatus = getFileContent(MILESTONES_LOG_FILE, milestones);
+                if (retAPIStatus) {
+                    setJSONResponseArray(response, "milestones", milestones);
+                } else {
+                    populateResponseWithError(SysSrv_FileAccessFailed, response);
+                }
+            } else {
+                populateResponseWithError(SysSrv_FileNotPresent, response);
+            }
+            returnResponse(retAPIStatus);
+        }
+
 
     } // namespace Plugin
 } // namespace WPEFramework
 
+std::map<int, std::string> ErrCodeMap = {
+    {SysSrv_FileNotPresent, "Expected file not found"},
+    {SysSrv_FileAccessFailed, "File access failed"}
+};
 
+std::string getErrorDescription(int errCode)
+{
+    std::string errMsg = "Unexpected Error";
+
+    auto it = ErrCodeMap.find(errCode);
+    if (ErrCodeMap.end() != it) {
+        errMsg = it->second;
+    }
+    return errMsg;
+}
+
+/***
+ * @brief	: Used to read file contents into a vector
+ * @param1[in]	: Complete file name with path
+ * @param2[in]	: Destination vector buffer to be filled with file contents
+ * @return	: <bool>; TRUE if operation success; else FALSE.
+ */
+bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs)
+{
+    bool retStatus = false;
+    std::ifstream inFile(fileName.c_str(), std::ios::in);
+
+    if (!inFile.is_open())
+        return retStatus;
+
+    std::string line;
+    retStatus = true;
+    while (std::getline(inFile, line)) {
+        if (line.size() > 0) {
+            vecOfStrs.push_back(line);
+        }
+    }
+    inFile.close();
+    return retStatus;
+}
+
+/***
+ * @brief	: Used to construct JSON response from Vector.
+ * @param1[in]	: Destination JSON response buffer
+ * @param2[in]	: JSON "Key"
+ * @param3[in]	: Source Vector.
+ * @return	: <bool>; TRUE if operation success; else FALSE.
+ */
+void setJSONResponseArray(JsonObject& response, const char* key,
+        const std::vector<string>& items)
+{
+    JsonArray arr;
+
+    for (auto& i : items) {
+        arr.Add(JsonValue(i));
+    }
+    response[key] = arr;
+}
+
+/***
+ * @brief	: Used to construct response with module error status.
+ * @param1[in]	: Error Code
+ * @param2[out]: "response" JSON Object which is returned by the API
+   with updated module error status.
+ */
+void populateResponseWithError(int errorCode, JsonObject& response)
+{
+     if (errorCode) {
+        LOGWARN("Method %s failed; reason : %s\n", __FUNCTION__,
+        getErrorDescription(errorCode).c_str());
+        response["SysSrv_Status"] = static_cast<uint32_t>(errorCode);
+        response["errorMessage"] = getErrorDescription(errorCode);
+     }
+}

@@ -33,15 +33,13 @@
 
 #include "Module.h"
 #include "tracing/Logging.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 
 #include "SystemAudioPlayerImplementation.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-    class SystemAudioPlayer: public AbstractPlugin {
+    class SystemAudioPlayer: public PluginHost::IPlugin, public PluginHost::JSONRPC {
     public:
         class Notification : public RPC::IRemoteConnection::INotification,
                              public Exchange::ISystemAudioPlayer::INotification {
@@ -86,14 +84,17 @@ namespace Plugin {
         };
 
         BEGIN_INTERFACE_MAP(SystemAudioPlayer)
+        INTERFACE_ENTRY(PluginHost::IPlugin)
+        INTERFACE_ENTRY(PluginHost::IDispatcher)
         INTERFACE_AGGREGATE(Exchange::ISystemAudioPlayer, _sap)
-        NEXT_INTERFACE_MAP(AbstractPlugin)
+        END_INTERFACE_MAP
 
     public:
         SystemAudioPlayer();
         virtual ~SystemAudioPlayer();
         virtual const string Initialize(PluginHost::IShell* service) override;
         virtual void Deinitialize(PluginHost::IShell* service) override;
+        virtual string Information() const override { return {}; }
 
     private:
         // We do not allow this plugin to be copied !!
@@ -110,6 +111,7 @@ namespace Plugin {
         uint32_t Stop(const JsonObject& parameters, JsonObject& response);
         uint32_t Close(const JsonObject& parameters, JsonObject& response);
         uint32_t SetMixerLevels(const JsonObject& parameters, JsonObject& response);
+        uint32_t SetSmartVolControl(const JsonObject& parameters, JsonObject& response);
         uint32_t IsPlaying(const JsonObject& parameters, JsonObject& response);
 	uint32_t Config(const JsonObject& parameters, JsonObject& response);
         uint32_t GetPlayerSessionId(const JsonObject& parameters, JsonObject& response);
@@ -121,10 +123,10 @@ namespace Plugin {
         void Deactivated(RPC::IRemoteConnection* connection);
 
     private:
-        uint8_t _skipURL;
-        uint32_t _connectionId;
-        PluginHost::IShell* _service;
-        Exchange::ISystemAudioPlayer* _sap;
+        uint8_t _skipURL{};
+        uint32_t _connectionId{};
+        PluginHost::IShell* _service{};
+        Exchange::ISystemAudioPlayer* _sap{};
         Core::Sink<Notification> _notification;
         uint32_t _apiVersionNumber;
         

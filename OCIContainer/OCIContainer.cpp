@@ -3,6 +3,8 @@
 #include <Dobby/DobbyProxy.h>
 #include <Dobby/IpcService/IpcFactory.h>
 
+#include "UtilsJsonRpc.h"
+
 
 namespace WPEFramework
 {

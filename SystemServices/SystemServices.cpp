@@ -40,10 +40,11 @@
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
 #include "utils.h"
+#include "UtilsString.h"
 #include "uploadlogs.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-#include "libIARM.h"
+#include "UtilsIarm.h"
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
 #ifdef ENABLE_THERMAL_PROTECTION
@@ -223,6 +224,8 @@ void stringToIarmMode(std::string mode, IARM_Bus_Daemon_SysMode_t& iarmMode)
 
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
+#define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
+
 /**
  * @brief WPEFramework class for SystemServices
  */
@@ -264,10 +267,14 @@ namespace WPEFramework {
          * Register SystemService module as wpeframework plugin
          */
         SystemServices::SystemServices()
-            : AbstractPlugin(2)
+            : PluginHost::JSONRPC()
               , m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE)
         {
             SystemServices::_instance = this;
+	    //Updating the standard territory
+            m_strStandardTerritoryList =   "ABW AFG AGO AIA ALA ALB AND ARE ARG ARM ASM ATA ATF ATG AUS AUT AZE BDI BEL BEN BES BFA BGD BGR BHR BHS BIH BLM BLR BLZ BMU BOL                BRA BRB BRN BTN BVT BWA CAF CAN CCK CHE CHL CHN CIV CMR COD COG COK COL COM CPV CRI CUB Cuba CUW CXR CYM CYP CZE DEU DJI DMA DNK DOM DZA ECU EGY ERI ESH ESP                EST ETH FIN FJI FLK FRA FRO FSM GAB GBR GEO GGY GHA GIB GIN GLP GMB GNB GNQ GRC GRD GRL GTM GUF GUM GUY HKG HMD HND HRV HTI HUN IDN IMN IND IOT IRL IRN IRQ                 ISL ISR ITA JAM JEY JOR JPN KAZ KEN KGZ KHM KIR KNA KOR KWT LAO LBN LBR LBY LCA LIE LKA LSO LTU LUX LVA MAC MAF MAR MCO MDA MDG MDV MEX MHL MKD MLI MLT MMR                 MNE MNG MNP MOZ MRT MSR MTQ MUS MWI MYS MYT NAM NCL NER NFK NGA NIC NIU NLD NOR NPL NRU NZL OMN PAK PAN PCN PER PHL PLW PNG POL PRI PRK PRT PRY PSE PYF QAT                 REU ROU RUS RWA SAU SDN SEN SGP SGS SHN SJM SLB SLE SLV SMR SOM SPM SRB SSD STP SUR SVK SVN SWE SWZ SXM SYC SYR TCA TCD TGO THA TJK TKL TKM TLS TON TTO TUN                 TUR TUV TWN TZA UGA UKR UMI URY USA UZB VAT VCT VEN VGB VIR VNM VUT WLF WSM YEM ZAF ZMB ZWE";
+
+            CreateHandler({ 2 });
 
             //Initialise timer with interval and callback function.
             m_operatingModeTimer.setInterval(updateDuration, MODE_TIMER_UPDATE_INTERVAL);
@@ -393,30 +400,32 @@ namespace WPEFramework {
             registerMethod("setNetworkStandbyMode", &SystemServices::setNetworkStandbyMode, this);
             registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
             registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
+    	    registerMethod("setTerritory", &SystemServices::setTerritory, this);
+	    registerMethod("getTerritory", &SystemServices::getTerritory, this);
 #ifdef ENABLE_SET_WAKEUP_SRC_CONFIG
             registerMethod("setWakeupSrcConfiguration", &SystemServices::setWakeupSrcConfiguration, this);
 #endif //ENABLE_SET_WAKEUP_SRC_CONFIG
 
             // version 2 APIs
-            registerMethod(_T("getTimeZones"), &SystemServices::getTimeZones, this, {2});
+            GetHandler(2)->Register<JsonObject, JsonObject>(_T("getTimeZones"), &SystemServices::getTimeZones, this);
 #ifdef ENABLE_DEEP_SLEEP
-	    registerMethod(_T("getWakeupReason"),&SystemServices::getWakeupReason, this, {2});
-            registerMethod(_T("getLastWakeupKeyCode"), &SystemServices::getLastWakeupKeyCode, this, {2});
+            GetHandler(2)->Register<JsonObject, JsonObject>(_T("getWakeupReason"),&SystemServices::getWakeupReason, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(_T("getLastWakeupKeyCode"), &SystemServices::getLastWakeupKeyCode, this);
 #endif
-            registerMethod("uploadLogs", &SystemServices::uploadLogs, this, {2});
+            GetHandler(2)->Register<JsonObject, JsonObject>("uploadLogs", &SystemServices::uploadLogs, this);
 
             registerMethod("getPowerStateBeforeReboot", &SystemServices::getPowerStateBeforeReboot,
                     this);
-            registerMethod("getLastFirmwareFailureReason", &SystemServices::getLastFirmwareFailureReason, this, {2});
+            GetHandler(2)->Register<JsonObject, JsonObject>("getLastFirmwareFailureReason", &SystemServices::getLastFirmwareFailureReason, this);
             registerMethod("setOptOutTelemetry", &SystemServices::setOptOutTelemetry, this);
             registerMethod("isOptOutTelemetry", &SystemServices::isOptOutTelemetry, this);
-            registerMethod("fireFirmwarePendingReboot", &SystemServices::fireFirmwarePendingReboot, this, {2});
-            registerMethod("setFirmwareRebootDelay", &SystemServices::setFirmwareRebootDelay, this, {2});
-            registerMethod("setFirmwareAutoReboot", &SystemServices::setFirmwareAutoReboot, this, {2});
+            GetHandler(2)->Register<JsonObject, JsonObject>("fireFirmwarePendingReboot", &SystemServices::fireFirmwarePendingReboot, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>("setFirmwareRebootDelay", &SystemServices::setFirmwareRebootDelay, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>("setFirmwareAutoReboot", &SystemServices::setFirmwareAutoReboot, this);
 #ifdef ENABLE_SYSTEM_GET_STORE_DEMO_LINK
-            registerMethod("getStoreDemoLink", &SystemServices::getStoreDemoLink, this, {2});
+            GetHandler(2)->Register<JsonObject, JsonObject>("getStoreDemoLink", &SystemServices::getStoreDemoLink, this);
 #endif
-            registerMethod("deletePersistentPath", &SystemServices::deletePersistentPath, this, {2});
+            GetHandler(2)->Register<JsonObject, JsonObject>("deletePersistentPath", &SystemServices::deletePersistentPath, this);
             GetHandler(2)->Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
                 &SystemServices::getPlatformConfiguration, this);
         }
@@ -491,6 +500,7 @@ namespace WPEFramework {
             response["sampleAPI"] = "Success";
             /* Kept for debug purpose/future reference. */
             sendNotify(EVT_ONSYSTEMSAMPLEEVENT, parameters);
+            GetHandler(2)->Notify(EVT_ONSYSTEMSAMPLEEVENT, parameters);
             returnResponse(true);
         }
 #endif /* DEBUG */
@@ -682,6 +692,7 @@ namespace WPEFramework {
             params["fireFirmwarePendingReboot"] = seconds;
             LOGINFO("Notifying onFirmwarePendingReboot received \n");
             sendNotify(EVT_ONFWPENDINGREBOOT, params);
+            GetHandler(2)->Notify(EVT_ONFWPENDINGREBOOT, params);
         }
 
         /***
@@ -699,6 +710,7 @@ namespace WPEFramework {
             params["currentPowerState"] = currentPowerState;
             LOGWARN("power state changed from '%s' to '%s'", currentPowerState.c_str(), powerState.c_str());
             sendNotify(EVT_ONSYSTEMPOWERSTATECHANGED, params);
+            GetHandler(2)->Notify(EVT_ONSYSTEMPOWERSTATECHANGED, params);
         }
 
         void SystemServices::onPwrMgrReboot(string requestedApp, string rebootReason)
@@ -708,6 +720,7 @@ namespace WPEFramework {
             params["rebootReason"] = rebootReason;
 
             sendNotify(EVT_ONREBOOTREQUEST, params);
+            GetHandler(2)->Notify(EVT_ONREBOOTREQUEST, params);
         }
 
         void SystemServices::onNetorkModeChanged(bool bNetworkStandbyMode)
@@ -717,6 +730,7 @@ namespace WPEFramework {
             JsonObject params;
             params["nwStandby"] = bNetworkStandbyMode;
             sendNotify(EVT_ONNETWORKSTANDBYMODECHANGED , params);
+            GetHandler(2)->Notify(EVT_ONNETWORKSTANDBYMODECHANGED , params);
         }
 
         /**
@@ -1064,6 +1078,7 @@ namespace WPEFramework {
             params["mode"] = mode;
             LOGINFO("mode changed to '%s'\n", mode.c_str());
             sendNotify(EVT_ONSYSTEMMODECHANGED, params);
+            GetHandler(2)->Notify(EVT_ONSYSTEMMODECHANGED, params);
         }
 
         /***
@@ -1343,6 +1358,7 @@ namespace WPEFramework {
             params.ToString(jsonLog);
             LOGWARN("result: %s\n", jsonLog.c_str());
             sendNotify(EVT_ONFIRMWAREUPDATEINFORECEIVED, params);
+            GetHandler(2)->Notify(EVT_ONFIRMWAREUPDATEINFORECEIVED, params);
         }
 
         /***
@@ -2047,6 +2063,7 @@ namespace WPEFramework {
             params["firmwareUpdateStateChange"] = (int)firmwareUpdateState;
             LOGINFO("New firmwareUpdateState = %d\n", (int)firmwareUpdateState);
             sendNotify(EVT_ONFIRMWAREUPDATESTATECHANGED, params);
+            GetHandler(2)->Notify(EVT_ONFIRMWAREUPDATESTATECHANGED, params);
         }
 
         /***
@@ -2057,6 +2074,7 @@ namespace WPEFramework {
         {
             JsonObject params;
             sendNotify(EVT_ON_SYSTEM_CLOCK_SET, params);
+            GetHandler(2)->Notify(EVT_ON_SYSTEM_CLOCK_SET, params);
         }
 
         /***
@@ -2151,6 +2169,7 @@ namespace WPEFramework {
             LOGWARN("thresholdType = %s exceed = %d temperature = %f\n",
                     thresholdType.c_str(), exceed, temperature);
             sendNotify(EVT_ONTEMPERATURETHRESHOLDCHANGED, params);
+            GetHandler(2)->Notify(EVT_ONTEMPERATURETHRESHOLDCHANGED, params);
         }
 
         /***
@@ -2177,6 +2196,7 @@ namespace WPEFramework {
 					} else {
 						//Do nothing//
 					}
+					std::string oldTimeZoneDST = getTimeZoneDSTHelper();
 
 					FILE *f = fopen(TZ_FILE, "w");
 					if (f) {
@@ -2186,6 +2206,8 @@ namespace WPEFramework {
 						fflush(f);
 						fsync(fileno(f));
 						fclose(f);
+						if (SystemServices::_instance)
+							SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone);
 						resp = true;
 					} else {
 						LOGERR("Unable to open %s file.\n", TZ_FILE);
@@ -2200,6 +2222,187 @@ namespace WPEFramework {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
 		}
 		returnResponse(resp);
+	}
+
+
+	uint32_t SystemServices::setTerritory(const JsonObject& parameters, JsonObject& response)
+	{
+		bool resp = false;
+		if(parameters.HasLabel("territory")){
+			struct stat st = {0};
+			if (stat("/opt/secure/persistent/System", &st) == -1) {
+				int ret = mkdir("/opt/secure/persistent/System", 0700);
+				LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
+			}
+			string regionStr = "";
+			readTerritoryFromFile();//Read existing territory and Region from file
+			string territoryStr = parameters["territory"].String();
+			LOGWARN(" Territory Value : %s ", territoryStr.c_str());
+			try{
+				int index = m_strStandardTerritoryList.find(territoryStr);
+				if((territoryStr.length() == 3) && (index >=0 && index <= 1100) ){
+					if(parameters.HasLabel("region")){
+						regionStr = parameters["region"].String();
+						if(regionStr != ""){
+							if(isRegionValid(regionStr)){
+								resp = writeTerritory(territoryStr,regionStr);
+								LOGWARN(" territory name %s ", territoryStr.c_str());
+								LOGWARN(" region name %s", regionStr.c_str());
+							}else{
+								JsonObject error;
+								error["message"] = "Invalid region";
+								response["error"] = error;
+								LOGWARN("Please enter valid region");
+								returnResponse(resp);
+							}
+						}
+					}else{
+						resp = writeTerritory(territoryStr,regionStr);
+						LOGWARN(" territory name %s ", territoryStr.c_str());
+					}
+				}else{
+					JsonObject error;
+					error["message"] =  "Invalid territory";
+					response["error"] = error;
+					LOGWARN("Please enter valid territory Parameter value.");
+					returnResponse(resp);
+				}
+				if(resp == true){
+					//call event on Territory changed
+					if (SystemServices::_instance)
+						SystemServices::_instance->onTerritoryChanged(m_strTerritory,territoryStr,m_strRegion,regionStr);
+				}
+			}
+			catch(...){
+				LOGWARN(" caught exception...");
+			}
+		}else{
+			JsonObject error;
+			error["message"] =  "Invalid territory name";
+			response["error"] = error;
+			LOGWARN("Please enter valid territory Parameter name.");
+			resp = false;
+		}
+		returnResponse(resp);
+	}
+
+	uint32_t SystemServices::writeTerritory(string territory, string region)
+	{
+		bool resp = false;
+		ofstream outdata(TERRITORYFILE);
+		if(!outdata){
+			LOGWARN(" Territory : Failed to open the file");
+			return resp;
+		}
+		if (territory != ""){
+			outdata << "territory:" + territory+"\n";
+			resp = true;
+		}
+		if (region != ""){
+			outdata << "region:" + region+"\n";
+			resp = true;
+		}
+		outdata.close();
+		return resp;
+	}
+
+	uint32_t SystemServices::getTerritory(const JsonObject& parameters, JsonObject& response)
+	{
+		bool resp = true;
+		m_strTerritory = "";
+		m_strRegion = "";
+		resp = readTerritoryFromFile();
+		response["territory"] = m_strTerritory;
+		response["region"] = m_strRegion;
+		returnResponse(resp);
+	}
+
+	bool SystemServices::readTerritoryFromFile()
+	{
+		bool retValue = true;
+		if(Utils::fileExists(TERRITORYFILE)){
+			ifstream inFile(TERRITORYFILE);
+			string str;
+			getline (inFile, str);
+			if(str.length() > 0){
+				retValue = true;
+				m_strTerritory = str.substr(str.find(":")+1,str.length());
+				getline (inFile, str);
+				if(str.length() > 0){
+					m_strRegion = str.substr(str.find(":")+1,str.length());
+				}
+			}else{
+				LOGERR("Invalid territory file");
+			}
+			inFile.close();
+
+		}else{
+			LOGERR("Territory is not set");
+		}
+		return retValue;
+	}
+
+	bool SystemServices::isStrAlphaUpper(string strVal)
+	{
+		try{
+			for(int i=0; i<= strVal.length()-1; i++)
+			{
+				if((isalpha(strVal[i])== 0) || (isupper(strVal[i])==0))
+				{
+					LOGERR(" -- Invalid Territory ");
+					return false;
+					break;
+				}
+			}
+		}
+		catch(...){
+			LOGERR(" Exception caught");
+			return false;
+		}
+		return true;
+	}
+
+
+	bool SystemServices::isRegionValid(string regionStr)
+	{
+		bool retVal = false;
+		if(regionStr.length() < 7){
+			string strRegion = regionStr.substr(0,regionStr.find("-"));
+			if( strRegion.length() == 2){
+				if (isStrAlphaUpper(strRegion)){
+					strRegion = regionStr.substr(regionStr.find("-")+1,regionStr.length());
+					if(strRegion.length() >= 2){
+						retVal = isStrAlphaUpper(strRegion);
+					}
+				}
+			}
+		}
+		return retVal;
+	}
+
+	void SystemServices::onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion, string newRegion)
+	{
+		JsonObject params;
+		params["oldTerritory"] = oldTerritory;
+		params["newTerritory"] = newTerritory;
+		LOGWARN(" Notifying Territory changed - oldTerritory: %s - newTerritory: %s",oldTerritory.c_str(),newTerritory.c_str());
+		if(newRegion != ""){
+			params["oldRegion"] = oldRegion;
+			params["newRegion"] = newRegion;
+			LOGWARN(" Notifying Region changed - oldRegion: %s - newRegion: %s",oldRegion.c_str(),newRegion.c_str());
+		}
+		//Notify territory changed
+		sendNotify(EVT_ONTERRITORYCHANGED, params);
+	}
+
+	void SystemServices::onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone)
+	{
+		JsonObject params;
+		params["oldTimeZone"] = oldTimeZone;
+		params["newTimeZone"] = newTimeZone;
+		LOGWARN(" Notifying TimeZone changed - oldTimeZone: %s - newTimeZone: %s",oldTimeZone.c_str(),newTimeZone.c_str());
+		//Notify TimeZone changed
+		sendNotify(EVT_ONTIMEZONEDSTCHANGED, params);
 	}
 
         /***
@@ -2371,6 +2574,7 @@ namespace WPEFramework {
 			JsonObject& response)
 	{
 		bool retStat = false;
+		bool deprecated = true;
 		if (parameters.HasLabel("key")) {
 			std::string key = parameters["key"].String();
 			LOGWARN("key: '%s'\n", key.c_str());
@@ -2384,6 +2588,7 @@ namespace WPEFramework {
 		} else {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
 		}
+		response["deprecated"] = deprecated;
 		returnResponse(retStat);
 	}
 
@@ -2397,7 +2602,8 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retStat = false;
-	    
+	    bool deprecated = true;
+
 	    if (parameters.HasLabel("key") && parameters.HasLabel("value")) {
 		    std::string key = parameters["key"].String();
 		    std::string value = parameters["value"].String();
@@ -2415,6 +2621,7 @@ namespace WPEFramework {
 	    } else {
 		    populateResponseWithError(SysSrv_MissingKeyValues, response);
 	    }
+	    response["deprecated"] = deprecated;
 	    returnResponse(retStat);
         }
 
@@ -2428,6 +2635,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
 		bool retStat = false;
+		bool deprecated = true;
 		if (parameters.HasLabel("key")) {
 			std::string key = parameters["key"].String();
 			if (key.length()) {
@@ -2443,6 +2651,7 @@ namespace WPEFramework {
 		} else {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
 		}
+		response["deprecated"] = deprecated;
 		returnResponse(retStat);
         }
 
@@ -2456,6 +2665,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
 		bool retStat = false;
+		bool deprecated = true;
 		if (parameters.HasLabel("key")) {
 			std::string key = parameters["key"].String();
 			if (key.length()) {
@@ -2471,6 +2681,7 @@ namespace WPEFramework {
 		} else {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
 		}
+		response["deprecated"] = deprecated;
 		returnResponse(retStat);
         }
 
@@ -2868,7 +3079,8 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retAPIStatus = false;
-            vector<string> milestones;
+	    bool deprecated = true;
+	    std::vector<string> milestones;
 
             if (Utils::fileExists(MILESTONES_LOG_FILE)) {
                 retAPIStatus = getFileContent(MILESTONES_LOG_FILE, milestones);
@@ -2880,6 +3092,7 @@ namespace WPEFramework {
             } else {
                 populateResponseWithError(SysSrv_FileNotPresent, response);
             }
+	    response["deprecated"] = deprecated;
             returnResponse(retAPIStatus);
         }
 
@@ -3139,6 +3352,7 @@ namespace WPEFramework {
         {
             bool enabled = false;
 	    bool result = false;
+	    bool deprecated = true;
 	    int32_t retVal = E_NOK;
 	    if (parameters.HasLabel("enabled")) {
 		    enabled = parameters["enabled"].Boolean();
@@ -3151,6 +3365,7 @@ namespace WPEFramework {
 	    } else {
 		    populateResponseWithError(SysSrv_MissingKeyValues, response);
 	    }
+	    response["deprecated"] = deprecated;
             returnResponse(( E_OK == retVal)? true: false);
         } //ent of SetGZEnabled
 
@@ -3165,9 +3380,11 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool enabled = false;
+	    bool deprecated = true;
 
             isGzEnabledHelper(enabled);
             response["enabled"] = enabled;
+	    response["deprecated"] = deprecated;
 
             returnResponse(true);
         } //end of isGZEnbaled
@@ -3744,6 +3961,7 @@ namespace WPEFramework {
             params["rebootReason"] = reason;
             LOGINFO("Notifying onRebootRequest\n");
             sendNotify(EVT_ONREBOOTREQUEST, params);
+            GetHandler(2)->Notify(EVT_ONREBOOTREQUEST, params);
         }
 
         /***
@@ -3983,7 +4201,7 @@ namespace WPEFramework {
 
           const string query = parameters.HasLabel("query") ? parameters["query"].String() : "";
 
-          response.Load(query);
+          response.Load(m_shellService, query);
 
           return Core::ERROR_NONE;
         }

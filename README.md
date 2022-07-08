@@ -5,6 +5,14 @@ RDK services are a set of JSON-RPC based RESTful services for accessing various 
 [View Latest Documentation](https://rdkcentral.github.io/rdkservices/#/README)
 <br><br>
 
+### Table of Contents ###
+
+[Contributing to RDKServices](#contributing-to-rdkservices)<br>
+[Comcast CI/CD](#comcast-cicd)<br>
+[Documentation](#documentation)<br>
+[Questions?](#questions)<br>
+[Coding Guidelines](#coding-guidelines)<br>
+
 ## Contributing to RDKServices ##
 
 ### **License Requirements** ###
@@ -71,40 +79,75 @@ RDK services are a set of JSON-RPC based RESTful services for accessing various 
 
 ## Documentation ##
 
-RDK services are described using [JSON Schema](https://json-schema.org/). JSON Schema provides a standard approach for describing APIs and ensures consistency across all APIs. The Thunder framework includes two schemas that are used to describe a service:
+RDK services are described using [JSON Schema](https://json-schema.org/). JSON Schema provides a standard approach for describing APIs and ensures consistency across all APIs. There are two schemas that are used to describe a service:
 
-* [plugin.schema.json](https://github.com/rdkcentral/Thunder/blob/master/Tools/JsonGenerator/schemas/plugin.schema.json): A schema for defining a Thunder Plugin.
-* [interface.schema.json](https://github.com/rdkcentral/Thunder/blob/master/Tools/JsonGenerator/schemas/interface.schema.json): A schema for defining the properties, methods, and events of a service.
+* [plugin.schema.json](https://github.com/rdkcentral/rdkservices/blob/main/Tools/json_generator/schemas/plugin.schema.json): A schema for defining a service.
+* [interface.schema.json](https://github.com/rdkcentral/rdkservices/blob/main/Tools/json_generator/schemas/interface.schema.json): A schema for defining the properties, methods, and events of a service.
 
-Each RDK service has an instance of these schemas in the root of the service directory. For example, `MyServicePlugin.json` and `MyService.json`. These files are used to generate API documentation as Markdown. Each service has a Markdown file that is written to the `/doc` directory in a service folder. The following demonstrates the folder structure:
+Each RDK service has an instance of these schemas in the root of the service folder. For example, `MyServicePlugin.json` and `MyService.json`. These files are used to generate API documentation as Markdown. Each service has a Markdown file that is written to the `docs/api` folder. The following demonstrates the folder structure:
 
 ```shell
 /rdkservices
     /MyService
         /MyService.json
         /MyServicePlugin.json
-        /doc
-            /doc/MyServicePlugin.md
+    /docs/api
+        /MyServicePlugin.md
 ```
 
-Markdown files are generated using the Thunder [JsonGenerator](https://github.com/rdkcentral/Thunder/tree/master/Tools/JsonGenerator) tool. See the Thunder [README](https://github.com/rdkcentral/Thunder/blob/master/README.md) for documentation and requirements.
+Markdown files are generated from the JSON definitions using the json_generator tool (`Tools/json_generator/generator_json.py`).
 
-To generate the markdown:
+The generator tool requires:
 
-1. Clone the Thunder repository if it is not already on your system.
-2. Change directories to `Thunder/Tools/JsonGenerator`.
-3. Run `JsonGenerator.py` and provide the location of the service JSON plugin file using the `--docs` argument and the output directory using the `-o` argument. You must also include the `--no-interfaces-section` argument; otherwise, an interface section is added to the markdown that links back to the ThunderInterfaces project. Make certain that you are pointing to the plugin definition and not the interface definition. Here is an example of using the JsonGenerator tool:
+* Python 3.5 or higher
+* The jsonref library
 
-   `./JsonGenerator.py --docs ../../../rdkservices/MyService/MyServicePlugin.json  -o ../docs/api --no-interfaces-section --verbose $files`
+Verify your Python version:
 
-   The `MyServicePlugin.md` file is written to the `../docs/api` folder.
+```shell
+python --version
+```
+
+Install jsonref if it is not already installed:
+
+```shell
+pip install jsonref
+```
+
+### Generating Markdown for a Single Service ###
+
+To generate markdown for a single service:
+
+1. Change directories to `Tools/json_generator`.
+2. Run `generator_json.py` and provide the location of the service JSON plugin file using the `-d` argument and the output directory using the `-o` argument. You must also include the `--no-interfaces-section` argument; otherwise, an interface section is added to the markdown that links back to the ThunderInterfaces project. Make certain that you are pointing to the plugin definition and not the interface definition. Here is an example of using the tool:
+
+    ```shell
+    python ./generator_json.py -d ../../MyService/MyServicePlugin.json  -o ../docs/api --no-interfaces-section --verbose $files
+    ```
+
+    The `MyServicePlugin.md` file is written to the `../docs/api` folder. This is the standard directory where all the service API markdown files are written.
+
+### Generating Markdown for All Services ###
+
+A script is provided to generate the markdown for all services and does a complete build of the documentation. The script only generates the markdown for a service if the JSON definition has been updated. In addition, the script post-processes the generated markdown files to create standard link anchors and to clean the build.
+
+To generate markdown for all services:
+
+1. From the rdkservices repository, change directories to `docs/Tools/md_generator`.
+2. Run `generate_md.py`. For example:
+
+    ```shell
+    python ./generate_md.py
+    ```
+
+    All markdown files are written to the `../docs/api` folder. This is the standard directory where all the service API markdown files are written.
 
 Use the existing services as a guide when learning the structure of both the plugin and interface schemas.
 <br><br>
 
 ## Questions? ##
 
-If you have any questions or concerns reach out to the RDKServices maintainers - [Vijay Selvaraj](mailto:VijayAnand_Selvaraj@cable.comcast.com) / [Anand Kandasamy](mailto:anand_kandasamy@comcast.com)
+If you have any questions or concerns reach out to [Anand Kandasamy](mailto:anand_kandasamy@comcast.com)
 
 For a plugin specific question, maintainers might refer you to the plugin owner(s).
 <br><br>
@@ -163,4 +206,7 @@ For a plugin specific question, maintainers might refer you to the plugin owner(
 
     * Prefer to do Plugin Initialization within IPlugin [Initialize()](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h#L71). If there is any error in initialization return non-empty string with useful error information. This will ensure that plugin doesn't get activated and also return this error information to the caller. Ensure that any Initialization done within Initialize() gets cleaned up within IPlugin [Deinitialize()](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h#L80) which gets called when the plugin is deactivated.
     
-    * Ensure that any std::threads created are joined within Deinitialize() or the destructor to avoid [std::terminate](https://en.cppreference.com/w/cpp/thread/thread/~thread) exception. Use the [ThreadRAII](https://github.com/rdkcentral/rdkservices/blob/sprint/2103/helpers/utils.h#L359) class for creating threads which will ensure that the thread gets joined before destruction.
+    * Ensure that any std::threads created are joined within Deinitialize() or the destructor to avoid [std::terminate](https://en.cppreference.com/w/cpp/thread/thread/~thread) exception. Use the [ThreadRAII](helpers/UtilsThreadRAII.h) class for creating threads which will ensure that the thread gets joined before destruction.
+
+8.  Inter-plugin communication
+    * There might be use cases where one RDK Service or plugin needs to call APIs in another RDK Service. Don't use JSON-RPC for such communication since it's an overhead and not preferred for inter-plugin communication. JSON-RPC must be used only by applications. Instead use COM RPC through the IShell Interface API [QueryInterfaceByCallsign()](https://github.com/rdkcentral/Thunder/blob/R2/Source/plugins/IShell.h#L210) exposed for each Plugin. Here is an [example](https://github.com/rdkcentral/rdkservices/blob/main/Messenger/MessengerSecurity.cpp#L35). 

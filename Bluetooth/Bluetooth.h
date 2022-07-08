@@ -22,8 +22,7 @@
 #include <thread>
 
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
+#include "UtilsThreadRAII.h"
 
 #include "btmgr.h" //TODO: can we move it to the module? Required by notifyEventWrapper()
 
@@ -66,7 +65,7 @@ namespace WPEFramework {
             Bluetooth* m_bt;
         };
 
-        class Bluetooth : public AbstractPlugin {
+        class Bluetooth : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -174,8 +173,14 @@ namespace WPEFramework {
 
             Bluetooth();
             virtual ~Bluetooth();
+            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override;
+
+            BEGIN_INTERFACE_MAP(Bluetooth)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         public:
             static Bluetooth* _instance;

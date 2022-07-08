@@ -25,7 +25,6 @@
 #include <string.h>
 #include <sstream>
 #include "utils.h"
-#include "libIBus.h"
 #include <securityagent/SecurityTokenUtil.h>
 #include <curl/curl.h>
 #include <utility>
@@ -38,62 +37,6 @@
 
 using namespace WPEFramework;
 using namespace std;
-
-const char* Utils::IARM::NAME = "Thunder_Plugins";
-
-bool Utils::IARM::isConnected() {
-    IARM_Result_t res;
-    int isRegistered = 0;
-    res = IARM_Bus_IsConnected(NAME, &isRegistered);
-    LOGINFO("IARM_Bus_IsConnected: %d (%d)", res, isRegistered);
-
-    return (isRegistered == 1);
-}
-
-bool Utils::IARM::init() {
-    IARM_Result_t res;
-    bool result = false;
-
-    if (isConnected()) {
-        LOGINFO("IARM already connected");
-        result = true;
-    } else {
-        res = IARM_Bus_Init(NAME);
-        LOGINFO("IARM_Bus_Init: %d", res);
-        if (res == IARM_RESULT_SUCCESS ||
-            res == IARM_RESULT_INVALID_STATE /* already inited or connected */) {
-
-            res = IARM_Bus_Connect();
-            LOGINFO("IARM_Bus_Connect: %d", res);
-            if (res == IARM_RESULT_SUCCESS ||
-                res == IARM_RESULT_INVALID_STATE /* already connected or not inited */) {
-
-                result = isConnected();
-            } else {
-                LOGERR("IARM_Bus_Connect failure: %d", res);
-            }
-        } else {
-            LOGERR("IARM_Bus_Init failure: %d", res);
-        }
-    }
-
-    return result;
-}
-
-std::string Utils::formatIARMResult(IARM_Result_t result)
-{
-    switch (result) {
-        case IARM_RESULT_SUCCESS:       return std::string("IARM_RESULT_SUCCESS [success]");
-        case IARM_RESULT_INVALID_PARAM: return std::string("IARM_RESULT_INVALID_PARAM [invalid input parameter]");
-        case IARM_RESULT_INVALID_STATE: return std::string("IARM_RESULT_INVALID_STATE [invalid state encountered]");
-        case IARM_RESULT_IPCCORE_FAIL:  return std::string("IARM_RESULT_IPCORE_FAIL [underlying IPC failure]");
-        case IARM_RESULT_OOM:           return std::string("IARM_RESULT_OOM [out of memory]");
-        default:
-            std::ostringstream tmp;
-            tmp << result << " [unknown IARM_Result_t]";
-            return tmp.str();
-    }
-}
 
 /***
  * @brief	: Execute shell script and get response
@@ -333,29 +276,6 @@ bool Utils::getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput)
 
 std::string Utils::SecurityToken::m_sToken = "";
 bool Utils::SecurityToken::m_sThunderSecurityChecked = false;
-
-
-//Thread RAII
-Utils::ThreadRAII::ThreadRAII(std::thread&& t): t(std::move(t)) {}
-
-Utils::ThreadRAII::~ThreadRAII()
-{
-    try
-    {
-        if (t.joinable()) 
-        {
-            t.join();
-        }
-    }
-    catch(const std::system_error& e)
-    {
-        LOGERR("system_error exception in thread join %s", e.what());
-    }
-    catch(const std::exception& e)
-    {
-        LOGERR("exception in thread join %s", e.what());
-    }
-}
 
 bool Utils::isValidInt(char* x)
 {

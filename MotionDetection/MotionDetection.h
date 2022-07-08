@@ -21,8 +21,6 @@
 
 #include <chrono>
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 #include "motionDetector.h"
 
 namespace WPEFramework {
@@ -41,7 +39,7 @@ namespace WPEFramework {
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class MotionDetection : public AbstractPlugin {
+        class MotionDetection : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
             typedef Core::JSON::String JString;
             typedef Core::JSON::ArrayType<JString> JStringArray;
@@ -78,6 +76,7 @@ namespace WPEFramework {
             //IPlugin methods
             virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
 
             //Begin events
             void onMotionEvent(const string& index, const string& eventType);

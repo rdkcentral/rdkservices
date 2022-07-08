@@ -19,6 +19,7 @@
 
 #include "TextToSpeechImplementation.h"
 #include <sys/prctl.h>
+#include "UtilsJsonRpc.h"
 
 #define TTS_MAJOR_VERSION 1
 #define TTS_MINOR_VERSION 0
@@ -186,6 +187,15 @@ namespace Plugin {
             int rate=0;
             getNumberParameter("rate", rate);
             config.rate = static_cast<uint8_t>(rate);
+        }
+
+        if(parameters.HasLabel("authinfo")) {
+            JsonObject auth;
+            auth = parameters["authinfo"].Object();
+            if(((auth["type"].String()).compare("apikey")) == 0)
+            {
+                config.apiKey = GET_STR(auth,"value", "");
+            }
         }
 
         _adminLock.Lock();

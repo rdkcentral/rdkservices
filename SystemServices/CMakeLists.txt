@@ -27,13 +27,13 @@ endif()
 add_library(${MODULE_NAME} SHARED
         SystemServices.cpp
         Module.cpp
-        ../helpers/cTimer.cpp
+        cTimer.cpp
         ../helpers/cSettings.cpp
         ../helpers/powerstate.cpp
-        ../helpers/thermonitor.cpp
-        ../helpers/SystemServicesHelper.cpp
+        thermonitor.cpp
+        SystemServicesHelper.cpp
         ../helpers/utils.cpp
-        ../helpers/uploadlogs.cpp
+        uploadlogs.cpp
         platformcaps/platformcaps.cpp
         platformcaps/platformcapsdata.cpp
         platformcaps/platformcapsdatarpc.cpp
@@ -84,8 +84,6 @@ if (RFC_FOUND)
 else (RFC_FOUND)
 	message ("RFC lib required.")
 endif (RFC_FOUND)
-
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}SecurityUtil)
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ./)

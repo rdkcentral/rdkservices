@@ -37,6 +37,7 @@
 #include "websocket/URL.h"
 
 #include "utils.h"
+#include "UtilsIarm.h"
 
 #define HDMICEC2_METHOD_SET_ENABLED "setEnabled"
 #define HDMICEC2_METHOD_GET_ENABLED "getEnabled"
@@ -365,22 +366,22 @@ namespace WPEFramework
 //=========================================== HdmiCec_2 =========================================
 
        HdmiCec_2::HdmiCec_2()
-       : AbstractPlugin()
+       : PluginHost::JSONRPC()
        {
            LOGWARN("ctor");
            IsCecMgrActivated = false;
-           registerMethod(HDMICEC2_METHOD_SET_ENABLED, &HdmiCec_2::setEnabledWrapper, this);
-           registerMethod(HDMICEC2_METHOD_GET_ENABLED, &HdmiCec_2::getEnabledWrapper, this);
-           registerMethod(HDMICEC2_METHOD_OTP_SET_ENABLED, &HdmiCec_2::setOTPEnabledWrapper, this);
-           registerMethod(HDMICEC2_METHOD_OTP_GET_ENABLED, &HdmiCec_2::getOTPEnabledWrapper, this);
-           registerMethod(HDMICEC2_METHOD_SET_OSD_NAME, &HdmiCec_2::setOSDNameWrapper, this);
-           registerMethod(HDMICEC2_METHOD_GET_OSD_NAME, &HdmiCec_2::getOSDNameWrapper, this);
-           registerMethod(HDMICEC2_METHOD_SET_VENDOR_ID, &HdmiCec_2::setVendorIdWrapper, this);
-           registerMethod(HDMICEC2_METHOD_GET_VENDOR_ID, &HdmiCec_2::getVendorIdWrapper, this);
-           registerMethod(HDMICEC2_METHOD_PERFORM_OTP_ACTION, &HdmiCec_2::performOTPActionWrapper, this);
-           registerMethod(HDMICEC2_METHOD_SEND_STANDBY_MESSAGE, &HdmiCec_2::sendStandbyMessageWrapper, this);
-           registerMethod(HDMICEC2_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec_2::getActiveSourceStatus, this);
-           registerMethod("getDeviceList", &HdmiCec_2::getDeviceList, this);
+           Register(HDMICEC2_METHOD_SET_ENABLED, &HdmiCec_2::setEnabledWrapper, this);
+           Register(HDMICEC2_METHOD_GET_ENABLED, &HdmiCec_2::getEnabledWrapper, this);
+           Register(HDMICEC2_METHOD_OTP_SET_ENABLED, &HdmiCec_2::setOTPEnabledWrapper, this);
+           Register(HDMICEC2_METHOD_OTP_GET_ENABLED, &HdmiCec_2::getOTPEnabledWrapper, this);
+           Register(HDMICEC2_METHOD_SET_OSD_NAME, &HdmiCec_2::setOSDNameWrapper, this);
+           Register(HDMICEC2_METHOD_GET_OSD_NAME, &HdmiCec_2::getOSDNameWrapper, this);
+           Register(HDMICEC2_METHOD_SET_VENDOR_ID, &HdmiCec_2::setVendorIdWrapper, this);
+           Register(HDMICEC2_METHOD_GET_VENDOR_ID, &HdmiCec_2::getVendorIdWrapper, this);
+           Register(HDMICEC2_METHOD_PERFORM_OTP_ACTION, &HdmiCec_2::performOTPActionWrapper, this);
+           Register(HDMICEC2_METHOD_SEND_STANDBY_MESSAGE, &HdmiCec_2::sendStandbyMessageWrapper, this);
+           Register(HDMICEC2_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec_2::getActiveSourceStatus, this);
+           Register("getDeviceList", &HdmiCec_2::getDeviceList, this);
 
        }
 

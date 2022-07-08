@@ -25,12 +25,13 @@
 #include <regex.h>
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-#include "libIBus.h"
+#include "UtilsIarm.h"
 #include "sysMgr.h"
 #include "pwrMgr.h"
 #endif
 
 #include "utils.h"
+#include "UtilsString.h"
 
 #include "frontpanel.h"
 
@@ -74,6 +75,22 @@
 #define FRONT_PANEL_FAILED 3
 #define FRONT_PANEL_INTERVAL 5000
 
+namespace Utils {
+std::string formatIARMResult(IARM_Result_t result)
+{
+    switch (result) {
+    case IARM_RESULT_SUCCESS:       return std::string("IARM_RESULT_SUCCESS [success]");
+    case IARM_RESULT_INVALID_PARAM: return std::string("IARM_RESULT_INVALID_PARAM [invalid input parameter]");
+    case IARM_RESULT_INVALID_STATE: return std::string("IARM_RESULT_INVALID_STATE [invalid state encountered]");
+    case IARM_RESULT_IPCCORE_FAIL:  return std::string("IARM_RESULT_IPCORE_FAIL [underlying IPC failure]");
+    case IARM_RESULT_OOM:           return std::string("IARM_RESULT_OOM [out of memory]");
+    default:
+        std::ostringstream tmp;
+        tmp << result << " [unknown IARM_Result_t]";
+        return tmp.str();
+    }
+}
+}
 
 namespace WPEFramework
 {
@@ -82,7 +99,7 @@ namespace WPEFramework
         SERVICE_REGISTRATION(Warehouse, 2, 0);
         Warehouse* Warehouse::_instance = nullptr;
         Warehouse::Warehouse()
-        : AbstractPlugin(2)
+        : PluginHost::JSONRPC()
 #ifdef HAS_FRONT_PANEL
         , m_ledTimer(64 * 1024, "LedTimer")
         , m_ledInfo(this)
@@ -90,14 +107,22 @@ namespace WPEFramework
         {
             LOGWARN ("Ctor:%d", __LINE__);
             Warehouse::_instance = this;
-            registerMethod(WAREHOUSE_METHOD_RESET_DEVICE, &Warehouse::resetDeviceWrapper, this);
-            registerMethod(WAREHOUSE_METHOD_GET_DEVICE_INFO, &Warehouse::getDeviceInfoWrapper, this, {1}); // org.rdk.System.1.getDeviceInfo should be used instead on later versions
-            registerMethod(WAREHOUSE_METHOD_SET_FRONT_PANEL_STATE, &Warehouse::setFrontPanelStateWrapper, this);
-            registerMethod(WAREHOUSE_METHOD_INTERNAL_RESET, &Warehouse::internalResetWrapper, this);
-            registerMethod(WAREHOUSE_METHOD_LIGHT_RESET, &Warehouse::lightResetWrapper, this);
-            registerMethod(WAREHOUSE_METHOD_IS_CLEAN, &Warehouse::isCleanWrapper, this);
-            registerMethod(WAREHOUSE_METHOD_EXECUTE_HARDWARE_TEST, &Warehouse::executeHardwareTestWrapper, this, {2});
-            registerMethod(WAREHOUSE_METHOD_GET_HARDWARE_TEST_RESULTS, &Warehouse::getHardwareTestResultsWrapper, this, {2});
+
+            CreateHandler({2});
+
+            Register(WAREHOUSE_METHOD_RESET_DEVICE, &Warehouse::resetDeviceWrapper, this);
+            Register(WAREHOUSE_METHOD_GET_DEVICE_INFO, &Warehouse::getDeviceInfoWrapper, this);
+            Register(WAREHOUSE_METHOD_SET_FRONT_PANEL_STATE, &Warehouse::setFrontPanelStateWrapper, this);
+            Register(WAREHOUSE_METHOD_INTERNAL_RESET, &Warehouse::internalResetWrapper, this);
+            Register(WAREHOUSE_METHOD_LIGHT_RESET, &Warehouse::lightResetWrapper, this);
+            Register(WAREHOUSE_METHOD_IS_CLEAN, &Warehouse::isCleanWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_EXECUTE_HARDWARE_TEST, &Warehouse::executeHardwareTestWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_GET_HARDWARE_TEST_RESULTS, &Warehouse::getHardwareTestResultsWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_RESET_DEVICE, &Warehouse::resetDeviceWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_SET_FRONT_PANEL_STATE, &Warehouse::setFrontPanelStateWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_INTERNAL_RESET, &Warehouse::internalResetWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_LIGHT_RESET, &Warehouse::lightResetWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_IS_CLEAN, &Warehouse::isCleanWrapper, this);
         }
 
         Warehouse::~Warehouse()
@@ -305,6 +330,7 @@ namespace WPEFramework
                 params[PARAM_SUCCESS] = false;
                 params[PARAM_ERROR] = "exception in submitting request";
                 sendNotify(WAREHOUSE_EVT_RESET_DONE, params);
+                GetHandler(2)->Notify(WAREHOUSE_EVT_RESET_DONE, params);
             }
             catch(const std::exception& e)
             {
@@ -312,6 +338,7 @@ namespace WPEFramework
                 params[PARAM_SUCCESS] = false;
                 params[PARAM_ERROR] = "exception in submitting request";
                 sendNotify(WAREHOUSE_EVT_RESET_DONE, params);
+                GetHandler(2)->Notify(WAREHOUSE_EVT_RESET_DONE, params);
             }
 #else
             bool ok = false;
@@ -321,6 +348,7 @@ namespace WPEFramework
                 params[PARAM_ERROR] = "No IARMBUS";
 
             sendNotify(WAREHOUSE_EVT_RESET_DONE, params);
+            GetHandler(2)->Notify(WAREHOUSE_EVT_RESET_DONE, params);
 #endif
         }
 

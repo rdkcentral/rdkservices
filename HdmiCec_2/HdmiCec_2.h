@@ -23,7 +23,7 @@
 #include "ccec/FrameListener.hpp"
 #include "ccec/Connection.hpp"
 
-#include "libIBus.h"
+#include "libIARM.h"
 #include "ccec/Assert.hpp"
 #include "ccec/Messages.hpp"
 #include "ccec/MessageDecoder.hpp"
@@ -33,7 +33,6 @@
 
 #include "Module.h"
 #include "utils.h"
-#include "AbstractPlugin.h"
 
 namespace WPEFramework {
 
@@ -154,12 +153,13 @@ namespace WPEFramework {
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class HdmiCec_2 : public AbstractPlugin {
+        class HdmiCec_2 : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         public:
             HdmiCec_2();
             virtual ~HdmiCec_2();
             virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
             static HdmiCec_2* _instance;
             CECDeviceInfo_2 deviceList[16];
             pthread_cond_t m_condSig;
@@ -173,6 +173,11 @@ namespace WPEFramework {
             void removeDevice(const int logicalAddress);
             void sendUnencryptMsg(unsigned char* msg, int size);
             void sendDeviceUpdateInfo(const int logicalAddress);
+
+            BEGIN_INTERFACE_MAP(HdmiCec_2)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         private:
             // We do not allow this plugin to be copied !!

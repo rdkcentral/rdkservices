@@ -2,11 +2,11 @@ name: unit-tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'sprint/**', 'release/**' ]
 
   pull_request:
     # By default: opened, synchronize, or reopened.
-    branches: [ main ]
+    branches: [ main, 'sprint/**', 'release/**' ]
 
 env:
   BUILD_TYPE: Debug
@@ -160,7 +160,7 @@ jobs:
           -B build/rdkservices
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
-          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result"
+          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system"
           -DCOMCAST_CONFIG=OFF
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
@@ -173,6 +173,8 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
           -DPLUGIN_AVINPUT=ON
+          -DPLUGIN_USBACCESS=ON
+          -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DRDK_SERVICES_TEST=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
@@ -224,12 +226,18 @@ jobs:
           -d build/rdkservices
 
       - name: Filter coverage
+        # Absolute path patterns.
         run: >
           lcov
           -r coverage.info
           '/usr/include/*'
           '*/build/rdkservices/_deps/*'
           '*/install/usr/include/*'
+          '*/test/headers/*'
+          '*/test/mocks/*'
+          '*/test/source/*'
+          '*/test/tests/*'
+          '*/DeviceIdentification/Implementation/Realtek/*'
           -o filtered_coverage.info
 
       - name: Generate HTML

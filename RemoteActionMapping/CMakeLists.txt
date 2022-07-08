@@ -25,8 +25,7 @@ add_subdirectory(test)
 add_library(${MODULE_NAME} SHARED
         RemoteActionMapping.cpp
         RamHelper.cpp
-        Module.cpp
-        ../helpers/utils.cpp)
+        Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
