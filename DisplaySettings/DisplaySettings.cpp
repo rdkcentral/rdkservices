@@ -1889,7 +1889,7 @@ namespace WPEFramework {
                 IARM_Bus_PWRMgr_StandbyVideoState_Param_t param;
                 param.isEnabled = enabled;
                 strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
-                if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_SetStandbyVideoState, &param, sizeof(param)))
+                if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_SetStandbyVideoState, &param, sizeof(param)));
                 {
                     LOGERR("Port: %s. enable: %d", param.port, param.isEnabled);
                     response["error_message"] = "Bus failure";
@@ -1907,7 +1907,7 @@ namespace WPEFramework {
                 dsMgrStandbyVideoStateParam_t param;
                 param.isEnabled = enabled;
                 strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
-                if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_API_SetStandbyVideoState, &param, sizeof(param)))
+                if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_API_SetStandbyVideoState, &param, sizeof(param)));
                 {
                     LOGERR("Port: %s. enable: %d", param.port, param.isEnabled);
                     response["error_message"] = "Bus failure";
