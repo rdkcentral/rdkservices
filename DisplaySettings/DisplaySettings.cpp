@@ -257,7 +257,6 @@ namespace WPEFramework {
 	    m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
 	    m_cecArcRoutingThreadRun = false;
 	    isCecArcRoutingThreadEnabled = true;
-        m_isPwrMgr2RFCEnabled = false;
 	    m_arcRoutingThread = std::thread(cecArcRoutingThread);
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
             m_AudioDeviceDetectTimer.connect(std::bind(&DisplaySettings::checkAudioDeviceDetectionTimer, this));
@@ -553,12 +552,6 @@ namespace WPEFramework {
                     m_powerState = param.curState;
                     LOGINFO("DisplaySettings::m_powerState:%d", m_powerState);
                 }
-            }
-            RFC_ParamData_t param;
-            bool ret = Utils::getRFCConfig(RFC_PWRMGR2, param);
-            if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
-            {
-                m_isPwrMgr2RFCEnabled = true;
             }
 
             try
@@ -1882,43 +1875,21 @@ namespace WPEFramework {
             string portname = parameters["portName"].String();
 
             bool enabled = parameters["enabled"].Boolean();
+            IARM_Bus_PWRMgr_StandbyVideoState_Param_t param;
+            param.isEnabled = enabled;
+            strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
             bool success = true;
-            IARM_Result_t result = IARM_RESULT_INVALID_STATE;
-            if(!m_isPwrMgr2RFCEnabled)
+            if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_SetStandbyVideoState, &param, sizeof(param)))
             {
-                IARM_Bus_PWRMgr_StandbyVideoState_Param_t param;
-                param.isEnabled = enabled;
-                strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
-                if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_SetStandbyVideoState, &param, sizeof(param)));
-                {
-                    LOGERR("Port: %s. enable: %d", param.port, param.isEnabled);
-                    response["error_message"] = "Bus failure";
-                    success = false;
-                }
-                else if(0 != param.result)
-                {
-                    LOGERR("Result %d. Port: %s. enable:%d", param.result, param.port, param.isEnabled);
-                    response["error_message"] = "internal error";
-                    success = false;
-                }
+                LOGERR("Port: %s. enable: %d", param.port, param.isEnabled);
+                response["error_message"] = "Bus failure";
+                success = false;
             }
-            else
+            else if(0 != param.result)
             {
-                dsMgrStandbyVideoStateParam_t param;
-                param.isEnabled = enabled;
-                strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
-                if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_API_SetStandbyVideoState, &param, sizeof(param)));
-                {
-                    LOGERR("Port: %s. enable: %d", param.port, param.isEnabled);
-                    response["error_message"] = "Bus failure";
-                    success = false;
-                }
-                else if(0 != param.result)
-                {
-                    LOGERR("Result %d. Port: %s. enable:%d", param.result, param.port, param.isEnabled);
-                    response["error_message"] = "internal error";
-                    success = false;
-                }
+                LOGERR("Result %d. Port: %s. enable:%d", param.result, param.port, param.isEnabled);
+                response["error_message"] = "internal error";
+                success = false;
             }
             returnResponse(success);
         }
@@ -1931,52 +1902,25 @@ namespace WPEFramework {
             string portname = parameters["portName"].String();
 
             bool success = true;
-            if(!m_isPwrMgr2RFCEnabled)
+            IARM_Bus_PWRMgr_StandbyVideoState_Param_t param;
+            strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
+            if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetStandbyVideoState, &param, sizeof(param)))
             {
-                IARM_Bus_PWRMgr_StandbyVideoState_Param_t param;
-                strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
-                if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetStandbyVideoState, &param, sizeof(param)))
-                {
-                    LOGERR("Port: %s. enable:%d", param.port, param.isEnabled);
-                    response["error_message"] = "Bus failure";
-                    success = false;
-                }
-                else if(0 != param.result)
-                {
-                    LOGERR("Result %d. Port: %s. enable:%d", param.result, param.port, param.isEnabled);
-                    response["error_message"] = "internal error";
-                    success = false;
-                }
-                else
-                {
-                    bool enabled(0 != param.isEnabled);
-                    LOGINFO("video port is %s", enabled ? "enabled" : "disabled");
-                    response["videoPortStatusInStandby"] = enabled;
-                }
+                LOGERR("Port: %s. enable:%d", param.port, param.isEnabled);
+                response["error_message"] = "Bus failure";
+                success = false;
+            }
+            else if(0 != param.result)
+            {
+                LOGERR("Result %d. Port: %s. enable:%d", param.result, param.port, param.isEnabled);
+                response["error_message"] = "internal error";
+                success = false;
             }
             else
             {
-                dsMgrStandbyVideoStateParam_t param;
-                strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
-                if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_API_GetStandbyVideoState, &param, sizeof(param)))
-                {
-                    LOGERR("Port: %s. enable:%d", param.port, param.isEnabled);
-                    response["error_message"] = "Bus failure";
-                    success = false;
-                }
-                else if(0 != param.result)
-                {
-                    LOGERR("Result %d. Port: %s. enable:%d", param.result, param.port, param.isEnabled);
-                    response["error_message"] = "internal error";
-                    success = false;
-                }
-                else
-                {
-                    bool enabled(0 != param.isEnabled);
-                    LOGINFO("video port is %s", enabled ? "enabled" : "disabled");
-                    response["videoPortStatusInStandby"] = enabled;
-                }
-
+                bool enabled(0 != param.isEnabled);
+                LOGINFO("video port is %s", enabled ? "enabled" : "disabled");
+                response["videoPortStatusInStandby"] = enabled;
             }
             returnResponse(success);
         }
