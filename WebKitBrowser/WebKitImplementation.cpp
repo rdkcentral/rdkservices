@@ -2142,7 +2142,11 @@ static GSourceFuncs _handlerIntervention =
             } else {
                 gchar* wpeStoragePath;
                 if (_config.LocalStorage.IsSet() == true && _config.LocalStorage.Value().empty() == false) {
+#ifdef USE_EXACT_PATHS
+                    wpeStoragePath = g_build_filename(_config.LocalStorage.Value().c_str(), nullptr);
+#else
                     wpeStoragePath = g_build_filename(_config.LocalStorage.Value().c_str(), "wpe", "local-storage", nullptr);
+#endif
                 } else {
                     wpeStoragePath = g_build_filename(g_get_user_cache_dir(), "wpe", "local-storage", nullptr);
                 }
@@ -2150,7 +2154,11 @@ static GSourceFuncs _handlerIntervention =
 
                 gchar* wpeDiskCachePath;
                 if (_config.DiskCacheDir.IsSet() == true && _config.DiskCacheDir.Value().empty() == false) {
+#ifdef USE_EXACT_PATHS
+                    wpeDiskCachePath = g_build_filename(_config.DiskCacheDir.Value().c_str(), nullptr);
+#else
                     wpeDiskCachePath = g_build_filename(_config.DiskCacheDir.Value().c_str(), "wpe", "disk-cache", nullptr);
+#endif
                 } else {
                     wpeDiskCachePath = g_build_filename(g_get_user_cache_dir(), "wpe", "disk-cache", nullptr);
                 }
