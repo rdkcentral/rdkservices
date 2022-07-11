@@ -39,6 +39,8 @@ find_package(IARMBus)
 
 target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS} ../helpers)
 
+set_source_files_properties(Timer.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
+
 target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})
 
 install(TARGETS ${MODULE_NAME}
