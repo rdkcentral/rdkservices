@@ -492,6 +492,7 @@ static GSourceFuncs _handlerIntervention =
                 , WatchDogHangThresholdInSeconds(0)
                 , LoadBlankPageOnSuspendEnabled(false)
                 , UserScripts()
+                , DirectoryUpload(true)
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -547,6 +548,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("watchdoghangthresholdtinseconds"), &WatchDogHangThresholdInSeconds);
                 Add(_T("loadblankpageonsuspendenabled"), &LoadBlankPageOnSuspendEnabled);
                 Add(_T("userscripts"), &UserScripts);
+                Add(_T("directoryupload"), &DirectoryUpload);
             }
             ~Config()
             {
@@ -607,6 +609,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::DecUInt16 WatchDogHangThresholdInSeconds;  // The amount of time to give a process to recover before declaring a hang state
             Core::JSON::Boolean LoadBlankPageOnSuspendEnabled;
             Core::JSON::ArrayType<Core::JSON::String> UserScripts;
+            Core::JSON::Boolean DirectoryUpload;
         };
 
         class HangDetector
@@ -2246,6 +2249,8 @@ static GSourceFuncs _handlerIntervention =
                 webkit_settings_set_user_agent(preferences, _config.UserAgent.Value().c_str());
             }
 
+            webkit_settings_set_enable_directory_upload(preferences, _config.DirectoryUpload.Value());
+
             // Allow mixed content.
             bool enableWebSecurity = _config.Secure.Value();
             g_object_set(G_OBJECT(preferences),
@@ -2441,6 +2446,8 @@ static GSourceFuncs _handlerIntervention =
                 WKPreferencesSetMediaContentTypesRequiringHardwareSupport(preferences, contentTypes);
                 WKRelease(contentTypes);
             }
+
+            WKPreferencesSetDirectoryUploadEnabled(preferences, _config.DirectoryUpload.Value());
 
             WKPageGroupSetPreferences(pageGroup, preferences);
 
