@@ -3366,7 +3366,7 @@ namespace WPEFramework {
                     if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Netflix.Enable", param))
                     {
                         JsonObject root;
-                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        if (strncasecmp(param.value, "true", 4) == 0)
                         {
                             std::cout << "dobby rfc true - launching netflix in container mode " << std::endl;
                             root = configSet["root"].Object();
@@ -3404,7 +3404,7 @@ namespace WPEFramework {
                     if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Cobalt.Enable", param))
                     {
                         JsonObject root;
-                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        if (strncasecmp(param.value, "true", 4) == 0)
                         {
                             std::cout << "dobby rfc true - launching cobalt in container mode " << std::endl;
                             root = configSet["root"].Object();
@@ -3424,6 +3424,67 @@ namespace WPEFramework {
                     }
 #else
                     std::cout << "rfc is disabled and unable to check for cobalt container mode " << std::endl;
+#endif
+                }
+
+                // One RFC controls all WPE-based apps
+                if (!type.empty() && (type == "HtmlApp" || type == "LightningApp"))
+                {
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.WPE.Enable", param))
+                    {
+                        JsonObject root;
+                        if (strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby WPE rfc true - launching " << type << " in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby WPE rfc false - launching " << type << " in out-of-process mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["outofprocess"] = JsonValue(true);
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading dobby WPE rfc failed - launching " << type << " in default mode" << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for " << type << " container mode " << std::endl;
+#endif
+                }
+
+                if (!type.empty() && type == "SearchAndDiscoveryApp" )
+                {
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.SAD.Enable", param))
+                    {
+                        JsonObject root;
+                        if (strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby SAD rfc true - launching " << type << " in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby SAD rfc false - launching " << type << " in out-of-process mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["outofprocess"] = JsonValue(true);
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading dobby SAD rfc failed - launching " << type << " in default mode" << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for " << type << " container mode " << std::endl;
 #endif
                 }
 
