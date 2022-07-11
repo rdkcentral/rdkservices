@@ -2,6 +2,7 @@
 
 #include "videoOutputPortType.hpp"
 #include "videoResolution.hpp"
+#include "audioOutputPort.hpp"
 
 namespace device {
 
@@ -13,6 +14,7 @@ public:
     virtual const std::string& getName() const = 0;
     virtual const VideoResolution& getDefaultResolution() const = 0;
     virtual int getHDCPProtocol() = 0;
+    virtual AudioOutputPort &getAudioOutputPort() const = 0;
 };
 
 class VideoOutputPort {
@@ -37,6 +39,11 @@ public:
     int getHDCPProtocol()
     {
         return impl->getHDCPProtocol();
+    }
+
+    AudioOutputPort &getAudioOutputPort()
+    {
+        return impl->getAudioOutputPort();
     }
 };
 

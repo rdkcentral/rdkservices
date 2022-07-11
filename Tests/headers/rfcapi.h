@@ -61,7 +61,9 @@ typedef enum {
 #define MAX_PARAM_LEN (2 * 1024)
 
 typedef struct _RFC_Param_t {
-    char value[MAX_PARAM_LEN];
+   char name[MAX_PARAM_LEN];
+   char value[MAX_PARAM_LEN];
+   DATA_TYPE type;
 } RFC_ParamData_t;
 
 class RfcApiImpl {
@@ -70,6 +72,7 @@ public:
 
     virtual WDMP_STATUS getRFCParameter(char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) = 0;
     virtual WDMP_STATUS setRFCParameter(char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) = 0;
+    virtual const char* getRFCErrorString(WDMP_STATUS code) = 0;
 };
 
 class RfcApi {
@@ -91,7 +94,14 @@ public:
     {
         return getInstance().impl->setRFCParameter(pcCallerID, pcParameterName, pcParameterValue, eDataType);
     }
+
+    static const char* getRFCErrorString(WDMP_STATUS code)
+    {
+        return getInstance().impl->getRFCErrorString(code);
+    }
+
 };
 
 constexpr auto getRFCParameter = &RfcApi::getRFCParameter;
 constexpr auto setRFCParameter = &RfcApi::setRFCParameter;
+constexpr auto getRFCErrorString = &RfcApi::getRFCErrorString;

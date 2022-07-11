@@ -167,7 +167,8 @@ jobs:
           -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/Tests/headers
           -I ${{github.workspace}}/rdkservices/Tests/headers/devicesettings
           --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system
-          -DENABLE_TELEMETRY_LOGGING"
+          -DENABLE_TELEMETRY_LOGGING
+          -DUSE_IARMBUS"
           -DCOMCAST_CONFIG=OFF
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
@@ -188,6 +189,7 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DPLUGIN_MESSENGER=ON
           -DPLUGIN_DEVICEINFO=ON
+          -DPLUGIN_SYSTEMSERVICES=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DRDK_SERVICES_TEST=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}

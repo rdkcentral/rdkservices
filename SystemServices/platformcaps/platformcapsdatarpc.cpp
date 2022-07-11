@@ -121,7 +121,7 @@ JsonObject PlatformCapsData::JsonRpc::invoke(const string &callsign,
       waitTime, method, params, result);
 
   if (err != Core::ERROR_NONE) {
-    TRACE(Trace::Error, (_T("%s JsonRpc %"PRId32" (%s.%s)\n"),
+    TRACE(Trace::Error, (_T("%s JsonRpc %" PRId32 " (%s.%s)\n"),
         __FILE__, err, callsign.c_str(), method.c_str()));
   }
 
@@ -137,7 +137,7 @@ bool PlatformCapsData::JsonRpc::activate(const string &callsign,
       waitTime, _T("activate"), params, result);
 
   if (err != Core::ERROR_NONE) {
-    TRACE(Trace::Error, (_T("%s JsonRpc %"PRId32" (%s)\n"),
+    TRACE(Trace::Error, (_T("%s JsonRpc %" PRId32 " (%s)\n"),
         __FILE__, err, callsign.c_str()));
   }
 
