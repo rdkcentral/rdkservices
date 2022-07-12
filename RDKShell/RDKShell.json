@@ -6,6 +6,9 @@
         "class": "RDKShell",
         "description": "The `RDKShell` plugin controls the management of composition, layout, Z order, and key handling."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
         "keyCode":{
             "summary":"The key code of the key to intercept (only symbol * (string data type) is acceptable)",
@@ -125,22 +128,6 @@
             "summary":"display the current Graphics framerate",
             "type":"number",
             "example":40
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods": {
@@ -221,7 +208,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "addKeyIntercept":{
@@ -251,7 +238,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "addKeyIntercepts": {
@@ -300,7 +287,7 @@
                 }
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "addKeyListener":{
@@ -359,7 +346,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "addKeyMetadataListener": {
@@ -383,7 +370,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "createDisplay": {
@@ -449,7 +436,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "destroy":{
@@ -467,7 +454,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "enableInactivityReporting":{
@@ -486,7 +473,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "enableKeyRepeats": {
@@ -505,7 +492,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }            
         },
         "enableLogsFlushing": {
@@ -524,7 +511,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }            
         },
         "enableVirtualDisplay":{
@@ -552,7 +539,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "generateKey": {
@@ -599,7 +586,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getAvailableTypes": {
@@ -616,7 +603,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -670,7 +657,7 @@
                             ] 
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -688,7 +675,7 @@
                         "$ref": "#/definitions/clients"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -709,7 +696,7 @@
                         "$ref": "#/definitions/height"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -744,7 +731,7 @@
                         "$ref": "#/definitions/holePunch"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -764,7 +751,7 @@
                         "example": true
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -790,7 +777,7 @@
                         "example": true
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -810,7 +797,7 @@
                         "$ref": "#/definitions/framerate"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -828,7 +815,7 @@
                         "$ref": "#/definitions/logLevel"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -853,7 +840,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getLogsFlushingEnabled": {
@@ -867,7 +854,7 @@
                         "example": true
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -896,7 +883,7 @@
                         "$ref": "#/definitions/opacity"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -932,7 +919,7 @@
                         "example": "0.5"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -954,7 +941,7 @@
                         "$ref": "#/definitions/h"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -968,7 +955,7 @@
             "summary": "Captures a screenshot. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onScreenshotComplete` | Triggers when a screenshot is captured successfully |",
             "events": ["onScreenshotComplete"],
             "result":{
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getState":{
@@ -1002,7 +989,7 @@
                         }
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1032,7 +1019,7 @@
                         "example": "624644"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1076,7 +1063,7 @@
                         }
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1112,7 +1099,7 @@
                         "example": true
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1149,7 +1136,7 @@
                         "$ref": "#/definitions/h"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1186,7 +1173,7 @@
                         "example": true
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1204,7 +1191,7 @@
                         "$ref": "#/definitions/clients"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1226,25 +1213,25 @@
                 }
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "hideCursor": {
             "summary": "Hides the cursor from showing on the display. The cursor is hidden by default. \n \n### Events\n \n No Events.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "hideFullScreenImage":{
             "summary": "Hides the Full Screen Image. \n \n### Events\n \n No Events.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "hideSplashLogo": {
             "summary": "Removes the splash screen. \n \n### Events\n \n No Events.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "ignoreKeyInputs": {
@@ -1263,7 +1250,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "injectKey": {
@@ -1284,7 +1271,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "kill": {
@@ -1306,7 +1293,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "launch":{
@@ -1412,7 +1399,7 @@
                         "example": "activate"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1460,13 +1447,13 @@
                 ]
             },
              "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "launchResidentApp": {
             "summary": "Launches the Resident application. \n \n### Events\n \n No Events.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "moveBehind":{
@@ -1489,7 +1476,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "moveToBack":{
@@ -1511,7 +1498,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "moveToFront": {
@@ -1533,19 +1520,19 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "removeAllKeyIntercepts": {
             "summary": "Removes all key intercepts. \n \n### Events\n \n No Events.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }            
         },
         "removeAllKeyListeners": {
             "summary": "Removes all key listeners. \n \n### Events\n \n No Events.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }            
         },
         "removeAnimation":{
@@ -1567,7 +1554,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "removeKeyIntercept": {
@@ -1592,7 +1579,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "removeKeyListener": {
@@ -1634,7 +1621,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "removeKeyMetadataListener":{
@@ -1658,13 +1645,13 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "resetInactivityTime":{
             "summary": "Resets the inactivity notification interval. \n \n### Events\n \n No Events.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "resumeApplication": {
@@ -1681,7 +1668,7 @@
                 }
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "scaleToFit": {
@@ -1719,7 +1706,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setBounds": {
@@ -1757,7 +1744,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setCursorSize": {
@@ -1778,7 +1765,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setFocus": {
@@ -1800,7 +1787,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setHolePunch": {
@@ -1826,7 +1813,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setInactivityInterval": {
@@ -1846,7 +1833,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setLogLevel":{
@@ -1863,7 +1850,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setMemoryMonitor":{
@@ -1900,7 +1887,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setOpacity":{
@@ -1921,7 +1908,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setScale": {
@@ -1951,7 +1938,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setScreenResolution": {
@@ -1972,7 +1959,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setTopmost":{
@@ -2000,7 +1987,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setVirtualResolution": {
@@ -2027,7 +2014,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setVisibility":{
@@ -2053,13 +2040,13 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "showCursor": {
             "summary": "Shows the cursor on the display using the current cursor size. See `setCursorSize`. The cursor automatically disappears after 5 seconds of inactivity. \n \n### Events\n \n No Events.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "showFullScreenImage": {
@@ -2075,7 +2062,7 @@
                 }
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "showSplashLogo": {
@@ -2094,7 +2081,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "showWatermark": {
@@ -2113,7 +2100,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "suspend": {
@@ -2131,7 +2118,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "suspendApplication": {
@@ -2146,6 +2133,29 @@
                         "example": "HtmlApp"
                     }
                 }
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "enableInputEvents": {
+            "summary": "Disable and enable responding to input events for particular clients. \n \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enable": {
+                        "summary": "`true` to enable responding to input events or `false` to disable responding to input events",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "clients": {
+                        "$ref": "#/definitions/clients"
+                    }
+                },
+                "required": [
+                    "enable",
+                    "clients"
+                ]
             },
             "result": {
                 "$ref": "#/definitions/result"
