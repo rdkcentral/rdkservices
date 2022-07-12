@@ -11,8 +11,9 @@ on:
 env:
   BUILD_TYPE: Debug
 
+
   # Refs for 2208_sprint.
-  THUNDER_REF: "331ee30b1eaf82a7e8944ee00b8cb1d1d0aca682"
+  THUNDER_REF: "02f6ccbca6832043cbc94cc28c1bda7d4954a4e6"
   INTERFACES_REF: "cb3b8476aa3b00ae9e73ff0cf64114563d1ee7ae"
 
   THUNDER_BINDING: "127.0.0.1"
@@ -91,7 +92,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
-          --build build/ThunderTools
+          --build build/ThunderTools -j8
 
       - name: Install ThunderTools
         if: steps.cache.outputs.cache-hit != 'true'
@@ -115,7 +116,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
-          --build build/Thunder
+          --build build/Thunder -j8
 
       - name: Install Thunder
         if: steps.cache.outputs.cache-hit != 'true'
@@ -144,7 +145,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
-          --build build/ThunderInterfaces
+          --build build/ThunderInterfaces -j8
 
       - name: Install ThunderInterfaces
         if: steps.cache.outputs.cache-hit != 'true'
@@ -197,7 +198,7 @@ jobs:
       - name: Build rdkservices
         run: >
           cmake
-          --build build/rdkservices
+          --build build/rdkservices -j8
 
       - name: Install rdkservices
         run: >

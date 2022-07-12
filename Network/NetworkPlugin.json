@@ -5,8 +5,7 @@
       "callsign": "org.rdk.Network",
       "locator": "libWPEFrameworkNetwork.so",
       "status": "production",
-      "description": "The `Network` plugin allows you to manage network interfaces on a set-top box.",
-      "version": "1.0"
+      "description": "The `Network` plugin allows you to manage network interfaces on a set-top box."
     },
     "interface": {
       "$ref": "Network.json#"
