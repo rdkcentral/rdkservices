@@ -1,8 +1,7 @@
 {
     "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
     "info": {
-        "title": "Messenger Plugin",
-        "version": "1.0",
+        "title": "Messenger Plugin"
         "callsign": "Messenger",
         "locator": "libWPEFrameworkMessenger.so",
         "status": "alpha",
