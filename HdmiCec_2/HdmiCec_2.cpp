@@ -58,6 +58,10 @@
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
 #define ABORT_REASON_ID 4
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 enum {
 	HDMICEC2_EVENT_DEVICE_ADDED=0,
 	HDMICEC2_EVENT_DEVICE_REMOVED,
@@ -91,9 +95,23 @@ static bool isLGTvConnected = false;
 
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::HdmiCec_2> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(HdmiCec_2, 1, 0);
+        SERVICE_REGISTRATION(HdmiCec_2, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         HdmiCec_2* HdmiCec_2::_instance = nullptr;
         static int libcecInitStatus = 0;

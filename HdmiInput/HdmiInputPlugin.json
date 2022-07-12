@@ -5,8 +5,7 @@
       "callsign": "org.rdk.HdmiInput",
       "locator": "libWPEFrameworkHdmiInput.so",
       "status": "production",
-      "description": "The `HdmiInput` plugin allows you to control the HDMI Input on a set-top box.",
-      "version": "2.0"
+      "description": "The `HdmiInput` plugin allows you to control the HDMI Input on a set-top box."
     },
     "interface": {
       "$ref": "HdmiInput.json#"
