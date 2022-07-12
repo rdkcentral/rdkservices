@@ -5,8 +5,7 @@
       "callsign": "org.rdk.ContinueWatching",
       "locator": "libWPEFrameworkContinueWatching.so",
       "status": "production",
-      "description": "Initial version of the `ContinueWatching` API.",
-      "version": "1.0"
+      "description": "Initial version of the `ContinueWatching` API."
     },
     "interface": {
       "$ref": "ContinueWatching.json#"

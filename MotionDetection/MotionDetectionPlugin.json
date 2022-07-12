@@ -5,8 +5,7 @@
       "callsign": "org.rdk.MotionDetection",
       "locator": "libWPEFrameworkMotionDetection.so",
       "status": "production",
-      "description": "The `MotionDetection` plugin allows you to control the motion sensors that are available on a set-top box.",
-      "version": "1.0"
+      "description": "The `MotionDetection` plugin allows you to control the motion sensors that are available on a set-top box."
     },
     "interface": {
       "$ref": "MotionDetection.json#"
