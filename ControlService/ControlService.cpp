@@ -53,15 +53,32 @@ typedef enum
 
 #define IEEE_MAC_ADDRESS_STR_MAX    30
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 
 using namespace std;
 
 namespace WPEFramework {
 
+    namespace {
+
+        static Plugin::Metadata<Plugin::ControlService> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+    
     namespace Plugin {
 
 
-        SERVICE_REGISTRATION(ControlService, 1, 0);
+        SERVICE_REGISTRATION(ControlService, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         ControlService* ControlService::_instance = nullptr;
 

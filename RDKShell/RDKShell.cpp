@@ -42,8 +42,10 @@
 #endif //RDKSHELL_READ_MAC_ON_STARTUP
 
 
-const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
-const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MINOR = 0;
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_MOVE_TO_FRONT = "moveToFront";
@@ -220,6 +222,21 @@ enum AppLastExitReason
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 
 namespace WPEFramework {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::RDKShell> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin {
 
 
@@ -410,7 +427,7 @@ namespace WPEFramework {
           return flag;
         }
 
-        SERVICE_REGISTRATION(RDKShell, 1, 0);
+        SERVICE_REGISTRATION(RDKShell, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         RDKShell* RDKShell::_instance = nullptr;
         std::mutex gRdkShellMutex;

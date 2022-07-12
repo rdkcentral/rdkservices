@@ -5,8 +5,7 @@
       "callsign": "org.rdk.CompositeInput",
       "locator": "libWPEFrameworkCompositeInput.so",
       "status": "production",
-      "description": "The `CompositeInput` Plugin allows you to control the composite input source on a device",
-      "version": "2.0"
+      "description": "The `CompositeInput` Plugin allows you to control the composite input source on a device"
     },
     "interface": {
       "$ref": "CompositeInput.json#"

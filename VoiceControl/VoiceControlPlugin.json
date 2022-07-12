@@ -5,8 +5,7 @@
       "callsign": "org.rdk.VoiceControl",
       "locator": "libWPEFrameworkVoiceControl.so",
       "status": "production",
-      "description": "The `VoiceControl` plugin manages voice control sessions.",
-      "version": "1.0"
+      "description": "The `VoiceControl` plugin manages voice control sessions."
     },
     "interface": {
       "$ref": "VoiceControl.json#"

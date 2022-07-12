@@ -63,7 +63,7 @@ namespace Plugin {
                     _client = nullptr;
                 }
             }
-            void Updated(const Exchange::IConnectionProperties::INotification::Source event) override
+            void Updated(Exchange::IConnectionProperties::INotification::Source event) override
             {
                 Exchange::JConnectionProperties::Event::Updated(_parent, event);
             }

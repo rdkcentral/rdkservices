@@ -35,11 +35,29 @@ const string WPEFramework::Plugin::DataCapture::METHOD_GET_AUDIO_CLIP = "getAudi
 const string WPEFramework::Plugin::DataCapture::EVT_ON_AUDIO_CLIP_READY = "onAudioClipReady";
 pthread_mutex_t WPEFramework::Plugin::DataCapture::_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 using namespace std;
 using namespace audiocapturemgr;
 
 namespace WPEFramework {
 
+    namespace {
+
+        static Plugin::Metadata<Plugin::DataCapture> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+    
     namespace Plugin {
 
         static bool verify_result(IARM_Result_t ret, iarmbus_acm_arg_t &param)
@@ -66,7 +84,7 @@ namespace WPEFramework {
             while (dir.Next()) Core::File(AUDIOCAPTUREMGR_FILE_PATH + dir.Name()).Destroy();
         }
 
-        SERVICE_REGISTRATION(DataCapture, 1, 0);
+        SERVICE_REGISTRATION(DataCapture, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         DataCapture* DataCapture::_instance = nullptr;
 

@@ -5,8 +5,7 @@
       "callsign": "org.rdk.Timer",
       "locator": "libWPEFrameworkTimer.so",
       "status": "production",
-      "description": "The `Timer` plugin controls timer execution. It allows you to start, suspend, resume timers and receive timer notifications.",
-      "version": "1.0"
+      "description": "The `Timer` plugin controls timer execution. It allows you to start, suspend, resume timers and receive timer notifications."
     },
     "interface": {
       "$ref": "Timer.json#"

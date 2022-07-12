@@ -20,6 +20,7 @@
 #include "LocationService.h"
 
 namespace WPEFramework {
+
 namespace Plugin {
 
     struct IGeography {

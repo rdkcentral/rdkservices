@@ -21,10 +21,27 @@
 #include "IdentityProvider.h"
 #include <interfaces/IConfiguration.h>
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework {
+namespace {
+    static Plugin::Metadata<Plugin::DeviceIdentification> metadata(
+        // Version (Major, Minor, Patch)
+        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+        // Preconditions
+        {},
+        // Terminations
+        {},
+        // Controls
+        {}
+    );
+}
+
 namespace Plugin {
 
-    SERVICE_REGISTRATION(DeviceIdentification, 1, 0);
+    SERVICE_REGISTRATION(DeviceIdentification, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     /* virtual */ const string DeviceIdentification::Initialize(PluginHost::IShell* service)
     {

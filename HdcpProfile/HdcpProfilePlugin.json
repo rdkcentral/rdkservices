@@ -5,8 +5,7 @@
       "callsign": "org.rdk.HdcpProfile",
       "locator": "libWPEFrameworkHdcpProfile.so",
       "status": "production",
-      "description": "The HdcpProfile plugin provides an interface for HDCP-related data and events.",
-      "version": "1.0"
+      "description": "The HdcpProfile plugin provides an interface for HDCP-related data and events."
     },
     "interface": {
       "$ref": "HdcpProfile.json#"

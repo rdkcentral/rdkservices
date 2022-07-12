@@ -26,8 +26,9 @@
 
 #include "libIBus.h"
 
-const short WPEFramework::Plugin::WifiManager::API_VERSION_NUMBER_MAJOR = 2;
-const short WPEFramework::Plugin::WifiManager::API_VERSION_NUMBER_MINOR = 0;
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 
 namespace {
     using WPEFramework::Plugin::WifiManager;
@@ -59,9 +60,24 @@ namespace {
 
 namespace WPEFramework
 {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::WifiManager> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(WifiManager, WifiManager::API_VERSION_NUMBER_MAJOR, WifiManager::API_VERSION_NUMBER_MINOR);
+        SERVICE_REGISTRATION(WifiManager, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         WifiManager::WifiManager()
         : PluginHost::JSONRPC(),
