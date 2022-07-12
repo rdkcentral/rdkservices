@@ -67,25 +67,10 @@ protected:
     {
         IarmBus::getInstance().impl = nullptr;
     }
-<<<<<<< HEAD
-
-    Core::ProxyType<TimerTestMock> plugin;
-    Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
-<<<<<<< HEAD
-=======
-    string response;
->>>>>>> 89632f91 (RDK-36576: Add Unit Tests for RDKServices Timer Plugin)
-=======
->>>>>>> b21f3702 (Modified to use ServiceMock)
 };
 
 TEST_F(TimerTestFixture, registeredMethods)
 {
-<<<<<<< HEAD
-    GTEST_SKIP();
-}
-=======
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("startTimer")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("cancel")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("suspend")));
@@ -260,50 +245,12 @@ TEST_F(TimerTestFixture, timerExpiry)
 
     EXPECT_EQ(string(""), plugin->Initialize(nullptr));
 
-<<<<<<< HEAD
-    //Create a timer of 0.2 sec with a reminder of 0.1 sec
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), 
-                        _T("{\"interval\":0.2, \"mode\":\"WAKE\", \"remindBefore\": 0.1}"), response));
-    EXPECT_THAT(response, testing::HasSubstr("timerId"));
-    EXPECT_THAT(response, testing::HasSubstr("\"success\":true"));
-
-    //Extract timer id from response
-    JsonObject params;
-    EXPECT_TRUE(params.FromString(response));
-    EXPECT_TRUE(params.HasLabel(_T("timerId")));
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    string stimerID = params["timerId"].String();
-    int nTimerId = std::stoi(stimerID);
-=======
-    string stimerId = params["timerId"].String();
-    int nTimerId = std::stoi(stimerId);
->>>>>>> c26ed4e4 (RDK-36576 : Add Unit Tests for RDKServices Timer Plugin)
-=======
-//    string stimerId = params["timerId"].String();
-//    int nTimerId = std::stoi(stimerId);
->>>>>>> b21f3702 (Modified to use ServiceMock)
-
-=======
->>>>>>> e73634d3 (Used ServiceMock to capture timer events)
-
-    // JSON-RPC events
-=======
->>>>>>> 805ed1e8 (Clean up TimerTest)
     auto dispatcher = static_cast<PluginHost::IDispatcher*>(
         plugin->QueryInterface(PluginHost::IDispatcher::ID));
     EXPECT_TRUE(dispatcher != nullptr);
 
     dispatcher->Activate(&service);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    //Wait for timer expiry & reminder calls
->>>>>>> c26ed4e4 (RDK-36576 : Add Unit Tests for RDKServices Timer Plugin)
-   sleep(2);
-=======
     handler.Subscribe(0, _T("timerExpiryReminder"), _T("org.rdk.Timer"), message);
     handler.Subscribe(0, _T("timerExpired"), _T("org.rdk.Timer"), message);
 
@@ -315,12 +262,9 @@ TEST_F(TimerTestFixture, timerExpiry)
 
     handler.Unsubscribe(0, _T("timerExpiryReminder"), _T("org.rdk.Timer"), message);
     handler.Unsubscribe(0, _T("timerExpired"), _T("org.rdk.Timer"), message);
->>>>>>> e73634d3 (Used ServiceMock to capture timer events)
 
     dispatcher->Deactivate();
     dispatcher->Release();
 
     plugin->Deinitialize(nullptr);
 }
-
->>>>>>> 89632f91 (RDK-36576: Add Unit Tests for RDKServices Timer Plugin)
