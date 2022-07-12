@@ -23,7 +23,6 @@ namespace Plugin {
         constexpr auto* kRfcPartnerId = _T("Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId");
         constexpr auto* kRfcModelName = _T("Device.DeviceInfo.ModelName");
         constexpr auto* kRfcSerialNumber = _T("Device.DeviceInfo.SerialNumber");
-        constexpr auto* kDefaultAudioPort = _T("HDMI0");
     }
 
     SERVICE_REGISTRATION(DeviceCapabilities, 1, 0);
@@ -388,7 +387,7 @@ namespace Plugin {
         int capabilities = dsAUDIOSUPPORT_NONE;
 
         try {
-            auto strAudioPort = audioPort.empty() ? string(kDefaultAudioPort) : audioPort;
+            auto strAudioPort = audioPort.empty() ? device::Host::getInstance().getDefaultAudioPortName() : audioPort;
             auto& aPort = device::Host::getInstance().getAudioOutputPort(strAudioPort);
             aPort.getAudioCapabilities(&capabilities);
         } catch (const device::Exception& e) {
@@ -432,7 +431,7 @@ namespace Plugin {
         int capabilities = dsMS12SUPPORT_NONE;
 
         try {
-            auto strAudioPort = audioPort.empty() ? string(kDefaultAudioPort) : audioPort;
+            auto strAudioPort = audioPort.empty() ? device::Host::getInstance().getDefaultAudioPortName() : audioPort;
             auto& aPort = device::Host::getInstance().getAudioOutputPort(strAudioPort);
             aPort.getMS12Capabilities(&capabilities);
         } catch (const device::Exception& e) {
@@ -468,7 +467,7 @@ namespace Plugin {
         std::list<string> list;
 
         try {
-            auto strAudioPort = audioPort.empty() ? string(kDefaultAudioPort) : audioPort;
+            auto strAudioPort = audioPort.empty() ? device::Host::getInstance().getDefaultAudioPortName() : audioPort;
             auto& aPort = device::Host::getInstance().getAudioOutputPort(strAudioPort);
             const auto supportedProfiles = aPort.getMS12AudioProfileList();
             for (size_t i = 0; i < supportedProfiles.size(); i++) {
