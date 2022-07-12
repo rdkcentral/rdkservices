@@ -5,8 +5,7 @@
         "callsign": "org.rdk.TextToSpeech",
         "locator": "libWPEFrameworkTextToSpeech.so",
         "status": "production",
-        "description": "The `TextToSpeech` plugin provides TTS functionality (Voice Guidance & Speech Synthesis) for the client application.",
-        "version": "1.0"
+        "description": "The `TextToSpeech` plugin provides TTS functionality (Voice Guidance & Speech Synthesis) for the client application."
     },
     "interface": {
         "$ref": "TextToSpeech.json#"

@@ -5,8 +5,7 @@
       "callsign": "org.rdk.LoggingPreferences",
       "locator": "libWPEFrameworkLoggingPreferences.so",
       "status": "production",
-      "description": "The `LoggingPreferences` plugin allows you to control key press logging on a set-top box.",
-      "version": "1.0"
+      "description": "The `LoggingPreferences` plugin allows you to control key press logging on a set-top box."
     },
     "interface": {
       "$ref": "LoggingPreferences.json#"

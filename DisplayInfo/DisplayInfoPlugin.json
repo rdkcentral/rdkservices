@@ -5,8 +5,7 @@
         "callsign": "DisplayInfo",
         "locator": "libWPEFrameworkDisplayInfo.so",
         "status": "production",
-        "description": "The `DisplayInfo` plugin allows you to retrieve various display-related information",
-        "version": "1.0"
+        "description": "The `DisplayInfo` plugin allows you to retrieve various display-related information"
     },
     "interface": {
         "$ref": "DisplayInfo.json#"

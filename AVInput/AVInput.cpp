@@ -25,7 +25,25 @@
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework {
+namespace {
+
+    static Plugin::Metadata<Plugin::AVInput> metadata(
+        // Version (Major, Minor, Patch)
+        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+        // Preconditions
+        {},
+        // Terminations
+        {},
+        // Controls
+        {}
+    );
+}
+
 namespace Plugin {
 
 namespace {
@@ -53,7 +71,7 @@ void dsHdmiEventHandler(const char *, IARM_EventId_t eventId, void *, size_t)
 }
 }
 
-SERVICE_REGISTRATION(AVInput, 1, 0);
+SERVICE_REGISTRATION(AVInput, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
 AVInput* AVInput::_instance = nullptr;
 

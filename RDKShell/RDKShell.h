@@ -56,8 +56,6 @@ namespace WPEFramework {
             static RDKShell* _instance;
 
         public /*constants*/:
-            static const short API_VERSION_NUMBER_MAJOR;
-            static const short API_VERSION_NUMBER_MINOR;
             static const string SERVICE_NAME;
             //methods
             static const string RDKSHELL_METHOD_MOVE_TO_FRONT;

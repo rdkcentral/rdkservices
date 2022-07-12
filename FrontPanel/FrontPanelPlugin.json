@@ -5,8 +5,7 @@
       "callsign": "org.rdk.FrontPanel",
       "locator": "libWPEFrameworkFrontPanel.so",
       "status": "production",
-      "description": "The `FrontPanel` plugin allows you to control brightness and power state for LEDs on a set-top box.",
-      "version": "2.0"
+      "description": "The `FrontPanel` plugin allows you to control brightness and power state for LEDs on a set-top box."
     },
     "interface": {
       "$ref": "FrontPanel.json#"
