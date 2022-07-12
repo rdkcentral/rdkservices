@@ -22,6 +22,7 @@
 
 #include "Module.h"
 #include <interfaces/IDeviceInfo.h>
+#include <interfaces/IFirmwareVersion.h>
 #include <interfaces/json/JsonData_DeviceInfo.h>
 
 namespace WPEFramework {
