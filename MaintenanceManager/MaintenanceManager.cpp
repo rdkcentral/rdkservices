@@ -291,8 +291,12 @@ namespace WPEFramework {
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
 
+            if ( false == internetConnectStatus ) {
+                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
+                LOGINFO("Maintenance completed as it is offline mode");
+            }
             // Unsolicited part comes here
-            if (UNSOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
+	    else if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
                 for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
                     LOGINFO("waiting to unlock.. [%d/%d]",i,tasks.size());
@@ -310,7 +314,7 @@ namespace WPEFramework {
             }
             /* Here in Solicited, we start with RFC so no
              * need to wait for any DCM events */
-            else if( SOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
+            else if( SOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
                 cmd = tasks[0];
                 cmd += " &";
@@ -334,10 +338,6 @@ namespace WPEFramework {
             }
             m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
-            if ( false == internetConnectStatus ) {
-                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
-                LOGINFO("Maintenance completed as it is offline mode");
-            }
         }
 
         const string MaintenanceManager::checkActivatedStatus()
@@ -597,13 +597,6 @@ namespace WPEFramework {
             else {
                 LOGINFO("DBG: Unable to find StartDCM_maintaince.sh \n");
             }
-
-            /* we moved every thing to a thread */
-            /* only when dcm is getting a DCM_SUCCESS/DCM_ERROR we say
-             * Maintenance is started until then we say MAITENANCE_IDLE */
-            if(m_thread.joinable()){
-                     m_thread.join();
-             }
 
             m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
         }
@@ -1166,10 +1159,6 @@ namespace WPEFramework {
                         /* we set this to false */
                         g_is_critical_maintenance="false";
 
-                        if(m_thread.joinable()){
-                               m_thread.join();
-                        }
-
                         m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
 
                         result=true;
@@ -1192,9 +1181,14 @@ namespace WPEFramework {
         uint32_t MaintenanceManager::stopMaintenance(const JsonObject& parameters,
                 JsonObject& response){
 
-                bool result=false;
-                result=stopMaintenanceTasks();
-                returnResponse(result);
+                if( checkAbortFlag() ) {
+                    bool result=false;
+                    result=stopMaintenanceTasks();
+                    returnResponse(result);
+                }
+                else {
+                    LOGINFO("Failed to initiate stopMaintenance, RFC is set as False\n");
+                }
         }
 
         bool MaintenanceManager::stopMaintenanceTasks(){
@@ -1207,9 +1201,6 @@ namespace WPEFramework {
             bool task_status[4]={false};
             bool result=false;
             bool task_incomplete=false;
-
-            /* only based on RFC */
-            if( checkAbortFlag() ){
 
                 /* run only when the maintenance status is MAINTENANCE_STARTED */
                 m_statusMutex.lock();
@@ -1290,11 +1281,7 @@ namespace WPEFramework {
                     m_thread.join();
                 }
 		m_statusMutex.unlock();
-            }
-            else {
-                LOGERR("Failed to initiate stopMaintenance, RFC is set as False \n");
-            }
-            return result;
+                return result;
         }
 
         bool MaintenanceManager::checkAbortFlag(){
