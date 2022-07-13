@@ -203,27 +203,43 @@ For a plugin specific question, maintainers might refer you to the plugin owner(
         * MINOR version when you add backward compatible new features like adding new APIs, adding new parameters to existing APIs,
         * PATCH version when you make backwards compatible bug fixes.
 
-    * RDK Service version in MAJOR.MINOR.PATCH format is reflected in `MyServicePlugin.json`.
+    * RDK Service version in MAJOR.MINOR.PATCH format is updated using SERVICE_REGISTRATION macro.
 
-    * Changes in version should be updated when commits are added to the main branch.
+    ```
+    SERVICE_REGISTRATION(DisplaySettings, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
+    ```
 
-    * For more info visit: https://keepachangelog.com/en/1.0.0/
+    * There is also a Plugin::Metadata structure maintained for each RDK Service that keeps the versioning information. This is returned in call to Controller.1.status.
+
+    ```
+    static Plugin::Metadata<Plugin::DisplaySettings> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+    ```
+
+    * Changes in version should be updated when commits are added to the main branch. 
 
 7. Changelog
 
-    * Each RDK Service has a CHANGELOG file that contains all changes done so far:
+    * Each RDK Service has a CHANGELOG file that contains all changes done so far. When version is updated, add a entry in the CHANGELOG.md with user friendly information on what was changed with the new version. Refer to [Changelog](https://github.com/olivierlacan/keep-a-changelog/blob/main/CHANGELOG.md) as an example and [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) for more details.
 
     * Please Add entry in the CHANGELOG for each version change and indicate the type of change with these labels:
-        * Added for new features.
-        * Changed for changes in existing functionality.
-        * Deprecated for soon-to-be removed features.
-        * Removed for now removed features.
-        * Fixed for any bug fixes.
-        * Security in case of vulnerabilities.
+        * **Added** for new features.
+        * **Changed** for changes in existing functionality.
+        * **Deprecated** for soon-to-be removed features.
+        * **Removed** for now removed features.
+        * **Fixed** for any bug fixes.
+        * **Security** in case of vulnerabilities.
 
     * Changes in CHANGELOG should be updated when commits are added to the main branch.
-
-    * For more info visit: https://semver.org/spec/v2.0.0.html
 
 8. Initialization and Cleanup
 
