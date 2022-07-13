@@ -2651,13 +2651,10 @@ namespace WPEFramework {
                 float newGain = 0;
                 try {
                         newGain = stof(sGain);
-<<<<<<< HEAD
-=======
-                         if ((newGain < -2080) || (newGain > 480)) {
+                        if ((newGain < -2080) || (newGain > 480)) {
                             LOGERR("Gain value being set to an invalid value newGain: %f \n",newGain);
                             returnResponse(false);
                         }
->>>>>>> 894e248f... Update DisplaySettings.cpp
                 }catch (const device::Exception& err) {
                         LOG_DEVICE_EXCEPTION1(sGain);
                         returnResponse(false);
