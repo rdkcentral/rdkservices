@@ -1171,7 +1171,7 @@ namespace WPEFramework {
                     returnResponse(result);
                 }
                 else {
-                    LOGINFO("stopMaintenance RFC is disabled \n");
+                    LOGINFO("Failed to initiate stopMaintenance, RFC is set as False\n");
                 }
         }
 
