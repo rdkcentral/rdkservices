@@ -79,15 +79,4 @@ static std::string getErrorString (tvError_t eReturn)
         return "UNKNOWN ERROR";
     }
 
-static long long getCurrentTimeMicro()
-{
-   struct timeval tv;
-   long long utcCurrentTimeMicro;
-
-   gettimeofday(&tv,0);
-   utcCurrentTimeMicro= tv.tv_sec*1000000LL+tv.tv_usec;
-
-   return utcCurrentTimeMicro;
-}
-
 #endif

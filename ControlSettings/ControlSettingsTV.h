@@ -47,6 +47,21 @@ class ControlSettingsTV : public AbstractPlugin {
         DECLARE_JSON_RPC_METHOD(setBrightness)
         DECLARE_JSON_RPC_METHOD(getBrightness )
         DECLARE_JSON_RPC_METHOD(resetBrightness )
+        DECLARE_JSON_RPC_METHOD(setContrast )
+        DECLARE_JSON_RPC_METHOD(getContrast )
+        DECLARE_JSON_RPC_METHOD(resetContrast )
+        DECLARE_JSON_RPC_METHOD(setSharpness )
+        DECLARE_JSON_RPC_METHOD(getSharpness )
+        DECLARE_JSON_RPC_METHOD(resetSharpness )
+        DECLARE_JSON_RPC_METHOD(setSaturation )
+        DECLARE_JSON_RPC_METHOD(getSaturation )
+        DECLARE_JSON_RPC_METHOD(resetSaturation )
+        DECLARE_JSON_RPC_METHOD(setHue )
+        DECLARE_JSON_RPC_METHOD(getHue )
+        DECLARE_JSON_RPC_METHOD(resetHue )
+        DECLARE_JSON_RPC_METHOD(setColorTemperature )
+        DECLARE_JSON_RPC_METHOD(getColorTemperature )
+        DECLARE_JSON_RPC_METHOD(resetColorTemperature )
 
 
     public:

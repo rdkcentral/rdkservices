@@ -36,8 +36,21 @@ namespace Plugin {
         registerMethod("getBrightness", &ControlSettingsTV::getBrightness, this, {1});
         registerMethod("setBrightness", &ControlSettingsTV::setBrightness, this, {1});
         registerMethod("resetBrightness", &ControlSettingsTV::resetBrightness, this, {1});
-
-	this->Initialize();
+        registerMethod("getContrast", &ControlSettingsTV::getContrast, this, {1});
+        registerMethod("setContrast", &ControlSettingsTV::setContrast, this, {1});
+        registerMethod("resetContrast", &ControlSettingsTV::resetContrast, this, {1});
+        registerMethod("getSharpness", &ControlSettingsTV::getSharpness, this, {1});
+        registerMethod("setSharpness", &ControlSettingsTV::setSharpness, this, {1});
+        registerMethod("resetSharpness", &ControlSettingsTV::resetSharpness, this, {1});
+        registerMethod("getSaturation", &ControlSettingsTV::getSaturation, this, {1});
+        registerMethod("setSaturation", &ControlSettingsTV::setSaturation, this, {1});
+        registerMethod("resetSaturation", &ControlSettingsTV::resetSaturation, this, {1});
+        registerMethod("getHue", &ControlSettingsTV::getHue, this, {1});
+        registerMethod("setHue", &ControlSettingsTV::setHue, this, {1});
+        registerMethod("resetHue", &ControlSettingsTV::resetHue, this, {1});
+        registerMethod("getColorTemperature", &ControlSettingsTV::getColorTemperature, this, {1});
+        registerMethod("setColorTemperature", &ControlSettingsTV::setColorTemperature, this, {1});
+        registerMethod("resetColorTemperature", &ControlSettingsTV::resetColorTemperature, this, {1});
 
         LOGINFO("Exit\n");
     }
@@ -118,8 +131,7 @@ namespace Plugin {
 
     uint32_t ControlSettingsTV::getBrightness(const JsonObject& parameters, JsonObject& response)
     {
-        long long start =  getCurrentTimeMicro();
-        LOGINFO("Entry start = %lld\n",start);
+        LOGINFO("Entry");
 
         std::string pqmode;
         std::string source;
@@ -145,8 +157,7 @@ namespace Plugin {
         int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness);
         if( err == 0 ) {
             response["brightness"] = std::to_string(brightness);
-	    long long end =  getCurrentTimeMicro();
-            LOGINFO("Exit : Brightness Value: %d end = %lld  duration = %lld \n", brightness,end,end-start);
+            LOGINFO("Exit : Brightness Value: %d \n", brightness);
             returnResponse(true, "success");
         }
         else {
@@ -158,8 +169,7 @@ namespace Plugin {
 
     uint32_t ControlSettingsTV::setBrightness(const JsonObject& parameters, JsonObject& response)
     {
-        long long start =  getCurrentTimeMicro();
-        LOGINFO("Entry start = %lld\n",start);
+        LOGINFO("Entry\n");
 
         std::string value;
         std::string pqmode;
@@ -196,8 +206,7 @@ namespace Plugin {
             if(retval != 0 ) {
                 LOGWARN("Failed to Save Brightness to ssm_data\n");
             }
-	    long long end =  getCurrentTimeMicro();
-            LOGINFO("Exit : setBrightness successful to value: %d end = %lld  duration = %lld \n", brightness,end,end-start);
+            LOGINFO("Exit : setBrightness successful to value: %d\n", brightness);
             returnResponse(true, "success");
         }
 
@@ -206,8 +215,7 @@ namespace Plugin {
     uint32_t ControlSettingsTV::resetBrightness(const JsonObject& parameters, JsonObject& response)
     {
 
-        long long start =  getCurrentTimeMicro();
-        LOGINFO("Entry start = %lld\n",start);
+        LOGINFO("Entry\n");
 
         std::string value;
         std::string pqmode;
@@ -251,11 +259,723 @@ namespace Plugin {
         }
         else
         {
-            long long end =  getCurrentTimeMicro();
-            LOGINFO("Exit : resetBrightness Successful to value : %d  end = %lld  duration = %lld \n",brightness,end,end-start);
+            LOGINFO("Exit : resetBrightness Successful to value : %d \n",brightness);
             returnResponse(true, "success");
         }
 
+    }
+
+    uint32_t ControlSettingsTV::getContrast(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        std::string key;
+        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        tvError_t ret = tvERROR_NONE;
+        int contrast = 0;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = GetLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast);
+        if( err == 0 ) {
+            response["contrast"] = std::to_string(contrast);
+            LOGINFO("Exit : Contrast Value: %d \n", contrast);
+            returnResponse(true, "success");
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+    }
+
+    uint32_t ControlSettingsTV::setContrast(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int contrast = 0;
+
+        value = parameters.HasLabel("contrast") ? parameters["contrast"].String() : "";
+        returnIfParamNotFound(value);
+        contrast = stoi(value);
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        tvError_t ret = SetContrast(contrast);
+
+        if(ret != tvERROR_NONE) {
+            LOGWARN("Failed to set Contrast\n");
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            int params[3]={0};
+            params[0]=contrast;
+            int retval= UpdatePQParamsToCache("set","Contrast",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CONTRAST,params);
+            if(retval != 0 ) {
+                LOGWARN("Failed to Save Contrast to ssm_data\n");
+            }
+            LOGINFO("Exit : setContrast successful to value: %d\n", contrast);
+            returnResponse(true, "success");
+        }
+
+    }
+
+    uint32_t ControlSettingsTV::resetContrast(const JsonObject& parameters, JsonObject& response)
+    {
+
+        LOGINFO("Entry\n");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int sourceIndex=0,pqIndex=0,formatIndex=0,contrast=0;
+        int params[3]={0};
+        tvError_t ret = tvERROR_NONE;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        int retval= UpdatePQParamsToCache("reset","Contrast",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CONTRAST,params);
+
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset Contrast\n");
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+        else {
+            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = GetLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast);
+            if( err == 0 ) {
+                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,contrast);
+                ret = SetContrast(contrast);
+            }
+            else
+                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
+        }
+
+        if(ret != tvERROR_NONE)
+        {
+            returnResponse(false, getErrorString(ret));
+        }
+        else
+        {
+            LOGINFO("Exit : resetContrast Successful to value : %d \n",contrast);
+            returnResponse(true, "success");
+        }
+
+    }
+
+    uint32_t ControlSettingsTV::getSaturation(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        std::string key;
+        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        tvError_t ret = tvERROR_NONE;
+        int saturation = 0;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = GetLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation);
+        if( err == 0 ) {
+            response["saturation"] = std::to_string(saturation);
+            LOGINFO("Exit : Saturation Value: %d \n", saturation);
+            returnResponse(true, "success");
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+    }
+
+    uint32_t ControlSettingsTV::setSaturation(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int saturation = 0;
+
+        value = parameters.HasLabel("saturation") ? parameters["saturation"].String() : "";
+        returnIfParamNotFound(value);
+        saturation = stoi(value);
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        tvError_t ret = SetSaturation(saturation);
+
+        if(ret != tvERROR_NONE) {
+            LOGWARN("Failed to set Saturation\n");
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            int params[3]={0};
+            params[0]=saturation;
+            int retval= UpdatePQParamsToCache("set","Saturation",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_SATURATION,params);
+            if(retval != 0 ) {
+                LOGWARN("Failed to Save Saturation to ssm_data\n");
+            }
+            LOGINFO("Exit : setSaturation successful to value: %d\n", saturation);
+            returnResponse(true, "success");
+        }
+
+    }
+
+    uint32_t ControlSettingsTV::resetSaturation(const JsonObject& parameters, JsonObject& response)
+    {
+
+        LOGINFO("Entry\n");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int sourceIndex=0,pqIndex=0,formatIndex=0,saturation=0;
+        int params[3]={0};
+        tvError_t ret = tvERROR_NONE;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        int retval= UpdatePQParamsToCache("reset","Saturation",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_SATURATION,params);
+
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset Saturation\n");
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+        else {
+            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = GetLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation);
+            if( err == 0 ) {
+                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,saturation);
+                ret = SetSaturation(saturation);
+            }
+            else
+                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
+        }
+
+        if(ret != tvERROR_NONE)
+        {
+            returnResponse(false, getErrorString(ret));
+        }
+        else
+        {
+            LOGINFO("Exit : resetSaturation Successful to value : %d \n",saturation);
+            returnResponse(true, "success");
+        }
+
+    }
+
+    uint32_t ControlSettingsTV::getSharpness(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        std::string key;
+        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        tvError_t ret = tvERROR_NONE;
+        int sharpness = 0;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = GetLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness);
+        if( err == 0 ) {
+            response["sharpness"] = std::to_string(sharpness);
+            LOGINFO("Exit : Sharpness Value: %d \n", sharpness);
+            returnResponse(true, "success");
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+    }
+
+    uint32_t ControlSettingsTV::setSharpness(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int sharpness = 0;
+
+        value = parameters.HasLabel("sharpness") ? parameters["sharpness"].String() : "";
+        returnIfParamNotFound(value);
+        sharpness = stoi(value);
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        tvError_t ret = SetSharpness(sharpness);
+
+        if(ret != tvERROR_NONE) {
+            LOGWARN("Failed to set Sharpness\n");
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            int params[3]={0};
+            params[0]=sharpness;
+            int retval= UpdatePQParamsToCache("set","Sharpness",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_SHARPNESS,params);
+            if(retval != 0 ) {
+                LOGWARN("Failed to Save Sharpness to ssm_data\n");
+            }
+            LOGINFO("Exit : setSharpness successful to value: %d\n", sharpness);
+            returnResponse(true, "success");
+        }
+
+    }
+
+    uint32_t ControlSettingsTV::resetSharpness(const JsonObject& parameters, JsonObject& response)
+    {
+
+        LOGINFO("Entry\n");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int sourceIndex=0,pqIndex=0,formatIndex=0,sharpness=0;
+        int params[3]={0};
+        tvError_t ret = tvERROR_NONE;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        int retval= UpdatePQParamsToCache("reset","Sharpness",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_SHARPNESS,params);
+
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset Sharpness\n");
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+        else {
+            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = GetLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness);
+            if( err == 0 ) {
+                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,sharpness);
+                ret = SetSharpness(sharpness);
+            }
+            else
+                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
+        }
+
+        if(ret != tvERROR_NONE)
+        {
+            returnResponse(false, getErrorString(ret));
+        }
+        else
+        {
+            LOGINFO("Exit : resetSharpness Successful to value : %d \n",sharpness);
+            returnResponse(true, "success");
+        }
+
+    }
+
+    uint32_t ControlSettingsTV::getHue(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        std::string key;
+        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        tvError_t ret = tvERROR_NONE;
+        int hue = 0;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = GetLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue);
+        if( err == 0 ) {
+            response["hue"] = std::to_string(hue);
+            LOGINFO("Exit : Hue Value: %d \n", hue);
+            returnResponse(true, "success");
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+    }
+
+    uint32_t ControlSettingsTV::setHue(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int hue = 0;
+
+        value = parameters.HasLabel("hue") ? parameters["hue"].String() : "";
+        returnIfParamNotFound(value);
+        hue = stoi(value);
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        tvError_t ret = SetHue(hue);
+
+        if(ret != tvERROR_NONE) {
+            LOGWARN("Failed to set Hue\n");
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            int params[3]={0};
+            params[0]=hue;
+            int retval= UpdatePQParamsToCache("set","Hue",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_HUE,params);
+            if(retval != 0 ) {
+                LOGWARN("Failed to Save Hue to ssm_data\n");
+            }
+            LOGINFO("Exit : setHue successful to value: %d\n", hue);
+            returnResponse(true, "success");
+        }
+
+    }
+
+    uint32_t ControlSettingsTV::resetHue(const JsonObject& parameters, JsonObject& response)
+    {
+
+        LOGINFO("Entry\n");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int sourceIndex=0,pqIndex=0,formatIndex=0,hue=0;
+        int params[3]={0};
+        tvError_t ret = tvERROR_NONE;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        int retval= UpdatePQParamsToCache("reset","Hue",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_HUE,params);
+
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset Hue\n");
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+        else {
+            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = GetLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue);
+            if( err == 0 ) {
+                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,hue);
+                ret = SetHue(hue);
+            }
+            else
+                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
+        }
+
+        if(ret != tvERROR_NONE)
+        {
+            returnResponse(false, getErrorString(ret));
+        }
+        else
+        {
+            LOGINFO("Exit : resetHue Successful to value : %d \n",hue);
+            returnResponse(true, "success");
+        }
+
+    }
+
+    uint32_t ControlSettingsTV::getColorTemperature(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        std::string key;
+        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        tvError_t ret = tvERROR_NONE;
+        int colortemp = 0;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = GetLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex,colortemp);
+        if( err == 0 ) {
+            switch(colortemp) {
+
+                case tvColorTemp_STANDARD:
+                    LOGINFO("Color Temp Value: Standard\n");
+                    response["colorTemp"] = "Standard";
+                    break;
+
+                case tvColorTemp_WARM:
+                    LOGINFO("Color Temp Value: Warm\n");
+                    response["colorTemp"] = "Warm";
+                    break;
+
+                case tvColorTemp_COLD:
+                    LOGINFO("Color Temp Value: Cold\n");
+                    response["colorTemp"] = "Cold";
+                    break;
+
+                case tvColorTemp_USER:
+                    LOGINFO("Color Temp Value: User Defined\n");
+                    response["colorTemp"] = "User Defined";
+                    break;
+
+                default:
+                    LOGINFO("Color Temp Value: Standard\n");
+                    response["colorTemp"] = "Standard";
+                    break;
+            }
+            LOGINFO("Exit : ColorTemperature Value: %d \n", colortemp);
+            returnResponse(true, "success");
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+    }
+
+    uint32_t ControlSettingsTV::setColorTemperature(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int colortemp = 0;
+
+        value = parameters.HasLabel("colorTemp") ? parameters["colorTemp"].String() : "";
+        returnIfParamNotFound(value);
+        if(!value.compare("Standard")) {
+            colortemp = tvColorTemp_STANDARD;
+        }
+        else if (!value.compare("Warm")){
+            colortemp = tvColorTemp_WARM;
+        }
+        else if (!value.compare("Cold")){
+            colortemp = tvColorTemp_COLD;
+        }
+        else if (!value.compare("User Defined")){
+            colortemp = tvColorTemp_USER;
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_INVALID_PARAM));
+        }
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        tvError_t ret = SetColorTemperature((tvColorTemp_t)colortemp);
+
+        if(ret != tvERROR_NONE) {
+            LOGWARN("Failed to set ColorTemperature\n");
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            int params[3]={0};
+            params[0]=colortemp;
+            int retval= UpdatePQParamsToCache("set","ColorTemp",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CONTRAST,params);
+            if(retval != 0 ) {
+                LOGWARN("Failed to Save ColorTemperature to ssm_data\n");
+            }
+            LOGINFO("Exit : setColorTemperature successful to value: %d\n", colortemp);
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettingsTV::resetColorTemperature(const JsonObject& parameters, JsonObject& response)
+    {
+
+        LOGINFO("Entry\n");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int sourceIndex=0,pqIndex=0,formatIndex=0,colortemp=0;
+        int params[3]={0};
+        tvError_t ret = tvERROR_NONE;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        int retval= UpdatePQParamsToCache("reset","ColorTemp",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CONTRAST,params);
+
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset ColorTemperature\n");
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+        else {
+            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = GetLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex,colortemp);
+            if( err == 0 ) {
+                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,colortemp);
+                ret = SetColorTemperature((tvColorTemp_t)colortemp);
+            }
+            else
+                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
+        }
+
+        if(ret != tvERROR_NONE)
+        {
+            returnResponse(false, getErrorString(ret));
+        }
+        else
+        {
+            LOGINFO("Exit : resetColorTemperature Successful to value : %d \n",colortemp);
+            returnResponse(true, "success");
+        }
     }
 
     bool ControlSettingsTV::isBacklightUsingGlobalBacklightFactor(void)
@@ -614,6 +1334,21 @@ namespace Plugin {
                         {
                             case PQ_PARAM_BRIGHTNESS:
                                 ret |= SaveBrightness(source, mode,format,params[0]);
+                                break;
+                            case PQ_PARAM_CONTRAST:
+                                ret |= SaveContrast(source, mode,format,params[0]);
+                                break;
+                            case PQ_PARAM_SHARPNESS:
+                                ret |= SaveSharpness(source, mode,format,params[0]);
+                                break;
+                            case PQ_PARAM_HUE:
+                                ret |= SaveHue(source, mode,format,params[0]);
+                                break;
+                            case PQ_PARAM_SATURATION:
+                                ret |= SaveSaturation(source, mode,format,params[0]);
+                                break;
+                            case PQ_PARAM_COLOR_TEMPERATURE:
+                                ret |= SaveColorTemperature(source, mode,format,params[0]);
                                 break;
                         }
                     }
