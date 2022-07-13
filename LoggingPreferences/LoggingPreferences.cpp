@@ -83,6 +83,7 @@ namespace WPEFramework {
 
         void LoggingPreferences::DeinitializeIARM()
         {
+            if (Utils::IARM::isConnected()) { }
         }
 
         //Begin methods
