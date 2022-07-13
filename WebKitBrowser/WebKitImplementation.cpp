@@ -495,6 +495,9 @@ static GSourceFuncs _handlerIntervention =
                 , WatchDogHangThresholdInSeconds(0)
                 , LoadBlankPageOnSuspendEnabled(false)
                 , UserScripts()
+                , AllowFileURLsCrossAccess()
+                , SpatialNavigation()
+                , CookieAcceptPolicy()
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -553,6 +556,9 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("watchdoghangthresholdtinseconds"), &WatchDogHangThresholdInSeconds);
                 Add(_T("loadblankpageonsuspendenabled"), &LoadBlankPageOnSuspendEnabled);
                 Add(_T("userscripts"), &UserScripts);
+                Add(_T("allowfileurlscrossaccess"), &AllowFileURLsCrossAccess);
+                Add(_T("spatialnavigation"), &SpatialNavigation);
+                Add(_T("cookieacceptpolicy"), &CookieAcceptPolicy);
             }
             ~Config()
             {
@@ -616,6 +622,9 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::DecUInt16 WatchDogHangThresholdInSeconds;  // The amount of time to give a process to recover before declaring a hang state
             Core::JSON::Boolean LoadBlankPageOnSuspendEnabled;
             Core::JSON::ArrayType<Core::JSON::String> UserScripts;
+            Core::JSON::Boolean AllowFileURLsCrossAccess;
+            Core::JSON::Boolean SpatialNavigation;
+            Core::JSON::EnumType<HTTPCookieAcceptPolicyType> CookieAcceptPolicy;
         };
 
         class HangDetector
@@ -2236,7 +2245,11 @@ static GSourceFuncs _handlerIntervention =
 
                 auto* cookieManager = webkit_web_context_get_cookie_manager(wkContext);
                 webkit_cookie_manager_set_persistent_storage(cookieManager, cookieDatabasePath, WEBKIT_COOKIE_PERSISTENT_STORAGE_SQLITE);
-                webkit_cookie_manager_set_accept_policy(cookieManager, _httpCookieAcceptPolicy);
+                if (_config.CookieAcceptPolicy.IsSet()) {
+                  HTTPCookieAcceptPolicy(_config.CookieAcceptPolicy.Value());
+                } else {
+                  webkit_cookie_manager_set_accept_policy(cookieManager, _httpCookieAcceptPolicy);
+                }
             }
 
             if (!_config.CertificateCheck) {
@@ -2262,6 +2275,18 @@ static GSourceFuncs _handlerIntervention =
             // Turn on/off WebGL
             webkit_settings_set_enable_webgl(preferences, _config.WebGLEnabled.Value());
 
+            if (_config.AllowFileURLsCrossAccess.IsSet()) {
+              // Turn on/off file URLs Cross Access
+              webkit_settings_set_allow_file_access_from_file_urls(preferences, _config.AllowFileURLsCrossAccess.Value());
+              webkit_settings_set_allow_universal_access_from_file_urls(preferences, _config.AllowFileURLsCrossAccess.Value());
+            }
+
+            if (_config.SpatialNavigation.IsSet()) {
+              // Turn on/off spatial navigation
+              webkit_settings_set_enable_spatial_navigation(preferences, _config.SpatialNavigation.Value());
+              webkit_settings_set_enable_tabs_to_links(preferences, _config.SpatialNavigation.Value());
+            }
+            webkit_settings_set_allow_scripts_to_close_windows(preferences, _config.AllowWindowClose.Value());
             webkit_settings_set_enable_non_composited_webgl(preferences, _config.NonCompositedWebGLEnabled.Value());
 
             // Media Content Types Requiring Hardware Support
