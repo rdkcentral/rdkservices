@@ -750,7 +750,7 @@ Provides access to the device manufacturer.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | (property) | object | Device manufacturer |
-| (property).make | string | Device manufacturer (must be one of the following: *platco*, *llama*, *hisense*, *element*, *sky*, *sercomm*, *commscope*, *arris*, *cisco*, *pace*, *samsung*, *technicolor*) |
+| (property).make | string | Device manufacturer (must be one of the following: *platco*, *llama*, *hisense*, *element*, *sky*, *sercomm*, *commscope*, *arris*, *cisco*, *pace*, *samsung*, *technicolor*, *Amlogic_Inc*) |
 
 ### Errors
 
@@ -882,7 +882,7 @@ Provides access to the partner ID or distributor ID for device.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | (property) | object | Partner ID or distributor ID for device |
-| (property).distributorid | string | Partner ID or distributor ID for device (must be one of the following: *comcast*, *xglobal*) |
+| (property).distributorid | string | Partner ID or distributor ID for device (must be one of the following: *comcast*, *xglobal*, *sky-de*, *sky-italia*, *sky-uk*, *sky-uk-dev*, *sky-deu*, *sky-deu-dev*, *sky-it*, *sky-it-dev*, *cox*, *cox-hospitality*, *cox-dev*, *cox-qa*, *MIT*, *shaw*, *shaw-dev*, *rogers*, *rogers-dev*, *videotron*, *charter*, *charter-dev*) |
 
 ### Errors
 
