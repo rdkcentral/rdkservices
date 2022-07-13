@@ -5572,6 +5572,18 @@ namespace WPEFramework {
         bool RDKShell::setFocus(const string& client)
         {
             bool ret = false;
+            bool isApplicationBeingDestroyed = false;
+            gLaunchDestroyMutex.lock();
+            if (gDestroyApplications.find(client) != gDestroyApplications.end())
+            {
+                isApplicationBeingDestroyed = true;
+            }
+            gLaunchDestroyMutex.unlock();
+            if (isApplicationBeingDestroyed)
+            {
+                std::cout << "ignoring setFocus for " << client << " as it is being destroyed " << std::endl;
+                return false;
+            }
             lockRdkShellMutex();
             ret = CompositorController::setFocus(client);
             gRdkShellMutex.unlock();
