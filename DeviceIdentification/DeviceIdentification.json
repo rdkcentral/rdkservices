@@ -6,6 +6,9 @@
         "class": "DeviceIdentification",
         "description": "The `DeviceIdentification` allows you to retrieve various device-related information"
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "properties": {
         "deviceidentification": {
             "summary": "Device platform specific information",

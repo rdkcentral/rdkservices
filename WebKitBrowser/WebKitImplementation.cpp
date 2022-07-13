@@ -448,6 +448,9 @@ static GSourceFuncs _handlerIntervention =
                 , LocalStorage()
                 , LocalStorageEnabled(false)
                 , LocalStorageSize()
+                , IndexedDBEnabled(false)
+                , IndexedDBPath()
+                , IndexedDBSize()
                 , Secure(false)
                 , InjectedBundle()
                 , Transparent(false)
@@ -501,6 +504,9 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("localstorage"), &LocalStorage);
                 Add(_T("localstorageenabled"), &LocalStorageEnabled);
                 Add(_T("localstoragesize"), &LocalStorageSize);
+                Add(_T("indexeddbenabled"), &IndexedDBEnabled);
+                Add(_T("indexeddbpath"), &IndexedDBPath);
+                Add(_T("indexeddbsize"), &IndexedDBSize);
                 Add(_T("secure"), &Secure);
                 Add(_T("injectedbundle"), &InjectedBundle);
                 Add(_T("transparent"), &Transparent);
@@ -561,6 +567,9 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::String LocalStorage;
             Core::JSON::Boolean LocalStorageEnabled;
             Core::JSON::DecUInt16 LocalStorageSize;
+            Core::JSON::Boolean IndexedDBEnabled;
+            Core::JSON::String IndexedDBPath;
+            Core::JSON::DecUInt16 IndexedDBSize; // [KB]
             Core::JSON::Boolean Secure;
             Core::JSON::String InjectedBundle;
             Core::JSON::Boolean Transparent;
@@ -2185,9 +2194,29 @@ static GSourceFuncs _handlerIntervention =
                 }
                 g_mkdir_with_parents(wpeDiskCachePath, 0700);
 
-                auto* websiteDataManager = webkit_website_data_manager_new("local-storage-directory", wpeStoragePath, "disk-cache-directory", wpeDiskCachePath, "local-storage-quota", localStorageDatabaseQuotaInBytes, nullptr);
+                gchar* indexedDBPath = nullptr;
+                if (_config.IndexedDBPath.IsSet() && !_config.IndexedDBPath.Value().empty()) {
+                    indexedDBPath = g_build_filename(_config.IndexedDBPath.Value().c_str(), "wpe", "databases", "indexeddb", nullptr);
+                } else {
+                    indexedDBPath = g_build_filename(g_get_user_cache_dir(), "wpe", "databases", "indexeddb", nullptr);
+                }
+                g_mkdir_with_parents(indexedDBPath, 0700);
+
+                uint64_t indexedDBSizeBytes = 0;    // No limit by default, use WebKit defaults (1G at the moment of writing)
+                if (_config.IndexedDBSize.IsSet() && _config.IndexedDBSize.Value() != 0) {
+                    indexedDBSizeBytes = _config.IndexedDBSize.Value() * 1024;
+                }
+
+                auto* websiteDataManager = webkit_website_data_manager_new(
+                    "local-storage-directory", wpeStoragePath,
+                    "disk-cache-directory", wpeDiskCachePath,
+                    "local-storage-quota", localStorageDatabaseQuotaInBytes,
+                    "indexeddb-directory", indexedDBPath,
+                    "per-origin-storage-quota", indexedDBSizeBytes,
+                     nullptr);
                 g_free(wpeStoragePath);
                 g_free(wpeDiskCachePath);
+                g_free(indexedDBPath);
 
                 wkContext = webkit_web_context_new_with_website_data_manager(websiteDataManager);
                 g_object_unref(websiteDataManager);
@@ -2247,6 +2276,8 @@ static GSourceFuncs _handlerIntervention =
             if (_config.UserAgent.IsSet() == true && _config.UserAgent.Value().empty() == false) {
                 webkit_settings_set_user_agent(preferences, _config.UserAgent.Value().c_str());
             }
+
+            webkit_settings_set_enable_html5_database(preferences, _config.IndexedDBEnabled.Value());
 
             // Allow mixed content.
             bool enableWebSecurity = _config.Secure.Value();

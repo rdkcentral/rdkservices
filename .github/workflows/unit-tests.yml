@@ -2,11 +2,11 @@ name: unit-tests
 
 on:
   push:
-    branches: [ sprint/2206 ]
+    branches: [ main, 'sprint/**', 'release/**' ]
 
   pull_request:
     # By default: opened, synchronize, or reopened.
-    branches: [ sprint/2206 ]
+    branches: [ main, 'sprint/**', 'release/**' ]
 
 env:
   BUILD_TYPE: Debug

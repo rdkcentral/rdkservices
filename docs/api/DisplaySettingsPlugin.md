@@ -953,7 +953,7 @@ Returns the current gain value.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.gain | number | Value between 0 and 100, where 0 means no gain and 100 means maximum gain |
+| result.gain | number | Value between -2080 and 480, where -2080 means negative gain and 480 means maximum gain |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -3327,7 +3327,7 @@ Adjusts the gain on a specific port.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
-| params.gain | number | Value between 0 and 100, where 0 means no gain and 100 means maximum gain |
+| params.gain | number | Value between -2080 and 480, where -2080 means negative gain and 480 means maximum gain |
 
 ### Result
 
