@@ -94,6 +94,7 @@ namespace WPEFramework {
 
             uint32_t getApiVersionNumber() const {return apiVersionNumber;};
             void setApiVersionNumber(uint32_t apiVersion) {apiVersionNumber = apiVersion;};
+            bool getConnectedSSID_internal(const JsonObject &parameters, JsonObject &response);
 
             //Internal methods
             static WifiManager& getInstance();
