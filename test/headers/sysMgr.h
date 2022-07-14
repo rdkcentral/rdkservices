@@ -16,3 +16,14 @@ typedef struct _IARM_BUS_SYSMgr_EventData_t {
         } usbMountData;
     } data;
 } IARM_Bus_SYSMgr_EventData_t;
+
+typedef struct _IARM_BUS_SYSMGR_KEYCodeLoggingInfo_Param_t{
+      int logStatus;                                      /*!< HDCP Profile Data */
+}IARM_BUS_SYSMGR_KEYCodeLoggingInfo_Param_t;
+
+/*
+ * Declare RPC API names for Key Code Logging Status
+ */
+#define IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref "GetKeyCodeLoggingPref"
+#define IARM_BUS_SYSMGR_API_SetKeyCodeLoggingPref "SetKeyCodeLoggingPref"
+
