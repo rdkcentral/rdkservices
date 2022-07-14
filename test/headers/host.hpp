@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-
+#include "sleepMode.hpp"
 namespace device {
 
 template <class T>
@@ -33,6 +33,11 @@ public:
     }
 
     HostImpl* impl;
+
+    SleepMode getPreferredSleepMode();
+    int setPreferredSleepMode(const SleepMode);
+    List <SleepMode>  getAvailableSleepModes();
+
 
     List<std::reference_wrapper<VideoDevice>> getVideoDevices()
     {

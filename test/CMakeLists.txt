@@ -48,6 +48,7 @@ include_directories(../LocationSync
         ../UsbAccess
         ../Timer
         ../helpers
+        ../SystemServices
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -60,6 +61,7 @@ link_directories(../LocationSync
         ../DataCapture
         ../UsbAccess
         ../Timer
+        ../SystemServices
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -76,6 +78,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}Telemetry
         ${NAMESPACE}UsbAccess
         ${NAMESPACE}Timer
+        ${NAMESPACE}SystemServices
         )
 
 target_include_directories(${PROJECT_NAME}

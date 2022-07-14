@@ -86,8 +86,6 @@ using namespace std;
 #define STORE_DEMO_FILE "/opt/persistent/store-mode-video/videoFile.mp4"
 #define STORE_DEMO_LINK "file:///opt/persistent/store-mode-video/videoFile.mp4"
 
-#define RFC_CALLERID           "SystemServices"
-
 /**
  * @struct firmwareUpdate
  * @brief This structure contains information of firmware update.
@@ -2100,7 +2098,7 @@ namespace WPEFramework {
          */
         void SystemServices::getMacAddressesAsync(SystemServices *pSs)
         {
-            int i, listLength = 0;
+            long unsigned int i, listLength = 0;
             JsonObject params;
             string macTypeList[] = {"ecm_mac", "estb_mac", "moca_mac",
                 "eth_mac", "wifi_mac", "bluetooth_mac", "rf4ce_mac"};
@@ -2360,7 +2358,8 @@ namespace WPEFramework {
 	bool SystemServices::isStrAlphaUpper(string strVal)
 	{
 		try{
-			for(int i=0; i<= strVal.length()-1; i++)
+			long unsigned int i=0;
+			for(i=0; i<= strVal.length()-1; i++)
 			{
 				if((isalpha(strVal[i])== 0) || (isupper(strVal[i])==0))
 				{
@@ -2525,7 +2524,8 @@ namespace WPEFramework {
                 return false;
             }
 
-            for (int n = 0 ; n < dirs.size(); n++) {
+	    long unsigned int n=0;
+            for (n = 0 ; n < dirs.size(); n++) {
                 std::string name = dirs[n];
 
                 size_t pathEnd = name.find_last_of("/") + 1;
@@ -3063,7 +3063,8 @@ namespace WPEFramework {
                         RFC_ParamData_t rfcParam;
 
                         memset(&rfcParam, 0, sizeof(rfcParam));
-                        wdmpStatus = getRFCParameter(RFC_CALLERID, jsonRFCList[i].String().c_str(), &rfcParam);
+			char sysServices[] = "SystemServices";
+                        wdmpStatus = getRFCParameter(sysServices, jsonRFCList[i].String().c_str(), &rfcParam);
                         if(WDMP_SUCCESS == wdmpStatus || WDMP_ERR_DEFAULT_VALUE == wdmpStatus)
                             cmdResponse = rfcParam.value;
                         else

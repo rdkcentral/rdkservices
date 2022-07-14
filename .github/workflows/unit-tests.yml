@@ -179,6 +179,7 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DRDK_SERVICES_TEST=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          -DPLUGIN_SYSTEMSERVICES=ON
 
       - name: Build rdkservices
         run: >
