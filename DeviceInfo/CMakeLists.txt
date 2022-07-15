@@ -18,18 +18,20 @@
 set(PLUGIN_NAME DeviceInfo)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_DEVICEINFO_MODE "Off" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
-find_package(RFC)
 find_package(DS)
 find_package(IARMBus)
 
 add_library(${MODULE_NAME} SHARED
         DeviceInfo.cpp
         DeviceInfoJsonRpc.cpp
-        DeviceCapabilities.cpp
-        FirmwareVersion.cpp
+        Implementation/Generic/DeviceAudioCapabilities.cpp
+        Implementation/Generic/DeviceVideoCapabilities.cpp
+        Implementation/Generic/FirmwareVersion.cpp
         Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -37,21 +39,37 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD_REQUIRED YES)
 
 target_include_directories(${MODULE_NAME} PRIVATE
-        ${RFC_INCLUDE_DIRS}
         ${DS_INCLUDE_DIRS}
         ${IARMBUS_INCLUDE_DIRS}
         ../helpers)
 
-set_source_files_properties(DeviceCapabilities.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
+set_source_files_properties(
+        Implementation/Generic/DeviceAudioCapabilities.cpp
+        Implementation/Generic/DeviceVideoCapabilities.cpp
+        PROPERTIES
+        COMPILE_FLAGS "-fexceptions")
 
 target_link_libraries(${MODULE_NAME}
         PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
-        ${RFC_LIBRARIES}
         ${DS_LIBRARIES}
         ${IARMBUS_LIBRARIES})
+
+if (BUILD_ENABLE_DEVICE_MANUFACTURER_INFO)
+    target_sources(${MODULE_NAME}
+            PRIVATE
+            Implementation/MFR/DeviceInfo.cpp)
+
+    target_link_libraries(${MODULE_NAME}
+            PRIVATE
+            MFRFWLibs::MFRFWLibs)
+else ()
+    target_sources(${MODULE_NAME}
+            PRIVATE
+            Implementation/Generic/DeviceInfo.cpp)
+endif ()
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
