@@ -21,7 +21,7 @@
 #define DEVICEINFO_DEVICEINFO_H
 
 #include "Module.h"
-#include <interfaces/IDeviceInfo.h>
+#include <interfaces/IDeviceInfo2.h>
 #include <interfaces/IFirmwareVersion.h>
 #include <interfaces/json/JsonData_DeviceInfo.h>
 
@@ -66,7 +66,9 @@ namespace Plugin {
             , _subSystem(nullptr)
             , _systemId()
             , _connectionId(0)
-            , _deviceCapabilities(nullptr)
+            , _deviceInfo(nullptr)
+            , _deviceAudioCapabilities(nullptr)
+            , _deviceVideoCapabilities(nullptr)
             , _firmwareVersion(nullptr)
         {
             RegisterAll();
@@ -81,7 +83,9 @@ namespace Plugin {
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IWeb)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
-        INTERFACE_AGGREGATE(Exchange::IDeviceCapabilities, _deviceCapabilities)
+        INTERFACE_AGGREGATE(Exchange::IDeviceInfo, _deviceInfo)
+        INTERFACE_AGGREGATE(Exchange::IDeviceAudioCapabilities, _deviceAudioCapabilities)
+        INTERFACE_AGGREGATE(Exchange::IDeviceVideoCapabilities, _deviceVideoCapabilities)
         INTERFACE_AGGREGATE(Exchange::IFirmwareVersion, _firmwareVersion)
         END_INTERFACE_MAP
 
@@ -132,7 +136,9 @@ namespace Plugin {
         PluginHost::ISubSystem* _subSystem;
         string _systemId;
         uint32_t _connectionId;
-        Exchange::IDeviceCapabilities* _deviceCapabilities;
+        Exchange::IDeviceInfo* _deviceInfo;
+        Exchange::IDeviceAudioCapabilities* _deviceAudioCapabilities;
+        Exchange::IDeviceVideoCapabilities* _deviceVideoCapabilities;
         Exchange::IFirmwareVersion* _firmwareVersion;
     };
 

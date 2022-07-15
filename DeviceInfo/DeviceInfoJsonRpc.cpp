@@ -145,7 +145,7 @@ namespace Plugin {
     {
         string serialNumber;
 
-        auto result = _deviceCapabilities->SerialNumber(serialNumber);
+        auto result = _deviceInfo->SerialNumber(serialNumber);
         if (result == Core::ERROR_NONE) {
             response.Serialnumber = serialNumber;
         }
@@ -161,7 +161,7 @@ namespace Plugin {
     {
         string sku;
 
-        auto result = _deviceCapabilities->Sku(sku);
+        auto result = _deviceInfo->Sku(sku);
         if (result == Core::ERROR_NONE) {
             Core::EnumerateType<JsonData::DeviceInfo::ModelidData::SkuType> value(sku.c_str(), false);
             if (value.IsSet()) {
@@ -183,7 +183,7 @@ namespace Plugin {
     {
         string make;
 
-        auto result = _deviceCapabilities->Make(make);
+        auto result = _deviceInfo->Make(make);
         if (result == Core::ERROR_NONE) {
             Core::EnumerateType<JsonData::DeviceInfo::MakeData::MakeType> value(make.c_str(), false);
             if (value.IsSet()) {
@@ -205,7 +205,7 @@ namespace Plugin {
     {
         string model;
 
-        auto result = _deviceCapabilities->Model(model);
+        auto result = _deviceInfo->Model(model);
         if (result == Core::ERROR_NONE) {
             response.Model = model;
         }
@@ -221,7 +221,7 @@ namespace Plugin {
     {
         string deviceType;
 
-        auto result = _deviceCapabilities->DeviceType(deviceType);
+        auto result = _deviceInfo->DeviceType(deviceType);
         if (result == Core::ERROR_NONE) {
             Core::EnumerateType<JsonData::DeviceInfo::DevicetypeData::DevicetypeType> value(deviceType.c_str(), false);
             if (value.IsSet()) {
@@ -243,7 +243,7 @@ namespace Plugin {
     {
         string distributorId;
 
-        auto result = _deviceCapabilities->DistributorId(distributorId);
+        auto result = _deviceInfo->DistributorId(distributorId);
         if (result == Core::ERROR_NONE) {
             Core::EnumerateType<JsonData::DeviceInfo::DistributoridData::DistributoridType> value(distributorId.c_str(), false);
             if (value.IsSet()) {
@@ -265,7 +265,7 @@ namespace Plugin {
     {
         RPC::IStringIterator* supportedAudioPorts = nullptr;
 
-        auto result = _deviceCapabilities->SupportedAudioPorts(supportedAudioPorts);
+        auto result = _deviceAudioCapabilities->SupportedAudioPorts(supportedAudioPorts);
         if (result == Core::ERROR_NONE) {
             string element;
             while (supportedAudioPorts->Next(element) == true) {
@@ -285,7 +285,7 @@ namespace Plugin {
     {
         RPC::IStringIterator* supportedVideoDisplays = nullptr;
 
-        auto result = _deviceCapabilities->SupportedVideoDisplays(supportedVideoDisplays);
+        auto result = _deviceVideoCapabilities->SupportedVideoDisplays(supportedVideoDisplays);
         if (result == Core::ERROR_NONE) {
             string element;
             while (supportedVideoDisplays->Next(element) == true) {
@@ -305,7 +305,7 @@ namespace Plugin {
     {
         string edid;
 
-        auto result = _deviceCapabilities->HostEDID(edid);
+        auto result = _deviceVideoCapabilities->HostEDID(edid);
         if (result == Core::ERROR_NONE) {
             response.EDID = edid;
         }
@@ -321,7 +321,7 @@ namespace Plugin {
     {
         string defaultResolution;
 
-        auto result = _deviceCapabilities->DefaultResolution(params.VideoDisplay.Value(), defaultResolution);
+        auto result = _deviceVideoCapabilities->DefaultResolution(params.VideoDisplay.Value(), defaultResolution);
         if (result == Core::ERROR_NONE) {
             Core::EnumerateType<JsonData::DeviceInfo::Output_resolutionType> value(defaultResolution.c_str(), false);
             if (value.IsSet()) {
@@ -343,7 +343,7 @@ namespace Plugin {
     {
         RPC::IStringIterator* supportedResolutions = nullptr;
 
-        auto result = _deviceCapabilities->SupportedResolutions(params.VideoDisplay.Value(), supportedResolutions);
+        auto result = _deviceVideoCapabilities->SupportedResolutions(params.VideoDisplay.Value(), supportedResolutions);
         if (result == Core::ERROR_NONE) {
             string element;
             while (supportedResolutions->Next(element) == true) {
@@ -369,9 +369,9 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::endpoint_supportedhdcp(const SupportedresolutionsParamsInfo& params, SupportedhdcpResultData& response) const
     {
-        Exchange::IDeviceCapabilities::CopyProtection supportedHDCPVersion;
+        Exchange::IDeviceVideoCapabilities::CopyProtection supportedHDCPVersion;
 
-        auto result = _deviceCapabilities->SupportedHdcp(params.VideoDisplay.Value(), supportedHDCPVersion);
+        auto result = _deviceVideoCapabilities->SupportedHdcp(params.VideoDisplay.Value(), supportedHDCPVersion);
         if (result == Core::ERROR_NONE) {
             response.SupportedHDCPVersion = JsonData::DeviceInfo::SupportedhdcpResultData::Copy_protectionType(supportedHDCPVersion);
         }
@@ -385,11 +385,11 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::endpoint_audiocapabilities(const JsonData::DeviceInfo::AudiocapabilitiesParamsInfo& params, JsonData::DeviceInfo::AudiocapabilitiesResultData& response) const
     {
-        Exchange::IDeviceCapabilities::IAudioCapabilityIterator* audioCapabilities = nullptr;
+        Exchange::IDeviceAudioCapabilities::IAudioCapabilityIterator* audioCapabilities = nullptr;
 
-        auto result = _deviceCapabilities->AudioCapabilities(params.AudioPort.Value(), audioCapabilities);
+        auto result = _deviceAudioCapabilities->AudioCapabilities(params.AudioPort.Value(), audioCapabilities);
         if (result == Core::ERROR_NONE) {
-            Exchange::IDeviceCapabilities::AudioCapability element;
+            Exchange::IDeviceAudioCapabilities::AudioCapability element;
             while (audioCapabilities->Next(element) == true) {
                 response.AudioCapabilities.Add() = JsonData::DeviceInfo::AudiocapabilitiesResultData::AudiocapabilityType(element);
             }
@@ -405,11 +405,11 @@ namespace Plugin {
     //  - ERROR_GENERAL: General error
     uint32_t DeviceInfo::endpoint_ms12capabilities(const JsonData::DeviceInfo::AudiocapabilitiesParamsInfo& params, JsonData::DeviceInfo::Ms12capabilitiesResultData& response) const
     {
-        Exchange::IDeviceCapabilities::IMS12CapabilityIterator* ms12Capabilities = nullptr;
+        Exchange::IDeviceAudioCapabilities::IMS12CapabilityIterator* ms12Capabilities = nullptr;
 
-        auto result = _deviceCapabilities->MS12Capabilities(params.AudioPort.Value(), ms12Capabilities);
+        auto result = _deviceAudioCapabilities->MS12Capabilities(params.AudioPort.Value(), ms12Capabilities);
         if (result == Core::ERROR_NONE) {
-            Exchange::IDeviceCapabilities::MS12Capability element;
+            Exchange::IDeviceAudioCapabilities::MS12Capability element;
             while (ms12Capabilities->Next(element) == true) {
                 response.MS12Capabilities.Add() = JsonData::DeviceInfo::Ms12capabilitiesResultData::Ms12capabilityType(element);
             }
@@ -427,7 +427,7 @@ namespace Plugin {
     {
         RPC::IStringIterator* supportedMS12AudioProfiles = nullptr;
 
-        auto result = _deviceCapabilities->SupportedMS12AudioProfiles(params.AudioPort.Value(), supportedMS12AudioProfiles);
+        auto result = _deviceAudioCapabilities->SupportedMS12AudioProfiles(params.AudioPort.Value(), supportedMS12AudioProfiles);
         if (result == Core::ERROR_NONE) {
             string element;
             while (supportedMS12AudioProfiles->Next(element) == true) {
