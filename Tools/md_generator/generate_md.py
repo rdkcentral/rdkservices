@@ -6,7 +6,7 @@ import os
 import glob
 import time
 import sys
-from pathlib import Path, PureWindowsPath
+#from pathlib import Path, PureWindowsPath
 
 # Fetching the json files from each plugin to generate md files
 # Under docs/api folder
@@ -19,7 +19,7 @@ def convert_json_to_md():
     print()
     filename = os.path.join(dirname, r"../../*/*Plugin.json")
     flist = glob.glob(os.path.join(filename))
-    jsongenpath = Path("python ../json_generator/generator_json.py")
+    jsongenpath ="python ../json_generator/generator_json.py"
 
     for file in flist:
         os.system(r"{} --docs "
