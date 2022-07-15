@@ -81,8 +81,7 @@ namespace WPEFramework
 
         WifiManager::WifiManager()
         : PluginHost::JSONRPC(),
-          apiVersionNumber(API_VERSION_NUMBER_MAJOR),
-          wifiSignalThreshold(*this)
+          apiVersionNumber(API_VERSION_NUMBER_MAJOR)
         {
             CreateHandler({ 2 });
 
