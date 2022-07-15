@@ -178,7 +178,32 @@ namespace WPEFramework
 
         uint32_t WifiManager::getConnectedSSID(const JsonObject &parameters, JsonObject &response)
         {
-            uint32_t result = wifiState.getConnectedSSID(parameters, response);
+            bool result = false;
+
+            if(getConnectedSSID2(parameters, response))
+            {
+                result = true;
+            }
+            else
+            {
+                LOGWARN("getConnectedSSID2 Call get failed,ret value:%d\n",result);
+            }
+
+            returnResponse(result);
+        }
+
+        bool WifiManager::getConnectedSSID2(const JsonObject &parameters, JsonObject &response)
+        {
+            bool result = false;
+
+            if(wifiState.getConnectedSSID(parameters, response))
+            {
+                result = true;
+            }
+            else
+            {
+                LOGWARN("getConnectedSSID Call get failed,ret value:%d\n",result);
+            }
 
             return result;
         }
