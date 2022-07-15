@@ -10,6 +10,10 @@
 #include "manager.hpp"
 #include "videoOutputPortConfig.hpp"
 
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+#include "mfrMgr.h"
+#endif
+
 #include "UtilsIarm.h"
 
 namespace WPEFramework {
@@ -63,14 +67,33 @@ namespace Plugin {
     {
         uint32_t result = Core::ERROR_GENERAL;
 
-        RFC_ParamData_t param;
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+        if (result != Core::ERROR_NONE) {
+            IARM_Bus_MFRLib_GetSerializedData_Param_t param;
+            param.bufLen = 0;
+            param.type = mfrSERIALIZED_TYPE_SERIALNUMBER;
 
-        auto status = getRFCParameter(nullptr, kRfcSerialNumber, &param);
+            auto status = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 
-        if (status == WDMP_SUCCESS) {
-            serialNumber = param.value;
-            result = Core::ERROR_NONE;
-        } else {
+            if (status == IARM_RESULT_SUCCESS) {
+                serialNumber.assign(param.buffer, param.bufLen);
+                result = Core::ERROR_NONE;
+            }
+        }
+#endif
+
+        if (result != Core::ERROR_NONE) {
+            RFC_ParamData_t param;
+
+            auto status = getRFCParameter(nullptr, kRfcSerialNumber, &param);
+
+            if (status == WDMP_SUCCESS) {
+                serialNumber = param.value;
+                result = Core::ERROR_NONE;
+            }
+        }
+
+        if (result != Core::ERROR_NONE) {
             std::ifstream file(kSerialNumberFile);
 
             if (file) {
@@ -89,14 +112,18 @@ namespace Plugin {
     {
         uint32_t result = Core::ERROR_GENERAL;
 
-        RFC_ParamData_t param;
+        if (result != Core::ERROR_NONE) {
+            RFC_ParamData_t param;
 
-        auto status = getRFCParameter(nullptr, kRfcModelName, &param);
+            auto status = getRFCParameter(nullptr, kRfcModelName, &param);
 
-        if (status == WDMP_SUCCESS) {
-            sku = param.value;
-            result = Core::ERROR_NONE;
-        } else {
+            if (status == WDMP_SUCCESS) {
+                sku = param.value;
+                result = Core::ERROR_NONE;
+            }
+        }
+
+        if (result != Core::ERROR_NONE) {
             std::ifstream file(kDeviceProperties);
 
             if (file) {
@@ -119,16 +146,33 @@ namespace Plugin {
     {
         uint32_t result = Core::ERROR_GENERAL;
 
-        std::ifstream file(kDeviceProperties);
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+        if (result != Core::ERROR_NONE) {
+            IARM_Bus_MFRLib_GetSerializedData_Param_t param;
+            param.bufLen = 0;
+            param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
 
-        if (file) {
-            string line;
-            while (std::getline(file, line)) {
-                if (line.rfind(_T("MFG_NAME"), 0) == 0) {
-                    make = line.substr(line.find('=') + 1);
-                    result = Core::ERROR_NONE;
+            auto status = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 
-                    break;
+            if (status == IARM_RESULT_SUCCESS) {
+                make.assign(param.buffer, param.bufLen);
+                result = Core::ERROR_NONE;
+            }
+        }
+#endif
+
+        if (result != Core::ERROR_NONE) {
+            std::ifstream file(kDeviceProperties);
+
+            if (file) {
+                string line;
+                while (std::getline(file, line)) {
+                    if (line.rfind(_T("MFG_NAME"), 0) == 0) {
+                        make = line.substr(line.find('=') + 1);
+                        result = Core::ERROR_NONE;
+
+                        break;
+                    }
                 }
             }
         }
@@ -140,18 +184,35 @@ namespace Plugin {
     {
         uint32_t result = Core::ERROR_GENERAL;
 
-        std::ifstream file(kDeviceProperties);
+#ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+        if (result != Core::ERROR_NONE) {
+            IARM_Bus_MFRLib_GetSerializedData_Param_t param;
+            param.bufLen = 0;
+            param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
 
-        if (file) {
-            string line;
-            while (std::getline(file, line)) {
-                if (line.rfind(_T("FRIENDLY_ID"), 0) == 0) {
-                    // trim quotes
+            auto status = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 
-                    model = std::regex_replace(line, std::regex(_T("^\\w+=(?:\")?([^\"\\n]+)(?:\")?$")), _T("$1"));
-                    result = Core::ERROR_NONE;
+            if (status == IARM_RESULT_SUCCESS) {
+                model.assign(param.buffer, param.bufLen);
+                result = Core::ERROR_NONE;
+            }
+        }
+#endif
 
-                    break;
+        if (result != Core::ERROR_NONE) {
+            std::ifstream file(kDeviceProperties);
+
+            if (file) {
+                string line;
+                while (std::getline(file, line)) {
+                    if (line.rfind(_T("FRIENDLY_ID"), 0) == 0) {
+                        // trim quotes
+
+                        model = std::regex_replace(line, std::regex(_T("^\\w+=(?:\")?([^\"\\n]+)(?:\")?$")), _T("$1"));
+                        result = Core::ERROR_NONE;
+
+                        break;
+                    }
                 }
             }
         }
@@ -184,14 +245,18 @@ namespace Plugin {
     {
         uint32_t result = Core::ERROR_GENERAL;
 
-        RFC_ParamData_t param;
+        if (result != Core::ERROR_NONE) {
+            RFC_ParamData_t param;
 
-        auto status = getRFCParameter(nullptr, kRfcPartnerId, &param);
+            auto status = getRFCParameter(nullptr, kRfcPartnerId, &param);
 
-        if (status == WDMP_SUCCESS) {
-            distributorId = param.value;
-            result = Core::ERROR_NONE;
-        } else {
+            if (status == WDMP_SUCCESS) {
+                distributorId = param.value;
+                result = Core::ERROR_NONE;
+            }
+        }
+
+        if (result != Core::ERROR_NONE) {
             std::ifstream file(kPartnerIdFile);
 
             if (file) {
