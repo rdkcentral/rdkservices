@@ -104,9 +104,7 @@ RDKShell interface methods:
 | [getHolePunch](#getHolePunch) | Returns whether video hole punching is enabled or disabled for the specified client |
 | [getKeyRepeatsEnabled](#getKeyRepeatsEnabled) | Returns whether key repeating is enabled or disabled |
 | [getLastWakeupKey](#getLastWakeupKey) | Returns the last key press prior to a device wakeup |
-| [getGraphicsFrameRate](#getGraphicsFrameRate) | Returns the current Graphics Frame Rate |
 | [getLogLevel](#getLogLevel) | Returns the currently set logging level |
-| [setGraphicsFrameRate](#setGraphicsFrameRate) | Set Graphics Frame Rate |
 | [getLogsFlushingEnabled](#getLogsFlushingEnabled) | Returns whether log flushing is enabled or disabled |
 | [getOpacity](#getOpacity) | Gets the opacity of the specified client |
 | [getScale](#getScale) | Returns the scale of an application |
@@ -1243,48 +1241,6 @@ This method takes no parameters.
 }
 ```
 
-<a name="getGraphicsFrameRate"></a>
-## *getGraphicsFrameRate*
-
-Returns the current Graphics Frame Rate.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.frameRate | number | display the current Graphics framerate |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.getGraphicsFrameRate"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "frameRate": 40,
-        "success": true
-    }
-}
-```
-
 <a name="getLogLevel"></a>
 ## *getLogLevel*
 
@@ -1326,56 +1282,6 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "logLevel": "INFO",
-        "success": true
-    }
-}
-```
-
-<a name="setGraphicsFrameRate"></a>
-## *setGraphicsFrameRate*
-
-Set Graphics Frame Rate.. 
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.framerate | number | Graphics Framerate to be set |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.RDKShell.1.setGraphicsFrameRate",
-    "params": {
-        "framerate": 60
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
         "success": true
     }
 }
