@@ -3579,8 +3579,6 @@ SystemServices interface events:
 | [onSystemModeChanged](#onSystemModeChanged) | Triggered when the device operating mode changes |
 | [onSystemPowerStateChanged](#onSystemPowerStateChanged) | Triggered when the power manager detects a device power state change |
 | [onTemperatureThresholdChanged](#onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
-| [onTerritoryChanged](#onTerritoryChanged) | Triggered when territory is changed |
-| [onTimeZoneDSTChanged](#onTimeZoneDSTChanged) | Triggered when the Time zone changed |
 
 
 <a name="onFirmwarePendingReboot"></a>
@@ -3864,62 +3862,6 @@ Triggered when the device temperature changes beyond the `WARN` or `MAX` limits 
         "thresholdType": "MAX",
         "exceeded": true,
         "temperature": "48.000000"
-    }
-}
-```
-
-<a name="onTerritoryChanged"></a>
-## *onTerritoryChanged*
-
-Triggered when territory is changed.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.oldTerritory | string | Old Territory |
-| params?.newTerritory | string | <sup>*(optional)*</sup> New Territory |
-| params.oldRegion | string | Old Region |
-| params.newRegion | string | New Region |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onTerritoryChanged",
-    "params": {
-        "oldTerritory": "GBR",
-        "newTerritory": "GBR",
-        "oldRegion": "GB-ENG",
-        "newRegion": "US-NY"
-    }
-}
-```
-
-<a name="onTimeZoneDSTChanged"></a>
-## *onTimeZoneDSTChanged*
-
-Triggered when the Time zone changed.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.oldTimeZone | string | Old Time zone |
-| params.newTimeZone | string | New Time zone |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onTimeZoneDSTChanged",
-    "params": {
-        "oldTimeZone": "America/New_York",
-        "newTimeZone": "Europe/London"
     }
 }
 ```

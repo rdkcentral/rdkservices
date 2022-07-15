@@ -783,24 +783,6 @@
                 ]
             }   
         },
-	"getGraphicsFrameRate":{
-            "summary":"Returns the current Graphics Frame Rate",
-            "result":{
-                "type":"object",
-                "properties":{
-                    "frameRate":{
-                        "$ref": "#/definitions/framerate"
-                    },
-                    "success":{
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "frameRate",
-                    "success"
-                ]
-            }
-        },
         "getLogLevel": {
             "summary": "Returns the currently set logging level. \n \n### Events\n \n No Events.",
             "result": {
