@@ -219,6 +219,7 @@ private:
     bool handleMessage(GstMessage*);
     static int GstBusCallback(GstBus *bus, GstMessage *message, gpointer data);
     static void event_loop(void *data);
+    bool isUrlScheme(std::string text, size_t pos)
 };
 
 } // namespace TTS
