@@ -775,8 +775,7 @@ bool TTSSpeaker::isUrlScheme(std::string text, size_t pos)
 void TTSSpeaker::replaceIfIsolated(std::string& text, const std::string& search, const std::string& replace) {
     size_t pos = 0;
     while ((pos = text.find(search, pos)) != std::string::npos) {
-        if((search=="/") && (isUrlScheme(text,pos)))
-		{
+        if((search=="/") && (isUrlScheme(text,pos))) {
 			pos += search.length();
 			continue;
 		}
