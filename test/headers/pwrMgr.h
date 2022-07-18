@@ -68,6 +68,20 @@ typedef enum _PWRMgr_EventId_t {
     IARM_BUS_PWRMGR_EVENT_MAX,
 } IARM_Bus_PWRMgr_EventId_t;
 
+typedef struct _IARM_Bus_PWRMgr_SetPowerState_Param_t{
+	IARM_Bus_PWRMgr_PowerState_t newState;
+	int KeyCode;
+}IARM_Bus_PWRMgr_SetPowerState_Param_t;
+
+typedef struct _IARM_Bus_PWRMgr_SetTempThresholds_Param_t{
+	float tempHigh;
+	float tempCritical;
+}IARM_Bus_PWRMgr_SetTempThresholds_Param_t;
+
+typedef struct _IARM_Bus_PWRMgr_SetOvertempGraceInterval_Param_t{
+	int graceInterval;
+}IARM_Bus_PWRMgr_SetOvertempGraceInterval_Param_t;
+
 typedef struct _IARM_Bus_PWRMgr_RebootParam_t{
      char reboot_reason_custom[PWRMGR_MAX_REBOOT_REASON_LENGTH];
      char reboot_reason_other[PWRMGR_MAX_REBOOT_REASON_LENGTH];

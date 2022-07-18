@@ -1655,7 +1655,7 @@ namespace WPEFramework {
         {
             bool status = false;
             try {
-                const device::SleepMode &mode = device::Host::getInstance().getPreferredSleepMode();
+                device::SleepMode mode = device::Host::getInstance().getPreferredSleepMode();
                 std::string preferredStandbyMode = mode.toString();
                 response["preferredStandbyMode"] = preferredStandbyMode;
                 status = true;
@@ -1788,7 +1788,7 @@ namespace WPEFramework {
             bool status = false;
             JsonArray standbyModes;
             try {
-                const device::List<device::SleepMode> sleepModes =
+                device::List<device::SleepMode> sleepModes =
                     device::Host::getInstance().getAvailableSleepModes();
                 for (unsigned int i = 0; i < sleepModes.size(); i++) {
                     standbyModes.Add(sleepModes.at(i).toString());
