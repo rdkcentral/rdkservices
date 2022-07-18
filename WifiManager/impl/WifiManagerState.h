@@ -26,15 +26,27 @@ namespace WPEFramework {
     namespace Plugin {
         class WifiManagerState {
         public:
-            WifiManagerState() = default;
-            virtual ~WifiManagerState() = default;
+            WifiManagerState();
+            virtual ~WifiManagerState();
             WifiManagerState(const WifiManagerState&) = delete;
             WifiManagerState& operator=(const WifiManagerState&) = delete;
 
-            uint32_t getCurrentState(const JsonObject& parameters, JsonObject& response) const;
-            uint32_t getConnectedSSID(const JsonObject& parameters, JsonObject& response) const;
+            uint32_t getCurrentState(const JsonObject& parameters, JsonObject& response);
+            bool getConnectedSSID(const JsonObject& parameters, JsonObject& response);
             uint32_t setEnabled(const JsonObject& parameters, JsonObject& response);
             uint32_t getSupportedSecurityModes(const JsonObject& parameters, JsonObject& response);
+            void setWifiStateCache(bool value,WifiState state);
+            void resetWifiStateConnectedCache(bool value);
+
+            std::atomic<bool> m_useWifiStateCache;
+            WifiState m_wifiStateCache;
+            std::atomic<bool> m_useWifiConnectedCache;
+            std::string m_ConnectedSSIDCache;
+            std::string m_ConnectedBSSIDCache;
+            int m_ConnectedSecurityModeCache;
+
+	private:
+	    std::map<std::string, std::string> retrieveValues(const char *, char *, size_t );
         };
     }
 }

@@ -6,6 +6,9 @@
         "class": "HdmiCec", 
         "description": "The `HdmiCec` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. HdmiCec plugin can be used on an HDMI Source device where the application has complete control on implementing the CEC messages, and Thunder plugin provides the transport mechanism to send and receive the messages to other CEC devices in the network."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
         "enabled": {
             "summary": "Indicates whether HDMI-CEC is enabled (`true`) or disabled (`false`)",
@@ -44,23 +47,7 @@
             "summary": "`true` if device is active source, otherwise `false`",
             "type": "boolean",
             "example": "true"
-         },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        }
+         }
     },
     "methods": {
         "getActiveSourceStatus":{
@@ -77,7 +64,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getCECAddresses":{
@@ -110,7 +97,7 @@
                         ]
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -153,7 +140,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -172,7 +159,7 @@
                         "$ref": "#/definitions/enabled"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -198,7 +185,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setEnabled":{
@@ -215,7 +202,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }
     },
