@@ -761,10 +761,10 @@ bool TTSSpeaker::isUrlScheme(std::string text, size_t pos)
 	bool flag = false;
 	if(text[pos+1]=='/') {
 		pos+=1; 
-	    for(int i=0;i<(sizeof(url)/sizeof(url[0]));i++) {
+		for(int i=0;i<(sizeof(url)/sizeof(url[0]));i++) {
     		std::string r = text.substr((pos+1)-url[i].length(), url[i].length());
-    	    if(r.compare(url[i])==0) {
-        		flag = true;
+			if(r.compare(url[i])==0) {
+				flag = true;
 				break;
     		}
 	    }
