@@ -48,6 +48,7 @@ include_directories(../LocationSync
         ../UsbAccess
         ../Timer
         ../LoggingPreferences
+        ../UserPreferences
         ../helpers
         )
 link_directories(../LocationSync
@@ -62,6 +63,7 @@ link_directories(../LocationSync
         ../UsbAccess
         ../Timer
         ../LoggingPreferences
+        ../UserPreferences
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -79,6 +81,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}UsbAccess
         ${NAMESPACE}Timer
         ${NAMESPACE}LoggingPreferences
+        ${NAMESPACE}UserPreferences
         )
 
 target_include_directories(${PROJECT_NAME}
