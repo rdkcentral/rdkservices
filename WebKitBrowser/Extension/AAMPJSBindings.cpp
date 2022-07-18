@@ -45,11 +45,20 @@ bool CanInjectJSBindings(const char* url) {
 
     std::string hostStr;
 
+#if GLIB_CHECK_VERSION(2, 66, 0)
+    auto* uri = g_uri_parse(url, G_URI_FLAGS_NONE, NULL);
+    if (uri) {
+        if (g_uri_get_host(uri))
+            hostStr = string(g_uri_get_host(uri));
+        g_uri_unref(uri);
+    }
+#else
     SoupURI* uri = soup_uri_new(url);
     if (uri) {
         hostStr = g_strdup(uri->host);
         soup_uri_free(uri);
     }
+#endif
 
     if (hostStr.empty())
         return false;
