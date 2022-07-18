@@ -6,23 +6,11 @@
         "class": "ScreenCapture",
         "description": "The `ScreenCapture` plugin is used to upload screen captures."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        }  
+   
     },
     "methods":{
         "uploadScreenCapture":{
@@ -47,7 +35,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }
     },
