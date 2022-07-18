@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.HdmiInputPlugin"></a>
+<a name="HdmiInputPlugin"></a>
 # HdmiInputPlugin
 
 **Version: 2.0**
@@ -10,61 +10,61 @@ A org.rdk.HdmiInput plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Introduction](#Introduction)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
+<a name="Introduction"></a>
 # Introduction
 
-<a name="head.Scope"></a>
+<a name="Scope"></a>
 ## Scope
 
 This document describes purpose and functionality of the org.rdk.HdmiInput plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
 
-<a name="head.Case_Sensitivity"></a>
+<a name="Case_Sensitivity"></a>
 ## Case Sensitivity
 
 All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
 
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+<a name="Acronyms,_Abbreviations_and_Terms"></a>
 ## Acronyms, Abbreviations and Terms
 
 The table below provides and overview of acronyms used in this document and their definitions.
 
 | Acronym | Description |
 | :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+| <a name="API">API</a> | Application Programming Interface |
+| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
 
 The table below provides and overview of terms and abbreviations used in this document and their definitions.
 
 | Term | Description |
 | :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
 
-<a name="head.References"></a>
+<a name="References"></a>
 ## References
 
 | Ref ID | Description |
 | :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `HdmiInput` plugin allows you to control the HDMI Input on a set-top box.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -76,7 +76,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkHdmiInput.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.HdmiInput plugin:
@@ -85,22 +85,22 @@ HdmiInput interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getHDMIInputDevices](#method.getHDMIInputDevices) | Returns an array of available HDMI Input ports |
-| [getEdidVersion](#method.getEdidVersion) | (Version 2) Returns the EDID version |
-| [getHDMISPD](#method.getHDMISPD) | (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device |
-| [getRawHDMISPD](#method.getRawHDMISPD) | (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits |
-| [readEDID](#method.readEDID) | Returns the current EDID value |
-| [startHdmiInput](#method.startHdmiInput) | Activates the specified HDMI Input port as the primary video source |
-| [stopHdmiInput](#method.stopHdmiInput) | Deactivates the HDMI Input port currently selected as the primary video source |
-| [setEdidVersion](#method.setEdidVersion) | (Version 2) Sets an HDMI EDID version |
-| [setVideoRectangle](#method.setVideoRectangle) | Sets an HDMI Input video window |
-| [writeEDID](#method.writeEDID) | Changes a current EDID value |
-| [getSupportedGameFeatures](#method.getSupportedGameFeatures) | Returns the list of supported game features |
-| [getHdmiGameFeatureStatus](#method.getHdmiGameFeatureStatus) | Returns the Game Feature Status. For example: ALLM |
+| [getHDMIInputDevices](#getHDMIInputDevices) | Returns an array of available HDMI Input ports |
+| [getEdidVersion](#getEdidVersion) | (Version 2) Returns the EDID version |
+| [getHDMISPD](#getHDMISPD) | (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device |
+| [getRawHDMISPD](#getRawHDMISPD) | (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits |
+| [readEDID](#readEDID) | Returns the current EDID value |
+| [startHdmiInput](#startHdmiInput) | Activates the specified HDMI Input port as the primary video source |
+| [stopHdmiInput](#stopHdmiInput) | Deactivates the HDMI Input port currently selected as the primary video source |
+| [setEdidVersion](#setEdidVersion) | (Version 2) Sets an HDMI EDID version |
+| [setVideoRectangle](#setVideoRectangle) | Sets an HDMI Input video window |
+| [writeEDID](#writeEDID) | Changes a current EDID value |
+| [getSupportedGameFeatures](#getSupportedGameFeatures) | Returns the list of supported game features |
+| [getHdmiGameFeatureStatus](#getHdmiGameFeatureStatus) | Returns the Game Feature Status |
 
 
-<a name="method.getHDMIInputDevices"></a>
-## *getHDMIInputDevices [<sup>method</sup>](#head.Methods)*
+<a name="getHDMIInputDevices"></a>
+## *getHDMIInputDevices*
 
 Returns an array of available HDMI Input ports.
  
@@ -155,8 +155,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getEdidVersion"></a>
-## *getEdidVersion [<sup>method</sup>](#head.Methods)*
+<a name="getEdidVersion"></a>
+## *getEdidVersion*
 
 (Version 2) Returns the EDID version.
  
@@ -207,8 +207,8 @@ No Events.
 }
 ```
 
-<a name="method.getHDMISPD"></a>
-## *getHDMISPD [<sup>method</sup>](#head.Methods)*
+<a name="getHDMISPD"></a>
+## *getHDMISPD*
 
 (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.
  
@@ -259,8 +259,8 @@ No Events.
 }
 ```
 
-<a name="method.getRawHDMISPD"></a>
-## *getRawHDMISPD [<sup>method</sup>](#head.Methods)*
+<a name="getRawHDMISPD"></a>
+## *getRawHDMISPD*
 
 (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.
  
@@ -311,8 +311,8 @@ No Events.
 }
 ```
 
-<a name="method.readEDID"></a>
-## *readEDID [<sup>method</sup>](#head.Methods)*
+<a name="readEDID"></a>
+## *readEDID*
 
 Returns the current EDID value.
  
@@ -363,8 +363,8 @@ No Events.
 }
 ```
 
-<a name="method.startHdmiInput"></a>
-## *startHdmiInput [<sup>method</sup>](#head.Methods)*
+<a name="startHdmiInput"></a>
+## *startHdmiInput*
 
 Activates the specified HDMI Input port as the primary video source.
  
@@ -374,7 +374,7 @@ Activates the specified HDMI Input port as the primary video source.
 | `onInputStatusChanged` | Triggers the event when HDMI Input source is activated and Input status changes to `started` | 
 | `onSignalChanged` | Triggers the event when HDMI Input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal).
 
-Also see: [onInputStatusChanged](#event.onInputStatusChanged), [onSignalChanged](#event.onSignalChanged)
+Also see: [onInputStatusChanged](#onInputStatusChanged), [onSignalChanged](#onSignalChanged)
 
 ### Parameters
 
@@ -417,8 +417,8 @@ Also see: [onInputStatusChanged](#event.onInputStatusChanged), [onSignalChanged]
 }
 ```
 
-<a name="method.stopHdmiInput"></a>
-## *stopHdmiInput [<sup>method</sup>](#head.Methods)*
+<a name="stopHdmiInput"></a>
+## *stopHdmiInput*
 
 Deactivates the HDMI Input port currently selected as the primary video source.
  
@@ -427,7 +427,7 @@ Deactivates the HDMI Input port currently selected as the primary video source.
 | :----------- | :----------- | 
 | `onInputStatusChanged` | Triggers the event when HDMI Input source is deactivated and Input status changes to `stopped`.
 
-Also see: [onInputStatusChanged](#event.onInputStatusChanged)
+Also see: [onInputStatusChanged](#onInputStatusChanged)
 
 ### Parameters
 
@@ -464,8 +464,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.setEdidVersion"></a>
-## *setEdidVersion [<sup>method</sup>](#head.Methods)*
+<a name="setEdidVersion"></a>
+## *setEdidVersion*
 
 (Version 2) Sets an HDMI EDID version.
  
@@ -516,8 +516,8 @@ No Events.
 }
 ```
 
-<a name="method.setVideoRectangle"></a>
-## *setVideoRectangle [<sup>method</sup>](#head.Methods)*
+<a name="setVideoRectangle"></a>
+## *setVideoRectangle*
 
 Sets an HDMI Input video window.
  
@@ -572,8 +572,8 @@ No Events.
 }
 ```
 
-<a name="method.writeEDID"></a>
-## *writeEDID [<sup>method</sup>](#head.Methods)*
+<a name="writeEDID"></a>
+## *writeEDID*
 
 Changes a current EDID value.
  
@@ -624,8 +624,8 @@ No Events.
 }
 ```
 
-<a name="method.getSupportedGameFeatures"></a>
-## *getSupportedGameFeatures [<sup>method</sup>](#head.Methods)*
+<a name="getSupportedGameFeatures"></a>
+## *getSupportedGameFeatures*
 
 Returns the list of supported game features.
  
@@ -642,7 +642,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.suppoortedGameFeatures | string | The supported game Features |
+| result.supportedGameFeatures | string | The supported game Features |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -664,14 +664,14 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "suppoortedGameFeatures": "ALLM",
+        "supportedGameFeatures": "ALLM",
         "success": true
     }
 }
 ```
 
-<a name="method.getHdmiGameFeatureStatus"></a>
-## *getHdmiGameFeatureStatus [<sup>method</sup>](#head.Methods)*
+<a name="getHdmiGameFeatureStatus"></a>
+## *getHdmiGameFeatureStatus*
 
 Returns the Game Feature Status. For example: ALLM
  
@@ -724,10 +724,10 @@ No Events.
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.HdmiInput plugin:
 
@@ -735,15 +735,15 @@ HdmiInput interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onDevicesChanged](#event.onDevicesChanged) | Triggered whenever a new HDMI device is connected to an HDMI Input |
-| [onInputStatusChanged](#event.onInputStatusChanged) | Triggered whenever the status changes for an HDMI Input |
-| [onSignalChanged](#event.onSignalChanged) | Triggered whenever the signal status changes for an HDMI Input |
-| [videoStreamInfoUpdate](#event.videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI Input video stream info |
-| [hdmiGameFeatureStatusUpdate](#event.hdmiGameFeatureStatusUpdate) | Triggered whenever game feature(ALLM) status changes for an HDMI Input |
+| [onDevicesChanged](#onDevicesChanged) | Triggered whenever a new HDMI device is connected to an HDMI Input |
+| [onInputStatusChanged](#onInputStatusChanged) | Triggered whenever the status changes for an HDMI Input |
+| [onSignalChanged](#onSignalChanged) | Triggered whenever the signal status changes for an HDMI Input |
+| [videoStreamInfoUpdate](#videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI Input video stream info |
+| [hdmiGameFeatureStatusUpdate](#hdmiGameFeatureStatusUpdate) | Triggered whenever game feature(ALLM) status changes for an HDMI Input |
 
 
-<a name="event.onDevicesChanged"></a>
-## *onDevicesChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onDevicesChanged"></a>
+## *onDevicesChanged*
 
 Triggered whenever a new HDMI device is connected to an HDMI Input.
 
@@ -776,8 +776,8 @@ Triggered whenever a new HDMI device is connected to an HDMI Input.
 }
 ```
 
-<a name="event.onInputStatusChanged"></a>
-## *onInputStatusChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onInputStatusChanged"></a>
+## *onInputStatusChanged*
 
 Triggered whenever the status changes for an HDMI Input.
 
@@ -804,8 +804,8 @@ Triggered whenever the status changes for an HDMI Input.
 }
 ```
 
-<a name="event.onSignalChanged"></a>
-## *onSignalChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onSignalChanged"></a>
+## *onSignalChanged*
 
 Triggered whenever the signal status changes for an HDMI Input.
 
@@ -832,8 +832,8 @@ Triggered whenever the signal status changes for an HDMI Input.
 }
 ```
 
-<a name="event.videoStreamInfoUpdate"></a>
-## *videoStreamInfoUpdate [<sup>event</sup>](#head.Notifications)*
+<a name="videoStreamInfoUpdate"></a>
+## *videoStreamInfoUpdate*
 
 Triggered whenever there is an update in HDMI Input video stream info.
 
@@ -868,8 +868,8 @@ Triggered whenever there is an update in HDMI Input video stream info.
 }
 ```
 
-<a name="event.hdmiGameFeatureStatusUpdate"></a>
-## *hdmiGameFeatureStatusUpdate [<sup>event</sup>](#head.Notifications)*
+<a name="hdmiGameFeatureStatusUpdate"></a>
+## *hdmiGameFeatureStatusUpdate*
 
 Triggered whenever game feature(ALLM) status changes for an HDMI Input.
 
@@ -880,7 +880,7 @@ Triggered whenever game feature(ALLM) status changes for an HDMI Input.
 | params | object |  |
 | params.portId | string | An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
 | params.gameFeature | string | Game Feature to which current status requested |
-| params.mode | boolean | The current game feature status. Mode is required only for ALLM. Need to add support for future game features|
+| params.mode | boolean | The current game feature status. Mode is required only for ALLM. Need to add support for future game features |
 
 ### Example
 
