@@ -24,6 +24,7 @@
 #ifdef ENABLE_ERM
 #include <essos-resmgr.h>
 #endif
+#include "utils.h"
 
 #include "Module.h"
 
@@ -37,7 +38,8 @@ namespace WPEFramework {
 
             //Begin methods
             uint32_t getConfigurationWrapper(const JsonObject& parameters, JsonObject& response);
-	    uint32_t getMilestones(const JsonObject& parameters, JsonObject& response);
+	        uint32_t getMilestones(const JsonObject& parameters, JsonObject& response);
+            uint32_t logMilestones(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             int getConfiguration(const std::string& postData, JsonObject& response);
