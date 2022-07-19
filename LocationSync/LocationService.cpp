@@ -327,7 +327,7 @@ namespace Plugin {
         , _country()
         , _region()
         , _city()
-        , _activity(*this)
+        , _activity()
         , _infoCarrier()
         , _request(Core::ProxyType<Web::Request>::Create())
     {
@@ -395,7 +395,8 @@ namespace Plugin {
 
                     _infoCarrier = constructor->factory();
 
-                    _activity.Submit();
+                    _activity = Core::ProxyType<Activity>::Create(this);
+                    _activity->Run();
 
                     result = Core::ERROR_NONE;
                 }
@@ -411,7 +412,16 @@ namespace Plugin {
     {
         _adminLock.Lock();
 
-        _activity.Revoke();
+        if (_activity.IsValid()) {
+            Core::ProxyType<Activity> activity(_activity);
+            activity->Stop();
+
+            _adminLock.Unlock();
+
+            activity->Wait(Core::Thread::STOPPED, Core::infinite);
+
+            _adminLock.Lock();
+        }
 
         if ((_state != IDLE) && (_state != FAILED) && (_state != LOADED)) {
 
@@ -496,7 +506,7 @@ namespace Plugin {
         }
 
         // Finish the cycle..
-        _activity.Submit();
+        _activity->Run();
     }
 
     void LocationService::Send(const Core::ProxyType<Web::Request>& element VARIABLE_IS_NOT_USED) /* override */
@@ -516,13 +526,13 @@ namespace Plugin {
         } else if (Link().HasError() == true) {
             Close(0);
 
-            _activity.Submit();
+            _activity->Run();
         }
     }
 
     // The network might be down, keep on trying until we have connectivity.
     // We start using IPV6, preferred network...
-    void LocationService::Dispatch()
+    uint32_t LocationService::Dispatch()
     {
         uint32_t result = Core::infinite;
 
@@ -589,10 +599,7 @@ namespace Plugin {
             _callback->Dispatch();
         }
 
-        // See if we need rescheduling
-        if (result != Core::infinite) {
-            _activity.Schedule(Core::Time::Now().Add(result));
-        }
+        return result;
     }
 
     /* static */ uint32_t LocationService::IsSupported(const string& remoteNode)

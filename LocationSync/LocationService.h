@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #ifndef LOCATIONSYNC_LOCATIONSERVICE_H
 #define LOCATIONSYNC_LOCATIONSERVICE_H
 
@@ -34,6 +34,38 @@ namespace Plugin {
           public Web::WebLinkType<Core::SocketStream, Web::Response, Web::Request, Core::ProxyPoolType<Web::Response>&> {
 
     private:
+        class Activity : public Core::Thread {
+        private:
+            Activity() = delete;
+            Activity(const Activity&) = delete;
+            Activity& operator=(const Activity&) = delete;
+
+        public:
+            Activity(LocationService* parent)
+                : Core::Thread(Core::Thread::DefaultStackSize(), nullptr)
+                , _parent(parent)
+            {
+                ASSERT(_parent != nullptr);
+            }
+
+        private:
+            uint32_t Worker() override
+            {
+                auto result = _parent->Dispatch();
+                if (result == Core::infinite) {
+                    // Activity done
+                    Stop();
+                } else {
+                    Block();
+                }
+                return result;
+            }
+
+        private:
+            LocationService* _parent;
+        };
+
+    private:
         enum state {
             IDLE,
             ACTIVE,
@@ -42,8 +74,6 @@ namespace Plugin {
             LOADED,
             FAILED
         };
-
-        using Job = Core::ThreadPool::JobType<LocationService>;
 
     private:
         LocationService() = delete;
@@ -112,8 +142,7 @@ namespace Plugin {
         // Signal a state change, Opened, Closed or Accepted
         void StateChange() override;
 
-        friend Core::ThreadPool::JobType<LocationService&>;
-        void Dispatch();
+        uint32_t Dispatch();
 
     private:
         Core::CriticalSection _adminLock;
@@ -128,7 +157,7 @@ namespace Plugin {
         string _country;
         string _region;
         string _city;
-        Core::WorkerPool::JobType<LocationService&> _activity;
+        Core::ProxyType<Activity> _activity;
         Core::ProxyType<IGeography> _infoCarrier;
         Core::ProxyType<Web::Request> _request;
     };
