@@ -44,6 +44,8 @@ protected:
     {
         RfcApi::getInstance().impl = &rfcApiImplMock;
         TelemetryApi::getInstance().impl = &telemetryApiImplMock;
+
+        Core::Directory(t2PpersistentFolder.c_str()).Destroy(true);
     }
 
     virtual void TearDown()
