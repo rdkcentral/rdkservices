@@ -32,7 +32,6 @@ protected:
     TelemetryTestFixture()
         : connection(1, 0)
     {
-        fprintf(stderr, "TelemetryTestFixture::TelemetryTestFixture()\n");
         PluginHost::IFactories::Assign(&factoriesImplementation);
     }
     virtual ~TelemetryTestFixture()
@@ -61,7 +60,7 @@ TEST_F(TelemetryTestFixture, RegisteredMethods)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *component) {
-                EXPECT_EQ(strcmp(component, "Thunder_Plugins"), 0);
+                EXPECT_EQ(string(component), _T("Thunder_Plugins"));
                 return;
             }));
 
@@ -86,7 +85,7 @@ TEST_F(TelemetryTestFixture, InitializeDefaultProfile)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *component) {
-                EXPECT_EQ(strcmp(component, "Thunder_Plugins"), 0);
+                EXPECT_EQ(string(component), _T("Thunder_Plugins"));
                 return;
             }));
 
@@ -94,14 +93,10 @@ TEST_F(TelemetryTestFixture, InitializeDefaultProfile)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
-
-                EXPECT_EQ(strcmp(pcCallerID, "Telemetry"), 0);
-                EXPECT_EQ(strcmp(pcParameterName, "Device.X_RDKCENTRAL-COM_T2.ReportProfiles"), 0);
-                
+                EXPECT_EQ(string(pcCallerID), _T("Telemetry"));
+                EXPECT_EQ(string(pcParameterName), _T("Device.X_RDKCENTRAL-COM_T2.ReportProfiles"));
+                EXPECT_EQ(string(pcParameterValue), _T("{\\\"profile\\\":\\\"default\\\"}"));
                 EXPECT_EQ(eDataType, WDMP_STRING);
-                
-                const char profileContentCheck[] = "{\\\"profile\\\":\\\"default\\\"}";
-                EXPECT_EQ(strcmp(pcParameterValue, profileContentCheck), 0);
 
                 return WDMP_SUCCESS;
             }));
@@ -137,7 +132,7 @@ TEST_F(TelemetryTestFixture, InitializeDefaultProfileRFCFailure)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *component) {
-                EXPECT_EQ(strcmp(component, "Thunder_Plugins"), 0);
+                EXPECT_EQ(string(component), _T("Thunder_Plugins"));
                 return;
             }));
 
@@ -180,7 +175,7 @@ TEST_F(TelemetryTestFixture, InitializeZeroSizeDefaultProfile)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *component) {
-                EXPECT_EQ(strcmp(component, "Thunder_Plugins"), 0);
+                EXPECT_EQ(string(component), _T("Thunder_Plugins"));
                 return;
             }));
 
@@ -214,7 +209,7 @@ TEST_F(TelemetryTestFixture, InitializePersistentFolder)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *component) {
-                EXPECT_EQ(strcmp(component, "Thunder_Plugins"), 0);
+                EXPECT_EQ(string(component), _T("Thunder_Plugins"));
                 return;
             }));
 
@@ -245,7 +240,7 @@ TEST_F(TelemetryTestFixture, Plugin)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *component) {
-                EXPECT_EQ(strcmp(component, "Thunder_Plugins"), 0);
+                EXPECT_EQ(string(component), _T("Thunder_Plugins"));
                 return;
             }));
 
@@ -260,18 +255,18 @@ TEST_F(TelemetryTestFixture, Plugin)
             }))
         .WillOnce(::testing::Invoke(
             [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
-                EXPECT_EQ(strcmp(pcCallerID, "Telemetry"), 0);
-                EXPECT_EQ(strcmp(pcParameterName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.FTUEReport.Enable"), 0);
-                EXPECT_EQ(strcmp(pcParameterValue, "false"), 0);
+                EXPECT_EQ(string(pcCallerID), _T("Telemetry"));
+                EXPECT_EQ(string(pcParameterName), _T("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.FTUEReport.Enable"));
+                EXPECT_EQ(string(pcParameterValue), _T("false"));
                 EXPECT_EQ(eDataType, WDMP_BOOLEAN);
 
                 return WDMP_SUCCESS;
             }))
         .WillOnce(::testing::Invoke(
             [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
-                EXPECT_EQ(strcmp(pcCallerID, "Telemetry"), 0);
-                EXPECT_EQ(strcmp(pcParameterName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.FTUEReport.Enable"), 0);
-                EXPECT_EQ(strcmp(pcParameterValue, "true"), 0);
+                EXPECT_EQ(string(pcCallerID), _T("Telemetry"));
+                EXPECT_EQ(string(pcParameterName), _T("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.FTUEReport.Enable"));
+                EXPECT_EQ(string(pcParameterValue), _T("true"));
                 EXPECT_EQ(eDataType, WDMP_BOOLEAN);
 
                 return WDMP_SUCCESS;
@@ -282,8 +277,8 @@ TEST_F(TelemetryTestFixture, Plugin)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char* marker, char* value) {
-                EXPECT_EQ(strcmp(marker, "NAME"), 0);
-                EXPECT_EQ(strcmp(value, "VALUE"), 0);
+                EXPECT_EQ(string(marker), _T("NAME"));
+                EXPECT_EQ(string(value), _T("VALUE"));
                 return T2ERROR_SUCCESS;
             }));
 
