@@ -1,6 +1,8 @@
+#pragma once
 
 #include "libIARM.h"
 
+#define IARM_BUS_PWRMGR_NAME "PWRMgr"
 #define PWRMGR_MAX_REBOOT_REASON_LENGTH 100
 
 #define MAX_PWR_STATE_BEF_REBOOR_STR_LEN (32)
@@ -11,6 +13,17 @@
 #define IARM_BUS_PWRMGR_API_SetNetworkStandbyMode  "SetNetworkStandbyMode"
 #define IARM_BUS_PWRMGR_API_GetNetworkStandbyMode  "GetNetworkStandbyMode"
 #define IARM_BUS_PWRMGR_API_Reboot "performReboot"
+
+typedef enum _IARM_Bus_PWRMgr_ThermalState_t{
+	IARM_BUS_PWRMGR_TEMPERATURE_NORMAL = 0,
+	IARM_BUS_PWRMGR_TEMPERATURE_HIGH,
+	IARM_BUS_PWRMGR_TEMPERATURE_CRITICAL
+}IARM_Bus_PWRMgr_ThermalState_t;
+
+typedef struct _IARM_Bus_PWRMgr_GetThermalState_Param_t{
+	IARM_Bus_PWRMgr_ThermalState_t curLevel;
+	float curTemperature;
+}IARM_Bus_PWRMgr_GetThermalState_Param_t;
 
 typedef struct _IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t {
        bool bStandbyMode;        /*!< Standby mode to set and get*/
@@ -68,22 +81,64 @@ typedef enum _PWRMgr_EventId_t {
     IARM_BUS_PWRMGR_EVENT_MAX,
 } IARM_Bus_PWRMgr_EventId_t;
 
+#define IARM_BUS_PWRMGR_API_SetPowerState "SetPowerState"
+
 typedef struct _IARM_Bus_PWRMgr_SetPowerState_Param_t{
 	IARM_Bus_PWRMgr_PowerState_t newState;
 	int KeyCode;
 }IARM_Bus_PWRMgr_SetPowerState_Param_t;
+
+#define IARM_BUS_PWRMGR_API_GetPowerState "GetPowerState"
+
+typedef struct _IARM_Bus_PWRMgr_GetPowerState_Param_t{
+        IARM_Bus_PWRMgr_PowerState_t curState;
+}IARM_Bus_PWRMgr_GetPowerState_Param_t;
+
 
 typedef struct _IARM_Bus_PWRMgr_SetTempThresholds_Param_t{
 	float tempHigh;
 	float tempCritical;
 }IARM_Bus_PWRMgr_SetTempThresholds_Param_t;
 
+
+#define IARM_BUS_PWRMGR_API_SetTemperatureThresholds "SetTemperatureThresholds"
+
+#define IARM_BUS_PWRMGR_API_GetTemperatureThresholds "GetTemperatureThresholds"
+
+
+typedef struct _IARM_Bus_PWRMgr_GetTempThresholds_Param_t{
+        float tempHigh;
+        float tempCritical;
+}IARM_Bus_PWRMgr_GetTempThresholds_Param_t;
+
+#define IARM_BUS_PWRMGR_API_GetThermalState "GetThermalState"
+
+typedef struct _IARM_BUS_PWRMGR_API_GetThermalState_t{
+	IARM_Bus_PWRMgr_ThermalState_t curLevel;
+	float curTemperature;
+}IARM_BUS_PWRMGR_API_GetThermalState_t;
+
+
+#define IARM_BUS_PWRMGR_API_SetOvertempGraceInterval "SetOvertempGraceInterval"
+
 typedef struct _IARM_Bus_PWRMgr_SetOvertempGraceInterval_Param_t{
 	int graceInterval;
 }IARM_Bus_PWRMgr_SetOvertempGraceInterval_Param_t;
+
+#define IARM_BUS_PWRMGR_API_GetOvertempGraceInterval "GetOvertempGraceInterval"
+
+typedef struct _IARM_Bus_PWRMgr_GetOvertempGraceInterval_Param_t{
+        int graceInterval;
+}IARM_Bus_PWRMgr_GetOvertempGraceInterval_Param_t;
 
 typedef struct _IARM_Bus_PWRMgr_RebootParam_t{
      char reboot_reason_custom[PWRMGR_MAX_REBOOT_REASON_LENGTH];
      char reboot_reason_other[PWRMGR_MAX_REBOOT_REASON_LENGTH];
      char requestor[PWRMGR_MAX_REBOOT_REASON_LENGTH];
 } IARM_Bus_PWRMgr_RebootParam_t;
+
+typedef struct _IARM_Bus_PWRMgr_SleepTimer_Param_t{
+	double time;
+	int start;
+}IARM_Bus_PWRMgr_SleepTimer_Param_t;
+
