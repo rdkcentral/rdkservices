@@ -39,13 +39,11 @@ using std::ofstream;
 #include "UtilsThreadRAII.h"
 #include "SystemServicesHelper.h"
 #include "platformcaps/platformcaps.h"
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
 #include "irMgr.h"
 #include "pwrMgr.h"
 #include "host.hpp"
 #include "sleepMode.hpp"
-#endif /* USE_IARMBUS || USE_IARM_BUS */
 
 #include "sysMgr.h"
 #include "cSettings.h"
@@ -103,9 +101,7 @@ namespace WPEFramework {
                 string m_stbVersionString;
                 cSettings m_cacheService;
                 static cSettings m_temp_settings;
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
                 static IARM_Bus_SYSMgr_GetSystemStates_Param_t paramGetSysState;
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
                 Utils::ThreadRAII thread_getMacAddresses;
                 SystemServices* m_systemService;
                 /* TODO: Need to decide whether needed or not since setProperty
@@ -176,11 +172,9 @@ namespace WPEFramework {
                 std::string getClientVersionString();
                 std::string getStbTimestampString();
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
                 void InitializeIARM();
                 void DeinitializeIARM();
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
-
+                
                 /* Events : Begin */
                 void onFirmwareUpdateInfoRecieved(string CallGUID);
                 void onSystemPowerStateChanged(string currentPowerState, string powerState);

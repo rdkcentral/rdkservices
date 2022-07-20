@@ -43,9 +43,7 @@
 #include "UtilsString.h"
 #include "uploadlogs.h"
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "UtilsIarm.h"
-#endif /* USE_IARMBUS || USE_IARM_BUS */
 
 #ifdef ENABLE_THERMAL_PROTECTION
 #include "thermonitor.h"
@@ -197,8 +195,6 @@ string collectDeviceInfo(string methodType)
     return respBuffer;
 }
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-
 std::string iarmModeToString(IARM_Bus_Daemon_SysMode_t& iarmMode)
 {
     if (IARM_BUS_SYS_MODE_WAREHOUSE == iarmMode) {
@@ -220,8 +216,6 @@ void stringToIarmMode(std::string mode, IARM_Bus_Daemon_SysMode_t& iarmMode)
         iarmMode = IARM_BUS_SYS_MODE_NORMAL;
     }
 }
-
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
 #define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
@@ -265,11 +259,9 @@ namespace WPEFramework {
                 void *data, size_t len);
 #endif /* ENABLE_THERMAL_PROTECTION */
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         static IARM_Result_t _SysModeChange(void *arg);
         static void _systemStateChanged(const char *owner,
                 IARM_EventId_t eventId, void *data, size_t len);
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
         SERVICE_REGISTRATION(SystemServices, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
@@ -451,9 +443,7 @@ namespace WPEFramework {
 
         const string SystemServices::Initialize(PluginHost::IShell* service)
         {
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
             m_shellService = service;
             m_shellService->AddRef();
             /* On Success; return empty to indicate no error text. */
@@ -462,15 +452,12 @@ namespace WPEFramework {
 
         void SystemServices::Deinitialize(PluginHost::IShell*)
         {
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             DeinitializeIARM();
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
             SystemServices::_instance = nullptr;
             m_shellService->Release();
             m_shellService = nullptr;
         }
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         void SystemServices::InitializeIARM()
         {
             if (Utils::IARM::init())
@@ -501,7 +488,6 @@ namespace WPEFramework {
     #endif //ENABLE_THERMAL_PROTECTION
             }
         }
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
 #ifdef DEBUG
         /**
@@ -3780,7 +3766,6 @@ namespace WPEFramework {
             }
         }
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         /***
          * @brief : To receive System Mode Changed Event from IARM
          * @param1[in] : pointer to received data buffer.
@@ -3859,7 +3844,6 @@ namespace WPEFramework {
             }
         }
 
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 #ifdef ENABLE_THERMAL_PROTECTION
         /***
          * @brief : To handle the event of Thermal Level change. THe event is registered
