@@ -114,7 +114,8 @@ void Utils::SecurityToken::getSecurityToken(std::string& token)
     // Thunder Security is enabled by Default.
     bool thunderSecurityRFCEnabled = true;
     RFC_ParamData_t param;
-    if (getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThunderSecurity.Enable", param))
+    char thunderSec[] = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThunderSecurity.Enable";
+    if (getRFCConfig(thunderSec, param))
     {
         if (param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"false",5) == 0))
         {
