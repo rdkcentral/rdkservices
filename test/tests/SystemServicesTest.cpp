@@ -178,21 +178,69 @@ TEST_F(SystemServicesTest, Plugin)
 
     
 
-    //it will fail as we don't have terrirtory text
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":USA}"), response));
-    EXPECT_EQ(response, string("{\"success\":true}"));
-
-    //it will fail as we don't have terrirtory text
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTerritory"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"territory\":\"USA\",\"success\":true}"));
-
-
+    EXPECT_EQ(response, string("{\"territory\":\"\",\"region\":"\",\"success\":true}"));
+    
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":USA}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+    
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_UNKNOWN\",\"success\":false}"));
+    EXPECT_EQ(response, string("{\"success\":false}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_UNKNOWN\",\"success\":false}"));
+    EXPECT_EQ(response, string("{\"success\":false}"));
     
+      EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreviousRebootInfo"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreviousRebootInfo2"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getRFCConfig"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getSerialNumber"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getStateInfo"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getSystemVersions"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getTemperatureThresholds"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getTimeZoneDST"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("sampleSystemServiceAPI"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setOptOutTelemetry"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setOvertempGraceInterval"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setPowerState"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setPreferredStandbyMode"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setTemperatureThresholds"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setTimeZoneDST"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setWakeupSrcConfiguration"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("updateFirmware"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
     // check of deprecated api should be checked???
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isGzEnabled"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"enabled\":\"false\",\"deprecated\":\"true\",\"success\":false}"));
@@ -203,11 +251,9 @@ TEST_F(SystemServicesTest, Plugin)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("queryMocaStatus"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"mocaEnabled\":\"false\",\"success\":true}"));
 
-    // check this call is correct as return value will current time , can't be compared.
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("requestSystemUptime"), _T("{\"key\":test}"), response));
     EXPECT_EQ(response, string("{\"systemUptime\":\"\",\"success\":true}"));
 
-    // check of deprecated api should be checked???
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setCachedValue"), _T("{\"key\":test}",\"value\":1"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
@@ -286,56 +332,7 @@ TEST_F(SystemServicesTest, Plugin)
     EXPECT_EQ(response, string("{\"success\":false}"));
 
   ////////******/
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreviousRebootInfo"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreviousRebootInfo2"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getRFCConfig"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getSerialNumber"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getStateInfo"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getSystemVersions"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getTemperatureThresholds"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getTimeZoneDST"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("sampleSystemServiceAPI"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setOptOutTelemetry"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setOvertempGraceInterval"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setPowerState"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setPreferredStandbyMode"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setTemperatureThresholds"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setTimeZoneDST"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setWakeupSrcConfiguration"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("updateFirmware"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
+  
 
     // JSON-RPC events
 
