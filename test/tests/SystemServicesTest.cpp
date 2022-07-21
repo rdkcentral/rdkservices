@@ -32,6 +32,9 @@ namespace WPEFramework
         class SystemServicesTest: public::testting::Test
         {
             protected:
+	    Core::ProxyType<Plugin::SystemServices> systemplugin;
+	    Core::JSONRPC::Handler& handler;
+    	    Core::JSONRPC::Handler& handlerV2;
             IarmBusImplMock iarmBusImplMock;
             IARM_EventHandler_t handlerOnTerritoryChanged;
             IARM_EventHandler_t handlerOnDSTTimeChanged;
