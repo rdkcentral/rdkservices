@@ -181,6 +181,8 @@ jobs:
           -DPLUGIN_USERPREFERENCES=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DPLUGIN_MESSENGER=ON
+          -DPLUGIN_DEVICEINFO=ON
+          -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DRDK_SERVICES_TEST=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
@@ -203,6 +205,12 @@ jobs:
         run: |
           nohup python rdkservices/test/source/tr69hostif.py &
           sleep 0.1
+
+      - name: Set up files
+        run: |
+          printf 'MFG_NAME=Pace\nFRIENDLY_ID="Pace Xi5"\n' | sudo tee /etc/device.properties
+          printf 'deviceType=IpStb\n' | sudo tee /etc/authService.conf
+          printf 'imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\nSDK_VERSION=17.3\nMEDIARITE=8.3.53\nYOCTO_VERSION=dunfell\n' | sudo tee /version.txt
 
       - name: Run unit tests
         run: >

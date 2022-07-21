@@ -215,7 +215,7 @@ namespace Plugin {
         try {
             const auto& aPorts = device::Host::getInstance().getAudioOutputPorts();
             for (size_t i = 0; i < aPorts.size(); i++) {
-                list.emplace_back(aPorts.at(i).getName());
+                list.emplace_back(((const device::AudioOutputPort&)aPorts.at(i)).getName());
             }
         } catch (const device::Exception& e) {
             TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
@@ -243,7 +243,7 @@ namespace Plugin {
         try {
             const auto& vPorts = device::Host::getInstance().getVideoOutputPorts();
             for (size_t i = 0; i < vPorts.size(); i++) {
-                list.emplace_back(vPorts.at(i).getName());
+                list.emplace_back(((const device::VideoOutputPort&)vPorts.at(i)).getName());
             }
         } catch (const device::Exception& e) {
             TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
@@ -266,9 +266,9 @@ namespace Plugin {
     {
         uint32_t result = Core::ERROR_NONE;
 
-        vector<uint8_t> edidVec({ 'u', 'n', 'k', 'n', 'o', 'w', 'n' });
+        std::vector<uint8_t> edidVec({ 'u', 'n', 'k', 'n', 'o', 'w', 'n' });
         try {
-            vector<unsigned char> edidVec2;
+            std::vector<unsigned char> edidVec2;
             device::Host::getInstance().getHostEDID(edidVec2);
             edidVec = edidVec2;
         } catch (const device::Exception& e) {
@@ -284,8 +284,8 @@ namespace Plugin {
         if (result == Core::ERROR_NONE) {
             // convert to base64
 
-            uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
-            if (edidVec.size() > (size_t)numeric_limits<uint16_t>::max()) {
+            uint16_t size = std::min(edidVec.size(), (size_t)std::numeric_limits<uint16_t>::max());
+            if (edidVec.size() > (size_t)std::numeric_limits<uint16_t>::max()) {
                 result = Core::ERROR_GENERAL;
             } else {
                 string base64String;
@@ -329,7 +329,7 @@ namespace Plugin {
             auto& vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort);
             const auto resolutions = device::VideoOutputPortConfig::getInstance().getPortType(vPort.getType().getId()).getSupportedResolutions();
             for (size_t i = 0; i < resolutions.size(); i++) {
-                list.emplace_back(resolutions.at(i).getName());
+                list.emplace_back(((const device::VideoResolution&)resolutions.at(i)).getName());
             }
         } catch (const device::Exception& e) {
             TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
