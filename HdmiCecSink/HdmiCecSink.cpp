@@ -3110,7 +3110,6 @@ namespace WPEFramework
 			        _instance->sendGiveAudioStatusMsg();
 			    }
 
-                 _instance->m_sendKeyEventThreadRun = false;
             }//while(!_instance->m_sendKeyEventThreadExit)
         }//threadSendKeyEvent
 
