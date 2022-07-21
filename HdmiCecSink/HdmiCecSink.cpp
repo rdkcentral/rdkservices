@@ -661,9 +661,12 @@ namespace WPEFramework
 		LOGERR("exception in thread join %s", e.what());
 	    }
 
-	    m_sendKeyEventThreadExit = true;
-            std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
-            m_sendKeyCV.notify_one();
+	    {
+	        m_sendKeyEventThreadExit = true;
+                std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
+                m_sendKeyEventThreadRun = true;
+                m_sendKeyCV.notify_one();
+            }
 
 	    try
 	    {
@@ -1504,6 +1507,7 @@ namespace WPEFramework
 			keyInfo.keyCode     = stoi(keyCode);
 			std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
 			m_SendKeyQueue.push(keyInfo);
+                        m_sendKeyEventThreadRun = true;
 			m_sendKeyCV.notify_one();
 			LOGINFO("Post send key press event to queue size:%d \n",m_SendKeyQueue.size());
 			returnResponse(true);
@@ -3053,20 +3057,32 @@ namespace WPEFramework
             if(!HdmiCecSink::_instance)
                 return;
 
-            while(1)
+	    SendKeyInfo keyInfo = {-1,-1};
+
+            while(!_instance->m_sendKeyEventThreadExit)
             {
-                SendKeyInfo keyInfo = {-1,-1};
+                keyInfo.logicalAddr = -1;
+                keyInfo.keyCode = -1;
                 {
                     // Wait for a message to be added to the queue
                     std::unique_lock<std::mutex> lk(_instance->m_sendKeyEventMutex);
-                    while (_instance->m_SendKeyQueue.empty())
-                        _instance->m_sendKeyCV.wait(lk);
+                    _instance->m_sendKeyCV.wait(lk, []{return (_instance->m_sendKeyEventThreadRun == true);});
+                }
 
-                    if (_instance->m_SendKeyQueue.empty())
-                        continue;
+                if (_instance->m_sendKeyEventThreadExit == true)
+                {
+                    LOGINFO(" threadSendKeyEvent Exiting");
+                    _instance->m_sendKeyEventThreadRun = false;
+                    break;
+                }
+
+                if (_instance->m_SendKeyQueue.empty()) {
+                    _instance->m_sendKeyEventThreadRun = false;
+                    continue;
+                }
+
                     keyInfo = _instance->m_SendKeyQueue.front();
                     _instance->m_SendKeyQueue.pop();
-                }
 
                 LOGINFO("sendRemoteKeyThread : logical addr:0x%x keyCode: 0x%x  queue size :%d \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
 			    _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
@@ -3076,12 +3092,7 @@ namespace WPEFramework
 			        _instance->sendGiveAudioStatusMsg();
 			    }
 
-                if (_instance->m_sendKeyEventThreadExit == true)
-                {
-                    LOGINFO(" threadSendKeyEvent Exiting");
-                    break;
-                }
-            }//while(1)
+            }//while(!_instance->m_sendKeyEventThreadExit)
         }//threadSendKeyEvent
 
 
