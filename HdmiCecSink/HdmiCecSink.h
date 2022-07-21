@@ -615,6 +615,7 @@ private:
             std::mutex m_enableMutex;
             /* Send Key event related */
             bool m_sendKeyEventThreadExit;
+            bool m_sendKeyEventThreadRun;
             std::thread m_sendKeyEventThread;
             std::mutex m_sendKeyEventMutex;
             std::queue<SendKeyInfo> m_SendKeyQueue;
