@@ -64,6 +64,8 @@ namespace WPEFramework
     } // namespace plugin
 } // namespace WPEFramework
 
+
+
 TEST_F(SystemServicesTest, RegisteredMethods)
 {
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getWakeupReason")));
@@ -130,6 +132,89 @@ TEST_F(SystemServicesTest, RegisteredMethods)
 
 }
 
+TEST_F(SystemServicesTest, deviceInfo )
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getDeviceInfo"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+}
+
+TEST_F(SystemServicesTest, rebootInfo)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreviousRebootInfo"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreviousRebootInfo2"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+}
+
+TEST_F(SystemServicesTest, firmware)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getDownloadedFirmwareInfo"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getFirmwareDownloadPercent"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getFirmwareUpdateInfo"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getFirmwareUpdateState"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("updateFirmware"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":5}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+}
+
+TEST_F(SystemServicesTest, power)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setPowerState"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPowerState"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPowerStateBeforeReboot"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPowerStateIsManagedByDevice"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+}
+
+TEST_F(SystemServicesTest, mode)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":\"mode\":normal,\"duration\":1"}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getMode"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+}
+
+TEST_F(SystemServicesTest, cache)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setCachedValue"), _T("{\"key\":test}",\"value\":1"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("removeCacheKey"), _T("{\"key\":test}"), response));
+    EXPECT_EQ(response, string("{\"deprecated\":\"true\",\"success\":true}"));
+}
+
+
+TEST_F(SystemServicesTest, Territory )
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTerritory"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"territory\":\"\",\"region\":"\",\"success\":true}"));
+    
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":USA}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+    
+}
+
+
 TEST_F(SystemServicesTest, Plugin)
 {
        // called by SystemServices::InitializeIARM, SystemServices::DeinitializeIARM
@@ -178,11 +263,6 @@ TEST_F(SystemServicesTest, Plugin)
 
     
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTerritory"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"territory\":\"\",\"region\":"\",\"success\":true}"));
-    
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":USA}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
     
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
@@ -190,11 +270,7 @@ TEST_F(SystemServicesTest, Plugin)
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
     
-      EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreviousRebootInfo"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreviousRebootInfo2"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
+    
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getRFCConfig"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
@@ -223,8 +299,7 @@ TEST_F(SystemServicesTest, Plugin)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setOvertempGraceInterval"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setPowerState"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
+    
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setPreferredStandbyMode"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
@@ -238,8 +313,7 @@ TEST_F(SystemServicesTest, Plugin)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setWakeupSrcConfiguration"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("updateFirmware"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
+    
 
     // check of deprecated api should be checked???
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isGzEnabled"), _T("{}"), response));
@@ -254,20 +328,14 @@ TEST_F(SystemServicesTest, Plugin)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("requestSystemUptime"), _T("{\"key\":test}"), response));
     EXPECT_EQ(response, string("{\"systemUptime\":\"\",\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setCachedValue"), _T("{\"key\":test}",\"value\":1"), response));
-    EXPECT_EQ(response, string("{\"success\":true}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("removeCacheKey"), _T("{\"key\":test}"), response));
-    EXPECT_EQ(response, string("{\"deprecated\":\"true\",\"success\":true}"));
+    
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setDeepSleepTimer"), _T("{\"seconds\":5}",\"value\":1}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":5}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
+    
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":\"mode\":normal,\"duration\":1"}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
+   
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setNetworkStandbyMode"), _T("{\"nwStandby\":standaby}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
@@ -282,20 +350,9 @@ TEST_F(SystemServicesTest, Plugin)
     //EXPECT_EQ(response, string(""))
     // check exact return and update based on the result
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getDeviceInfo"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
+    
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getDownloadedFirmwareInfo"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getFirmwareDownloadPercent"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getFirmwareUpdateInfo"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getFirmwareUpdateState"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
+    
 
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getLastDeepSleepReason"),_T("{}"), response));
@@ -310,8 +367,6 @@ TEST_F(SystemServicesTest, Plugin)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getMilestones"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getMode"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getNetworkStandbyMode"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
@@ -319,15 +374,7 @@ TEST_F(SystemServicesTest, Plugin)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getOvertempGraceInterval"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPowerState"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPowerStateBeforeReboot"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPowerStateIsManagedByDevice"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
+    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreferredStandbyMode"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
 

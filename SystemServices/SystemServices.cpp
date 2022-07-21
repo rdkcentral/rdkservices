@@ -39,7 +39,7 @@
 
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
-#include "utils.h"
+//#include "utils.h"
 #include "UtilsString.h"
 #include "uploadlogs.h"
 
@@ -1774,7 +1774,7 @@ namespace WPEFramework {
             bool status = false;
             JsonArray standbyModes;
             try {
-                device::List<device::SleepMode> sleepModes =
+                    device::List<device::SleepMode> sleepModes =
                     device::Host::getInstance().getAvailableSleepModes();
                 for (unsigned int i = 0; i < sleepModes.size(); i++) {
                     standbyModes.Add(sleepModes.at(i).toString());
@@ -2084,7 +2084,8 @@ namespace WPEFramework {
          */
         void SystemServices::getMacAddressesAsync(SystemServices *pSs)
         {
-            long unsigned int i, listLength = 0;
+	    long unsigned int i=0;
+            long unsigned int listLength = 0;
             JsonObject params;
             string macTypeList[] = {"ecm_mac", "estb_mac", "moca_mac",
                 "eth_mac", "wifi_mac", "bluetooth_mac", "rf4ce_mac"};

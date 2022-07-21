@@ -1,3 +1,4 @@
 #pragma once
-
-int GetSecurityToken(unsigned short maxLength, unsigned char buffer[]);
+extern "C" {
+    int GetSecurityToken(unsigned short maxLength, unsigned char buffer[]);
+}

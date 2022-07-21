@@ -4,7 +4,7 @@
 
 #define IARM_BUS_DAEMON_NAME 	"Daemon"
 typedef void (*IARM_EventHandler_t)(const char* owner, IARM_EventId_t eventId, void* data, size_t len);
-typedef IARM_Result_t (*IARM_BusCall_t) (void *arg);
+
 class IarmBusImpl {
 public:
     virtual ~IarmBusImpl() = default;
@@ -58,7 +58,7 @@ public:
     }
     static IARM_Result_t IARM_Bus_RegisterCall(const char *methodName, IARM_BusCall_t handler)
     {
-	return getInstance().impl->IARM_Bus_RegisterCall(methodName,handler);
+        return getInstance().impl->IARM_Bus_RegisterCall(methodName,handler);
     }
 
 };
