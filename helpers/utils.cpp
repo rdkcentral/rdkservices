@@ -267,7 +267,8 @@ bool Utils::isPluginActivated(const char* callSign)
 
 bool Utils::getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput)
 {
-    WDMP_STATUS wdmpStatus = getRFCParameter("RDKShell", paramName, &paramOutput);
+	char rdkShell[] = "RDKShell";
+    WDMP_STATUS wdmpStatus = getRFCParameter(rdkShell, paramName, &paramOutput);
     if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
     {
         return true;

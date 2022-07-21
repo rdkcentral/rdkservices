@@ -2,6 +2,9 @@
 
 #include <vector>
 #include "sleepMode.hpp"
+#include "videoOutputPort.hpp"
+#include "audioOutputPort.hpp"
+
 namespace device {
 
 template <class T>
@@ -33,6 +36,9 @@ public:
     }
 
     HostImpl* impl;
+
+    List<VideoOutputPort> getVideoOutputPorts();
+    List<AudioOutputPort> getAudioOutputPorts();
 
     SleepMode getPreferredSleepMode();
     int setPreferredSleepMode(const SleepMode);
