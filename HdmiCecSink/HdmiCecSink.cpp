@@ -682,6 +682,7 @@ namespace WPEFramework
 	    m_sendKeyEventThreadExit = true;
             std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
             m_sendKeyCV.notify_one();
+	    lk.unlock();
 
 	    try
 	    {
@@ -3073,15 +3074,27 @@ namespace WPEFramework
 
             while(1)
             {
+		if (_instance->m_sendKeyEventThreadExit == true)
+                {
+                    LOGINFO(" threadSendKeyEvent Exiting");
+                    break;
+                }
+
                 SendKeyInfo keyInfo = {-1,-1};
                 {
                     // Wait for a message to be added to the queue
                     std::unique_lock<std::mutex> lk(_instance->m_sendKeyEventMutex);
-                    while (_instance->m_SendKeyQueue.empty())
+                    while ((_instance->m_SendKeyQueue.empty())&&(_instance->m_sendKeyEventThreadExit != true))
                         _instance->m_sendKeyCV.wait(lk);
 
                     if (_instance->m_SendKeyQueue.empty())
                         continue;
+
+		    if (_instance->m_sendKeyEventThreadExit == true){
+			    LOGINFO(" ThreadSendKeyEvent Exiting");
+			    break;
+		    }
+	
                     keyInfo = _instance->m_SendKeyQueue.front();
                     _instance->m_SendKeyQueue.pop();
                 }
@@ -3094,11 +3107,6 @@ namespace WPEFramework
 			        _instance->sendGiveAudioStatusMsg();
 			    }
 
-                if (_instance->m_sendKeyEventThreadExit == true)
-                {
-                    LOGINFO(" threadSendKeyEvent Exiting");
-                    break;
-                }
             }//while(1)
         }//threadSendKeyEvent
 
