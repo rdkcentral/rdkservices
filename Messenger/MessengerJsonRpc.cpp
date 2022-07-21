@@ -33,9 +33,11 @@ namespace Plugin {
     void Messenger::RegisterAll()
     {
         RegisterEventStatusListener(_T("roomupdate"), [this](const string& client, Status status) {
-            // Notify of all rooms created to date.
-            for (const string& room : _rooms) {
-                event_roomupdate(room, JsonData::Messenger::RoomupdateParamsData::ActionType::CREATED);
+            if (status == Status::registered) {
+                // Notify of all rooms created to date.
+                for (const string& room : _rooms) {
+                    event_roomupdate(room, JsonData::Messenger::RoomupdateParamsData::ActionType::CREATED);
+                }
             }
         });
 
