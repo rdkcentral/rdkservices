@@ -897,8 +897,11 @@ namespace WPEFramework
                         }
 			CheckHdmiInState();
 
-          m_pollNextState = POLL_THREAD_STATE_PING;
-          m_ThreadExitCV.notify_one();
+          if(cecEnableStatus) {
+              LOGINFO("cecEnableStatus : %d Trigger CEC Ping !!! \n", cecEnableStatus);
+              m_pollNextState = POLL_THREAD_STATE_PING;
+              m_ThreadExitCV.notify_one();
+          }
           if( HdmiArcPortID >= 0 ) {
               updateArcState();  
           }
@@ -2804,6 +2807,7 @@ namespace WPEFramework
             {
            		LOGWARN("Start Thread %p", smConnection );
 			    m_pollThreadState = POLL_THREAD_STATE_POLL;
+                            m_pollNextState = POLL_THREAD_STATE_NONE;
                             m_pollThreadExit = false;
 				m_pollThread = std::thread(threadRun);
             }
@@ -2859,6 +2863,9 @@ namespace WPEFramework
 		{
 			LOGERR("exception in thread join %s", e.what());
 		}
+
+                m_pollThreadState = POLL_THREAD_STATE_NONE;
+                m_pollNextState = POLL_THREAD_STATE_NONE;
 
 		LOGWARN("Deleted Thread %p", smConnection );
 
