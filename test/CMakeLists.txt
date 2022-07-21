@@ -49,6 +49,7 @@ include_directories(../LocationSync
         ../Timer
         ../LoggingPreferences
         ../UserPreferences
+        ../Messenger
         ../helpers
         )
 link_directories(../LocationSync
@@ -64,6 +65,7 @@ link_directories(../LocationSync
         ../Timer
         ../LoggingPreferences
         ../UserPreferences
+        ../Messenger
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -82,6 +84,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}Timer
         ${NAMESPACE}LoggingPreferences
         ${NAMESPACE}UserPreferences
+        ${NAMESPACE}Messenger
         )
 
 target_include_directories(${PROJECT_NAME}
