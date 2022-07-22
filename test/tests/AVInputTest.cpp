@@ -109,10 +109,10 @@ TEST_F(AVInputTestFixture, Plugin)
 
     // called by AVInput::InitializeIARM
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
-        .Times(1)
+        .Times(8)
         .WillOnce(::testing::Invoke(
             [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
-                if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG)) {
+                if (string(IARM_BUS_DSMGR_NAME) == string(ownerName)) {
                     dsHdmiEventHandler = handler;
                     return IARM_RESULT_SUCCESS;
                 }
@@ -121,10 +121,10 @@ TEST_F(AVInputTestFixture, Plugin)
 
     // called by AVInput::DeinitializeIARM
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_UnRegisterEventHandler(::testing::_, ::testing::_))
-        .Times(1)
+        .Times(8)
         .WillOnce(::testing::Invoke(
             [&](const char* ownerName, IARM_EventId_t eventId) {
-                if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG)) {
+                if (string(IARM_BUS_DSMGR_NAME) == string(ownerName)) {
                     dsHdmiEventHandler = nullptr;
                     return IARM_RESULT_SUCCESS;
                 }
