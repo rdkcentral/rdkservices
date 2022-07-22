@@ -27,6 +27,10 @@
 #include "dsError.h"
 #include "dsMgr.h"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 #define COMPOSITE_HOT_PLUG_EVENT_CONNECTED 1
 #define COMPOSITE_HOT_PLUG_EVENT_DISCONNECTED 0
 
@@ -41,9 +45,23 @@
 
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::CompositeInput> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+    
     namespace Plugin
     {
-        SERVICE_REGISTRATION(CompositeInput, 1, 0);
+        SERVICE_REGISTRATION(CompositeInput, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         CompositeInput* CompositeInput::_instance = nullptr;
 

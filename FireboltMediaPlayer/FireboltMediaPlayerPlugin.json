@@ -5,8 +5,7 @@
       "callsign": "org.rdk.FireboltMediaPlayer",
       "locator": "libWPEFrameworkFireboltMediaPlayer.so",
       "status": "production",
-      "description": "The `FireboltMediaPlayer` plugin allows you to control an AAMP media player for media stream playback. \n\n**Summary**\n* The service is a wrapper for AAMP IP Video (DASH, HLS, mp4, etc.) playback intended for the RDK community as an alternative to native or UVE-JS integration. \n* The service starts an AAMP dedicated process with the environment variables `AAMP_ENABLE_OPT_OVERRIDE=1` (enables `/opt/aamp.cfg`) and `AAMP_ENABLE_WESTEROS_SINK=1`.",
-      "version": "1.0"
+      "description": "The `FireboltMediaPlayer` plugin allows you to control an AAMP media player for media stream playback. \n\n**Summary**\n* The service is a wrapper for AAMP IP Video (DASH, HLS, mp4, etc.) playback intended for the RDK community as an alternative to native or UVE-JS integration. \n* The service starts an AAMP dedicated process with the environment variables `AAMP_ENABLE_OPT_OVERRIDE=1` (enables `/opt/aamp.cfg`) and `AAMP_ENABLE_WESTEROS_SINK=1`."
     },
     "interface": {
       "$ref": "FireboltMediaPlayer.json#"

@@ -5,8 +5,7 @@
     "callsign": "DeviceInfo",
     "locator": "libWPEFrameworkDeviceInfo.so",
     "status": "production",
-    "description": "The `DeviceInfo` plugin allows retrieving of various device-related information.",
-    "version": "1.0"
+    "description": "The `DeviceInfo` plugin allows retrieving of various device-related information."
   },
   "interface": {
     "$ref": "DeviceInfo.json#"

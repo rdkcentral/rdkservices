@@ -145,11 +145,29 @@ static vector<uint8_t> audioFormatCode = { SAD_FMT_CODE_ENHANCED_AC3,SAD_FMT_COD
 static uint8_t numberofdescriptor = 2;
 static int32_t HdmiArcPortID = -1;
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework
 {
+	namespace {
+
+        static Plugin::Metadata<Plugin::HdmiCecSink> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(HdmiCecSink, 1, 0);
+        SERVICE_REGISTRATION(HdmiCecSink, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         HdmiCecSink* HdmiCecSink::_instance = nullptr;
         static int libcecInitStatus = 0;
@@ -879,8 +897,11 @@ namespace WPEFramework
                         }
 			CheckHdmiInState();
 
-          m_pollNextState = POLL_THREAD_STATE_PING;
-          m_ThreadExitCV.notify_one();
+          if(cecEnableStatus) {
+              LOGINFO("cecEnableStatus : %d Trigger CEC Ping !!! \n", cecEnableStatus);
+              m_pollNextState = POLL_THREAD_STATE_PING;
+              m_ThreadExitCV.notify_one();
+          }
           if( HdmiArcPortID >= 0 ) {
               updateArcState();  
           }
@@ -2786,6 +2807,7 @@ namespace WPEFramework
             {
            		LOGWARN("Start Thread %p", smConnection );
 			    m_pollThreadState = POLL_THREAD_STATE_POLL;
+                            m_pollNextState = POLL_THREAD_STATE_NONE;
                             m_pollThreadExit = false;
 				m_pollThread = std::thread(threadRun);
             }
@@ -2841,6 +2863,9 @@ namespace WPEFramework
 		{
 			LOGERR("exception in thread join %s", e.what());
 		}
+
+                m_pollThreadState = POLL_THREAD_STATE_NONE;
+                m_pollNextState = POLL_THREAD_STATE_NONE;
 
 		LOGWARN("Deleted Thread %p", smConnection );
 

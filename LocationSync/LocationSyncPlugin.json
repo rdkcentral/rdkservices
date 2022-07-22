@@ -5,8 +5,7 @@
         "callsign": "LocationSync",
         "locator": "libWPELocationSync.so",
         "status": "production",
-        "description": "The `LocationSync` plugin provides geo-location functionality.",
-        "version": "1.0"
+        "description": "The `LocationSync` plugin provides geo-location functionality."
     },
     "configuration": {
         "type": "object",

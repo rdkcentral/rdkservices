@@ -6,6 +6,9 @@
         "class": "RemoteActionMapping",
         "description": "The `RemoteActionMapping` plugin controls and maps remote controllers."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
         "deviceID": {
             "summary": "An ID in the range of `0` - `_CTRLM_RCU_IARM_BUS_API_REVISION_`",
@@ -56,22 +59,6 @@
                 "type": "integer",
                 "example": 18
             }                                                
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }  
     },
     "methods":{
@@ -95,7 +82,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -135,7 +122,7 @@
                         "$ref": "#/definitions/status_code"           
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -156,7 +143,7 @@
                         "example": 1
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -216,7 +203,7 @@
                         "$ref": "#/definitions/status_code"           
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -253,7 +240,7 @@
                         "$ref": "#/definitions/status_code"           
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -290,7 +277,7 @@
                         "$ref": "#/definitions/status_code"           
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -355,7 +342,7 @@
                         "$ref": "#/definitions/status_code"           
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -400,7 +387,7 @@
                         "$ref": "#/definitions/status_code"           
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -464,7 +451,7 @@
                         "$ref": "#/definitions/status_code"           
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [

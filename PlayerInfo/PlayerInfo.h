@@ -93,7 +93,7 @@ namespace Plugin {
                     _client = nullptr;
                 }
             }
-            void AudioModeChanged(const Exchange::Dolby::IOutput::SoundModes mode, bool enabled) override
+            void AudioModeChanged(Exchange::Dolby::IOutput::SoundModes mode, bool enabled) override
             {
                 Exchange::Dolby::JOutput::Event::AudioModeChanged(_parent, mode, enabled);
             }

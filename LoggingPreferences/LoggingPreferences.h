@@ -21,7 +21,6 @@
 
 #include "Module.h"
 #include "libIBus.h"
-#include "irMgr.h"
 
 namespace WPEFramework {
 

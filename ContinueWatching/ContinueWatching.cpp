@@ -52,18 +52,33 @@
 #define CW_TR181_PARAMETER                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.OTT_Token.Enable"
 #define CW_ENV_PARAMETER                        "ENABLE_OTT_TOKEN"
 
-#define CONTINUEWATCHING_MAJOR_VERSION 1
-#define CONTINUEWATCHING_MINOR_VERSION 0
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 
 
 namespace WPEFramework {
 
+    namespace {
+
+        static Plugin::Metadata<Plugin::ContinueWatching> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+	
 	namespace Plugin {
 
 	/*
 	 *Register ContinueWatching module as wpeframework plugin
 	 **/
-        SERVICE_REGISTRATION(ContinueWatching, CONTINUEWATCHING_MAJOR_VERSION, CONTINUEWATCHING_MINOR_VERSION);
+        SERVICE_REGISTRATION(ContinueWatching, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         ContinueWatching* ContinueWatching::_instance = nullptr;
 

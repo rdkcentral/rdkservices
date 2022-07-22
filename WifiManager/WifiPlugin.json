@@ -5,8 +5,7 @@
       "callsign": "org.rdk.Wifi",
       "locator": "libWPEFrameworkWifiManager.so",
       "status": "production",
-      "description": "The `Wifi` plugin is used to manage Wifi network connections on a set-top device.",
-      "version": "1.0"
+      "description": "The `Wifi` plugin is used to manage Wifi network connections on a set-top device."
     },
     "interface": {
       "$ref": "Wifi.json#"

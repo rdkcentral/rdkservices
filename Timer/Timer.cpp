@@ -56,11 +56,30 @@ static const char* modeStrings[] = {
     "WAKE"
 };
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework
 {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::Timer> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Timer, 1, 0);
+        SERVICE_REGISTRATION(Timer, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         Timer* Timer::_instance = nullptr;
 
@@ -68,8 +87,6 @@ namespace WPEFramework
         : PluginHost::JSONRPC()
         {
             Timer::_instance = this;
-
-            Utils::IARM::init();
 
             Register(TIMER_METHOD_START_TIMER, &Timer::startTimerWrapper, this);
             Register(TIMER_METHOD_CANCEL, &Timer::cancelWrapper, this);
@@ -84,9 +101,26 @@ namespace WPEFramework
         Timer::~Timer()
         {
         }
+        
+        void Timer::InitializeIARM()
+        {
+            Utils::IARM::init();
+        }
+        void Timer::DeinitializeIARM()
+        {
+            if (Utils::IARM::isConnected()) { }
+        }
+
+        const string Timer::Initialize(PluginHost::IShell * /* service */)
+        {
+            InitializeIARM();
+
+            return (string());
+        }
 
         void Timer::Deinitialize(PluginHost::IShell* /* service */)
         {
+            DeinitializeIARM();
             Timer::_instance = nullptr;
         }
 

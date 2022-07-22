@@ -29,6 +29,7 @@
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
 #include <rdkshell/logger.h>
+#include <interfaces/IFocus.h>
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
 #include <rdkshell/logger.h>
@@ -42,8 +43,10 @@
 #endif //RDKSHELL_READ_MAC_ON_STARTUP
 
 
-const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
-const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MINOR = 0;
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_MOVE_TO_FRONT = "moveToFront";
@@ -220,6 +223,21 @@ enum AppLastExitReason
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 
 namespace WPEFramework {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::RDKShell> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin {
 
 
@@ -410,7 +428,7 @@ namespace WPEFramework {
           return flag;
         }
 
-        SERVICE_REGISTRATION(RDKShell, 1, 0);
+        SERVICE_REGISTRATION(RDKShell, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         RDKShell* RDKShell::_instance = nullptr;
         std::mutex gRdkShellMutex;
@@ -602,6 +620,13 @@ namespace WPEFramework {
 	   }
 	  }
        }
+
+        std::string toLower(const std::string& clientName)
+        {
+            std::string displayName = clientName;
+            std::transform(displayName.begin(), displayName.end(), displayName.begin(), [](unsigned char c){ return std::tolower(c); });
+            return displayName;
+        }
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
@@ -3366,7 +3391,7 @@ namespace WPEFramework {
                     if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Netflix.Enable", param))
                     {
                         JsonObject root;
-                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        if (strncasecmp(param.value, "true", 4) == 0)
                         {
                             std::cout << "dobby rfc true - launching netflix in container mode " << std::endl;
                             root = configSet["root"].Object();
@@ -3404,7 +3429,7 @@ namespace WPEFramework {
                     if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Cobalt.Enable", param))
                     {
                         JsonObject root;
-                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        if (strncasecmp(param.value, "true", 4) == 0)
                         {
                             std::cout << "dobby rfc true - launching cobalt in container mode " << std::endl;
                             root = configSet["root"].Object();
@@ -3424,6 +3449,67 @@ namespace WPEFramework {
                     }
 #else
                     std::cout << "rfc is disabled and unable to check for cobalt container mode " << std::endl;
+#endif
+                }
+
+                // One RFC controls all WPE-based apps
+                if (!type.empty() && (type == "HtmlApp" || type == "LightningApp"))
+                {
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.WPE.Enable", param))
+                    {
+                        JsonObject root;
+                        if (strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby WPE rfc true - launching " << type << " in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby WPE rfc false - launching " << type << " in out-of-process mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["outofprocess"] = JsonValue(true);
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading dobby WPE rfc failed - launching " << type << " in default mode" << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for " << type << " container mode " << std::endl;
+#endif
+                }
+
+                if (!type.empty() && type == "SearchAndDiscoveryApp" )
+                {
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.SAD.Enable", param))
+                    {
+                        JsonObject root;
+                        if (strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby SAD rfc true - launching " << type << " in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby SAD rfc false - launching " << type << " in out-of-process mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["outofprocess"] = JsonValue(true);
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading dobby SAD rfc failed - launching " << type << " in default mode" << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for " << type << " container mode " << std::endl;
 #endif
                 }
 
@@ -5572,9 +5658,68 @@ namespace WPEFramework {
         bool RDKShell::setFocus(const string& client)
         {
             bool ret = false;
+            bool isApplicationBeingDestroyed = false;
+            gLaunchDestroyMutex.lock();
+            if (gDestroyApplications.find(client) != gDestroyApplications.end())
+            {
+                isApplicationBeingDestroyed = true;
+            }
+            gLaunchDestroyMutex.unlock();
+            if (isApplicationBeingDestroyed)
+            {
+                std::cout << "ignoring setFocus for " << client << " as it is being destroyed " << std::endl;
+                return false;
+            }
+            std::string previousFocusedClient;
             lockRdkShellMutex();
+            CompositorController::getFocused(previousFocusedClient);
             ret = CompositorController::setFocus(client);
             gRdkShellMutex.unlock();
+            std::string clientLower = toLower(client);
+
+            if (previousFocusedClient != clientLower)
+            {
+                std::map<std::string, PluginData> activePluginsData;
+                gPluginDataMutex.lock();
+                activePluginsData = gActivePluginsData;
+                gPluginDataMutex.unlock();
+
+                if (!previousFocusedClient.empty())
+                {
+                    std::map<std::string, PluginData>::iterator previousFocusedIterator;
+
+                    for (previousFocusedIterator = activePluginsData.begin(); previousFocusedIterator != activePluginsData.end(); previousFocusedIterator++)
+                    {
+                        std::string compositorName = toLower(previousFocusedIterator->first);
+                        if (compositorName == previousFocusedClient)
+                        {
+                            std::cout << "setting the focus of " << compositorName << " to false " << std::endl;
+                            Exchange::IFocus *focusedCallsign = mCurrentService->QueryInterfaceByCallsign<Exchange::IFocus>(previousFocusedIterator->first);
+                            if (focusedCallsign != NULL)
+                            {
+                                uint32_t status = focusedCallsign->Focused(false);
+                                std::cout << "result of set focus to false: " << status << std::endl;
+                                focusedCallsign->Release();
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                std::map<std::string, PluginData>::iterator focusedEntry = activePluginsData.find(client);
+                if (focusedEntry != activePluginsData.end())
+                {
+                    PluginData& pluginData = focusedEntry->second;
+                    std::cout << "setting the focus of " << client << " to true " << std::endl;
+                    Exchange::IFocus *focusedCallsign = mCurrentService->QueryInterfaceByCallsign<Exchange::IFocus>(client);
+                    if (focusedCallsign != NULL)
+                    {
+                        uint32_t status = focusedCallsign->Focused(true);
+                        focusedCallsign->Release();
+                        std::cout << "result of set focus to true: " << status << std::endl;
+                    }
+                }
+            }
             return ret;
         }
 

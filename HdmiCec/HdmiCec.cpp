@@ -53,6 +53,10 @@
 
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 enum {
 	HDMICEC_EVENT_DEVICE_ADDED=0,
 	HDMICEC_EVENT_DEVICE_REMOVED,
@@ -81,9 +85,23 @@ static bool isDeviceActiveSource = false;
 
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::HdmiCec> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(HdmiCec, 1, 0);
+        SERVICE_REGISTRATION(HdmiCec, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         HdmiCec* HdmiCec::_instance = nullptr;
 

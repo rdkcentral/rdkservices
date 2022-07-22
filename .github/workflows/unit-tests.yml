@@ -11,9 +11,9 @@ on:
 env:
   BUILD_TYPE: Debug
 
-  # Refs for stable2.
-  THUNDER_REF: "331ee30b1eaf82a7e8944ee00b8cb1d1d0aca682"
-  INTERFACES_REF: "4ec7c6f8e14b152143a105a41f4c62b6723372c4"
+  # Refs for 2207_sprint
+  THUNDER_REF: "02f6ccbca6832043cbc94cc28c1bda7d4954a4e6"
+  INTERFACES_REF: "5cf8a04538f3590decde8345c54194f34d7d05f7"
 
   THUNDER_BINDING: "127.0.0.1"
   THUNDER_PORT: "55555"
@@ -25,6 +25,7 @@ jobs:
     steps:
       - name: Set up cache
         # Cache Thunder/ThunderInterfaces.
+        if: ${{ !env.ACT }}
         id: cache
         uses: actions/cache@v3
         with:
@@ -87,7 +88,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
-          --build build/ThunderTools
+          --build build/ThunderTools -j8
 
       - name: Install ThunderTools
         if: steps.cache.outputs.cache-hit != 'true'
@@ -111,7 +112,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
-          --build build/Thunder
+          --build build/Thunder -j8
 
       - name: Install Thunder
         if: steps.cache.outputs.cache-hit != 'true'
@@ -140,7 +141,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
-          --build build/ThunderInterfaces
+          --build build/ThunderInterfaces -j8
 
       - name: Install ThunderInterfaces
         if: steps.cache.outputs.cache-hit != 'true'
@@ -160,12 +161,13 @@ jobs:
           -B build/rdkservices
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
-          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system"
+          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system -DENABLE_TELEMETRY_LOGGING"
           -DCOMCAST_CONFIG=OFF
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
           -DPLUGIN_LOCATIONSYNC=ON
           -DPLUGIN_PERSISTENTSTORE=ON
+          -DPLUGIN_TIMER=ON
           -DPLUGIN_SECURITYAGENT=ON
           -DPLUGIN_DEVICEIDENTIFICATION=ON
           -DBUILD_REALTEK=ON
@@ -173,15 +175,19 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
           -DPLUGIN_AVINPUT=ON
+          -DPLUGIN_TELEMETRY=ON
           -DPLUGIN_USBACCESS=ON
+          -DPLUGIN_LOGGINGPREFERENCES=ON
+          -DPLUGIN_USERPREFERENCES=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
+          -DPLUGIN_MESSENGER=ON
           -DRDK_SERVICES_TEST=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build rdkservices
         run: >
           cmake
-          --build build/rdkservices
+          --build build/rdkservices -j8
 
       - name: Install rdkservices
         run: >
@@ -248,8 +254,7 @@ jobs:
           filtered_coverage.info
 
       - name: Upload artifacts
-        # Optional, do not break if it fails.
-        continue-on-error: true
+        if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v3
         with:
           name: artifacts

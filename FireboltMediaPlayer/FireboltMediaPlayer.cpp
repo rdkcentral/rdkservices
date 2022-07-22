@@ -21,8 +21,26 @@
 #include "UtilsJsonRpc.h"
 #include "Module.h"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework {
 
+    namespace {
+
+        static Plugin::Metadata<Plugin::FireboltMediaPlayer> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+    
     namespace Plugin {
 
         /**
@@ -51,7 +69,7 @@ namespace WPEFramework {
             return result;
         }
 
-        SERVICE_REGISTRATION(FireboltMediaPlayer, 1, 0);
+        SERVICE_REGISTRATION(FireboltMediaPlayer, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         FireboltMediaPlayer::FireboltMediaPlayer()
         : _notification(this)
