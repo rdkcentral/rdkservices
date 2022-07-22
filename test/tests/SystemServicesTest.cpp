@@ -29,7 +29,7 @@ namespace WPEFramework
 {
     namespace plugin
     {
-        class SystemServicesTest: public::tes ting::Test
+        class SystemServicesTest : public::testing::Test
         {
             protected:
 	        Core::ProxyType<Plugin::SystemServices> systemplugin;
@@ -43,7 +43,7 @@ namespace WPEFramework
         public:
             SystemServicesTest()
             :systemplugin(Core::ProxyType<Plugin::SystemServices>::Create())
-            , handler(*systemplugin)
+            ,handler(*systemplugin)
             ,connection(1,0)
             ,handlerV2(*(systemplugin->GetHandler(2)))
         {
