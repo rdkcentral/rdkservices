@@ -82,17 +82,17 @@ TEST_F(SystemServicesTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getTerritory")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setTerritory")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("hasRebootBeenRequested")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("isGzEnabled");
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("isGzEnabled")));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("isOptOutTelemetry")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("queryMocaStatus")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("requestSystemUptime");
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setCachedValue");
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("requestSystemUptime")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setCachedValue")));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("removeCacheKey")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setDeepSleepTimer")));
    
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setMode");
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setMode")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setNetworkStandbyMode")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBootLoaderPattern")));
 
