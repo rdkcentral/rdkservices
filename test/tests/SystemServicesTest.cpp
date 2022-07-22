@@ -36,19 +36,20 @@ class SystemServicesTest : public::testing::Test
     Core::ProxyType<Plugin::SystemServices> systemplugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Handler& handlerV2;
+    Core::JSONRPC::Connection connection;
     IarmBusImplMock iarmBusImplMock;
     IARM_EventHandler_t handlerOnTerritoryChanged;
     IARM_EventHandler_t handlerOnDSTTimeChanged;
     FactoriesImplementation factoriesImplementation;
-    Core::JSONRPC::Connection connection;
+    
 private:
     /* data */
 public:
     SystemServicesTest()
     :systemplugin(Core::ProxyType<Plugin::SystemServices>::Create())
     ,handler(*systemplugin)
-    ,connection(1,0)
     ,handlerV2(*(systemplugin->GetHandler(2)))
+    ,connection(1,0)
 {
         PluginHost::IFactories::Assign(&factoriesImplementation);
 }
@@ -75,7 +76,7 @@ TEST_F(SystemServicesTest, RegisteredMethods)
 {
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getWakeupReason")));
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getPowerStateBeforeReboot")));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("setFirmwareRebootDelay");
+    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("setFirmwareRebootDelay")));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getXconfParams")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getTerritory")));
@@ -355,10 +356,6 @@ TEST_F(SystemServicesTest, Plugin)
     //EXPECT_EQ(response, string(""))
     // check exact return and update based on the result
 
-    
-
-    
-
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getLastDeepSleepReason"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
@@ -372,14 +369,12 @@ TEST_F(SystemServicesTest, Plugin)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getMilestones"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
 
-
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getNetworkStandbyMode"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getOvertempGraceInterval"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
 
-    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreferredStandbyMode"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
 
