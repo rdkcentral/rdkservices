@@ -22,52 +22,53 @@
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
 #include "source/SystemInfo.h"
+#include "FactoriesImplementation.h"
 
 using namespace WPEFramework;
 
-namespace WPEFramework
+namespace {
+const string iarmName = _T("Thunder_Plugins");
+}
+
+class SystemServicesTest : public::testing::Test
 {
-    namespace plugin
-    {
-        class SystemServicesTest : public::testing::Test
-        {
-            protected:
-	        Core::ProxyType<Plugin::SystemServices> systemplugin;
-	        Core::JSONRPC::Handler& handler;
-    	    Core::JSONRPC::Handler& handlerV2;
-            IarmBusImplMock iarmBusImplMock;
-            IARM_EventHandler_t handlerOnTerritoryChanged;
-            IARM_EventHandler_t handlerOnDSTTimeChanged;
-        private:
-            /* data */
-        public:
-            SystemServicesTest()
-            :systemplugin(Core::ProxyType<Plugin::SystemServices>::Create())
-            ,handler(*systemplugin)
-            ,connection(1,0)
-            ,handlerV2(*(systemplugin->GetHandler(2)))
-        {
-        }
-        virtual void SetUp()
-        {
-            IarmBus::getInstance().impl = &iarmBusImplMock_;
-            PluginHost::IFactories::Assign(&factoriesImplementation_);
-        }
+    protected:
+    Core::ProxyType<Plugin::SystemServices> systemplugin;
+    Core::JSONRPC::Handler& handler;
+    Core::JSONRPC::Handler& handlerV2;
+    IarmBusImplMock iarmBusImplMock;
+    IARM_EventHandler_t handlerOnTerritoryChanged;
+    IARM_EventHandler_t handlerOnDSTTimeChanged;
+    FactoriesImplementation factoriesImplementation;
+    Core::JSONRPC::Connection connection;
+private:
+    /* data */
+public:
+    SystemServicesTest()
+    :systemplugin(Core::ProxyType<Plugin::SystemServices>::Create())
+    ,handler(*systemplugin)
+    ,connection(1,0)
+    ,handlerV2(*(systemplugin->GetHandler(2)))
+{
+        PluginHost::IFactories::Assign(&factoriesImplementation);
+}
+virtual void SetUp()
+{
+    IarmBus::getInstance().impl = &iarmBusImplMock;
+    PluginHost::IFactories::Assign(&factoriesImplementation);
+}
 
-        virtual void TearDown()
-        {
-            IarmBus::getInstance().impl = nullptr;
-            PluginHost::IFactories::Assign(nullptr);
-        }
+virtual void TearDown()
+{
+    IarmBus::getInstance().impl = nullptr;
+    PluginHost::IFactories::Assign(nullptr);
+}
 
-        ~SystemServicesTest()
-        {
-            PluginHost::IFactories::Assign(nullptr);
-        }
-    };
-    } // namespace plugin
-} // namespace WPEFramework
-
+~SystemServicesTest()
+{
+    PluginHost::IFactories::Assign(nullptr);
+}
+};
 
 
 TEST_F(SystemServicesTest, RegisteredMethods)
