@@ -148,9 +148,8 @@ std::map<std::string, std::string> WifiManagerState::retrieveValues(const char *
     return MyMap;
 }
 
-uint32_t WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonObject &response)
+bool WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonObject &response)
 {
-    LOGINFOMETHOD();
     WiFiConnectedSSIDInfo_t param;
     char buff[BUFFER_SIZE] = {'\0'};
     int phyrate, noise, rssi,freq,avgRssi;
@@ -214,7 +213,7 @@ uint32_t WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonOb
                 response["signalStrength"] = to_string(param.signalStrength);
                 response["frequency"] = to_string(((float)param.frequency)/1000);
 
-                returnResponse(result);
+                return result;
              }
              else
              {
@@ -281,7 +280,7 @@ uint32_t WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonOb
         response["frequency"] = to_string(((float)param.frequency)/1000);
     }
 
-    returnResponse(result);
+    return result;
 }
 
 uint32_t WifiManagerState::setEnabled(const JsonObject &parameters, JsonObject &response)
