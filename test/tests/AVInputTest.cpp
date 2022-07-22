@@ -135,13 +135,13 @@ TEST_F(AVInputTestFixture, Plugin)
 
     // called by AVInput::numberOfInputs, dsHdmiEventHandler
     EXPECT_CALL(hdmiInputImplMock, getNumberOfInputs())
-        .Times(2)
+        .Times(1)
         .WillRepeatedly(::testing::Return(1));
 
     // called by dsHdmiEventHandler
-    EXPECT_CALL(hdmiInputImplMock, isPortConnected(::testing::_))
+/*    EXPECT_CALL(hdmiInputImplMock, isPortConnected(::testing::_))
         .Times(1)
-        .WillRepeatedly(::testing::Return(true));
+        .WillRepeatedly(::testing::Return(true));*/
 
     // called by AVInput::currentVideoMode
     EXPECT_CALL(hdmiInputImplMock, getCurrentVideoMode())
@@ -152,7 +152,7 @@ TEST_F(AVInputTestFixture, Plugin)
     // IShell expectations
 
     // called by AVInput::event_onAVInputActive
-    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+/*    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
@@ -165,7 +165,7 @@ TEST_F(AVInputTestFixture, Plugin)
                                           "}")));
 
                 return Core::ERROR_NONE;
-            }));
+            }));*/
 
     // Initialize
 
