@@ -81,7 +81,7 @@ TEST_F(SystemServicesTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getXconfParams")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getTerritory")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setTerritory")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("hasRebootBeenRequested");
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("hasRebootBeenRequested")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("isGzEnabled");
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("isOptOutTelemetry")));
