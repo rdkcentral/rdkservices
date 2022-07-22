@@ -68,6 +68,8 @@ def main():
     print()
     end = time.time()
     print("The time taken to execute the above program is :", end - start)
+    if os.path.exists("../json_generator/__pycache__"):
+        os.system('rm -rf "../json_generator/__pycache__"')
 
 if __name__ == "__main__":
     main()
