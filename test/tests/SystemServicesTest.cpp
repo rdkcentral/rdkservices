@@ -29,11 +29,11 @@ namespace WPEFramework
 {
     namespace plugin
     {
-        class SystemServicesTest: public::testting::Test
+        class SystemServicesTest: public::tes ting::Test
         {
             protected:
-	    Core::ProxyType<Plugin::SystemServices> systemplugin;
-	    Core::JSONRPC::Handler& handler;
+	        Core::ProxyType<Plugin::SystemServices> systemplugin;
+	        Core::JSONRPC::Handler& handler;
     	    Core::JSONRPC::Handler& handlerV2;
             IarmBusImplMock iarmBusImplMock;
             IARM_EventHandler_t handlerOnTerritoryChanged;
@@ -41,7 +41,8 @@ namespace WPEFramework
         private:
             /* data */
         public:
-            SystemServicesTest(/* args */):systemplugin(Core::ProxyType<Plugin::SystemServices>::Create()),
+            SystemServicesTest()
+            :systemplugin(Core::ProxyType<Plugin::SystemServices>::Create())
             , handler(*systemplugin)
             ,connection(1,0)
             ,handlerV2(*(systemplugin->GetHandler(2)))
