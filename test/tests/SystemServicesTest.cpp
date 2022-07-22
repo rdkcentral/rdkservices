@@ -37,6 +37,7 @@ class SystemServicesTest : public::testing::Test
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Handler& handlerV2;
     Core::JSONRPC::Connection connection;
+    string response;
     IarmBusImplMock iarmBusImplMock;
     IARM_EventHandler_t handlerOnTerritoryChanged;
     IARM_EventHandler_t handlerOnDSTTimeChanged;
@@ -213,7 +214,7 @@ TEST_F(SystemServicesTest, cache)
 TEST_F(SystemServicesTest, Territory )
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTerritory"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"territory\":\"\",\"region\":"\",\"success\":true}"));
+    EXPECT_EQ(response, string("{\"territory\":\"\",\"region\":\"\",\"success\":true}"));
     
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":USA}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
