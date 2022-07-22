@@ -110,7 +110,7 @@ TEST_F(AVInputTestFixture, Plugin)
     // called by AVInput::InitializeIARM
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
         .Times(8)
-        .WillOnce(::testing::Invoke(
+        .WillRepeatedly(::testing::Invoke(
             [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                 if (string(IARM_BUS_DSMGR_NAME) == string(ownerName)) {
                     dsHdmiEventHandler = handler;
@@ -122,7 +122,7 @@ TEST_F(AVInputTestFixture, Plugin)
     // called by AVInput::DeinitializeIARM
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_UnRegisterEventHandler(::testing::_, ::testing::_))
         .Times(8)
-        .WillOnce(::testing::Invoke(
+        .WillRepeatedly(::testing::Invoke(
             [&](const char* ownerName, IARM_EventId_t eventId) {
                 if (string(IARM_BUS_DSMGR_NAME) == string(ownerName)) {
                     dsHdmiEventHandler = nullptr;
