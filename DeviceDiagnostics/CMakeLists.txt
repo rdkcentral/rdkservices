@@ -29,10 +29,11 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD_REQUIRED YES)
 
 find_package(Curl)
+find_library(RDKLOG_LIBRARY NAMES librdkloggers.a)
 
 target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS} ../helpers)
 
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${CURL_LIBRARY})
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${CURL_LIBRARY} ${RDKLOG_LIBRARY})
 
 if(BUILD_ENABLE_ERM)
     target_link_libraries(${MODULE_NAME} PRIVATE essosrmgr)
