@@ -363,7 +363,9 @@ namespace WPEFramework
              LOGINFOMETHOD();
              returnIfStringParamNotFound(parameters, "marker");
              std::string marker = parameters["marker"].String();
+#ifdef RDK_LOG_MILESTONE
              logMilestone(marker.c_str());
+#endif
              returnResponse(true);
          }
 

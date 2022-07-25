@@ -24,7 +24,9 @@
 #ifdef ENABLE_ERM
 #include <essos-resmgr.h>
 #endif
+#ifdef RDK_LOG_MILESTONE
 #include "rdk_logger_milestone.h"
+#endif
 
 #include "Module.h"
 
