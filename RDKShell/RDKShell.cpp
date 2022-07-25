@@ -635,6 +635,7 @@ namespace WPEFramework {
                        if (!isClientExists(service->Callsign()))
                        {
                            std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(service->Callsign(), clientidentifier);
+			   request->mFocus = true;
                            gRdkShellMutex.lock();
                            gCreateDisplayRequests.push_back(request);
                            gRdkShellMutex.unlock();

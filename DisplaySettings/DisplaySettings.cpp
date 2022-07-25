@@ -39,6 +39,7 @@
 #include "dsDisplay.h"
 #include "rdk/iarmmgrs-hal/pwrMgr.h"
 #include "pwrMgr.h"
+#include "dsRpc.h"
 
 #include "tr181api.h"
 
