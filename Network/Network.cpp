@@ -1296,6 +1296,8 @@ namespace WPEFramework
             JsonObject params;
             params["oldInterfaceName"] = m_netUtils.getInterfaceDescription(oldInterface);
             params["newInterfaceName"] = m_netUtils.getInterfaceDescription(newInterface);
+            m_defaultInterface = ""; /* REFPLTV-1319 : Resetting when there is switch in interface, to get new value in getDefaultInterface() */
+            m_gatewayInterface = "";
             sendNotify("onDefaultInterfaceChanged", params);
             GetHandler(2)->Notify("onDefaultInterfaceChanged", params);
         }
