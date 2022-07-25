@@ -29,6 +29,7 @@
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
 #include <rdkshell/logger.h>
+#include <interfaces/IFocus.h>
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
 #include <rdkshell/logger.h>
@@ -602,6 +603,13 @@ namespace WPEFramework {
 	   }
 	  }
        }
+
+        std::string toLower(const std::string& clientName)
+        {
+            std::string displayName = clientName;
+            std::transform(displayName.begin(), displayName.end(), displayName.begin(), [](unsigned char c){ return std::tolower(c); });
+            return displayName;
+        }
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
@@ -2842,6 +2850,7 @@ namespace WPEFramework {
         uint32_t RDKShell::hideSplashLogoWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+            LOG_MILESTONE("HIDE_SPLASH_SCREEN");
             bool result = true;
 
             lockRdkShellMutex();
@@ -3068,6 +3077,10 @@ namespace WPEFramework {
             if (result)
             {
                 appCallsign = parameters["callsign"].String();
+                if (appCallsign.compare("SearchAndDiscovery") == 0)
+                {
+                    LOG_MILESTONE("PLUI_LAUNCH_START");
+                }
                 bool isApplicationBeingDestroyed = false;
                 gLaunchDestroyMutex.lock();
                 if (gDestroyApplications.find(appCallsign) != gDestroyApplications.end())
@@ -5567,9 +5580,68 @@ namespace WPEFramework {
         bool RDKShell::setFocus(const string& client)
         {
             bool ret = false;
+            bool isApplicationBeingDestroyed = false;
+            gLaunchDestroyMutex.lock();
+            if (gDestroyApplications.find(client) != gDestroyApplications.end())
+            {
+                isApplicationBeingDestroyed = true;
+            }
+            gLaunchDestroyMutex.unlock();
+            if (isApplicationBeingDestroyed)
+            {
+                std::cout << "ignoring setFocus for " << client << " as it is being destroyed " << std::endl;
+                return false;
+            }
+            std::string previousFocusedClient;
             lockRdkShellMutex();
+            CompositorController::getFocused(previousFocusedClient);
             ret = CompositorController::setFocus(client);
             gRdkShellMutex.unlock();
+            std::string clientLower = toLower(client);
+
+            if (previousFocusedClient != clientLower)
+            {
+                std::map<std::string, PluginData> activePluginsData;
+                gPluginDataMutex.lock();
+                activePluginsData = gActivePluginsData;
+                gPluginDataMutex.unlock();
+
+                if (!previousFocusedClient.empty())
+                {
+                    std::map<std::string, PluginData>::iterator previousFocusedIterator;
+
+                    for (previousFocusedIterator = activePluginsData.begin(); previousFocusedIterator != activePluginsData.end(); previousFocusedIterator++)
+                    {
+                        std::string compositorName = toLower(previousFocusedIterator->first);
+                        if (compositorName == previousFocusedClient)
+                        {
+                            std::cout << "setting the focus of " << compositorName << " to false " << std::endl;
+                            Exchange::IFocus *focusedCallsign = mCurrentService->QueryInterfaceByCallsign<Exchange::IFocus>(previousFocusedIterator->first);
+                            if (focusedCallsign != NULL)
+                            {
+                                uint32_t status = focusedCallsign->Focused(false);
+                                std::cout << "result of set focus to false: " << status << std::endl;
+                                focusedCallsign->Release();
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                std::map<std::string, PluginData>::iterator focusedEntry = activePluginsData.find(client);
+                if (focusedEntry != activePluginsData.end())
+                {
+                    PluginData& pluginData = focusedEntry->second;
+                    std::cout << "setting the focus of " << client << " to true " << std::endl;
+                    Exchange::IFocus *focusedCallsign = mCurrentService->QueryInterfaceByCallsign<Exchange::IFocus>(client);
+                    if (focusedCallsign != NULL)
+                    {
+                        uint32_t status = focusedCallsign->Focused(true);
+                        focusedCallsign->Release();
+                        std::cout << "result of set focus to true: " << status << std::endl;
+                    }
+                }
+            }
             return ret;
         }
 

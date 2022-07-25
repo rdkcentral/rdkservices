@@ -6,6 +6,9 @@
         "class": "HdmiInput", 
         "description": "The `HdmiInput` plugin allows you to control the HDMI Input on a set-top box."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
         "devices":{
             "summary": "An object [] that describes each HDMI Input port",
@@ -49,22 +52,6 @@
             "summary": "An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method",
             "type": "string",
             "example": "0"
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods": {
@@ -77,7 +64,7 @@
                         "$ref": "#/definitions/devices"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -108,7 +95,7 @@
                         "example": "HDMI2.0"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -139,7 +126,7 @@
                         "example": ""
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -170,7 +157,7 @@
                         "example": ""
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -201,7 +188,7 @@
                         "example": ""
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -228,7 +215,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "stopHdmiInput": {
@@ -240,7 +227,7 @@
                 "type": "object",
                 "properties": {
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -268,7 +255,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setVideoRectangle": {
@@ -304,7 +291,7 @@
                     "h"                ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "writeEDID": {
@@ -329,7 +316,64 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
+            }
+        },
+        "getSupportedGameFeatures":{
+            "summary": "Returns the list of supported game features.\n \n### Events\n \nNo Events.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "supportedGameFeatures": {
+                        "summary": "The supported game Features",
+                        "type": "string",
+                        "example": "ALLM"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "supportedGameFeatures",
+                    "success"
+                ]
+            }
+        },
+       "getHdmiGameFeatureStatus":{
+            "summary": "Returns the Game Feature Status. For example: ALLM\n \n### Events\n \nNo Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    },
+                     "gameFeature": {
+                        "summary": "Game Feature to which current status requested",
+                        "type": "string",
+                        "example": "ALLM"
+                    }
+               },
+                "required": [
+                    "portid",
+		    "gameFeature"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "mode": {
+                        "summary": "The current game feature status. Mode is required only for ALLM. Need to add support for future game features",
+                        "type": "boolean",
+                        "example": "true"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "mode",
+                    "success"
+                ]
             }
         }
     },
@@ -441,6 +485,32 @@
                     "progressive",
                     "frameRateN",
                     "frameRateD"
+                ]
+            }
+        },
+        "hdmiGameFeatureStatusUpdate": {
+            "summary": "Triggered whenever game feature(ALLM) status changes for an HDMI Input",
+            "params": {
+                "type": "object",
+                "properties": {
+                   "portId": {
+                        "$ref": "#/definitions/portId"
+                    },
+                     "gameFeature": {
+                        "summary": "Game Feature to which current status requested",
+                        "type": "string",
+                        "example": "ALLM"
+                    },
+                    "mode": {
+                        "summary": "The current game feature status. Mode is required only for ALLM. Need to add support for future game features",
+                        "type": "boolean",
+                        "example": "true"
+                    }
+                },
+                "required": [
+                    "portId",
+                    "gameFeature",
+                    "mode"
                 ]
             }
         }

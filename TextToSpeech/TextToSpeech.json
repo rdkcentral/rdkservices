@@ -6,6 +6,9 @@
         "class": "TextToSpeech",
         "description": "The `TextToSpeech` plugin provides text-to-speech (TTS) functionality (Voice Guidance & Speech Synthesis) for the client application."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
         "speechid":{
             "summary":"The speech ID",
@@ -52,27 +55,17 @@
             "type": "number",
             "example": 50
         },
+        "apikey": {
+            "summary": "x api key(secret key) required for GCD Endpoints",
+            "type": "string",
+            "example": "XXXXXXXXXXXX"
+        },
         "text":{
             "summary": "The text input",
             "type": "string",
             "example": "speech_1"
         },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        },
+        
         "callsign": {
             "summary": " Callsign of the application. This is mandatory when setACL is called prior to speak ",
             "type": "string",
@@ -113,7 +106,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -148,7 +141,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -168,7 +161,7 @@
                         "example": 1
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -208,7 +201,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -245,7 +238,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },                    
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -285,7 +278,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -309,7 +302,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -344,7 +337,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -377,7 +370,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -409,7 +402,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -443,10 +436,23 @@
                     },
                     "rate":{
                         "$ref": "#/definitions/rate"
+                    },
+                    "authinfo":{
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "summary": "The type of authentication. At present, only `apikey` is supported.",
+                                "type": "string",
+                                "example": "apikey"
+                            },
+                            "value": {
+                                "$ref": "#/definitions/apikey"
+                            }
+                        },
+                        "required": []
                     }
                 },
-                "required": [
-                ]
+                "required": []
             },
             "result": {
                 "type": "object",
@@ -455,7 +461,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -498,7 +504,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -540,7 +546,7 @@
                 "type": "object",
                 "properties": {
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [

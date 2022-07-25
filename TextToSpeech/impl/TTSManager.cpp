@@ -98,6 +98,7 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
 
     m_defaultConfiguration.setEndPoint(configuration.ttsEndPoint);
     m_defaultConfiguration.setSecureEndPoint(configuration.ttsEndPointSecured);
+    m_defaultConfiguration.setApiKey(configuration.apiKey);
     updated |= m_defaultConfiguration.setLanguage(configuration.language);
     /* Set default voice for the language only when voice is empty*/
     if(!configuration.language.empty() && configuration.voice.empty()) {

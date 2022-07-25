@@ -95,6 +95,8 @@ HdmiInput interface methods:
 | [setEdidVersion](#setEdidVersion) | (Version 2) Sets an HDMI EDID version |
 | [setVideoRectangle](#setVideoRectangle) | Sets an HDMI Input video window |
 | [writeEDID](#writeEDID) | Changes a current EDID value |
+| [getSupportedGameFeatures](#getSupportedGameFeatures) | Returns the list of supported game features |
+| [getHdmiGameFeatureStatus](#getHdmiGameFeatureStatus) | Returns the Game Feature Status |
 
 
 <a name="getHDMIInputDevices"></a>
@@ -622,6 +624,106 @@ No Events.
 }
 ```
 
+<a name="getSupportedGameFeatures"></a>
+## *getSupportedGameFeatures*
+
+Returns the list of supported game features.
+ 
+### Events
+ 
+No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.supportedGameFeatures | string | The supported game Features |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiInput.1.getSupportedGameFeatures"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "supportedGameFeatures": "ALLM",
+        "success": true
+    }
+}
+```
+
+<a name="getHdmiGameFeatureStatus"></a>
+## *getHdmiGameFeatureStatus*
+
+Returns the Game Feature Status. For example: ALLM
+ 
+### Events
+ 
+No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
+| params.gameFeature | string | Game Feature to which current status requested |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.mode | boolean | The current game feature status. Mode is required only for ALLM. Need to add support for future game features |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiInput.1.getHdmiGameFeatureStatus",
+    "params": {
+        "portId": "0",
+        "gameFeature": "ALLM"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "mode": true,
+        "success": true
+    }
+}
+```
+
 <a name="Notifications"></a>
 # Notifications
 
@@ -637,6 +739,7 @@ HdmiInput interface events:
 | [onInputStatusChanged](#onInputStatusChanged) | Triggered whenever the status changes for an HDMI Input |
 | [onSignalChanged](#onSignalChanged) | Triggered whenever the signal status changes for an HDMI Input |
 | [videoStreamInfoUpdate](#videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI Input video stream info |
+| [hdmiGameFeatureStatusUpdate](#hdmiGameFeatureStatusUpdate) | Triggered whenever game feature(ALLM) status changes for an HDMI Input |
 
 
 <a name="onDevicesChanged"></a>
@@ -761,6 +864,34 @@ Triggered whenever there is an update in HDMI Input video stream info.
         "progressive": true,
         "frameRateN": 60000,
         "frameRateD": 1001
+    }
+}
+```
+
+<a name="hdmiGameFeatureStatusUpdate"></a>
+## *hdmiGameFeatureStatusUpdate*
+
+Triggered whenever game feature(ALLM) status changes for an HDMI Input.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.portId | string | An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
+| params.gameFeature | string | Game Feature to which current status requested |
+| params.mode | boolean | The current game feature status. Mode is required only for ALLM. Need to add support for future game features |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.hdmiGameFeatureStatusUpdate",
+    "params": {
+        "portId": "0",
+        "gameFeature": "ALLM",
+        "mode": true
     }
 }
 ```

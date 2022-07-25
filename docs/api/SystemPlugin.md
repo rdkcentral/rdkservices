@@ -87,6 +87,7 @@ SystemServices interface methods:
 | :-------- | :-------- |
 | [cacheContains](#cacheContains) | Checks if a key is present in the cache |
 | [clearLastDeepSleepReason](#clearLastDeepSleepReason) | Clears the last deep sleep reason |
+| [deletePersistentPath](#deletePersistentPath) | (Version 2) Deletes persistent path associated with a callsign |
 | [enableMoca](#enableMoca) | Enables (or disables) Moca support for the platform |
 | [enableXREConnectionRetention](#enableXREConnectionRetention) | Enables (or disables) XRE Connection Retention option |
 | [fireFirmwarePendingReboot](#fireFirmwarePendingReboot) | (Version 2) Notifies the device about a pending reboot |
@@ -94,7 +95,6 @@ SystemServices interface methods:
 | [getCachedValue](#getCachedValue) | Gets the value of a key in the cache |
 | [getCoreTemperature](#getCoreTemperature) | Returns the core temperature of the device |
 | [getDeviceInfo](#getDeviceInfo) | Collects device details |
-| [getMfgSerialNumber](#getMfgSerialNumber) | Gets the Manufacturing Serial Number |
 | [getDownloadedFirmwareInfo](#getDownloadedFirmwareInfo) | Returns information about firmware downloads |
 | [getFirmwareDownloadPercent](#getFirmwareDownloadPercent) | Gets the current download percentage |
 | [getFirmwareUpdateInfo](#getFirmwareUpdateInfo) | Checks the firmware update information |
@@ -103,10 +103,12 @@ SystemServices interface methods:
 | [getLastFirmwareFailureReason](#getLastFirmwareFailureReason) | (Version 2) Retrieves the last firmware failure reason |
 | [getLastWakeupKeyCode](#getLastWakeupKeyCode) | (Version 2) Returns the last wakeup keycode |
 | [getMacAddresses](#getMacAddresses) | Gets the MAC address of the device |
+| [getMfgSerialNumber](#getMfgSerialNumber) | Gets the Manufacturing Serial Number |
 | [getMilestones](#getMilestones) | Returns the list of milestones |
 | [getMode](#getMode) | Returns the currently set mode information |
 | [getNetworkStandbyMode](#getNetworkStandbyMode) | Returns the network standby mode of the device |
 | [getOvertempGraceInterval](#getOvertempGraceInterval) | Returns the over-temperature grace interval value |
+| [getPlatformConfiguration](#getPlatformConfiguration) | (Version 2) Returns the supported features and device/account info |
 | [getPowerState](#getPowerState) | Returns the power state of the device |
 | [getPowerStateBeforeReboot](#getPowerStateBeforeReboot) | Returns the power state before reboot |
 | [getPowerStateIsManagedByDevice](#getPowerStateIsManagedByDevice) | Checks whether the power state is managed by the device |
@@ -120,8 +122,9 @@ SystemServices interface methods:
 | [getStoreDemoLink](#getStoreDemoLink) | (Version 2) Returns the store demo video link |
 | [getSystemVersions](#getSystemVersions) | Returns system version details |
 | [getTemperatureThresholds](#getTemperatureThresholds) | Returns temperature threshold values |
-| [getTimeZoneDST](#getTimeZoneDST) | Get the configured time zone from the file referenced by `TZ_FILE` |
+| [getTerritory](#getTerritory) | Gets the configured system territory and region |
 | [getTimeZones](#getTimeZones) | (Version2) Gets the available timezones from the system's time zone database |
+| [getTimeZoneDST](#getTimeZoneDST) | Get the configured time zone from the file referenced by `TZ_FILE` |
 | [getWakeupReason](#getWakeupReason) | (Version 2) Returns the reason for the device coming out of deep sleep |
 | [getXconfParams](#getXconfParams) | Returns XCONF configuration parameters for the device |
 | [hasRebootBeenRequested](#hasRebootBeenRequested) | Checks whether a reboot has been requested |
@@ -131,6 +134,7 @@ SystemServices interface methods:
 | [reboot](#reboot) | Requests that the system performs a reboot of the set-top box |
 | [removeCacheKey](#removeCacheKey) | Removes the cache key |
 | [requestSystemUptime](#requestSystemUptime) | Returns the device uptime |
+| [setBootLoaderPattern](#setBootLoaderPattern) | Sets the boot loader pattern mode in MFR |
 | [setCachedValue](#setCachedValue) | Sets the value for a key in the cache |
 | [setDeepSleepTimer](#setDeepSleepTimer) | Sets the deep sleep timeout period |
 | [setFirmwareAutoReboot](#setFirmwareAutoReboot) | (Version 2) Enables or disables the AutoReboot Feature |
@@ -138,21 +142,16 @@ SystemServices interface methods:
 | [setGzEnabled](#setGzEnabled) | Enables or disables GZ |
 | [setMode](#setMode) | Sets the mode of the set-top box for a specific duration before returning to normal mode |
 | [setNetworkStandbyMode](#setNetworkStandbyMode) | Enables or disables the network standby mode of the device |
-| [setBootLoaderPattern](#setBootLoaderPattern) | Sets the boot loader pattern mode in MFR 
-### Events
- 
- No Events |
 | [setOptOutTelemetry](#setOptOutTelemetry) | Sets the telemetry opt-out status |
 | [setOvertempGraceInterval](#setOvertempGraceInterval) | Sets the over-temperature grace interval value |
 | [setPowerState](#setPowerState) | Sets the power state of the device |
-| [setPreferredStandbyMode](#setPreferredStandbyMode) | Sets and persists the preferred standby mode (see `getAvailableStandbyModes` for valid modes) |
+| [setPreferredStandbyMode](#setPreferredStandbyMode) | Sets and persists the preferred standby mode |
 | [setTemperatureThresholds](#setTemperatureThresholds) | Sets the temperature threshold values |
+| [setTerritory](#setTerritory) | Sets the system territory and region |
 | [setTimeZoneDST](#setTimeZoneDST) | Sets the system time zone |
 | [setWakeupSrcConfiguration](#setWakeupSrcConfiguration) | Sets the wakeup source configuration |
 | [updateFirmware](#updateFirmware) | Initiates a firmware update |
-| [deletePersistentPath](#deletePersistentPath) | (Version 2) Deletes persistent path associated with a callsign |
 | [uploadLogs](#uploadLogs) | (Version 2) Uploads logs to a URL returned by SSR |
-| [getPlatformConfiguration](#getPlatformConfiguration) | (Version 2) Returns the supported features and device/account info |
 
 
 <a name="cacheContains"></a>
@@ -163,6 +162,8 @@ Checks if a key is present in the cache.
 ### Events
  
  No Events.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
 
 ### Parameters
 
@@ -234,6 +235,58 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.System.1.clearLastDeepSleepReason"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="deletePersistentPath"></a>
+## *deletePersistentPath*
+
+(Version 2) Deletes persistent path associated with a callsign.
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.callsign | string | <sup>*(optional)*</sup> Callsign of the service to delete persistent path |
+| params?.type | string | <sup>*(optional)*</sup> The type of execution environment. (can be used instead of callsign) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.deletePersistentPath",
+    "params": {
+        "callsign": "HtmlApp",
+        "type": "HtmlApp"
+    }
 }
 ```
 
@@ -454,6 +507,8 @@ Gets the value of a key in the cache.
  
  No Events.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+
 ### Parameters
 
 | Name | Type | Description |
@@ -600,52 +655,6 @@ Collects device details. Sample keys include:
     "id": 42,
     "result": {
         "estb_mac": "20:F1:9E:EE:62:08",
-        "success": true
-    }
-}
-```
-
-<a name="getMfgSerialNumber"></a>
-## *getMfgSerialNumber*
-
-Gets the Manufacturing Serial Number.
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.mfgSerialNumber | string | Manufacturing Serial Number |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.System.1.getMfgSerialNumber"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "mfgSerialNumber": "F00020CE000003",
         "success": true
     }
 }
@@ -1043,6 +1052,52 @@ Also see: [onMacAddressesRetreived](#onMacAddressesRetreived)
 }
 ```
 
+<a name="getMfgSerialNumber"></a>
+## *getMfgSerialNumber*
+
+Gets the Manufacturing Serial Number.
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.mfgSerialNumber | string | Manufacturing Serial Number |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getMfgSerialNumber"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "mfgSerialNumber": "F00020CE000003",
+        "success": true
+    }
+}
+```
+
 <a name="getMilestones"></a>
 ## *getMilestones*
 
@@ -1051,6 +1106,8 @@ Returns the list of milestones.
 ### Events
  
  No Events.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
 
 ### Parameters
 
@@ -1230,6 +1287,109 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "graceInterval": "600",
+        "success": true
+    }
+}
+```
+
+<a name="getPlatformConfiguration"></a>
+## *getPlatformConfiguration*
+
+(Version 2) Returns the supported features and device/account info.
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.query | string | Query for support of a particular feature, e.g. AccountInfo.accountId |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.AccountInfo | object | <sup>*(optional)*</sup>  |
+| result?.AccountInfo?.accountId | string | <sup>*(optional)*</sup> Account Id |
+| result?.AccountInfo?.x1DeviceId | string | <sup>*(optional)*</sup> X1 Device Id |
+| result?.AccountInfo?.XCALSessionTokenAvailable | boolean | <sup>*(optional)*</sup>  |
+| result?.AccountInfo?.experience | string | <sup>*(optional)*</sup> Experience |
+| result?.AccountInfo?.deviceMACAddress | string | <sup>*(optional)*</sup> Device MAC Address |
+| result?.AccountInfo?.firmwareUpdateDisabled | boolean | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo | object | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.quirks | array | <sup>*(optional)*</sup> The list of installed "quirks" |
+| result?.DeviceInfo?.quirks[#] | string | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.mimeTypeExclusions | object | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.features | object | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.mimeTypes | array | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.mimeTypes[#] | string | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.model | string | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.deviceType | string | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.supportsTrueSD | boolean | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.webBrowser | object | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.webBrowser.browserType | string |  |
+| result?.DeviceInfo?.webBrowser.version | string |  |
+| result?.DeviceInfo?.webBrowser.userAgent | string |  |
+| result?.DeviceInfo?.HdrCapability | string | <sup>*(optional)*</sup> e.g. HDR10,Dolby Vision,Technicolor Prime |
+| result?.DeviceInfo?.canMixPCMWithSurround | boolean | <sup>*(optional)*</sup>  |
+| result?.DeviceInfo?.publicIP | string | <sup>*(optional)*</sup> Public IP |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getPlatformConfiguration",
+    "params": {
+        "query": "..."
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "AccountInfo": {
+            "accountId": "1000000000000000000",
+            "x1DeviceId": "1000000000000000000",
+            "XCALSessionTokenAvailable": false,
+            "experience": "X1",
+            "deviceMACAddress": "44:AA:F5:39:D3:42",
+            "firmwareUpdateDisabled": false
+        },
+        "DeviceInfo": {
+            "quirks": [
+                "XRE-4621"
+            ],
+            "mimeTypeExclusions": {},
+            "features": {},
+            "mimeTypes": [
+                "audio/mpeg"
+            ],
+            "model": "PX051AEI",
+            "deviceType": "IpStb",
+            "supportsTrueSD": true,
+            "webBrowser": {
+                "browserType": "WPE",
+                "version": "1.0.0.0",
+                "userAgent": "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 (KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"
+            },
+            "HdrCapability": "none",
+            "canMixPCMWithSurround": true,
+            "publicIP": "12.34.56.78"
+        },
         "success": true
     }
 }
@@ -1881,10 +2041,10 @@ This method takes no parameters.
 }
 ```
 
-<a name="getTimeZoneDST"></a>
-## *getTimeZoneDST*
+<a name="getTerritory"></a>
+## *getTerritory*
 
-Get the configured time zone from the file referenced by `TZ_FILE`. If the time zone is not set, then `null` is returned.
+Gets the configured system territory and region. Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).
  
 ### Events
  
@@ -1899,7 +2059,8 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.timeZone | string | The timezone |
+| result.territory | string | territory name |
+| result.region | string | region name |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1910,7 +2071,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getTimeZoneDST"
+    "method": "org.rdk.System.1.getTerritory"
 }
 ```
 
@@ -1921,7 +2082,8 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "timeZone": "America/New_York",
+        "territory": "USA",
+        "region": "US-NY",
         "success": true
     }
 }
@@ -1981,6 +2143,52 @@ This method takes no parameters.
                 "London": "Thu Nov 5 14:21:18 2020 CST"
             }
         },
+        "success": true
+    }
+}
+```
+
+<a name="getTimeZoneDST"></a>
+## *getTimeZoneDST*
+
+Get the configured time zone from the file referenced by `TZ_FILE`. If the time zone is not set, then `null` is returned.
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.timeZone | string | The timezone |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.getTimeZoneDST"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "timeZone": "America/New_York",
         "success": true
     }
 }
@@ -2141,6 +2349,8 @@ Checks whether GZ is enabled.
 ### Events
  
  No Events.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
 
 ### Parameters
 
@@ -2335,6 +2545,8 @@ Removes the cache key.
  
  No Events.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+
 ### Parameters
 
 | Name | Type | Description |
@@ -2422,6 +2634,55 @@ This method takes no parameters.
 }
 ```
 
+<a name="setBootLoaderPattern"></a>
+## *setBootLoaderPattern*
+
+Sets the boot loader pattern mode in MFR. 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.pattern | string | Bootloader pattern mode (must be one of the following: *NORMAL*, *SILENT*, *SILENT_LED_ON*) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setBootLoaderPattern",
+    "params": {
+        "pattern": "NORMAL"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="setCachedValue"></a>
 ## *setCachedValue*
 
@@ -2430,6 +2691,8 @@ Sets the value for a key in the cache.
 ### Events
  
  No Events.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
 
 ### Parameters
 
@@ -2633,6 +2896,8 @@ Enables or disables GZ.
  
  No Events.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+
 ### Parameters
 
 | Name | Type | Description |
@@ -2769,55 +3034,6 @@ Enables or disables the network standby mode of the device. If network standby i
     "method": "org.rdk.System.1.setNetworkStandbyMode",
     "params": {
         "nwStandby": false
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="setBootLoaderPattern"></a>
-## *setBootLoaderPattern*
-
-Sets the boot loader pattern mode in MFR 
-### Events
- 
- No Events.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.pattern | string | Bootloader pattern mode (must be one of the following: *NORMAL*, *SILENT*, *SILENT_LED_ON*) |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.System.1.setBootLoaderPattern",
-    "params": {
-        "pattern": "NORMAL"
     }
 }
 ```
@@ -2992,7 +3208,7 @@ Also see: [onSystemPowerStateChanged](#onSystemPowerStateChanged)
 <a name="setPreferredStandbyMode"></a>
 ## *setPreferredStandbyMode*
 
-Sets and persists the preferred standby mode (see `getAvailableStandbyModes` for valid modes). Invoking this function does not change the power state of the device. It only sets the user preference for the preferred action when the `setPowerState` method is invoked with a value of `STANDBY`.
+Sets and persists the preferred standby mode. See [getAvailableStandbyModes](#getAvailableStandbyModes) for valid modes. Invoking this function does not change the power state of the device. It only sets the user preference for the preferred action when the [setPowerState](#setPowerState) method is invoked with a value of `STANDBY`.
  
 ### Events
  
@@ -3078,6 +3294,58 @@ Sets the temperature threshold values. Not supported on all devices.
             "WARN": "100.000000",
             "MAX": "110.000000"
         }
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="setTerritory"></a>
+## *setTerritory*
+
+Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.territory | string | territory name |
+| params?.region | string | <sup>*(optional)*</sup> region name |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.1.setTerritory",
+    "params": {
+        "territory": "USA",
+        "region": "US-NY"
     }
 }
 ```
@@ -3240,58 +3508,6 @@ This method takes no parameters.
 }
 ```
 
-<a name="deletePersistentPath"></a>
-## *deletePersistentPath*
-
-(Version 2) Deletes persistent path associated with a callsign.
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params?.callsign | string | <sup>*(optional)*</sup> Callsign of the service to delete persistent path |
-| params?.type | string | <sup>*(optional)*</sup> The type of execution environment. (can be used instead of callsign) |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.System.1.deletePersistentPath",
-    "params": {
-        "callsign": "HtmlApp",
-        "type": "HtmlApp"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
 <a name="uploadLogs"></a>
 ## *uploadLogs*
 
@@ -3337,109 +3553,6 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "success": true
-    }
-}
-```
-
-<a name="getPlatformConfiguration"></a>
-## *getPlatformConfiguration*
-
-(Version 2) Returns the supported features and device/account info.
- 
-### Events
- 
- No Events.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.query | string | Query for support of a particular feature, e.g. AccountInfo.accountId |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result?.AccountInfo | object | <sup>*(optional)*</sup>  |
-| result?.AccountInfo?.accountId | string | <sup>*(optional)*</sup> Account Id |
-| result?.AccountInfo?.x1DeviceId | string | <sup>*(optional)*</sup> X1 Device Id |
-| result?.AccountInfo?.XCALSessionTokenAvailable | boolean | <sup>*(optional)*</sup>  |
-| result?.AccountInfo?.experience | string | <sup>*(optional)*</sup> Experience |
-| result?.AccountInfo?.deviceMACAddress | string | <sup>*(optional)*</sup> Device MAC Address |
-| result?.AccountInfo?.firmwareUpdateDisabled | boolean | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo | object | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.quirks | array | <sup>*(optional)*</sup> The list of installed "quirks" |
-| result?.DeviceInfo?.quirks[#] | string | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.mimeTypeExclusions | object | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.features | object | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.mimeTypes | array | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.mimeTypes[#] | string | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.model | string | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.deviceType | string | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.supportsTrueSD | boolean | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.webBrowser | object | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.webBrowser.browserType | string |  |
-| result?.DeviceInfo?.webBrowser.version | string |  |
-| result?.DeviceInfo?.webBrowser.userAgent | string |  |
-| result?.DeviceInfo?.HdrCapability | string | <sup>*(optional)*</sup> e.g. HDR10,Dolby Vision,Technicolor Prime |
-| result?.DeviceInfo?.canMixPCMWithSurround | boolean | <sup>*(optional)*</sup>  |
-| result?.DeviceInfo?.publicIP | string | <sup>*(optional)*</sup> Public IP |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.System.1.getPlatformConfiguration",
-    "params": {
-        "query": "..."
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "AccountInfo": {
-            "accountId": "1000000000000000000",
-            "x1DeviceId": "1000000000000000000",
-            "XCALSessionTokenAvailable": false,
-            "experience": "X1",
-            "deviceMACAddress": "44:AA:F5:39:D3:42",
-            "firmwareUpdateDisabled": false
-        },
-        "DeviceInfo": {
-            "quirks": [
-                "XRE-4621"
-            ],
-            "mimeTypeExclusions": {},
-            "features": {},
-            "mimeTypes": [
-                "audio/mpeg"
-            ],
-            "model": "PX051AEI",
-            "deviceType": "IpStb",
-            "supportsTrueSD": true,
-            "webBrowser": {
-                "browserType": "WPE",
-                "version": "1.0.0.0",
-                "userAgent": "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 (KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"
-            },
-            "HdrCapability": "none",
-            "canMixPCMWithSurround": true,
-            "publicIP": "12.34.56.78"
-        },
         "success": true
     }
 }

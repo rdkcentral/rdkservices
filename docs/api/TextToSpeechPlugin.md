@@ -658,6 +658,9 @@ Also see: [onvoicechanged](#onvoicechanged)
 | params?.voice | string | <sup>*(optional)*</sup> The TTS Voice |
 | params?.volume | string | <sup>*(optional)*</sup> The TTS Volume |
 | params?.rate | number | <sup>*(optional)*</sup> The TTS Rate |
+| params?.authinfo | object | <sup>*(optional)*</sup>  |
+| params?.authinfo?.type | string | <sup>*(optional)*</sup> The type of authentication. At present, only `apikey` is supported |
+| params?.authinfo?.value | string | <sup>*(optional)*</sup> x api key(secret key) required for GCD Endpoints |
 
 ### Result
 
@@ -682,7 +685,11 @@ Also see: [onvoicechanged](#onvoicechanged)
         "language": "en-US",
         "voice": "carol",
         "volume": "100.000000",
-        "rate": 50
+        "rate": 50,
+        "authinfo": {
+            "type": "apikey",
+            "value": "XXXXXXXXXXXX"
+        }
     }
 }
 ```

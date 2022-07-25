@@ -40,10 +40,11 @@
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
 #include "utils.h"
+#include "UtilsString.h"
 #include "uploadlogs.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-#include "libIARM.h"
+#include "UtilsIarm.h"
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
 #ifdef ENABLE_THERMAL_PROTECTION
@@ -4201,7 +4202,7 @@ namespace WPEFramework {
 
           const string query = parameters.HasLabel("query") ? parameters["query"].String() : "";
 
-          response.Load(query);
+          response.Load(m_shellService, query);
 
           return Core::ERROR_NONE;
         }
