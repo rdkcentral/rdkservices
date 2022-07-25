@@ -12,5 +12,5 @@ class SystemMock : public systemServ, public systemFile, public systemPower {
      MOCK_METHOD(bool, setGzEnabled,(bool enabled),(const, override));
 
      MOCK_METHOD(int, setDevicePowerState, (const char* powerState, const char* standbyReason), (const, override));
-     MOCK_METHOD(int, getDevicePowerState,(cahr* powerState),(const,override));
+     MOCK_METHOD(int, getDevicePowerState,(char* powerState),(const,override));
 }
