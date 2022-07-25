@@ -161,7 +161,10 @@ jobs:
           -B build/rdkservices
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
-          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system -DENABLE_TELEMETRY_LOGGING"
+          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers
+          -I ${{github.workspace}}/rdkservices/test/headers/devicesettings
+          --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system
+          -DENABLE_TELEMETRY_LOGGING"
           -DCOMCAST_CONFIG=OFF
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
