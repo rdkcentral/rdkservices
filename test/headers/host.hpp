@@ -18,6 +18,36 @@ public:
     virtual int setFRFMode(int frfmode) const = 0;
     virtual int getCurrentDisframerate(char* framerate) const = 0;
     virtual int setDisplayframerate(const char* framerate) const = 0;
+
+    
+};
+
+class systemServ {
+public:
+    virtual int setMode(const char* mode, const int duration) const = 0 ;
+    virtual int getMode(char* mode, int* duration) const = 0 ;
+
+};
+
+class systemFile{
+public:
+    virtual bool isGzEnabledHelper(bool* enabled) const = 0;
+    virtual bool setGzEnabled(bool enabled) const =0;
+};
+
+class systemRFC {
+    //virtual int setRFC()
+
+};
+
+class systemPower{
+    virtual int setDevicePowerState(const char* powerState, const char* standbyReason) const =0;
+    virtual int getDevicePowerState(char* powerState) const =0;
+};
+
+class systemIARM{
+
+
 };
 
 class HostImpl {
