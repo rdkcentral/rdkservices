@@ -25,6 +25,7 @@
 
 #include "ITextToSpeech.h"
 #include "impl/TTSManager.h"
+#include "impl/TTSConfiguration.h"
 #include <vector>
 
 namespace WPEFramework {

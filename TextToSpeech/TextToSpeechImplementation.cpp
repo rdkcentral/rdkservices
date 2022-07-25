@@ -20,6 +20,7 @@
 #include "TextToSpeechImplementation.h"
 #include <sys/prctl.h>
 #include "UtilsJsonRpc.h"
+#include <mutex>
 
 #define TTS_MAJOR_VERSION 1
 #define TTS_MINOR_VERSION 0
@@ -196,6 +197,14 @@ namespace Plugin {
             {
                 config.apiKey = GET_STR(auth,"value", "");
             }
+        }
+
+        if(parameters.HasLabel("fallbacktext")) {
+            JsonObject fallback;
+            fallback = parameters["fallbacktext"].Object();
+            config.data.scenario = fallback["scenario"].String();
+            config.data.value    = fallback["value"].String();
+            config.data.path     = GET_STR(fallback,"path", "");
         }
 
         _adminLock.Lock();
@@ -523,12 +532,21 @@ namespace Plugin {
         if(file.Open()) {
             JsonObject config;
             if(config.IElement::FromFile(file)) {
-            Core::JSON::Boolean enabled = config.Get("enabled").Boolean();
-            ttsConfig.setEnabled(enabled.Value());
-            ttsConfig.setVolume(std::stod(GET_STR(config,"volume","0.0")));
-            ttsConfig.setRate(static_cast<uint8_t>(std::stoi(GET_STR(config,"rate","0"))));
-            ttsConfig.setVoice(GET_STR(config,"voice",""));
-            ttsConfig.setLanguage(GET_STR(config,"language",""));
+                Core::JSON::Boolean enabled = config.Get("enabled").Boolean();
+                ttsConfig.setEnabled(enabled.Value());
+                ttsConfig.setVolume(std::stod(GET_STR(config,"volume","0.0")));
+                ttsConfig.setRate(static_cast<uint8_t>(std::stoi(GET_STR(config,"rate","0"))));
+                ttsConfig.setVoice(GET_STR(config,"voice",""));
+                ttsConfig.setLanguage(GET_STR(config,"language",""));
+                if(config.HasLabel("fallbacktext")) {
+                    JsonObject fallback;
+                    FallbackData data;
+                    fallback = config["fallbacktext"].Object();
+                    data.scenario = fallback["scenario"].String();
+                    data.value    = fallback["value"].String();
+                    data.path     = fallback["path"].String();
+                    ttsConfig.setFallBackText(data);
+                }    
             return true;
             }
         file.Close();
@@ -536,8 +554,10 @@ namespace Plugin {
         return false;
     }   
 
+    std::mutex fileMutex;
     bool _writeToFile(std::string filename, TTS::TTSConfiguration &ttsConfig)
     {
+        std::lock_guard<std::mutex> lock(fileMutex);
         Core::File file(filename);
         JsonObject config;
         file.Create();
@@ -546,6 +566,14 @@ namespace Plugin {
         config["rate"] = std::to_string(ttsConfig.rate());
         config["voice"] = ttsConfig.voice();
         config["language"] = ttsConfig.language();
+        if(ttsConfig.isFallbackEnabled())
+        {
+            JsonObject fallbackconfig;
+            fallbackconfig["scenario"] = ttsConfig.getFallbackScenario();
+            fallbackconfig["value"] = ttsConfig.getFallbackValue();
+            fallbackconfig["path"] =ttsConfig.getFallbackPath();
+            config["fallbacktext"] = fallbackconfig;
+        }
         config.IElement::ToFile(file);
         fsync((int)file);
         file.Close();
