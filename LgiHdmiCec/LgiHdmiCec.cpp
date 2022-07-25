@@ -80,6 +80,7 @@ namespace
 
     inline void requestRescanning(int id)
     {
+        LOGINFO("requestRescanning: id=%d", id);
         IARM_Bus_CECHost_ConfigureScan_Param_t param  {};
         param.needFullUpdate = true;
         param.scanReasonId = id;
@@ -150,8 +151,7 @@ namespace WPEFramework
             if (cecSettingEnabled)
             {
                 setEnabled(cecSettingEnabled);
-                m_scan_id++;
-                requestRescanning(m_scan_id);
+                requestRescanning(getNextScanId());
             }
             else
             {
@@ -291,7 +291,7 @@ namespace WPEFramework
 
         void LgiHdmiCec::onHdmiHotPlug(int connectStatus)
         {
-            LOGINFO("Status %d", connectStatus);
+            LOGINFO("Status %d cecEnableStatus: %d", connectStatus, cecEnableStatus.load());
             {
                 std::lock_guard<std::mutex> guard(m_mutex);
                 m_devices.clear();
@@ -308,8 +308,7 @@ namespace WPEFramework
                 {
                     LOGWARN("CEC addresses not present: %s", e.what());
                 }
-                m_scan_id++;
-                requestRescanning(m_scan_id);
+                requestRescanning(getNextScanId());
             }
             if (HDMI_HOT_PLUG_EVENT_DISCONNECTED == connectStatus)
             {
@@ -673,8 +672,7 @@ namespace WPEFramework
             cecEnableStatus = true;
 
             m_rescan_in_progress = true;
-            m_scan_id++;
-            requestRescanning(m_scan_id);
+            requestRescanning(getNextScanId());
 
             return;
         }
@@ -1073,12 +1071,16 @@ namespace WPEFramework
 
             if (eData->isScanFinished != 1)
             {
+                // note that negative scan ids normally mean the scans automatically started by CecScanner:
+                // -4 for 'SCAN_ID_AUTO', -2 for 'SCAN_ID_AUTO_HOTPLUG_OUT', -1 for 'SCAN_ID_AUTO_HOTPLUG_IN'
                 LOGWARN("scan corrupted scanId %d(%d) scan finished %d", eData->scanId, m_scan_id.load(), eData->isScanFinished);
                 return;
             }
 
             if (m_scan_id != eData->scanId)
             {
+                // note that negative scan ids normally mean the scans automatically started by CecScanner:
+                // -4 for 'SCAN_ID_AUTO', -2 for 'SCAN_ID_AUTO_HOTPLUG_OUT', -1 for 'SCAN_ID_AUTO_HOTPLUG_IN'
                 LOGWARN("skipped on invalid scan_id %d(%d) scan finished %d", eData->scanId, m_scan_id.load(), eData->isScanFinished);
             }
             else
@@ -1100,7 +1102,8 @@ namespace WPEFramework
                     LOGWARN("skipped: no changes on devices (empty callback)");
                 }
             }
-            m_scan_id = 0;
+            // m_scan_id = 0; ARRISAPOL-2697: previous corrupted/invalid scan id cases were invalidating the current scan id
+            // ARRISAPOL-2697: we can just keep on increasing the scan id, it should actually lower the chances of scan id collision
         }
 
         void LgiHdmiCec::cecHostDeviceStatusUpdateEndEventHandler(const char* owner_str, IARM_EventId_t eventId, void* data_ptr, size_t len)
@@ -1141,8 +1144,7 @@ namespace WPEFramework
                 else
                 {
                     m_rescan_in_progress = true;
-                    m_scan_id++;
-                    requestRescanning(m_scan_id);
+                    requestRescanning(getNextScanId());
                 }
             }
         }
@@ -1261,6 +1263,14 @@ namespace WPEFramework
             m_system_audio_mode = (system_audio_mode != 0);
 
             return old_value != m_system_audio_mode;
+        }
+
+        int LgiHdmiCec::getNextScanId() {
+            do {
+                int expected = m_scan_id.load();
+                int desired = (expected + 1) % std::numeric_limits<int>::max();
+                if (m_scan_id.compare_exchange_strong(expected, desired)) return desired;
+            } while (true);
         }
 
     } // namespace Plugin

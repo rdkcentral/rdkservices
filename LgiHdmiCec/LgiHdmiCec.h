@@ -74,6 +74,7 @@ namespace WPEFramework {
             LgiHdmiCec();
             virtual ~LgiHdmiCec();
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            int getNextScanId();
 
         public:
             static LgiHdmiCec* _instance;
