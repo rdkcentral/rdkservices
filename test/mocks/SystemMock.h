@@ -13,4 +13,4 @@ class SystemMock : public systemServ, public systemFile, public systemPower {
 
      MOCK_METHOD(int, setDevicePowerState, (const char* powerState, const char* standbyReason), (const, override));
      MOCK_METHOD(int, getDevicePowerState,(char* powerState),(const,override));
-}
+};

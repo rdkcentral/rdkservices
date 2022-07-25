@@ -85,7 +85,7 @@ public:
 
          // called by SystemServices::InitializeIARM, SystemServices::DeinitializeIARM
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
-        .Times(AtLeast(2))
+        .Times(1)
         .WillOnce(::testing::Invoke(
             [](const char* memberName, int* isRegistered) {
                 if (iarmName == string(memberName)) {
@@ -107,7 +107,7 @@ public:
             }));
 
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Connect)
-            .WillOnce(Return(IARM_RESULT_SUCCESS));
+            .WillOnce(return(IARM_RESULT_SUCCESS));
 
     EXPECT_EQ(string(""), systemplugin->Initialize(nullptr));
 
@@ -188,7 +188,6 @@ TEST_F(SystemServicesTest, RegisteredMethods)
 
 }
 
-
 //Mode
 TEST_F(SystemServicesTest, mode){
         EXPECT_CALL(SystemMock, setMode(::testing::_))
@@ -218,7 +217,7 @@ TEST_F(SystemServicesTest, mode){
 //NetworkStandby
 TEST_F(SystemServicesTest, networkStandby){
 // check if intiIARM required.
-    EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Call)
+    EXPECT_CALL(IarmBusImplMock, IARM_Bus_Call)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_TRUE(strcmp(methodName, IARM_BUS_PWRMGR_API_SetNetworkStandbyMode) == 0);
@@ -258,12 +257,12 @@ TEST_F(SystemServicesTest, gzEnabled){
             .Times(1)
             .WillOnce(::testing::Invoke(
                 [&](bool* enabled) {
-                    enabled = gzEnabled;
+                    enabled = &gzEnabled;
                     return true;
                 }));
 }
 
-TEST_F(SystemServicesTest, power){
+TEST_F(SystemServicesTest, powerState){
 EXPECT_CALL(SystemMock, setDevicePowerState(::testing::_))
     .Times(1)
     .WillOnce(::testing::Invoke(
@@ -347,7 +346,7 @@ TEST_F(SystemServicesTest, power)
 // Cahce - set,get,remove, checkKey/contains
 TEST_F(SystemServicesTest, cache)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setCachedValue"), _T("{\"key\":test}",\"value\":test1"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setCachedValue"), _T("{\"key\":test}",\"value\":test1}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCachedValue"), _T("{\"key\":test}"), response));
