@@ -21,8 +21,8 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
-find_package(RFC REQUIRED)
-find_package(DS REQUIRED)
+find_package(RFC)
+find_package(DS)
 find_package(IARMBus)
 
 add_library(${MODULE_NAME} SHARED
@@ -41,6 +41,8 @@ target_include_directories(${MODULE_NAME} PRIVATE
         ${DS_INCLUDE_DIRS}
         ${IARMBUS_INCLUDE_DIRS}
         ../helpers)
+
+set_source_files_properties(DeviceCapabilities.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 target_link_libraries(${MODULE_NAME}
         PRIVATE
