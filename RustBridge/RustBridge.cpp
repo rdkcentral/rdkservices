@@ -149,11 +149,20 @@ namespace WPEFramework {
 			// The expectation is that the JavaScript service opens up a connection to us, so we can forward the 
 			// incomming requests, to be handled by the Service.
 			if (_javascriptService == 0) {
+				/*
 				Web::ProtocolsArray protocols = channel.Protocols();
 				if (std::find(protocols.begin(), protocols.end(), string(_T("json"))) != protocols.end()) {
 					_javascriptService = channel.Id();
 					assigned = true;
 				}
+				*/
+
+				//TODO: probably this condition should be applied
+				//if (channel.State == PluginHost::Channel::ChannelState.JSON)
+				//{
+					_javascriptService = channel.Id();
+					assigned = true;
+				//}
 			}
 			return(assigned);
 		}
@@ -167,7 +176,7 @@ namespace WPEFramework {
 		// -------------------------------------------------------------------------------------------------------
 		//   IDispatcher methods
 		// -------------------------------------------------------------------------------------------------------
-		Core::ProxyType<Core::JSONRPC::Message> RustBridge::Invoke(const Core::JSONRPC::Context& context, const Core::JSONRPC::Message& inbound) /* override */
+		Core::ProxyType<Core::JSONRPC::Message> RustBridge::Invoke(const string& token, const uint32_t channelId, const Core::JSONRPC::Message& inbound) /* override */
 		{
 			string method;
 			Registration info;
@@ -195,11 +204,11 @@ namespace WPEFramework {
 				break;
 			case state::STATE_REGISTRATION:
 				info.FromString(inbound.Parameters.Value());
-				Subscribe(context.ChannelId(), info.Event.Value(), info.Callsign.Value(), *message);
+				Subscribe(channelId, info.Event.Value(), info.Callsign.Value(), *message);
 				break;
 			case state::STATE_UNREGISTRATION:
 				info.FromString(inbound.Parameters.Value());
-				Unsubscribe(context.ChannelId(), info.Event.Value(), info.Callsign.Value(), *message);
+				Unsubscribe(channelId, info.Event.Value(), info.Callsign.Value(), *message);
 				break;
 			case state::STATE_EXISTS:
 				message->Result = Core::NumberType<uint32_t>(Core::ERROR_UNKNOWN_KEY).Text();
@@ -209,17 +218,17 @@ namespace WPEFramework {
 				break;
 			case state::STATE_CUSTOM:
 				// Let's on behalf of the request forward it and update 
-				uint32_t newId = Core::_InterlockedIncrement(_sequenceId);
+				uint32_t newId = Core::InterlockedIncrement(_sequenceId);
 				Core::Time waitTill = Core::Time::Now() + _timeOut;
 
 				_pendingRequests.emplace(std::piecewise_construct,
 					std::forward_as_tuple(newId),
-					std::forward_as_tuple(context.ChannelId(), message->Id.Value(), waitTill));
+					std::forward_as_tuple(channelId, message->Id.Value(), waitTill));
 
-				TRACE(Trace::Information, (_T("Request: [%d] from [%d], method: [%s]"), newId, context.ChannelId(), method.c_str()));
+				TRACE(Trace::Information, (_T("Request: [%d] from [%d], method: [%s]"), newId, channelId, method.c_str()));
 
 				// Time to fire of the request to RUST ->
-				_module->Request(newId, context.Token(), method, inbound.Parameters.Value());
+				_module->Request(newId, token, method, inbound.Parameters.Value());
 
 				// Wait for ID to return, we can not report anything back yet...
 				message.Release();

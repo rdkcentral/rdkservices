@@ -255,13 +255,13 @@ namespace WPEFramework {
             // IDispatcher
             // -------------------------------------------------------------------------------------------------------
             //! ==================================== CALLED ON THREADPOOL THREAD ======================================
-            Core::ProxyType<Core::JSONRPC::Message> Invoke(const Core::JSONRPC::Context& context, const Core::JSONRPC::Message& message) override;
+            Core::ProxyType<Core::JSONRPC::Message> Invoke(const string& token, const uint32_t channelId, const Core::JSONRPC::Message& inbound) override;
             //! ==================================== CALLED ON THREADPOOL THREAD ======================================
             void Activate(PluginHost::IShell* service) override;
             //! ==================================== CALLED ON THREADPOOL THREAD ======================================
             void Deactivate() override;
             //! ==================================== CALLED ON THREADPOOL THREAD ======================================
-            void Close(const uint32_t id) override;
+            void Close(const uint32_t id);
 
             // IPluginExtended
             // -------------------------------------------------------------------------------------------------------
