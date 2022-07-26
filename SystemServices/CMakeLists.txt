@@ -43,6 +43,8 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
+set_source_files_properties(SystemServices.cpp thermonitor.cpp platformcaps/platformcapsdata.cpp ../helpers/UtilsThreadRAII.h PROPERTIES COMPILE_FLAGS "-fexceptions -fpermissive")
+
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 
 list(APPEND CMAKE_MODULE_PATH

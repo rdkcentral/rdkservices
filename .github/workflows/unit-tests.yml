@@ -187,8 +187,10 @@ jobs:
           -DPLUGIN_DEVICEINFO=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DRDK_SERVICES_TEST=ON
+          -DPLUGIN_SYSTEMSERVICES=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-
+          -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
+          
       - name: Build rdkservices
         run: >
           cmake

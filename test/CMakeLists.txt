@@ -54,6 +54,7 @@ include_directories(../LocationSync
         ../Messenger
         ../DeviceInfo
         ../helpers
+        ../SystemServices
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -70,6 +71,7 @@ link_directories(../LocationSync
         ../UserPreferences
         ../Messenger
         ../DeviceInfo
+        ../SystemServices
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -90,6 +92,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}UserPreferences
         ${NAMESPACE}Messenger
         ${NAMESPACE}DeviceInfo
+        ${NAMESPACE}SystemServices
         )
 
 target_include_directories(${PROJECT_NAME}

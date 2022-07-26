@@ -31,6 +31,10 @@ public:
     }
 
     HostImpl* impl;
+    
+    SleepMode getPreferredSleepMode();
+    int setPreferredSleepMode(const SleepMode);
+    List <SleepMode>  getAvailableSleepModes();
 
     List<std::reference_wrapper<VideoOutputPort>> getVideoOutputPorts()
     {
