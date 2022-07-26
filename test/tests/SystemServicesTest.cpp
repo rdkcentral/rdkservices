@@ -45,7 +45,7 @@ class SystemServicesTest : public::testing::Test
     IARM_EventHandler_t handlerOnTerritoryChanged;
     IARM_EventHandler_t handlerOnDSTTimeChanged;
     FactoriesImplementation factoriesImplementation;
-    //WrapsImplMock wrapsImplMock;
+    WrapsImplMock wrapsImplMock;
     //RfcApiImplMock rfcApiImplMock;
     //Mode
     //string sysMode;
@@ -109,7 +109,7 @@ public:
             }));
 
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Connect)
-            .WillOnce(return(IARM_RESULT_SUCCESS));
+            .WillOnce(::testing::Return(IARM_RESULT_SUCCESS));
 
     EXPECT_EQ(string(""), systemplugin->Initialize(nullptr));
 
@@ -192,11 +192,10 @@ TEST_F(SystemServicesTest, RegisteredMethods)
 
 //Mode
 TEST_F(SystemServicesTest, mode){
-         EXPECT_CALL(IarmBusImplMock, IARM_Bus_Call)
+         EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_TRUE(strcmp(methodName, "DaemonSysModeChange") == 0);
-                param->result = 0;
                 return IARM_RESULT_SUCCESS;
             });
 

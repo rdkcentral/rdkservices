@@ -36,7 +36,7 @@ add_executable(${PROJECT_NAME}
         source/Wraps.cpp
         )
 
-set_source_files_properties(tests/DeviceCapabilitiesTest.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
+set_source_files_properties(tests/DeviceCapabilitiesTest.cpp ../helpers/UtilsThreadRAII.h  PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 include_directories(../LocationSync
         ../PersistentStore
