@@ -30,6 +30,16 @@ class systemServImpl {
         return getInstance().impl->setGzEnabled(enabled);
     }
 
+    static int setDevicePowerState(const char* powerState, const char* standbyReason)
+    {
+        return getInstance().impl->setDevicePowerState(powerState,standbyReason);
+    }
+
+    static in getDevicePowerState(char* powerState)
+    {
+        return getInstance().impl->getDevicePowerState(powerState);
+    }
+
 };
 
 

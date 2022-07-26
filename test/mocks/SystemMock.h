@@ -4,7 +4,7 @@
 
 #include "system.h"
 
-class SystemMock : public systemServ, public systemPower {
+class SystemMock : public systemServ {
 
      
      MOCK_METHOD(bool, isGzEnabledHelper, (bool* enabled), (override));
