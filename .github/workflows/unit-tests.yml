@@ -25,14 +25,17 @@ jobs:
     steps:
       - name: Set up cache
         # Cache Thunder/ThunderInterfaces.
+        # https://github.com/actions/cache
+        # https://docs.github.com/en/rest/actions/cache
         if: ${{ !env.ACT }}
         id: cache
         uses: actions/cache@v3
         with:
           path: |
-            build
+            build/Thunder
+            build/ThunderInterfaces
+            build/ThunderTools
             install
-            !build/rdkservices
             !install/etc/WPEFramework/plugins
             !install/usr/bin/RdkServicesTest
             !install/usr/include/gmock
@@ -47,7 +50,7 @@ jobs:
             !install/usr/lib/pkgconfig/gtest.pc
             !install/usr/lib/pkgconfig/gtest_main.pc
             !install/usr/lib/wpeframework/plugins
-          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}
+          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-2
 
       - name: Set up Python
         uses: actions/setup-python@v3
