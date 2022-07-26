@@ -325,7 +325,7 @@ if(PLUGIN_LINEARPLAYBACKCONTROL)
 endif()
 
 if(RDK_SERVICES_TEST)
-    add_subdirectory(test)
+    add_subdirectory(Tests)
 endif()
 
 if(PLUGIN_PERFORMANCEMETRICS)

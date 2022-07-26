@@ -16,46 +16,36 @@ const string webPrefix = _T("/Service/DeviceInfo");
 const string iarmName = _T("Thunder_Plugins");
 }
 
-class DeviceInfoWebTestFixture : public ::testing::Test {
+class DeviceInfoWebTest : public ::testing::Test {
 protected:
     FactoriesImplementation factoriesImplementation;
-
     IarmBusImplMock iarmBusImplMock;
     ManagerImplMock managerImplMock;
     ServiceMock service;
     Core::Sink<SystemInfo> subSystem;
-
     Core::ProxyType<Plugin::DeviceInfo> plugin;
     PluginHost::IWeb* interface;
 
-    DeviceInfoWebTestFixture()
+    DeviceInfoWebTest()
         : plugin(Core::ProxyType<Plugin::DeviceInfo>::Create())
         , interface(nullptr)
-    {
-        interface = static_cast<PluginHost::IWeb*>(plugin->QueryInterface(PluginHost::IWeb::ID));
-        EXPECT_TRUE(interface != nullptr);
-    }
-    virtual ~DeviceInfoWebTestFixture()
-    {
-        interface->Release();
-    }
-
-    virtual void SetUp()
     {
         PluginHost::IFactories::Assign(&factoriesImplementation);
         IarmBus::getInstance().impl = &iarmBusImplMock;
         device::Manager::getInstance().impl = &managerImplMock;
     }
-
-    virtual void TearDown()
+    virtual ~DeviceInfoWebTest()
     {
         PluginHost::IFactories::Assign(nullptr);
         IarmBus::getInstance().impl = nullptr;
         device::Manager::getInstance().impl = nullptr;
     }
 
-    void Activate()
+    virtual void SetUp()
     {
+        interface = static_cast<PluginHost::IWeb*>(plugin->QueryInterface(PluginHost::IWeb::ID));
+        ASSERT_TRUE(interface != nullptr);
+
         EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
             .Times(1)
             .WillOnce(::testing::Invoke(
@@ -87,33 +77,36 @@ protected:
         EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
 
-    void Deactivate()
+    virtual void TearDown()
     {
+        ASSERT_TRUE(interface != nullptr);
+        interface->Release();
+
         plugin->Deinitialize(&service);
     }
 };
 
-TEST_F(DeviceInfoWebTestFixture, activate_httpGet_deactivate)
+TEST_F(DeviceInfoWebTest, httpGet)
 {
-    Activate();
-
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;
     request.Path = webPrefix;
 
     auto response = interface->Process(request);
+    ASSERT_TRUE(response.IsValid());
 
     EXPECT_EQ(response->ErrorCode, Web::STATUS_OK);
     EXPECT_EQ(response->Message, "OK");
     EXPECT_EQ(response->ContentType, Web::MIMETypes::MIME_JSON);
 
     auto body = response->Body<Web::JSONBodyType<Plugin::DeviceInfo::Data>>();
+    ASSERT_TRUE(body.IsValid());
 
     string bodyStr;
     body->ToString(bodyStr);
     EXPECT_THAT(bodyStr, ::testing::MatchesRegex("\\{"
                                                  "\"addresses\":"
-                                                 "\\[(\\{\"name\":\".+\",\"mac\":\".+\",\"ip\":\\[(\".+\"){0,}\\]\\}){0,}\\],"
+                                                 "\\[(\\{\"name\":\".+\",\"mac\":\".+\"(,\"ip\":\\[(\".+\"){1,}\\]){0,}\\}){0,}\\],"
                                                  "\"systeminfo\":"
                                                  "\\{"
                                                  "\"version\":\"#\","
@@ -136,51 +129,47 @@ TEST_F(DeviceInfoWebTestFixture, activate_httpGet_deactivate)
                                                  "\"sockets\":"
                                                  "\\{\"runs\":[0-9]+\\}"
                                                  "\\}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoWebTestFixture, activate_httpGetAdresses_deactivate)
+TEST_F(DeviceInfoWebTest, httpGetAdresses)
 {
-    Activate();
-
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;
     request.Path = webPrefix + _T("/Adresses");
 
     auto response = interface->Process(request);
+    ASSERT_TRUE(response.IsValid());
 
     EXPECT_EQ(response->ErrorCode, Web::STATUS_OK);
     EXPECT_EQ(response->Message, "OK");
     EXPECT_EQ(response->ContentType, Web::MIMETypes::MIME_JSON);
 
     auto body = response->Body<Web::JSONBodyType<Plugin::DeviceInfo::Data>>();
+    ASSERT_TRUE(body.IsValid());
 
     string bodyStr;
     body->ToString(bodyStr);
     EXPECT_THAT(bodyStr, ::testing::MatchesRegex("\\{"
                                                  "\"addresses\":"
-                                                 "\\[(\\{\"name\":\".+\",\"mac\":\".+\",\"ip\":\\[(\".+\"){0,}\\]\\}){0,}\\]"
+                                                 "\\[(\\{\"name\":\".+\",\"mac\":\".+\"(,\"ip\":\\[(\".+\"){1,}\\]){0,}\\}){0,}\\]"
                                                  "\\}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoWebTestFixture, activate_httpGetSystem_deactivate)
+TEST_F(DeviceInfoWebTest, httpGetSystem)
 {
-    Activate();
-
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;
     request.Path = webPrefix + _T("/System");
 
     auto response = interface->Process(request);
+    ASSERT_TRUE(response.IsValid());
 
     EXPECT_EQ(response->ErrorCode, Web::STATUS_OK);
     EXPECT_EQ(response->Message, "OK");
     EXPECT_EQ(response->ContentType, Web::MIMETypes::MIME_JSON);
 
     auto body = response->Body<Web::JSONBodyType<Plugin::DeviceInfo::Data>>();
+    ASSERT_TRUE(body.IsValid());
 
     string bodyStr;
     body->ToString(bodyStr);
@@ -205,25 +194,23 @@ TEST_F(DeviceInfoWebTestFixture, activate_httpGetSystem_deactivate)
                                                  "\"time\":\".+\""
                                                  "\\}"
                                                  "\\}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoWebTestFixture, activate_httpGetSockets_deactivate)
+TEST_F(DeviceInfoWebTest, httpGetSockets)
 {
-    Activate();
-
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;
     request.Path = webPrefix + _T("/Sockets");
 
     auto response = interface->Process(request);
+    ASSERT_TRUE(response.IsValid());
 
     EXPECT_EQ(response->ErrorCode, Web::STATUS_OK);
     EXPECT_EQ(response->Message, "OK");
     EXPECT_EQ(response->ContentType, Web::MIMETypes::MIME_JSON);
 
     auto body = response->Body<Web::JSONBodyType<Plugin::DeviceInfo::Data>>();
+    ASSERT_TRUE(body.IsValid());
 
     string bodyStr;
     body->ToString(bodyStr);
@@ -231,6 +218,4 @@ TEST_F(DeviceInfoWebTestFixture, activate_httpGetSockets_deactivate)
                                                  "\"sockets\":"
                                                  "\\{\"runs\":[0-9]+\\}"
                                                  "\\}"));
-
-    Deactivate();
 }

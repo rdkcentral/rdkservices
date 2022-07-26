@@ -4,33 +4,34 @@
 
 using namespace WPEFramework;
 
-class FirmwareVersionTestFixture : public ::testing::Test {
+class FirmwareVersionTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::FirmwareVersion> firmwareVersion;
     Exchange::IFirmwareVersion* interface;
 
-    FirmwareVersionTestFixture()
+    FirmwareVersionTest()
+        : firmwareVersion(Core::ProxyType<Plugin::FirmwareVersion>::Create())
     {
     }
-    virtual ~FirmwareVersionTestFixture()
+    virtual ~FirmwareVersionTest()
     {
     }
 
     virtual void SetUp()
     {
-        firmwareVersion = Core::ProxyType<Plugin::FirmwareVersion>::Create();
         interface = static_cast<Exchange::IFirmwareVersion*>(
             firmwareVersion->QueryInterface(Exchange::IFirmwareVersion::ID));
-        EXPECT_TRUE(interface != nullptr);
+        ASSERT_TRUE(interface != nullptr);
     }
 
     virtual void TearDown()
     {
+        ASSERT_TRUE(interface != nullptr);
         interface->Release();
     }
 };
 
-TEST_F(FirmwareVersionTestFixture, Imagename)
+TEST_F(FirmwareVersionTest, Imagename)
 {
     string imagename;
 
@@ -38,7 +39,7 @@ TEST_F(FirmwareVersionTestFixture, Imagename)
     EXPECT_EQ(imagename, _T("PX051AEI_VBN_2203_sprint_20220331225312sdy_NG"));
 }
 
-TEST_F(FirmwareVersionTestFixture, Sdk)
+TEST_F(FirmwareVersionTest, Sdk)
 {
     string sdk;
 
@@ -46,7 +47,7 @@ TEST_F(FirmwareVersionTestFixture, Sdk)
     EXPECT_EQ(sdk, _T("17.3"));
 }
 
-TEST_F(FirmwareVersionTestFixture, Mediarite)
+TEST_F(FirmwareVersionTest, Mediarite)
 {
     string mediarite;
 
@@ -54,7 +55,7 @@ TEST_F(FirmwareVersionTestFixture, Mediarite)
     EXPECT_EQ(mediarite, _T("8.3.53"));
 }
 
-TEST_F(FirmwareVersionTestFixture, Yocto)
+TEST_F(FirmwareVersionTest, Yocto)
 {
     string yocto;
 
