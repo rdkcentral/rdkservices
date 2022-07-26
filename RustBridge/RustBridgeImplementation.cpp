@@ -294,8 +294,10 @@ namespace WPEFramework {
 					
 					searchPath.push_back(framework->DataPath());
 					searchPath.push_back(framework->PersistentPath());
-					searchPath.push_back(framework->SystemPath());
-					searchPath.push_back(framework->PluginPath());
+					//searchPath.push_back(framework->SystemPath());
+					//searchPath.push_back(framework->PluginPath());
+					searchPath.push_back(framework->VolatilePath());
+					searchPath.push_back("/usr/lib/wpeframework/plugins/");
 					
 					_callback = callback;
 
