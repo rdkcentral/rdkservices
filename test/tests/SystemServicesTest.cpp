@@ -46,16 +46,17 @@ class SystemServicesTest : public::testing::Test
     IARM_EventHandler_t handlerOnDSTTimeChanged;
     FactoriesImplementation factoriesImplementation;
     WrapsImplMock wrapsImplMock;
-    //RfcApiImplMock rfcApiImplMock;
+    SystemMock systemMock;
+    RfcApiImplMock rfcApiImplMock;
     //Mode
-    //string sysMode;
-    //int sysDuration;
+    string sysMode;
+    int sysDuration;
     //GzEnabled
-    //bool gzEnabled;
+    bool gzEnabled;
     //devPower state
-    //string devPowerState;
-    //string devStandbyReason;
-    //bool networkStandby;
+    string devPowerState;
+    string devStandbyReason;
+    bool networkStandby;
     
 private:
     /* data */
@@ -72,6 +73,7 @@ public:
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
         Wraps::getInstance().impl = &wrapsImplMock;
+        systemServImpl::getInstance().impl = &systemMock;
         PluginHost::IFactories::Assign(&factoriesImplementation);
     }
 
@@ -79,6 +81,7 @@ public:
     {
         IarmBus::getInstance().impl = nullptr;
         Wraps::getInstance().impl = nullptr;
+        systemServImpl::getInstance().impl = nullptr;
         PluginHost::IFactories::Assign(nullptr);
     }
 
@@ -192,6 +195,7 @@ TEST_F(SystemServicesTest, RegisteredMethods)
 
 //Mode
 TEST_F(SystemServicesTest, mode){
+        InitService();
          EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -204,4 +208,209 @@ TEST_F(SystemServicesTest, mode){
 
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getMode"),_T("{}"), response));
         EXPECT_EQ(response, string("{\"success\":false}"));
+}
+
+//NetworkStandby
+TEST_F(SystemServicesTest, networkStandby){
+    InitService();
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillOnce(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_TRUE(strcmp(methodName, IARM_BUS_PWRMGR_API_SetNetworkStandbyMode) == 0);
+                return IARM_RESULT_SUCCESS;
+            })
+        .WillOnce(
+        [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+            EXPECT_TRUE(strcmp(methodName, IARM_BUS_PWRMGR_API_GetNetworkStandbyMode) == 0);
+            return IARM_RESULT_SUCCESS;
+        });
+
+EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setNetworkStandbyMode"), _T("{\"nwStandby\":standaby}"), response));
+EXPECT_EQ(response, string("{\"success\":true}"));
+
+EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getNetworkStandbyMode"),_T("{}"), response));
+EXPECT_EQ(response, string("{\"success\":false}"));
+}
+
+//Call the methods... 
+TEST_F(SystemServicesTest, gzEnabled){
+    EXPECT_CALL(systemMock, setGzEnabled(::testing::_))
+            .Times(1)
+            .WillOnce(::testing::Invoke(
+                [&](bool enabled) {
+                    gzEnabled = enabled;
+                    return true;
+                }));
+
+    EXPECT_CALL(systemMock, isGzEnabledHelper(::testing::_))
+            .Times(1)
+            .WillOnce(::testing::Invoke(
+                [&](bool* enabled) {
+                    enabled = &gzEnabled;
+                    return true;
+                }));
+}
+
+TEST_F(SystemServicesTest, powerState){
+EXPECT_CALL(systemMock, setDevicePowerState(::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
+        [&](const char* powerState, const char* standbyReason) {
+            //::memcpy(devPowerState, sysMode.c_str(), sysMode.length());
+            devPowerState = powerState;
+            devStandbyReason = standbyReason;
+        }));
+
+EXPECT_CALL(systemMock, getDevicePowerState(::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
+        [&](const char* powerState) {
+            ::memcpy(powerState, devPowerState.c_str(), devPowerState.length());
+        }));
+}
+
+
+
+TEST_F(SystemServicesTest, RebootDelay)
+{
+    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .Times(2)
+        .WillOnce(::testing::Invoke(
+            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+                return WDMP_FAILURE;
+            }))
+        .WillOnce(::testing::Invoke(
+            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+                EXPECT_EQ(strcmp(pcCallerID, "SystemServices"), 0);
+                EXPECT_EQ(strcmp(pcParameterName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"), 0);
+                EXPECT_EQ(strcmp(pcParameterValue, "5"), 0);
+                EXPECT_EQ(eDataType, WDMP_INT);
+
+                return WDMP_SUCCESS;
+            }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T(""), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":5}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+
+
+TEST_F(SystemServicesTest, AutoReboot)
+{
+    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .Times(2)
+        .WillOnce(::testing::Invoke(
+            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+                return WDMP_FAILURE;
+            }))
+        .WillOnce(::testing::Invoke(
+            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+                EXPECT_EQ(strcmp(pcCallerID, "SystemServices"), 0);
+                EXPECT_EQ(strcmp(pcParameterName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"), 0);
+                EXPECT_EQ(strcmp(pcParameterValue, "false"), 0);
+                EXPECT_EQ(eDataType, WDMP_BOOLEAN);
+
+                return WDMP_SUCCESS;
+            }))
+        .WillOnce(::testing::Invoke(
+            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+                EXPECT_EQ(strcmp(pcCallerID, "SystemServices"), 0);
+                EXPECT_EQ(strcmp(pcParameterName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"), 0);
+                EXPECT_EQ(strcmp(pcParameterValue, "true"), 0);
+                EXPECT_EQ(eDataType, WDMP_BOOLEAN);
+
+                return WDMP_SUCCESS;
+            }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareAutoReboot"), _T(""), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareAutoReboot"), _T("{\"enable\":false}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareAutoReboot"), _T("{\"enable\":true}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, prefferedStandby)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setPreferredStandbyMode"),_T("{\"standbyMode\":LIGHT_SLEEP}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreferredStandbyMode"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"preferredStandbyMode\":LIGHT_SLEEP\"\",\"success\":true}"));
+
+}
+
+TEST_F(SystemServicesTest, deviceInfo )
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getDeviceInfo"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+}
+
+TEST_F(SystemServicesTest, rebootInfo)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreviousRebootInfo"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreviousRebootInfo2"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+}
+
+TEST_F(SystemServicesTest, firmware)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getDownloadedFirmwareInfo"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getFirmwareDownloadPercent"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getFirmwareUpdateInfo"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getFirmwareUpdateState"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("updateFirmware"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+    
+}
+
+//setPowerState / setDevicePowerState
+TEST_F(SystemServicesTest, power)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setPowerState"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPowerState"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPowerStateBeforeReboot"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPowerStateIsManagedByDevice"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+}
+
+// Cahce - set,get,remove, checkKey/contains
+TEST_F(SystemServicesTest, cache)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setCachedValue"), _T("{\"key\":test\",\"value\":test1}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCachedValue"), _T("{\"key\":test}"), response));
+    EXPECT_EQ(response, string("{\"test\":\"test1\",\"deprecated\":\"true\",\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cacheContains"), _T("{\"key\":test}"), response));
+    EXPECT_EQ(response, string("{\"deprecated\":\"true\",\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("removeCacheKey"), _T("{\"key\":test}"), response));
+    EXPECT_EQ(response, string("{\"deprecated\":\"true\",\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cacheContains"), _T("{\"key\":test}"), response));
+    EXPECT_EQ(response, string("{\"SysSrv_Status\":12,\"errorMessage\":\"Key not found\",\"deprecated\":\"true\",\"success\":true}"));
 }
