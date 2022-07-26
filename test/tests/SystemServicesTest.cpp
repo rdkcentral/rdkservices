@@ -192,26 +192,17 @@ TEST_F(SystemServicesTest, RegisteredMethods)
 
 //Mode
 TEST_F(SystemServicesTest, mode){
-        EXPECT_CALL(SystemMock, setMode(::testing::_))
-                .Times(1)
-                .WillOnce(::testing::Invoke(
-                    [&](const char* mode, const int duration) {
-                        sysMode = mode;
-                        sysDuration = duration;
-                        return 0;
-                    }));
+         EXPECT_CALL(IarmBusImplMock, IARM_Bus_Call)
+        .WillOnce(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_TRUE(strcmp(methodName, "DaemonSysModeChange") == 0);
+                param->result = 0;
+                return IARM_RESULT_SUCCESS;
+            });
 
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":\"mode\":normal,\"duration\":1}"), response));
         EXPECT_EQ(response, string("{\"success\":false}"));
 
-        EXPECT_CALL(SystemMock, getMode(::testing::_))
-                .Times(1)
-                .WillOnce(::testing::Invoke(
-                    [&](char* mode, int* duration) {
-                        ::memcpy(mode, sysMode.c_str(), sysMode.length());
-                        duration = sysDuration;
-                        return 0;
-                    }));
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getMode"),_T("{}"), response));
         EXPECT_EQ(response, string("{\"success\":false}"));
 }
@@ -348,7 +339,7 @@ TEST_F(SystemServicesTest, power)
 // Cahce - set,get,remove, checkKey/contains
 TEST_F(SystemServicesTest, cache)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setCachedValue"), _T("{\"key\":test}",\"value\":test1}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setCachedValue"), _T("{\"key\":test\",\"value\":test1}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCachedValue"), _T("{\"key\":test}"), response));

@@ -1,47 +1,38 @@
+#pragma once
 
 class systemServ {
 public:
-    virtual int setMode(const char* mode, const int duration) const = 0 ;
-    virtual int getMode(char* mode, int* duration) const = 0 ;
-
-};
-
-class systemFile{
-public:
+    virtual ~systemServ() = default;
     virtual bool isGzEnabledHelper(bool* enabled) const = 0;
     virtual bool setGzEnabled(bool enabled) const =0;
+
 };
 
-class systemCmdImpl {
+class systemServImpl {
+
     public:
-        virtual ~systemCmdImpl() = default;
-        virtual int system() = 0;
-};
-class systemCmd{
-    public:
-    static systemCmd& getInstance()
+    static systemServImpl& getInstance()
     {
-        static systemCmd instance;
+        static  systemServImpl instance;
         return instance;
     }
 
-    systemCmdImpl* impl;
+    systemServ* impl;
 
-    static int system(const char* command)
+    static bool isGzEnabledHelper(bool* enabled)
     {
-        return getInstance().impl->system(command);
+        return getInstance().impl->isGzEnabledHelper(enabled);
     }
 
+    static bool setGzEnabled(bool enabled)
+    {
+        return getInstance().impl->setGzEnabled(enabled);
+    }
 
-
-};
+}
 
 class systemPower{
     virtual int setDevicePowerState(const char* powerState, const char* standbyReason) const =0;
     virtual int getDevicePowerState(char* powerState) const =0;
 };
 
-class systemIARM{
-
-
-};

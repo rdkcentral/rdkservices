@@ -4,10 +4,9 @@
 
 #include "system.h"
 
-class SystemMock : public systemServ, public systemFile, public systemPower {
+class SystemMock : public systemServ, public systemPower {
 
-     MOCK_METHOD(int, setMode, (const char* mode, const int duration), (const, override));
-     MOCK_METHOD(int, getMode, (char* mode, int* duration), (const, override));
+     
      MOCK_METHOD(bool, isGzEnabledHelper, (bool* enabled), (const, override));
      MOCK_METHOD(bool, setGzEnabled,(bool enabled),(const, override));
 
