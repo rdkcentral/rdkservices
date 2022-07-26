@@ -251,7 +251,7 @@ TEST_F(DeviceCapabilitiesDsTest, SupportedHdcp_noParam)
 {
     VideoOutputPortMock videoOutputPortMock;
     string videoPort(_T("HDMI0"));
-    Exchange::IDeviceCapabilities::CopyProtection supportedHDCPVersion;
+    auto supportedHDCPVersion = Exchange::IDeviceCapabilities::CopyProtection::HDCP_UNAVAILABLE;
 
     EXPECT_CALL(videoOutputPortMock, getHDCPProtocol())
         .Times(1)
@@ -440,7 +440,7 @@ TEST_F(DeviceCapabilitiesDsTest, SupportedResolutions_HDMI0_exception)
 
 TEST_F(DeviceCapabilitiesDsTest, SupportedHdcp_HDMI0_exception)
 {
-    Exchange::IDeviceCapabilities::CopyProtection supportedHDCPVersion;
+    auto supportedHDCPVersion = Exchange::IDeviceCapabilities::CopyProtection::HDCP_UNAVAILABLE;
 
     EXPECT_CALL(videoOutputPortConfigImplMock, getPort(::testing::_))
         .Times(1)
