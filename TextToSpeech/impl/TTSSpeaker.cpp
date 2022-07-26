@@ -755,41 +755,13 @@ void TTSSpeaker::waitForAudioToFinishTimeout(float timeout_s) {
     m_isEOS = false;
 }
 
-bool TTSSpeaker::isUrlScheme(std::string text, size_t pos) {
-    std::string url[] = {"https://","http://","ftp://","file://"};
-    bool flag = false;
-    if(text[pos+1]=='/') {
-        pos+=1; 
-    } else if(pos+1 == text.length()) {
-    } else {
-        return flag;
-    }
-    int urlSchemeLen = 0; 
-    std::string r;
-    for(int i=0;i<(sizeof(url)/sizeof(url[0]));i++) {
-        urlSchemeLen = url[i].length();
-        if((pos+1)>=urlSchemeLen) {
-            r = text.substr((pos+1)-url[i].length(), url[i].length());
-            if(r.compare(url[i])==0) {
-                flag = true;
-                break;
-            }
-        }
-    }
-    return flag;
-}
-
-void TTSSpeaker::replaceIfIsolated(std::string& text, const std::string& search, const std::string& replace) {
+void TTSSpeaker::replaceIfIsolated(std::string& text, const std::string& search, const std::string& replace, bool skipIsolationCheck) {
     size_t pos = 0;
     while ((pos = text.find(search, pos)) != std::string::npos) {
-        if((search=="/") && (isUrlScheme(text,pos))) {
-            pos += search.length();
-            continue;
-        }
         bool punctBefore = (pos == 0 || std::ispunct(text[pos-1]) || std::isspace(text[pos-1]));
         bool punctAfter = (pos+1 == text.length() || std::ispunct(text[pos+1]) || std::isspace(text[pos+1]));
 
-        if(punctBefore && punctAfter) {
+        if((punctBefore && punctAfter) || skipIsolationCheck) {
             text.replace(pos, search.length(), replace);
             pos += replace.length();
         } else {
@@ -843,6 +815,7 @@ void TTSSpeaker::curlSanitize(std::string &sanitizedString) {
 void TTSSpeaker::sanitizeString(std::string &input, std::string &sanitizedString) {
     sanitizedString = input;
 
+    replaceIfIsolated(sanitizedString, "://", " colon slash slash ", true);
     replaceIfIsolated(sanitizedString, "$", "dollar");
     replaceIfIsolated(sanitizedString, "#", "pound");
     replaceIfIsolated(sanitizedString, "&", "and");

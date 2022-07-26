@@ -210,7 +210,7 @@ private:
     std::string constructURL(TTSConfiguration &config, SpeechData &d);
     bool isSilentPunctuation(const char c);
     void replaceSuccesivePunctuation(std::string& subject);
-    void replaceIfIsolated(std::string& subject, const std::string& search, const std::string& replace);
+    void replaceIfIsolated(std::string& subject, const std::string& search, const std::string& replace, bool skipIsolationCheck = false);
     void curlSanitize(std::string &url);
     void sanitizeString(std::string &input, std::string &sanitizedString);
     void speakText(TTSConfiguration config, SpeechData &data);
@@ -219,7 +219,6 @@ private:
     bool handleMessage(GstMessage*);
     static int GstBusCallback(GstBus *bus, GstMessage *message, gpointer data);
     static void event_loop(void *data);
-    bool isUrlScheme(std::string text, size_t pos);
 };
 
 } // namespace TTS
