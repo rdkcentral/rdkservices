@@ -21,49 +21,44 @@ const string webPrefix = _T("/Service/DeviceInfo");
 const string iarmName = _T("Thunder_Plugins");
 }
 
-class DeviceInfoJsonRpcTestFixture : public ::testing::Test {
+class DeviceInfoJsonRpcTest : public ::testing::Test {
 protected:
-    IarmBusImplMock iarmBusImplMock;
-    ManagerImplMock managerImplMock;
-    HostImplMock hostImplMock;
-    ServiceMock service;
-    Core::Sink<SystemInfo> subSystem;
-    VideoOutputPortConfigImplMock videoOutputPortConfigImplMock;
-
     Core::ProxyType<Plugin::DeviceInfo> plugin;
     Core::JSONRPC::Handler& handler;
 
-    Core::JSONRPC::Connection connection;
-    Core::JSONRPC::Message message;
-    string response;
-
-    DeviceInfoJsonRpcTestFixture()
+    DeviceInfoJsonRpcTest()
         : plugin(Core::ProxyType<Plugin::DeviceInfo>::Create())
         , handler(*plugin)
-        , connection(1, 0)
     {
     }
-    virtual ~DeviceInfoJsonRpcTestFixture()
+    virtual ~DeviceInfoJsonRpcTest()
     {
     }
+};
 
-    virtual void SetUp()
+class DeviceInfoJsonRpcInitializedTest : public DeviceInfoJsonRpcTest {
+protected:
+    IarmBusImplMock iarmBusImplMock;
+    ManagerImplMock managerImplMock;
+    ServiceMock service;
+    Core::Sink<SystemInfo> subSystem;
+    Core::JSONRPC::Connection connection;
+    string response;
+
+    DeviceInfoJsonRpcInitializedTest()
+        : DeviceInfoJsonRpcTest()
+        , connection(1, 0)
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
         device::Manager::getInstance().impl = &managerImplMock;
-        device::Host::getInstance().impl = &hostImplMock;
-        device::VideoOutputPortConfig::getInstance().impl = &videoOutputPortConfigImplMock;
     }
-
-    virtual void TearDown()
+    virtual ~DeviceInfoJsonRpcInitializedTest()
     {
         IarmBus::getInstance().impl = nullptr;
         device::Manager::getInstance().impl = nullptr;
-        device::Host::getInstance().impl = nullptr;
-        device::VideoOutputPortConfig::getInstance().impl = nullptr;
     }
 
-    void Activate()
+    virtual void SetUp()
     {
         EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
             .Times(1)
@@ -96,13 +91,31 @@ protected:
         EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
 
-    void Deactivate()
+    virtual void TearDown()
     {
         plugin->Deinitialize(&service);
     }
 };
 
-TEST_F(DeviceInfoJsonRpcTestFixture, registeredMethods)
+class DeviceInfoJsonRpcDsTest : public DeviceInfoJsonRpcInitializedTest {
+protected:
+    HostImplMock hostImplMock;
+    VideoOutputPortConfigImplMock videoOutputPortConfigImplMock;
+
+    DeviceInfoJsonRpcDsTest()
+        : DeviceInfoJsonRpcInitializedTest()
+    {
+        device::Host::getInstance().impl = &hostImplMock;
+        device::VideoOutputPortConfig::getInstance().impl = &videoOutputPortConfigImplMock;
+    }
+    virtual ~DeviceInfoJsonRpcDsTest()
+    {
+        device::Host::getInstance().impl = nullptr;
+        device::VideoOutputPortConfig::getInstance().impl = nullptr;
+    }
+};
+
+TEST_F(DeviceInfoJsonRpcTest, registeredMethods)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("socketinfo")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("addresses")));
@@ -125,10 +138,8 @@ TEST_F(DeviceInfoJsonRpcTestFixture, registeredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("supportedms12audioprofiles")));
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_systeminfo_deactivate)
+TEST_F(DeviceInfoJsonRpcInitializedTest, systeminfo)
 {
-    Activate();
-
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("systeminfo"), _T(""), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{"
                                                   "\"version\":\"#\","
@@ -148,74 +159,46 @@ TEST_F(DeviceInfoJsonRpcTestFixture, activate_systeminfo_deactivate)
                                                   "\"serialnumber\":\".+\","
                                                   "\"time\":\".+\""
                                                   "\\}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_addresses_deactivate)
+TEST_F(DeviceInfoJsonRpcInitializedTest, addresses)
 {
-    Activate();
-
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("addresses"), _T(""), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\[(\\{\"name\":\".+\",\"mac\":\".+\",\"ip\":\\[(\".+\"){0,}\\]\\}){0,}\\]"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_socketinfo_deactivate)
+TEST_F(DeviceInfoJsonRpcInitializedTest, socketinfo)
 {
-    Activate();
-
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("socketinfo"), _T(""), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{\"runs\":[0-9]+\\}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_firmwareversion_deactivate)
+TEST_F(DeviceInfoJsonRpcInitializedTest, firmwareversion)
 {
-    Activate();
-
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("firmwareversion"), _T(""), response));
     EXPECT_EQ(response, _T("{\"imagename\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\",\"sdk\":\"17.3\",\"mediarite\":\"8.3.53\",\"yocto\":\"dunfell\"}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_make_deactivate)
+TEST_F(DeviceInfoJsonRpcInitializedTest, make)
 {
-    Activate();
-
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("make"), _T(""), response));
     EXPECT_EQ(response, _T("{\"make\":\"pace\"}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_modelname_deactivate)
+TEST_F(DeviceInfoJsonRpcInitializedTest, modelname)
 {
-    Activate();
-
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("modelname"), _T(""), response));
     EXPECT_EQ(response, _T("{\"model\":\"Pace Xi5\"}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_devicetype_deactivate)
+TEST_F(DeviceInfoJsonRpcInitializedTest, devicetype)
 {
-    Activate();
-
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("devicetype"), _T(""), response));
     EXPECT_EQ(response, _T("{\"devicetype\":\"IpStb\"}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_supportedaudioports_deactivate)
+TEST_F(DeviceInfoJsonRpcDsTest, supportedaudioports)
 {
-    Activate();
-
     AudioOutputPortMock audioOutputPortMock;
     string audioPort(_T("HDMI0"));
 
@@ -232,14 +215,10 @@ TEST_F(DeviceInfoJsonRpcTestFixture, activate_supportedaudioports_deactivate)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("supportedaudioports"), _T(""), response));
     EXPECT_EQ(response, _T("{\"supportedAudioPorts\":[\"HDMI0\"]}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_supportedvideodisplays_deactivate)
+TEST_F(DeviceInfoJsonRpcDsTest, supportedvideodisplays)
 {
-    Activate();
-
     VideoOutputPortMock videoOutputPortMock;
     string videoPort(_T("HDMI0"));
 
@@ -256,14 +235,10 @@ TEST_F(DeviceInfoJsonRpcTestFixture, activate_supportedvideodisplays_deactivate)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("supportedvideodisplays"), _T(""), response));
     EXPECT_EQ(response, _T("{\"supportedVideoDisplays\":[\"HDMI0\"]}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_hostedid_deactivate)
+TEST_F(DeviceInfoJsonRpcDsTest, hostedid)
 {
-    Activate();
-
     std::vector<uint8_t> edidVec({ 't', 'e', 's', 't' });
 
     EXPECT_CALL(hostImplMock, getHostEDID(::testing::_))
@@ -275,14 +250,10 @@ TEST_F(DeviceInfoJsonRpcTestFixture, activate_hostedid_deactivate)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("hostedid"), _T(""), response));
     EXPECT_EQ(response, _T("{\"EDID\":\"dGVzdA==\"}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_defaultresolution_deactivate)
+TEST_F(DeviceInfoJsonRpcDsTest, defaultresolution)
 {
-    Activate();
-
     VideoOutputPortMock videoOutputPortMock;
     VideoResolutionMock videoResolutionMock;
     string videoPort(_T("HDMI0"));
@@ -303,14 +274,10 @@ TEST_F(DeviceInfoJsonRpcTestFixture, activate_defaultresolution_deactivate)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("defaultresolution"), _T(""), response));
     EXPECT_EQ(response, _T("{\"defaultResolution\":\"1080p\"}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_supportedresolutions_deactivate)
+TEST_F(DeviceInfoJsonRpcDsTest, supportedresolutions)
 {
-    Activate();
-
     VideoOutputPortMock videoOutputPortMock;
     VideoOutputPortTypeMock videoOutputPortTypeMock;
     VideoResolutionMock videoResolutionMock;
@@ -345,14 +312,10 @@ TEST_F(DeviceInfoJsonRpcTestFixture, activate_supportedresolutions_deactivate)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("supportedresolutions"), _T(""), response));
     EXPECT_EQ(response, _T("{\"supportedResolutions\":[\"1080p\"]}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_supportedhdcp_deactivate)
+TEST_F(DeviceInfoJsonRpcDsTest, supportedhdcp)
 {
-    Activate();
-
     VideoOutputPortMock videoOutputPortMock;
     string videoPort(_T("HDMI0"));
 
@@ -368,14 +331,10 @@ TEST_F(DeviceInfoJsonRpcTestFixture, activate_supportedhdcp_deactivate)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("supportedhdcp"), _T(""), response));
     EXPECT_EQ(response, _T("{\"supportedHDCPVersion\":\"2.2\"}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_audiocapabilities_deactivate)
+TEST_F(DeviceInfoJsonRpcDsTest, audiocapabilities)
 {
-    Activate();
-
     AudioOutputPortMock audioOutputPortMock;
     string audioPort(_T("HDMI0"));
 
@@ -383,7 +342,7 @@ TEST_F(DeviceInfoJsonRpcTestFixture, activate_audiocapabilities_deactivate)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](int* capabilities) {
-                EXPECT_TRUE(capabilities != nullptr);
+                ASSERT_TRUE(capabilities != nullptr);
                 EXPECT_EQ(*capabilities, dsAUDIOSUPPORT_NONE);
                 *capabilities = dsAUDIOSUPPORT_ATMOS | dsAUDIOSUPPORT_DD | dsAUDIOSUPPORT_DDPLUS | dsAUDIOSUPPORT_DAD | dsAUDIOSUPPORT_DAPv2 | dsAUDIOSUPPORT_MS12;
             }));
@@ -396,14 +355,10 @@ TEST_F(DeviceInfoJsonRpcTestFixture, activate_audiocapabilities_deactivate)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("audiocapabilities"), _T(""), response));
     EXPECT_EQ(response, _T("{\"AudioCapabilities\":[\"ATMOS\",\"DOLBY DIGITAL\",\"DOLBY DIGITAL PLUS\",\"Dual Audio Decode\",\"DAPv2\",\"MS12\"]}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_ms12capabilities_deactivate)
+TEST_F(DeviceInfoJsonRpcDsTest, ms12capabilities)
 {
-    Activate();
-
     AudioOutputPortMock audioOutputPortMock;
     string audioPort(_T("HDMI0"));
 
@@ -411,7 +366,7 @@ TEST_F(DeviceInfoJsonRpcTestFixture, activate_ms12capabilities_deactivate)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](int* capabilities) {
-                EXPECT_TRUE(capabilities != nullptr);
+                ASSERT_TRUE(capabilities != nullptr);
                 EXPECT_EQ(*capabilities, dsMS12SUPPORT_NONE);
                 *capabilities = dsMS12SUPPORT_DolbyVolume | dsMS12SUPPORT_InteligentEqualizer | dsMS12SUPPORT_DialogueEnhancer;
             }));
@@ -424,14 +379,10 @@ TEST_F(DeviceInfoJsonRpcTestFixture, activate_ms12capabilities_deactivate)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("ms12capabilities"), _T(""), response));
     EXPECT_EQ(response, _T("{\"MS12Capabilities\":[\"Dolby Volume\",\"Inteligent Equalizer\",\"Dialogue Enhancer\"]}"));
-
-    Deactivate();
 }
 
-TEST_F(DeviceInfoJsonRpcTestFixture, activate_supportedms12audioprofiles_deactivate)
+TEST_F(DeviceInfoJsonRpcDsTest, supportedms12audioprofiles)
 {
-    Activate();
-
     AudioOutputPortMock audioOutputPortMock;
     string audioPort(_T("HDMI0"));
     string audioPortMS12AudioProfile(_T("Movie"));
@@ -452,6 +403,4 @@ TEST_F(DeviceInfoJsonRpcTestFixture, activate_supportedms12audioprofiles_deactiv
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("supportedms12audioprofiles"), _T(""), response));
     EXPECT_EQ(response, _T("{\"supportedMS12AudioProfiles\":[\"Movie\"]}"));
-
-    Deactivate();
 }

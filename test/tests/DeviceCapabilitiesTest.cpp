@@ -19,30 +19,26 @@ namespace {
 const string iarmName = _T("Thunder_Plugins");
 }
 
-class DeviceCapabilitiesTestFixture : public ::testing::Test {
+class DeviceCapabilitiesTest : public ::testing::Test {
 protected:
     IarmBusImplMock iarmBusImplMock;
     ManagerImplMock managerImplMock;
-    HostImplMock hostImplMock;
-    VideoOutputPortConfigImplMock videoOutputPortConfigImplMock;
-
     Core::ProxyType<Plugin::DeviceCapabilities> deviceCapabilities;
     Exchange::IDeviceCapabilities* interface;
 
-    DeviceCapabilitiesTestFixture()
+    DeviceCapabilitiesTest()
     {
+        IarmBus::getInstance().impl = &iarmBusImplMock;
+        device::Manager::getInstance().impl = &managerImplMock;
     }
-    virtual ~DeviceCapabilitiesTestFixture()
+    virtual ~DeviceCapabilitiesTest()
     {
+        IarmBus::getInstance().impl = nullptr;
+        device::Manager::getInstance().impl = nullptr;
     }
 
     virtual void SetUp()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-        device::Manager::getInstance().impl = &managerImplMock;
-        device::Host::getInstance().impl = &hostImplMock;
-        device::VideoOutputPortConfig::getInstance().impl = &videoOutputPortConfigImplMock;
-
         EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
             .Times(1)
             .WillOnce(::testing::Invoke(
@@ -59,23 +55,38 @@ protected:
             .WillOnce(::testing::Return());
 
         deviceCapabilities = Core::ProxyType<Plugin::DeviceCapabilities>::Create();
+
         interface = static_cast<Exchange::IDeviceCapabilities*>(
             deviceCapabilities->QueryInterface(Exchange::IDeviceCapabilities::ID));
-        EXPECT_TRUE(interface != nullptr);
+        ASSERT_TRUE(interface != nullptr);
     }
 
     virtual void TearDown()
     {
-        IarmBus::getInstance().impl = nullptr;
-        device::Manager::getInstance().impl = nullptr;
-        device::Host::getInstance().impl = nullptr;
-        device::VideoOutputPortConfig::getInstance().impl = nullptr;
-
+        ASSERT_TRUE(interface != nullptr);
         interface->Release();
     }
 };
 
-TEST_F(DeviceCapabilitiesTestFixture, Make)
+class DeviceCapabilitiesDsTest : public DeviceCapabilitiesTest {
+protected:
+    HostImplMock hostImplMock;
+    VideoOutputPortConfigImplMock videoOutputPortConfigImplMock;
+
+    DeviceCapabilitiesDsTest()
+        : DeviceCapabilitiesTest()
+    {
+        device::Host::getInstance().impl = &hostImplMock;
+        device::VideoOutputPortConfig::getInstance().impl = &videoOutputPortConfigImplMock;
+    }
+    virtual ~DeviceCapabilitiesDsTest()
+    {
+        device::Host::getInstance().impl = nullptr;
+        device::VideoOutputPortConfig::getInstance().impl = nullptr;
+    }
+};
+
+TEST_F(DeviceCapabilitiesTest, Make)
 {
     string make;
 
@@ -83,7 +94,7 @@ TEST_F(DeviceCapabilitiesTestFixture, Make)
     EXPECT_EQ(make, _T("Pace"));
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, Model)
+TEST_F(DeviceCapabilitiesTest, Model)
 {
     string model;
 
@@ -91,7 +102,7 @@ TEST_F(DeviceCapabilitiesTestFixture, Model)
     EXPECT_EQ(model, _T("Pace Xi5"));
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, DeviceType)
+TEST_F(DeviceCapabilitiesTest, DeviceType)
 {
     string deviceType;
 
@@ -99,7 +110,7 @@ TEST_F(DeviceCapabilitiesTestFixture, DeviceType)
     EXPECT_EQ(deviceType, _T("IpStb"));
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, SupportedAudioPorts)
+TEST_F(DeviceCapabilitiesDsTest, SupportedAudioPorts)
 {
     AudioOutputPortMock audioOutputPortMock;
     RPC::IStringIterator* supportedAudioPorts = nullptr;
@@ -118,13 +129,14 @@ TEST_F(DeviceCapabilitiesTestFixture, SupportedAudioPorts)
             }));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SupportedAudioPorts(supportedAudioPorts));
-    EXPECT_TRUE(supportedAudioPorts->Next(element));
+    ASSERT_TRUE(supportedAudioPorts != nullptr);
+    ASSERT_TRUE(supportedAudioPorts->Next(element));
     EXPECT_EQ(element, audioPort);
 
     supportedAudioPorts->Release();
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, SupportedVideoDisplays)
+TEST_F(DeviceCapabilitiesDsTest, SupportedVideoDisplays)
 {
     VideoOutputPortMock videoOutputPortMock;
     RPC::IStringIterator* supportedVideoDisplays = nullptr;
@@ -143,13 +155,14 @@ TEST_F(DeviceCapabilitiesTestFixture, SupportedVideoDisplays)
             }));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SupportedVideoDisplays(supportedVideoDisplays));
-    EXPECT_TRUE(supportedVideoDisplays->Next(element));
+    ASSERT_TRUE(supportedVideoDisplays != nullptr);
+    ASSERT_TRUE(supportedVideoDisplays->Next(element));
     EXPECT_EQ(element, videoPort);
 
     supportedVideoDisplays->Release();
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, HostEDID)
+TEST_F(DeviceCapabilitiesDsTest, HostEDID)
 {
     std::vector<uint8_t> edidVec({ 't', 'e', 's', 't' });
     string edid;
@@ -165,7 +178,7 @@ TEST_F(DeviceCapabilitiesTestFixture, HostEDID)
     EXPECT_EQ(edid, _T("dGVzdA=="));
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, DefaultResolution_noParam)
+TEST_F(DeviceCapabilitiesDsTest, DefaultResolution_noParam)
 {
     VideoOutputPortMock videoOutputPortMock;
     VideoResolutionMock videoResolutionMock;
@@ -190,7 +203,7 @@ TEST_F(DeviceCapabilitiesTestFixture, DefaultResolution_noParam)
     EXPECT_EQ(defaultResolution, videoPortDefaultResolution);
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, SupportedResolutions_noParam)
+TEST_F(DeviceCapabilitiesDsTest, SupportedResolutions_noParam)
 {
     VideoOutputPortMock videoOutputPortMock;
     VideoOutputPortTypeMock videoOutputPortTypeMock;
@@ -227,13 +240,14 @@ TEST_F(DeviceCapabilitiesTestFixture, SupportedResolutions_noParam)
         .WillOnce(::testing::ReturnRef(videoOutputPortTypeMock));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SupportedResolutions(string(), supportedResolutions));
-    EXPECT_TRUE(supportedResolutions->Next(element));
+    ASSERT_TRUE(supportedResolutions != nullptr);
+    ASSERT_TRUE(supportedResolutions->Next(element));
     EXPECT_EQ(element, videoPortSupportedResolution);
 
     supportedResolutions->Release();
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, SupportedHdcp_noParam)
+TEST_F(DeviceCapabilitiesDsTest, SupportedHdcp_noParam)
 {
     VideoOutputPortMock videoOutputPortMock;
     string videoPort(_T("HDMI0"));
@@ -253,7 +267,7 @@ TEST_F(DeviceCapabilitiesTestFixture, SupportedHdcp_noParam)
     EXPECT_EQ(supportedHDCPVersion, Exchange::IDeviceCapabilities::CopyProtection::HDCP_22);
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, AudioCapabilities_noParam)
+TEST_F(DeviceCapabilitiesDsTest, AudioCapabilities_noParam)
 {
     AudioOutputPortMock audioOutputPortMock;
     Exchange::IDeviceCapabilities::IAudioCapabilityIterator* audioCapabilities = nullptr;
@@ -264,7 +278,7 @@ TEST_F(DeviceCapabilitiesTestFixture, AudioCapabilities_noParam)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](int* capabilities) {
-                EXPECT_TRUE(capabilities != nullptr);
+                ASSERT_TRUE(capabilities != nullptr);
                 EXPECT_EQ(*capabilities, dsAUDIOSUPPORT_NONE);
                 *capabilities = dsAUDIOSUPPORT_ATMOS | dsAUDIOSUPPORT_DDPLUS;
             }));
@@ -276,15 +290,16 @@ TEST_F(DeviceCapabilitiesTestFixture, AudioCapabilities_noParam)
         .WillOnce(::testing::ReturnRef(audioOutputPortMock));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->AudioCapabilities(string(), audioCapabilities));
-    EXPECT_TRUE(audioCapabilities->Next(element));
+    ASSERT_TRUE(audioCapabilities != nullptr);
+    ASSERT_TRUE(audioCapabilities->Next(element));
     EXPECT_EQ(element, Exchange::IDeviceCapabilities::AudioCapability::ATMOS);
-    EXPECT_TRUE(audioCapabilities->Next(element));
+    ASSERT_TRUE(audioCapabilities->Next(element));
     EXPECT_EQ(element, Exchange::IDeviceCapabilities::AudioCapability::DDPLUS);
 
     audioCapabilities->Release();
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, MS12Capabilities_noParam)
+TEST_F(DeviceCapabilitiesDsTest, MS12Capabilities_noParam)
 {
     AudioOutputPortMock audioOutputPortMock;
     Exchange::IDeviceCapabilities::IMS12CapabilityIterator* ms12Capabilities = nullptr;
@@ -295,7 +310,7 @@ TEST_F(DeviceCapabilitiesTestFixture, MS12Capabilities_noParam)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](int* capabilities) {
-                EXPECT_TRUE(capabilities != nullptr);
+                ASSERT_TRUE(capabilities != nullptr);
                 EXPECT_EQ(*capabilities, dsMS12SUPPORT_NONE);
                 *capabilities = dsMS12SUPPORT_DolbyVolume | dsMS12SUPPORT_InteligentEqualizer;
             }));
@@ -307,15 +322,16 @@ TEST_F(DeviceCapabilitiesTestFixture, MS12Capabilities_noParam)
         .WillOnce(::testing::ReturnRef(audioOutputPortMock));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->MS12Capabilities(string(), ms12Capabilities));
-    EXPECT_TRUE(ms12Capabilities->Next(element));
+    ASSERT_TRUE(ms12Capabilities != nullptr);
+    ASSERT_TRUE(ms12Capabilities->Next(element));
     EXPECT_EQ(element, Exchange::IDeviceCapabilities::MS12Capability::DOLBYVOLUME);
-    EXPECT_TRUE(ms12Capabilities->Next(element));
+    ASSERT_TRUE(ms12Capabilities->Next(element));
     EXPECT_EQ(element, Exchange::IDeviceCapabilities::MS12Capability::INTELIGENTEQUALIZER);
 
     ms12Capabilities->Release();
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, SupportedMS12AudioProfiles_noParam)
+TEST_F(DeviceCapabilitiesDsTest, SupportedMS12AudioProfiles_noParam)
 {
     AudioOutputPortMock audioOutputPortMock;
     RPC::IStringIterator* supportedMS12AudioProfiles = nullptr;
@@ -338,13 +354,14 @@ TEST_F(DeviceCapabilitiesTestFixture, SupportedMS12AudioProfiles_noParam)
         .WillOnce(::testing::ReturnRef(audioOutputPortMock));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SupportedMS12AudioProfiles(string(), supportedMS12AudioProfiles));
-    EXPECT_TRUE(supportedMS12AudioProfiles->Next(element));
+    ASSERT_TRUE(supportedMS12AudioProfiles != nullptr);
+    ASSERT_TRUE(supportedMS12AudioProfiles->Next(element));
     EXPECT_EQ(element, audioPortMS12AudioProfile);
 
     supportedMS12AudioProfiles->Release();
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, SupportedAudioPorts_exception)
+TEST_F(DeviceCapabilitiesDsTest, SupportedAudioPorts_exception)
 {
     RPC::IStringIterator* supportedAudioPorts = nullptr;
 
@@ -359,7 +376,7 @@ TEST_F(DeviceCapabilitiesTestFixture, SupportedAudioPorts_exception)
     EXPECT_EQ(supportedAudioPorts, nullptr);
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, SupportedVideoDisplays_exception)
+TEST_F(DeviceCapabilitiesDsTest, SupportedVideoDisplays_exception)
 {
     RPC::IStringIterator* supportedVideoDisplays = nullptr;
 
@@ -374,7 +391,7 @@ TEST_F(DeviceCapabilitiesTestFixture, SupportedVideoDisplays_exception)
     EXPECT_EQ(supportedVideoDisplays, nullptr);
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, HostEDID_exception)
+TEST_F(DeviceCapabilitiesDsTest, HostEDID_exception)
 {
     string edid;
 
@@ -389,7 +406,7 @@ TEST_F(DeviceCapabilitiesTestFixture, HostEDID_exception)
     EXPECT_EQ(edid, string());
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, DefaultResolution_HDMI0_exception)
+TEST_F(DeviceCapabilitiesDsTest, DefaultResolution_HDMI0_exception)
 {
     string defaultResolution;
 
@@ -405,7 +422,7 @@ TEST_F(DeviceCapabilitiesTestFixture, DefaultResolution_HDMI0_exception)
     EXPECT_EQ(defaultResolution, string());
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, SupportedResolutions_HDMI0_exception)
+TEST_F(DeviceCapabilitiesDsTest, SupportedResolutions_HDMI0_exception)
 {
     RPC::IStringIterator* supportedResolutions = nullptr;
 
@@ -421,7 +438,7 @@ TEST_F(DeviceCapabilitiesTestFixture, SupportedResolutions_HDMI0_exception)
     EXPECT_EQ(supportedResolutions, nullptr);
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, SupportedHdcp_HDMI0_exception)
+TEST_F(DeviceCapabilitiesDsTest, SupportedHdcp_HDMI0_exception)
 {
     Exchange::IDeviceCapabilities::CopyProtection supportedHDCPVersion;
 
@@ -437,7 +454,7 @@ TEST_F(DeviceCapabilitiesTestFixture, SupportedHdcp_HDMI0_exception)
     EXPECT_EQ(supportedHDCPVersion, Exchange::IDeviceCapabilities::CopyProtection::HDCP_UNAVAILABLE);
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, AudioCapabilities_HDMI0_exception)
+TEST_F(DeviceCapabilitiesDsTest, AudioCapabilities_HDMI0_exception)
 {
     Exchange::IDeviceCapabilities::IAudioCapabilityIterator* audioCapabilities = nullptr;
 
@@ -453,7 +470,7 @@ TEST_F(DeviceCapabilitiesTestFixture, AudioCapabilities_HDMI0_exception)
     EXPECT_EQ(audioCapabilities, nullptr);
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, MS12Capabilities_HDMI0_exception)
+TEST_F(DeviceCapabilitiesDsTest, MS12Capabilities_HDMI0_exception)
 {
     Exchange::IDeviceCapabilities::IMS12CapabilityIterator* ms12Capabilities = nullptr;
 
@@ -469,7 +486,7 @@ TEST_F(DeviceCapabilitiesTestFixture, MS12Capabilities_HDMI0_exception)
     EXPECT_EQ(ms12Capabilities, nullptr);
 }
 
-TEST_F(DeviceCapabilitiesTestFixture, SupportedMS12AudioProfiles_HDMI0_exception)
+TEST_F(DeviceCapabilitiesDsTest, SupportedMS12AudioProfiles_HDMI0_exception)
 {
     RPC::IStringIterator* supportedMS12AudioProfiles = nullptr;
 
