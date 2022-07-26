@@ -29,7 +29,7 @@ class systemServImpl {
         return getInstance().impl->setGzEnabled(enabled);
     }
 
-}
+};
 
 class systemPower{
     virtual int setDevicePowerState(const char* powerState, const char* standbyReason) const =0;
