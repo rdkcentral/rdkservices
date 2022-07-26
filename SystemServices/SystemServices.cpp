@@ -2727,20 +2727,19 @@ namespace WPEFramework {
             }
 
             smatch match;
+            if (!regex_search(rebootInfo, match, regex("(?:PreviousRebootReason:\\s*)(\\d{2}\\.\\d{2}\\.\\d{4}_\\d{2}:\\d{2}\\.\\d{2})(?:\\s*RebootReason:)([^\\n]*)"))
+                    || match.size() < 3) {
+                LOGERR("%s doesn't have timestamp with reboot reason information", REBOOT_INFO_LOG_FILE);
+                returnResponse(false);
+            }
 
-            string timeStamp = "Unknown";
-            string reason = "Unknown";
+            string timeStamp = trim(match[1]);
+            string reason = trim(match[2]);
             string source = "Unknown";
             string customReason = "Unknown";
             string otherReason = "Unknown";
 
             string temp;
-            if (regex_search(rebootInfo, match, regex("(?:PreviousRebootTime:)([^\\n]+)")) &&  match.size() > 1) temp = trim(match[1]);
-            if (temp.size() > 0) timeStamp = temp;
-
-            if (regex_search(rebootInfo, match, regex("(?:PreviousRebootReason: RebootReason:)([^\\n]+)")) &&  match.size() > 1) temp = trim(match[1]);
-            if (temp.size() > 0) reason = temp;
-
             if (regex_search(rebootInfo, match, regex("(?:PreviousRebootInitiatedBy:)([^\\n]+)")) &&  match.size() > 1) temp = trim(match[1]);
             if (temp.size() > 0) source = temp;
 
