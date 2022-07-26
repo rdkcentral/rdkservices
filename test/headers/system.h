@@ -3,9 +3,10 @@
 class systemServ {
 public:
     virtual ~systemServ() = default;
-    virtual bool isGzEnabledHelper(bool* enabled) const = 0;
-    virtual bool setGzEnabled(bool enabled) const =0;
-
+    virtual bool isGzEnabledHelper(bool* enabled) = 0;
+    virtual bool setGzEnabled(bool enabled) = 0;
+    virtual int setDevicePowerState(const char* powerState, const char* standbyReason) = 0;
+    virtual int getDevicePowerState(char* powerState)  = 0;
 };
 
 class systemServImpl {
@@ -31,8 +32,4 @@ class systemServImpl {
 
 };
 
-class systemPower{
-    virtual int setDevicePowerState(const char* powerState, const char* standbyReason) const =0;
-    virtual int getDevicePowerState(char* powerState) const =0;
-};
 
