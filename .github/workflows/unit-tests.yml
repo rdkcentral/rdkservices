@@ -161,8 +161,8 @@ jobs:
           -B build/rdkservices
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
-          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers
-          -I ${{github.workspace}}/rdkservices/test/headers/devicesettings
+          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/Tests/headers
+          -I ${{github.workspace}}/rdkservices/Tests/headers/devicesettings
           --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system
           -DENABLE_TELEMETRY_LOGGING"
           -DCOMCAST_CONFIG=OFF
@@ -206,7 +206,7 @@ jobs:
       - name: Start servers
         # nohup to keep it running.
         run: |
-          nohup python rdkservices/test/source/tr69hostif.py &
+          nohup python rdkservices/Tests/source/tr69hostif.py &
           sleep 0.1
 
       - name: Set up files
@@ -230,7 +230,7 @@ jobs:
 
       - name: Stop servers
         run: |
-          pkill -f rdkservices/test/source/tr69hostif.py
+          pkill -f rdkservices/Tests/source/tr69hostif.py
 
       - name: Install lcov
         run: >
@@ -250,10 +250,10 @@ jobs:
           '/usr/include/*'
           '*/build/rdkservices/_deps/*'
           '*/install/usr/include/*'
-          '*/test/headers/*'
-          '*/test/mocks/*'
-          '*/test/source/*'
-          '*/test/tests/*'
+          '*/Tests/headers/*'
+          '*/Tests/mocks/*'
+          '*/Tests/source/*'
+          '*/Tests/tests/*'
           '*/DeviceIdentification/Implementation/Realtek/*'
           -o filtered_coverage.info
 
