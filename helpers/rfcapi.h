@@ -14,6 +14,7 @@
 typedef enum
 {
         WDMP_SUCCESS = 0,
+        WDMP_FAILURE,
         WDMP_ERR_DEFAULT_VALUE
 }WDMP_STATUS;
 

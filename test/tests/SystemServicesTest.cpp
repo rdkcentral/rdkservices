@@ -25,6 +25,7 @@
 #include "FactoriesImplementation.h"
 #include "SystemMock.h"
 #include "WrapsMock.h"
+#include "RfcApiMock.h"
 
 using namespace WPEFramework;
 
@@ -45,6 +46,7 @@ class SystemServicesTest : public::testing::Test
     IARM_EventHandler_t handlerOnDSTTimeChanged;
     FactoriesImplementation factoriesImplementation;
     WrapsImplMock wrapsImplMock;
+    RfcApiImplMock rfcApiImplMock;
     //Mode
     string sysMode;
     int sysDuration;
