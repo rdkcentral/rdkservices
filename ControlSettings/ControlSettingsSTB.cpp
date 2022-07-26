@@ -20,15 +20,18 @@
 #include <string>
 #include "ControlSettingsSTB.h"
 
+#define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
+
 namespace WPEFramework {
 namespace Plugin {
 
-    ControlSettingsSTB::ControlSettingsSTB(): AbstractPlugin(3)
+    ControlSettingsSTB::ControlSettingsSTB():PluginHost::JSONRPC()
     {
         LOGINFO("Entry\n"); 
         instance = this;
-        registerMethod("getVolume", &ControlSettingsSTB::getVolume, this, {1});
-        registerMethod("setVolume", &ControlSettingsSTB::setVolume, this, {1});
+        CreateHandler({ 2 });
+        registerMethod("getVolume", &ControlSettingsSTB::getVolume, this );
+        registerMethod("setVolume", &ControlSettingsSTB::setVolume, this);
         LOGINFO("Exit\n");
     }
     

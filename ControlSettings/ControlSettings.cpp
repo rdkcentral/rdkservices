@@ -24,6 +24,8 @@ const char* PLUGIN_IARM_BUS_NAME = "Thunder_Plugins";
 
 static char videoDescBuffer[VIDEO_DESCRIPTION_MAX*VIDEO_DESCRIPTION_NAME_SIZE] = {0};
 
+#define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -215,10 +217,11 @@ namespace Plugin {
 
 	ControlSettings::_instance = this;
 	InitializeIARM();
+	CreateHandler({ 2 });
 
         //Common API Registration
-	registerMethod("getAspectRatio", &ControlSettings::getAspectRatio, this, {1});
-        registerMethod("setAspectRatio", &ControlSettings::setAspectRatio, this, {1});
+	registerMethod("getAspectRatio", &ControlSettings::getAspectRatio, this);
+        registerMethod("setAspectRatio", &ControlSettings::setAspectRatio, this);
         LOGINFO("Exit \n");
     }
 

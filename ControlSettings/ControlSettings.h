@@ -88,8 +88,13 @@ namespace Plugin {
         // -------------------------------------------------------------------------------------------------------
         const std::string Initialize(PluginHost::IShell* service);
         void Deinitialize(PluginHost::IShell* service);
+        virtual string Information() const override { return {}; }
 	virtual void AddRef() const { }
 	virtual uint32_t Release() const {return 0; }
+        BEGIN_INTERFACE_MAP(ControlSettings)
+        INTERFACE_ENTRY(PluginHost::IPlugin)
+        INTERFACE_ENTRY(PluginHost::IDispatcher)
+        END_INTERFACE_MAP
    };
 }
 }

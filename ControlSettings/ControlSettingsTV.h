@@ -30,14 +30,17 @@
 #include "tvError.h"
 #include "tvTypes.h"
 #include "tr181api.h"
-#include "AbstractPlugin.h"
 #include "utils.h"
 #include "ControlSettingsCommon.h"
+#include "libIARM.h"
+#include "libIBusDaemon.h"
+#include "libIBus.h"
+#include "iarmUtil.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-class ControlSettingsTV : public AbstractPlugin {
+class ControlSettingsTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
     private:
         ControlSettingsTV(const ControlSettingsTV&) = delete;
         ControlSettingsTV& operator=(const ControlSettingsTV&) = delete;

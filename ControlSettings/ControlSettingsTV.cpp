@@ -36,54 +36,55 @@ const char *component_color[] = {
     [COLOR_YELLOW] = "yellow"
 };
 
+#define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 namespace WPEFramework {
 namespace Plugin {
 
-    ControlSettingsTV::ControlSettingsTV(): AbstractPlugin(3)
-					   ,numberModesSupported(0),pic_mode_index()
+    ControlSettingsTV::ControlSettingsTV(): PluginHost::JSONRPC(),numberModesSupported(0),pic_mode_index()
                                            ,appUsesGlobalBackLightFactor(false),source_index()
                                            ,rfc_caller_id()
     						
     {
         LOGINFO("Entry\n");
         instance = this;
-        registerMethod("getBacklight", &ControlSettingsTV::getBacklight, this, {1});
-        registerMethod("setBacklight", &ControlSettingsTV::setBacklight, this, {1});
-        registerMethod("resetBacklight", &ControlSettingsTV::resetBacklight, this, {1});
-        registerMethod("getBrightness", &ControlSettingsTV::getBrightness, this, {1});
-        registerMethod("setBrightness", &ControlSettingsTV::setBrightness, this, {1});
-        registerMethod("resetBrightness", &ControlSettingsTV::resetBrightness, this, {1});
-        registerMethod("getContrast", &ControlSettingsTV::getContrast, this, {1});
-        registerMethod("setContrast", &ControlSettingsTV::setContrast, this, {1});
-        registerMethod("resetContrast", &ControlSettingsTV::resetContrast, this, {1});
-        registerMethod("getSharpness", &ControlSettingsTV::getSharpness, this, {1});
-        registerMethod("setSharpness", &ControlSettingsTV::setSharpness, this, {1});
-        registerMethod("resetSharpness", &ControlSettingsTV::resetSharpness, this, {1});
-        registerMethod("getSaturation", &ControlSettingsTV::getSaturation, this, {1});
-        registerMethod("setSaturation", &ControlSettingsTV::setSaturation, this, {1});
-        registerMethod("resetSaturation", &ControlSettingsTV::resetSaturation, this, {1});
-        registerMethod("getHue", &ControlSettingsTV::getHue, this, {1});
-        registerMethod("setHue", &ControlSettingsTV::setHue, this, {1});
-        registerMethod("resetHue", &ControlSettingsTV::resetHue, this, {1});
-        registerMethod("getColorTemperature", &ControlSettingsTV::getColorTemperature, this, {1});
-        registerMethod("setColorTemperature", &ControlSettingsTV::setColorTemperature, this, {1});
-        registerMethod("resetColorTemperature", &ControlSettingsTV::resetColorTemperature, this, {1});
+	CreateHandler({ 2 });
+        registerMethod("getBacklight", &ControlSettingsTV::getBacklight, this);
+        registerMethod("setBacklight", &ControlSettingsTV::setBacklight, this);
+        registerMethod("resetBacklight", &ControlSettingsTV::resetBacklight, this);
+        registerMethod("getBrightness", &ControlSettingsTV::getBrightness, this);
+        registerMethod("setBrightness", &ControlSettingsTV::setBrightness, this);
+        registerMethod("resetBrightness", &ControlSettingsTV::resetBrightness, this);
+        registerMethod("getContrast", &ControlSettingsTV::getContrast, this);
+        registerMethod("setContrast", &ControlSettingsTV::setContrast, this);
+        registerMethod("resetContrast", &ControlSettingsTV::resetContrast, this);
+        registerMethod("getSharpness", &ControlSettingsTV::getSharpness, this);
+        registerMethod("setSharpness", &ControlSettingsTV::setSharpness, this);
+        registerMethod("resetSharpness", &ControlSettingsTV::resetSharpness, this);
+        registerMethod("getSaturation", &ControlSettingsTV::getSaturation, this);
+        registerMethod("setSaturation", &ControlSettingsTV::setSaturation, this);
+        registerMethod("resetSaturation", &ControlSettingsTV::resetSaturation, this);
+        registerMethod("getHue", &ControlSettingsTV::getHue, this);
+        registerMethod("setHue", &ControlSettingsTV::setHue, this);
+        registerMethod("resetHue", &ControlSettingsTV::resetHue, this);
+        registerMethod("getColorTemperature", &ControlSettingsTV::getColorTemperature, this);
+        registerMethod("setColorTemperature", &ControlSettingsTV::setColorTemperature, this);
+        registerMethod("resetColorTemperature", &ControlSettingsTV::resetColorTemperature, this);
 
-        registerMethod("getComponentSaturation", &ControlSettingsTV::getComponentSaturation, this, {1});
-        registerMethod("setComponentSaturation", &ControlSettingsTV::setComponentSaturation, this, {1});
-        registerMethod("resetComponentSaturation", &ControlSettingsTV::resetComponentSaturation, this, {1});
-        registerMethod("getComponentHue", &ControlSettingsTV::getComponentHue, this, {1});
-        registerMethod("setComponentHue", &ControlSettingsTV::setComponentHue, this, {1});
-        registerMethod("resetComponentHue", &ControlSettingsTV::resetComponentHue, this, {1});
-        registerMethod("getComponentLuma", &ControlSettingsTV::getComponentLuma, this, {1});
-        registerMethod("setComponentLuma", &ControlSettingsTV::setComponentLuma, this, {1});
-        registerMethod("resetComponentLuma", &ControlSettingsTV::resetComponentLuma, this, {1});
-        registerMethod("getBacklightDimmingMode", &ControlSettingsTV::getBacklightDimmingMode, this, {1});
-        registerMethod("setBacklightDimmingMode", &ControlSettingsTV::setBacklightDimmingMode, this, {1});
-        registerMethod("resetBacklightDimmingMode", &ControlSettingsTV::resetBacklightDimmingMode, this, {1});
-        registerMethod("getAutoBacklightControl", &ControlSettingsTV::getAutoBacklightControl, this, {1});
-        registerMethod("setAutoBacklightControl", &ControlSettingsTV::setAutoBacklightControl, this, {1});
-        registerMethod("resetAutoBacklightControl", &ControlSettingsTV::resetAutoBacklightControl, this, {1});
+        registerMethod("getComponentSaturation", &ControlSettingsTV::getComponentSaturation, this);
+        registerMethod("setComponentSaturation", &ControlSettingsTV::setComponentSaturation, this);
+        registerMethod("resetComponentSaturation", &ControlSettingsTV::resetComponentSaturation, this);
+        registerMethod("getComponentHue", &ControlSettingsTV::getComponentHue, this);
+        registerMethod("setComponentHue", &ControlSettingsTV::setComponentHue, this);
+        registerMethod("resetComponentHue", &ControlSettingsTV::resetComponentHue, this);
+        registerMethod("getComponentLuma", &ControlSettingsTV::getComponentLuma, this);
+        registerMethod("setComponentLuma", &ControlSettingsTV::setComponentLuma, this);
+        registerMethod("resetComponentLuma", &ControlSettingsTV::resetComponentLuma, this);
+        registerMethod("getBacklightDimmingMode", &ControlSettingsTV::getBacklightDimmingMode, this);
+        registerMethod("setBacklightDimmingMode", &ControlSettingsTV::setBacklightDimmingMode, this);
+        registerMethod("resetBacklightDimmingMode", &ControlSettingsTV::resetBacklightDimmingMode, this);
+        registerMethod("getAutoBacklightControl", &ControlSettingsTV::getAutoBacklightControl, this);
+        registerMethod("setAutoBacklightControl", &ControlSettingsTV::setAutoBacklightControl, this);
+        registerMethod("resetAutoBacklightControl", &ControlSettingsTV::resetAutoBacklightControl, this);
 
         LOGINFO("Exit\n");
     }
