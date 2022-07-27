@@ -1,0 +1,50 @@
+name: json-validator
+
+on:
+  push:
+    branches: [ main, 'sprint/**', 'release/**' ]
+  pull_request:
+    branches: [ main, 'sprint/**', 'release/**' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  
+    name: Validate json files
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 
+
+      - name: Get modified/added json files
+        id: json-files
+        uses: tj-actions/changed-files@v23.2
+        with:
+          files: |
+            **/*.json
+
+      - name: Validate the json files
+        id: validate-json-files
+        run : |
+            failed_jsons=()
+            FAILED=false
+            for file in ${{ steps.json-files.outputs.all_changed_files }}; do
+                echo "Validating the json file $file"
+                if ! python -m json.tool $file
+                then
+                  FAILED=true
+                  echo "Json schema error in $file"
+                  failed_jsons+=("$file")
+                  continue
+                fi
+            done
+            if [ $FAILED == true ]
+            then 
+              echo "Error in parsing the JSON"
+              echo "Failed jsons are ${failed_jsons[@]}"
+              exit 1
+            fi
+
+
+          
+        
+      
