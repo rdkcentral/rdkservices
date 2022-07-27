@@ -333,6 +333,13 @@ TEST_F(SystemServicesTest, gzEnabled){
                     enabled = &gzEnabled;
                     return true;
                 }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setGzEnabled"), _T("{\"enabled\":true}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isGzEnabled"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"enabled\":\"true\",\"deprecated\":\"true\",\"success\":true}"));
+
 }
 
 /*
