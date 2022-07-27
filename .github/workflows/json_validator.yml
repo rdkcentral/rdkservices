@@ -20,7 +20,7 @@ jobs:
         uses: tj-actions/changed-files@v23.2
         with:
           files: |
-            '**.json'
+            **.json
 
       - name: Validate the json files
         id: validate-json-files
