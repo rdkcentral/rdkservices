@@ -344,21 +344,26 @@ TEST_F(SystemServicesTest, gzEnabled){
 
 /*
 TEST_F(SystemServicesTest, powerState){
-EXPECT_CALL(systemMock, setDevicePowerState(::testing::_))
-    .Times(1)
-    .WillOnce(::testing::Invoke(
-        [&](const char* powerState, const char* standbyReason) {
-            //::memcpy(devPowerState, sysMode.c_str(), sysMode.length());
-            devPowerState = powerState;
-            devStandbyReason = standbyReason;
-        }));
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+            .WillOnce(
+                [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                    EXPECT_TRUE(strcmp(methodName, IARM_BUS_PWRMGR_API_SetPowerState) == 0);
+                    return IARM_RESULT_SUCCESS;
+                });
 
-EXPECT_CALL(systemMock, getDevicePowerState(::testing::_))
-    .Times(1)
-    .WillOnce(::testing::Invoke(
-        [&](const char* powerState) {
-            ::memcpy(powerState, devPowerState.c_str(), devPowerState.length());
-        }));
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+            .WillOnce(
+                [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                    EXPECT_TRUE(strcmp(methodName, IARM_BUS_PWRMGR_API_GetPowerState) == 0);
+                    return IARM_RESULT_SUCCESS;
+                });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setPowerState"),_T("{}"), response));
+        EXPECT_EQ(response, string("{\"success\":false}"));
+
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPowerState"),_T("{}"), response));
+        EXPECT_EQ(response, string("{\"success\":false}"));
+
 }
 
 TEST_F(SystemServicesTest, deviceInfo )
@@ -398,12 +403,7 @@ TEST_F(SystemServicesTest, firmware)
 //setPowerState / setDevicePowerState
 TEST_F(SystemServicesTest, power)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setPowerState"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPowerState"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
-
+    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPowerStateBeforeReboot"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
 
@@ -421,4 +421,28 @@ TEST_F(SystemServicesTest, prefferedStandby)
     EXPECT_EQ(response, string("{\"preferredStandbyMode\":LIGHT_SLEEP\"\",\"success\":true}"));
 
 }
-*/
+
+enum getPowerState(string powerState)
+{
+    enum retVal = -1;
+
+    if (powerState == "STANDBY")
+    {
+        retVal = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+    }
+    else if (powerState == "ON")
+    {
+        retVal = IARM_BUS_PWRMGR_POWERSTATE_ON;
+    }
+    else if (powerState == "DEEP_SLEEP")
+    {
+        retVal = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
+    }
+    else if (powerState == "LIGHT_SLEEP")
+    {
+        // Treat Light sleep as Standby 
+        retVal = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+    }
+    
+    return retVal;
+}*/
