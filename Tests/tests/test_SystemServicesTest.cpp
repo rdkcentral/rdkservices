@@ -193,83 +193,6 @@ TEST_F(SystemServicesTest, RegisteredMethods)
 
 }
 
-//Mode
-TEST_F(SystemServicesTest, mode){
-        InitService();
-         EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
-        .WillOnce(
-            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, "DaemonSysModeChange") == 0);
-                return IARM_RESULT_SUCCESS;
-            });
-
-        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":\"mode\":normal,\"duration\":1}"), response));
-        EXPECT_EQ(response, string("{\"success\":false}"));
-
-        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getMode"),_T("{}"), response));
-        EXPECT_EQ(response, string("{\"success\":false}"));
-}
-
-//NetworkStandby
-TEST_F(SystemServicesTest, networkStandby){
-    InitService();
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
-        .WillOnce(
-            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARM_BUS_PWRMGR_API_SetNetworkStandbyMode) == 0);
-                return IARM_RESULT_SUCCESS;
-            })
-        .WillOnce(
-        [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-            EXPECT_TRUE(strcmp(methodName, IARM_BUS_PWRMGR_API_GetNetworkStandbyMode) == 0);
-            return IARM_RESULT_SUCCESS;
-        });
-
-EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setNetworkStandbyMode"), _T("{\"nwStandby\":standaby}"), response));
-EXPECT_EQ(response, string("{\"success\":true}"));
-
-EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getNetworkStandbyMode"),_T("{}"), response));
-EXPECT_EQ(response, string("{\"success\":false}"));
-}
-
-//Call the methods... 
-TEST_F(SystemServicesTest, gzEnabled){
-    EXPECT_CALL(systemMock, setGzEnabled(::testing::_))
-            .Times(1)
-            .WillOnce(::testing::Invoke(
-                [&](bool enabled) {
-                    gzEnabled = enabled;
-                    return true;
-                }));
-
-    EXPECT_CALL(systemMock, isGzEnabledHelper(::testing::_))
-            .Times(1)
-            .WillOnce(::testing::Invoke(
-                [&](bool* enabled) {
-                    enabled = &gzEnabled;
-                    return true;
-                }));
-}
-
-TEST_F(SystemServicesTest, powerState){
-EXPECT_CALL(systemMock, setDevicePowerState(::testing::_))
-    .Times(1)
-    .WillOnce(::testing::Invoke(
-        [&](const char* powerState, const char* standbyReason) {
-            //::memcpy(devPowerState, sysMode.c_str(), sysMode.length());
-            devPowerState = powerState;
-            devStandbyReason = standbyReason;
-        }));
-
-EXPECT_CALL(systemMock, getDevicePowerState(::testing::_))
-    .Times(1)
-    .WillOnce(::testing::Invoke(
-        [&](const char* powerState) {
-            ::memcpy(powerState, devPowerState.c_str(), devPowerState.length());
-        }));
-}
-
-
 
 TEST_F(SystemServicesTest, RebootDelay)
 {
@@ -295,7 +218,6 @@ TEST_F(SystemServicesTest, RebootDelay)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":5}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
-
 
 
 TEST_F(SystemServicesTest, AutoReboot)
@@ -335,14 +257,101 @@ TEST_F(SystemServicesTest, AutoReboot)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
-TEST_F(SystemServicesTest, prefferedStandby)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setPreferredStandbyMode"),_T("{\"standbyMode\":LIGHT_SLEEP}"), response));
+
+//Mode
+TEST_F(SystemServicesTest, mode){
+        InitService();
+         EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillOnce(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_TRUE(strcmp(methodName, "DaemonSysModeChange") == 0);
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":\"mode\":normal,\"duration\":1}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getMode"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+}
+
+//NetworkStandby
+TEST_F(SystemServicesTest, networkStandby){
+    InitService();
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillOnce(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_TRUE(strcmp(methodName, IARM_BUS_PWRMGR_API_SetNetworkStandbyMode) == 0);
+                return IARM_RESULT_SUCCESS;
+            })
+        .WillOnce(
+        [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+            EXPECT_TRUE(strcmp(methodName, IARM_BUS_PWRMGR_API_GetNetworkStandbyMode) == 0);
+            return IARM_RESULT_SUCCESS;
+        });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setNetworkStandbyMode"), _T("{\"nwStandby\":standaby}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreferredStandbyMode"),_T("{}"), response));
-    EXPECT_EQ(response, string("{\"preferredStandbyMode\":LIGHT_SLEEP\"\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getNetworkStandbyMode"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+}
 
+// Cahce - set,get,remove, checkKey/contains
+TEST_F(SystemServicesTest, cache)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setCachedValue"), _T("{\"key\":test\",\"value\":test1}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCachedValue"), _T("{\"key\":test}"), response));
+    EXPECT_EQ(response, string("{\"test\":\"test1\",\"deprecated\":\"true\",\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cacheContains"), _T("{\"key\":test}"), response));
+    EXPECT_EQ(response, string("{\"deprecated\":\"true\",\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("removeCacheKey"), _T("{\"key\":test}"), response));
+    EXPECT_EQ(response, string("{\"deprecated\":\"true\",\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cacheContains"), _T("{\"key\":test}"), response));
+    EXPECT_EQ(response, string("{\"SysSrv_Status\":12,\"errorMessage\":\"Key not found\",\"deprecated\":\"true\",\"success\":true}"));
+}
+
+//Call the methods... 
+TEST_F(SystemServicesTest, gzEnabled){
+    EXPECT_CALL(systemMock, setGzEnabled(::testing::_))
+            .Times(1)
+            .WillOnce(::testing::Invoke(
+                [&](bool enabled) {
+                    gzEnabled = enabled;
+                    return true;
+                }));
+
+    EXPECT_CALL(systemMock, isGzEnabledHelper(::testing::_))
+            .Times(1)
+            .WillOnce(::testing::Invoke(
+                [&](bool* enabled) {
+                    enabled = &gzEnabled;
+                    return true;
+                }));
+}
+
+/*
+TEST_F(SystemServicesTest, powerState){
+EXPECT_CALL(systemMock, setDevicePowerState(::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
+        [&](const char* powerState, const char* standbyReason) {
+            //::memcpy(devPowerState, sysMode.c_str(), sysMode.length());
+            devPowerState = powerState;
+            devStandbyReason = standbyReason;
+        }));
+
+EXPECT_CALL(systemMock, getDevicePowerState(::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
+        [&](const char* powerState) {
+            ::memcpy(powerState, devPowerState.c_str(), devPowerState.length());
+        }));
 }
 
 TEST_F(SystemServicesTest, deviceInfo )
@@ -396,21 +405,13 @@ TEST_F(SystemServicesTest, power)
 
 }
 
-// Cahce - set,get,remove, checkKey/contains
-TEST_F(SystemServicesTest, cache)
+TEST_F(SystemServicesTest, prefferedStandby)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setCachedValue"), _T("{\"key\":test\",\"value\":test1}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("setPreferredStandbyMode"),_T("{\"standbyMode\":LIGHT_SLEEP}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCachedValue"), _T("{\"key\":test}"), response));
-    EXPECT_EQ(response, string("{\"test\":\"test1\",\"deprecated\":\"true\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getPreferredStandbyMode"),_T("{}"), response));
+    EXPECT_EQ(response, string("{\"preferredStandbyMode\":LIGHT_SLEEP\"\",\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cacheContains"), _T("{\"key\":test}"), response));
-    EXPECT_EQ(response, string("{\"deprecated\":\"true\",\"success\":true}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("removeCacheKey"), _T("{\"key\":test}"), response));
-    EXPECT_EQ(response, string("{\"deprecated\":\"true\",\"success\":true}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cacheContains"), _T("{\"key\":test}"), response));
-    EXPECT_EQ(response, string("{\"SysSrv_Status\":12,\"errorMessage\":\"Key not found\",\"deprecated\":\"true\",\"success\":true}"));
 }
+*/

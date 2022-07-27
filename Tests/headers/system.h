@@ -35,7 +35,7 @@ class systemServImpl {
         return getInstance().impl->setDevicePowerState(powerState,standbyReason);
     }
 
-    static in getDevicePowerState(char* powerState)
+    static int getDevicePowerState(char* powerState)
     {
         return getInstance().impl->getDevicePowerState(powerState);
     }

@@ -360,7 +360,7 @@ TEST_F(DeviceCapabilitiesDsTest, SupportedMS12AudioProfiles_noParam)
 
     supportedMS12AudioProfiles->Release();
 }
-
+/*
 TEST_F(DeviceCapabilitiesDsTest, SupportedAudioPorts_exception)
 {
     RPC::IStringIterator* supportedAudioPorts = nullptr;
@@ -501,3 +501,4 @@ TEST_F(DeviceCapabilitiesDsTest, SupportedMS12AudioProfiles_HDMI0_exception)
     EXPECT_EQ(Core::ERROR_GENERAL, interface->SupportedMS12AudioProfiles(string(_T("HDMI0")), supportedMS12AudioProfiles));
     EXPECT_EQ(supportedMS12AudioProfiles, nullptr);
 }
+*/
