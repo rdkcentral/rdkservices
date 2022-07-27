@@ -25,14 +25,17 @@ jobs:
     steps:
       - name: Set up cache
         # Cache Thunder/ThunderInterfaces.
+        # https://github.com/actions/cache
+        # https://docs.github.com/en/rest/actions/cache
         if: ${{ !env.ACT }}
         id: cache
         uses: actions/cache@v3
         with:
           path: |
-            build
+            build/Thunder
+            build/ThunderInterfaces
+            build/ThunderTools
             install
-            !build/rdkservices
             !install/etc/WPEFramework/plugins
             !install/usr/bin/RdkServicesTest
             !install/usr/include/gmock
@@ -47,7 +50,7 @@ jobs:
             !install/usr/lib/pkgconfig/gtest.pc
             !install/usr/lib/pkgconfig/gtest_main.pc
             !install/usr/lib/wpeframework/plugins
-          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}
+          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-2
 
       - name: Set up Python
         uses: actions/setup-python@v3
@@ -161,8 +164,8 @@ jobs:
           -B build/rdkservices
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
-          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers
-          -I ${{github.workspace}}/rdkservices/test/headers/devicesettings
+          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/Tests/headers
+          -I ${{github.workspace}}/rdkservices/Tests/headers/devicesettings
           --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system
           -DENABLE_TELEMETRY_LOGGING"
           -DCOMCAST_CONFIG=OFF
@@ -208,7 +211,7 @@ jobs:
       - name: Start servers
         # nohup to keep it running.
         run: |
-          nohup python rdkservices/test/source/tr69hostif.py &
+          nohup python rdkservices/Tests/source/tr69hostif.py &
           sleep 0.1
 
       - name: Set up files
@@ -232,7 +235,7 @@ jobs:
 
       - name: Stop servers
         run: |
-          pkill -f rdkservices/test/source/tr69hostif.py
+          pkill -f rdkservices/Tests/source/tr69hostif.py
 
       - name: Install lcov
         run: >
@@ -252,10 +255,10 @@ jobs:
           '/usr/include/*'
           '*/build/rdkservices/_deps/*'
           '*/install/usr/include/*'
-          '*/test/headers/*'
-          '*/test/mocks/*'
-          '*/test/source/*'
-          '*/test/tests/*'
+          '*/Tests/headers/*'
+          '*/Tests/mocks/*'
+          '*/Tests/source/*'
+          '*/Tests/tests/*'
           '*/DeviceIdentification/Implementation/Realtek/*'
           -o filtered_coverage.info
 
