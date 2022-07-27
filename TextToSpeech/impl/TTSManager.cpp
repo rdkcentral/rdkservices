@@ -35,6 +35,7 @@ TTSManager::TTSManager(TTSEventCallback *callback) :
 
     // Setup Speaker passing the read configuration
     m_speaker = new TTSSpeaker(m_defaultConfiguration);
+    m_downloader = NULL;
 }
 
 TTSManager::~TTSManager() {
@@ -45,6 +46,11 @@ TTSManager::~TTSManager() {
     if(m_speaker) {
         delete m_speaker;
         m_speaker = NULL;
+    }
+    // Clear Downloader Instance
+    if(m_downloader) {
+        delete m_downloader;
+        m_downloader = NULL;
     }
 }
 
@@ -60,6 +66,18 @@ TTS_Error TTSManager::enableTTS(bool enable) {
         force = false;
     }
     return TTS_OK;
+}
+
+void TTSManager::initiateDownload()
+{
+   TTSLOG_INFO("TTSManager::initiate download\n");
+   if(m_downloader == NULL)
+   {
+      TTSLOG_INFO("New TTS fallback downloader object created\n");
+      m_downloader = new TTSDownloader(m_defaultConfiguration);
+   }
+   m_defaultConfiguration.saveFallbackPath("");
+   m_downloader->download(m_defaultConfiguration);
 }
 
 bool TTSManager::isTTSEnabled() {
@@ -98,7 +116,13 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
 
     m_defaultConfiguration.setEndPoint(configuration.ttsEndPoint);
     m_defaultConfiguration.setSecureEndPoint(configuration.ttsEndPointSecured);
-    m_defaultConfiguration.setApiKey(configuration.apiKey);
+    if(m_defaultConfiguration.setApiKey(configuration.apiKey))
+    {
+       if(m_defaultConfiguration.isFallbackEnabled() && (m_defaultConfiguration.getFallbackPath()).empty())
+        { 
+           updated = true;
+        }
+    }
     updated |= m_defaultConfiguration.setLanguage(configuration.language);
     /* Set default voice for the language only when voice is empty*/
     if(!configuration.language.empty() && configuration.voice.empty()) {
@@ -111,6 +135,7 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
 
     updated |= m_defaultConfiguration.setVolume(configuration.volume);
     updated |= m_defaultConfiguration.setRate(configuration.rate);
+    updated |= m_defaultConfiguration.setFallBackText(configuration.data);
 
     if(m_defaultConfiguration.endPoint().empty() && !m_defaultConfiguration.secureEndPoint().empty())
         m_defaultConfiguration.setEndPoint(m_defaultConfiguration.secureEndPoint());
@@ -130,8 +155,13 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
     if(v !=  m_defaultConfiguration.voice())
         m_callback->onVoiceChanged(m_defaultConfiguration.voice());
     if(updated)
+    {
+        if(m_defaultConfiguration.isFallbackEnabled())
+        {
+            initiateDownload();
+        }
         m_defaultConfiguration.updateConfigStore();
-
+    }
     return TTS_OK;
 }
 
