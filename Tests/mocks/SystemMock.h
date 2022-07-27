@@ -5,7 +5,8 @@
 #include "system.h"
 
 class SystemMock : public systemServ {
-
+public:
+     virtual ~SystemMock()= default; 
      
      MOCK_METHOD(bool, isGzEnabledHelper, (bool* enabled), (override));
      MOCK_METHOD(bool, setGzEnabled,(bool enabled),(override));
