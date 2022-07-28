@@ -123,6 +123,11 @@
             "summary": "The cursor height",
             "type": "number",
             "example": 255
+        },
+        "framerate":{
+            "summary":"display the current Graphics framerate",
+            "type":"number",
+            "example":40
         }
     },
     "methods": {
@@ -1158,6 +1163,24 @@
                 ]
             }
         },
+        "getGraphicsFrameRate":{
+            "summary":"Returns the current Graphics Frame Rate",
+            "result":{
+                "type":"object",
+                "properties":{
+                    "frameRate":{
+                        "$ref": "#/definitions/framerate"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "frameRate",
+                    "success"
+                ]
+            }
+        },
         "hideAllClients": {
             "summary": "Hides/Unhides all the clients. \n \n### Events\n \n No Events.",
             "params": {
@@ -2001,6 +2024,25 @@
                 "$ref": "#/common/result"
             }
         },
+        "setGraphicsFrameRate":{
+            "summary": "Set Graphics Frame Rate.. \n \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "framerate": {
+                        "summary": "Graphics Framerate to be set",
+                        "type":"number",
+                        "example": 60
+                    }
+                },
+                "required": [
+                    "framerate"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "showCursor": {
             "summary": "Shows the cursor on the display using the current cursor size. See `setCursorSize`. The cursor automatically disappears after 5 seconds of inactivity. \n \n### Events\n \n No Events.",
             "result": {
@@ -2130,6 +2172,49 @@
             },
             "result": {
                 "$ref": "#/definitions/result"
+            }
+        },         
+        "setAVBlocked": {
+            "summary": "adds/removes the list of applications with the given callsigns to/from the blacklist.\n \n### Events\n \n No Events.",
+            "params": {
+                "type": "object",
+                "properties":{
+                    "callsign": {
+                        "summary": "The application callsign",
+                        "type": "string",
+                        "example": "searchanddiscovery"
+                    },
+                    "blocked": {
+                        "summary": "Whether to block (`true`) or unblock (`false`) AV for the callsign",
+                        "type": "boolean",
+                        "example": "true"
+                    }
+                },
+                "required": [
+                    "callsign",
+                    "blocked"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "getBlockedAVApplications": {
+            "summary": "Gets a list of blacklisted clients. \n \n### Events\n \n No Events.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "clients": {
+                        "$ref": "#/definitions/clients"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "clients",
+                    "success"
+                ]
             }
         }
     },

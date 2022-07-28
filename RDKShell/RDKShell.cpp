@@ -130,6 +130,10 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_CURSOR_SIZE = "
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_CURSOR_SIZE = "setCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INPUT_EVENTS = "enableInputEvents";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_AV_BLOCKED = "setAVBlocked";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AV_BLOCKED_APPS = "getBlockedAVApplications";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE = "getGraphicsFrameRate";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE = "setGraphicsFrameRate";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -823,7 +827,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : PluginHost::JSONRPC(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0), mEnableEasterEggs(true), mScreenCapture(this)
+                : PluginHost::JSONRPC(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0), mEnableEasterEggs(true), mScreenCapture(this), mErmEnabled(false)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -911,6 +915,10 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_GET_EASTER_EGGS, &RDKShell::getEasterEggsWrapper, this);
             Register(RDKSHELL_METHOD_ENABLE_INPUT_EVENTS, &RDKShell::enableInputEventsWrapper, this);
             Register(RDKSHELL_METHOD_KEY_REPEAT_CONFIG, &RDKShell::keyRepeatConfigWrapper, this);
+            Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
+            Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
+            Register(RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE, &RDKShell::getGraphicsFrameRateWrapper, this);
+            Register(RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE, &RDKShell::setGraphicsFrameRateWrapper, this);
       	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -1032,6 +1040,7 @@ namespace WPEFramework {
                 sFactoryModeBlockResidentApp = true;
             }
 
+            mErmEnabled = CompositorController::isErmEnabled();
             shellThread = std::thread([=]() {
                 bool isRunning = true;
                 gRdkShellMutex.lock();
@@ -3136,6 +3145,7 @@ namespace WPEFramework {
                 bool suspend = false;
                 bool visible = true;
                 bool focused = true;
+                bool blockAV = false;
                 string configuration;
                 string behind;
 
@@ -3230,6 +3240,10 @@ namespace WPEFramework {
                 if (parameters.HasLabel("autodestroy"))
                 {
                   autoDestroy = parameters["autodestroy"].Boolean();
+                }
+                if (parameters.HasLabel("blockAV"))
+                {
+                    blockAV = parameters["blockAV"].Boolean();
                 }
 
                 //check to see if plugin already exists
@@ -3785,6 +3799,10 @@ namespace WPEFramework {
                         {
                             std::cout << "failed to set url to " << uri << " with status code " << status << std::endl;
                         }
+                    }
+                    if (true == mErmEnabled)
+                    {
+                        setAVBlocked(callsign, blockAV);
                     }
                 }
 
@@ -5529,6 +5547,93 @@ namespace WPEFramework {
             returnResponse(true);
         }
 
+        uint32_t RDKShell::getBlockedAVApplicationsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool status = true;
+
+            if (true == mErmEnabled)
+            {
+                JsonArray appsList = JsonArray();
+                status = getBlockedAVApplications(appsList);
+                if (true == status)
+                {
+                    response["getBlockedAVApplications"]=appsList;
+                }
+            }
+            else
+            {
+                response["message"] = "ERM not enabled";
+            }
+            returnResponse(status);
+        }
+
+        uint32_t RDKShell::setAVBlockedWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool status = true;
+
+            if (true == mErmEnabled)
+            {
+                const JsonArray apps = parameters.HasLabel("applications") ? parameters["applications"].Array() : JsonArray();
+                JsonArray result;
+                for (int i=0; i< apps.Length(); i++) {
+                    const JsonObject& appInfo = apps[i].Object();
+                    if (appInfo.HasLabel("callsign") && appInfo.HasLabel("callsign"))
+                    {
+                        std::string app = appInfo["callsign"].String();
+                        bool blockAV    = appInfo["blocked"].Boolean();
+                        cout<<"callsign : "<< app << std::endl;
+                        cout<<"blocked  : "<<std::boolalpha << blockAV << std::endl;
+
+                        status = (status && setAVBlocked(app, blockAV));
+                        cout<< "EssRMgrAddToBlackList returned : "<<std::boolalpha <<status<< std::endl;
+                    }
+                    else
+                    {
+                        std::string jsonstr;
+                        appInfo.ToString(jsonstr);
+                        cout<<"ERROR: callsign and callsign status required in "<< jsonstr << std::endl;
+                    }
+                }
+            }
+            else
+            {
+                response["message"] = "ERM not enabled";
+            }
+            returnResponse(status);
+        }
+
+	uint32_t RDKShell::getGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            lockRdkShellMutex();
+            unsigned int value = gCurrentFramerate;
+            gRdkShellMutex.unlock();
+            response["framerate"] = value;
+            returnResponse(true);
+        }
+
+        uint32_t RDKShell::setGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("framerate"))
+            {
+                result = false;
+                response["message"] = "please specify frame rate";
+            }
+            if (result)
+            {
+                unsigned int framerate = parameters["framerate"].Number();
+                lockRdkShellMutex();
+                gCurrentFramerate = framerate;
+                gRdkShellMutex.unlock();
+            }
+            returnResponse(result);
+        }
+
         // Registered methods end
 
         // Events begin
@@ -5669,6 +5774,40 @@ namespace WPEFramework {
                    result = destroyWrapper(destroyRequest, destroyResponse);
                 }
             }
+        }
+
+        bool RDKShell::setAVBlocked(const string callsign, bool blockAV)
+        {
+            bool status = true;
+
+            gRdkShellMutex.lock();
+            status = CompositorController::setAVBlocked(callsign, blockAV);
+            gRdkShellMutex.unlock();
+            if (false == status)
+            {
+                std::cout << "setAVBlocked failed for " << callsign << std::endl;
+            }
+
+            return status;
+        }
+
+        bool RDKShell::getBlockedAVApplications(JsonArray& appsList)
+        {
+            bool status = true;
+
+            std::vector<std::string> apps;
+            gRdkShellMutex.lock();
+            status = CompositorController::getBlockedAVApplications(apps);
+            gRdkShellMutex.unlock();
+            if (true == status)
+            {
+                for (std::vector<std::string>::iterator appsItr = apps.begin(); appsItr != apps.end(); appsItr++)
+                {
+                    appsList.Add(*appsItr);
+                }
+            }
+
+            return status;
         }
 
         // Internal methods begin
