@@ -1275,7 +1275,10 @@ namespace WPEFramework {
             bool isIgnoreEdidArg = parameters.HasLabel("ignoreEdid");
             bool isIgnoreEdid = isIgnoreEdidArg ? parameters["ignoreEdid"].Boolean() : false;
             if (!isIgnoreEdidArg) LOGINFO("isIgnoreEdid: false"); else LOGINFO("isIgnoreEdid: %d", isIgnoreEdid);
-
+	    if(DisplaySettings::_instance)
+            {
+                DisplaySettings::_instance->resolutionPreChange();
+            }
             bool success = true;
             try
             {
