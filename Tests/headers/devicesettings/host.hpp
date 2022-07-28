@@ -20,6 +20,9 @@ public:
     virtual void getHostEDID(std::vector<uint8_t>& edid) const = 0;
     virtual std::string getDefaultVideoPortName() = 0;
     virtual std::string getDefaultAudioPortName() = 0;
+    virtual List<SleepMode> getAvailableSleepModes() = 0;
+    virtual SleepMode getPreferredSleepMode() = 0;
+    virtual int setPreferredSleepMode(const SleepMode) = 0;
 };
 
 class Host {
@@ -32,9 +35,20 @@ public:
 
     HostImpl* impl;
     
-    SleepMode getPreferredSleepMode();
-    int setPreferredSleepMode(const SleepMode);
-    List <SleepMode>  getAvailableSleepModes();
+    SleepMode getPreferredSleepMode()
+    {
+        return impl->getPreferredSleepMode();
+    }
+
+    int setPreferredSleepMode(const SleepMode)
+    {
+        return impl->setPreferredSleepMode(SleepMode);
+    }
+
+    List <SleepMode>  getAvailableSleepModes()
+    {
+        return impl->getAvailableSleepModes();
+    }
 
     List<std::reference_wrapper<VideoOutputPort>> getVideoOutputPorts()
     {
