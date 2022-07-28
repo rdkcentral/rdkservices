@@ -180,6 +180,7 @@ bool sFactoryModeBlockResidentApp = false;
 bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
 bool needsScreenshot = false;
+bool availablePluginsPopulated = false;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -407,6 +408,7 @@ namespace WPEFramework {
             JsonObject params;
         };
 
+	Core::JSON::ArrayType<PluginHost::MetaData::Service> gAvailablePluginData;
         std::map<std::string, PluginData> gActivePluginsData;
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
         std::vector<RDKShellStartupConfig> gStartupConfigs;
@@ -3265,36 +3267,36 @@ namespace WPEFramework {
                 //auto thunderController = getThunderControllerClient();
                 if ((false == newPluginFound) && (false == originalPluginFound))
                 {
-                    Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
-                    uint32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
-
-                    std::cout << "status status: " << status << std::endl;
-                    if (status > 0)
+                    if(availablePluginsPopulated == false)
                     {
-                        std::cout << "trying status one more time...\n";
-                        status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
+                        uint32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", gAvailablePluginData);
                         std::cout << "status status: " << status << std::endl;
+                        if (status > 0)
+                        {
+                            std::cout << "trying status one more time...\n";
+                            status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", gAvailablePluginData);
+                            std::cout << "status status: " << status << std::endl;
+                        }
+                        availablePluginsPopulated = true;
                     }
-
-                    for (uint16_t i = 0; i < availablePluginResult.Length(); i++)
+                    for (uint16_t i = 0; i < gAvailablePluginData.Length(); i++)
                     {
-                        PluginHost::MetaData::Service service = availablePluginResult[i];
-                        std::string pluginName = service.Callsign.Value();
-                        pluginName.erase(std::remove(pluginName.begin(),pluginName.end(),'\"'),pluginName.end());
-                        if (!pluginName.empty() && pluginName == callsign)
-                        {
-                            newPluginFound = true;
-                            break;
-                        }
-                        else if (!pluginName.empty() && pluginName == type)
-                        {
-                            originalPluginFound = true;
-                        }
+                         PluginHost::MetaData::Service service = gAvailablePluginData[i];
+                         std::string pluginName = service.Callsign.Value();
+                         pluginName.erase(std::remove(pluginName.begin(),pluginName.end(),'\"'),pluginName.end());
+                         if (!pluginName.empty() && pluginName == callsign)
+                         {
+                             newPluginFound = true;
+                             break;
+                         }
+                         else if (!pluginName.empty() && pluginName == type)
+                         {
+                             originalPluginFound = true;
+                         }
                     }
-                    pluginsFound = availablePluginResult.Length();
+                    pluginsFound = gAvailablePluginData.Length();
                 }
-
-                if (!newPluginFound && !originalPluginFound)
+		if (!newPluginFound && !originalPluginFound)
                 {
                     std::cout << "number of types found: " << pluginsFound << std::endl;
                     response["message"] = "failed to launch application.  type not found";
