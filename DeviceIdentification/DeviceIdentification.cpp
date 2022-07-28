@@ -73,7 +73,7 @@ namespace Plugin {
 
             RegisterAll();
 
-            if (_deviceId.empty() != true) {
+            if (_deviceId.empty()) {
                 service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _identifier);
             }
             else {
