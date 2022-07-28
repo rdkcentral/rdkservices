@@ -180,7 +180,7 @@ bool sFactoryModeBlockResidentApp = false;
 bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
 bool needsScreenshot = false;
-bool availablePluginsPopulated = false;
+bool gAvailablePluginsPopulated = false;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -3267,7 +3267,7 @@ namespace WPEFramework {
                 //auto thunderController = getThunderControllerClient();
                 if ((false == newPluginFound) && (false == originalPluginFound))
                 {
-                    if(availablePluginsPopulated == false)
+                    if(gAvailablePluginsPopulated == false)
                     {
                         uint32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", gAvailablePluginData);
                         std::cout << "status status: " << status << std::endl;
@@ -3277,7 +3277,7 @@ namespace WPEFramework {
                             status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", gAvailablePluginData);
                             std::cout << "status status: " << status << std::endl;
                         }
-                        availablePluginsPopulated = true;
+                        gAvailablePluginsPopulated = true;
                     }
                     for (uint16_t i = 0; i < gAvailablePluginData.Length(); i++)
                     {
