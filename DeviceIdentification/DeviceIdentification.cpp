@@ -97,7 +97,7 @@ namespace Plugin {
 
         _service->Unregister(&_notification);
 
-        if (_deviceId.empty() != true) {
+        if (_deviceId.empty()) {
             service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, nullptr);
             _deviceId.clear();
         }
