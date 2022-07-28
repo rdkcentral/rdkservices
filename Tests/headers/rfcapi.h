@@ -98,10 +98,10 @@ public:
         return getInstance().impl->setRFCParameter(pcCallerID, pcParameterName, pcParameterValue, eDataType);
     }
 
-  /*  static const char* getRFCErrorString(WDMP_STATUS code)
+    static const char* getRFCErrorString(WDMP_STATUS code)
     { 
     	return getInstance()->getRFCErrorString(code);
-    }*/
+    }
 };
 
 constexpr auto getRFCParameter = &RfcApi::getRFCParameter;
