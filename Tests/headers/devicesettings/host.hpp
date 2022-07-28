@@ -22,7 +22,7 @@ public:
     virtual std::string getDefaultAudioPortName() = 0;
     virtual List<SleepMode> getAvailableSleepModes() = 0;
     virtual SleepMode getPreferredSleepMode() = 0;
-    virtual int setPreferredSleepMode(const SleepMode) = 0;
+    virtual int setPreferredSleepMode(const SleepMode sleepMode) = 0;
 };
 
 class Host {
@@ -40,9 +40,9 @@ public:
         return impl->getPreferredSleepMode();
     }
 
-    int setPreferredSleepMode(const SleepMode)
+    int setPreferredSleepMode(const SleepMode sleepMode)
     {
-        return impl->setPreferredSleepMode(SleepMode);
+        return impl->setPreferredSleepMode(sleepMode);
     }
 
     List <SleepMode>  getAvailableSleepModes()
