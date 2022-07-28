@@ -1610,20 +1610,20 @@ namespace WPEFramework {
                 JsonObject& response)
         {
 		bool status = false;
-		JsonObject param;
-		if (parameters.HasLabel("standbyMode")) {
-			std::string prefMode = parameters["standbyMode"].String();
-			try {
-				LOGINFO("Set Preferred Stand by Mode to %s\n", prefMode.c_str());
-				const device::SleepMode &mode= device::SleepMode::getInstance(prefMode);
-				device::Host::getInstance().setPreferredSleepMode(mode);
-				status = true;
-			} catch (...) {
-				LOGERR("Error setting PreferredStandbyMode\n");
-			}
-		} else {
-			populateResponseWithError(SysSrv_MissingKeyValues, response);
-		}
+		// JsonObject param;
+		// if (parameters.HasLabel("standbyMode")) {
+		// 	std::string prefMode = parameters["standbyMode"].String();
+		// 	try {
+		// 		LOGINFO("Set Preferred Stand by Mode to %s\n", prefMode.c_str());
+		// 		const device::SleepMode &mode= device::SleepMode::getInstance(prefMode);
+		// 		device::Host::getInstance().setPreferredSleepMode(mode);
+		// 		status = true;
+		// 	} catch (...) {
+		// 		LOGERR("Error setting PreferredStandbyMode\n");
+		// 	}
+		// } else {
+		// 	populateResponseWithError(SysSrv_MissingKeyValues, response);
+		// }
 		returnResponse(status);
         }
 
@@ -1640,15 +1640,15 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool status = false;
-            try {
-                device::SleepMode mode = device::Host::getInstance().getPreferredSleepMode();
-                std::string preferredStandbyMode = mode.toString();
-                response["preferredStandbyMode"] = preferredStandbyMode;
-                status = true;
-            } catch (...) {
-                LOGERR("Error getting PreferredStandbyMode\n");
-                response["preferredStandbyMode"] = "";
-            }
+            // try {
+            //     device::SleepMode mode = device::Host::getInstance().getPreferredSleepMode();
+            //     std::string preferredStandbyMode = mode.toString();
+            //     response["preferredStandbyMode"] = preferredStandbyMode;
+            //     status = true;
+            // } catch (...) {
+            //     LOGERR("Error getting PreferredStandbyMode\n");
+            //     response["preferredStandbyMode"] = "";
+            // }
             returnResponse(status);
         }
 
@@ -1772,7 +1772,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool status = false;
-            JsonArray standbyModes;
+           /* JsonArray standbyModes;
             try {
                     device::List<device::SleepMode> sleepModes =
                     device::Host::getInstance().getAvailableSleepModes();
@@ -1783,7 +1783,7 @@ namespace WPEFramework {
             } catch (...) {
                 LOGERR("Error getting AvailableStandbyModes\n");
             }
-            response["supportedStandbyModes"] = standbyModes;
+            response["supportedStandbyModes"] = standbyModes;*/
             returnResponse(status);
         }
 
