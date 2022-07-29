@@ -19,11 +19,18 @@
 
 #include <string>
 #include "ControlSettingsTV.h"
+#include "als_bl_iniparser.h"
+#include "bl_table.h"
 
 #define TVSETTINGS_BACKLIGHT_SDR_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.SDR.Backlight"
 #define TVSETTINGS_BACKLIGHT_HDR_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.HDR.Backlight"
 #define TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.AutoBacklightMode"
+#define TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.DolbyVisionMode"
+#define TVSETTINGS_HLGMODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.HLGMode"
+#define TVSETTINGS_HDR10MODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.HDR10Mode"
+#define TVSETTINGS_CONVERTERBOARD_PANELID     "0_0_00"
 
+#define SAVE_FOR_ALL_SOURCES    (-1)
 #define BUFFER_SIZE     (128)
 
 const char *component_color[] = {
@@ -86,6 +93,24 @@ namespace Plugin {
         registerMethod("setAutoBacklightControl", &ControlSettingsTV::setAutoBacklightControl, this);
         registerMethod("resetAutoBacklightControl", &ControlSettingsTV::resetAutoBacklightControl, this);
 
+        registerMethod("getSupportedDolbyVisionModes", &ControlSettingsTV::getSupportedDolbyVisionModes, this);
+        registerMethod("getDolbyVisionMode", &ControlSettingsTV::getDolbyVisionMode, this);
+        registerMethod("setDolbyVisionMode", &ControlSettingsTV::setDolbyVisionMode, this);
+        registerMethod("resetDolbyVisionMode", &ControlSettingsTV::resetDolbyVisionMode, this);
+        registerMethod("getSupportedHLGModes", &ControlSettingsTV::getSupportedHLGModes, this);
+        registerMethod("getHLGMode", &ControlSettingsTV::getHLGMode, this);
+        registerMethod("setHLGMode", &ControlSettingsTV::setHLGMode, this);
+        registerMethod("resetHLGMode", &ControlSettingsTV::resetHLGMode, this);
+        registerMethod("getSupportedHDR10Modes", &ControlSettingsTV::getSupportedHDR10Modes, this);
+	registerMethod("getHDR10Mode", &ControlSettingsTV::getHDR10Mode, this);
+	registerMethod("setHDR10Mode", &ControlSettingsTV::setHDR10Mode, this);
+	registerMethod("resetHDR10Mode", &ControlSettingsTV::resetHDR10Mode, this);
+	
+	registerMethod("getWBInfo", &ControlSettingsTV::getWBInfo, this);
+	registerMethod("getWBCtrl", &ControlSettingsTV::getWBCtrl, this);
+	registerMethod("setWBCtrl", &ControlSettingsTV::setWBCtrl, this);
+	registerMethod("resetWBCtrl", &ControlSettingsTV::resetWBCtrl, this);
+
         LOGINFO("Exit\n");
     }
     
@@ -97,7 +122,11 @@ namespace Plugin {
     void ControlSettingsTV::Initialize()
     {
        LOGINFO("Entry\n");
-       //Space for Device specific Init Sequence
+       std::system("echo \"Testing ControlSettingsTV dmesg [starts] - TVMgr::Initialize()\" > /dev/kmsg");
+       tvError_t ret = tvERROR_NONE;
+
+       TR181_ParamData_t param;
+       memset(&param, 0, sizeof(param));
        //Get number of pqmode supported
        numberModesSupported=GetNumberOfModesupported();
 
@@ -115,6 +144,83 @@ namespace Plugin {
 
        appUsesGlobalBackLightFactor = isBacklightUsingGlobalBacklightFactor();
 
+       std::system("echo \"Testing dmesg [starts..before SyncPQParamsToDriverCache] - TVMgr::Initialize()\" > /dev/kmsg");
+
+       SyncPQParamsToDriverCache();
+
+       std::system("echo \"Testing dmesg [starts..after SyncPQParamsToDriverCache] - TVMgr::Initialize()\" > /dev/kmsg");
+
+       tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, &param);
+       if ( tr181Success == err )
+       {
+           LOGINFO("getLocalParam for %s is %s\n", TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, param.value);
+           ret = SetTVPictureMode(param.value);
+
+           if(ret != tvERROR_NONE) {
+               LOGWARN("Picture Mode set failed: %s\n",getErrorString(ret).c_str());
+           }
+           else {
+               LOGINFO("Picture Mode initialized successfully, value: %s\n", param.value);
+           }
+       }
+       else
+       {
+           LOGWARN("getLocalParam for %s Failed : %s\n", TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, getTR181ErrorString(err));
+       }
+
+       std::system("echo \"Testing dmesg [starts..before InitializeSDRHDRBacklight] - TVMgr::Initialize()\" > /dev/kmsg");
+
+       //Initialize Backlight
+       if(appUsesGlobalBackLightFactor)
+       {
+           if(!InitializeSDRHDRBacklight())
+               LOGINFO("InitializeSDRHDRBacklight() : Success\n");
+           else
+               LOGWARN("InitializeSDRHDRBacklight() : Failed\n");
+       }
+       std::system("echo \"Testing dmesg [starts..after InitializeSDRHDRBacklight] - TVMgr::Initialize()\" > /dev/kmsg");
+
+       tvBacklightMode_t blMode = tvBacklightMode_NONE;
+       memset(&param, 0, sizeof(param));
+       err = getLocalParam(rfc_caller_id, TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM, &param);
+       if ( tr181Success == err )
+       {
+           LOGINFO("getLocalParam for %s is %s\n", TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM, param.value);
+
+           if(!std::string(param.value).compare("none")) {
+               blMode = tvBacklightMode_NONE;
+           }
+           else if (!std::string(param.value).compare("manual")){
+               blMode = tvBacklightMode_MANUAL;
+           }
+           else if (!std::string(param.value).compare("ambient")){
+               blMode = tvBacklightMode_AMBIENT;
+           }
+           else if (!std::string(param.value).compare("eco")){
+               blMode = tvBacklightMode_ECO;
+           }
+           else {
+               blMode = tvBacklightMode_NONE;
+           }
+           ret = SetCurrentBacklightMode(blMode);
+
+           if(ret != tvERROR_NONE) {
+               LOGWARN("Auto Backlight Mode set failed: %s\n",getErrorString(ret).c_str());
+           }
+           else {
+               LOGINFO("Auto Backlight Mode initialized successfully, value: %s\n", param.value);
+           }
+
+        }
+	else
+        {
+            LOGWARN("getLocalParam for %s Failed : %s\n", TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
+        }
+        std::system("echo \"Testing dmesg [before..setDefaultAspectRatio] - TVMgr::SyncPQParamsToDriverCache()\" > /dev/kmsg");
+        setDefaultAspectRatio();
+        std::system("echo \"Testing dmesg [after..setDefaultAspectRatio] - TVMgr::SyncPQParamsToDriverCache()\" > /dev/kmsg");
+
+       std::system("echo \"Testing dmesg [ends] - TVMgr::Initialize()\" > /dev/kmsg");
        LOGINFO("Exit numberModesSupported =%d numberSourcesSupported=%d\n",numberModesSupported,numberSourcesSupported);
     }
 
@@ -337,6 +443,7 @@ namespace Plugin {
         std::string source;
         std::string format;
         int brightness = 0;
+	tvError_t ret = tvERROR_NONE;
 
         value = parameters.HasLabel("brightness") ? parameters["brightness"].String() : "";
         returnIfParamNotFound(value);
@@ -353,8 +460,13 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
-
-        tvError_t ret = SetBrightness(brightness);
+        
+	if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with setBrightness\n");
+             ret = SetBrightness(brightness);
+        }
+        else
+            LOGINFO("Set not required for this request!!! Just Save it\n");
 
 	if(ret != tvERROR_NONE) {
             LOGWARN("Failed to set Brightness\n");
@@ -2024,6 +2136,708 @@ namespace Plugin {
         }
     }
 
+    uint32_t ControlSettingsTV::getSupportedDolbyVisionModes(const JsonObject& parameters, JsonObject& response)
+    {
+
+        LOGINFO("Entry\n");
+        pic_modes_t *dvModes;
+        unsigned short totalAvailable = 0;
+        tvError_t ret = GetTVSupportedDVModes(&dvModes,&totalAvailable);
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            JsonArray SupportedDVModes;
+
+            for(int count = 0;count <totalAvailable;count++ )
+            {
+                SupportedDVModes.Add(dvModes[count].name);
+            }
+
+            response["SupportedDVModes"] = SupportedDVModes;
+            LOGINFO("Exit\n");
+            returnResponse(true, "success");
+        }
+
+    }
+
+    uint32_t ControlSettingsTV::getDolbyVisionMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        TR181_ParamData_t param;
+
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM, &param);
+        if (err!= tr181Success) {
+            returnResponse(false,getErrorString(tvERROR_GENERAL).c_str());
+        }
+        else {
+            std::string s;
+            s+=param.value;
+            response["DolbyVisionMode"] = s;
+            LOGINFO("Exit getDolbyVisionMode(): %s\n",s.c_str());
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettingsTV::setDolbyVisionMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+
+	value = parameters.HasLabel("DolbyVisionMode") ? parameters["DolbyVisionMode"].String() : "";
+        returnIfParamNotFound(value);
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "dolby";
+
+
+        tvError_t ret = SetTVDolbyVisionMode(value.c_str());
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            int params[3]={0};
+            params[0]=GetDolbyModeIndex(value.c_str());
+            int retval=UpdatePQParamsToCache("set","DolbyVisionMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_DOLBY_MODE,params);
+            if(retval != 0) {
+                LOGWARN("Failed to Save DolbyVisionMode to ssm_data\n");
+            }
+            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM, value.c_str());
+            if ( err != tr181Success ) {
+                LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM, getTR181ErrorString(err));
+            }
+            else {
+                LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM, value.c_str());
+            }
+
+            LOGINFO("Exit\n");
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettingsTV::resetDolbyVisionMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int params[3]={0};
+        tvError_t ret = tvERROR_NONE;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "dolby";
+
+        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM);
+        if ( err != tr181Success ) {
+            LOGWARN("clearLocalParam for %s Failed : %s\n", TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM, getTR181ErrorString(err));
+            ret  = tvERROR_GENERAL;
+        }
+        else {
+            LOGINFO("clearLocalParam for %s Successful\n", TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM);
+
+            TR181_ParamData_t param;
+            memset(&param, 0, sizeof(param));
+            tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM,&param);
+            if ( err != tr181Success ) {
+                LOGWARN("getLocalParam for %s Failed : %s\n", TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM, getTR181ErrorString(err));
+                ret  = tvERROR_GENERAL;
+            }
+            else {
+                LOGINFO("getLocalParam for %s Successful\n", TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM);
+
+                ret = SetTVDolbyVisionMode(param.value);
+                if(ret != tvERROR_NONE) {
+                    LOGWARN("DV Mode set failed: %s\n",getErrorString(ret).c_str());
+                }
+                else {
+
+                    LOGINFO("DV Mode initialized successfully value %s\n",param.value);
+                    //Save DolbyVisionMode to ssm_data
+                    int params[3]={0};
+                    params[0]=GetDolbyModeIndex(param.value);
+                    int retval=UpdatePQParamsToCache("reset","DolbyVisionMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_DOLBY_MODE,params);
+
+                    if(retval != 0) {
+                        LOGWARN("Failed to Save DolbyVisionMode to ssm_data\n");
+                        ret=tvERROR_GENERAL;
+                    }
+                }
+            }
+        }
+        if(ret != tvERROR_NONE)
+        {
+            returnResponse(false, getErrorString(ret));
+        }
+        else
+        {
+            LOGINFO("Exit : resetDolbyVisionMode() \n");
+            returnResponse(true, "success");
+        }
+    }
+
+
+
+    uint32_t ControlSettingsTV::getSupportedHDR10Modes(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        pic_modes_t *hdr10Modes;
+        unsigned short totalAvailable = 0;
+        tvError_t ret = GetTVSupportedHDR10Modes(&hdr10Modes,&totalAvailable);
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            JsonArray SupportedHDR10Modes;
+
+            for(int count = 0;count <totalAvailable;count++ )
+            {
+                SupportedHDR10Modes.Add(hdr10Modes[count].name);
+            }
+
+            response["SupportedHDR10Modes"] = SupportedHDR10Modes;
+            LOGINFO("Exit\n");
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettingsTV::setHDR10Mode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+
+        value = parameters.HasLabel("DolbyVisionMode") ? parameters["DolbyVisionMode"].String() : "";
+        returnIfParamNotFound(value);
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "hdr10";
+
+        tvError_t ret = SetTVHDR10Mode(value.c_str());
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            int params[3]={0};
+            params[0]=GetHDR10ModeIndex(value.c_str());
+            int retval=UpdatePQParamsToCache("set","HDR10Mode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_HDR10_MODE,params);
+            if(retval != 0) {
+                LOGWARN("Failed to Save HDR10Mode to ssm_data\n");
+            }
+            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_HDR10MODE_RFC_PARAM, value.c_str());
+            if ( err != tr181Success ) {
+                LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_HDR10MODE_RFC_PARAM, getTR181ErrorString(err));
+            }
+            else {
+                LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_HDR10MODE_RFC_PARAM, value.c_str());
+            }
+
+            LOGINFO("Exit\n");
+            returnResponse(true, "success");
+        }
+    }
+
+      
+    uint32_t ControlSettingsTV::getHDR10Mode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        TR181_ParamData_t param;
+
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_HDR10MODE_RFC_PARAM, &param);
+        if (err!= tr181Success) {
+            returnResponse(false,getErrorString(tvERROR_GENERAL).c_str());
+        }
+        else {
+            std::string s;
+            s+=param.value;
+            response["HDR10Mode"] = s;
+            LOGINFO("Exit getHDR10Mode(): %s\n",s.c_str());
+            returnResponse(true, "success");
+        }
+
+    }
+
+    uint32_t ControlSettingsTV::resetHDR10Mode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int params[3]={0};
+        tvError_t ret = tvERROR_NONE;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "hdr10";
+
+        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,TVSETTINGS_HDR10MODE_RFC_PARAM);
+        if ( err != tr181Success ) {
+            LOGWARN("clearLocalParam for %s Failed : %s\n", TVSETTINGS_HDR10MODE_RFC_PARAM, getTR181ErrorString(err));
+            ret  = tvERROR_GENERAL;
+        }
+        else {
+            LOGINFO("clearLocalParam for %s Successful\n", TVSETTINGS_HDR10MODE_RFC_PARAM);
+
+            TR181_ParamData_t param;
+            memset(&param, 0, sizeof(param));
+			tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_HDR10MODE_RFC_PARAM,&param);
+            if ( err != tr181Success ) {
+                LOGWARN("getLocalParam for %s Failed : %s\n", TVSETTINGS_HDR10MODE_RFC_PARAM, getTR181ErrorString(err));
+                ret  = tvERROR_GENERAL;
+            }
+            else {
+                LOGINFO("getLocalParam for %s Successful\n", TVSETTINGS_HDR10MODE_RFC_PARAM);
+
+                ret = SetTVHDR10Mode(param.value);
+                if(ret != tvERROR_NONE) {
+                    LOGWARN("DV Mode set failed: %s\n",getErrorString(ret).c_str());
+                }
+                else {
+
+                    LOGINFO("DV Mode initialized successfully value %s\n",param.value);
+                    //Save HDR10Mode to ssm_data
+                    int params[3]={0};
+                    params[0]=GetHDR10ModeIndex(param.value);
+                    int retval=UpdatePQParamsToCache("reset","HDR10Mode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_HDR10_MODE,params);
+
+                    if(retval != 0) {
+                        LOGWARN("Failed to Save HDR10Mode to ssm_data\n");
+                        ret=tvERROR_GENERAL;
+                    }
+                }
+            }
+        }
+        if(ret != tvERROR_NONE)
+        {
+            returnResponse(false, getErrorString(ret));
+        }
+        else
+        {
+            LOGINFO("Exit : %s \n",__FUNCTION__);
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettingsTV::getSupportedHLGModes(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        pic_modes_t *hlgModes;
+        unsigned short totalAvailable = 0;
+        tvError_t ret = GetTVSupportedHLGModes(&hlgModes,&totalAvailable);
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            JsonArray SupportedHLGModes;
+
+            for(int count = 0;count <totalAvailable;count++ )
+            {
+                SupportedHLGModes.Add(hlgModes[count].name);
+            }
+
+            response["SupportedHLGModes"] = SupportedHLGModes;
+            LOGINFO("Exit\n");
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettingsTV::getHLGMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        TR181_ParamData_t param;
+
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_HLGMODE_RFC_PARAM, &param);
+        if (err!= tr181Success) {
+            returnResponse(false,getErrorString(tvERROR_GENERAL).c_str());
+        }
+        else {
+            std::string s;
+            s+=param.value;
+            response["HLGMode"] = s;
+            LOGINFO("Exit getHLGMode(): %s\n",s.c_str());
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettingsTV::setHLGMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+
+        value = parameters.HasLabel("HLGMode") ? parameters["HLGMode"].String() : "";
+        returnIfParamNotFound(value);
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "hlg";
+
+        tvError_t ret = SetTVHLGMode(value.c_str());
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            int params[3]={0};
+            params[0]=GetHLGModeIndex(value.c_str());
+            int retval=UpdatePQParamsToCache("set","HLGMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_HLG_MODE,params);
+            if(retval != 0) {
+                LOGWARN("Failed to Save HLGMode to ssm_data\n");
+            }
+            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_HDR10MODE_RFC_PARAM, value.c_str());
+            if ( err != tr181Success ) {
+                LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_HDR10MODE_RFC_PARAM, getTR181ErrorString(err));
+            }
+            else {
+                LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_HDR10MODE_RFC_PARAM, value.c_str());
+            }
+
+            LOGINFO("Exit\n");
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettingsTV::resetHLGMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int params[3]={0};
+        tvError_t ret = tvERROR_NONE;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "hlg";
+
+        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,TVSETTINGS_HLGMODE_RFC_PARAM);
+        if ( err != tr181Success ) {
+            LOGWARN("clearLocalParam for %s Failed : %s\n", TVSETTINGS_HLGMODE_RFC_PARAM, getTR181ErrorString(err));
+            ret  = tvERROR_GENERAL;
+        }
+        else {
+            LOGINFO("clearLocalParam for %s Successful\n", TVSETTINGS_HLGMODE_RFC_PARAM);
+
+            TR181_ParamData_t param;
+            memset(&param, 0, sizeof(param));
+			tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_HLGMODE_RFC_PARAM,&param);
+            if ( err != tr181Success ) {
+                LOGWARN("getLocalParam for %s Failed : %s\n", TVSETTINGS_HLGMODE_RFC_PARAM, getTR181ErrorString(err));
+                ret  = tvERROR_GENERAL;
+            }
+            else {
+                LOGINFO("getLocalParam for %s Successful\n", TVSETTINGS_HLGMODE_RFC_PARAM);
+
+                ret = SetTVHLGMode(param.value);
+                if(ret != tvERROR_NONE) {
+                    LOGWARN("DV Mode set failed: %s\n",getErrorString(ret).c_str());
+                }
+                else {
+
+                    LOGINFO("DV Mode initialized successfully value %s\n",param.value);
+                    //Save HLGMode to ssm_data
+                    int params[3]={0};
+                    params[0]=GetHLGModeIndex(param.value);
+                    int retval=UpdatePQParamsToCache("reset","HLGMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_HLG_MODE,params);
+
+                    if(retval != 0) {
+                        LOGWARN("Failed to Save HLGMode to ssm_data\n");
+                        ret=tvERROR_GENERAL;
+                    }
+                }
+            }
+        }
+        if(ret != tvERROR_NONE)
+        {
+            returnResponse(false, getErrorString(ret));
+        }
+        else
+        {
+            LOGINFO("Exit : %s \n",__FUNCTION__);
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettingsTV::getWBInfo(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        JsonArray supportedWBSelectors;
+        JsonObject supportedWBSelectorInfo;
+        JsonArray colorTemp;
+        JsonArray inputs;
+        JsonArray supportedWBCtrls;
+        JsonObject supportedWBCtrlInfo;
+        JsonObject gain;
+        JsonObject offset;
+        tvError_t ret;
+        unsigned int index = 0;
+        getWBInfo_t wbInfo;
+        std::vector<std::string> wbSelector;
+        std::vector<std::string> wbColorTmp;
+        std::vector<std::string> wbInput;
+
+        /* HAL call for getWBInfo */
+        ret = getWbInfo(&wbInfo, wbSelector, wbColorTmp, wbInput);
+        if(ret != tvERROR_NONE) {
+            LOGWARN("getWbInfo() Failed!!! \n");
+        }
+        for (index = 0; index < wbSelector.size(); index++) {
+            supportedWBSelectors.Add(wbSelector[index]);
+        }
+        response["supportedWBSelectors"] = supportedWBSelectors;
+
+        for (index = 0; index < wbColorTmp.size(); index++) {
+            colorTemp.Add(wbColorTmp[index]);
+        }
+
+        for (index = 0; index < wbInput.size(); index++) {
+            inputs.Add(wbInput[index]);
+        }
+        if (wbColorTmp.size() != 0) {
+            supportedWBSelectorInfo[wbSelector[0].c_str()] = colorTemp;
+        }
+        if (wbInput.size() != 0) {
+            supportedWBSelectorInfo[wbSelector[1].c_str()] = inputs;
+        }
+        response["supportedWBSelectorInfo"] = supportedWBSelectorInfo;
+
+        for (index = 0; index < 2; index++) {
+            supportedWBCtrls.Add(wbInfo.wbControls[index]);
+        }
+        response["supportedWBCtrls"] = supportedWBCtrls;
+        gain["min"] = std::string(wbInfo.wbGain[0]);
+        gain["max"] = std::string(wbInfo.wbGain[1]);
+        supportedWBCtrlInfo[wbInfo.wbControls[0]] = gain;
+        offset["min"] = std::string(wbInfo.wbOffset[0]);
+        offset["max"] = std::string(wbInfo.wbOffset[1]);
+        supportedWBCtrlInfo[wbInfo.wbControls[1]] = offset;
+        response["supportedWBCtrlInfo"] = supportedWBCtrlInfo;
+        returnResponse(true, "success");
+    }
+
+    uint32_t ControlSettingsTV::getWBCtrl(const JsonObject& parameters,JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        JsonArray applies;
+        JsonObject obj;
+        std::vector<std::string> selector;
+        std::vector<std::string> index;
+        std::string color;
+        std::string ctrl;
+        int value;
+        if ((parameters.HasLabel("applies")) && (parameters.HasLabel("color")) && (parameters.HasLabel("ctrl")))
+        {
+            color = parameters["color"].String();
+            ctrl = parameters["ctrl"].String();
+            applies = parameters["applies"].Array();
+            for (int i = 0; i < applies.Length(); ++i)
+            {
+                obj = applies[i].Object();
+                selector.push_back(obj["selector"].String());
+                index.push_back(obj["index"].String());
+            }
+            std::string colorTemp;
+            std::string inputSrc;
+            int pos;
+            std::string temp = "color temp";
+            std::string input = "input";
+            auto found = find(selector.begin(), selector.end(), temp);
+            auto found1 = find(selector.begin(), selector.end(), input);
+            if(found1 == selector.end()) {
+                LOGINFO("Input source not passed");
+                inputSrc = "";
+            } else {
+                pos = found1 - selector.begin();
+                inputSrc = index.at(pos);
+            }
+			if(found != selector.end())
+            {
+                pos = found - selector.begin();
+                colorTemp = index.at(pos);
+
+                LOGINFO("input source : %s\ncolortemp : %s\ncolor : %s\nctrl : %s\n", inputSrc.c_str(), colorTemp.c_str(), color.c_str(), ctrl.c_str());
+                // Call to HAL API to getWBctrl
+                tvError_t ret = getWBctrl (const_cast <char *> (inputSrc.c_str()), const_cast <char *> (colorTemp.c_str()), const_cast <char *> (color.c_str()), const_cast <char *> (ctrl.c_str()), &value);
+                if(ret != tvERROR_NONE) {
+                    LOGWARN("getWBCtrl failed");
+                    returnResponse(false, getErrorString(ret).c_str());
+                } else {
+                    LOGINFO("Exit : getWBCtrl success");
+                    response["value"] = value;
+                    returnResponse(true, "success");
+                }
+
+            } else {
+                returnResponse(false, "wrong selector value");
+            }
+        } else {
+            returnResponse(false, "Missing Parameter");
+        }
+    }
+
+    uint32_t ControlSettingsTV::setWBCtrl(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        JsonArray applies;
+        JsonObject obj;
+        std::vector<std::string> selector;
+        std::vector<std::string> index;
+        std::string val;
+        std::string color;
+        std::string ctrl;
+        int value;
+        if(parameters.HasLabel("applies") && parameters.HasLabel("color") && parameters.HasLabel("ctrl") && parameters.HasLabel("value"))
+        {
+            color = parameters["color"].String();
+            ctrl = parameters["ctrl"].String();
+            val = parameters["value"].String();
+            value = std::stoi(val);
+            applies = parameters["applies"].Array();
+            for(int i=0; i<applies.Length(); ++i)
+            {
+                obj = applies[i].Object();
+                selector.push_back(obj["selector"].String());
+                index.push_back(obj["index"].String());
+            }
+            std::string temp = "color temp";
+            std::string input = "input";
+            std::string colorTemp;
+            std::string inputSrc;
+            int pos;
+            auto found = find(selector.begin(), selector.end(), temp);
+            auto found1 = find(selector.begin(), selector.end(), input);
+            if(found1 == selector.end()) {
+                LOGINFO("Input source not passed");
+                inputSrc = "";
+            } else {
+                pos = found1 - selector.begin();
+                inputSrc = index.at(pos);
+            }
+	    if(found != selector.end())
+            {
+                pos = found - selector.begin();
+                colorTemp = index.at(pos);
+                LOGINFO("input source : %s\ncolortemp : %s\ncolor : %s\nctrl : %s\nvalue : %d\n", inputSrc.c_str(), colorTemp.c_str(), color.c_str(), ctrl.c_str(), value);
+                tvError_t ret = setWBctrl (const_cast <char *> (inputSrc.c_str()),const_cast <char *> (colorTemp.c_str()), const_cast <char *> (color.c_str()), const_cast <char *> (ctrl.c_str()), value);
+                if(ret != tvERROR_NONE) {
+                    LOGWARN("setWBCtrl failed");
+                    returnResponse(false, getErrorString(ret).c_str());
+                } else {
+                    //set it to local cache
+                    std::string identifier = TVSETTINGS_GENERIC_STRING_RFC_PARAM;
+                    identifier+=std::string("wb")+color+"."+ctrl;
+                    tr181ErrorCode_t err = setLocalParam(rfc_caller_id, identifier.c_str(), val.c_str());
+                    if ( err != tr181Success ) {
+                        LOGWARN("setLocalParam for %s Failed : %s\n", identifier.c_str(), getTR181ErrorString(err));
+                    }
+                    else {
+                        LOGINFO("setLocalParam for %s Successful, Value: %d\n", identifier.c_str(), value);
+                    }
+                    LOGINFO("Exit : setWBCtrl success");
+                    returnResponse(true, "success");
+                }
+            } else {
+                returnResponse(false, "color temp or input not available");
+            }
+        }
+        else{
+            returnResponse(false,"not valid parameter");
+        }
+    }
+
+    uint32_t ControlSettingsTV::resetWBCtrl(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        tvError_t ret = tvERROR_NONE;
+        string identifier=(std::string(TVSETTINGS_GENERIC_STRING_RFC_PARAM)+std::string("wb"));
+
+        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,identifier.c_str());
+        if ( err != tr181Success ) {
+            LOGWARN("clearLocalParam for %s Failed : %s\n",identifier.c_str(),getTR181ErrorString(err));
+            ret  = tvERROR_GENERAL;
+        }else{
+            tvDataColor_t WBValues={0};
+            //get the defaults
+            ret = GetCustomWBValuesFromLocalCache(WBValues);
+            if(ret == tvERROR_NONE)
+            {
+                //set the defaults and save
+                ret = SyncCustomWBValuesToDriverCache(WBValues,true);
+            }
+        }
+        if(ret != tvERROR_NONE)
+        {
+            returnResponse(false, getErrorString(ret));
+        }
+        else
+        {
+            LOGINFO("Exit : Successfully reset user WB Entries \n");
+            returnResponse(true, "success");
+        }
+    }
+
     bool ControlSettingsTV::isBacklightUsingGlobalBacklightFactor(void)
     {
         TR181_ParamData_t param;
@@ -2178,7 +2992,7 @@ namespace Plugin {
             if(cms)
             {
                 value=GetCMSDefault((tvCMS_tunel_t)tunnel_type);
-                return 0;/*block default cms sync and allow default values during reset*/
+                return 1;/*block default cms sync and allow default values during reset*/
             }
 	    else
             {
@@ -2324,7 +3138,15 @@ namespace Plugin {
         }
 	else
         {
-            formats.push_back(ConvertFormatStringToHDRFormat(format));//This function needs to be implemented
+            char *formatString = strdup(format);
+            char *token = NULL;
+            int count=1;
+            while (token = strtok_r(formatString," ",&formatString))
+            {
+                formats.push_back(ConvertFormatStringToHDRFormat(token));//This function needs to be implemented
+                LOGINFO("%s : Format[%d] : %s\n",__FUNCTION__,count,token);
+                count++;
+            }
         }
 
         LOGINFO("Exit : %s ret : %d\n",__FUNCTION__,ret);
@@ -2454,6 +3276,9 @@ namespace Plugin {
                             case PQ_PARAM_COLOR_TEMPERATURE:
                                 ret |= SaveColorTemperature(source, mode,format,params[0]);
                                 break;
+                            case PQ_PARAM_BACKLIGHT:
+                                ret |= SaveBacklight(source, mode,format,params[0]);
+                                 break;
                             case PQ_PARAM_LDIM:
                                 ret |= ret |= SaveDynamicBacklight(source,mode,format,params[0]);
                                 break;
@@ -2471,10 +3296,52 @@ namespace Plugin {
                                      }
                                      params[2]=value;
                                 }
-                               ret |= SaveCMS(source, mode,format,params[0],params[1],params[2]);
-                               if(set)
-                                   ret |= UpdatePQParamToLocalCache(tr181ParamName,source,mode, format, params[2],true);
-                               break;
+                                ret |= SaveCMS(source, mode,format,params[0],params[1],params[2]);
+                                if(set)
+                                    ret |= UpdatePQParamToLocalCache(tr181ParamName,source,mode, format, params[2],true);
+                                break;
+                             case PQ_PARAM_DOLBY_MODE:
+                                 if(sync)
+                                 {
+                                     int value=0;
+                                     if( !GetDolbyParamToSync(value) )
+                                         LOGINFO("Found param from tr181 dvmode pqmode : %d format:%d value:%d\n",mode,format,value);
+                                     else
+                                         LOGINFO("value not found in tr181 dvmode pqmode : %d format:%d value:%d\n",mode,format,value);
+
+                                     params[0]=value;
+                                 }
+                                 ret |= SaveDolbyMode(source, mode,format,params[0]);
+                                 break;
+                           
+                              case PQ_PARAM_HDR10_MODE:
+                                 if(sync){
+                                      int value=0;
+                                      if( !GetHDR10ParamToSync(value) )
+                                          LOGINFO("Found param from tr181 hdr10mode pqmode : %d format:%d value:%d\n",mode,format,value);
+                                      else
+                                          LOGINFO("value not found in tr181 hdr10mode pqmode : %d format:%d value:%d\n",mode,format,value);
+
+                                      params[0]=value;
+                                 }
+                                 ret |= SaveDolbyMode(source, mode,format,params[0]);
+                                 break;
+   
+                            case PQ_PARAM_HLG_MODE:
+                                if(sync){
+                                    int value=0;
+                                    if( !GetHLGParamToSync(value) )
+                                        LOGINFO("Found param from tr181 hlgmode pqmode : %d format:%d value:%d\n",mode,format,value);
+                                    else
+                                        LOGINFO("value not found in tr181 hlgmode pqmode : %d format:%d value:%d\n",mode,format,value);
+
+                                    params[0]=value;
+                                }
+                                ret |= SaveDolbyMode(source, mode,format,params[0]);
+                                break;
+                             case PQ_PARAM_ASPECT_RATIO:
+                                 ret |= SaveDisplayMode(source,mode,format,params[0]);
+                                 break;
                         }
                     }
                 }
@@ -2589,6 +3456,539 @@ namespace Plugin {
         return index;
 
     }
+
+    int ControlSettingsTV::GetDolbyParamToSync(int& value)
+    {
+        int ret=0;
+        TR181_ParamData_t param;
+
+        memset(&param, 0, sizeof(param));
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM, &param);
+        if ( tr181Success == err )
+        {
+            value=GetDolbyModeIndex(param.value);
+        }
+        else
+        {
+            LOGWARN("Unable to fetch %s from localstore\n",TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM);
+            ret=-1;
+        }
+        return ret;
+    }
+
+    int ControlSettingsTV::GetHDR10ParamToSync(int& value)
+    {
+        int ret=0;
+        TR181_ParamData_t param;
+
+        memset(&param, 0, sizeof(param));
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_HDR10MODE_RFC_PARAM, &param);
+        if ( tr181Success == err )
+        {
+            value=GetHDR10ModeIndex(param.value);
+        }
+        else
+        {
+            LOGWARN("Unable to fetch %s from localstore\n",TVSETTINGS_HDR10MODE_RFC_PARAM);
+            ret=-1;
+        }
+        return ret;
+    }
+
+    int ControlSettingsTV::GetHLGParamToSync(int& value)
+    {
+        int ret=0;
+        TR181_ParamData_t param;
+
+        memset(&param, 0, sizeof(param));
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_HLGMODE_RFC_PARAM, &param);
+        if ( tr181Success == err )
+        {
+            value=GetHLGModeIndex(param.value);
+        }
+        else
+        {
+            LOGWARN("Unable to fetch %s from localstore\n",TVSETTINGS_HLGMODE_RFC_PARAM);
+            ret=-1;
+        }
+        return ret;
+    }
+
+    tvError_t ControlSettingsTV::SyncCustomWBValuesToDriverCache(tvDataColor_t WBValues,bool setDuringSync)
+    {
+        tvError_t ret = tvERROR_NONE;
+        std::vector<std::string> allCtrls{ "gain", "offset"};
+        std::vector<std::string> allColors{ "red", "green","blue"};
+
+        for(std::string color : allColors)
+        {
+            for(std::string ctrl : allCtrls)
+            {
+                int rgbType;
+                int value = GetGainOffsetValue(color.c_str(),ctrl.c_str(),WBValues,rgbType);
+
+                if(setDuringSync)
+                    ret  = SetColorTemperatureUser(rgbType,value);
+
+                if(tvERROR_NONE == ret)
+                    ret  = SaveColorTemperatureUser(rgbType,value);
+
+                if(tvERROR_NONE!= ret)
+                {
+                    LOGWARN("WB Entry for %s.%s fail to save to driver\n",color.c_str(),ctrl.c_str());
+                }
+                else
+                    LOGINFO("WB Entry for %s.%s saved to driver\n",color.c_str(),ctrl.c_str());
+            }
+        }
+        return ret;
+    }
+
+    tvError_t ControlSettingsTV::GetCustomWBValuesFromLocalCache(tvDataColor_t &WBValues)
+    {
+        TR181_ParamData_t param={0};
+        tvError_t ret = tvERROR_NONE;
+        std::vector<std::string> allCtrls{ "gain", "offset"};
+        std::vector<std::string> allColors{ "red", "green","blue"};
+
+        LOGINFO("Entry");
+        for(std::string color : allColors)
+        {
+            for(std::string ctrl : allCtrls)
+            {
+                string identifier=std::string(TVSETTINGS_GENERIC_STRING_RFC_PARAM)+std::string("wb");
+                int value =0;
+                tr181ErrorCode_t err;
+                identifier+=color+"."+ctrl;
+                err = getLocalParam(rfc_caller_id, identifier.c_str(), &param);
+                if ( tr181Success == err )
+                {
+                    value = std::stoi(param.value);
+                    LOGINFO("%s  : %d\n",identifier.c_str(),value);
+                }
+				else
+                {
+                    LOGINFO("%s  Failed trying dirty\n",identifier.c_str());
+                    identifier.clear();
+                    identifier+=std::string(TVSETTINGS_GENERIC_STRING_RFC_PARAM)+std::string("wb.")+color+"."+ctrl;
+                    err = getLocalParam(rfc_caller_id, identifier.c_str(), &param);
+                    if ( tr181Success == err )
+                    {
+                        value = std::stoi(param.value);
+                        LOGINFO("%s  : %d\n",identifier.c_str(),value);
+
+                    }
+                    else
+                    {
+                        LOGWARN("Not finding entry for %s  : %s\n",identifier.c_str(),getTR181ErrorString(err));
+                        ret = tvERROR_GENERAL;
+                    }
+                }
+                
+		        if(tr181Success == err )
+                {
+                    switch(GetWBRgbType(color.c_str(),ctrl.c_str()))
+                    {
+                        case R_GAIN:
+                            WBValues.r_gain = value;
+                            break;
+                        case G_GAIN:
+                            WBValues.g_gain = value;
+                            break;
+                        case B_GAIN:
+                            WBValues.b_gain = value;
+                           break;
+                        case R_POST_OFFSET:
+                            WBValues.r_offset = value;
+                            break;
+                        case G_POST_OFFSET:
+                            WBValues.g_offset = value;
+                            break;
+                        case B_POST_OFFSET:
+                            WBValues.b_offset = value;
+                            break;
+                    }
+                }
+            }
+        }
+        LOGINFO("r.gain %d,r.offset %d,g.gain %d,g.offset %d,b.gain %d,b.offset %d",WBValues.r_gain,WBValues.r_offset,
+        WBValues.g_gain,WBValues.g_offset,WBValues.b_gain,WBValues.b_offset);
+        LOGINFO("Exit");
+        return ret;
+    }
+
+    int ControlSettingsTV::GetGainOffsetValue(const char* color,const char*ctrl,tvDataColor_t WBValues,int &rgbType)
+    {
+        int value = 0;
+        rgbType = GetWBRgbType(color,ctrl);
+        switch(rgbType)
+        {
+            case R_GAIN:
+                value = WBValues.r_gain;
+                break;
+            case G_GAIN:
+                value = WBValues.g_gain;
+                break;
+            case B_GAIN:
+                value = WBValues.b_gain;
+                break;
+            case R_POST_OFFSET:
+                value = WBValues.r_offset;
+                break;
+            case G_POST_OFFSET:
+                value = WBValues.g_offset;
+                break;
+            case B_POST_OFFSET:
+                value = WBValues.b_offset;
+                break;
+        }
+        return value;
+    }
+
+    bool ControlSettingsTV::isSetRequired(std::string pqmode,std::string source,std::string format)
+    {
+        bool ret=false;
+        char picMode[PIC_MODE_NAME_MAX]={0};
+        std::string currentPicMode;
+        std::string currentSource;
+        std::string currentFormat;
+        std::string space_delimiter = " ";
+	
+        //GetCurrent pqmode
+        if(!getCurrentPictureMode(picMode))
+            LOGWARN("Failed to get the current picture mode\n");
+		
+        currentPicMode = picMode; //Convert to string
+
+        //GetCurrentSource
+        currentSource = ConvertSourceIndexToString( GetCurrentContentFormat());
+	
+        //GetCurrentFormat
+        currentFormat = ConvertVideoFormatToString( GetCurrentContentFormat());
+	
+        LOGINFO("%s : currentSource = %s,currentPicMode = %s,currentFormat = %s\n",__FUNCTION__,currentSource.c_str(),currentPicMode.c_str(),currentFormat.c_str());
+	LOGINFO("%s : source = %s,PicMode = %s, format= %s\n",__FUNCTION__,source.c_str(),pqmode.c_str(),format.c_str());
+
+        if( ( pqmode.compare("current") == 0 || (pqmode.find(currentPicMode) != std::string::npos) || pqmode.compare("all") == 0) &&
+            (source.compare("current") == 0 || (source.find(currentSource) != std::string::npos)  || source.compare("all") == 0) &&
+            (format.compare("current") == 0 || (format.find(currentFormat) !=  std::string::npos) || format.compare("all") == 0)  )	
+            ret=true;
+		
+	return ret;
+    }
+
+    int ControlSettingsTV::SyncCMSParams(const char *pqParam,tvCMS_tunel_t tunnel_type)
+    {
+        int ret=0;
+        char cms_param[BUFFER_SIZE]={0};
+        int params[3]={0};
+
+        for(int color=COLOR_RED;color<=COLOR_YELLOW;color++)
+        {
+            memset(&cms_param, 0, sizeof(cms_param));
+            snprintf(cms_param,sizeof(cms_param),"%s.%s",pqParam,component_color[color]);
+            params[0]=tunnel_type;//tunnel_type
+            params[1]=color;//color_type
+            params[2]=0;//value
+
+            if(!UpdatePQParamsToCache("sync",cms_param,"all","all","all",PQ_PARAM_CMS,params))
+                ret |= 0;
+            else
+                ret |= 1;
+        }
+        return ret;
+    }
+
+    tvError_t ControlSettingsTV::SyncCMSParamsToDriverCache()
+    {
+        int cms_enable[3]={0};
+        cms_enable[0]=COLOR_STATE;//tunel_type
+        cms_enable[1]=COLOR_ENABLE;//color_type
+        cms_enable[2]=0;//value
+
+        if(! UpdatePQParamsToCache("sync","cms.enable","all","all","all",PQ_PARAM_CMS,cms_enable))
+            LOGINFO("CMS Enable Flag  Successfully Synced to Drive Cache\n");
+        else
+            LOGWARN("CMS Enable Flag Sync to cache Failed !!!\n");
+
+        if( !SyncCMSParams("saturation",COLOR_SATURATION))
+            LOGINFO("Component saturation Successfully Synced to Drive Cache\n");
+        else
+            LOGWARN("Component saturation Sync to cache Failed !!!\n");
+
+        if( !SyncCMSParams("hue",COLOR_HUE))
+            LOGINFO("Component hue Successfully Synced to Drive Cache\n");
+        else
+            LOGWARN("Component hue to cache Failed !!!\n");
+
+        if( !SyncCMSParams("luma",COLOR_LUMA))
+            LOGINFO("Component Luma Successfully Synced to Drive Cache\n");
+        else
+            LOGWARN("Component Luma Sync to cache Failed !!!\n");
+
+        return tvERROR_NONE;
+    }
+
+    void ControlSettingsTV::SyncWBparams(void)
+    {
+        tvDataColor_t WbValuesFromCache={0};
+        tvDataColor_t WbValueFromDrv={0};
+        tvDataColor_t WbValueAllZero={0};
+        bool WbvalueFromDrvIsDefault = false;
+        bool WbvalueInLocalCacheIsDefault = false;
+
+        GetCustomWBValuesFromLocalCache(WbValuesFromCache);
+        LOGINFO("cached:r.gain %d,r.offset %d,g.gain %d,g.offset %d,b.gain %d,b.offset %d",WbValuesFromCache.r_gain,WbValuesFromCache.r_offset,
+        WbValuesFromCache.g_gain,WbValuesFromCache.g_offset,WbValuesFromCache.b_gain,WbValuesFromCache.b_offset);
+        WbValueFromDrv = GetUSerWBValueOnInit();
+        LOGINFO("cached:r.gain %d,r.offset %d,g.gain %d,g.offset %d,b.gain %d,b.offset %d",WbValueFromDrv.r_gain,WbValueFromDrv.r_offset,
+        WbValueFromDrv.g_gain,WbValueFromDrv.g_offset,WbValueFromDrv.b_gain,WbValueFromDrv.b_offset);
+        WbvalueFromDrvIsDefault = isWBUserDfault(WbValueFromDrv);
+        WbvalueInLocalCacheIsDefault = isWBUserDfault(WbValuesFromCache);
+        LOGINFO("Drv WB deafult:%s , tr181 WB default:%s\n",WbvalueFromDrvIsDefault?"Yes":"No",
+            WbvalueInLocalCacheIsDefault?"Yes":"No");
+        if(!WbvalueInLocalCacheIsDefault &&
+            !areEqual(WbValuesFromCache,WbValueFromDrv) &&
+            !areEqual(WbValuesFromCache,WbValueAllZero) )
+        {
+            //RDK->Driver
+            LOGINFO("RDK->Driver\n");
+            SyncCustomWBValuesToDriverCache(WbValuesFromCache,false);
+
+        }
+        else
+        {
+            LOGINFO("No need to sync WB params\n");
+        }
+
+    }
+
+    int ControlSettingsTV::InitializeSDRHDRBacklight()
+    {
+        char panelId[20] = {0};
+        int val=GetPanelID(panelId);
+        int ret=0;
+
+        if (val != 0)
+        {
+            LOGERR("Failed to read panel id!!! Set 55 panel as default\n");
+            memset(panelId,0,sizeof(panelId));
+            GetDefaultPanelID(panelId);
+            LOGINFO("Panel ID : %s \n",panelId);
+        }
+        else
+            LOGINFO("Read panel id ok [%s] \n", panelId);
+
+        /* Load Default Panel ID for Converter Boards*/
+        if(strncmp(panelId,TVSETTINGS_CONVERTERBOARD_PANELID,strlen(TVSETTINGS_CONVERTERBOARD_PANELID))==0)
+        {
+            memset(panelId,0,sizeof(panelId));
+            GetDefaultPanelID(panelId);
+            LOGINFO("Load 55 panel values as default panel ID : %s\n",panelId);
+        }
+
+        val=ReadBacklightFromTable(panelId);
+        if(val == 0)
+            LOGINFO("Backlight read success from backlight_default.ini\n");
+        else
+            LOGWARN("Backlight read failed from backlight_default.ini\n");
+
+        ret=SetBacklightAtInitAndSaveForBLUsingGBF();
+        if(ret == tvERROR_NONE)
+        {
+            LOGINFO("SetBacklightAtInitAndSaveForBLUsingGBF: success\n");
+        }
+        else
+        {
+            ret=-1;
+            LOGWARN("SetBacklightFromLocalStore(): Failed\n");
+        }
+        return ret;
+    }
+
+    tvError_t ControlSettingsTV::SetBacklightAtInitAndSaveForBLUsingGBF(void)
+    {
+        tvError_t ret = tvERROR_NONE;
+        TR181_ParamData_t param={0};
+        int backlightSDR=0;
+        int backlightHDR=0;
+
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_BACKLIGHT_SDR_RFC_PARAM, &param);
+        if ( tr181Success == err )
+        {
+            backlightSDR=GetDriverEquivalentBLForCurrentFmt(std::stoi(param.value));
+        }
+        else
+        {
+            LOGERR("Default BL for SDR can't be read \n");
+            ret = tvERROR_GENERAL;
+        }
+
+        if(ret == tvERROR_NONE)
+        {
+            memset(&param, 0, sizeof(param));
+            err = getLocalParam(rfc_caller_id, TVSETTINGS_BACKLIGHT_HDR_RFC_PARAM, &param);
+            if ( tr181Success == err )
+            {
+                backlightHDR=GetDriverEquivalentBLForCurrentFmt(std::stoi(param.value));
+            }
+            else
+            {
+                LOGERR("Default BL for HDR can't be read \n");
+                ret = tvERROR_GENERAL;
+            }
+        }
+        if(ret == tvERROR_NONE)
+        {
+            int backlight = isCurrentHDRTypeIsSDR()?backlightSDR:backlightHDR;
+            ret = SetBacklight(backlight);
+            if(ret != tvERROR_NONE) {
+                LOGERR("Failed to set backlight at init \n");
+            }
+            else
+            {
+                ret = SaveSDRHDRBacklightAtInitToDrv(backlightSDR,backlightHDR);
+            }
+        }
+        return ret;
+    }
+
+    int ControlSettingsTV::ReadBacklightFromTable(char *panelId)
+    {
+        tvBacklightInfo_t  blInfo = {0};
+
+        std::string temp_panelid=std::string(panelId);
+        temp_panelid=std::string(temp_panelid.rbegin(),temp_panelid.rend());//reverse
+        std::string delimiter="_";
+        temp_panelid=temp_panelid.erase(0, temp_panelid.find(delimiter) + delimiter.length());//remove the first _ token
+        temp_panelid=std::string(temp_panelid.rbegin(),temp_panelid.rend());  //reverse again
+
+        LOGINFO("%s: Looking at %s / %s for BLT \n",__FUNCTION__,panelId,temp_panelid.c_str());
+
+        try
+        {
+            CIniFile inFile(BACKLIGHT_FILE_NAME);
+
+            for(int i = 0 ; i < BACKLIGHT_CURVE_MAX_INDEX; i++ )
+            {
+                std::string s;
+                s = temp_panelid+ "_" + std::string("SDR") + ".bl_" + std::to_string(i);
+                blInfo.sdrBLCurve[i] = inFile.Get<int>(s);
+                LOGINFO("bl_table_sdr[%d] = %u\n", i, blInfo.sdrBLCurve[i] );
+            }
+
+            for(int j = 0 ; j < BACKLIGHT_CURVE_MAX_INDEX; j++ )
+            {
+                std::string s;
+                s = temp_panelid+ "_" + std::string("HDR") + ".bl_" + std::to_string(j);
+                blInfo.hdrBLCurve[j] = inFile.Get<int>(s);
+                LOGINFO("bl_table_hdr[%d] = %u\n", j, blInfo.hdrBLCurve[j] );
+            }
+        }
+		catch(const boost::property_tree::ptree_error &e)
+        {
+            LOGERR("%s: error %s::config table entry not found in ini file\n",__FUNCTION__,e.what());
+            return -1;
+        }
+
+        {
+            blInfo.defaultBLSDR = defaultSDR;
+            blInfo.defaultBLHDR = defaultHDR;
+            SetBacklightInfo(blInfo);
+        }
+        return 0;
+    }
+
+    tvError_t ControlSettingsTV::SaveSDRHDRBacklightAtInitToDrv(int backlightSDR,int backlightHDR)
+    {
+        tvError_t ret = tvERROR_NONE;
+
+        for(int lCount=0;lCount<numberModesSupported;lCount++)
+        {
+            if(tvERROR_NONE != SaveBacklight(SAVE_FOR_ALL_SOURCES, pic_mode_index[lCount],(int)HDR_TYPE_SDR,backlightSDR)||
+                tvERROR_NONE != SaveBacklight(SAVE_FOR_ALL_SOURCES, pic_mode_index[lCount],(int)HDR_TYPE_HDR10,backlightHDR) ||
+                tvERROR_NONE != SaveBacklight(SAVE_FOR_ALL_SOURCES, pic_mode_index[lCount],(int)HDR_TYPE_HLG,backlightHDR) ||
+                tvERROR_NONE != SaveBacklight(SAVE_FOR_ALL_SOURCES, pic_mode_index[lCount],(int)HDR_TYPE_DOVI,backlightHDR))
+            {
+                ret = tvERROR_GENERAL;
+                LOGWARN("BL update failed for picmode %d\n",pic_mode_index[lCount]);
+                break;
+            }
+        }
+        return ret;
+    }
+
+    tvError_t ControlSettingsTV::SyncPQParamsToDriverCache()
+    {
+        int params[3]={0};
+
+        if( !UpdatePQParamsToCache("sync","Brightness","all","all","all",PQ_PARAM_BRIGHTNESS,params))
+            LOGINFO("Brightness Successfully sync to Drive Cache\n");
+        else
+            LOGWARN("Brightness Sync to cache Failed !!!\n");
+
+        if( !UpdatePQParamsToCache("sync","Contrast","all","all","all",PQ_PARAM_CONTRAST,params))
+            LOGINFO("Contrast Successfully Synced to Drive Cache\n");
+        else
+            LOGWARN("Contrast Sync to cache Failed !!!\n");
+
+        if( !UpdatePQParamsToCache("sync","Sharpness","all","all","all",PQ_PARAM_SHARPNESS,params))
+            LOGINFO("Sharpness Successfully Synced to Drive Cache\n");
+        else
+            LOGWARN("Sharpness Sync to cache Failed !!!\n");
+
+        if( !UpdatePQParamsToCache("sync","Saturation","all","all","all",PQ_PARAM_SATURATION,params))
+            LOGINFO("Saturation Successfully Synced to Drive Cache\n");
+        else
+            LOGWARN("Saturation Sync to cache Failed !!!\n");
+
+        if( !UpdatePQParamsToCache("sync","Hue","all","all","all",PQ_PARAM_HUE,params))
+            LOGINFO("Hue Successfully Synced to Drive Cache\n");
+        else
+            LOGWARN("Hue Sync to cache Failed !!!\n");
+
+        if( !UpdatePQParamsToCache("sync","ColorTemp","all","all","all",PQ_PARAM_COLOR_TEMPERATURE,params))
+            LOGINFO("ColorTemp Successfully Synced to Drive Cache\n");
+        else
+            LOGWARN("ColorTemp Sync to cache Failed !!!\n");
+
+	if( !UpdatePQParamsToCache("sync","DolbyVisionMode","all","all","all",PQ_PARAM_DOLBY_MODE,params))
+            LOGINFO("dvmode Successfully Synced to Drive Cache\n");
+        else
+            LOGWARN("dvmode Sync to cache Failed !!!\n");
+
+        if( !UpdatePQParamsToCache("sync","DimmingMode","all","all","all",PQ_PARAM_LDIM,params))
+            LOGINFO("dimmingmode Successfully Synced to Drive Cache\n");
+        else
+            LOGWARN("dimmingmode Sync to cache Failed !!!\n");
+
+        if(appUsesGlobalBackLightFactor){
+            if( !UpdatePQParamsToCache("sync","HLGMode","all","all","all",PQ_PARAM_HLG_MODE,params))
+                LOGINFO("hlgmode Successfully Synced to Drive Cache\n");
+            else
+                LOGWARN("hlgmode Sync to cache Failed !!!\n");
+
+            if( !UpdatePQParamsToCache("sync","HDR10Mode","all","all","all",PQ_PARAM_HDR10_MODE,params))
+                LOGINFO("hdr10mode Successfully Synced to Drive Cache\n");
+            else
+                LOGWARN("hdr10mode Sync to cache Failed !!!\n");
+        }
+
+        if( !UpdatePQParamsToCache("sync","Backlight","all","all","all",PQ_PARAM_BACKLIGHT,params) )
+            LOGINFO("Backlight Successfully Synced to Drive Cache\n");
+        else
+            LOGWARN("Backlight Sync to cache Failed !!!\n");
+
+
+        if(appUsesGlobalBackLightFactor)
+        {
+            SyncCMSParamsToDriverCache();
+
+            SyncWBparams();
+        }
+        return tvERROR_NONE;
+    }
+
 
 
 }//namespace Plugin

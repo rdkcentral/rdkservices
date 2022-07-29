@@ -47,6 +47,11 @@
 #include "ControlSettingsTV.h"
 #include "ControlSettingsSTB.h"
 
+//Default ControlSettingsSTB
+#ifndef DEVICE_TYPE
+#define DEVICE_TYPE ControlSettingsSTB
+#endif
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -58,6 +63,7 @@ namespace Plugin {
    public : 
 	DECLARE_JSON_RPC_METHOD(getAspectRatio)
         DECLARE_JSON_RPC_METHOD(setAspectRatio)
+        DECLARE_JSON_RPC_METHOD(resetAspectRatio)
         DECLARE_JSON_RPC_METHOD(getVideoFormat)
         DECLARE_JSON_RPC_METHOD(getVideoFrameRate)
         DECLARE_JSON_RPC_METHOD(getVideoResolution)
@@ -70,6 +76,9 @@ namespace Plugin {
 	void NotifyVideoFormatChange(tvVideoHDRFormat_t format);
         void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
         void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
+	tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
+        tvError_t getUserSelectedAspectRatio (tvDisplayMode_t* mode);
+	tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all");
 
     private:
         uint8_t _skipURL;

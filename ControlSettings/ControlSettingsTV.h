@@ -81,6 +81,22 @@ class ControlSettingsTV : public PluginHost::IPlugin, public PluginHost::JSONRPC
         DECLARE_JSON_RPC_METHOD(getAutoBacklightControl )
         DECLARE_JSON_RPC_METHOD(setAutoBacklightControl )
         DECLARE_JSON_RPC_METHOD(resetAutoBacklightControl )
+        DECLARE_JSON_RPC_METHOD(getSupportedDolbyVisionModes )
+        DECLARE_JSON_RPC_METHOD(getDolbyVisionMode )
+        DECLARE_JSON_RPC_METHOD(setDolbyVisionMode )
+        DECLARE_JSON_RPC_METHOD(resetDolbyVisionMode )
+        DECLARE_JSON_RPC_METHOD(getSupportedHDR10Modes )
+        DECLARE_JSON_RPC_METHOD(getHDR10Mode )
+        DECLARE_JSON_RPC_METHOD(setHDR10Mode )
+        DECLARE_JSON_RPC_METHOD(resetHDR10Mode )
+        DECLARE_JSON_RPC_METHOD(getSupportedHLGModes )
+        DECLARE_JSON_RPC_METHOD(getHLGMode )
+        DECLARE_JSON_RPC_METHOD(setHLGMode )
+        DECLARE_JSON_RPC_METHOD(resetHLGMode )
+        DECLARE_JSON_RPC_METHOD(getWBInfo )
+        DECLARE_JSON_RPC_METHOD(getWBCtrl )
+        DECLARE_JSON_RPC_METHOD(setWBCtrl )
+        DECLARE_JSON_RPC_METHOD(resetWBCtrl )
 
 
     public:
@@ -96,6 +112,22 @@ class ControlSettingsTV : public PluginHost::IPlugin, public PluginHost::JSONRPC
         int GetSaveConfig(const char *pqmode, const char *source, const char *format,std::vector<int> &sources,std::vector<int> &picturemodes, std::vector<int> &formats);
 	void GetParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
         int getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
+        int GetHDR10ParamToSync(int& value);
+	int GetHLGParamToSync(int& value);
+        int GetDolbyParamToSync(int& value);
+	tvError_t GetCustomWBValuesFromLocalCache(tvDataColor_t &WBValues);
+        tvError_t SyncCustomWBValuesToDriverCache(tvDataColor_t WBValues,bool setDuringSync);
+	int GetGainOffsetValue(const char* color,const char*ctrl,tvDataColor_t WBValues,int &rgbType);
+	bool isSetRequired(string pqmode,string source,string format);
+        tvError_t SyncCMSParamsToDriverCache();
+        int SyncCMSParams(const char *pqParam,tvCMS_tunel_t tunnel_type);
+        void SyncWBparams(void);
+	int InitializeSDRHDRBacklight();
+	tvError_t SetBacklightAtInitAndSaveForBLUsingGBF(void);
+        int ReadBacklightFromTable(char *panelId);
+	tvError_t SaveSDRHDRBacklightAtInitToDrv(int backlightSDR,int backlightHDR);
+        virtual tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all")=0;
+        tvError_t SyncPQParamsToDriverCache(void);
 
     protected:
         int numberModesSupported;

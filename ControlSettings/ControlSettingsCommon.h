@@ -30,6 +30,7 @@
 #define TVSETTINGS_GENERIC_STRING_RFC_PARAM    "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings."
 #define TVSETTINGS_PICTUREMODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.PictureMode"
 #define TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.PictureModeString"
+#define TVSETTINGS_ASPECTRATIO_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.AspectRatio"
 #define TVSETTINGS_BACKLIGHT_CONTROL_USE_GBF_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.UseGBFForBacklightControl"
 
 #define STRING_PICMODE  "PicMode."

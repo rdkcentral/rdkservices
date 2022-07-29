@@ -222,6 +222,7 @@ namespace Plugin {
         //Common API Registration
 	registerMethod("getAspectRatio", &ControlSettings::getAspectRatio, this);
         registerMethod("setAspectRatio", &ControlSettings::setAspectRatio, this);
+        registerMethod("resetAspectRatio", &ControlSettings::resetAspectRatio, this);
         LOGINFO("Exit \n");
     }
 
@@ -247,7 +248,9 @@ namespace Plugin {
 
         tvError_t ret = tvERROR_NONE;
 
+	std::system("echo \"Testing dmesg [starts - before tvInit] - TVMgr::Initialize()\" > /dev/kmsg");
         ret = tvInit();
+	std::system("echo \"Testing dmesg [starts - after tvInit] - TVMgr::Initialize()\" > /dev/kmsg");
 
 	if(ret != tvERROR_NONE) {
             LOGERR("Platform Init failed, ret: %s \n", getErrorString(ret).c_str());
@@ -255,7 +258,9 @@ namespace Plugin {
         }
         else{
             LOGINFO("Platform Init successful...\n");
+	    std::system("echo \"Testing dmesg [starts..before tvSD3toCriSyncInit] - TVMgr::Initialize()\" > /dev/kmsg");
             ret = tvSD3toCriSyncInit();
+	    std::system("echo \"Testing dmesg [starts..after tvSD3toCriSyncInit] - TVMgr::Initialize()\" > /dev/kmsg");
             if(ret != tvERROR_NONE) {
                 LOGERR(" SD3 <->cri_data sync failed, ret: %s \n", getErrorString(ret).c_str());
             }
@@ -501,36 +506,294 @@ namespace Plugin {
     }
 
     //API
-    uint32_t ControlSettings::getAspectRatio(const JsonObject& parameters, JsonObject& response)
-    {
-
-        LOGINFO("Entry %s\n",__FUNCTION__);
-        //PLUGIN_Lock(Lock);
-	tvError_t ret = tvERROR_NONE;
-
-	if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
-        }
-        else {
-            LOGINFO("Exit : %s\n",__FUNCTION__);
-            returnResponse(true, "success");
-        }
-    }
-
     uint32_t ControlSettings::setAspectRatio(const JsonObject& parameters, JsonObject& response)
     {
 
-        LOGINFO("Entry%s\n",__FUNCTION__);
-        //PLUGIN_Lock(Lock);
-	tvError_t ret = tvERROR_NONE;
+        LOGINFO("Entry %s\n",__FUNCTION__);
+        tvDisplayMode_t mode = tvDisplayMode_16x9;
+	std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+
+
+        value = parameters.HasLabel("aspectRatio") ? parameters["aspectRatio"].String() : "";
+        returnIfParamNotFound(value);
+
+	pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        if(!value.compare("TV 16X9 STRETCH")) {
+            mode = tvDisplayMode_16x9;
+        }
+        else if (!value.compare("TV 4X3 PILLARBOX")){
+            mode = tvDisplayMode_4x3;
+        }
+        else if (!value.compare("TV NORMAL")){
+            mode = tvDisplayMode_NORMAL;
+        }
+        else if (!value.compare("TV DIRECT")){
+            mode = tvDisplayMode_DIRECT;
+        }
+        else if (!value.compare("TV AUTO")){
+            mode = tvDisplayMode_AUTO;
+        }
+        else if (!value.compare("TV ZOOM")){
+            mode = tvDisplayMode_ZOOM;
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_INVALID_PARAM));
+        }
+
+	m_videoZoomMode = mode;
+        tvError_t ret = setAspectRatioZoomSettings (mode);
 
         if(ret != tvERROR_NONE) {
             returnResponse(false, getErrorString(ret).c_str());
         }
         else {
-            LOGINFO("Exit : %s\n",__FUNCTION__);
+            //Save DisplayMode to localstore and ssm_data
+            int params[3]={0};
+            params[0]=mode;
+            int retval=UpdatePQParamsToCache("set","AspectRatio",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_ASPECT_RATIO,params);
+
+            if(retval != 0) {
+                LOGWARN("Failed to Save DisplayMode to ssm_data\n");
+            }
+
+            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_ASPECTRATIO_RFC_PARAM, value.c_str());
+            if ( err != tr181Success ) {
+                LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
+            }
+            else {
+                LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM, value.c_str());
+            }
+            LOGINFO("Exit : SetAspectRatio2() value : %s\n",value.c_str());
             returnResponse(true, "success");
         }
+    }
+
+    uint32_t ControlSettings::getAspectRatio(const JsonObject& parameters, JsonObject& response)
+    {
+
+        LOGINFO("Entry%s\n",__FUNCTION__);
+	tvDisplayMode_t mode;
+        JsonObject dispModeObj;
+        JsonArray dispOptions ;
+        dispOptions.Add("TV AUTO"); dispOptions.Add("TV DIRECT"); dispOptions.Add("TV NORMAL");
+        dispOptions.Add("TV 16X9 STRETCH"); dispOptions.Add("TV 4X3 PILLARBOX"); dispOptions.Add("TV ZOOM");
+        dispModeObj["Selected"] = "TV AUTO";
+        dispModeObj["Options"] = dispOptions;
+
+        tvError_t ret = getUserSelectedAspectRatio (&mode);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            switch(mode) {
+
+                case tvDisplayMode_16x9:
+                    LOGINFO("Aspect Ratio: TV 16X9 STRETCH\n");
+                    dispModeObj["Selected"] = "TV 16X9 STRETCH";
+                    break;
+
+                case tvDisplayMode_4x3:
+                    LOGINFO("Aspect Ratio: TV 4X3 PILLARBOX\n");
+                    dispModeObj["Selected"] = "TV 4X3 PILLARBOX";
+                    break;
+
+                case tvDisplayMode_NORMAL:
+                    LOGINFO("Aspect Ratio: TV Normal\n");
+                    dispModeObj["Selected"] = "TV NORMAL";
+                    break;
+
+                case tvDisplayMode_AUTO:
+                    LOGINFO("Aspect Ratio: TV AUTO\n");
+                    dispModeObj["Selected"] = "TV AUTO";
+                    break;
+
+                case tvDisplayMode_DIRECT:
+                    LOGINFO("Aspect Ratio: TV DIRECT\n");
+                    dispModeObj["Selected"] = "TV DIRECT";
+                    break;
+
+                case tvDisplayMode_ZOOM:
+                    LOGINFO("Aspect Ratio: TV ZOOM\n");
+                    dispModeObj["Selected"] = "TV ZOOM";
+                    break;
+
+                default:
+                    LOGINFO("Aspect Ratio: TV AUTO\n");
+                    break;
+            }
+	    response["AspectRatio"] = dispModeObj;
+            returnResponse(true, "success");
+        }
+    }
+
+    tvError_t ControlSettings::setAspectRatioZoomSettings(tvDisplayMode_t mode)
+    {
+        tvError_t ret = tvERROR_GENERAL;
+        LOGERR("tvmgrplugin: %s mode selected is: %d", __FUNCTION__, m_videoZoomMode);
+#if !defined (HDMIIN_4K_ZOOM)
+        if (ControlSettings::_instance->m_isDisabledHdmiIn4KZoom) {
+            if (m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
+                (dsVIDEO_PIXELRES_MAX == m_currentHdmiInResoluton)){
+                LOGWARN("tvmgrplugin: %s: Setting %d zoom mode for below 4K", __FUNCTION__, m_videoZoomMode);
+#endif
+                ret = SetAspectRatio(mode);
+#if !defined (HDMIIN_4K_ZOOM)
+            }else {
+                LOGWARN("tvmgrplugin: %s: Setting auto zoom mode for 4K and above", __FUNCTION__);
+                ret = SetAspectRatio(tvDisplayMode_AUTO);
+            }
+        } else {
+            LOGWARN("tvmgrplugin: %s: HdmiInput is not started yet. m_isDisabledHdmiIn4KZoom: %d", __FUNCTION__, ControlSettings::_instance->m_isDisabledHdmiIn4KZoom);
+            ret = SetAspectRatio((tvDisplayMode_t)m_videoZoomMode);
+        }
+#endif
+        return ret;
+    }
+
+    tvError_t ControlSettings::getUserSelectedAspectRatio (tvDisplayMode_t* mode)
+    {
+        tvError_t ret = tvERROR_GENERAL;
+#if !defined (HDMIIN_4K_ZOOM)
+        LOGERR("controlsettingsplugin: %s mode selected is: %d", __FUNCTION__, m_videoZoomMode);
+        if (m_isDisabledHdmiIn4KZoom) {
+            if (!(m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
+               (dsVIDEO_PIXELRES_MAX == m_currentHdmiInResoluton))){
+                *mode = (tvDisplayMode_t)m_videoZoomMode;
+                LOGWARN("tvmgrplugin: %s: Getting zoom mode %d for display, for 4K and above", __FUNCTION__, *mode);
+                return tvERROR_NONE;
+            }
+        }
+#endif
+        ret = GetAspectRatio(mode);
+        return ret;
+    }
+
+    uint32_t ControlSettings::resetAspectRatio(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+	std::string pqmode;
+        std::string source;
+        std::string format;
+        tvError_t ret = tvERROR_NONE;
+
+	pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,TVSETTINGS_ASPECTRATIO_RFC_PARAM);
+        if ( err != tr181Success ) {
+            LOGWARN("clearLocalParam for %s Failed : %s\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
+            ret  = tvERROR_GENERAL;
+        }
+        else {
+            LOGINFO("clearLocalParam for %s Successful\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM);
+            ret = setDefaultAspectRatio(pqmode,source,format);
+        }
+        if(ret != tvERROR_NONE)
+        {
+            returnResponse(false, getErrorString(ret));
+        }
+        else
+        {
+            LOGINFO("Exit : resetDefaultAspectRatio()\n");
+            returnResponse(true, "success");
+        }
+    }
+
+    tvError_t ControlSettings::setDefaultAspectRatio(std::string pqmode,std::string  format,std::string source)
+    {
+        tvDisplayMode_t mode = tvDisplayMode_MAX;
+        TR181_ParamData_t param;
+        tvError_t ret = tvERROR_NONE;
+
+        memset(&param, 0, sizeof(param));
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_ASPECTRATIO_RFC_PARAM, &param);
+        if ( tr181Success == err )
+        {
+            LOGINFO("getLocalParam for %s is %s\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM, param.value);
+
+            if(!std::string(param.value).compare("16:9")) {
+                mode = tvDisplayMode_16x9;
+            }
+            else if (!std::string(param.value).compare("4:3")){
+                mode = tvDisplayMode_4x3;
+            }
+            else if (!std::string(param.value).compare("Full")){
+                mode = tvDisplayMode_FULL;
+            }
+            else if (!std::string(param.value).compare("Normal")){
+                mode = tvDisplayMode_NORMAL;
+            }
+            else if (!std::string(param.value).compare("TV AUTO")){
+                mode = tvDisplayMode_AUTO;
+            }
+            else if (!std::string(param.value).compare("TV DIRECT")){
+                mode = tvDisplayMode_DIRECT;
+            }
+            else if (!std::string(param.value).compare("TV NORMAL")){
+                mode = tvDisplayMode_NORMAL;
+            }
+            else if (!std::string(param.value).compare("TV ZOOM")){
+                mode = tvDisplayMode_ZOOM;
+            }
+            else if (!std::string(param.value).compare("TV 16X9 STRETCH")){
+                mode = tvDisplayMode_16x9;
+            }
+            else if (!std::string(param.value).compare("TV 4X3 PILLARBOX")){
+                mode = tvDisplayMode_4x3;
+            }
+            else {
+                mode = tvDisplayMode_AUTO;
+            }
+
+            m_videoZoomMode = mode;
+            tvError_t ret = setAspectRatioZoomSettings (mode);
+
+            if(ret != tvERROR_NONE) {
+                LOGWARN("AspectRatio  set failed: %s\n",getErrorString(ret).c_str());
+            }
+            else {
+                //Save DisplayMode to ssm_data
+                int params[3]={0};
+                params[0]=mode;
+                int retval=UpdatePQParamsToCache("set","AspectRatio",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_ASPECT_RATIO,params);
+
+                if(retval != 0) {
+                    LOGWARN("Failed to Save DisplayMode to ssm_data\n");
+                }
+                LOGINFO("Aspect Ratio initialized successfully, value: %s\n", param.value);
+            }
+
+        }
+        else
+        {
+            LOGWARN("getLocalParam for %s Failed : %s\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
+            ret = tvERROR_GENERAL;
+        }
+		 return ret;
     }
 
 } //namespace WPEFramework
