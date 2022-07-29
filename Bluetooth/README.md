@@ -26,7 +26,7 @@ curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc"
 curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0", "id":"3", "method":"org.rdk.Bluetooth.1.getAudioInfo", "params": {"deviceID": "256168644324480"}}' http://127.0.0.1:9998/jsonrpc
 curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0", "id":"3", "method":"org.rdk.Bluetooth.1.sendAudioPlaybackCommand", "params": {"deviceID": "256168644324480", "command": "PLAY"}}' http://127.0.0.1:9998/jsonrpc
 curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","id": "3", "method":"org.rdk.Bluetooth.1.respondToEvent", "params": {"deviceID": "256168644324480", "eventType": "onPairingRequest", "responseValue": "ACCEPTED"}}' http://127.0.0.1:9998/jsonrpc
-curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0", "id":"3", "method":"org.rdk.Bluetooth.1.setDeviceVolumeMuteInfo", "params": {"deviceID": "256168644324480", "profile": "WEARABLE HEADSET", "volume": "255", "mute": "false"}}' http://127.0.0.1:9998/jsonrpc
+curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0", "id":"3", "method":"org.rdk.Bluetooth.1.setDeviceVolumeMuteInfo", "params": {"deviceID": "256168644324480", "profile": "WEARABLE HEADSET", "volume": "255", "mute": "1"}}' http://127.0.0.1:9998/jsonrpc
 curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0", "id":"3", "method":"org.rdk.Bluetooth.1.getDeviceVolumeMuteInfo", "params": {"deviceID": "256168644324480", "profile": "WEARABLE HEADSET"}}' http://127.0.0.1:9998/jsonrpc
 ```
 
