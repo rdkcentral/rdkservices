@@ -2537,12 +2537,12 @@ namespace Plugin {
             if(retval != 0) {
                 LOGWARN("Failed to Save HLGMode to ssm_data\n");
             }
-            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_HDR10MODE_RFC_PARAM, value.c_str());
+            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_HLGMODE_RFC_PARAM, value.c_str());
             if ( err != tr181Success ) {
-                LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_HDR10MODE_RFC_PARAM, getTR181ErrorString(err));
+                LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_HLGMODE_RFC_PARAM, getTR181ErrorString(err));
             }
             else {
-                LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_HDR10MODE_RFC_PARAM, value.c_str());
+                LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_HLGMODE_RFC_PARAM, value.c_str());
             }
 
             LOGINFO("Exit\n");
@@ -2787,7 +2787,7 @@ namespace Plugin {
                 } else {
                     //set it to local cache
                     std::string identifier = TVSETTINGS_GENERIC_STRING_RFC_PARAM;
-                    identifier+=std::string("wb")+color+"."+ctrl;
+                    identifier+=std::string("wb.")+color+"."+ctrl;
                     tr181ErrorCode_t err = setLocalParam(rfc_caller_id, identifier.c_str(), val.c_str());
                     if ( err != tr181Success ) {
                         LOGWARN("setLocalParam for %s Failed : %s\n", identifier.c_str(), getTR181ErrorString(err));
@@ -2811,7 +2811,7 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         tvError_t ret = tvERROR_NONE;
-        string identifier=(std::string(TVSETTINGS_GENERIC_STRING_RFC_PARAM)+std::string("wb"));
+        string identifier=(std::string(TVSETTINGS_GENERIC_STRING_RFC_PARAM)+std::string("wb."));
 
         tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,identifier.c_str());
         if ( err != tr181Success ) {
