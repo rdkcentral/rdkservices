@@ -437,6 +437,22 @@
                     "rate":{
                         "$ref": "#/definitions/rate"
                     },
+                    "fallbacktext":{
+                        "type": "object",
+                        "properties": {
+                            "scenario": {
+                                "summary": "Describes the scenario where fallback text is to be used . At present, only `offline` is supported.",
+                                "type": "string",
+                                "example": "offline"
+                            },
+                            "value": {
+                                "summary": "The Text which is to be spoken when the scenario is met",
+                                "type": "string",
+                                "example": "No Internet connection"
+                            }
+                        },
+                        "required": []
+                    },
                     "authinfo":{
                         "type": "object",
                         "properties": {
