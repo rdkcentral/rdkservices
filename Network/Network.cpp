@@ -23,6 +23,7 @@
 #include "utils.h"
 #include "UtilsIarm.h"
 #include "UtilsString.h"
+#include "UtilsVersions.h"
 
 using namespace std;
 
@@ -161,9 +162,9 @@ namespace WPEFramework
             Register("pingNamedEndpoint", &Network::pingNamedEndpoint, this);
 
             Register("setIPSettings", &Network::setIPSettings, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("setIPSettings", &Network::setIPSettings2, this);
+            RegisterMethod(this, {2}, "setIPSettings", &Network::setIPSettings2, this);
             Register("getIPSettings", &Network::getIPSettings, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("getIPSettings", &Network::getIPSettings2, this);
+            RegisterMethod(this, {2}, "getIPSettings", &Network::getIPSettings2, this);
 
             Register("getSTBIPFamily", &Network::getSTBIPFamily, this);
             Register("isConnectedToInternet", &Network::isConnectedToInternet, this);
@@ -1336,8 +1337,7 @@ namespace WPEFramework
             params["interface"] = m_netUtils.getInterfaceDescription(interface);
             params["enabled"] = enabled;
             m_useInterfacesCache = false;
-            sendNotify("onInterfaceStatusChanged", params);
-            GetHandler(2)->Notify("onInterfaceStatusChanged", params);
+            NotifyEvent(this, {1,2}, "onInterfaceStatusChanged", params);
         }
 
         void Network::onInterfaceConnectionStatusChanged(string interface, bool connected)
@@ -1354,8 +1354,7 @@ namespace WPEFramework
             m_useIpv6EthCache = false;
             m_defIpversionCache = "";
             m_defInterfaceCache = "";
-            sendNotify("onConnectionStatusChanged", params);
-            GetHandler(2)->Notify("onConnectionStatusChanged", params);
+            NotifyEvent(this, {1,2}, "onConnectionStatusChanged", params);
         }
 
         void Network::onInterfaceIPAddressChanged(string interface, string ipv6Addr, string ipv4Addr, bool acquired)
@@ -1388,8 +1387,7 @@ namespace WPEFramework
                 }
             }
             params["status"] = string (acquired ? "ACQUIRED" : "LOST");
-            sendNotify("onIPAddressStatusChanged", params);
-            GetHandler(2)->Notify("onIPAddressStatusChanged", params);
+            NotifyEvent(this, {1,2}, "onIPAddressStatusChanged", params);
         }
 
         void Network::onDefaultInterfaceChanged(string oldInterface, string newInterface)
@@ -1405,8 +1403,7 @@ namespace WPEFramework
             m_useIpv6EthCache = false;
             m_defIpversionCache = "";
             m_defInterfaceCache = m_netUtils.getInterfaceDescription(newInterface);
-            sendNotify("onDefaultInterfaceChanged", params);
-            GetHandler(2)->Notify("onDefaultInterfaceChanged", params);
+            NotifyEvent(this, {1,2}, "onDefaultInterfaceChanged", params);
         }
 
         void Network::eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)

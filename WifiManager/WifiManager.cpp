@@ -20,6 +20,7 @@
 #include "WifiManager.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
+#include "UtilsVersions.h"
 
 #include <vector>
 #include <utility>
@@ -70,20 +71,18 @@ namespace WPEFramework
             CreateHandler({ 2 });
 
             for (const auto& mapping : constMethods) {
-                Register(mapping.first, mapping.second, this);
-                GetHandler(2)->Register<JsonObject, JsonObject>(mapping.first, mapping.second, this);
+                RegisterMethod(this, {1,2}, mapping.first, mapping.second, this);
             }
 
             for (const auto& mapping : mutableMethods) {
-                Register(mapping.first, mapping.second, this);
-                GetHandler(2)->Register<JsonObject, JsonObject>(mapping.first, mapping.second, this);
+                RegisterMethod(this, {1,2}, mapping.first, mapping.second, this);
             }
 
             /* Version 1 only API */
             Register("initiateWPSPairing", &WifiManager::initiateWPSPairing, this);
+            Register("getSupportedSecurityModes", &WifiManager::getSupportedSecurityModes, this);
 
             /* Version 2 API */
-            GetHandler(2)->Register<JsonObject, JsonObject>("getSupportedSecurityModes", &WifiManager::getSupportedSecurityModes, this);
             GetHandler(2)->Register<JsonObject, JsonObject>("initiateWPSPairing", &WifiManager::initiateWPSPairing2, this);
         }
 
@@ -310,8 +309,7 @@ namespace WPEFramework
                 wifiState.resetWifiStateConnectedCache(false);
                 wifiWPS.updateWifiWPSCache(false);
             }
-            sendNotify("onWIFIStateChanged", params);
-            GetHandler(2)->Notify("onWIFIStateChanged", params);
+            NotifyEvent(this, {1,2}, "onWIFIStateChanged", params);
             if (state == WifiState::CONNECTED)
             {
                 wifiSignalThreshold.setSignalThresholdChangeEnabled(true);
@@ -331,16 +329,14 @@ namespace WPEFramework
         {
             JsonObject params;
             params["code"] = static_cast<int>(code);
-            sendNotify("onError", params);
-            GetHandler(2)->Notify("onError", params);
+            NotifyEvent(this, {1,2}, "onError", params);
         }
 
         void WifiManager::onSSIDsChanged()
         {
             wifiWPS.updateWifiWPSCache(false);
             wifiState.resetWifiStateConnectedCache(false);
-            sendNotify("onSSIDsChanged", JsonObject());
-            GetHandler(2)->Notify("onSSIDsChanged", JsonObject());
+            NotifyEvent(this, {1,2}, "onSSIDsChanged", JsonObject());
         }
 
         void WifiManager::onWifiSignalThresholdChanged(float signalStrength, const std::string &strength)
@@ -348,7 +344,7 @@ namespace WPEFramework
             JsonObject params;
             params["signalStrength"] = std::to_string(signalStrength);
             params["strength"] = strength;
-            Notify("onWifiSignalThresholdChanged", params);
+            NotifyEvent(this, {1,2}, "onWifiSignalThresholdChanged", params);
         }
 
         /**
@@ -361,8 +357,7 @@ namespace WPEFramework
          */
         void WifiManager::onAvailableSSIDs(JsonObject const& ssids)
         {
-            sendNotify("onAvailableSSIDs", ssids);
-            GetHandler(2)->Notify("onAvailableSSIDs", ssids);
+            NotifyEvent(this, {1,2}, "onAvailableSSIDs", JsonObject());
         }
 
         /**
