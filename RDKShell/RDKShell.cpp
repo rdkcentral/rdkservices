@@ -129,6 +129,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_CURSOR = "hide
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_CURSOR_SIZE = "getCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_CURSOR_SIZE = "setCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INPUT_EVENTS = "enableInputEvents";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_AV_BLOCKED = "setAVBlocked";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AV_BLOCKED_APPS = "getBlockedAVApplications";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE = "getGraphicsFrameRate";
@@ -915,6 +916,7 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_REMOVE_EASTER_EGGS, &RDKShell::removeEasterEggsWrapper, this);
             Register(RDKSHELL_METHOD_GET_EASTER_EGGS, &RDKShell::getEasterEggsWrapper, this);
             Register(RDKSHELL_METHOD_ENABLE_INPUT_EVENTS, &RDKShell::enableInputEventsWrapper, this);
+            Register(RDKSHELL_METHOD_KEY_REPEAT_CONFIG, &RDKShell::keyRepeatConfigWrapper, this);
             Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
             Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
             Register(RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE, &RDKShell::getGraphicsFrameRateWrapper, this);
@@ -5490,6 +5492,63 @@ namespace WPEFramework {
 
             returnResponse(result);
         }
+
+        uint32_t RDKShell::keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (parameters.HasLabel("input"))
+            {
+                string input = parameters["input"].String();
+
+                if (input != "default" || input != "keyboard")
+                {
+                    response["message"] = "not supported input type";
+                    returnResponse(false);
+                }
+            }
+
+            bool enabled = false;
+            int32_t initialDelay = 0;
+            int32_t repeatInterval = 0;
+
+            if (parameters.HasLabel("enabled"))
+            {
+                enabled = parameters["enabled"].Boolean();
+            }
+            else
+            {
+                response["message"] = "please specify enabled parameter";
+                returnResponse(false);
+            }
+
+            if (parameters.HasLabel("initialDelay"))
+            {
+                initialDelay = parameters["initialDelay"].Number();
+            }
+            else
+            {
+                response["message"] = "please specify initialDelay parameter";
+                returnResponse(false);
+            }
+
+            if (parameters.HasLabel("repeatInterval"))
+            {
+                repeatInterval = parameters["repeatInterval"].Number();
+            }
+            else
+            {
+                response["message"] = "please specify repeatInterval parameter";
+                returnResponse(false);
+            }
+
+            gRdkShellMutex.lock();
+            CompositorController::setKeyRepeatConfig(enabled, initialDelay, repeatInterval);
+            gRdkShellMutex.unlock();
+            returnResponse(true);
+        }
+
         uint32_t RDKShell::getBlockedAVApplicationsWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
