@@ -487,7 +487,7 @@ gboolean AudioPlayer::PushDataAppSrc()
         buffer->deleteBuffer();
 	delete buffer;        
     }
-   
+    return TRUE;
 }
 
 void AudioPlayer::wsConnectionStatus(WSStatus status)
