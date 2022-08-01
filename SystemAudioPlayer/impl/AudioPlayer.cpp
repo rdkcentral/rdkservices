@@ -487,7 +487,7 @@ gboolean AudioPlayer::PushDataAppSrc()
         buffer->deleteBuffer();
 	delete buffer;        
     }
-   
+    return TRUE;
 }
 static gboolean pop_data(AudioPlayer *player)
 {
