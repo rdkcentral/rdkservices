@@ -1497,9 +1497,11 @@ namespace WPEFramework {
                     request["callsign"] = "ResidentApp";
                     request["visible"] = true;
                     int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "setVisibility", request, response);
+		    /*
                     gRdkShellMutex.lock();
                     CompositorController::getLastKeyPress(mLastWakeupKeyCode, mLastWakeupKeyModifiers, mLastWakeupKeyTimestamp);
                     gRdkShellMutex.unlock();
+		    */
                 }
             }
         }
