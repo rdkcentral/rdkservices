@@ -1420,6 +1420,8 @@ namespace WPEFramework
             m_useIpv4EthCache = false;
             m_useIpv6EthCache = false;
             m_defIpversionCache = "";
+            m_defaultInterface = ""; /* REFPLTV-1319 : Resetting when there is switch in interface, to get new value in getDefaultInterface() */
+            m_gatewayInterface = "";
             m_defInterfaceCache = m_netUtils.getInterfaceDescription(newInterface);
             sendNotify("onDefaultInterfaceChanged", params);
             GetHandler(2)->Notify("onDefaultInterfaceChanged", params);

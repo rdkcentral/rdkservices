@@ -2138,6 +2138,42 @@
                 "$ref": "#/common/result"
             }
         },
+        "keyRepeatConfig": {
+            "summary": "Customizes key repeats. \n \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "input": {
+                        "summary": "input type, can be 'default' or 'keyboard'. If 'input' prop not specified 'default'('keyboard') is assumed",
+                        "type": "string",
+                        "example": "default"
+                    },
+                    "enabled": {
+                        "summary": "`true` to enable key repeats, false to disable key repeats",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "initialDelay": {
+                        "summary": "number of miliseconds until first key repeat event will be sent",
+                        "type": "number",
+                        "example": 500
+                    },
+                    "repeatInterval": {
+                        "summary": "number of miliseconds until following key repeat events will be sent",
+                        "type": "number",
+                        "example": 250
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "initialDelay",
+                    "repeatInterval"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },         
         "setAVBlocked": {
             "summary": "adds/removes the list of applications with the given callsigns to/from the blacklist.\n \n### Events\n \n No Events.",
             "params": {

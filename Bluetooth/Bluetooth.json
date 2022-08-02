@@ -221,9 +221,9 @@
             "example":"50"
         },
         "mute": {
-            "summary":"Mute value of the device is either 0 or 1",
+            "summary":"Mute value of the device is either true or false",
             "type": "boolean",
-            "example": "false"
+            "example": false
         }
     },
     "methods": {
@@ -853,7 +853,9 @@
                         "$ref": "#/definitions/volume"
                     },
                     "mute": {
-                        "$ref": "#/definitions/mute"
+                        "summary":"Mute value of the device is either 1 or 0",
+                        "type": "string",
+                        "example": "1"
                     }
                 },
                 "required": [

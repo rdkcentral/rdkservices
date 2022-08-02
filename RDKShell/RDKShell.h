@@ -140,6 +140,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_SET_AV_BLOCKED;
             static const string RDKSHELL_METHOD_GET_AV_BLOCKED_APPS;
             static const string RDKSHELL_METHOD_ENABLE_INPUT_EVENTS;
+            static const string RDKSHELL_METHOD_KEY_REPEAT_CONFIG;
             static const string RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE;
             static const string RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE;
 
@@ -255,6 +256,7 @@ namespace WPEFramework {
             uint32_t setAVBlockedWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getBlockedAVApplicationsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableInputEventsWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
 
