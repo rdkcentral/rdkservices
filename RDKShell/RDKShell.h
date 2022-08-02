@@ -38,6 +38,31 @@ namespace WPEFramework {
             JsonObject mRequest;
         };
 
+        struct RequestInformation
+        {
+            RequestInformation(std::string client, std::string name);
+            ~RequestInformation();
+
+            int mId;
+            std::string mClient;
+            std::string mName;
+            sem_t mSemaphore;
+            static int sActiveRequestsCounter;
+        };
+
+        class ConcurrentRequestHandler
+        {
+             public:
+                 ConcurrentRequestHandler();
+                 void wait(std::shared_ptr<RequestInformation> request);
+                 void post(std::shared_ptr<RequestInformation> request);
+                 void clear();
+
+             private:
+                 int isRequestPresent(const string& client, const string& requestName, int id=0);
+                 std::map<std::string, std::vector<std::shared_ptr<RequestInformation>>> mActiveRequests;
+        };
+
         class RDKShell :  public PluginHost::IPlugin, public PluginHost::JSONRPC {
         public:
             RDKShell();
@@ -438,6 +463,7 @@ namespace WPEFramework {
             bool mEnableEasterEggs;
             ScreenCapture mScreenCapture;
             bool mErmEnabled;
+            ConcurrentRequestHandler mHandler;
         };
 
         struct PluginData
