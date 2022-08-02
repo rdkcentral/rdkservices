@@ -635,6 +635,106 @@ namespace WPEFramework {
             return displayName;
         }
 
+        int RequestInformation::sActiveRequestsCounter = 1;
+        RequestInformation::RequestInformation(std::string client, std::string name): mId(sActiveRequestsCounter++), mClient(client), mName(name)
+        {
+            sem_init(&mSemaphore, 0, 0);
+        }
+
+        RequestInformation::~RequestInformation()
+        {
+            sem_destroy(&mSemaphore);
+        }
+
+        ConcurrentRequestHandler::ConcurrentRequestHandler(): mActiveRequests()
+        {
+        }
+
+        void ConcurrentRequestHandler::clear()
+        {
+            for (std::map<std::string, std::vector<std::shared_ptr<RequestInformation>>>::iterator iter = mActiveRequests.begin(); iter != mActiveRequests.end(); iter++)
+            {
+                iter->second.clear();
+            }
+            mActiveRequests.clear();
+        }
+
+        int ConcurrentRequestHandler::isRequestPresent(const string& client, const string& requestName, int id)
+        {
+            int pos = -1;
+            int index = 0;
+            std::map<std::string, std::vector<std::shared_ptr<RequestInformation>>>::iterator clientiter = mActiveRequests.find(client);
+            if (clientiter != mActiveRequests.end())
+            {
+                std::vector<std::shared_ptr<RequestInformation>>& requests = clientiter->second;
+                bool found = false;
+                for (std::vector<std::shared_ptr<RequestInformation>>::iterator requestiter = requests.begin(); requestiter != requests.end(); requestiter++)
+                {
+                    if ((*requestiter)->mName == requestName)
+                    {
+                        if ((id != 0) && ((*requestiter)->mId == id))
+                        {
+                            found = true;
+                            pos = index;
+                            break;
+                        }
+                        else if (id == 0)
+                        {
+                            found = true;
+                            pos = index;
+                        }
+                    }
+                    index++;
+                }
+            }
+            return pos;
+        }
+
+        void ConcurrentRequestHandler::post(std::shared_ptr<RequestInformation> request)
+        {
+            std::string client(request->mClient);
+            std::string requestName(request->mName);
+            int id(request->mId);
+
+            sem_post(&request->mSemaphore);
+            int pos = isRequestPresent(client, requestName, id);
+            if (pos != -1)
+            {
+                std::vector<std::shared_ptr<RequestInformation>>& requests = mActiveRequests[client];
+                requests.erase(requests.begin() + pos); 
+                if (mActiveRequests[client].size() == 0)
+                {
+                    mActiveRequests.erase(client);
+                }
+            }
+        }
+
+        void ConcurrentRequestHandler::wait(std::shared_ptr<RequestInformation> request)
+        {
+            std::string client(request->mClient);
+            std::string requestName(request->mName);
+
+            int pos = -1;
+            if (mActiveRequests.find(client) == mActiveRequests.end())
+            {
+                mActiveRequests[client] = std::vector<std::shared_ptr<RequestInformation>>();
+            }
+            else
+            {
+                pos = isRequestPresent(client, requestName);
+            }
+            if (pos != -1)
+            {
+                sem_t* lastElementSemaphore = &(mActiveRequests[client].at(pos)->mSemaphore);
+                mActiveRequests[client].push_back(request);
+                sem_wait(lastElementSemaphore);
+            }
+            else
+            {
+                mActiveRequests[client].push_back(request);
+            }
+        }
+
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
             if (service)
@@ -1445,6 +1545,7 @@ namespace WPEFramework {
             }
             gKillClientRequests.clear();
             gRdkShellMutex.unlock();
+            mHandler.clear();
         }
 
         string RDKShell::Information() const
@@ -6356,6 +6457,9 @@ namespace WPEFramework {
 
         bool RDKShell::setVisibility(const string& client, const bool visible)
         {
+            std::shared_ptr<RequestInformation> request = std::make_shared<RequestInformation>(client, "SETVISIBILITY");
+            mHandler.wait(request);
+
             bool ret = false;
             {
                 bool lockAcquired = false;
@@ -6431,6 +6535,7 @@ namespace WPEFramework {
                 }
             }
 
+            mHandler.post(request);
             return ret;
         }
 
