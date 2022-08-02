@@ -233,6 +233,7 @@ namespace Plugin {
 
     const std::string ControlSettings::Initialize(PluginHost::IShell* service)
     {
+        std::system("echo \"Testing dmesg [starts] - ControlSettings::Initialize()\" > /dev/kmsg");
 	LOGINFO("Entry\n");
         try {
             dsVideoPortResolution_t vidResolution;
@@ -281,6 +282,7 @@ namespace Plugin {
 	instance->Initialize();
 
 	LOGINFO("Exit\n");
+	std::system("echo \"Testing dmesg [ends] - ControlSettings::Initialize()\" > /dev/kmsg");
         return (service != nullptr ? _T("") : _T("No service."));
     }
 

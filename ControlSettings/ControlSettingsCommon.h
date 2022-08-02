@@ -33,12 +33,12 @@
 #define TVSETTINGS_ASPECTRATIO_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.AspectRatio"
 #define TVSETTINGS_BACKLIGHT_CONTROL_USE_GBF_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings.UseGBFForBacklightControl"
 
+#define STRING_DIRTY  ".Dirty."
 #define STRING_PICMODE  "PicMode."
 #define STRING_FORMAT  "Format."
 #define STRING_DEFAULT  "Default"
 #define STRING_SOURCE    "Source."
-
-
+#define CREATE_DIRTY(__X__) (__X__+=STRING_DIRTY)
 
 #define DECLARE_JSON_RPC_METHOD(method) \
 uint32_t method(const JsonObject& parameters, JsonObject& response);

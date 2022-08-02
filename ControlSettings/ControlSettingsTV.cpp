@@ -55,25 +55,25 @@ namespace Plugin {
         LOGINFO("Entry\n");
         instance = this;
 	CreateHandler({ 2 });
-        registerMethod("getBacklight", &ControlSettingsTV::getBacklight, this);
+        Register("getBacklight", &ControlSettingsTV::getBacklight, this);
         registerMethod("setBacklight", &ControlSettingsTV::setBacklight, this);
         registerMethod("resetBacklight", &ControlSettingsTV::resetBacklight, this);
-        registerMethod("getBrightness", &ControlSettingsTV::getBrightness, this);
+        Register("getBrightness", &ControlSettingsTV::getBrightness, this);
         registerMethod("setBrightness", &ControlSettingsTV::setBrightness, this);
         registerMethod("resetBrightness", &ControlSettingsTV::resetBrightness, this);
-        registerMethod("getContrast", &ControlSettingsTV::getContrast, this);
+        Register("getContrast", &ControlSettingsTV::getContrast, this);
         registerMethod("setContrast", &ControlSettingsTV::setContrast, this);
         registerMethod("resetContrast", &ControlSettingsTV::resetContrast, this);
-        registerMethod("getSharpness", &ControlSettingsTV::getSharpness, this);
+        Register("getSharpness", &ControlSettingsTV::getSharpness, this);
         registerMethod("setSharpness", &ControlSettingsTV::setSharpness, this);
         registerMethod("resetSharpness", &ControlSettingsTV::resetSharpness, this);
-        registerMethod("getSaturation", &ControlSettingsTV::getSaturation, this);
+        Register("getSaturation", &ControlSettingsTV::getSaturation, this);
         registerMethod("setSaturation", &ControlSettingsTV::setSaturation, this);
         registerMethod("resetSaturation", &ControlSettingsTV::resetSaturation, this);
-        registerMethod("getHue", &ControlSettingsTV::getHue, this);
+        Register("getHue", &ControlSettingsTV::getHue, this);
         registerMethod("setHue", &ControlSettingsTV::setHue, this);
         registerMethod("resetHue", &ControlSettingsTV::resetHue, this);
-        registerMethod("getColorTemperature", &ControlSettingsTV::getColorTemperature, this);
+        Register("getColorTemperature", &ControlSettingsTV::getColorTemperature, this);
         registerMethod("setColorTemperature", &ControlSettingsTV::setColorTemperature, this);
         registerMethod("resetColorTemperature", &ControlSettingsTV::resetColorTemperature, this);
 
@@ -111,6 +111,15 @@ namespace Plugin {
 	registerMethod("setWBCtrl", &ControlSettingsTV::setWBCtrl, this);
 	registerMethod("resetWBCtrl", &ControlSettingsTV::resetWBCtrl, this);
 
+	GetHandler(2)->Register<JsonObject, JsonObject>("getBacklight", &ControlSettingsTV::getBacklight2, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>("getBrightness", &ControlSettingsTV::getBrightness2, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>("getContrast", &ControlSettingsTV::getContrast2, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>("getSharpness", &ControlSettingsTV::getSharpness2, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>("getSaturation", &ControlSettingsTV::getSaturation2, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>("gethue", &ControlSettingsTV::getHue2, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>("getColorTemperature", &ControlSettingsTV::getColorTemperature2, this);
+
+
         LOGINFO("Exit\n");
     }
     
@@ -122,7 +131,7 @@ namespace Plugin {
     void ControlSettingsTV::Initialize()
     {
        LOGINFO("Entry\n");
-       std::system("echo \"Testing ControlSettingsTV dmesg [starts] - TVMgr::Initialize()\" > /dev/kmsg");
+       std::system("echo \"Testing ControlSettingsTV dmesg [starts] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
        tvError_t ret = tvERROR_NONE;
 
        TR181_ParamData_t param;
@@ -144,11 +153,11 @@ namespace Plugin {
 
        appUsesGlobalBackLightFactor = isBacklightUsingGlobalBacklightFactor();
 
-       std::system("echo \"Testing dmesg [starts..before SyncPQParamsToDriverCache] - TVMgr::Initialize()\" > /dev/kmsg");
+       std::system("echo \"Testing dmesg [starts..before SyncPQParamsToDriverCache] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
 
        SyncPQParamsToDriverCache();
 
-       std::system("echo \"Testing dmesg [starts..after SyncPQParamsToDriverCache] - TVMgr::Initialize()\" > /dev/kmsg");
+       std::system("echo \"Testing dmesg [starts..after SyncPQParamsToDriverCache] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
 
        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, &param);
        if ( tr181Success == err )
@@ -168,7 +177,7 @@ namespace Plugin {
            LOGWARN("getLocalParam for %s Failed : %s\n", TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, getTR181ErrorString(err));
        }
 
-       std::system("echo \"Testing dmesg [starts..before InitializeSDRHDRBacklight] - TVMgr::Initialize()\" > /dev/kmsg");
+       std::system("echo \"Testing dmesg [starts..before InitializeSDRHDRBacklight] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
 
        //Initialize Backlight
        if(appUsesGlobalBackLightFactor)
@@ -178,7 +187,7 @@ namespace Plugin {
            else
                LOGWARN("InitializeSDRHDRBacklight() : Failed\n");
        }
-       std::system("echo \"Testing dmesg [starts..after InitializeSDRHDRBacklight] - TVMgr::Initialize()\" > /dev/kmsg");
+       std::system("echo \"Testing dmesg [starts..after InitializeSDRHDRBacklight] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
 
        tvBacklightMode_t blMode = tvBacklightMode_NONE;
        memset(&param, 0, sizeof(param));
@@ -216,11 +225,11 @@ namespace Plugin {
         {
             LOGWARN("getLocalParam for %s Failed : %s\n", TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
         }
-        std::system("echo \"Testing dmesg [before..setDefaultAspectRatio] - TVMgr::SyncPQParamsToDriverCache()\" > /dev/kmsg");
+        std::system("echo \"Testing dmesg [before..setDefaultAspectRatio] - ControlSettingsTV::SyncPQParamsToDriverCache()\" > /dev/kmsg");
         setDefaultAspectRatio();
-        std::system("echo \"Testing dmesg [after..setDefaultAspectRatio] - TVMgr::SyncPQParamsToDriverCache()\" > /dev/kmsg");
+        std::system("echo \"Testing dmesg [after..setDefaultAspectRatio] - ControlSettingsTV::SyncPQParamsToDriverCache()\" > /dev/kmsg");
 
-       std::system("echo \"Testing dmesg [ends] - TVMgr::Initialize()\" > /dev/kmsg");
+       std::system("echo \"Testing dmesg [ends] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
        LOGINFO("Exit numberModesSupported =%d numberSourcesSupported=%d\n",numberModesSupported,numberSourcesSupported);
     }
 
@@ -260,6 +269,52 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+			
+		if(appUsesGlobalBackLightFactor){
+            err = GetLastSetBacklightForGBF(backlight);
+        }
+        else {
+            GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+            err = GetLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight);
+        }
+        if( err == 0 ) {
+            response["backlight"] = std::to_string(backlight);
+            LOGINFO("Exit : Backlight Value: %d \n", backlight);
+            returnResponse(true, "success");
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+    }
+
+    uint32_t ControlSettingsTV::getBacklight2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        std::string key;
+        JsonObject range;
+        JsonObject backlightObj;
+        range["From"] = 0;
+        range["To"] = 100;
+        backlightObj["Range"] = range;
+        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        tvError_t ret = tvERROR_NONE;
+        int backlight = 0,err = 0;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
 
 	if(appUsesGlobalBackLightFactor){
             err = GetLastSetBacklightForGBF(backlight);
@@ -269,7 +324,8 @@ namespace Plugin {
             err = GetLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight);
         }
         if( err == 0 ) {
-            response["backlight"] = std::to_string(backlight);
+            backlightObj["Setting"] = std::to_string(backlight);
+            response["Backlight"] = backlightObj;
             LOGINFO("Exit : Backlight Value: %d \n", backlight);
             returnResponse(true, "success");
         }
@@ -432,7 +488,47 @@ namespace Plugin {
         }
     }
 
+    uint32_t ControlSettingsTV::getBrightness2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
 
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        std::string key;
+        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        tvError_t ret = tvERROR_NONE;
+        int brightness = 0;
+        JsonObject range;
+        JsonObject brightnessObj;
+        range["From"] = 0;
+        range["To"] = 100;
+        brightnessObj["Range"] = range;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness);
+        if( err == 0 ) {
+            brightnessObj["Setting"] = std::to_string(brightness);
+            response["Brightness"] = brightnessObj;
+            LOGINFO("Exit : Brightness Value: %d \n", brightness);
+            returnResponse(true, "success");
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+    }
 
     uint32_t ControlSettingsTV::setBrightness(const JsonObject& parameters, JsonObject& response)
     {
@@ -566,6 +662,48 @@ namespace Plugin {
         int err = GetLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast);
         if( err == 0 ) {
             response["contrast"] = std::to_string(contrast);
+            LOGINFO("Exit : Contrast Value: %d \n", contrast);
+            returnResponse(true, "success");
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+    }
+
+    uint32_t ControlSettingsTV::getContrast2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        std::string key;
+        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        tvError_t ret = tvERROR_NONE;
+        int contrast = 0;
+        JsonObject range;
+        JsonObject contrastObj;
+        range["From"] = 0;
+        range["To"] = 100;
+        contrastObj["Range"] = range;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = GetLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast);
+        if( err == 0 ) {
+            contrastObj["Setting"] = std::to_string(contrast);
+            response["Contrast"] = contrastObj;
             LOGINFO("Exit : Contrast Value: %d \n", contrast);
             returnResponse(true, "success");
         }
@@ -709,6 +847,48 @@ namespace Plugin {
         }
     }
 
+    uint32_t ControlSettingsTV::getSaturation2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        std::string key;
+        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        tvError_t ret = tvERROR_NONE;
+        int saturation = 0;
+        JsonObject range;
+        JsonObject saturationObj;
+        range["From"] = 0;
+        range["To"] = 100;
+        saturationObj["Range"] = range;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = GetLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation);
+        if( err == 0 ) {
+            saturationObj["Setting"] = std::to_string(saturation);
+            response["Saturation"] = saturationObj;
+            LOGINFO("Exit : Saturation Value: %d \n", saturation);
+            returnResponse(true, "success");
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+    }
+
     uint32_t ControlSettingsTV::setSaturation(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
@@ -844,6 +1024,48 @@ namespace Plugin {
         }
     }
 
+    uint32_t ControlSettingsTV::getSharpness2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        std::string key;
+        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        tvError_t ret = tvERROR_NONE;
+        int sharpness = 0;
+        JsonObject range;
+        JsonObject sharpnessObj;
+        range["From"] = 0;
+        range["To"] = 100;
+        sharpnessObj["Range"] = range;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = GetLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness);
+        if( err == 0 ) {
+            sharpnessObj["Setting"] = std::to_string(sharpness);
+            response["Sharpness"] = sharpnessObj;
+            LOGINFO("Exit : Sharpness Value: %d \n", sharpness);
+            returnResponse(true, "success");
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+    }
+
     uint32_t ControlSettingsTV::setSharpness(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
@@ -971,6 +1193,48 @@ namespace Plugin {
         int err = GetLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue);
         if( err == 0 ) {
             response["hue"] = std::to_string(hue);
+            LOGINFO("Exit : Hue Value: %d \n", hue);
+            returnResponse(true, "success");
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+    }
+
+    uint32_t ControlSettingsTV::getHue2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        std::string key;
+        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        tvError_t ret = tvERROR_NONE;
+        int hue = 0;
+        JsonObject range;
+        JsonObject hueObj;
+        range["From"] = 0;
+        range["To"] = 100;
+        hueObj["Range"] = range;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = GetLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue);
+        if( err == 0 ) {
+            hueObj["Setting"] = std::to_string(hue);
+            response["Hue"] = hueObj;
             LOGINFO("Exit : Hue Value: %d \n", hue);
             returnResponse(true, "success");
         }
@@ -1133,6 +1397,74 @@ namespace Plugin {
                     break;
             }
             LOGINFO("Exit : ColorTemperature Value: %d \n", colortemp);
+            returnResponse(true, "success");
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+    }
+
+    uint32_t ControlSettingsTV::getColorTemperature2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        std::string key;
+        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        tvError_t ret = tvERROR_NONE;
+        int colortemp = 0;
+		JsonObject ctObj;
+        JsonArray ctOptions;
+        ctOptions.Add("Standard"); ctOptions.Add("Warm"); ctOptions.Add("Cold"); ctOptions.Add("User Defined");
+        ctObj["Selected"] = "Standard";
+        ctObj["Options"] = ctOptions;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = GetLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex,colortemp);
+        if( err == 0 ) {
+            switch(colortemp) {
+
+                case tvColorTemp_STANDARD:
+                    LOGINFO("Color Temp Value: Standard\n");
+                    ctObj["Selected"] = "Standard";
+                    break;
+
+                case tvColorTemp_WARM:
+                    LOGINFO("Color Temp Value: Warm\n");
+                    ctObj["Selected"] = "Warm";
+                    break;
+
+                case tvColorTemp_COLD:
+                    LOGINFO("Color Temp Value: Cold\n");
+                    ctObj["Selected"] = "Cold";
+                    break;
+
+                case tvColorTemp_USER:
+                    LOGINFO("Color Temp Value: User Defined\n");
+                    ctObj["Selected"] = "User Defined";
+                    break;
+
+                default:
+                    LOGINFO("Color Temp Value: Standard\n");
+                    ctObj["Selected"] = "Standard";
+                    break;
+            }
+            LOGINFO("Exit : ColorTemperature Value: %d \n", colortemp);
+            response["ColorTemperature"] = ctObj;
             returnResponse(true, "success");
         }
         else {
@@ -2944,6 +3276,7 @@ namespace Plugin {
 
         string key;
         TR181_ParamData_t param={0};
+	TR181_ParamData_t param_old={0};
        
         formatIndex=ConvertHDRFormatToContentFormat((tvhdr_type_t)formatIndex); 
         generateStorageIdentifier(key,forParam,formatIndex,pqIndex,sourceIndex);
@@ -2955,8 +3288,30 @@ namespace Plugin {
 
        tr181ErrorCode_t err=getLocalParam(rfc_caller_id, key.c_str(), &param);
        LOGINFO("%s: key %s\n",__FUNCTION__,key.c_str());
-       if ( tr181Success == err )
+
+       //storage Migration Code
+       tr181ErrorCode_t err_old = tr181Failure;
+       if( tr181Success != err )
        {
+           if (strncmp(forParam,"DimmingMode",strlen(forParam))==0)
+           {
+               if(!GetLDIMParamsToSync(value,pqIndex))
+               {
+                  LOGINFO("Found Dimmingmode Dirty DimmingMode=%d\n",value);
+                  return 0;
+	       }
+           }
+           else
+           {
+               key.clear();
+               generateStorageIdentifierDirty(key,forParam,formatIndex,pqIndex);
+               err_old = getLocalParam(rfc_caller_id, key.c_str(), &param_old);
+           }//storage migration ends
+       }
+
+       if ( tr181Success == err )//Fetch new tr181format values
+       {
+           LOGINFO("Case 1\n");
            if(strncmp(forParam,"ColorTemp",strlen(forParam))==0)
            {
                if (strncmp(param.value, "Standard", strlen(param.value))==0)
@@ -2987,7 +3342,31 @@ namespace Plugin {
 	       return 0;
 	   }
         }
-        else
+        else if( tr181Success == err_old )//Fetch old tr181format values
+        {
+            LOGINFO("Case 2 key %s\n found",key.c_str());
+            if(strncmp(forParam,"ColorTemp",strlen(forParam))==0)
+            {
+                if (strncmp(param.value, "Standard", strlen(param_old.value))==0)
+                    value=tvColorTemp_STANDARD;
+                else if (strncmp(param.value, "Warm", strlen(param_old.value))==0)
+                    value=tvColorTemp_WARM;
+                else if (strncmp(param.value, "Cold", strlen(param_old.value))==0)
+                    value=tvColorTemp_COLD;
+                else if (strncmp(param.value, "User Defined", strlen(param_old.value))==0)
+                    value=tvColorTemp_USER;
+                else
+                    value=tvColorTemp_STANDARD;
+
+		return 0;
+            }
+            else
+            {
+                value=std::stoi(param_old.value);
+                return 0;
+            }
+        }
+        else//Fall back to default tvsettings.ini
         {
             if(cms)
             {
@@ -3021,6 +3400,15 @@ namespace Plugin {
         key+=std::string(TVSETTINGS_GENERIC_STRING_RFC_PARAM);
         key+=STRING_SOURCE+std::to_string(source)+std::string(".")+STRING_PICMODE+std::to_string(pqmode)+std::string(".")+std::string(STRING_FORMAT)+std::to_string(contentFormat)+std::string(".")+forParam;
         return tvERROR_NONE;
+    }
+
+    uint32_t ControlSettingsTV::generateStorageIdentifierDirty(std::string &key,const char * forParam,uint32_t contentFormat, int pqmode)
+    {
+    key+=std::string(TVSETTINGS_GENERIC_STRING_RFC_PARAM);
+    key+=STRING_PICMODE+std::to_string(pqmode)+std::string(".")+std::string(STRING_FORMAT)+std::to_string(contentFormat);
+    CREATE_DIRTY(key)+=forParam;
+
+    return tvERROR_NONE;
     }
 
     int ControlSettingsTV::GetSaveConfig(const char *pqmode, const char *source, const char *format,std::vector<int> &sources,std::vector<int> &picturemodes, std::vector<int> &formats)
@@ -3195,7 +3583,13 @@ namespace Plugin {
 
             }
             else
+            {
                 err = clearLocalParam(rfc_caller_id, key.c_str());
+                //Remove old format too
+		key.clear();
+                generateStorageIdentifierDirty(key,forParam,format,pqmode);
+		tr181ErrorCode_t err_old = clearLocalParam(rfc_caller_id, key.c_str());
+            }
 
             if ( err != tr181Success ) {
                 LOGWARN("%s for %s Failed : %s\n", setNotDelete?"Set":"Delete", key.c_str(), getTR181ErrorString(err));
@@ -3914,6 +4308,27 @@ namespace Plugin {
                 LOGWARN("BL update failed for picmode %d\n",pic_mode_index[lCount]);
                 break;
             }
+        }
+        return ret;
+    }
+
+    int ControlSettingsTV::GetLDIMParamsToSync(int &value,int mode)
+    {
+        int ret=0;
+        TR181_ParamData_t param;
+        char format[BUFFER_SIZE]={0};
+
+        memset(&param, 0, sizeof(param));
+        snprintf(format,sizeof(format),"%s%d.%s",TVSETTINGS_GENERIC_STRING_RFC_PARAM,mode,"DimmingMode");
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, format,&param);
+        if ( tr181Success == err )
+        {
+            value=GetDimmingModeIndex(param.value);
+        }
+        else
+        {
+            LOGWARN("Unable to fetch %s from localstore\n",format);
+            ret=-1;
         }
         return ret;
     }

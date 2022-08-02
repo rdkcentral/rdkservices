@@ -98,6 +98,14 @@ class ControlSettingsTV : public PluginHost::IPlugin, public PluginHost::JSONRPC
         DECLARE_JSON_RPC_METHOD(setWBCtrl )
         DECLARE_JSON_RPC_METHOD(resetWBCtrl )
 
+        DECLARE_JSON_RPC_METHOD(getBacklight2 )
+        DECLARE_JSON_RPC_METHOD(getBrightness2 )
+        DECLARE_JSON_RPC_METHOD(getContrast2 )
+        DECLARE_JSON_RPC_METHOD(getSharpness2 )
+        DECLARE_JSON_RPC_METHOD(getSaturation2 )
+        DECLARE_JSON_RPC_METHOD(getHue2 )
+        DECLARE_JSON_RPC_METHOD(getColorTemperature2 )
+
 
     public:
         ControlSettingsTV();
@@ -109,6 +117,7 @@ class ControlSettingsTV : public PluginHost::IPlugin, public PluginHost::JSONRPC
         tvError_t UpdatePQParamToLocalCache(const char* forParam, int source, int pqmode, int format, int value,bool setNotDelete);
 	int UpdatePQParamsToCache( const char *action, const char *tr181ParamName, const char *pqmode, const char *source, const char *format, tvPQParameterIndex_t pqParamIndex, int params[] );
         uint32_t generateStorageIdentifier(std::string &key,const char * forParam,int contentFormat, int pqmode, int source);
+	uint32_t generateStorageIdentifierDirty(std::string &key,const char * forParam,uint32_t contentFormat, int pqmode);
         int GetSaveConfig(const char *pqmode, const char *source, const char *format,std::vector<int> &sources,std::vector<int> &picturemodes, std::vector<int> &formats);
 	void GetParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
         int getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
@@ -128,6 +137,7 @@ class ControlSettingsTV : public PluginHost::IPlugin, public PluginHost::JSONRPC
 	tvError_t SaveSDRHDRBacklightAtInitToDrv(int backlightSDR,int backlightHDR);
         virtual tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all")=0;
         tvError_t SyncPQParamsToDriverCache(void);
+	int GetLDIMParamsToSync(int &value,int mode);
 
     protected:
         int numberModesSupported;
