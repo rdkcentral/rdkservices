@@ -119,6 +119,11 @@ namespace Plugin {
         GetHandler(2)->Register<JsonObject, JsonObject>("gethue", &ControlSettingsTV::getHue2, this);
         GetHandler(2)->Register<JsonObject, JsonObject>("getColorTemperature", &ControlSettingsTV::getColorTemperature2, this);
 
+	registerMethod("getPictureMode", &ControlSettingsTV::getPictureMode, this);
+        registerMethod("setPictureMode", &ControlSettingsTV::setPictureMode, this);
+	registerMethod("resetPictureMode", &ControlSettingsTV::resetPictureMode, this);
+        registerMethod("getSupportedPictureModes", &ControlSettingsTV::getSupportedPictureModes, this);
+	registerMethod("enableWBMode", &ControlSettingsTV::enableWBMode, this);
 
         LOGINFO("Exit\n");
     }
@@ -1625,7 +1630,7 @@ namespace Plugin {
         cms += value;
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);	
 	int err = GetLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,saturation,true,COLOR_SATURATION);
-	if( err == 0 ) {
+	if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
             saturationColorObj["Setting"] = std::to_string(saturation);
             response["saturation"] = saturationColorObj;
             LOGINFO("Exit : Component Saturation for color: %s Value: %d\n", value.c_str(),saturation);
@@ -1816,7 +1821,7 @@ namespace Plugin {
         cms += value;
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = GetLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,hue,true,COLOR_HUE);
-        if( err == 0 ) {
+        if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
             hueColorObj["Setting"] = std::to_string(hue);
             response["hue"] = hueColorObj;
             LOGINFO("Exit : Component Hue for color: %s Value: %d\n", value.c_str(),hue);
@@ -2007,7 +2012,7 @@ namespace Plugin {
         cms += value;
 	GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = GetLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,luma,true,COLOR_LUMA);
-        if( err == 0 ) {
+        if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
             lumaColorObj["Setting"] = std::to_string(luma);
             response["luma"] = lumaColorObj;
             LOGINFO("Exit : Component Luma for color: %s Value: %d\n", value.c_str(),luma);
@@ -3170,6 +3175,136 @@ namespace Plugin {
         }
     }
 
+    uint32_t ControlSettingsTV::getSupportedPictureModes(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        pic_modes_t *pictureModes;
+        unsigned short totalAvailable = 0;
+        tvError_t ret = GetTVSupportedPictureModes(&pictureModes,&totalAvailable);
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            JsonArray SupportedPicModes;
+
+            for(int count = 0;count <totalAvailable;count++ )
+            {
+                SupportedPicModes.Add(pictureModes[count].name);
+                // printf("Added Mode %s %s \n",pictureModes[count].name,SupportedPicModes[count].String().c_str());
+            }
+
+            response["SupportedPicmodes"] = SupportedPicModes;
+            LOGINFO("Exit\n");
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettingsTV::getPictureMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        char mode[PIC_MODE_NAME_MAX]={0};
+        std::string picturemode;
+        tvError_t ret = GetTVPictureMode(mode);
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            std::string s;
+            s+=mode;
+            response["pictureMode"] = s;
+	    LOGINFO("Exit : getPictureMode() : %s\n",s.c_str());
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettingsTV::setPictureMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        std::string value;
+
+        value = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        returnIfParamNotFound(value);
+
+        tvError_t ret = SetTVPictureMode(value.c_str());
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
+            if ( err != tr181Success ) {
+                LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, getTR181ErrorString(err));
+            }
+            else {
+                LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
+            }
+            LOGINFO("Exit : Value : %s \n",value.c_str());
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettingsTV::resetPictureMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        tr181ErrorCode_t err = tr181Success;
+
+        err = clearLocalParam(rfc_caller_id, TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM);
+        if ( err != tr181Success ) {
+            LOGWARN("clearLocalParam for %s Failed : %s\n", TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, getTR181ErrorString(err));
+            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+        }
+        else {
+            TR181_ParamData_t param = {0};
+            LOGINFO("clearLocalParam for %s Successful\n", TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM);
+            err = getLocalParam(rfc_caller_id, TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, &param);
+            if ( tr181Success == err )
+            {
+                LOGINFO("getLocalParam for %s is %s\n", TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, param.value);
+                tvError_t ret = SetTVPictureMode(param.value);
+                if(ret != tvERROR_NONE) {
+                    LOGWARN("Picture Mode set failed: %s\n",getErrorString(ret).c_str());
+                    returnResponse(false, getErrorString(ret).c_str());
+                }
+                else {
+                    LOGINFO("Exit : Picture Mode reset successfully, value: %s\n", param.value);
+                    returnResponse(true, "success");
+                }
+            }
+            else {
+                LOGWARN("getLocalParam for %s failed\n", TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM);
+                returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            }
+        }
+    }
+
+    uint32_t ControlSettingsTV::enableWBMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFOMETHOD();
+        std::string value;
+        tvError_t ret = tvERROR_NONE;
+        bool mode = 0;
+        if(parameters.HasLabel("mode")) {
+            value = parameters["mode"].String();
+            if(value == "true") {
+                mode = 1;
+            } else if(value == "false") {
+                mode = 0;
+            }
+            ret = enableWBmode(mode);
+            if(ret != tvERROR_NONE) {
+                LOGERR("enableWBmode failed\n");
+                returnResponse(false, getErrorString(ret).c_str());
+            }
+            else{
+                LOGINFO("enableWBmode successful... \n");
+                returnResponse(true, "Success");
+            }
+
+        } else {
+            returnResponse(false, "Parameter missing");
+        }
+    }
+
     bool ControlSettingsTV::isBacklightUsingGlobalBacklightFactor(void)
     {
         TR181_ParamData_t param;
@@ -3347,13 +3482,13 @@ namespace Plugin {
             LOGINFO("Case 2 key %s\n found",key.c_str());
             if(strncmp(forParam,"ColorTemp",strlen(forParam))==0)
             {
-                if (strncmp(param.value, "Standard", strlen(param_old.value))==0)
+                if (strncmp(param_old.value, "Standard", strlen(param_old.value))==0)
                     value=tvColorTemp_STANDARD;
-                else if (strncmp(param.value, "Warm", strlen(param_old.value))==0)
+                else if (strncmp(param_old.value, "Warm", strlen(param_old.value))==0)
                     value=tvColorTemp_WARM;
-                else if (strncmp(param.value, "Cold", strlen(param_old.value))==0)
+                else if (strncmp(param_old.value, "Cold", strlen(param_old.value))==0)
                     value=tvColorTemp_COLD;
-                else if (strncmp(param.value, "User Defined", strlen(param_old.value))==0)
+                else if (strncmp(param_old.value, "User Defined", strlen(param_old.value))==0)
                     value=tvColorTemp_USER;
                 else
                     value=tvColorTemp_STANDARD;

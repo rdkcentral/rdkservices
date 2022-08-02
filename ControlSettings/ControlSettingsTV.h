@@ -105,6 +105,11 @@ class ControlSettingsTV : public PluginHost::IPlugin, public PluginHost::JSONRPC
         DECLARE_JSON_RPC_METHOD(getSaturation2 )
         DECLARE_JSON_RPC_METHOD(getHue2 )
         DECLARE_JSON_RPC_METHOD(getColorTemperature2 )
+        DECLARE_JSON_RPC_METHOD(getSupportedPictureModes )
+        DECLARE_JSON_RPC_METHOD(getPictureMode )
+        DECLARE_JSON_RPC_METHOD(setPictureMode )
+        DECLARE_JSON_RPC_METHOD(resetPictureMode )
+        DECLARE_JSON_RPC_METHOD(enableWBMode )
 
 
     public:

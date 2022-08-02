@@ -62,7 +62,9 @@ namespace Plugin {
         ControlSettings& operator=(const ControlSettings&) = delete;
    public : 
 	DECLARE_JSON_RPC_METHOD(getAspectRatio)
+	DECLARE_JSON_RPC_METHOD(getAspectRatio2)
         DECLARE_JSON_RPC_METHOD(setAspectRatio)
+        DECLARE_JSON_RPC_METHOD(setAspectRatio2)
         DECLARE_JSON_RPC_METHOD(resetAspectRatio)
         DECLARE_JSON_RPC_METHOD(getVideoFormat)
         DECLARE_JSON_RPC_METHOD(getVideoFrameRate)

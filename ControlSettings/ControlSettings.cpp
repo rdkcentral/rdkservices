@@ -220,9 +220,15 @@ namespace Plugin {
 	CreateHandler({ 2 });
 
         //Common API Registration
-	registerMethod("getAspectRatio", &ControlSettings::getAspectRatio, this);
-        registerMethod("setAspectRatio", &ControlSettings::setAspectRatio, this);
+	Register("getAspectRatio", &ControlSettings::getAspectRatio, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>("getAspectRatio", &ControlSettings::getAspectRatio2, this);
+        Register("setAspectRatio", &ControlSettings::setAspectRatio, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>("setAspectRatio", &ControlSettings::setAspectRatio2, this);
         registerMethod("resetAspectRatio", &ControlSettings::resetAspectRatio, this);
+	registerMethod("getVideoFormat", &ControlSettings::getVideoFormat, this);
+	registerMethod("getVideoResolution", &ControlSettings::getVideoResolution, this);
+        registerMethod("getVideoFrameRate", &ControlSettings::getVideoFrameRate, this);
+
         LOGINFO("Exit \n");
     }
 
@@ -439,7 +445,7 @@ namespace Plugin {
 
     uint32_t ControlSettings::getVideoFormat(const JsonObject& parameters, JsonObject& response)
     {
-        LOGINFO();
+        LOGINFO("Entry\n");
         //PLUGIN_Lock(Lock);
         tvVideoHDRFormat_t videoFormat;
         tvError_t ret = GetCurrentVideoFormat(&videoFormat);
@@ -450,7 +456,7 @@ namespace Plugin {
         }
         else {
             response["currentVideoFormat"] = getVideoFormatTypeToString(videoFormat);
-            LOGINFO(" getVideoFormat :%d   success \n",videoFormat);
+            LOGINFO("Exit: getVideoFormat :%d   success \n",videoFormat);
             returnResponse(true, "success");
         }
     }
@@ -465,7 +471,7 @@ namespace Plugin {
 
     uint32_t ControlSettings::getVideoResolution(const JsonObject& parameters, JsonObject& response)
     {
-        LOGINFO();
+        LOGINFO("Entry\n");
         //PLUGIN_Lock(Lock);
         tvResolutionParam_t videoResolution;
         tvError_t ret = GetVideoResolution(&videoResolution);
@@ -476,7 +482,7 @@ namespace Plugin {
         }
         else {
             response["currentVideoResolution"] = getVideoResolutionTypeToString(videoResolution);
-            LOGINFO(" getVideoResolution :%d   success \n",videoResolution.resolutionValue);
+            LOGINFO("Exit: getVideoResolution :%d   success \n",videoResolution.resolutionValue);
             returnResponse(true, "success");
         }
     }
@@ -491,8 +497,7 @@ namespace Plugin {
 
     uint32_t ControlSettings::getVideoFrameRate(const JsonObject& parameters, JsonObject& response)
     {
-        LOGINFO();
-        //PLUGIN_Lock(Lock);
+        LOGINFO("Entry\n");
         tvVideoFrameRate_t videoFramerate;
         tvError_t ret = GetVideoFrameRate(&videoFramerate);
         response["supportedFrameRate"] = getSupportedVideoFrameRate();
@@ -502,7 +507,7 @@ namespace Plugin {
         }
         else {
             response["currentVideoFrameRate"] = getVideoFrameRateTypeToString(videoFramerate);
-            LOGINFO(" videoFramerate :%d   success \n",videoFramerate);
+            LOGINFO("Exit: videoFramerate :%d   success \n",videoFramerate);
             returnResponse(true, "success");
         }
     }
@@ -584,6 +589,83 @@ namespace Plugin {
         }
     }
 
+    uint32_t ControlSettings::setAspectRatio2(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        std::string value;
+        tvDisplayMode_t mode = tvDisplayMode_16x9;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+
+
+        value = parameters.HasLabel("aspectRatio") ? parameters["aspectRatio"].String() : "";
+        returnIfParamNotFound(value);
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        value = parameters.HasLabel("aspectRatio") ? parameters["aspectRatio"].String() : "";
+        returnIfParamNotFound(value);
+
+        if(!value.compare("TV 16X9 STRETCH")) {
+            mode = tvDisplayMode_16x9;
+        }
+        else if (!value.compare("TV 4X3 PILLARBOX")){
+            mode = tvDisplayMode_4x3;
+        }
+        else if (!value.compare("TV NORMAL")){
+            mode = tvDisplayMode_NORMAL;
+        }
+        else if (!value.compare("TV DIRECT")){
+            mode = tvDisplayMode_DIRECT;
+        }
+        else if (!value.compare("TV AUTO")){
+            mode = tvDisplayMode_AUTO;
+        }
+        else if (!value.compare("TV ZOOM")){
+            mode = tvDisplayMode_ZOOM;
+        }
+        else {
+            returnResponse(false, getErrorString(tvERROR_INVALID_PARAM));
+        }
+        m_videoZoomMode = mode;
+        tvError_t ret = setAspectRatioZoomSettings (mode);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            //Save DisplayMode to localstore and ssm_data
+            int params[3]={0};
+            params[0]=mode;
+            int retval=UpdatePQParamsToCache("set","AspectRatio",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_ASPECT_RATIO,params);;
+
+            if(retval != 0) {
+                LOGWARN("Failed to Save DisplayMode to ssm_data\n");
+            }
+
+            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_ASPECTRATIO_RFC_PARAM, value.c_str());
+            if ( err != tr181Success ) {
+                LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
+            }
+            else {
+                LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM, value.c_str());
+            }
+            LOGINFO("Exit : SetAspectRatio2() value : %s\n",value.c_str());
+            returnResponse(true, "success");
+        }
+    }
+
     uint32_t ControlSettings::getAspectRatio(const JsonObject& parameters, JsonObject& response)
     {
 
@@ -639,6 +721,65 @@ namespace Plugin {
                     break;
             }
 	    response["AspectRatio"] = dispModeObj;
+            returnResponse(true, "success");
+        }
+    }
+
+    uint32_t ControlSettings::getAspectRatio2(const JsonObject& parameters, JsonObject& response)
+    {
+
+        LOGINFO("Entry\n");
+        tvDisplayMode_t mode;
+        JsonObject dispModeObj;
+        JsonArray dispOptions ;
+        dispOptions.Add("TV AUTO"); dispOptions.Add("TV DIRECT"); dispOptions.Add("TV NORMAL");
+        dispOptions.Add("TV 16X9 STRETCH"); dispOptions.Add("TV 4X3 PILLARBOX"); dispOptions.Add("TV ZOOM");
+        dispModeObj["Selected"] = "TV AUTO";
+        dispModeObj["Options"] = dispOptions;
+
+        tvError_t ret = getUserSelectedAspectRatio (&mode);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+        else {
+            switch(mode) {
+
+                case tvDisplayMode_16x9:
+                    LOGINFO("Aspect Ratio: TV 16X9 STRETCH\n");
+                    dispModeObj["Selected"] = "TV 16X9 STRETCH";
+                    break;
+
+                case tvDisplayMode_4x3:
+                    LOGINFO("Aspect Ratio: TV 4X3 PILLARBOX\n");
+                    dispModeObj["Selected"] = "TV 4X3 PILLARBOX";
+                    break;
+
+                case tvDisplayMode_NORMAL:
+                    LOGINFO("Aspect Ratio: TV Normal\n");
+                    dispModeObj["Selected"] = "TV NORMAL";
+                    break;
+
+                case tvDisplayMode_AUTO:
+                    LOGINFO("Aspect Ratio: TV AUTO\n");
+                    dispModeObj["Selected"] = "TV AUTO";
+                    break;
+
+                case tvDisplayMode_DIRECT:
+                    LOGINFO("Aspect Ratio: TV DIRECT\n");
+                    dispModeObj["Selected"] = "TV DIRECT";
+                    break;
+
+                case tvDisplayMode_ZOOM:
+                    LOGINFO("Aspect Ratio: TV ZOOM\n");
+                    dispModeObj["Selected"] = "TV ZOOM";
+                    break;
+
+                default:
+                    LOGINFO("Aspect Ratio: TV AUTO\n");
+                    break;
+            }
+            response["AspectRatio"] = dispModeObj;
             returnResponse(true, "success");
         }
     }
