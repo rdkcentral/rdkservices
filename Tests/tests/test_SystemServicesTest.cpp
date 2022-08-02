@@ -27,7 +27,10 @@
 #include "WrapsMock.h"
 #include "RfcApiMock.h"
 
+#include <iostream>
 using namespace WPEFramework;
+
+using namespace std;
 
 namespace {
 const string iarmName = _T("Thunder_Plugins");
@@ -46,7 +49,8 @@ class SystemServicesTest : public::testing::Test
     IARM_EventHandler_t handlerOnDSTTimeChanged;
     FactoriesImplementation factoriesImplementation;
     WrapsImplMock wrapsImplMock;
-    SystemMock systemMock;
+   // SystemMock systemMock;
+    ServiceMock service;
     RfcApiImplMock rfcApiImplMock;
     //Mode
     string sysMode;
@@ -67,21 +71,23 @@ public:
     ,handlerV2(*(systemplugin->GetHandler(2)))
     ,connection(1,0)
     {
-        PluginHost::IFactories::Assign(&factoriesImplementation);
+	    cout<< " --- systemService instantiated ---"<<endl;
+        //PluginHost::IFactories::Assign(&factoriesImplementation);
     }
     virtual void SetUp()
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
-        Wraps::getInstance().impl = &wrapsImplMock;
-        systemServImpl::getInstance().impl = &systemMock;
         PluginHost::IFactories::Assign(&factoriesImplementation);
+        Wraps::getInstance().impl = &wrapsImplMock;
+        //systemServImpl::getInstance().impl = &systemMock;
+
     }
 
     virtual void TearDown()
     {
         IarmBus::getInstance().impl = nullptr;
         Wraps::getInstance().impl = nullptr;
-        systemServImpl::getInstance().impl = nullptr;
+        //systemServImpl::getInstance().impl = nullptr;
         PluginHost::IFactories::Assign(nullptr);
     }
 
@@ -89,7 +95,8 @@ public:
     {
 
          // called by SystemServices::InitializeIARM, SystemServices::DeinitializeIARM
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
+    cout<<"--- InitService()---"<<endl;
+	    EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](const char* memberName, int* isRegistered) {
@@ -114,7 +121,9 @@ public:
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Connect)
             .WillOnce(::testing::Return(IARM_RESULT_SUCCESS));
 
-    EXPECT_EQ(string(""), systemplugin->Initialize(nullptr));
+    cout<<" Initialize IARM --- "<<endl;
+    EXPECT_EQ(string(""), systemplugin->Initialize(&service));
+    cout << " init -- nullptr"<<endl;
 
     }
 
@@ -127,8 +136,10 @@ public:
 };
 
 //Register all systemservices methods
-TEST_F(SystemServicesTest, RegisteredMethods)
+/*TEST_F(SystemServicesTest, RegisteredMethods)
 {
+	InitService();
+	cout << "--- init done ----"<<endl;
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getWakeupReason")));
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getPowerStateBeforeReboot")));
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("setFirmwareRebootDelay")));
@@ -147,7 +158,7 @@ TEST_F(SystemServicesTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("removeCacheKey")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setDeepSleepTimer")));
    
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setMode")));
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setMode")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setNetworkStandbyMode")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBootLoaderPattern")));
 
@@ -192,10 +203,12 @@ TEST_F(SystemServicesTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("updateFirmware")));
 
 }
-
+*/
 
 TEST_F(SystemServicesTest, RebootDelay)
 {
+	InitService();
+        cout << "--- init done ----"<<endl;
     EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(2)
         .WillOnce(::testing::Invoke(
@@ -219,7 +232,7 @@ TEST_F(SystemServicesTest, RebootDelay)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
-
+/*
 TEST_F(SystemServicesTest, AutoReboot)
 {
     EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
@@ -274,9 +287,9 @@ TEST_F(SystemServicesTest, mode){
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection,_T("getMode"),_T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
 }
-
+*/
 //NetworkStandby
-TEST_F(SystemServicesTest, networkStandby){
+/*TEST_F(SystemServicesTest, networkStandby){
     InitService();
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .WillOnce(
@@ -341,7 +354,7 @@ TEST_F(SystemServicesTest, gzEnabled){
     EXPECT_EQ(response, string("{\"enabled\":\"true\",\"deprecated\":\"true\",\"success\":true}"));
 
 }
-
+*/
 /*
 TEST_F(SystemServicesTest, powerState){
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)

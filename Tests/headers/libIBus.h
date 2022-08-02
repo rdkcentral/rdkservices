@@ -1,6 +1,8 @@
 #pragma once
 
 #include "libIARM.h"
+//#include <iostream>
+//using namespace std;
 
 #define IARM_BUS_DAEMON_NAME 	"Daemon"
 typedef void (*IARM_EventHandler_t)(const char* owner, IARM_EventId_t eventId, void* data, size_t len);
@@ -15,18 +17,22 @@ public:
     virtual IARM_Result_t IARM_Bus_RegisterEventHandler(const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) = 0;
     virtual IARM_Result_t IARM_Bus_UnRegisterEventHandler(const char* ownerName, IARM_EventId_t eventId) = 0;
     virtual IARM_Result_t IARM_Bus_Call(const char *ownerName, const char *methodName, void *arg, size_t argLen) = 0;
-    virtual IARM_Result_t IARM_Bus_RegisterCall(const char *methodName, IARM_BusCall_t handler);
+    virtual IARM_Result_t IARM_Bus_RegisterCall(const char *methodName, IARM_BusCall_t handler)=0;
 };
 
 class IarmBus {
 public:
+
+	~IarmBus(){
+	}
+    IarmBusImpl* impl;
     static IarmBus& getInstance()
     {
         static IarmBus instance;
         return instance;
     }
 
-    IarmBusImpl* impl;
+
 
     static IARM_Result_t IARM_Bus_Init(const char* name)
     {
@@ -54,6 +60,7 @@ public:
     }
     static IARM_Result_t IARM_Bus_Call(const char *ownerName, const char *methodName, void *arg, size_t argLen)
     {
+	   // cout<< "--------- Iarm : " << ownerName << "-- "<< methodName <<endl;
         return getInstance().impl->IARM_Bus_Call(ownerName, methodName, arg, argLen);
     }
     static IARM_Result_t IARM_Bus_RegisterCall(const char *methodName, IARM_BusCall_t handler)
