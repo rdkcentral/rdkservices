@@ -57,7 +57,7 @@ namespace Plugin {
 
     uint32_t SystemAudioPlayerImplementation::Configure(PluginHost::IShell* service)
     {
-     
+        return Core::ERROR_NONE;
     }
 
     void SystemAudioPlayerImplementation::Register(Exchange::ISystemAudioPlayer::INotification* sink)
@@ -418,6 +418,8 @@ namespace Plugin {
         _adminLock.Lock();
 
         _adminLock.Unlock();
+
+        return Core::ERROR_NONE;
     }
 
     impl::SecurityParameters SystemAudioPlayerImplementation::extractSecurityParams(const JsonObject& params) const
