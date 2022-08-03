@@ -389,16 +389,17 @@ TEST_F(MessengerTestFixture, activate_join_join_send_message_leave_sendToUserWho
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("join"), _T("{\"user\":\"user5\",\"room\":\"room4\"}"), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{\"roomid\":\"[a-z0-9]+\"\\}"));
 
-    JsonObject params;
-    params.FromString(response);
-    string roomid5 = params["roomid"].String();
+    JsonObject params5;
+    params5.FromString(response);
+    string roomid5 = params5["roomid"].String();
     plugin->Subscribe(handler, 0, _T("message"), (roomid5 + _T(".Messenger")), message);
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("join"), _T("{\"user\":\"user6\",\"room\":\"room4\"}"), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{\"roomid\":\"[a-z0-9]+\"\\}"));
 
-    params.FromString(response);
-    string roomid6 = params["roomid"].String();
+    JsonObject params6;
+    params6.FromString(response);
+    string roomid6 = params6["roomid"].String();
     plugin->Subscribe(handler, 0, _T("message"), (roomid6 + _T(".Messenger")), message);
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("send"), ("{\"message\":\"Hi, user5\",\"roomid\":\"" + roomid6 + "\"}"), response));
