@@ -277,7 +277,7 @@ bool PlatformCapsData::SupportsTrueSD() const {
 
 bool PlatformCapsData::CanMixPCMWithSurround() {
   bool result = false;
-
+/*
   try {
     device::List<device::VideoOutputPort> vPorts =
         device::Host::getInstance().getVideoOutputPorts();
@@ -291,7 +291,7 @@ bool PlatformCapsData::CanMixPCMWithSurround() {
     TRACE(Trace::Error, 
         (_T("Exception Caught with device settings calls to get the MS11 Decode status..")));
   }
-
+*/
   TRACE(Trace::Information, (_T("canMixPCMWithSurround: %s"), result ? "YES" : "NO"));
 
   return result;

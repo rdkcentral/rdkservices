@@ -71,8 +71,7 @@ public:
     ,handlerV2(*(systemplugin->GetHandler(2)))
     ,connection(1,0)
     {
-	    cout<< " --- systemService instantiated ---"<<endl;
-        //PluginHost::IFactories::Assign(&factoriesImplementation);
+	PluginHost::IFactories::Assign(&factoriesImplementation);
     }
     virtual void SetUp()
     {
@@ -95,7 +94,6 @@ public:
     {
 
          // called by SystemServices::InitializeIARM, SystemServices::DeinitializeIARM
-    cout<<"--- InitService()---"<<endl;
 	    EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -121,9 +119,7 @@ public:
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Connect)
             .WillOnce(::testing::Return(IARM_RESULT_SUCCESS));
 
-    cout<<" Initialize IARM --- "<<endl;
     EXPECT_EQ(string(""), systemplugin->Initialize(&service));
-    cout << " init -- nullptr"<<endl;
 
     }
 
@@ -136,12 +132,11 @@ public:
 };
 
 //Register all systemservices methods
-/*TEST_F(SystemServicesTest, RegisteredMethods)
+TEST_F(SystemServicesTest, RegisteredMethods)
 {
 	InitService();
-	cout << "--- init done ----"<<endl;
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getWakeupReason")));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getPowerStateBeforeReboot")));
+/*    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getPowerStateBeforeReboot")));
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("setFirmwareRebootDelay")));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getXconfParams")));
@@ -201,14 +196,13 @@ public:
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setTimeZoneDST")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setWakeupSrcConfiguration")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("updateFirmware")));
-
-}
 */
+    systemplugin->Deinitialize(&service);
+}
 
 TEST_F(SystemServicesTest, RebootDelay)
 {
 	InitService();
-        cout << "--- init done ----"<<endl;
     EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(2)
         .WillOnce(::testing::Invoke(
@@ -230,6 +224,8 @@ TEST_F(SystemServicesTest, RebootDelay)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":5}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
+
+    systemplugin->Deinitialize(&service);
 }
 
 /*
