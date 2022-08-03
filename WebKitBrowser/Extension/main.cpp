@@ -94,6 +94,9 @@ public:
 
         g_variant_get((GVariant*) userData, "(&sm&sb)", &uid, &whitelist, &_logToSystemConsoleEnabled);
 
+        if (_logToSystemConsoleEnabled && Core::SystemInfo::GetEnvironment(string(_T("CLIENT_IDENTIFIER")), _consoleLogPrefix))
+          _consoleLogPrefix = _consoleLogPrefix.substr(0, _consoleLogPrefix.find(','));
+
         g_signal_connect(
           webkit_script_world_get_default(),
           "window-object-cleared",
@@ -148,11 +151,11 @@ private:
     }
     static void pageCreatedCallback(VARIABLE_IS_NOT_USED WebKitWebExtension* webExtension,
                                     WebKitWebPage* page,
-                                    VARIABLE_IS_NOT_USED PluginHost* host)
+                                    PluginHost* host)
     {
         if (host->_logToSystemConsoleEnabled) {
             g_signal_connect(page, "console-message-sent",
-                G_CALLBACK(consoleMessageSentCallback), nullptr);
+                G_CALLBACK(consoleMessageSentCallback), host);
         }
         g_signal_connect(page, "user-message-received",
                 G_CALLBACK(userMessageReceivedCallback), nullptr);
@@ -164,12 +167,12 @@ private:
                 G_CALLBACK(didStartProvisionalLoadForFrame), nullptr);
 #endif
     }
-    static void consoleMessageSentCallback(VARIABLE_IS_NOT_USED WebKitWebPage* page, WebKitConsoleMessage* message)
+    static void consoleMessageSentCallback(VARIABLE_IS_NOT_USED WebKitWebPage* page, WebKitConsoleMessage* message, PluginHost* host)
     {
         string messageString = Core::ToString(webkit_console_message_get_text(message));
         uint64_t line = static_cast<uint64_t>(webkit_console_message_get_line(message));
 
-        TRACE_GLOBAL(BrowserConsoleLog, (messageString, line, 0));
+        TRACE_GLOBAL(BrowserConsoleLog, (host->_consoleLogPrefix, messageString, line, 0));
     }
     static gboolean userMessageReceivedCallback(WebKitWebPage* page, WebKitUserMessage* message)
     {
@@ -204,6 +207,7 @@ private:
     Core::ProxyType<RPC::InvokeServerType<2, 0, 4> > _engine;
     Core::ProxyType<RPC::CommunicatorClient> _comClient;
 
+    string _consoleLogPrefix;
     gboolean _logToSystemConsoleEnabled;
     WebKitWebExtension* _extension;
 } _wpeFrameworkClient;
