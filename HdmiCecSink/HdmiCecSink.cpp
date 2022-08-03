@@ -78,6 +78,8 @@
 #define SAD_FMT_CODE_AC3 2
 #define SAD_FMT_CODE_ENHANCED_AC3 10
 
+#define IN_TRANSITION_STANDBY_TO_ON 2
+
 enum {
 	DEVICE_POWER_STATE_ON = 0,
 	DEVICE_POWER_STATE_OFF = 1
@@ -387,7 +389,9 @@ namespace WPEFramework
 	   }
 
            if((header.from.toInt() == LogicalAddress::AUDIO_SYSTEM) && (HdmiCecSink::_instance->m_audioDevicePowerStatusRequested)) {
-               HdmiCecSink::_instance->reportAudioDevicePowerStatusInfo(header.from.toInt(), newPowerStatus);
+	       if (newPowerStatus != IN_TRANSITION_STANDBY_TO_ON) {
+                   HdmiCecSink::_instance->reportAudioDevicePowerStatusInfo(header.from.toInt(), newPowerStatus);
+	       }
            }
 
        }
