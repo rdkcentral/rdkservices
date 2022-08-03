@@ -1,5 +1,6 @@
 #pragma once
 
+#include "sleepMode.hpp"
 #include "audioOutputPort.hpp"
 #include "dsTypes.h"
 #include "list.hpp"
@@ -7,8 +8,7 @@
 #include "videoOutputPort.hpp"
 
 namespace device {
-
-class HostImpl {
+	class HostImpl {
 public:
     virtual ~HostImpl() = default;
 
@@ -20,6 +20,9 @@ public:
     virtual void getHostEDID(std::vector<uint8_t>& edid) const = 0;
     virtual std::string getDefaultVideoPortName() = 0;
     virtual std::string getDefaultAudioPortName() = 0;
+    // virtual List<SleepMode> getAvailableSleepModes() = 0;
+    // virtual SleepMode getPreferredSleepMode() = 0;
+    // virtual int setPreferredSleepMode(const SleepMode sleepMode) = 0;
 };
 
 class Host {
@@ -31,6 +34,21 @@ public:
     }
 
     HostImpl* impl;
+    
+    // SleepMode getPreferredSleepMode()
+    // {
+    //     return impl->getPreferredSleepMode();
+    // }
+
+    // int setPreferredSleepMode(const SleepMode sleepMode)
+    // {
+    //     return impl->setPreferredSleepMode(sleepMode);
+    // }
+
+    // List <SleepMode>  getAvailableSleepModes()
+    // {
+    //     return impl->getAvailableSleepModes();
+    // }
 
     List<std::reference_wrapper<VideoOutputPort>> getVideoOutputPorts()
     {

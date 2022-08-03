@@ -43,9 +43,7 @@
 #include "UtilsString.h"
 #include "uploadlogs.h"
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "UtilsIarm.h"
-#endif /* USE_IARMBUS || USE_IARM_BUS */
 
 #ifdef ENABLE_THERMAL_PROTECTION
 #include "thermonitor.h"
@@ -84,8 +82,6 @@ using namespace std;
 
 #define STORE_DEMO_FILE "/opt/persistent/store-mode-video/videoFile.mp4"
 #define STORE_DEMO_LINK "file:///opt/persistent/store-mode-video/videoFile.mp4"
-
-#define RFC_CALLERID           "SystemServices"
 
 /**
  * @struct firmwareUpdate
@@ -198,8 +194,6 @@ string collectDeviceInfo(string methodType)
     return respBuffer;
 }
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-
 std::string iarmModeToString(IARM_Bus_Daemon_SysMode_t& iarmMode)
 {
     if (IARM_BUS_SYS_MODE_WAREHOUSE == iarmMode) {
@@ -221,8 +215,6 @@ void stringToIarmMode(std::string mode, IARM_Bus_Daemon_SysMode_t& iarmMode)
         iarmMode = IARM_BUS_SYS_MODE_NORMAL;
     }
 }
-
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
 #define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
@@ -251,11 +243,9 @@ namespace WPEFramework {
                 void *data, size_t len);
 #endif /* ENABLE_THERMAL_PROTECTION */
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         static IARM_Result_t _SysModeChange(void *arg);
         static void _systemStateChanged(const char *owner,
                 IARM_EventId_t eventId, void *data, size_t len);
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
         SERVICE_REGISTRATION(SystemServices, SYSSRV_MAJOR_VERSION,
                 SYSSRV_MINOR_VERSION);
@@ -438,9 +428,7 @@ namespace WPEFramework {
 
         const string SystemServices::Initialize(PluginHost::IShell* service)
         {
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
             m_shellService = service;
             m_shellService->AddRef();
             /* On Success; return empty to indicate no error text. */
@@ -449,15 +437,12 @@ namespace WPEFramework {
 
         void SystemServices::Deinitialize(PluginHost::IShell*)
         {
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             DeinitializeIARM();
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
             SystemServices::_instance = nullptr;
             m_shellService->Release();
             m_shellService = nullptr;
         }
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         void SystemServices::InitializeIARM()
         {
             if (Utils::IARM::init())
@@ -488,7 +473,6 @@ namespace WPEFramework {
     #endif //ENABLE_THERMAL_PROTECTION
             }
         }
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
 #ifdef DEBUG
         /**
@@ -2085,7 +2069,8 @@ namespace WPEFramework {
          */
         void SystemServices::getMacAddressesAsync(SystemServices *pSs)
         {
-            int i, listLength = 0;
+	    long unsigned int i=0;
+            long unsigned int listLength = 0;
             JsonObject params;
             string macTypeList[] = {"ecm_mac", "estb_mac", "moca_mac",
                 "eth_mac", "wifi_mac", "bluetooth_mac", "rf4ce_mac"};
@@ -2345,7 +2330,8 @@ namespace WPEFramework {
 	bool SystemServices::isStrAlphaUpper(string strVal)
 	{
 		try{
-			for(int i=0; i<= strVal.length()-1; i++)
+			long unsigned int i=0;
+			for(i=0; i<= strVal.length()-1; i++)
 			{
 				if((isalpha(strVal[i])== 0) || (isupper(strVal[i])==0))
 				{
@@ -2510,7 +2496,8 @@ namespace WPEFramework {
                 return false;
             }
 
-            for (int n = 0 ; n < dirs.size(); n++) {
+	    long unsigned int n=0;
+            for (n = 0 ; n < dirs.size(); n++) {
                 std::string name = dirs[n];
 
                 size_t pathEnd = name.find_last_of("/") + 1;
@@ -3048,7 +3035,8 @@ namespace WPEFramework {
                         RFC_ParamData_t rfcParam;
 
                         memset(&rfcParam, 0, sizeof(rfcParam));
-                        wdmpStatus = getRFCParameter(RFC_CALLERID, jsonRFCList[i].String().c_str(), &rfcParam);
+						char sysServices[] = "SystemServices";
+                        wdmpStatus = getRFCParameter(sysServices, jsonRFCList[i].String().c_str(), &rfcParam);
                         if(WDMP_SUCCESS == wdmpStatus || WDMP_ERR_DEFAULT_VALUE == wdmpStatus)
                             cmdResponse = rfcParam.value;
                         else
@@ -3764,7 +3752,6 @@ namespace WPEFramework {
             }
         }
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         /***
          * @brief : To receive System Mode Changed Event from IARM
          * @param1[in] : pointer to received data buffer.
@@ -3800,7 +3787,7 @@ namespace WPEFramework {
         {
             int seconds = 600; /* 10 Minutes to Reboot */
 
-            LOGINFO("len = %d\n", len);
+            LOGINFO("len = %lud\n", len);
             /* Only handle state events */
             if (eventId != IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) return;
 
@@ -3843,7 +3830,6 @@ namespace WPEFramework {
             }
         }
 
-#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 #ifdef ENABLE_THERMAL_PROTECTION
         /***
          * @brief : To handle the event of Thermal Level change. THe event is registered
