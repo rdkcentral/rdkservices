@@ -1039,7 +1039,7 @@ namespace WPEFramework {
                 if(tvResolutions & dsTV_RESOLUTION_480p)supportedTvResolutions.emplace_back("480p");
                 if(tvResolutions & dsTV_RESOLUTION_576i)supportedTvResolutions.emplace_back("576i");
                 if(tvResolutions & dsTV_RESOLUTION_576p)supportedTvResolutions.emplace_back("576p");
-		if(tvResolutions & dsTV_RESOLUTION_576p50)supportedTvResolutions.emplace_back("720p50");
+		if(tvResolutions & dsTV_RESOLUTION_576p50)supportedTvResolutions.emplace_back("576p50");
                 if(tvResolutions & dsTV_RESOLUTION_720p)supportedTvResolutions.emplace_back("720p");
 		if(tvResolutions & dsTV_RESOLUTION_720p50)supportedTvResolutions.emplace_back("720p50");
                 if(tvResolutions & dsTV_RESOLUTION_1080i)supportedTvResolutions.emplace_back("1080i");
