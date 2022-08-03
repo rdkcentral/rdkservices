@@ -444,8 +444,10 @@ namespace WPEFramework {
         const string SystemServices::Initialize(PluginHost::IShell* service)
         {
             InitializeIARM();
-            m_shellService = service;
-            m_shellService->AddRef();
+	    if(service != nullptr){
+	            m_shellService = service;
+	            m_shellService->AddRef();
+	    }
             /* On Success; return empty to indicate no error text. */
             return (string());
         }

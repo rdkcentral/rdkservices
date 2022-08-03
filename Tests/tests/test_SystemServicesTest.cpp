@@ -122,7 +122,7 @@ public:
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Connect)
             .WillOnce(::testing::Return(IARM_RESULT_SUCCESS));
 
-    EXPECT_EQ(string(""), systemplugin->Initialize(&service));
+    EXPECT_EQ(string(""), systemplugin->Initialize(nullptr));
 
     }
 
@@ -138,7 +138,7 @@ public:
 TEST_F(SystemServicesTest, RegisteredMethods)
 {
 	InitService();
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getWakeupReason")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getWakeupReason")));
 /*    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getPowerStateBeforeReboot")));
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("setFirmwareRebootDelay")));
 
@@ -200,7 +200,7 @@ TEST_F(SystemServicesTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setWakeupSrcConfiguration")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("updateFirmware")));
 */
-    systemplugin->Deinitialize(&service);
+    systemplugin->Deinitialize(nullptr);
 }
 
 TEST_F(SystemServicesTest, RebootDelay)
@@ -222,8 +222,8 @@ TEST_F(SystemServicesTest, RebootDelay)
                 return WDMP_SUCCESS;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T(""), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T(""), response));
+    //EXPECT_EQ(response, string("{\"success\":false}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":5}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
