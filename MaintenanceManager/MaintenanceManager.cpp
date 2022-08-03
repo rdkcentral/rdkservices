@@ -1165,14 +1165,14 @@ namespace WPEFramework {
         uint32_t MaintenanceManager::stopMaintenance(const JsonObject& parameters,
                 JsonObject& response){
 
+                bool result=false;
                 if( checkAbortFlag() ) {
-                    bool result=false;
                     result=stopMaintenanceTasks();
-                    returnResponse(result);
                 }
                 else {
                     LOGINFO("Failed to initiate stopMaintenance, RFC is set as False\n");
                 }
+                returnResponse(result);
         }
 
         bool MaintenanceManager::stopMaintenanceTasks(){
