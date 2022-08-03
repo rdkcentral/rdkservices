@@ -11,9 +11,9 @@ on:
 env:
   BUILD_TYPE: Debug
 
-  # Refs for stable2.
+  # Refs for 2208_sprint.
   THUNDER_REF: "331ee30b1eaf82a7e8944ee00b8cb1d1d0aca682"
-  INTERFACES_REF: "4ec7c6f8e14b152143a105a41f4c62b6723372c4"
+  INTERFACES_REF: "cb3b8476aa3b00ae9e73ff0cf64114563d1ee7ae"
 
   THUNDER_BINDING: "127.0.0.1"
   THUNDER_PORT: "55555"
