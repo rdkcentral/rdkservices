@@ -456,8 +456,10 @@ namespace WPEFramework {
         {
             DeinitializeIARM();
             SystemServices::_instance = nullptr;
-            m_shellService->Release();
-            m_shellService = nullptr;
+	    if(m_shellService != nullptr){
+            	m_shellService->Release();
+            	m_shellService = nullptr;
+	    }
         }
 
         void SystemServices::InitializeIARM()

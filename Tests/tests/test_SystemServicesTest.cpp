@@ -138,7 +138,7 @@ public:
 TEST_F(SystemServicesTest, RegisteredMethods)
 {
 	InitService();
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getWakeupReason")));
+    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getWakeupReason")));
 /*    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getPowerStateBeforeReboot")));
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("setFirmwareRebootDelay")));
 
