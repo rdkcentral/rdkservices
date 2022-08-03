@@ -71,7 +71,7 @@ public:
     ,handlerV2(*(systemplugin->GetHandler(2)))
     ,connection(1,0)
     {
-	PluginHost::IFactories::Assign(&factoriesImplementation);
+//	PluginHost::IFactories::Assign(&factoriesImplementation);
     }
     virtual void SetUp()
     {
@@ -79,11 +79,13 @@ public:
         PluginHost::IFactories::Assign(&factoriesImplementation);
         Wraps::getInstance().impl = &wrapsImplMock;
         //systemServImpl::getInstance().impl = &systemMock;
+	cout << "--- SetUp() ----"<<endl;
 
     }
 
     virtual void TearDown()
     {
+	    cout<<"--- TearDown() ---"<<endl;
         IarmBus::getInstance().impl = nullptr;
         Wraps::getInstance().impl = nullptr;
         //systemServImpl::getInstance().impl = nullptr;
@@ -92,6 +94,7 @@ public:
 
     void InitService()
     {
+	    //SetUp();
 
          // called by SystemServices::InitializeIARM, SystemServices::DeinitializeIARM
 	    EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
