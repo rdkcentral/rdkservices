@@ -4,7 +4,7 @@
 
 #include "videoResolution.hpp"
 
-class VideoResolutionMock : public device::VideoResolution {
+class VideoResolutionMock : public device::VideoResolutionImpl {
 public:
     virtual ~VideoResolutionMock() = default;
 

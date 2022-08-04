@@ -4,7 +4,7 @@
 
 #include "host.hpp"
 
-class VideoDeviceMock : public device::VideoDevice {
+class VideoDeviceMock : public device::VideoDeviceImpl {
 public:
     virtual ~VideoDeviceMock() = default;
 
