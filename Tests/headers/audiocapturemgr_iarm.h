@@ -85,6 +85,7 @@ struct iarmbus_acm_arg_t {
         arg_output_props_t arg_output_props;
     };
 
+    bool networkStnadby;
     int session_id;
     int result;
     Details details;

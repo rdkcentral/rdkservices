@@ -40,7 +40,6 @@ using std::ofstream;
 #include "SystemServicesHelper.h"
 #include "platformcaps/platformcaps.h"
 #include "libIARM.h"
-#include "irMgr.h"
 #include "pwrMgr.h"
 #include "host.hpp"
 #include "sleepMode.hpp"

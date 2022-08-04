@@ -279,7 +279,7 @@ namespace WPEFramework {
                 LOGINFO("first boot so setting mode to '%s' ('%s' does not contain(\"mode\"))\n",
                         (param["mode"].String()).c_str(), SYSTEM_SERVICE_TEMP_FILE);
 
-                setMode(mode, response);
+                //setMode(mode, response);
             } else if (m_currentMode.empty()) {
                 JsonObject mode,param,response;
                 param["duration"] = m_temp_settings.getValue("mode_duration");
@@ -289,7 +289,7 @@ namespace WPEFramework {
                 LOGINFO("receiver restarted so setting mode:%s duration:%d\n",
                         (param["mode"].String()).c_str(), (int)param["duration"].Number());
 
-                setMode(mode, response);
+                //setMode(mode, response);
             }
 
             SystemServices::m_FwUpdateState_LatestEvent=FirmwareUpdateStateUninitialized;
@@ -429,8 +429,10 @@ namespace WPEFramework {
         const string SystemServices::Initialize(PluginHost::IShell* service)
         {
             InitializeIARM();
-            m_shellService = service;
-            m_shellService->AddRef();
+	    if(nullptr != service){
+            	m_shellService = service;
+            	m_shellService->AddRef();
+	    }
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
@@ -439,8 +441,10 @@ namespace WPEFramework {
         {
             DeinitializeIARM();
             SystemServices::_instance = nullptr;
-            m_shellService->Release();
-            m_shellService = nullptr;
+	    if(m_shellService != nullptr){
+            	m_shellService->Release();
+            	m_shellService = nullptr;
+	    }
         }
 
         void SystemServices::InitializeIARM()
@@ -1595,7 +1599,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
 		bool status = false;
-		JsonObject param;
+	/*	JsonObject param;
 		if (parameters.HasLabel("standbyMode")) {
 			std::string prefMode = parameters["standbyMode"].String();
 			try {
@@ -1608,7 +1612,7 @@ namespace WPEFramework {
 			}
 		} else {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
-		}
+		}*/
 		returnResponse(status);
         }
 
@@ -1625,7 +1629,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool status = false;
-            try {
+           /* try {
                 const device::SleepMode &mode = device::Host::getInstance().getPreferredSleepMode();
                 std::string preferredStandbyMode = mode.toString();
                 response["preferredStandbyMode"] = preferredStandbyMode;
@@ -1633,7 +1637,7 @@ namespace WPEFramework {
             } catch (...) {
                 LOGERR("Error getting PreferredStandbyMode\n");
                 response["preferredStandbyMode"] = "";
-            }
+            }*/
             returnResponse(status);
         }
 
@@ -1757,7 +1761,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool status = false;
-            JsonArray standbyModes;
+          /*  JsonArray standbyModes;
             try {
                 const device::List<device::SleepMode> sleepModes =
                     device::Host::getInstance().getAvailableSleepModes();
@@ -1768,7 +1772,7 @@ namespace WPEFramework {
             } catch (...) {
                 LOGERR("Error getting AvailableStandbyModes\n");
             }
-            response["supportedStandbyModes"] = standbyModes;
+            response["supportedStandbyModes"] = standbyModes;*/
             returnResponse(status);
         }
 

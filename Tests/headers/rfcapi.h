@@ -66,7 +66,7 @@ typedef struct _RFC_Param_t {
     DATA_TYPE type;
 } RFC_ParamData_t;
 
-const char* getRFCErrorString(WDMP_STATUS code);
+
 
 class RfcApiImpl {
 public:
@@ -75,6 +75,7 @@ public:
     virtual WDMP_STATUS getRFCParameter(char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) = 0;
     virtual WDMP_STATUS setRFCParameter(char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) = 0;
 
+   virtual  char* getRFCErrorString(WDMP_STATUS code) = 0;
 };
 
 class RfcApi {
@@ -99,10 +100,10 @@ public:
 
     static const char* getRFCErrorString(WDMP_STATUS code)
     { 
-    	return getInstance()->getRFCErrorString(code);
+    	return getInstance().impl->getRFCErrorString(code);
     }
 };
 
 constexpr auto getRFCParameter = &RfcApi::getRFCParameter;
 constexpr auto setRFCParameter = &RfcApi::setRFCParameter;
-//constexpr auto getRFCErrorString = &RfcApi::getRFCErrorString;
+constexpr auto getRFCErrorString = &RfcApi::getRFCErrorString;

@@ -103,8 +103,9 @@ namespace {
     bool result = false;
 
     RFC_ParamData_t param = {0};
+    const char* rfcKey = "PlatformCapsData";
 
-    WDMP_STATUS status = getRFCParameter("PlatformCapsData", name.c_str(), &param);
+    WDMP_STATUS status = getRFCParameter((char*)rfcKey, name.c_str(), &param);
     if (status == WDMP_SUCCESS) {
       value = param.value;
       result = true;
@@ -232,7 +233,7 @@ PlatformCapsData::BrowserInfo PlatformCapsData::GetBrowser() const {
 
     type = json["html_view"].String();
   } else {
-    TRACE(WPEFramework::Trace::Error, (_T("%s File '%s' : %"PRIu32"\n"),
+    TRACE(WPEFramework::Trace::Error, (_T("%s File '%s' : %" PRIu32 "\n"),
         __FILE__, file.Name().c_str(), file.ErrorCode()));
   }
 
@@ -278,7 +279,7 @@ bool PlatformCapsData::SupportsTrueSD() const {
 bool PlatformCapsData::CanMixPCMWithSurround() {
   bool result = false;
 
-  try {
+/*  try {
     device::List<device::VideoOutputPort> vPorts =
         device::Host::getInstance().getVideoOutputPorts();
     for (size_t i = 0; i < vPorts.size();) {
@@ -293,7 +294,7 @@ bool PlatformCapsData::CanMixPCMWithSurround() {
   }
 
   TRACE(Trace::Information, (_T("canMixPCMWithSurround: %s"), result ? "YES" : "NO"));
-
+*/
   return result;
 }
 
