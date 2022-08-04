@@ -17,7 +17,7 @@ typedef enum _IARM_Result_t
 } IARM_Result_t;
 typedef IARM_Result_t (*IARM_BusCall_t) (void *arg);
 
-void _powerEventHandler(const char*, IARM_EventId_t, void*, size_t);
+
 #define IARM_METHOD_IPC_TIMEOUT_DEFAULT    (-1)
 #define IARM_METHOD_IPC_TIMEOUT_INFINITE   ((int) 0x7fffffff)
 

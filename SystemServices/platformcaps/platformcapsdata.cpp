@@ -104,7 +104,6 @@ namespace {
 
     RFC_ParamData_t param = {0};
     const char* rfcKey = "PlatformCapsData";
-
     WDMP_STATUS status = getRFCParameter((char*)rfcKey, name.c_str(), &param);
     if (status == WDMP_SUCCESS) {
       value = param.value;
@@ -279,14 +278,14 @@ bool PlatformCapsData::SupportsTrueSD() const {
 bool PlatformCapsData::CanMixPCMWithSurround() {
   bool result = false;
 
-/*  try {
-    device::List<device::VideoOutputPort> vPorts =
-        device::Host::getInstance().getVideoOutputPorts();
-    for (size_t i = 0; i < vPorts.size();) {
-      device::AudioOutputPort &aPort = vPorts.at(i).getAudioOutputPort();
-      result = aPort.isAudioMSDecode();
-      break;
-    }
+  try {
+   device::List<device::VideoOutputPort> vPorts =
+       device::Host::getInstance().getVideoOutputPorts();
+   for (size_t i = 0; i < vPorts.size();) {
+     device::AudioOutputPort &aPort = vPorts.at(i).getAudioOutputPort();
+     result = aPort.isAudioMSDecode();
+     break;
+   }
   } catch (...) {
     result = false;
     TRACE(Trace::Error, 
@@ -294,7 +293,7 @@ bool PlatformCapsData::CanMixPCMWithSurround() {
   }
 
   TRACE(Trace::Information, (_T("canMixPCMWithSurround: %s"), result ? "YES" : "NO"));
-*/
+
   return result;
 }
 

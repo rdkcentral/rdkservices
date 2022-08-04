@@ -168,34 +168,6 @@ typedef struct _IARM_BUS_SYSMgr_EventData_t{
         } data;
 }IARM_Bus_SYSMgr_EventData_t;
 
-/*
-typedef struct _propertyValue
-{
-  int state;
-  int error;
-  char payload[128];
-} state_property;
-
-
-typedef enum _SYSMgr_EventId_t {
-    IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED,
-    IARM_BUS_SYSMGR_EVENT_MAX
-} IARM_Bus_SYSMgr_EventId_t;
-
-typedef struct _IARM_BUS_SYSMgr_EventData_t {
-    union {
-        struct _USB_MOUNT {
-            int mounted;
-            char device[128];
-            char dir[256];
-        } usbMountData;
-    } data;
-} IARM_Bus_SYSMgr_EventData_t;
-
-typedef struct _IARM_BUS_SYSMGR_KEYCodeLoggingInfo_Param_t{
-      int logStatus;                                      
-}IARM_BUS_SYSMGR_KEYCodeLoggingInfo_Param_t;
-*/
 typedef struct _propertyValue
 {
   int state;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "libIARM.h"
+#define IARM_BUS_DAEMON_NAME    "Daemon"
 
 #define IARM_BUS_DAEMON_NAME 	"Daemon"
 typedef void (*IARM_EventHandler_t)(const char* owner, IARM_EventId_t eventId, void* data, size_t len);
@@ -65,6 +66,11 @@ public:
         return getInstance().impl->IARM_Bus_RegisterCall(methodName,handler);
     }
 
+    static IARM_Result_t IARM_Bus_RegisterCall(const char *methodName, IARM_BusCall_t handler)
+    {
+        return getInstance().impl->IARM_Bus_RegisterCall(methodName, handler);
+    }
+
 };
 
 constexpr auto IARM_Bus_Init = &IarmBus::IARM_Bus_Init;
@@ -73,5 +79,4 @@ constexpr auto IARM_Bus_IsConnected = &IarmBus::IARM_Bus_IsConnected;
 constexpr auto IARM_Bus_RegisterEventHandler = &IarmBus::IARM_Bus_RegisterEventHandler;
 constexpr auto IARM_Bus_UnRegisterEventHandler = &IarmBus::IARM_Bus_UnRegisterEventHandler;
 constexpr auto IARM_Bus_Call = &IarmBus::IARM_Bus_Call;
-
 constexpr auto IARM_Bus_RegisterCall = &IarmBus::IARM_Bus_RegisterCall;

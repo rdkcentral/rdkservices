@@ -74,8 +74,7 @@ public:
 
     virtual WDMP_STATUS getRFCParameter(char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) = 0;
     virtual WDMP_STATUS setRFCParameter(char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) = 0;
-
-   virtual  char* getRFCErrorString(WDMP_STATUS code) = 0;
+    virtual const char* getRFCErrorString(WDMP_STATUS code) = 0;
 };
 
 class RfcApi {

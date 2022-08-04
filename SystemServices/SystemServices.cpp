@@ -39,7 +39,7 @@
 
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
-#include "utils.h"
+//#include "utils.h"
 #include "UtilsString.h"
 #include "uploadlogs.h"
 
@@ -1629,15 +1629,15 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool status = false;
-           /* try {
-                const device::SleepMode &mode = device::Host::getInstance().getPreferredSleepMode();
+            try {
+                device::SleepMode mode = device::Host::getInstance().getPreferredSleepMode();
                 std::string preferredStandbyMode = mode.toString();
                 response["preferredStandbyMode"] = preferredStandbyMode;
                 status = true;
             } catch (...) {
                 LOGERR("Error getting PreferredStandbyMode\n");
                 response["preferredStandbyMode"] = "";
-            }*/
+            }
             returnResponse(status);
         }
 
@@ -1763,7 +1763,7 @@ namespace WPEFramework {
             bool status = false;
           /*  JsonArray standbyModes;
             try {
-                const device::List<device::SleepMode> sleepModes =
+                    device::List<device::SleepMode> sleepModes =
                     device::Host::getInstance().getAvailableSleepModes();
                 for (unsigned int i = 0; i < sleepModes.size(); i++) {
                     standbyModes.Add(sleepModes.at(i).toString());
@@ -3037,9 +3037,9 @@ namespace WPEFramework {
 
                         WDMP_STATUS wdmpStatus;
                         RFC_ParamData_t rfcParam;
+			char sysServices[] = "SystemServices";
 
                         memset(&rfcParam, 0, sizeof(rfcParam));
-						char sysServices[] = "SystemServices";
                         wdmpStatus = getRFCParameter(sysServices, jsonRFCList[i].String().c_str(), &rfcParam);
                         if(WDMP_SUCCESS == wdmpStatus || WDMP_ERR_DEFAULT_VALUE == wdmpStatus)
                             cmdResponse = rfcParam.value;

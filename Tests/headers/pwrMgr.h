@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libIARM.h"
+//#include "libIARM.h"
 
 #define IARM_BUS_PWRMGR_NAME "PWRMgr"
 #define PWRMGR_MAX_REBOOT_REASON_LENGTH 100
@@ -66,7 +66,6 @@ typedef struct _IARM_Bus_CommonAPI_SysModeChange_Param_t{
     IARM_Bus_Daemon_SysMode_t oldMode;
     IARM_Bus_Daemon_SysMode_t newMode;
 }IARM_Bus_CommonAPI_SysModeChange_Param_t;
-
 
 typedef enum _PWRMgr_EventId_t {
     IARM_BUS_PWRMGR_EVENT_MODECHANGED = 0,
@@ -136,9 +135,4 @@ typedef struct _IARM_Bus_PWRMgr_RebootParam_t{
      char reboot_reason_other[PWRMGR_MAX_REBOOT_REASON_LENGTH];
      char requestor[PWRMGR_MAX_REBOOT_REASON_LENGTH];
 } IARM_Bus_PWRMgr_RebootParam_t;
-
-typedef struct _IARM_Bus_PWRMgr_SleepTimer_Param_t{
-	double time;
-	int start;
-}IARM_Bus_PWRMgr_SleepTimer_Param_t;
 
