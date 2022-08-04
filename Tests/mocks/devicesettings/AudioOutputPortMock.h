@@ -4,7 +4,7 @@
 
 #include "audioOutputPort.hpp"
 
-class AudioOutputPortMock : public device::AudioOutputPort {
+class AudioOutputPortMock : public device::AudioOutputPortImpl {
 public:
     virtual ~AudioOutputPortMock() = default;
 

@@ -12,9 +12,9 @@ class HostImpl {
 public:
     virtual ~HostImpl() = default;
 
-    virtual List<std::reference_wrapper<VideoOutputPort>> getVideoOutputPorts() = 0;
-    virtual List<std::reference_wrapper<AudioOutputPort>> getAudioOutputPorts() = 0;
-    virtual List<std::reference_wrapper<VideoDevice>> getVideoDevices() = 0;
+    virtual List<VideoOutputPort> getVideoOutputPorts() = 0;
+    virtual List<AudioOutputPort> getAudioOutputPorts() = 0;
+    virtual List<VideoDevice> getVideoDevices() = 0;
     virtual VideoOutputPort& getVideoOutputPort(const std::string& name) = 0;
     virtual AudioOutputPort& getAudioOutputPort(const std::string& name) = 0;
     virtual void getHostEDID(std::vector<uint8_t>& edid) const = 0;
@@ -32,17 +32,17 @@ public:
 
     HostImpl* impl;
 
-    List<std::reference_wrapper<VideoOutputPort>> getVideoOutputPorts()
+    List<VideoOutputPort> getVideoOutputPorts()
     {
         return impl->getVideoOutputPorts();
     }
 
-    List<std::reference_wrapper<AudioOutputPort>> getAudioOutputPorts()
+    List<AudioOutputPort> getAudioOutputPorts()
     {
         return impl->getAudioOutputPorts();
     }
 
-    List<std::reference_wrapper<VideoDevice>> getVideoDevices()
+    List<VideoDevice> getVideoDevices()
     {
         return impl->getVideoDevices();
     }

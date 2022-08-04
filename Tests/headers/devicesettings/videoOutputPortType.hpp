@@ -5,12 +5,27 @@
 
 namespace device {
 
-class VideoOutputPortType {
+class VideoOutputPortTypeImpl {
 public:
-    virtual ~VideoOutputPortType() = default;
+    virtual ~VideoOutputPortTypeImpl() = default;
 
     virtual int getId() const = 0;
-    virtual const List<std::reference_wrapper<VideoResolution>> getSupportedResolutions() const = 0;
+    virtual const List<VideoResolution> getSupportedResolutions() const = 0;
+};
+
+class VideoOutputPortType {
+public:
+    VideoOutputPortTypeImpl* impl;
+
+    int getId() const
+    {
+        return impl->getId();
+    }
+
+    const List<VideoResolution> getSupportedResolutions() const
+    {
+        return impl->getSupportedResolutions();
+    }
 };
 
 }

@@ -113,6 +113,8 @@ TEST_F(DeviceCapabilitiesTest, DeviceType)
 TEST_F(DeviceCapabilitiesDsTest, SupportedAudioPorts)
 {
     AudioOutputPortMock audioOutputPortMock;
+    device::AudioOutputPort audioOutputPort;
+    audioOutputPort.impl = &audioOutputPortMock;
     RPC::IStringIterator* supportedAudioPorts = nullptr;
     string audioPort(_T("HDMI0"));
     string element;
@@ -122,11 +124,7 @@ TEST_F(DeviceCapabilitiesDsTest, SupportedAudioPorts)
         .WillOnce(::testing::ReturnRef(audioPort));
     EXPECT_CALL(hostImplMock, getAudioOutputPorts())
         .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&]() {
-                device::List<std::reference_wrapper<device::AudioOutputPort>> result{ audioOutputPortMock };
-                return result;
-            }));
+        .WillOnce(::testing::Return(device::List<device::AudioOutputPort>({ audioOutputPort })));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SupportedAudioPorts(supportedAudioPorts));
     ASSERT_TRUE(supportedAudioPorts != nullptr);
@@ -139,6 +137,8 @@ TEST_F(DeviceCapabilitiesDsTest, SupportedAudioPorts)
 TEST_F(DeviceCapabilitiesDsTest, SupportedVideoDisplays)
 {
     VideoOutputPortMock videoOutputPortMock;
+    device::VideoOutputPort videoOutputPort;
+    videoOutputPort.impl = &videoOutputPortMock;
     RPC::IStringIterator* supportedVideoDisplays = nullptr;
     string videoPort(_T("HDMI0"));
     string element;
@@ -148,11 +148,7 @@ TEST_F(DeviceCapabilitiesDsTest, SupportedVideoDisplays)
         .WillOnce(::testing::ReturnRef(videoPort));
     EXPECT_CALL(hostImplMock, getVideoOutputPorts())
         .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&]() {
-                device::List<std::reference_wrapper<device::VideoOutputPort>> result{ videoOutputPortMock };
-                return result;
-            }));
+        .WillOnce(::testing::Return(device::List<device::VideoOutputPort>({ videoOutputPort })));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SupportedVideoDisplays(supportedVideoDisplays));
     ASSERT_TRUE(supportedVideoDisplays != nullptr);
@@ -181,7 +177,11 @@ TEST_F(DeviceCapabilitiesDsTest, HostEDID)
 TEST_F(DeviceCapabilitiesDsTest, DefaultResolution_noParam)
 {
     VideoOutputPortMock videoOutputPortMock;
+    device::VideoOutputPort videoOutputPort;
+    videoOutputPort.impl = &videoOutputPortMock;
     VideoResolutionMock videoResolutionMock;
+    device::VideoResolution videoResolution;
+    videoResolution.impl = &videoResolutionMock;
     string videoPort(_T("HDMI0"));
     string videoPortDefaultResolution(_T("1080p"));
     string defaultResolution;
@@ -191,13 +191,13 @@ TEST_F(DeviceCapabilitiesDsTest, DefaultResolution_noParam)
         .WillOnce(::testing::ReturnRef(videoPortDefaultResolution));
     EXPECT_CALL(videoOutputPortMock, getDefaultResolution())
         .Times(1)
-        .WillOnce(::testing::ReturnRef(videoResolutionMock));
+        .WillOnce(::testing::ReturnRef(videoResolution));
     EXPECT_CALL(hostImplMock, getDefaultVideoPortName())
         .Times(1)
         .WillOnce(::testing::Return(videoPort));
     EXPECT_CALL(hostImplMock, getVideoOutputPort(::testing::_))
         .Times(1)
-        .WillOnce(::testing::ReturnRef(videoOutputPortMock));
+        .WillOnce(::testing::ReturnRef(videoOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->DefaultResolution(string(), defaultResolution));
     EXPECT_EQ(defaultResolution, videoPortDefaultResolution);
@@ -206,8 +206,14 @@ TEST_F(DeviceCapabilitiesDsTest, DefaultResolution_noParam)
 TEST_F(DeviceCapabilitiesDsTest, SupportedResolutions_noParam)
 {
     VideoOutputPortMock videoOutputPortMock;
+    device::VideoOutputPort videoOutputPort;
+    videoOutputPort.impl = &videoOutputPortMock;
     VideoOutputPortTypeMock videoOutputPortTypeMock;
+    device::VideoOutputPortType videoOutputPortType;
+    videoOutputPortType.impl = &videoOutputPortTypeMock;
     VideoResolutionMock videoResolutionMock;
+    device::VideoResolution videoResolution;
+    videoResolution.impl = &videoResolutionMock;
     RPC::IStringIterator* supportedResolutions = nullptr;
     string videoPort(_T("HDMI0"));
     string videoPortSupportedResolution(_T("1080p"));
@@ -218,26 +224,22 @@ TEST_F(DeviceCapabilitiesDsTest, SupportedResolutions_noParam)
         .WillOnce(::testing::ReturnRef(videoPortSupportedResolution));
     EXPECT_CALL(videoOutputPortTypeMock, getSupportedResolutions())
         .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&]() {
-                device::List<std::reference_wrapper<device::VideoResolution>> result{ videoResolutionMock };
-                return result;
-            }));
+        .WillOnce(::testing::Return(device::List<device::VideoResolution>({ videoResolution })));
     EXPECT_CALL(videoOutputPortTypeMock, getId())
         .Times(1)
         .WillOnce(::testing::Return(0));
     EXPECT_CALL(videoOutputPortMock, getType())
         .Times(1)
-        .WillOnce(::testing::ReturnRef(videoOutputPortTypeMock));
+        .WillOnce(::testing::ReturnRef(videoOutputPortType));
     EXPECT_CALL(hostImplMock, getDefaultVideoPortName())
         .Times(1)
         .WillOnce(::testing::Return(videoPort));
     EXPECT_CALL(hostImplMock, getVideoOutputPort(::testing::_))
         .Times(1)
-        .WillOnce(::testing::ReturnRef(videoOutputPortMock));
+        .WillOnce(::testing::ReturnRef(videoOutputPort));
     EXPECT_CALL(videoOutputPortConfigImplMock, getPortType(::testing::_))
         .Times(1)
-        .WillOnce(::testing::ReturnRef(videoOutputPortTypeMock));
+        .WillOnce(::testing::ReturnRef(videoOutputPortType));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SupportedResolutions(string(), supportedResolutions));
     ASSERT_TRUE(supportedResolutions != nullptr);
@@ -250,6 +252,8 @@ TEST_F(DeviceCapabilitiesDsTest, SupportedResolutions_noParam)
 TEST_F(DeviceCapabilitiesDsTest, SupportedHdcp_noParam)
 {
     VideoOutputPortMock videoOutputPortMock;
+    device::VideoOutputPort videoOutputPort;
+    videoOutputPort.impl = &videoOutputPortMock;
     string videoPort(_T("HDMI0"));
     auto supportedHDCPVersion = Exchange::IDeviceCapabilities::CopyProtection::HDCP_UNAVAILABLE;
 
@@ -261,7 +265,7 @@ TEST_F(DeviceCapabilitiesDsTest, SupportedHdcp_noParam)
         .WillOnce(::testing::Return(videoPort));
     EXPECT_CALL(videoOutputPortConfigImplMock, getPort(::testing::_))
         .Times(1)
-        .WillOnce(::testing::ReturnRef(videoOutputPortMock));
+        .WillOnce(::testing::ReturnRef(videoOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SupportedHdcp(string(), supportedHDCPVersion));
     EXPECT_EQ(supportedHDCPVersion, Exchange::IDeviceCapabilities::CopyProtection::HDCP_22);
@@ -270,6 +274,8 @@ TEST_F(DeviceCapabilitiesDsTest, SupportedHdcp_noParam)
 TEST_F(DeviceCapabilitiesDsTest, AudioCapabilities_noParam)
 {
     AudioOutputPortMock audioOutputPortMock;
+    device::AudioOutputPort audioOutputPort;
+    audioOutputPort.impl = &audioOutputPortMock;
     Exchange::IDeviceCapabilities::IAudioCapabilityIterator* audioCapabilities = nullptr;
     string audioPort(_T("HDMI0"));
     Exchange::IDeviceCapabilities::AudioCapability element;
@@ -287,7 +293,7 @@ TEST_F(DeviceCapabilitiesDsTest, AudioCapabilities_noParam)
         .WillOnce(::testing::Return(audioPort));
     EXPECT_CALL(hostImplMock, getAudioOutputPort(::testing::_))
         .Times(1)
-        .WillOnce(::testing::ReturnRef(audioOutputPortMock));
+        .WillOnce(::testing::ReturnRef(audioOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->AudioCapabilities(string(), audioCapabilities));
     ASSERT_TRUE(audioCapabilities != nullptr);
@@ -302,6 +308,8 @@ TEST_F(DeviceCapabilitiesDsTest, AudioCapabilities_noParam)
 TEST_F(DeviceCapabilitiesDsTest, MS12Capabilities_noParam)
 {
     AudioOutputPortMock audioOutputPortMock;
+    device::AudioOutputPort audioOutputPort;
+    audioOutputPort.impl = &audioOutputPortMock;
     Exchange::IDeviceCapabilities::IMS12CapabilityIterator* ms12Capabilities = nullptr;
     string audioPort(_T("HDMI0"));
     Exchange::IDeviceCapabilities::MS12Capability element;
@@ -319,7 +327,7 @@ TEST_F(DeviceCapabilitiesDsTest, MS12Capabilities_noParam)
         .WillOnce(::testing::Return(audioPort));
     EXPECT_CALL(hostImplMock, getAudioOutputPort(::testing::_))
         .Times(1)
-        .WillOnce(::testing::ReturnRef(audioOutputPortMock));
+        .WillOnce(::testing::ReturnRef(audioOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->MS12Capabilities(string(), ms12Capabilities));
     ASSERT_TRUE(ms12Capabilities != nullptr);
@@ -334,6 +342,8 @@ TEST_F(DeviceCapabilitiesDsTest, MS12Capabilities_noParam)
 TEST_F(DeviceCapabilitiesDsTest, SupportedMS12AudioProfiles_noParam)
 {
     AudioOutputPortMock audioOutputPortMock;
+    device::AudioOutputPort audioOutputPort;
+    audioOutputPort.impl = &audioOutputPortMock;
     RPC::IStringIterator* supportedMS12AudioProfiles = nullptr;
     string audioPort(_T("HDMI0"));
     string audioPortMS12AudioProfile(_T("Movie"));
@@ -341,17 +351,13 @@ TEST_F(DeviceCapabilitiesDsTest, SupportedMS12AudioProfiles_noParam)
 
     EXPECT_CALL(audioOutputPortMock, getMS12AudioProfileList())
         .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&]() {
-                std::vector<std::string> result{ audioPortMS12AudioProfile };
-                return result;
-            }));
+        .WillOnce(::testing::Return(std::vector<std::string>({ audioPortMS12AudioProfile })));
     EXPECT_CALL(hostImplMock, getDefaultAudioPortName())
         .Times(1)
         .WillOnce(::testing::Return(audioPort));
     EXPECT_CALL(hostImplMock, getAudioOutputPort(::testing::_))
         .Times(1)
-        .WillOnce(::testing::ReturnRef(audioOutputPortMock));
+        .WillOnce(::testing::ReturnRef(audioOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SupportedMS12AudioProfiles(string(), supportedMS12AudioProfiles));
     ASSERT_TRUE(supportedMS12AudioProfiles != nullptr);
@@ -368,7 +374,7 @@ TEST_F(DeviceCapabilitiesDsTest, SupportedAudioPorts_exception)
     EXPECT_CALL(hostImplMock, getAudioOutputPorts())
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&]() -> device::List<std::reference_wrapper<device::AudioOutputPort>> {
+            [&]() -> device::List<device::AudioOutputPort> {
                 throw device::Exception("test");
             }));
 
@@ -383,7 +389,7 @@ TEST_F(DeviceCapabilitiesDsTest, SupportedVideoDisplays_exception)
     EXPECT_CALL(hostImplMock, getVideoOutputPorts())
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&]() -> device::List<std::reference_wrapper<device::VideoOutputPort>> {
+            [&]() -> device::List<device::VideoOutputPort> {
                 throw device::Exception("test");
             }));
 
