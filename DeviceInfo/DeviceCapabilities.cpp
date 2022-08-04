@@ -215,7 +215,7 @@ namespace Plugin {
         try {
             const auto& aPorts = device::Host::getInstance().getAudioOutputPorts();
             for (size_t i = 0; i < aPorts.size(); i++) {
-                list.emplace_back(((const device::AudioOutputPort&)aPorts.at(i)).getName());
+                list.emplace_back(aPorts.at(i).getName());
             }
         } catch (const device::Exception& e) {
             TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
@@ -243,7 +243,7 @@ namespace Plugin {
         try {
             const auto& vPorts = device::Host::getInstance().getVideoOutputPorts();
             for (size_t i = 0; i < vPorts.size(); i++) {
-                list.emplace_back(((const device::VideoOutputPort&)vPorts.at(i)).getName());
+                list.emplace_back(vPorts.at(i).getName());
             }
         } catch (const device::Exception& e) {
             TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
@@ -329,7 +329,7 @@ namespace Plugin {
             auto& vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort);
             const auto resolutions = device::VideoOutputPortConfig::getInstance().getPortType(vPort.getType().getId()).getSupportedResolutions();
             for (size_t i = 0; i < resolutions.size(); i++) {
-                list.emplace_back(((const device::VideoResolution&)resolutions.at(i)).getName());
+                list.emplace_back(resolutions.at(i).getName());
             }
         } catch (const device::Exception& e) {
             TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));

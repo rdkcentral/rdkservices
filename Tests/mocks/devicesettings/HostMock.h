@@ -8,9 +8,9 @@ class HostImplMock : public device::HostImpl {
 public:
     virtual ~HostImplMock() = default;
 
-    MOCK_METHOD(device::List<std::reference_wrapper<device::VideoOutputPort>>, getVideoOutputPorts, (), (override));
-    MOCK_METHOD(device::List<std::reference_wrapper<device::AudioOutputPort>>, getAudioOutputPorts, (), (override));
-    MOCK_METHOD(device::List<std::reference_wrapper<device::VideoDevice>>, getVideoDevices, (), (override));
+    MOCK_METHOD(device::List<device::VideoOutputPort>, getVideoOutputPorts, (), (override));
+    MOCK_METHOD(device::List<device::AudioOutputPort>, getAudioOutputPorts, (), (override));
+    MOCK_METHOD(device::List<device::VideoDevice>, getVideoDevices, (), (override));
     MOCK_METHOD(device::VideoOutputPort&, getVideoOutputPort, (const std::string& name), (override));
     MOCK_METHOD(device::AudioOutputPort&, getAudioOutputPort, (const std::string& name), (override));
     MOCK_METHOD(void, getHostEDID, (std::vector<uint8_t> & edid), (const, override));

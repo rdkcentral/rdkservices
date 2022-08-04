@@ -205,8 +205,9 @@ TEST_F(FrameRateTestFixture, Plugin)
         .Times(4)
         .WillRepeatedly(::testing::Invoke(
             [&]() {
-                device::List<std::reference_wrapper<device::VideoDevice>> result{ videoDeviceMock };
-                return result;
+                device::VideoDevice videoDevice;
+                videoDevice.impl = &videoDeviceMock;
+                return device::List<device::VideoDevice>({ videoDevice });
             }));
 
     // IShell expectations

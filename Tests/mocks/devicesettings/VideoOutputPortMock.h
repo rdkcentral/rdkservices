@@ -4,7 +4,7 @@
 
 #include "videoOutputPort.hpp"
 
-class VideoOutputPortMock : public device::VideoOutputPort {
+class VideoOutputPortMock : public device::VideoOutputPortImpl {
 public:
     virtual ~VideoOutputPortMock() = default;
 
