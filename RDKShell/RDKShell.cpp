@@ -416,6 +416,7 @@ namespace WPEFramework {
         std::map<std::string, bool> gDestroyApplications;
         std::map<std::string, bool> gLaunchApplications;
         std::map<std::string, AppLastExitReason> gApplicationsExitReason;
+        std::map<std::string, std::string> gPluginDisplayNameMap;
         
         uint32_t getKeyFlag(std::string modifier)
         {
@@ -3246,6 +3247,10 @@ namespace WPEFramework {
                 if (parameters.HasLabel("blockAV"))
                 {
                     blockAV = parameters["blockAV"].Boolean();
+                    if (true == mErmEnabled)
+                    {
+                        setAVBlocked(callsign, blockAV);
+                    }
                 }
 
                 //check to see if plugin already exists
@@ -3360,6 +3365,8 @@ namespace WPEFramework {
                         std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(callsign, displayName, width, height);
                         request->mAutoDestroy = autoDestroy;
                         lockRdkShellMutex();
+                        gPluginDisplayNameMap[callsign] = displayName;
+                        std::cout << "Added displayname : "<<displayName<< std::endl;
                         gCreateDisplayRequests.push_back(request);
                         gRdkShellMutex.unlock();
                         sem_wait(&request->mSemaphore);
@@ -3801,10 +3808,6 @@ namespace WPEFramework {
                         {
                             std::cout << "failed to set url to " << uri << " with status code " << status << std::endl;
                         }
-                    }
-                    if (true == mErmEnabled)
-                    {
-                        setAVBlocked(callsign, blockAV);
                     }
                 }
 
@@ -5783,7 +5786,18 @@ namespace WPEFramework {
             bool status = true;
 
             gRdkShellMutex.lock();
-            status = CompositorController::setAVBlocked(callsign, blockAV);
+            std::map<std::string, std::string>::iterator displayNameItr = gPluginDisplayNameMap.find(callsign);
+            if (displayNameItr != gPluginDisplayNameMap.end())
+            {
+                std::string clientId(callsign + ',' + displayNameItr->second);
+                std::cout << "setAVBlocked callsign: " << callsign << " clientIdentifier:<"<<clientId<<">blockAV:"<<std::boolalpha << blockAV << std::endl;
+                status = CompositorController::setAVBlocked(clientId, blockAV);
+            }
+            else
+            {
+                status = false;
+                std::cout << "display not found for " << callsign << std::endl;
+            }
             gRdkShellMutex.unlock();
             if (false == status)
             {
@@ -5803,9 +5817,15 @@ namespace WPEFramework {
             gRdkShellMutex.unlock();
             if (true == status)
             {
+                std::string appCallSign;
                 for (std::vector<std::string>::iterator appsItr = apps.begin(); appsItr != apps.end(); appsItr++)
                 {
-                    appsList.Add(*appsItr);
+                    appCallSign = *appsItr;
+                    std::string::size_type pos = appCallSign.find(',');
+                    if (pos != std::string::npos)
+                    {
+                        appsList.Add(appCallSign.substr(0, pos));
+                    }
                 }
             }
 
@@ -5930,6 +5950,8 @@ namespace WPEFramework {
             RdkShell::CompositorController::removeListener(client, mEventListener);
             std::shared_ptr<KillClientRequest> request = std::make_shared<KillClientRequest>(client);
             gKillClientRequests.push_back(request);
+            gPluginDisplayNameMap.erase(client);
+            std::cout << "removed displayname : "<<client<< std::endl;
             gRdkShellMutex.unlock();
             sem_wait(&request->mSemaphore);
             ret = request->mResult;
