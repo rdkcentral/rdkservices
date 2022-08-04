@@ -39,7 +39,6 @@
 
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
-//#include "utils.h"
 #include "UtilsString.h"
 #include "uploadlogs.h"
 
@@ -1640,7 +1639,7 @@ namespace WPEFramework {
         {
             bool status = false;
             try {
-                device::SleepMode mode = device::Host::getInstance().getPreferredSleepMode();
+                const device::SleepMode &mode = device::Host::getInstance().getPreferredSleepMode();
                 std::string preferredStandbyMode = mode.toString();
                 response["preferredStandbyMode"] = preferredStandbyMode;
                 status = true;
