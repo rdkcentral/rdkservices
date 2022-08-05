@@ -65,12 +65,6 @@ public:
     {
         return getInstance().impl->IARM_Bus_RegisterCall(methodName,handler);
     }
-
-    static IARM_Result_t IARM_Bus_RegisterCall(const char *methodName, IARM_BusCall_t handler)
-    {
-        return getInstance().impl->IARM_Bus_RegisterCall(methodName, handler);
-    }
-
 };
 
 constexpr auto IARM_Bus_Init = &IarmBus::IARM_Bus_Init;

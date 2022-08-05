@@ -1,6 +1,5 @@
 #pragma once
 
-#include "sleepMode.hpp"
 #include "audioOutputPort.hpp"
 #include "dsTypes.h"
 #include "list.hpp"
@@ -23,9 +22,6 @@ public:
     virtual void getHostEDID(std::vector<uint8_t>& edid) const = 0;
     virtual std::string getDefaultVideoPortName() = 0;
     virtual std::string getDefaultAudioPortName() = 0;
-    // virtual List<SleepMode> getAvailableSleepModes() = 0;
-    // virtual SleepMode getPreferredSleepMode() = 0;
-    // virtual int setPreferredSleepMode(const SleepMode sleepMode) = 0;
 };
 
 class Host {
