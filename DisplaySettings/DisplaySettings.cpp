@@ -51,6 +51,7 @@
 #include "UtilsSecurityToken.h"
 #include "UtilsString.h"
 #include "UtilsisValidInt.h"
+#include "UtilsVersions.h"
 
 using namespace std;
 
@@ -74,6 +75,10 @@ using namespace std;
 
 #define ZOOM_SETTINGS_FILE      "/opt/persistent/rdkservices/zoomSettings.json"
 #define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
+
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 
 static bool isCecArcRoutingThreadEnabled = false;
 static bool isCecEnabled = false;
@@ -134,13 +139,25 @@ namespace
 }
 #endif
 
-#define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
-
 namespace WPEFramework {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::DisplaySettings> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
 
     namespace Plugin {
 
-        SERVICE_REGISTRATION(DisplaySettings, 1, 0);
+        SERVICE_REGISTRATION(DisplaySettings, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         DisplaySettings* DisplaySettings::_instance = nullptr;
         IARM_Bus_PWRMgr_PowerState_t DisplaySettings::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
@@ -153,113 +170,114 @@ namespace WPEFramework {
 
             CreateHandler({ 2 });
 
-            registerMethod("getConnectedVideoDisplays", &DisplaySettings::getConnectedVideoDisplays, this);
-            registerMethod("getConnectedAudioPorts", &DisplaySettings::getConnectedAudioPorts, this);
-            registerMethod("setEnableAudioPort", &DisplaySettings::setEnableAudioPort, this);
-            registerMethod("getEnableAudioPort", &DisplaySettings::getEnableAudioPort, this);
-            registerMethod("getSupportedResolutions", &DisplaySettings::getSupportedResolutions, this);
-            registerMethod("getSupportedVideoDisplays", &DisplaySettings::getSupportedVideoDisplays, this);
-            registerMethod("getSupportedTvResolutions", &DisplaySettings::getSupportedTvResolutions, this);
-            registerMethod("getSupportedSettopResolutions", &DisplaySettings::getSupportedSettopResolutions, this);
-            registerMethod("getSupportedAudioPorts", &DisplaySettings::getSupportedAudioPorts, this);
-            registerMethod("getSupportedAudioModes", &DisplaySettings::getSupportedAudioModes, this);
-	    registerMethod("getAudioFormat", &DisplaySettings::getAudioFormat, this);
-            registerMethod("getZoomSetting", &DisplaySettings::getZoomSetting, this);
-            registerMethod("setZoomSetting", &DisplaySettings::setZoomSetting, this);
-            registerMethod("getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
-            registerMethod("setCurrentResolution", &DisplaySettings::setCurrentResolution, this);
-            registerMethod("getSoundMode", &DisplaySettings::getSoundMode, this);
-            registerMethod("setSoundMode", &DisplaySettings::setSoundMode, this);
-            registerMethod("readEDID", &DisplaySettings::readEDID, this);
-            registerMethod("readHostEDID", &DisplaySettings::readHostEDID, this);
-            registerMethod("getActiveInput", &DisplaySettings::getActiveInput, this);
-            registerMethod("getTvHDRSupport", &DisplaySettings::getTvHDRSupport, this);
-            registerMethod("getSettopHDRSupport", &DisplaySettings::getSettopHDRSupport, this);
-            registerMethod("setVideoPortStatusInStandby", &DisplaySettings::setVideoPortStatusInStandby, this);
-            registerMethod("getVideoPortStatusInStandby", &DisplaySettings::getVideoPortStatusInStandby, this);
-            registerMethod("getCurrentOutputSettings", &DisplaySettings::getCurrentOutputSettings, this);
+            RegisterMethod(this, "getConnectedVideoDisplays", &DisplaySettings::getConnectedVideoDisplays, this);
+            RegisterMethod(this, "getConnectedAudioPorts", &DisplaySettings::getConnectedAudioPorts, this);
+            RegisterMethod(this, "setEnableAudioPort", &DisplaySettings::setEnableAudioPort, this);
+            RegisterMethod(this, "getEnableAudioPort", &DisplaySettings::getEnableAudioPort, this);
+            RegisterMethod(this, "getSupportedResolutions", &DisplaySettings::getSupportedResolutions, this);
+            RegisterMethod(this, "getSupportedVideoDisplays", &DisplaySettings::getSupportedVideoDisplays, this);
+            RegisterMethod(this, "getSupportedTvResolutions", &DisplaySettings::getSupportedTvResolutions, this);
+            RegisterMethod(this, "getSupportedSettopResolutions", &DisplaySettings::getSupportedSettopResolutions, this);
+            RegisterMethod(this, "getSupportedAudioPorts", &DisplaySettings::getSupportedAudioPorts, this);
+            RegisterMethod(this, "getSupportedAudioModes", &DisplaySettings::getSupportedAudioModes, this);
+            RegisterMethod(this, "getAudioFormat", &DisplaySettings::getAudioFormat, this);
+            RegisterMethod(this, "getZoomSetting", &DisplaySettings::getZoomSetting, this);
+            RegisterMethod(this, "setZoomSetting", &DisplaySettings::setZoomSetting, this);
+            RegisterMethod(this, "getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
+            RegisterMethod(this, "setCurrentResolution", &DisplaySettings::setCurrentResolution, this);
+            RegisterMethod(this, "getSoundMode", &DisplaySettings::getSoundMode, this);
+            RegisterMethod(this, "setSoundMode", &DisplaySettings::setSoundMode, this);
+            RegisterMethod(this, "readEDID", &DisplaySettings::readEDID, this);
+            RegisterMethod(this, "readHostEDID", &DisplaySettings::readHostEDID, this);
+            RegisterMethod(this, "getActiveInput", &DisplaySettings::getActiveInput, this);
+            RegisterMethod(this, "getTvHDRSupport", &DisplaySettings::getTvHDRSupport, this);
+            RegisterMethod(this, "getSettopHDRSupport", &DisplaySettings::getSettopHDRSupport, this);
+            RegisterMethod(this, "setVideoPortStatusInStandby", &DisplaySettings::setVideoPortStatusInStandby, this);
+            RegisterMethod(this, "getVideoPortStatusInStandby", &DisplaySettings::getVideoPortStatusInStandby, this);
+            RegisterMethod(this, "getCurrentOutputSettings", &DisplaySettings::getCurrentOutputSettings, this);
 
+            RegisterMethod(this, "getBassEnhancer", &DisplaySettings::getBassEnhancer, this);
+            RegisterMethod(this, "isSurroundDecoderEnabled", &DisplaySettings::isSurroundDecoderEnabled, this);
+            RegisterMethod(this, "getDRCMode", &DisplaySettings::getDRCMode, this);
+            RegisterMethod(this, "setBassEnhancer", &DisplaySettings::setBassEnhancer, this);
+            RegisterMethod(this, "enableSurroundDecoder", &DisplaySettings::enableSurroundDecoder, this);
+            RegisterMethod(this, "setMISteering", &DisplaySettings::setMISteering, this);
+            RegisterMethod(this, "setGain", &DisplaySettings::setGain, this);
+            RegisterMethod(this, "getGain", &DisplaySettings::getGain, this);
+            RegisterMethod(this, "setMuted", &DisplaySettings::setMuted, this);
+            RegisterMethod(this, "getMuted", &DisplaySettings::getMuted, this);
+            RegisterMethod(this, "setVolumeLevel", &DisplaySettings::setVolumeLevel, this);
+            RegisterMethod(this, "getVolumeLevel", &DisplaySettings::getVolumeLevel, this);
+            RegisterMethod(this, "setDRCMode", &DisplaySettings::setDRCMode, this);
+            RegisterMethod(this, "getMISteering", &DisplaySettings::getMISteering, this);
+            RegisterMethod(this, "setMS12AudioCompression", &DisplaySettings::setMS12AudioCompression, this);
+            RegisterMethod(this, "getMS12AudioCompression", &DisplaySettings::getMS12AudioCompression, this);
+            RegisterMethod(this, "setDolbyVolumeMode", &DisplaySettings::setDolbyVolumeMode, this);
+            RegisterMethod(this, "getDolbyVolumeMode", &DisplaySettings::getDolbyVolumeMode, this);
+            RegisterMethod(this, "setDialogEnhancement", &DisplaySettings::setDialogEnhancement, this);
+            RegisterMethod(this, "getDialogEnhancement", &DisplaySettings::getDialogEnhancement, this);
+            RegisterMethod(this, "setIntelligentEqualizerMode", &DisplaySettings::setIntelligentEqualizerMode, this);
+            RegisterMethod(this, "getIntelligentEqualizerMode", &DisplaySettings::getIntelligentEqualizerMode, this);
+            RegisterMethod(this, "setGraphicEqualizerMode", &DisplaySettings::setGraphicEqualizerMode, this);
+            RegisterMethod(this, "getGraphicEqualizerMode", &DisplaySettings::getGraphicEqualizerMode, this);
+            RegisterMethod(this, "setMS12AudioProfile", &DisplaySettings::setMS12AudioProfile, this);
+            RegisterMethod(this, "getMS12AudioProfile", &DisplaySettings::getMS12AudioProfile, this);
+            RegisterMethod(this, "getSupportedMS12AudioProfiles", &DisplaySettings::getSupportedMS12AudioProfiles, this);
+            RegisterMethod(this, "resetDialogEnhancement", &DisplaySettings::resetDialogEnhancement, this);
+            RegisterMethod(this, "resetBassEnhancer", &DisplaySettings::resetBassEnhancer, this);
+            RegisterMethod(this, "resetSurroundVirtualizer", &DisplaySettings::resetSurroundVirtualizer, this);
+            RegisterMethod(this, "resetVolumeLeveller", &DisplaySettings::resetVolumeLeveller, this);
+
+            RegisterMethod(this, "setAssociatedAudioMixing", &DisplaySettings::setAssociatedAudioMixing, this);
+            RegisterMethod(this, "getAssociatedAudioMixing", &DisplaySettings::getAssociatedAudioMixing, this);
+            RegisterMethod(this, "setFaderControl", &DisplaySettings::setFaderControl, this);
+            RegisterMethod(this, "getFaderControl", &DisplaySettings::getFaderControl, this);
+            RegisterMethod(this, "setPrimaryLanguage", &DisplaySettings::setPrimaryLanguage, this);
+            RegisterMethod(this, "getPrimaryLanguage", &DisplaySettings::getPrimaryLanguage, this);
+            RegisterMethod(this, "setSecondaryLanguage", &DisplaySettings::setSecondaryLanguage, this);
+            RegisterMethod(this, "getSecondaryLanguage", &DisplaySettings::getSecondaryLanguage, this);
+
+            RegisterMethod(this, "getAudioDelay", &DisplaySettings::getAudioDelay, this);
+            RegisterMethod(this, "setAudioDelay", &DisplaySettings::setAudioDelay, this);
+            RegisterMethod(this, "getAudioDelayOffset", &DisplaySettings::getAudioDelayOffset, this);
+            RegisterMethod(this, "setAudioDelayOffset", &DisplaySettings::setAudioDelayOffset, this);
+            RegisterMethod(this, "getSinkAtmosCapability", &DisplaySettings::getSinkAtmosCapability, this);
+            RegisterMethod(this, "setAudioAtmosOutputMode", &DisplaySettings::setAudioAtmosOutputMode, this);
+            RegisterMethod(this, "setForceHDRMode", &DisplaySettings::setForceHDRMode, this);
+            RegisterMethod(this, "getTVHDRCapabilities", &DisplaySettings::getTVHDRCapabilities, this);
+            RegisterMethod(this, "isConnectedDeviceRepeater", &DisplaySettings::isConnectedDeviceRepeater, this);
+            RegisterMethod(this, "getDefaultResolution", &DisplaySettings::getDefaultResolution, this);
+            RegisterMethod(this, "setScartParameter", &DisplaySettings::setScartParameter, this);
+            RegisterMethod(this, "getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
+            RegisterMethod(this, "getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
+            RegisterMethod(this, "setMS12ProfileSettingsOverride", &DisplaySettings::setMS12ProfileSettingsOverride,this);
+            RegisterMethod(this, "getVideoFormat", &DisplaySettings::getVideoFormat, this);
+            RegisterMethod(this, "setPreferredColorDepth", &DisplaySettings::setPreferredColorDepth, this);
+            RegisterMethod(this, "getPreferredColorDepth", &DisplaySettings::getPreferredColorDepth, this);
+            RegisterMethod(this, "getColorDepthCapabilities", &DisplaySettings::getColorDepthCapabilities, this);
+
+            // Only version1
             Register("getVolumeLeveller", &DisplaySettings::getVolumeLeveller, this);
-            registerMethod("getBassEnhancer", &DisplaySettings::getBassEnhancer, this);
-            registerMethod("isSurroundDecoderEnabled", &DisplaySettings::isSurroundDecoderEnabled, this);
-            registerMethod("getDRCMode", &DisplaySettings::getDRCMode, this);
-            Register("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer, this);
             Register("setVolumeLeveller", &DisplaySettings::setVolumeLeveller, this);
-            registerMethod("setBassEnhancer", &DisplaySettings::setBassEnhancer, this);
-            registerMethod("enableSurroundDecoder", &DisplaySettings::enableSurroundDecoder, this);
+            Register("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer, this);
             Register("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer, this);
-            registerMethod("setMISteering", &DisplaySettings::setMISteering, this);
-            registerMethod("setGain", &DisplaySettings::setGain, this);
-            registerMethod("getGain", &DisplaySettings::getGain, this);
-            registerMethod("setMuted", &DisplaySettings::setMuted, this);
-            registerMethod("getMuted", &DisplaySettings::getMuted, this);
-            registerMethod("setVolumeLevel", &DisplaySettings::setVolumeLevel, this);
-            registerMethod("getVolumeLevel", &DisplaySettings::getVolumeLevel, this);
-            registerMethod("setDRCMode", &DisplaySettings::setDRCMode, this);
-            registerMethod("getMISteering", &DisplaySettings::getMISteering, this);
-            registerMethod("setMS12AudioCompression", &DisplaySettings::setMS12AudioCompression, this);
-            registerMethod("getMS12AudioCompression", &DisplaySettings::getMS12AudioCompression, this);
-            registerMethod("setDolbyVolumeMode", &DisplaySettings::setDolbyVolumeMode, this);
-            registerMethod("getDolbyVolumeMode", &DisplaySettings::getDolbyVolumeMode, this);
-            registerMethod("setDialogEnhancement", &DisplaySettings::setDialogEnhancement, this);
-            registerMethod("getDialogEnhancement", &DisplaySettings::getDialogEnhancement, this);
-            registerMethod("setIntelligentEqualizerMode", &DisplaySettings::setIntelligentEqualizerMode, this);
-            registerMethod("getIntelligentEqualizerMode", &DisplaySettings::getIntelligentEqualizerMode, this);
-            registerMethod("setGraphicEqualizerMode", &DisplaySettings::setGraphicEqualizerMode, this);
-            registerMethod("getGraphicEqualizerMode", &DisplaySettings::getGraphicEqualizerMode, this);
-            registerMethod("setMS12AudioProfile", &DisplaySettings::setMS12AudioProfile, this);
-            registerMethod("getMS12AudioProfile", &DisplaySettings::getMS12AudioProfile, this);
-	    registerMethod("getSupportedMS12AudioProfiles", &DisplaySettings::getSupportedMS12AudioProfiles, this);
-            registerMethod("resetDialogEnhancement", &DisplaySettings::resetDialogEnhancement, this);
-            registerMethod("resetBassEnhancer", &DisplaySettings::resetBassEnhancer, this);
-            registerMethod("resetSurroundVirtualizer", &DisplaySettings::resetSurroundVirtualizer, this);
-            registerMethod("resetVolumeLeveller", &DisplaySettings::resetVolumeLeveller, this);
 
-            registerMethod("setAssociatedAudioMixing", &DisplaySettings::setAssociatedAudioMixing, this);
-            registerMethod("getAssociatedAudioMixing", &DisplaySettings::getAssociatedAudioMixing, this);
-            registerMethod("setFaderControl", &DisplaySettings::setFaderControl, this);
-            registerMethod("getFaderControl", &DisplaySettings::getFaderControl, this);
-            registerMethod("setPrimaryLanguage", &DisplaySettings::setPrimaryLanguage, this);
-            registerMethod("getPrimaryLanguage", &DisplaySettings::getPrimaryLanguage, this);
-            registerMethod("setSecondaryLanguage", &DisplaySettings::setSecondaryLanguage, this);
-            registerMethod("getSecondaryLanguage", &DisplaySettings::getSecondaryLanguage, this);
+            // Only version2
+            RegisterMethodVersions(this, {2}, "getVolumeLeveller", &DisplaySettings::getVolumeLeveller2, this);
+            RegisterMethodVersions(this, {2}, "setVolumeLeveller", &DisplaySettings::setVolumeLeveller2, this);
+            RegisterMethodVersions(this, {2}, "getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer2, this);
+            RegisterMethodVersions(this, {2}, "setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer2, this);
 
-            registerMethod("getAudioDelay", &DisplaySettings::getAudioDelay, this);
-            registerMethod("setAudioDelay", &DisplaySettings::setAudioDelay, this);
-            registerMethod("getAudioDelayOffset", &DisplaySettings::getAudioDelayOffset, this);
-            registerMethod("setAudioDelayOffset", &DisplaySettings::setAudioDelayOffset, this);
-            registerMethod("getSinkAtmosCapability", &DisplaySettings::getSinkAtmosCapability, this);
-            registerMethod("setAudioAtmosOutputMode", &DisplaySettings::setAudioAtmosOutputMode, this);
-            registerMethod("setForceHDRMode", &DisplaySettings::setForceHDRMode, this);
-            registerMethod("getTVHDRCapabilities", &DisplaySettings::getTVHDRCapabilities, this);
-            registerMethod("isConnectedDeviceRepeater", &DisplaySettings::isConnectedDeviceRepeater, this);
-            registerMethod("getDefaultResolution", &DisplaySettings::getDefaultResolution, this);
-            registerMethod("setScartParameter", &DisplaySettings::setScartParameter, this);
-            registerMethod("getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
-            registerMethod("getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
-            registerMethod("setMS12ProfileSettingsOverride", &DisplaySettings::setMS12ProfileSettingsOverride,this);
-
-            GetHandler(2)->Register<JsonObject, JsonObject>("getVolumeLeveller", &DisplaySettings::getVolumeLeveller2, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("setVolumeLeveller", &DisplaySettings::setVolumeLeveller2, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer2, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer2, this);
-            registerMethod("getVideoFormat", &DisplaySettings::getVideoFormat, this);
-
-            registerMethod("setPreferredColorDepth", &DisplaySettings::setPreferredColorDepth, this);
-            registerMethod("getPreferredColorDepth", &DisplaySettings::getPreferredColorDepth, this);
-            registerMethod("getColorDepthCapabilities", &DisplaySettings::getColorDepthCapabilities, this);
-            
-
-	    m_subscribed = false; //HdmiCecSink event subscription
-	    m_hdmiInAudioDeviceConnected = false;
-        m_arcAudioEnabled = false;
-	    m_hdmiCecAudioDeviceDetected = false;
+            m_subscribed = false; //HdmiCecSink event subscription
+            m_hdmiInAudioDeviceConnected = false;
+            m_arcAudioEnabled = false;
+            m_hdmiCecAudioDeviceDetected = false;
             m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
-	    m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
-	    m_cecArcRoutingThreadRun = false;
-	    isCecArcRoutingThreadEnabled = true;
-	    m_arcRoutingThread = std::thread(cecArcRoutingThread);
-	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
+            m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+            m_cecArcRoutingThreadRun = false;
+            isCecArcRoutingThreadEnabled = true;
+            m_arcRoutingThread = std::thread(cecArcRoutingThread);
+            m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
             m_AudioDeviceDetectTimer.connect(std::bind(&DisplaySettings::checkAudioDeviceDetectionTimer, this));
         }
 
@@ -2096,54 +2114,48 @@ namespace WPEFramework {
 	     returnResponse(success);
         }
 
-	void DisplaySettings::notifyAudioFormatChange(dsAudioFormat_t audioFormat)
-	{
-	     JsonObject params;
-	     audioFormatToString(audioFormat, params);
-             sendNotify("audioFormatChanged", params);
-        GetHandler(2)->Notify("audioFormatChanged", params);
-	}
+        void DisplaySettings::notifyAudioFormatChange(dsAudioFormat_t audioFormat)
+        {
+            JsonObject params;
+            audioFormatToString(audioFormat, params);
+            NotifyEvent(this, "audioFormatChanged", params);
+        }
 
-	void DisplaySettings::notifyVideoFormatChange(dsHDRStandard_t videoFormat)
-	{
+        void DisplaySettings::notifyVideoFormatChange(dsHDRStandard_t videoFormat)
+        {
             JsonObject params;
             params["currentVideoFormat"] = getVideoFormatTypeToString(videoFormat);
 
             params["supportedVideoFormat"] = getSupportedVideoFormats();
-            sendNotify("videoFormatChanged", params);
-        GetHandler(2)->Notify("videoFormatChanged", params);
+            NotifyEvent(this, "videoFormatChanged", params);
         }
 
         void DisplaySettings::notifyAssociatedAudioMixingChange(bool mixing)
         {
-             JsonObject params;
-             params["mixing"] = mixing;
-             sendNotify("associatedAudioMixingChanged", params);
-            GetHandler(2)->Notify("associatedAudioMixingChanged", params);
+            JsonObject params;
+            params["mixing"] = mixing;
+            NotifyEvent(this, "associatedAudioMixingChanged", params);
         }
 
         void DisplaySettings::notifyFaderControlChange(bool mixerbalance)
         {
-             JsonObject params;
-             params["mixerBalance"] = mixerbalance;
-             sendNotify("faderControlChanged", params);
-            GetHandler(2)->Notify("faderControlChanged", params);
+            JsonObject params;
+            params["mixerBalance"] = mixerbalance;
+            NotifyEvent(this, "faderControlChanged", params);
         }
 
         void DisplaySettings::notifyPrimaryLanguageChange(std::string pLang)
         {
-             JsonObject params;
-             params["primaryLanguage"] = pLang;
-             sendNotify("primaryLanguageChanged", params);
-            GetHandler(2)->Notify("primaryLanguageChanged", params);
+            JsonObject params;
+            params["primaryLanguage"] = pLang;
+            NotifyEvent(this, "primaryLanguageChanged", params);
         }
 
         void DisplaySettings::notifySecondaryLanguageChange(std::string sLang)
         {
-             JsonObject params;
-             params["secondaryLanguage"] = sLang;
-             sendNotify("secondaryLanguageChanged", params);
-            GetHandler(2)->Notify("secondaryLanguageChanged", params);
+            JsonObject params;
+            params["secondaryLanguage"] = sLang;
+            NotifyEvent(this, "secondaryLanguageChanged", params);
         }
 
         uint32_t DisplaySettings::getBassEnhancer(const JsonObject& parameters, JsonObject& response)
@@ -5070,8 +5082,7 @@ namespace WPEFramework {
                 params["height"] = height;
                 params["videoDisplayType"] = firstDisplay;
                 params["resolution"] = firstResolution;
-                sendNotify("resolutionChanged", params);
-                GetHandler(2)->Notify("resolutionChanged", params);
+                NotifyEvent(this, "resolutionChanged", params);
             }
         }
 
@@ -5081,16 +5092,14 @@ namespace WPEFramework {
             JsonObject params;
             params["zoomSetting"] = zoomSetting;
             params["videoDisplayType"] = "all";
-            sendNotify("zoomSettingUpdated", params);
-            GetHandler(2)->Notify("zoomSettingUpdated", params);
+            NotifyEvent(this, "zoomSettingUpdated", params);
         }
 
         void DisplaySettings::activeInputChanged(bool activeInput)
         {
             JsonObject params;
             params["activeInput"] = activeInput;
-            sendNotify("activeInputChanged", params);
-            GetHandler(2)->Notify("activeInputChanged", params);
+            NotifyEvent(this, "activeInputChanged", params);
         }
 
         void DisplaySettings::connectedVideoDisplaysUpdated(int hdmiHotPlugEvent)
@@ -5113,8 +5122,7 @@ namespace WPEFramework {
 
                 JsonObject params;
                 params["connectedVideoDisplays"] = connectedDisplays;
-                sendNotify("connectedVideoDisplaysUpdated", params);
-                GetHandler(2)->Notify("connectedVideoDisplaysUpdated", params);
+                NotifyEvent(this, "connectedVideoDisplaysUpdated", params);
             }
             previousStatus = hdmiHotPlugEvent;
         }
@@ -5151,8 +5159,7 @@ namespace WPEFramework {
                 sPortStatus.assign ("disconnected");
             }
             LOGWARN ("Thunder sends notification %s audio port hotplug status %s", sPortName.c_str(), sPortStatus.c_str());
-            sendNotify("connectedAudioPortUpdated", params);
-            GetHandler(2)->Notify("connectedAudioPortUpdated", params);
+            NotifyEvent(this, "connectedAudioPortUpdated", params);
         }
 
         //End events
