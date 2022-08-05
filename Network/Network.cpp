@@ -486,7 +486,7 @@ namespace WPEFramework
                     string interface = "";
                     bool persist = false;
 
-                    getStringParameter("interface", interface)
+                    getDefaultStringParameter("interface", interface, "")
 
                         if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
                         {
@@ -494,7 +494,7 @@ namespace WPEFramework
                             returnResponse (result)
                         }
 
-                    getBoolParameter("persist", persist)
+                    getDefaultBoolParameter("persist", persist, false)
 
                         IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
                     strncpy(iarmData.setInterface, interface.c_str(), INTERFACE_SIZE);
@@ -567,8 +567,13 @@ namespace WPEFramework
                         if (NETWORK_IPADDRESS_ACQUIRED == errCode)
                         {
                             response["ip"] = internalResponse["ipaddr"];
-                            m_defInterfaceCache = internalResponse["interface"].String();
-                            result = true;
+                            if (internalResponse.HasLabel("interface") &&
+                                WPEFramework::Core::JSON::Variant::type::STRING == internalResponse["interface"].Content()) {
+                                m_defInterfaceCache = internalResponse["interface"].String();
+                                result = false;
+                            } else {
+                                result = true;
+                            }
                         }
                         else
                         {
@@ -598,7 +603,7 @@ namespace WPEFramework
                 if (parameters.HasLabel("interface"))
                 {
                     string interface = "";
-                    getStringParameter("interface", interface)
+                    getDefaultStringParameter("interface", interface, "")
 
                         if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
                         {
@@ -639,18 +644,18 @@ namespace WPEFramework
                     bool enabled = false;
                     bool persist = false;
 
-                    getStringParameter("interface", interface)
+                    getDefaultStringParameter("interface", interface, "")
 
-                        if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
-                        {
-                            LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, interface.c_str());
-                            returnResponse (result)
-                        }
+                    if (!(strcmp (interface.c_str(), "ETHERNET") == 0 || strcmp (interface.c_str(), "WIFI") == 0))
+                    {
+                        LOGERR ("Call for %s failed due to invalid interface [%s]", IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, interface.c_str());
+                        returnResponse (result)
+                    }
 
-                    getBoolParameter("enabled", enabled)
-                        getBoolParameter("persist", persist)
+                    getDefaultBoolParameter("enabled", enabled, 0)
+                    getDefaultBoolParameter("persist", persist, 0)
 
-                        IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
+                    IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
                     strncpy(iarmData.setInterface, interface.c_str(), INTERFACE_SIZE);
                     iarmData.isInterfaceEnabled = enabled;
                     iarmData.persist = persist;
@@ -691,9 +696,9 @@ namespace WPEFramework
                     string endpoint = "";
                     int packets = 0;
 
-                    getStringParameter("endpoint", endpoint);
+                    getDefaultStringParameter("endpoint", endpoint, "")
                     if (parameters.HasLabel("packets")) // packets is optional?
-                        getNumberParameter("packets", packets);
+                        getDefaultNumberParameter("packets", packets, 0)
 
                     if (_doTrace(endpoint, packets, response))
                         result = true;
@@ -722,9 +727,9 @@ namespace WPEFramework
                     string endpointName = "";
                     int packets = 0;
 
-                    getStringParameter("endpointName", endpointName);
+                    getDefaultStringParameter("endpointName", endpointName, "");
                     if (parameters.HasLabel("packets")) // packets is optional?
-                        getNumberParameter("packets", packets);
+                        getDefaultNumberParameter("packets", packets, 0);
 
                     if (_doTraceNamedEndpoint(endpointName, packets, response))
                         result = true;
@@ -743,9 +748,9 @@ namespace WPEFramework
         uint32_t Network::ping (const JsonObject& parameters, JsonObject& response)
         {
             string guid;
-            getStringParameter("guid", guid)
+            getDefaultStringParameter("guid", guid, "")
 
-                uint32_t packets;
+            uint32_t packets;
             getDefaultNumberParameter("packets", packets, DEFAULT_PING_PACKETS);
 
             bool result = false;
@@ -755,9 +760,13 @@ namespace WPEFramework
                 if (parameters.HasLabel("endpoint"))
                 {
                     string endpoint;
-                    getStringParameter("endpoint", endpoint);
+                    getDefaultStringParameter("endpoint", endpoint, "");
                     response = _doPing(guid, endpoint, packets);
-                    result = response["success"].Boolean();
+                    if (response.HasLabel("success") &&
+                        response["success"].Content() == WPEFramework::Core::JSON::Variant::type::BOOLEAN) {
+                        result = response["success"].Boolean();
+                        LOGERR("Missing success filed! fun: %s | line: %d", __FUNCTION__, __LINE__);
+                    }
                 }
                 else
                 {
@@ -774,7 +783,7 @@ namespace WPEFramework
         uint32_t Network::pingNamedEndpoint (const JsonObject& parameters, JsonObject& response)
         {
             string guid;
-            getStringParameter("guid", guid)
+            getDefaultStringParameter("guid", guid, "")
 
             uint32_t packets;
             getDefaultNumberParameter("packets", packets, DEFAULT_PING_PACKETS);
@@ -788,8 +797,12 @@ namespace WPEFramework
                     string endpointName;
                     getDefaultStringParameter("endpointName", endpointName, "")
 
-                        response = _doPingNamedEndpoint(guid, endpointName, packets);
-                    result = response["success"].Boolean();
+                    response = _doPingNamedEndpoint(guid, endpointName, packets);
+                    if (response.HasLabel("success") &&
+                        response["success"].Content() == WPEFramework::Core::JSON::Variant::type::BOOLEAN) {
+                        result = response["success"].Boolean();
+                        LOGERR("Missing success filed! fun: %s | line: %d", __FUNCTION__, __LINE__);
+                    }
                 }
                 else
                 {
@@ -875,14 +888,14 @@ namespace WPEFramework
                 string primarydns = "";
                 string secondarydns = "";
 
-                getStringParameter("interface", interface);
-                getStringParameter("ipversion", ipversion);
-                getBoolParameter("autoconfig", autoconfig);
-                getStringParameter("ipaddr", ipaddr);
-                getStringParameter("netmask", netmask);
-                getStringParameter("gateway", gateway);
-                getStringParameter("primarydns", primarydns);
-                getStringParameter("secondarydns", secondarydns);
+                getDefaultStringParameter("interface", interface, "");
+                getDefaultStringParameter("ipversion", ipversion, "");
+                getDefaultBoolParameter("autoconfig", autoconfig, false);
+                getDefaultStringParameter("ipaddr", ipaddr, "");
+                getDefaultStringParameter("netmask", netmask, "");
+                getDefaultStringParameter("gateway", gateway, "");
+                getDefaultStringParameter("primarydns", primarydns, "");
+                getDefaultStringParameter("secondarydns", secondarydns, "");
 
                 IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = {0};
                 strncpy(iarmData.interface, interface.c_str(), 16);
@@ -1041,16 +1054,19 @@ namespace WPEFramework
                      {
                          response["interface"] = InternalResponse["interface"];
                          response["ipversion"] = InternalResponse["ipversion"];
-                         std::string sIPVersion = InternalResponse["ipversion"].String();
+                         std::string sIPVersion;
+                         getDefaultStringParameter("ipversion", sIPVersion, "");
                          response["autoconfig"] = InternalResponse["autoconfig"];
-                         std::string sAutoconfig = InternalResponse["autoconfig"].String();
+                         std::string sAutoconfig;
+                         getDefaultStringParameter("autoconfig", sAutoconfig, "");
                          if (Utils::String::equal(sAutoconfig, "true") && Utils::String::equal(sIPVersion, "IPv4"))
                              response["dhcpserver"] = InternalResponse["dhcpserver"];
                          response["ipaddr"] = InternalResponse["ipaddr"];
                          response["netmask"] = InternalResponse["netmask"];
                          response["gateway"] = InternalResponse["gateway"];
                          response["primarydns"] = InternalResponse["primarydns"];
-                         string secondarydns = InternalResponse["secondarydns"].String();
+                         string secondarydns;
+                         getDefaultStringParameter("secondarydns", secondarydns, "");
                         //If the secondaryDNS was not set , it shouldn't return secondaryDNS in response.
                          if (!secondarydns.empty())
                              response["secondarydns"] = secondarydns;
@@ -1082,8 +1098,8 @@ namespace WPEFramework
             string ipversion = "";
             bool result = false;
 
-            getStringParameter("interface", interface);
-            getStringParameter("ipversion", ipversion);
+            getDefaultStringParameter("interface", interface, "");
+            getDefaultStringParameter("ipversion", ipversion, "");
             if (interface.empty())
                 interface = m_defInterfaceCache;
 
@@ -1191,7 +1207,13 @@ namespace WPEFramework
         uint32_t Network::setConnectivityTestEndpoints (const JsonObject &parameters, JsonObject &response)
         {
             bool result = false;
-            JsonArray endpoints = parameters["endpoints"].Array();
+            JsonArray endpoints;
+
+            if (parameters.HasLabel("endpoints") && 
+                parameters["endpoints"].Content() == WPEFramework::Core::JSON::Variant::type::ARRAY) {
+                endpoints = parameters["endpoints"].Array();
+            }
+
             if(m_isPluginInited)
             {
                 if (0 == endpoints.Length() || MAX_ENDPOINTS < endpoints.Length())
@@ -1270,14 +1292,14 @@ namespace WPEFramework
 
             if(m_isPluginInited)
             {
-                getStringParameter("server", server);
+                getDefaultStringParameter("server", server, "");
                 if (server.length() > MAX_HOST_NAME_LEN - 1)
                 {
                     LOGWARN("invalid args: server exceeds max length of %u", MAX_HOST_NAME_LEN);
                     returnResponse(result)
                 }
 
-                getNumberParameter("port", iarmData.port);
+                getDefaultNumberParameter("port", iarmData.port, 0);
 
                 /*only makes sense to get both server and port or neither*/
                 if (!server.empty() && !iarmData.port)
@@ -1298,10 +1320,10 @@ namespace WPEFramework
                     returnResponse(result)
                 }
             
-                getBoolParameter("ipv6", iarmData.ipv6);
-                getBoolParameter("sync", iarmData.sync);
-                getNumberParameter("timeout", iarmData.bind_timeout);
-                getNumberParameter("cache_timeout", iarmData.cache_timeout);
+                getDefaultBoolParameter("ipv6", iarmData.ipv6, false);
+                getDefaultBoolParameter("sync", iarmData.sync, false);
+                getDefaultNumberParameter("timeout", iarmData.bind_timeout, 0);
+                getDefaultNumberParameter("cache_timeout", iarmData.cache_timeout, 0);
 
                 strncpy(iarmData.server, server.c_str(), MAX_HOST_NAME_LEN);
                 strncpy(iarmData.interface, iface.c_str(), 16);
