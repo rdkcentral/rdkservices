@@ -22,11 +22,12 @@
 #include <functional>
 #include <boost/optional.hpp>
 
-#include "../../utils.h"
-
 #include "websocketpp/config/asio_no_tls.hpp"
 #include "websocketpp/config/asio.hpp"
 #include "websocketpp/server.hpp"
+
+#include "Module.h"
+#include "UtilsLogging.h"
 
 namespace WebSockets   {
 

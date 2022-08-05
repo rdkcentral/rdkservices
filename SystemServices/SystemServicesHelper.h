@@ -20,6 +20,8 @@
 #ifndef __SYSTEM_SERVICE_HELPER_H__
 #define __SYSTEM_SERVICE_HELPER_H__
 
+#include "Module.h"
+
 #include <fstream>
 #include <string>
 #include <vector>
@@ -28,8 +30,6 @@
 #include <regex>
 #include <time.h>
 #include <curl/curl.h>
-
-#include "utils.h"
 
 /* Status-keeper files */
 

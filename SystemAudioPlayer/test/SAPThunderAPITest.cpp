@@ -18,7 +18,6 @@
  */
 
 #include "logger.h"
-#include "utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +30,9 @@
 #include <map>
 
 #include "Module.h"
+#include "UtilsLogging.h"
+
+MODULE_NAME_DECLARATION(BUILD_REFERENCE)
 
 #include <securityagent/SecurityTokenUtil.h>
 #define MAX_LENGTH 1024

@@ -21,7 +21,6 @@
 #include "CommunicationInterface/BinaryInterface.h"
 #include "CommunicationInterface/CommandInterface.h"
 #include "CommunicationInterface/JsonRpcInterface.h"
-#include "../utils.h"
 
 #include "Roles/SingleClientServer.h"
 #include "Roles/Client.h"
@@ -29,6 +28,8 @@
 #include "PingPong/PingPongDisabled.h"
 #include "Encryption/TlsEnabled.h"
 #include "Encryption/NoEncryption.h"
+
+#include "UtilsLogging.h"
 
 namespace WebSockets   {
 

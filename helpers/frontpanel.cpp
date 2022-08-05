@@ -39,11 +39,13 @@
 #include <string.h>
 #include <algorithm>
 
-#include "utils.h"
-
 #if defined(HAS_API_POWERSTATE)
     #include "powerstate.h"
 #endif
+
+#include "UtilsJsonRpc.h"
+#include "UtilsLogging.h"
+#include "UtilssyncPersistFile.h"
 
 #define FP_SETTINGS_FILE_JSON "/opt/fp_service_preferences.json"
 

@@ -39,8 +39,6 @@
 
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
-#include "utils.h"
-#include "UtilsString.h"
 #include "uploadlogs.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
@@ -60,6 +58,13 @@
 #ifdef ENABLE_DEEP_SLEEP
 #include "deepSleepMgr.h"
 #endif
+
+#include "UtilsCStr.h"
+#include "UtilsIarm.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsString.h"
+#include "UtilscRunScript.h"
+#include "UtilsfileExists.h"
 
 using namespace std;
 

@@ -21,11 +21,12 @@
 #include <string>
 #include <functional>
 
-#include "../utils.h"
-
 #include "websocketpp/config/asio_no_tls_client.hpp"
 #include "websocketpp/config/asio_client.hpp"
 #include "websocketpp/client.hpp"
+
+#include "Module.h"
+#include "UtilsLogging.h"
 
 namespace WebSockets   {
 

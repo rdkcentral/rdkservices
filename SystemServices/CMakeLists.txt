@@ -32,7 +32,6 @@ add_library(${MODULE_NAME} SHARED
         ../helpers/powerstate.cpp
         thermonitor.cpp
         SystemServicesHelper.cpp
-        ../helpers/utils.cpp
         uploadlogs.cpp
         platformcaps/platformcaps.cpp
         platformcaps/platformcapsdata.cpp

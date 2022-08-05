@@ -26,10 +26,13 @@
 #include <websocketpp/frame.hpp>
 #include <boost/optional.hpp>
 
-#include "../../utils.h"
 #include "../JsonRpc/Request.h"
 #include "../JsonRpc/Response.h"
 #include "../JsonRpc/Notification.h"
+
+#include "Module.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsLogging.h"
 
 namespace WebSockets   {
 

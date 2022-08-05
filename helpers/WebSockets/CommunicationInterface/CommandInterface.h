@@ -25,7 +25,8 @@
 #include <condition_variable>
 #include <websocketpp/frame.hpp>
 
-#include "../../utils.h"
+#include "Module.h"
+#include "UtilsLogging.h"
 
 namespace WebSockets   {
 

@@ -17,6 +17,8 @@
 * limitations under the License.
 **/
 
+#pragma once
+
 #include <string>
 #include <stdlib.h>
 #include <plugins/plugins.h>

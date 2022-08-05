@@ -19,12 +19,11 @@
 
 #pragma once
 
-#include <cjson/cJSON.h>
-#include <string>
-#include <map>
-#include <mutex>
-#include "utils.h"
+#include "Module.h"
+
 #include "NetUtilsNetlink.h"
+
+#include <mutex>
 
 #define IN_IS_ADDR_LINKLOCAL(a)     (((a) & htonl(0xffff0000)) == htonl (0xa9fe0000))
 

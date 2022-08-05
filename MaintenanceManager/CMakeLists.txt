@@ -24,8 +24,7 @@ add_library(${MODULE_NAME} SHARED
         MaintenanceManager.cpp
         Module.cpp
         ../helpers/cSettings.cpp
-        ../helpers/powerstate.cpp
-        ../helpers/utils.cpp)
+        ../helpers/powerstate.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11

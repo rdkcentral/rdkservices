@@ -18,7 +18,8 @@
 **/
 
 #include "Notification.h"
-#include "utils.h"
+
+#include "UtilsLogging.h"
 
 namespace WebSockets   {
 namespace JsonRpc      {

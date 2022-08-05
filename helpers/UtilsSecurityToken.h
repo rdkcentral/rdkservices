@@ -2,7 +2,7 @@
 * If not stated otherwise in this file or this component's LICENSE
 * file the following copyright and licenses apply:
 *
-* Copyright 2022 RDK Management
+* Copyright 2019 RDK Management
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -19,29 +19,24 @@
 
 #pragma once
 
-#include <atomic>
-#include "Module.h"
+#include <plugins/plugins.h>
 
-namespace WebSockets   {
-namespace JsonRpc      {
-
-class Request : public WPEFramework::Core::JSONRPC::Message
+namespace Utils
 {
-public:
-    Request();
-    virtual ~Request() = default;
+    struct SecurityToken
+    {
+        static void getSecurityToken(std::string& token);
+        static bool isThunderSecurityConfigured();
 
-    bool create(std::string method, const JsonObject &parameters);
-    uint32_t getId() const;
-    std::string toString() const;
+    private:
+        static std::string m_sToken;
+        static bool m_sThunderSecurityChecked;
+    };
 
-private:
-    Request(const Request&) = delete;
-    Request& operator=(const Request&) = delete;
-    uint32_t generateId();
+    // Thunder Plugin Communication
+    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getThunderControllerClient(std::string callsign="");
 
-    static std::atomic<uint32_t> idSequence;
-};
+    void activatePlugin(const char* callSign);
 
-}   // namespace JsonRpc
-}   // namespace WebSockets
+    bool isPluginActivated(const char* callSign);
+} // namespace Utils

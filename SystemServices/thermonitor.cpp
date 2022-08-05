@@ -28,7 +28,6 @@
 #include <stdlib.h>
 
 #include "thermonitor.h"
-#include "utils.h"
 #include "libIARM.h"
 
 #include "libIBus.h"

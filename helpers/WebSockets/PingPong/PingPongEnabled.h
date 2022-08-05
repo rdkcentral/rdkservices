@@ -21,11 +21,12 @@
 #include <string>
 #include <functional>
 
-#include "../utils.h"
-
 #include "websocketpp/common/connection_hdl.hpp"
 #include "websocketpp/common/functional.hpp"
 #include "websocketpp/error.hpp"
+
+#include "Module.h"
+#include "UtilsLogging.h"
 
 namespace WebSockets   {
 

@@ -38,8 +38,12 @@
 #include <algorithm>
 
 #include "MaintenanceManager.h"
-#include "utils.h"
+
 #include "UtilsIarm.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsSecurityToken.h"
+#include "UtilscRunScript.h"
+#include "UtilsfileExists.h"
 
 enum eRetval { E_NOK = -1,
     E_OK };

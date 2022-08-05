@@ -25,8 +25,10 @@
 #include <algorithm>
 #include <curl/curl.h>
 
-#include "utils.h"
 #include "SystemServicesHelper.h"
+
+#include "UtilsLogging.h"
+#include "UtilsfileExists.h"
 
 /* Helper Functions */
 using namespace std;

@@ -29,7 +29,7 @@ add_library(${MODULE_NAME} SHARED
         RDKShell.cpp
         Module.cpp
         ../helpers/tptimer.cpp
-        ../helpers/utils.cpp
+        ../helpers/UtilsSecurityToken.cpp
 )
 
 set_target_properties(${MODULE_NAME} PROPERTIES

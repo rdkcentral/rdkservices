@@ -22,7 +22,6 @@
 #include <mutex>
 #include <condition_variable>
 #include "Module.h"
-#include "utils.h"
 #include "dsTypes.h"
 #include "tptimer.h"
 #include "libIARM.h"

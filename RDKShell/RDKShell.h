@@ -21,7 +21,6 @@
 
 #include <mutex>
 #include "Module.h"
-#include "utils.h"
 #include <rdkshell/rdkshellevents.h>
 #include <rdkshell/rdkshell.h>
 #include <rdkshell/linuxkeys.h>
