@@ -77,7 +77,7 @@ public:
         //systemServImpl::getInstance().impl = &systemMock;
     }
    
-    virtaul void SetUp()
+    virtual void SetUp()
     {
 	    EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
         .Times(1)
@@ -104,7 +104,7 @@ public:
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Connect)
             .WillOnce(::testing::Return(IARM_RESULT_SUCCESS));
 
-    EXPECT_EQ(string(""), systemplugin->Initialize(service));
+    EXPECT_EQ(string(""), systemplugin->Initialize(&service));
 
     }
 
