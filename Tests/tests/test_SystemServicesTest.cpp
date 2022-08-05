@@ -22,9 +22,9 @@
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
 #include "source/SystemInfo.h"
-#include "FactoriesImplementation.h"
+//#include "FactoriesImplementation.h"
 //#include "SystemMock.h"
-#include "WrapsMock.h"
+//#include "WrapsMock.h"
 #include "RfcApiMock.h"
 
 #include <iostream>
@@ -45,22 +45,22 @@ class SystemServicesTest : public::testing::Test
     Core::JSONRPC::Connection connection;
     string response;
     IarmBusImplMock iarmBusImplMock;
-    IARM_EventHandler_t handlerOnTerritoryChanged;
-    IARM_EventHandler_t handlerOnDSTTimeChanged;
-    FactoriesImplementation factoriesImplementation;
-    WrapsImplMock wrapsImplMock;
+    //IARM_EventHandler_t handlerOnTerritoryChanged;
+    //IARM_EventHandler_t handlerOnDSTTimeChanged;
+    //FactoriesImplementation factoriesImplementation;
+    //WrapsImplMock wrapsImplMock;
    // SystemMock systemMock;
     ServiceMock service;
     RfcApiImplMock rfcApiImplMock;
     //Mode
-    string sysMode;
-    int sysDuration;
+    //string sysMode;
+    //int sysDuration;
     //GzEnabled
-    bool gzEnabled;
+    //bool gzEnabled;
     //devPower state
-    string devPowerState;
-    string devStandbyReason;
-    bool networkStandby;
+    //string devPowerState;
+    //string devStandbyReason;
+    //bool networkStandby;
     
 private:
     /* data */
@@ -71,26 +71,13 @@ public:
     ,handlerV2(*(systemplugin->GetHandler(2)))
     ,connection(1,0)
     {
-	    PluginHost::IFactories::Assign(&factoriesImplementation);
-    }
-    virtual void SetUp()
-    {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-        Wraps::getInstance().impl = &wrapsImplMock;
+	   IarmBus::getInstance().impl = &iarmBusImplMock;
+       RfcApi::getInstance().impl = &rfcApiImplMock;
+        //Wraps::getInstance().impl = &wrapsImplMock;
         //systemServImpl::getInstance().impl = &systemMock;
-	cout << "--- SetUp() ----"<<endl;
-
     }
-
-    virtual void TearDown()
-    {
-	    cout<<"--- TearDown() ---"<<endl;
-        IarmBus::getInstance().impl = nullptr;
-        Wraps::getInstance().impl = nullptr;
-        //systemServImpl::getInstance().impl = nullptr;
-    }
-
-    void InitService()
+   
+    virtaul void SetUp()
     {
 	    EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
         .Times(1)
@@ -117,22 +104,27 @@ public:
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Connect)
             .WillOnce(::testing::Return(IARM_RESULT_SUCCESS));
 
-    EXPECT_EQ(string(""), systemplugin->Initialize(nullptr));
+    EXPECT_EQ(string(""), systemplugin->Initialize(service));
 
+    }
+
+    virtual void TearDown()
+    {
+	    systemplugin->Deinitialize(&service);
     }
 
     ~SystemServicesTest()
     {
-        PluginHost::IFactories::Assign(nullptr);
+        IarmBus::getInstance().impl = nullptr;
+        RfcApi::getInstance().impl = nullptr;
+        //Wraps::getInstance().impl = &wrapsImplMock;
+        //systemServImpl::getInstance().impl = &systemMock;
     }
-
-
 };
 
 //Register all systemservices methods
 TEST_F(SystemServicesTest, RegisteredMethods)
 {
-	InitService();
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getWakeupReason")));
 /*    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getPowerStateBeforeReboot")));
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("setFirmwareRebootDelay")));
@@ -195,14 +187,12 @@ TEST_F(SystemServicesTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setWakeupSrcConfiguration")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("updateFirmware")));
 */
-    systemplugin->Deinitialize(nullptr);
 }
 
 TEST_F(SystemServicesTest, RebootDelay)
 {
-	InitService();
     EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
-        .Times(2)
+        .Times(1)
         .WillOnce(::testing::Invoke(
             [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
                 return WDMP_FAILURE;
@@ -223,7 +213,6 @@ TEST_F(SystemServicesTest, RebootDelay)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":5}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
-    systemplugin->Deinitialize(&service);
 }
 
 /*

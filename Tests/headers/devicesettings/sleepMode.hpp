@@ -17,7 +17,7 @@ namespace device {
             static SleepMode & getInstance(const std::string &name);
             List<SleepMode> getSleepModes();
             SleepMode(int id);
-    	    std::string toString();
+    	    std::string toString(){return "";};
             virtual ~SleepMode() = default;
     };
 }
