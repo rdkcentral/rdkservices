@@ -123,13 +123,13 @@ std::string TTSURLConstructer::constructURL(TTSConfiguration &config,std::string
     return tts_request;
 }
 
-void TTSURLConstructer::replaceIfIsolated(std::string& text, const std::string& search, const std::string& replace) {
+void TTSURLConstructer::replaceIfIsolated(std::string& text, const std::string& search, const std::string& replace, bool skipIsolationCheck) {
     size_t pos = 0;
     while ((pos = text.find(search, pos)) != std::string::npos) {
         bool punctBefore = (pos == 0 || std::ispunct(text[pos-1]) || std::isspace(text[pos-1]));
         bool punctAfter = (pos+1 == text.length() || std::ispunct(text[pos+1]) || std::isspace(text[pos+1]));
 
-        if(punctBefore && punctAfter) {
+        if((punctBefore && punctAfter) || skipIsolationCheck) {
             text.replace(pos, search.length(), replace);
             pos += replace.length();
         } else {
@@ -183,6 +183,7 @@ void TTSURLConstructer::curlSanitize(std::string &sanitizedString) {
 void TTSURLConstructer::sanitizeString(const std::string &input, std::string &sanitizedString) {
     sanitizedString = input;
 
+    replaceIfIsolated(sanitizedString, "://", " colon slash slash ", true);
     replaceIfIsolated(sanitizedString, "$", "dollar");
     replaceIfIsolated(sanitizedString, "#", "pound");
     replaceIfIsolated(sanitizedString, "&", "and");
