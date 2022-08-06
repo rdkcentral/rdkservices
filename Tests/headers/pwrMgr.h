@@ -1,5 +1,8 @@
 #pragma once
 
+#include "libIARM.h"
+#include "libIBusDaemon.h"
+
 #define PWRMGR_MAX_REBOOT_REASON_LENGTH 100
 
 #define MAX_PWR_STATE_BEF_REBOOR_STR_LEN (32)

@@ -1,0 +1,19 @@
+#pragma once
+
+#define IARM_BUS_COMMON_API_SysModeChange "SysModeChange"
+
+typedef enum _IARM_Bus_Daemon_PowerState_t {
+    IARM_BUS_PWRMGR_POWERSTATE_OFF,
+    IARM_BUS_PWRMGR_POWERSTATE_STANDBY,
+    IARM_BUS_PWRMGR_POWERSTATE_ON,
+    IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP,
+    IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP
+} IARM_Bus_PowerState_t;
+
+typedef IARM_Bus_PowerState_t IARM_Bus_PWRMgr_PowerState_t;
+
+typedef enum _IARM_Bus_Daemon_SysMode_t{
+    IARM_BUS_SYS_MODE_NORMAL,
+    IARM_BUS_SYS_MODE_EAS,
+    IARM_BUS_SYS_MODE_WAREHOUSE
+} IARM_Bus_Daemon_SysMode_t;

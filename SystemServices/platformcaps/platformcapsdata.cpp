@@ -279,13 +279,13 @@ bool PlatformCapsData::CanMixPCMWithSurround() {
   bool result = false;
 
   try {
-   device::List<device::VideoOutputPort> vPorts =
-       device::Host::getInstance().getVideoOutputPorts();
-   for (size_t i = 0; i < vPorts.size();) {
-     device::AudioOutputPort &aPort = vPorts.at(i).getAudioOutputPort();
-     result = aPort.isAudioMSDecode();
-     break;
-   }
+    device::List<device::VideoOutputPort> vPorts =
+        device::Host::getInstance().getVideoOutputPorts();
+    for (size_t i = 0; i < vPorts.size();) {
+      device::AudioOutputPort &aPort = vPorts.at(i).getAudioOutputPort();
+      result = aPort.isAudioMSDecode();
+      break;
+    }
   } catch (...) {
     result = false;
     TRACE(Trace::Error, 

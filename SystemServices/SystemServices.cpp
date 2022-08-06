@@ -43,6 +43,7 @@
 #include "uploadlogs.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+#include "libIBusDaemon.h"
 #include "UtilsIarm.h"
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
