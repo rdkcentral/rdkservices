@@ -22,8 +22,6 @@ namespace device {
         public:
             SleepModeImpl* impl;
 
-            // SleepMode(int id) = default;
-
             static SleepMode& getInstance()
             {
                 static SleepMode instance;

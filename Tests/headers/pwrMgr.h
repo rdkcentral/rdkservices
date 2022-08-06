@@ -15,7 +15,7 @@
 #define IARM_BUS_PWRMGR_API_Reboot "performReboot"
 
 typedef struct _IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t {
-       bool bStandbyMode;        /*!< Standby mode to set and get*/
+       bool bStandbyMode;
 } IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t;
 
 typedef struct _IARM_Bus_PWRMgr_GetPowerStateBeforeReboot_Param_t {
@@ -23,21 +23,20 @@ typedef struct _IARM_Bus_PWRMgr_GetPowerStateBeforeReboot_Param_t {
 } IARM_Bus_PWRMgr_GetPowerStateBeforeReboot_Param_t;
 
 typedef struct _IARM_Bus_PWRMgr_SetDeepSleepTimeOut_Param_t {
-        unsigned int timeout;        /*!< Timeout for deep sleep in seconds*/
+        unsigned int timeout;
 } IARM_Bus_PWRMgr_SetDeepSleepTimeOut_Param_t;
 
 typedef enum _IARM_Bus_PWRMgr_ThermalState_t{
-    IARM_BUS_PWRMGR_TEMPERATURE_NORMAL = 0,    /* Temp is within normal operating range */
-    IARM_BUS_PWRMGR_TEMPERATURE_HIGH,          /* Temp is high, but just a warning as device can still operate */
-    IARM_BUS_PWRMGR_TEMPERATURE_CRITICAL       /* Temp is critical, should trigger a thermal reset */
+    IARM_BUS_PWRMGR_TEMPERATURE_NORMAL = 0,
+    IARM_BUS_PWRMGR_TEMPERATURE_HIGH,
+    IARM_BUS_PWRMGR_TEMPERATURE_CRITICAL
 } IARM_Bus_PWRMgr_ThermalState_t;
-
 
 typedef struct _PWRMgr_EventData_t {
     union {
         struct _MODE_DATA{
-                IARM_Bus_PWRMgr_PowerState_t curState;  /*!< Power manager current power state */
-                IARM_Bus_PWRMgr_PowerState_t newState;  /*!< Power manager new power state */
+                IARM_Bus_PWRMgr_PowerState_t curState;
+                IARM_Bus_PWRMgr_PowerState_t newState;
             #ifdef ENABLE_DEEP_SLEEP
                 uint32_t deep_sleep_timeout;
             #endif
@@ -58,26 +57,26 @@ typedef struct _PWRMgr_EventData_t {
 }IARM_Bus_PWRMgr_EventData_t;
 
 typedef struct _IARM_Bus_PWRMgr_GetThermalState_Param_t{
-     IARM_Bus_PWRMgr_ThermalState_t curLevel;                     /*!<  Current Thermal level */
-     float curTemperature;                                                /* !< Current temperature value */
+     IARM_Bus_PWRMgr_ThermalState_t curLevel;
+     float curTemperature;
 } IARM_Bus_PWRMgr_GetThermalState_Param_t;
 
 typedef struct _IARM_Bus_PWRMgr_GetTempThresholds_Param_t{
-     float tempHigh;                     /*!< New threshold at which TEMPERATURE_HIGH will be reported  */
-     float tempCritical;                  /*!< New threshold at which TEMPERATURE_CRITICAL will be reported  */
+     float tempHigh;
+     float tempCritical;
 } IARM_Bus_PWRMgr_GetTempThresholds_Param_t;
 
 typedef struct _IARM_Bus_PWRMgr_SetTempThresholds_Param_t{
-     float tempHigh;                     /*!< New threshold at which TEMPERATURE_HIGH will be reported  */
-     float tempCritical;                  /*!< New threshold at which TEMPERATURE_CRITICAL will be reported  */
+     float tempHigh;
+     float tempCritical;
 } IARM_Bus_PWRMgr_SetTempThresholds_Param_t;
 
 typedef struct _IARM_Bus_PWRMgr_GetOvertempGraceInterval_Param_t{
-     int graceInterval;                     /*!< New over temparature grace interval  */
+     int graceInterval;
 } IARM_Bus_PWRMgr_GetOvertempGraceInterval_Param_t;
 
 typedef struct _IARM_Bus_PWRMgr_SetOvertempGraceInterval_Param_t{
-     int graceInterval;                     /*!< New over teamparature grace interval  */
+     int graceInterval;
 } IARM_Bus_PWRMgr_SetOvertempGraceInterval_Param_t;
 
 typedef struct _IARM_Bus_CommonAPI_SysModeChange_Param_t{
@@ -104,21 +103,21 @@ typedef struct _IARM_Bus_PWRMgr_RebootParam_t{
      char requestor[PWRMGR_MAX_REBOOT_REASON_LENGTH];
 } IARM_Bus_PWRMgr_RebootParam_t;
 
-#define IARM_BUS_PWRMGR_NAME 					"PWRMgr"  /*!< Power manager IARM bus name */
-#define IARM_BUS_PWRMGR_API_SetPowerState 		"SetPowerState" /*!< Sets the powerstate of the device*/
-#define IARM_BUS_PWRMGR_API_GetPowerState 		"GetPowerState" /*!< Retrives current  power state of the box*/
+#define IARM_BUS_PWRMGR_NAME 					"PWRMgr"
+#define IARM_BUS_PWRMGR_API_SetPowerState 		"SetPowerState"
+#define IARM_BUS_PWRMGR_API_GetPowerState 		"GetPowerState"
 
 typedef struct _IARM_Bus_PWRMgr_SetPowerState_Param_t {
-	IARM_Bus_PWRMgr_PowerState_t newState;        /*!< [in] New powerstate to be set */
-        int keyCode;                                  /*!< [in] Key code for the last key Pressed */
+	IARM_Bus_PWRMgr_PowerState_t newState;
+        int keyCode;
 } IARM_Bus_PWRMgr_SetPowerState_Param_t;
 
 typedef struct _IARM_Bus_PWRMgr_GetPowerState_Param_t {
-	IARM_Bus_PWRMgr_PowerState_t curState;        /*!< Current powerstate of the box*/
+	IARM_Bus_PWRMgr_PowerState_t curState;
 } IARM_Bus_PWRMgr_GetPowerState_Param_t;
 
-#define IARM_BUS_PWRMGR_API_GetThermalState            "GetThermalState" /*!< Retrieves current thermal level of the box*/
-#define IARM_BUS_PWRMGR_API_GetTemperatureThresholds   "GetTemperatureThresholds" /*!< Gets the thermal threshold  for the device*/
-#define IARM_BUS_PWRMGR_API_SetTemperatureThresholds   "SetTemperatureThresholds" /*!< Sets the thermal threshold  for the device*/
-#define IARM_BUS_PWRMGR_API_GetOvertempGraceInterval   "GetOvertempGraceInterval" /*!< Gets the over temparature grace interval for the device*/
-#define IARM_BUS_PWRMGR_API_SetOvertempGraceInterval   "SetOvertempGraceInterval" /*!< Sets the over temparature grace interval for the device*/
+#define IARM_BUS_PWRMGR_API_GetThermalState            "GetThermalState"
+#define IARM_BUS_PWRMGR_API_GetTemperatureThresholds   "GetTemperatureThresholds"
+#define IARM_BUS_PWRMGR_API_SetTemperatureThresholds   "SetTemperatureThresholds"
+#define IARM_BUS_PWRMGR_API_GetOvertempGraceInterval   "GetOvertempGraceInterval"
+#define IARM_BUS_PWRMGR_API_SetOvertempGraceInterval   "SetOvertempGraceInterval"
