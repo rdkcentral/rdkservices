@@ -3,7 +3,7 @@
 #include "UtilsLogging.h"
 
 namespace Utils {
-//class for std::thread RAII
+
 class ThreadRAII {
 public:
     ThreadRAII() {}

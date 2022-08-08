@@ -38,7 +38,7 @@ add_library(${MODULE_NAME} SHARED
         platformcaps/platformcapsdata.cpp
         platformcaps/platformcapsdatarpc.cpp
         )
-
+set_source_files_properties(SystemServices.cpp thermonitor.cpp platformcaps/platformcapsdata.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
