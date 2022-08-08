@@ -12,4 +12,5 @@ public:
     MOCK_METHOD(std::vector<std::string>, getMS12AudioProfileList, (), (const, override));
     MOCK_METHOD(void, getAudioCapabilities, (int* capabilities), (override));
     MOCK_METHOD(void, getMS12Capabilities, (int* capabilities), (override));
+    MOCK_METHOD(bool, isAudioMSDecode, (), (const,override));
 };

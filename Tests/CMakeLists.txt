@@ -67,6 +67,7 @@ link_directories(../LocationSync
         ../UsbAccess
         ../Timer
         ../LoggingPreferences
+        ../SystemServices
         ../UserPreferences
         ../Messenger
         ../DeviceInfo
@@ -87,6 +88,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}UsbAccess
         ${NAMESPACE}Timer
         ${NAMESPACE}LoggingPreferences
+        ${NAMESPACE}SystemServices
         ${NAMESPACE}UserPreferences
         ${NAMESPACE}Messenger
         ${NAMESPACE}DeviceInfo

@@ -12,4 +12,5 @@ public:
     MOCK_METHOD(const std::string&, getName, (), (const, override));
     MOCK_METHOD(const device::VideoResolution&, getDefaultResolution, (), (const, override));
     MOCK_METHOD(int, getHDCPProtocol, (), (override));
+    MOCK_METHOD(device::AudioOutputPort&, getAudioOutputPort, (), (const, override));
 };
