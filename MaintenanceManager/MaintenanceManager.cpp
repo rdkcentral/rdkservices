@@ -53,10 +53,6 @@ enum eRetval { E_NOK = -1,
 
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
-#if defined(HAS_API_SYSTEM) && defined(HAS_API_POWERSTATE)
-#include "powerstate.h"
-#endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
-
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
 #include "mfrMgr.h"
 #endif

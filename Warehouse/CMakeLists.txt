@@ -24,7 +24,6 @@ add_library(${MODULE_NAME} SHARED
         Warehouse.cpp
         Module.cpp
         ../helpers/frontpanel.cpp
-        ../helpers/powerstate.cpp
 )
 
 set_target_properties(${MODULE_NAME} PROPERTIES

@@ -40,7 +40,8 @@
 #include <algorithm>
 
 #if defined(HAS_API_POWERSTATE)
-    #include "powerstate.h"
+#include "libIBus.h"
+#include "pwrMgr.h"
 #endif
 
 #include "UtilsJsonRpc.h"
@@ -147,12 +148,16 @@ namespace WPEFramework
                     }
 
 #if defined(HAS_API_POWERSTATE)
-                    std::string powerState = CPowerState::instance()->getPowerState();
+                    {
+                        IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+                        IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState,
+                            (void*)&param, sizeof(param));
 
-                    LOGINFO("Front panel instance powerState: %s", powerState.c_str());
-                    //if (powerState.compare("ON", Qt::CaseInsensitive) == 0)
-                    if (powerState == "ON")
-                        powerStatus = true;
+                        if (res == IARM_RESULT_SUCCESS) {
+                            if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON)
+                                powerStatus = true;
+                        }
+                    }
 #endif
 #ifdef CLOCK_BRIGHTNESS_ENABLED
                     clockBrightness =  device::FrontPanelTextDisplay::getInstance("Text").getTextBrightness();
