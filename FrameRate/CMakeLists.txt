@@ -22,8 +22,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         FrameRate.cpp
-        Module.cpp
-        ../helpers/tptimer.cpp)
+        Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11

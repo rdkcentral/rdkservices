@@ -28,7 +28,6 @@ find_package(IARMBus)
 add_library(${MODULE_NAME} SHARED
         RDKShell.cpp
         Module.cpp
-        ../helpers/tptimer.cpp
         ../helpers/utils.cpp
 )
 
