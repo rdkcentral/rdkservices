@@ -110,56 +110,21 @@ class ControlSettingsTV : public PluginHost::IPlugin, public PluginHost::JSONRPC
         DECLARE_JSON_RPC_METHOD(setPictureMode )
         DECLARE_JSON_RPC_METHOD(resetPictureMode )
         DECLARE_JSON_RPC_METHOD(enableWBMode )
+        DECLARE_JSON_RPC_METHOD(setBacklightFade )
 
 
     public:
+        char rfc_caller_id[RFC_BUFF_MAX];
         ControlSettingsTV();
         ~ControlSettingsTV();
         ControlSettingsTV *instance;
         void Initialize();
         void Deinitialize();
-	int getCurrentPictureMode(char *picMode);
-        tvError_t UpdatePQParamToLocalCache(const char* forParam, int source, int pqmode, int format, int value,bool setNotDelete);
-	int UpdatePQParamsToCache( const char *action, const char *tr181ParamName, const char *pqmode, const char *source, const char *format, tvPQParameterIndex_t pqParamIndex, int params[] );
-        uint32_t generateStorageIdentifier(std::string &key,const char * forParam,int contentFormat, int pqmode, int source);
-	uint32_t generateStorageIdentifierDirty(std::string &key,const char * forParam,uint32_t contentFormat, int pqmode);
-        int GetSaveConfig(const char *pqmode, const char *source, const char *format,std::vector<int> &sources,std::vector<int> &picturemodes, std::vector<int> &formats);
-	void GetParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
-        int getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
-        int GetHDR10ParamToSync(int& value);
-	int GetHLGParamToSync(int& value);
-        int GetDolbyParamToSync(int& value);
-	tvError_t GetCustomWBValuesFromLocalCache(tvDataColor_t &WBValues);
-        tvError_t SyncCustomWBValuesToDriverCache(tvDataColor_t WBValues,bool setDuringSync);
-	int GetGainOffsetValue(const char* color,const char*ctrl,tvDataColor_t WBValues,int &rgbType);
-	bool isSetRequired(string pqmode,string source,string format);
-        tvError_t SyncCMSParamsToDriverCache();
-        int SyncCMSParams(const char *pqParam,tvCMS_tunel_t tunnel_type);
-        void SyncWBparams(void);
-	int InitializeSDRHDRBacklight();
-	tvError_t SetBacklightAtInitAndSaveForBLUsingGBF(void);
-        int ReadBacklightFromTable(char *panelId);
-	tvError_t SaveSDRHDRBacklightAtInitToDrv(int backlightSDR,int backlightHDR);
-        virtual tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all")=0;
-        tvError_t SyncPQParamsToDriverCache(void);
-	int GetLDIMParamsToSync(int &value,int mode);
+        virtual  tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all")=0;
+
 
     protected:
-        int numberModesSupported;
-        bool appUsesGlobalBackLightFactor;
-        char rfc_caller_id[RFC_BUFF_MAX];
-        int pic_mode_index[PIC_MODES_SUPPORTED_MAX];
-        int numberSourcesSupported;
-        int source_index[SOURCES_SUPPORTED_MAX];
         static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        bool isBacklightUsingGlobalBacklightFactor(void);
-        int GetLocalparam(const char * forParam,int formatIndex,int pqIndex,int sourceIndex,int &value,bool cms=false,int tunnel_type=0);
-        void GetColorTempStringFromEnum(int value, std::string &toStore);
-        tvError_t saveBacklightToLocalStoreForGBF(const char* key, const char* value);
-        int GetLastSetBacklightForGBF(int &backlight);
-        tvDataComponentColor_t GetComponentColorEnum(std::string colorName);
-        int GetDimmingModeIndex(const char* mode);
-        void GetDimmingModeStringFromEnum(int value, std::string &toStore);
 };
 
 }//namespace Plugin
