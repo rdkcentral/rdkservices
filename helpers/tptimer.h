@@ -26,43 +26,42 @@
 namespace WPEFramework {
 
 namespace Plugin {
-    class TpTimer;
-
-    class TpTimerJob {
-    private:
-        TpTimerJob() = delete;
-        TpTimerJob& operator=(const TpTimerJob& RHS) = delete;
-
-    public:
-        TpTimerJob(WPEFramework::Plugin::TpTimer* tpt)
-            : m_tptimer(tpt)
-        {
-        }
-        TpTimerJob(const TpTimerJob& copy)
-            : m_tptimer(copy.m_tptimer)
-        {
-        }
-        ~TpTimerJob() {}
-
-        inline bool operator==(const TpTimerJob& RHS) const
-        {
-            return (m_tptimer == RHS.m_tptimer);
-        }
-
-    public:
-        uint64_t Timed(const uint64_t scheduledTime)
-        {
-            if (m_tptimer) {
-                m_tptimer->Timed();
-            }
-            return 0;
-        }
-
-    private:
-        WPEFramework::Plugin::TpTimer* m_tptimer;
-    };
-
     class TpTimer {
+    private:
+        class TpTimerJob {
+        private:
+            TpTimerJob() = delete;
+            TpTimerJob& operator=(const TpTimerJob& RHS) = delete;
+
+        public:
+            TpTimerJob(TpTimer* tpt)
+                : m_tptimer(tpt)
+            {
+            }
+            TpTimerJob(const TpTimerJob& copy)
+                : m_tptimer(copy.m_tptimer)
+            {
+            }
+            ~TpTimerJob() {}
+
+            inline bool operator==(const TpTimerJob& RHS) const
+            {
+                return (m_tptimer == RHS.m_tptimer);
+            }
+
+        public:
+            uint64_t Timed(const uint64_t scheduledTime)
+            {
+                if (m_tptimer) {
+                    m_tptimer->Timed();
+                }
+                return 0;
+            }
+
+        private:
+            TpTimer* m_tptimer;
+        };
+
     public:
         TpTimer()
             : baseTimer(64 * 1024, "ThunderPluginBaseTimer")
@@ -134,8 +133,6 @@ namespace Plugin {
         int m_intervalInMs;
 
         std::function<void()> onTimeoutCallback;
-
-        friend class TpTimerJob;
     };
 }
 }
