@@ -19,6 +19,8 @@
 
 #include "Network.h"
 
+#include "UtilsLogging.h"
+
 using namespace std;
 
 namespace WPEFramework
