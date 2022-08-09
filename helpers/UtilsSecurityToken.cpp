@@ -17,19 +17,15 @@
 * limitations under the License.
 **/
 
-/**
- *  Utility functions used in plugins.
- *
- */
+#include "UtilsSecurityToken.h"
 
-#include <string.h>
-#include <sstream>
-#include "utils.h"
-#include <securityagent/SecurityTokenUtil.h>
-#include <curl/curl.h>
-#include <utility>
-#include <ctype.h>
 #include <mutex>
+#include <curl/curl.h>
+#include <securityagent/SecurityTokenUtil.h>
+
+#include "UtilsCStr.h"
+#include "UtilsLogging.h"
+#include "UtilsgetRFCConfig.h"
 
 #define MAX_STRING_LENGTH 2048
 
@@ -37,68 +33,7 @@
 
 using namespace WPEFramework;
 using namespace std;
-
-/***
- * @brief	: Execute shell script and get response
- * @param1[in]	: script to be executed with args
- * @return		: string; response.
- */
-std::string Utils::cRunScript(const char *cmd)
-{
-    std::string totalStr = "";
-    FILE *pipe = NULL;
-    char buff[1024] = {'\0'};
-
-    if ((pipe = popen(cmd, "r"))) {
-        memset(buff, 0, sizeof(buff));
-        while (fgets(buff, sizeof(buff), pipe)) {
-            totalStr += buff;
-            memset(buff, 0, sizeof(buff));
-        }
-        pclose(pipe);
-    } else {
-        /* popen failed. */
-    }
-    return totalStr;
-}
-
 using namespace WPEFramework;
-
-/***
- * @brief	: Checks that file exists
- * @param1[in]	: pFileName name of file
- * @return		: true if file exists.
- */
-bool Utils::fileExists(const char *pFileName)
-{
-    struct stat fileStat;
-    return 0 == stat(pFileName, &fileStat);
-}
-
-/***
- * @brief	: Checks that file exists and modified at least pointed seconds ago
- * @param1[in]	: pFileName name of file
- * @param1[in]	: age modification age in seconds
- * @return		: true if file exists and modifies 'age' seconds ago.
- */
-bool Utils::isFileExistsAndOlderThen(const char *pFileName, long age /*= -1*/)
-{
-    struct stat fileStat;
-    int res = stat(pFileName, &fileStat);
-    if (0 != res)
-        return false;
-
-    if (-1 == age)
-        return true;
-
-    time_t currentTime = time(nullptr);
-    //LOGWARN("current time of %s: %lu", pFileName, currentTime);
-
-    time_t modifiedSecondsAgo = difftime(currentTime, fileStat.st_mtime);
-    //LOGWARN("elapsed time is %lu, %s", modifiedSecondsAgo, modifiedSecondsAgo <= age ? "updated recently (doesn't exists)" : "updated long time ago (exists)");
-
-    return modifiedSecondsAgo > age;
-}
 
 void Utils::SecurityToken::getSecurityToken(std::string& token)
 {
@@ -265,107 +200,5 @@ bool Utils::isPluginActivated(const char* callSign)
     return pluginActivated;
 }
 
-bool Utils::getRFCConfig(char* paramName, RFC_ParamData_t& paramOutput)
-{
-    const char* rfcKey = "RDKShell";
-    WDMP_STATUS wdmpStatus = getRFCParameter((char*)rfcKey, paramName, &paramOutput);
-    if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
-    {
-        return true;
-    }
-    return false;
-}
-
 std::string Utils::SecurityToken::m_sToken = "";
 bool Utils::SecurityToken::m_sThunderSecurityChecked = false;
-
-bool Utils::isValidInt(char* x)
-{
-    bool Checked = true;
-    int i = 0;
-
-    if(x[0] == '-') {
-        i = 1;
-    }
-
-    do
-    {
-        //valid digit?
-        if (isdigit(x[i]))
-        {
-            //to the next character
-            i++;
-            Checked = true;
-        }
-        else
-        {
-            //to the next character
-            i++;
-            Checked = false;
-            break;
-        }
-    } while (x[i] != '\0');
-    return Checked;
-}
-
-bool Utils::isValidUnsignedInt(char* x)
-{
-    bool Checked = true;
-    int i = 0;
-
-    do
-    {
-        //valid digit?
-        if (isdigit(x[i]))
-        {
-            //to the next character
-            i++;
-            Checked = true;
-        }
-        else
-        {
-            //to the next character
-            i++;
-            Checked = false;
-            break;
-        }
-    } while (x[i] != '\0');
-    return Checked;
-}
-
-void Utils::syncPersistFile (const string file) {
-    FILE * fp = NULL;
-    fp = fopen(file.c_str(), "r");
-    if (fp == NULL) {
-        printf("fopen NULL\n");
-        return;
-    }
-    fflush(fp);
-    fsync(fileno(fp));
-    fclose(fp);
-}
-
-void Utils::persistJsonSettings(const string strFile, const string strKey, const JsonValue& jsValue)
-{
-    Core::File file;
-    file = strFile.c_str();
-
-    file.Open(false);
-    if (!file.IsOpen())
-        file.Create();
-
-    JsonObject cecSetting;
-    cecSetting.IElement::FromFile(file);
-    file.Destroy();
-    file.Create();
-    cecSetting[strKey.c_str()] = jsValue;
-    cecSetting.IElement::ToFile(file);
-
-    file.Close();
-
-    //Sync the settings
-    Utils::syncPersistFile (strFile);
-
-    return;
-}
-

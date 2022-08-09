@@ -19,7 +19,6 @@
 
 #include "logger.h"
 #include "TTSCommon.h"
-#include "utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,6 +31,8 @@
 #include <map>
 
 #include "Module.h"
+
+#include "UtilsLogging.h"
 
 #include <securityagent/SecurityTokenUtil.h>
 #define MAX_LENGTH 1024

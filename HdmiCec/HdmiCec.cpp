@@ -35,6 +35,8 @@
 #include "websocket/URL.h"
 
 #include "UtilsIarm.h"
+#include "UtilsJsonRpc.h"
+#include "UtilssyncPersistFile.h"
 
 #define HDMICEC_METHOD_SET_ENABLED "setEnabled"
 #define HDMICEC_METHOD_GET_ENABLED "getEnabled"

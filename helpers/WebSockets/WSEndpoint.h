@@ -24,8 +24,6 @@
 #include <functional>
 #include <boost/optional.hpp>
 
-#include "../utils.h"
-
 #include "ConnectionInitializationResult.h"
 #include "websocketpp/server.hpp"
 

@@ -24,6 +24,8 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include "UtilsLogging.h"
+
 namespace WPEFramework {
     namespace Plugin {
 

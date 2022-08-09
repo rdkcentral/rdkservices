@@ -17,11 +17,6 @@
 * limitations under the License.
 **/
 
-/**
- * @file SystemServices.cpp
- * @brief Thunder Plugin based Implementation for System service API's.
- * @reference RDK-25849.
- */
 #include <stdlib.h>
 #include <errno.h>
 #include <cstdio>
@@ -39,7 +34,6 @@
 
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
-#include "UtilsString.h"
 #include "uploadlogs.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
@@ -52,7 +46,8 @@
 #endif /* ENABLE_THERMAL_PROTECTION */
 
 #if defined(HAS_API_SYSTEM) && defined(HAS_API_POWERSTATE)
-#include "powerstate.h"
+#include "libIBus.h"
+#include "pwrMgr.h"
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
 #include "mfrMgr.h"
@@ -60,6 +55,13 @@
 #ifdef ENABLE_DEEP_SLEEP
 #include "deepSleepMgr.h"
 #endif
+
+#include "UtilsCStr.h"
+#include "UtilsIarm.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsString.h"
+#include "UtilscRunScript.h"
+#include "UtilsfileExists.h"
 
 using namespace std;
 
@@ -218,6 +220,30 @@ void stringToIarmMode(std::string mode, IARM_Bus_Daemon_SysMode_t& iarmMode)
     } else {
         iarmMode = IARM_BUS_SYS_MODE_NORMAL;
     }
+}
+
+bool setPowerState(std::string powerState)
+{
+    IARM_Bus_PWRMgr_SetPowerState_Param_t param;
+    if (powerState == "STANDBY") {
+        param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+    } else if (powerState == "ON") {
+        param.newState = IARM_BUS_PWRMGR_POWERSTATE_ON;
+    } else if (powerState == "DEEP_SLEEP") {
+        param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
+    } else if (powerState == "LIGHT_SLEEP") {
+        param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+    } else {
+        return false;
+    }
+
+    IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_SetPowerState,
+        (void*)&param, sizeof(param));
+
+    if (res == IARM_RESULT_SUCCESS)
+        return true;
+    else
+        return false;
 }
 
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
@@ -3243,7 +3269,23 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retVal = false;
-            string powerState = CPowerState::instance()->getPowerState();
+            string powerState;
+
+            {
+                std::string currentState = "UNKNOWN";
+                IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState,
+                    (void*)&param, sizeof(param));
+
+                if (res == IARM_RESULT_SUCCESS) {
+                    if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON)
+                        currentState = "ON";
+                    else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
+                        currentState = "STANDBY";
+                }
+                
+                powerState = currentState;
+            }
 
             LOGWARN("getPowerState called, power state : %s\n",
                     powerState.c_str());
@@ -3305,9 +3347,9 @@ namespace WPEFramework {
 					LOGWARN("SystemServices::_instance is NULL.\n");
 				}
 				if (convert("DEEP_SLEEP", sleepMode)) {
-					retVal = CPowerState::instance()->setPowerState(sleepMode);
+					retVal = setPowerState(sleepMode);
 				} else {
-					retVal = CPowerState::instance()->setPowerState(state);
+					retVal = setPowerState(state);
 				}
 				outfile.open(STANDBY_REASON_FILE, ios::out);
 				if (outfile.is_open()) {
@@ -3318,7 +3360,7 @@ namespace WPEFramework {
 					populateResponseWithError(SysSrv_FileAccessFailed, response);
 				}
 			} else {
-				retVal = CPowerState::instance()->setPowerState(state);
+				retVal = setPowerState(state);
 			}
             m_current_state=state; /* save the old state */
 		} else {
