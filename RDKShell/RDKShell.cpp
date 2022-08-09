@@ -38,6 +38,13 @@
 #include <rdkshell/linuxkeys.h>
 #include "base64.h"
 
+#include "UtilsJsonRpc.h"
+#include "UtilsLOG_MILESTONE.h"
+#include "UtilsSecurityToken.h"
+#include "UtilsUnused.h"
+#include "UtilsgetRFCConfig.h"
+#include "UtilsSecurityToken.h"
+
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 #include "FactoryProtectHal.h"
 #endif //RDKSHELL_READ_MAC_ON_STARTUP
