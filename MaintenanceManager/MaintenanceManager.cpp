@@ -1143,6 +1143,12 @@ namespace WPEFramework {
                         /* we set this to false */
                         g_is_critical_maintenance="false";
 
+                        /* if there is any active thread, join it before executing the tasks from startMaintenance
+			 * especially when device is in offline mode*/
+                        if(m_thread.joinable()){
+                            m_thread.join();
+                        }
+
                         m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
 
                         result=true;
