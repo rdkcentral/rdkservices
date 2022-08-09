@@ -23,8 +23,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 add_library(${MODULE_NAME} SHARED
         FrontPanel.cpp
         Module.cpp
-        ../helpers/frontpanel.cpp
-        ../helpers/powerstate.cpp)
+        ../helpers/frontpanel.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
