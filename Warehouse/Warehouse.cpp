@@ -36,6 +36,7 @@
 #include "UtilsString.h"
 #include "UtilscRunScript.h"
 #include "UtilsfileExists.h"
+#include "UtilsVersions.h"
 
 #include "frontpanel.h"
 
@@ -130,19 +131,14 @@ namespace WPEFramework
 
             CreateHandler({2});
 
-            Register(WAREHOUSE_METHOD_RESET_DEVICE, &Warehouse::resetDeviceWrapper, this);
-            Register(WAREHOUSE_METHOD_GET_DEVICE_INFO, &Warehouse::getDeviceInfoWrapper, this);
-            Register(WAREHOUSE_METHOD_SET_FRONT_PANEL_STATE, &Warehouse::setFrontPanelStateWrapper, this);
-            Register(WAREHOUSE_METHOD_INTERNAL_RESET, &Warehouse::internalResetWrapper, this);
-            Register(WAREHOUSE_METHOD_LIGHT_RESET, &Warehouse::lightResetWrapper, this);
-            Register(WAREHOUSE_METHOD_IS_CLEAN, &Warehouse::isCleanWrapper, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_EXECUTE_HARDWARE_TEST, &Warehouse::executeHardwareTestWrapper, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_GET_HARDWARE_TEST_RESULTS, &Warehouse::getHardwareTestResultsWrapper, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_RESET_DEVICE, &Warehouse::resetDeviceWrapper, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_SET_FRONT_PANEL_STATE, &Warehouse::setFrontPanelStateWrapper, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_INTERNAL_RESET, &Warehouse::internalResetWrapper, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_LIGHT_RESET, &Warehouse::lightResetWrapper, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>(WAREHOUSE_METHOD_IS_CLEAN, &Warehouse::isCleanWrapper, this);
+            RegisterMethod(this, WAREHOUSE_METHOD_RESET_DEVICE, &Warehouse::resetDeviceWrapper, this);
+            RegisterMethod(this, WAREHOUSE_METHOD_GET_DEVICE_INFO, &Warehouse::getDeviceInfoWrapper, this);
+            RegisterMethod(this, WAREHOUSE_METHOD_SET_FRONT_PANEL_STATE, &Warehouse::setFrontPanelStateWrapper, this);
+            RegisterMethod(this, WAREHOUSE_METHOD_INTERNAL_RESET, &Warehouse::internalResetWrapper, this);
+            RegisterMethod(this, WAREHOUSE_METHOD_LIGHT_RESET, &Warehouse::lightResetWrapper, this);
+            RegisterMethod(this, WAREHOUSE_METHOD_IS_CLEAN, &Warehouse::isCleanWrapper, this);
+            RegisterMethod(this, WAREHOUSE_METHOD_EXECUTE_HARDWARE_TEST, &Warehouse::executeHardwareTestWrapper, this);
+            RegisterMethod(this, WAREHOUSE_METHOD_GET_HARDWARE_TEST_RESULTS, &Warehouse::getHardwareTestResultsWrapper, this);
         }
 
         Warehouse::~Warehouse()
@@ -349,16 +345,14 @@ namespace WPEFramework
                 LOGERR("system_error exception in thread join %s", e.what());
                 params[PARAM_SUCCESS] = false;
                 params[PARAM_ERROR] = "exception in submitting request";
-                sendNotify(WAREHOUSE_EVT_RESET_DONE, params);
-                GetHandler(2)->Notify(WAREHOUSE_EVT_RESET_DONE, params);
+                NotifyEvent(this, WAREHOUSE_EVT_RESET_DONE, params);
             }
             catch(const std::exception& e)
             {
                 LOGERR("exception in thread join %s", e.what());
                 params[PARAM_SUCCESS] = false;
                 params[PARAM_ERROR] = "exception in submitting request";
-                sendNotify(WAREHOUSE_EVT_RESET_DONE, params);
-                GetHandler(2)->Notify(WAREHOUSE_EVT_RESET_DONE, params);
+                NotifyEvent(this, WAREHOUSE_EVT_RESET_DONE, params);
             }
 #else
             bool ok = false;
@@ -366,9 +360,8 @@ namespace WPEFramework
 
             if (!ok)
                 params[PARAM_ERROR] = "No IARMBUS";
-
-            sendNotify(WAREHOUSE_EVT_RESET_DONE, params);
-            GetHandler(2)->Notify(WAREHOUSE_EVT_RESET_DONE, params);
+                
+            NotifyEvent(this, WAREHOUSE_EVT_RESET_DONE, params);
 #endif
         }
 

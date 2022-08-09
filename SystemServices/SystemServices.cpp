@@ -35,6 +35,7 @@
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
 #include "uploadlogs.h"
+#include "UtilsVersions.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIBusDaemon.h"
@@ -248,8 +249,6 @@ bool setPowerState(std::string powerState)
 
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
-#define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
-
 /**
  * @brief WPEFramework class for SystemServices
  */
@@ -341,117 +340,114 @@ namespace WPEFramework {
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
              */
 #ifdef DEBUG
-            registerMethod("sampleSystemServiceAPI", &SystemServices::sampleAPI, this);
+            RegisterMethod(this, "sampleSystemServiceAPI", &SystemServices::sampleAPI, this);
 #endif /* DEBUG */
-            registerMethod("getDeviceInfo", &SystemServices::getDeviceInfo, this);
+            RegisterMethod(this, "getDeviceInfo", &SystemServices::getDeviceInfo, this);
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
-            registerMethod("getMfgSerialNumber", &SystemServices::getMfgSerialNumber, this);
+            RegisterMethod(this, "getMfgSerialNumber", &SystemServices::getMfgSerialNumber, this);
 #endif
-            registerMethod("reboot", &SystemServices::requestSystemReboot, this);
-            registerMethod("enableMoca", &SystemServices::requestEnableMoca, this);
-            registerMethod("queryMocaStatus", &SystemServices::queryMocaStatus,
+            RegisterMethod(this, "reboot", &SystemServices::requestSystemReboot, this);
+            RegisterMethod(this, "enableMoca", &SystemServices::requestEnableMoca, this);
+            RegisterMethod(this, "queryMocaStatus", &SystemServices::queryMocaStatus,
                     this);
-            registerMethod("requestSystemUptime",
+            RegisterMethod(this, "requestSystemUptime",
                     &SystemServices::requestSystemUptime, this);
-            registerMethod("getStateInfo", &SystemServices::getStateInfo, this);
+            RegisterMethod(this, "getStateInfo", &SystemServices::getStateInfo, this);
 #if defined(HAS_API_SYSTEM) && defined(HAS_API_POWERSTATE)
-            registerMethod("getPowerState", &SystemServices::getDevicePowerState,
+            RegisterMethod(this, "getPowerState", &SystemServices::getDevicePowerState,
                     this);
-            registerMethod("setPowerState", &SystemServices::setDevicePowerState,
+            RegisterMethod(this, "setPowerState", &SystemServices::setDevicePowerState,
                     this);
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
-            registerMethod("setGzEnabled", &SystemServices::setGZEnabled, this);
-            registerMethod("isGzEnabled", &SystemServices::isGZEnabled, this);
-            registerMethod("hasRebootBeenRequested",
+            RegisterMethod(this, "setGzEnabled", &SystemServices::setGZEnabled, this);
+            RegisterMethod(this, "isGzEnabled", &SystemServices::isGZEnabled, this);
+            RegisterMethod(this, "hasRebootBeenRequested",
                     &SystemServices::isRebootRequested, this);
-            registerMethod("getMode", &SystemServices::getMode, this);
-            registerMethod("updateFirmware", &SystemServices::updateFirmware, this);
-            registerMethod("setMode", &SystemServices::setMode, this);
-            registerMethod("setBootLoaderPattern", &SystemServices::setBootLoaderPattern, this);
-            registerMethod("getFirmwareUpdateInfo",
+            RegisterMethod(this, "getMode", &SystemServices::getMode, this);
+            RegisterMethod(this, "updateFirmware", &SystemServices::updateFirmware, this);
+            RegisterMethod(this, "setMode", &SystemServices::setMode, this);
+            RegisterMethod(this, "setBootLoaderPattern", &SystemServices::setBootLoaderPattern, this);
+            RegisterMethod(this, "getFirmwareUpdateInfo",
                     &SystemServices::getFirmwareUpdateInfo, this);
-            registerMethod("setDeepSleepTimer", &SystemServices::setDeepSleepTimer,
+            RegisterMethod(this, "setDeepSleepTimer", &SystemServices::setDeepSleepTimer,
                     this);
-            registerMethod("setPreferredStandbyMode",
+            RegisterMethod(this, "setPreferredStandbyMode",
                     &SystemServices::setPreferredStandbyMode, this);
-            registerMethod("getPreferredStandbyMode",
+            RegisterMethod(this, "getPreferredStandbyMode",
                     &SystemServices::getPreferredStandbyMode, this);
-            registerMethod("getAvailableStandbyModes",
+            RegisterMethod(this, "getAvailableStandbyModes",
                     &SystemServices::getAvailableStandbyModes, this);
-            registerMethod("getXconfParams", &SystemServices::getXconfParams, this);
-            registerMethod("getSerialNumber", &SystemServices::getSerialNumber,
+            RegisterMethod(this, "getXconfParams", &SystemServices::getXconfParams, this);
+            RegisterMethod(this, "getSerialNumber", &SystemServices::getSerialNumber,
                     this);
-            registerMethod("getDownloadedFirmwareInfo",
+            RegisterMethod(this, "getDownloadedFirmwareInfo",
                     &SystemServices::getDownloadedFirmwareInfo, this);
-            registerMethod("getFirmwareDownloadPercent",
+            RegisterMethod(this, "getFirmwareDownloadPercent",
                     &SystemServices::getFirmwareDownloadPercent, this);
-            registerMethod("getFirmwareUpdateState",
+            RegisterMethod(this, "getFirmwareUpdateState",
                     &SystemServices::getFirmwareUpdateState, this);
-            registerMethod("getMacAddresses",&SystemServices::getMacAddresses, this);
-            registerMethod("setTimeZoneDST", &SystemServices::setTimeZoneDST, this);
-            registerMethod("getTimeZoneDST", &SystemServices::getTimeZoneDST, this);
-            registerMethod("getCoreTemperature", &SystemServices::getCoreTemperature,
+            RegisterMethod(this, "getMacAddresses",&SystemServices::getMacAddresses, this);
+            RegisterMethod(this, "setTimeZoneDST", &SystemServices::setTimeZoneDST, this);
+            RegisterMethod(this, "getTimeZoneDST", &SystemServices::getTimeZoneDST, this);
+            RegisterMethod(this, "getCoreTemperature", &SystemServices::getCoreTemperature,
                     this);
-            registerMethod("getCachedValue", &SystemServices::getCachedValue, this);
-            registerMethod("setCachedValue", &SystemServices::setCachedValue, this);
-            registerMethod("cacheContains", &SystemServices::cacheContains, this);
-            registerMethod("removeCacheKey", &SystemServices::removeCacheKey, this);
-            registerMethod("getPreviousRebootInfo",
+            RegisterMethod(this, "getCachedValue", &SystemServices::getCachedValue, this);
+            RegisterMethod(this, "setCachedValue", &SystemServices::setCachedValue, this);
+            RegisterMethod(this, "cacheContains", &SystemServices::cacheContains, this);
+            RegisterMethod(this, "removeCacheKey", &SystemServices::removeCacheKey, this);
+            RegisterMethod(this, "getPreviousRebootInfo",
                     &SystemServices::getPreviousRebootInfo, this);
-            registerMethod("getLastDeepSleepReason",
+            RegisterMethod(this, "getLastDeepSleepReason",
                     &SystemServices::getLastDeepSleepReason, this);
-            registerMethod("clearLastDeepSleepReason",
+            RegisterMethod(this, "clearLastDeepSleepReason",
                     &SystemServices::clearLastDeepSleepReason, this);
 #ifdef ENABLE_THERMAL_PROTECTION
-            registerMethod("getTemperatureThresholds",
+            RegisterMethod(this, "getTemperatureThresholds",
                     &SystemServices::getTemperatureThresholds, this);
-            registerMethod("setTemperatureThresholds",
+            RegisterMethod(this, "setTemperatureThresholds",
                     &SystemServices::setTemperatureThresholds, this);
-	    registerMethod("getOvertempGraceInterval",
+	        RegisterMethod(this, "getOvertempGraceInterval",
                     &SystemServices::getOvertempGraceInterval, this);
-            registerMethod("setOvertempGraceInterval",
+            RegisterMethod(this, "setOvertempGraceInterval",
                     &SystemServices::setOvertempGraceInterval, this);
 #endif /* ENABLE_THERMAL_PROTECTION */
-            registerMethod("getPreviousRebootInfo2",
+            RegisterMethod(this, "getPreviousRebootInfo2",
                     &SystemServices::getPreviousRebootInfo2, this);
-            registerMethod("getPreviousRebootReason",
+            RegisterMethod(this, "getPreviousRebootReason",
                     &SystemServices::getPreviousRebootReason, this);
-            registerMethod("getRFCConfig", &SystemServices::getRFCConfig, this);
-            registerMethod("getMilestones", &SystemServices::getMilestones, this);
-            registerMethod("enableXREConnectionRetention",
+            RegisterMethod(this, "getRFCConfig", &SystemServices::getRFCConfig, this);
+            RegisterMethod(this, "getMilestones", &SystemServices::getMilestones, this);
+            RegisterMethod(this, "enableXREConnectionRetention",
                     &SystemServices::enableXREConnectionRetention, this);
-            registerMethod("getSystemVersions", &SystemServices::getSystemVersions, this);
-            registerMethod("setNetworkStandbyMode", &SystemServices::setNetworkStandbyMode, this);
-            registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
-            registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
-    	    registerMethod("setTerritory", &SystemServices::setTerritory, this);
-	    registerMethod("getTerritory", &SystemServices::getTerritory, this);
+            RegisterMethod(this, "getSystemVersions", &SystemServices::getSystemVersions, this);
+            RegisterMethod(this, "setNetworkStandbyMode", &SystemServices::setNetworkStandbyMode, this);
+            RegisterMethod(this, "getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
+            RegisterMethod(this, "getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
+    	    RegisterMethod(this, "setTerritory", &SystemServices::setTerritory, this);
+	        RegisterMethod(this, "getTerritory", &SystemServices::getTerritory, this);
+            RegisterMethod(this, _T("getTimeZones"), &SystemServices::getTimeZones, this);
+            RegisterMethod(this, "getLastFirmwareFailureReason", &SystemServices::getLastFirmwareFailureReason, this);
+            RegisterMethod(this, "fireFirmwarePendingReboot", &SystemServices::fireFirmwarePendingReboot, this);
+            RegisterMethod(this, "setFirmwareRebootDelay", &SystemServices::setFirmwareRebootDelay, this);
+            RegisterMethod(this, "setFirmwareAutoReboot", &SystemServices::setFirmwareAutoReboot, this);
+            RegisterMethod(this, "getPowerStateBeforeReboot", &SystemServices::getPowerStateBeforeReboot, this);
+            RegisterMethod(this, "setOptOutTelemetry", &SystemServices::setOptOutTelemetry, this);
+            RegisterMethod(this, "isOptOutTelemetry", &SystemServices::isOptOutTelemetry, this);
 #ifdef ENABLE_SET_WAKEUP_SRC_CONFIG
-            registerMethod("setWakeupSrcConfiguration", &SystemServices::setWakeupSrcConfiguration, this);
+            RegisterMethod(this, "setWakeupSrcConfiguration", &SystemServices::setWakeupSrcConfiguration, this);
 #endif //ENABLE_SET_WAKEUP_SRC_CONFIG
 
-            // version 2 APIs
-            GetHandler(2)->Register<JsonObject, JsonObject>(_T("getTimeZones"), &SystemServices::getTimeZones, this);
 #ifdef ENABLE_DEEP_SLEEP
-            GetHandler(2)->Register<JsonObject, JsonObject>(_T("getWakeupReason"),&SystemServices::getWakeupReason, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>(_T("getLastWakeupKeyCode"), &SystemServices::getLastWakeupKeyCode, this);
+            RegisterMethod(this, _T("getWakeupReason"),&SystemServices::getWakeupReason, this);
+            RegisterMethod(this, _T("getLastWakeupKeyCode"), &SystemServices::getLastWakeupKeyCode, this);
 #endif
-            GetHandler(2)->Register<JsonObject, JsonObject>("uploadLogs", &SystemServices::uploadLogs, this);
+            RegisterMethod(this, "uploadLogs", &SystemServices::uploadLogs, this);
 
-            registerMethod("getPowerStateBeforeReboot", &SystemServices::getPowerStateBeforeReboot,
-                    this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("getLastFirmwareFailureReason", &SystemServices::getLastFirmwareFailureReason, this);
-            registerMethod("setOptOutTelemetry", &SystemServices::setOptOutTelemetry, this);
-            registerMethod("isOptOutTelemetry", &SystemServices::isOptOutTelemetry, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("fireFirmwarePendingReboot", &SystemServices::fireFirmwarePendingReboot, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("setFirmwareRebootDelay", &SystemServices::setFirmwareRebootDelay, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("setFirmwareAutoReboot", &SystemServices::setFirmwareAutoReboot, this);
 #ifdef ENABLE_SYSTEM_GET_STORE_DEMO_LINK
-            GetHandler(2)->Register<JsonObject, JsonObject>("getStoreDemoLink", &SystemServices::getStoreDemoLink, this);
+            RegisterMethod(this, "getStoreDemoLink", &SystemServices::getStoreDemoLink, this);
 #endif
-            GetHandler(2)->Register<JsonObject, JsonObject>("deletePersistentPath", &SystemServices::deletePersistentPath, this);
-            GetHandler(2)->Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
-                &SystemServices::getPlatformConfiguration, this);
+            RegisterMethod(this, "deletePersistentPath", &SystemServices::deletePersistentPath, this);
+            RegisterMethod<PlatformCaps>(this, "getPlatformConfiguration", &SystemServices::getPlatformConfiguration, this);
         }
 
 
@@ -523,8 +519,7 @@ namespace WPEFramework {
         {
             response["sampleAPI"] = "Success";
             /* Kept for debug purpose/future reference. */
-            sendNotify(EVT_ONSYSTEMSAMPLEEVENT, parameters);
-            GetHandler(2)->Notify(EVT_ONSYSTEMSAMPLEEVENT, parameters);
+            NotifyEvent(this, EVT_ONSYSTEMSAMPLEEVENT, parameters);
             returnResponse(true);
         }
 #endif /* DEBUG */
@@ -715,8 +710,7 @@ namespace WPEFramework {
             JsonObject params;
             params["fireFirmwarePendingReboot"] = seconds;
             LOGINFO("Notifying onFirmwarePendingReboot received \n");
-            sendNotify(EVT_ONFWPENDINGREBOOT, params);
-            GetHandler(2)->Notify(EVT_ONFWPENDINGREBOOT, params);
+            NotifyEvent(this, EVT_ONFWPENDINGREBOOT, params);
         }
 
         /***
@@ -733,8 +727,7 @@ namespace WPEFramework {
             params["powerState"] = powerState;
             params["currentPowerState"] = currentPowerState;
             LOGWARN("power state changed from '%s' to '%s'", currentPowerState.c_str(), powerState.c_str());
-            sendNotify(EVT_ONSYSTEMPOWERSTATECHANGED, params);
-            GetHandler(2)->Notify(EVT_ONSYSTEMPOWERSTATECHANGED, params);
+            NotifyEvent(this, EVT_ONSYSTEMPOWERSTATECHANGED, params);
         }
 
         void SystemServices::onPwrMgrReboot(string requestedApp, string rebootReason)
@@ -743,8 +736,7 @@ namespace WPEFramework {
             params["requestedApp"] = requestedApp;
             params["rebootReason"] = rebootReason;
 
-            sendNotify(EVT_ONREBOOTREQUEST, params);
-            GetHandler(2)->Notify(EVT_ONREBOOTREQUEST, params);
+            NotifyEvent(this, EVT_ONREBOOTREQUEST, params);
         }
 
         void SystemServices::onNetorkModeChanged(bool bNetworkStandbyMode)
@@ -753,8 +745,7 @@ namespace WPEFramework {
             m_networkStandbyModeValid = true;
             JsonObject params;
             params["nwStandby"] = bNetworkStandbyMode;
-            sendNotify(EVT_ONNETWORKSTANDBYMODECHANGED , params);
-            GetHandler(2)->Notify(EVT_ONNETWORKSTANDBYMODECHANGED , params);
+            NotifyEvent(this, EVT_ONNETWORKSTANDBYMODECHANGED, params);
         }
 
         /**
@@ -1101,8 +1092,7 @@ namespace WPEFramework {
             JsonObject params;
             params["mode"] = mode;
             LOGINFO("mode changed to '%s'\n", mode.c_str());
-            sendNotify(EVT_ONSYSTEMMODECHANGED, params);
-            GetHandler(2)->Notify(EVT_ONSYSTEMMODECHANGED, params);
+            NotifyEvent(this, EVT_ONSYSTEMMODECHANGED, params);
         }
 
         /***
@@ -1381,8 +1371,7 @@ namespace WPEFramework {
             string jsonLog;
             params.ToString(jsonLog);
             LOGWARN("result: %s\n", jsonLog.c_str());
-            sendNotify(EVT_ONFIRMWAREUPDATEINFORECEIVED, params);
-            GetHandler(2)->Notify(EVT_ONFIRMWAREUPDATEINFORECEIVED, params);
+            NotifyEvent(this, EVT_ONFIRMWAREUPDATEINFORECEIVED, params);
         }
 
         /***
@@ -2086,8 +2075,7 @@ namespace WPEFramework {
             m_FwUpdateState_LatestEvent=(int)firmwareUpdateState;
             params["firmwareUpdateStateChange"] = (int)firmwareUpdateState;
             LOGINFO("New firmwareUpdateState = %d\n", (int)firmwareUpdateState);
-            sendNotify(EVT_ONFIRMWAREUPDATESTATECHANGED, params);
-            GetHandler(2)->Notify(EVT_ONFIRMWAREUPDATESTATECHANGED, params);
+            NotifyEvent(this, EVT_ONFIRMWAREUPDATESTATECHANGED, params);
         }
 
         /***
@@ -2097,8 +2085,7 @@ namespace WPEFramework {
         void SystemServices::onClockSet()
         {
             JsonObject params;
-            sendNotify(EVT_ON_SYSTEM_CLOCK_SET, params);
-            GetHandler(2)->Notify(EVT_ON_SYSTEM_CLOCK_SET, params);
+            NotifyEvent(this, EVT_ON_SYSTEM_CLOCK_SET, params);
         }
 
         /***
@@ -2193,8 +2180,7 @@ namespace WPEFramework {
             params["temperature"] = to_string(temperature);
             LOGWARN("thresholdType = %s exceed = %d temperature = %f\n",
                     thresholdType.c_str(), exceed, temperature);
-            sendNotify(EVT_ONTEMPERATURETHRESHOLDCHANGED, params);
-            GetHandler(2)->Notify(EVT_ONTEMPERATURETHRESHOLDCHANGED, params);
+            NotifyEvent(this, EVT_ONTEMPERATURETHRESHOLDCHANGED, params);
         }
 
         /***
@@ -2418,7 +2404,7 @@ namespace WPEFramework {
 			LOGWARN(" Notifying Region changed - oldRegion: %s - newRegion: %s",oldRegion.c_str(),newRegion.c_str());
 		}
 		//Notify territory changed
-		sendNotify(EVT_ONTERRITORYCHANGED, params);
+        NotifyEvent(this, EVT_ONTERRITORYCHANGED, params);
 	}
 
 	void SystemServices::onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone)
@@ -2428,7 +2414,7 @@ namespace WPEFramework {
 		params["newTimeZone"] = newTimeZone;
 		LOGWARN(" Notifying TimeZone changed - oldTimeZone: %s - newTimeZone: %s",oldTimeZone.c_str(),newTimeZone.c_str());
 		//Notify TimeZone changed
-		sendNotify(EVT_ONTIMEZONEDSTCHANGED, params);
+        NotifyEvent(this, EVT_ONTIMEZONEDSTCHANGED, params);
 	}
 
         /***
@@ -4004,8 +3990,7 @@ namespace WPEFramework {
             JsonObject params;
             params["rebootReason"] = reason;
             LOGINFO("Notifying onRebootRequest\n");
-            sendNotify(EVT_ONREBOOTREQUEST, params);
-            GetHandler(2)->Notify(EVT_ONREBOOTREQUEST, params);
+            NotifyEvent(this, EVT_ONREBOOTREQUEST, params);
         }
 
         /***
