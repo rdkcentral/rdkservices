@@ -135,6 +135,7 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
 
     updated |= m_defaultConfiguration.setVolume(configuration.volume);
     updated |= m_defaultConfiguration.setRate(configuration.rate);
+    updated |= m_defaultConfiguration.setPrimVolDuck(configuration.primVolDuck);
     updated |= m_defaultConfiguration.setFallBackText(configuration.data);
 
     if(m_defaultConfiguration.endPoint().empty() && !m_defaultConfiguration.secureEndPoint().empty())
@@ -188,7 +189,7 @@ TTS_Error TTSManager::speak(int speechId, std::string text) {
 
     if(m_speaker) {
         // TODO: Currently 'secure' is set to true. Need to decide about this variable while Resident app integration.
-        m_speaker->speak(this, speechId , text, true);
+        m_speaker->speak(this, speechId , text, true,m_defaultConfiguration.primVolDuck());
     }
 
     return TTS_OK;
