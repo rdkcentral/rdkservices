@@ -141,11 +141,6 @@ void XCast::DeinitializeIARM()
      Unregister(METHOD_GET_FRIENDLYNAME);
      Unregister(METHOD_SET_FRIENDLYNAME);
 
-     DeinitializeIARM();
-     if ( m_locateCastTimer.isActive())
-     {
-         m_locateCastTimer.stop();
-     }
 }
 void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
 {
@@ -168,7 +163,7 @@ void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *dat
 
 const string XCast::Initialize(PluginHost::IShell* /* service */)
 {
-    LOGINFO("Activate plugin.");
+    LOGINFO("XCast:: Initialize  plugin called \n");
     _rtConnector  = RtXcastConnector::getInstance();
     _rtConnector->setService(this);
     if (XCast::isCastEnabled)
@@ -190,10 +185,16 @@ const string XCast::Initialize(PluginHost::IShell* /* service */)
 
 void XCast::Deinitialize(PluginHost::IShell* /* service */)
 {
+    LOGINFO("XCast::Deinitialize  called \n ");
+    if ( m_locateCastTimer.isActive())
+    {
+        m_locateCastTimer.stop();
+    }
     if( XCast::isCastEnabled){
         _rtConnector->enableCastService(m_friendlyName,false);
         _rtConnector->shutdown();
     }
+    DeinitializeIARM();
 }
 
 string XCast::Information() const
