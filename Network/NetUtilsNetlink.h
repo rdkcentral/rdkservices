@@ -19,10 +19,9 @@
 
 #pragma once
 
-#include <string>
-#include <thread>
+#include "Module.h"
+
 #include <mutex>
-#include "utils.h"
 
 namespace WPEFramework {
     namespace Plugin {

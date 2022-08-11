@@ -17,34 +17,26 @@
 * limitations under the License.
 **/
 
-/**
-* @defgroup servicemanager
-* @{
-* @defgroup include
-* @{
-**/
+#pragma once
 
+#include <plugins/plugins.h>
 
-#ifndef POWERSTATE_H
-#define POWERSTATE_H
-
-#include <string>
-
-class SystemService;
-
-class CPowerState
+namespace Utils
 {
-public:
-    static CPowerState* instance();
+    struct SecurityToken
+    {
+        static void getSecurityToken(std::string& token);
+        static bool isThunderSecurityConfigured();
 
-    bool start();
-    bool stop();
-    bool setPowerState(std::string powerState);
-    std::string getPowerState();
-};
+    private:
+        static std::string m_sToken;
+        static bool m_sThunderSecurityChecked;
+    };
 
-#endif
+    // Thunder Plugin Communication
+    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getThunderControllerClient(std::string callsign="");
 
+    void activatePlugin(const char* callSign);
 
-/** @} */
-/** @} */
+    bool isPluginActivated(const char* callSign);
+} // namespace Utils

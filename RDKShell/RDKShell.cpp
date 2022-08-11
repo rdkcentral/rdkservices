@@ -38,6 +38,13 @@
 #include <rdkshell/linuxkeys.h>
 #include "base64.h"
 
+#include "UtilsJsonRpc.h"
+#include "UtilsLOG_MILESTONE.h"
+#include "UtilsSecurityToken.h"
+#include "UtilsUnused.h"
+#include "UtilsgetRFCConfig.h"
+#include "UtilsSecurityToken.h"
+
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 #include "FactoryProtectHal.h"
 #endif //RDKSHELL_READ_MAC_ON_STARTUP
@@ -127,6 +134,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_CURSOR = "hide
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_CURSOR_SIZE = "getCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_CURSOR_SIZE = "setCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INPUT_EVENTS = "enableInputEvents";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_AV_BLOCKED = "setAVBlocked";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AV_BLOCKED_APPS = "getBlockedAVApplications";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -393,6 +402,7 @@ namespace WPEFramework {
         std::map<std::string, bool> gExternalDestroyApplications;
         std::map<std::string, bool> gLaunchApplications;
         std::map<std::string, AppLastExitReason> gApplicationsExitReason;
+        std::map<std::string, std::string> gPluginDisplayNameMap;
         
         uint32_t getKeyFlag(std::string modifier)
         {
@@ -649,7 +659,7 @@ namespace WPEFramework {
                            sem_wait(&request->mSemaphore);
                        }
                        gRdkShellMutex.lock();
-                       RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
+                       RdkShell::CompositorController::addListener(service->Callsign(), mShell.mEventListener);
                        gRdkShellMutex.unlock();
                        gPluginDataMutex.lock();
                        std::string className = service->ClassName();
@@ -763,7 +773,7 @@ namespace WPEFramework {
                         gRdkShellMutex.unlock();
                         sem_wait(&request->mSemaphore);
                         gRdkShellMutex.lock();
-                        RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
+                        RdkShell::CompositorController::removeListener(service->Callsign(), mShell.mEventListener);
                         gRdkShellMutex.unlock();
                     }
                     
@@ -818,7 +828,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : PluginHost::JSONRPC(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0), mEnableEasterEggs(true), mScreenCapture(this)
+                : PluginHost::JSONRPC(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0), mEnableEasterEggs(true), mScreenCapture(this), mErmEnabled(false)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -905,6 +915,8 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_REMOVE_EASTER_EGGS, &RDKShell::removeEasterEggsWrapper, this);
             Register(RDKSHELL_METHOD_GET_EASTER_EGGS, &RDKShell::getEasterEggsWrapper, this);
             Register(RDKSHELL_METHOD_ENABLE_INPUT_EVENTS, &RDKShell::enableInputEventsWrapper, this);
+            Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
+            Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
       	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -1026,6 +1038,7 @@ namespace WPEFramework {
                 sFactoryModeBlockResidentApp = true;
             }
 
+            mErmEnabled = CompositorController::isErmEnabled();
             shellThread = std::thread([=]() {
                 bool isRunning = true;
                 gRdkShellMutex.lock();
@@ -1480,9 +1493,11 @@ namespace WPEFramework {
                     request["callsign"] = "ResidentApp";
                     request["visible"] = true;
                     int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "setVisibility", request, response);
+		    /*
                     gRdkShellMutex.lock();
                     CompositorController::getLastKeyPress(mLastWakeupKeyCode, mLastWakeupKeyModifiers, mLastWakeupKeyTimestamp);
                     gRdkShellMutex.unlock();
+		    */
                 }
             }
         }
@@ -3130,6 +3145,7 @@ namespace WPEFramework {
                 bool suspend = false;
                 bool visible = true;
                 bool focused = true;
+                bool blockAV = false;
                 string configuration;
                 string behind;
 
@@ -3224,6 +3240,14 @@ namespace WPEFramework {
                 if (parameters.HasLabel("autodestroy"))
                 {
                   autoDestroy = parameters["autodestroy"].Boolean();
+                }
+                if (parameters.HasLabel("blockAV"))
+                {
+                    blockAV = parameters["blockAV"].Boolean();
+                    if (true == mErmEnabled)
+                    {
+                        setAVBlocked(callsign, blockAV);
+                    }
                 }
 
                 //check to see if plugin already exists
@@ -3338,6 +3362,8 @@ namespace WPEFramework {
                         std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(callsign, displayName, width, height);
                         request->mAutoDestroy = autoDestroy;
                         lockRdkShellMutex();
+                        gPluginDisplayNameMap[callsign] = displayName;
+                        std::cout << "Added displayname : "<<displayName<< std::endl;
                         gCreateDisplayRequests.push_back(request);
                         gRdkShellMutex.unlock();
                         sem_wait(&request->mSemaphore);
@@ -5470,6 +5496,63 @@ namespace WPEFramework {
 
             returnResponse(result);
         }
+
+        uint32_t RDKShell::getBlockedAVApplicationsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool status = true;
+
+            if (true == mErmEnabled)
+            {
+                JsonArray appsList = JsonArray();
+                status = getBlockedAVApplications(appsList);
+                if (true == status)
+                {
+                    response["getBlockedAVApplications"]=appsList;
+                }
+            }
+            else
+            {
+                response["message"] = "ERM not enabled";
+            }
+            returnResponse(status);
+        }
+
+        uint32_t RDKShell::setAVBlockedWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool status = true;
+
+            if (true == mErmEnabled)
+            {
+                const JsonArray apps = parameters.HasLabel("applications") ? parameters["applications"].Array() : JsonArray();
+                JsonArray result;
+                for (int i=0; i< apps.Length(); i++) {
+                    const JsonObject& appInfo = apps[i].Object();
+                    if (appInfo.HasLabel("callsign") && appInfo.HasLabel("callsign"))
+                    {
+                        std::string app = appInfo["callsign"].String();
+                        bool blockAV    = appInfo["blocked"].Boolean();
+                        cout<<"callsign : "<< app << std::endl;
+                        cout<<"blocked  : "<<std::boolalpha << blockAV << std::endl;
+
+                        status = (status && setAVBlocked(app, blockAV));
+                        cout<< "EssRMgrAddToBlackList returned : "<<std::boolalpha <<status<< std::endl;
+                    }
+                    else
+                    {
+                        std::string jsonstr;
+                        appInfo.ToString(jsonstr);
+                        cout<<"ERROR: callsign and callsign status required in "<< jsonstr << std::endl;
+                    }
+                }
+            }
+            else
+            {
+                response["message"] = "ERM not enabled";
+            }
+            returnResponse(status);
+        }
         // Registered methods end
 
         // Events begin
@@ -5612,6 +5695,57 @@ namespace WPEFramework {
             }
         }
 
+        bool RDKShell::setAVBlocked(const string callsign, bool blockAV)
+        {
+            bool status = true;
+
+            gRdkShellMutex.lock();
+            std::map<std::string, std::string>::iterator displayNameItr = gPluginDisplayNameMap.find(callsign);
+            if (displayNameItr != gPluginDisplayNameMap.end())
+            {
+                std::string clientId(callsign + ',' + displayNameItr->second);
+                std::cout << "setAVBlocked callsign: " << callsign << " clientIdentifier:<"<<clientId<<">blockAV:"<<std::boolalpha << blockAV << std::endl;
+                status = CompositorController::setAVBlocked(clientId, blockAV);
+            }
+            else
+            {
+                status = false;
+                std::cout << "display not found for " << callsign << std::endl;
+            }
+            gRdkShellMutex.unlock();
+            if (false == status)
+            {
+                std::cout << "setAVBlocked failed for " << callsign << std::endl;
+            }
+
+            return status;
+        }
+
+        bool RDKShell::getBlockedAVApplications(JsonArray& appsList)
+        {
+            bool status = true;
+
+            std::vector<std::string> apps;
+            gRdkShellMutex.lock();
+            status = CompositorController::getBlockedAVApplications(apps);
+            gRdkShellMutex.unlock();
+            if (true == status)
+            {
+                std::string appCallSign;
+                for (std::vector<std::string>::iterator appsItr = apps.begin(); appsItr != apps.end(); appsItr++)
+                {
+                    appCallSign = *appsItr;
+                    std::string::size_type pos = appCallSign.find(',');
+                    if (pos != std::string::npos)
+                    {
+                        appsList.Add(appCallSign.substr(0, pos));
+                    }
+                }
+            }
+
+            return status;
+        }
+
         // Internal methods begin
 
         bool RDKShell::moveToFront(const string& client)
@@ -5730,6 +5864,8 @@ namespace WPEFramework {
             RdkShell::CompositorController::removeListener(client, mEventListener);
             std::shared_ptr<KillClientRequest> request = std::make_shared<KillClientRequest>(client);
             gKillClientRequests.push_back(request);
+            gPluginDisplayNameMap.erase(client);
+            std::cout << "removed displayname : "<<client<< std::endl;
             gRdkShellMutex.unlock();
             sem_wait(&request->mSemaphore);
             ret = request->mResult;

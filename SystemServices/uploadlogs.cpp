@@ -24,7 +24,13 @@
 #include <map>
 
 #include "SystemServicesHelper.h"
-#include "utils.h"
+
+#include "rfcapi.h"
+
+#include "UtilsCStr.h"
+#include "UtilsLogging.h"
+#include "UtilscRunScript.h"
+#include "UtilsfileExists.h"
 
 #define TR181_MTLS_LOGUPLOAD "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MTLS.mTlsLogUpload.Enable"
 #define TR181_LOGUPLOAD_BEF_DEEPSLEEP "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadBeforeDeepSleep.Enable"
