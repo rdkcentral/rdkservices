@@ -288,15 +288,14 @@ Sets the application metadata in the INIT message that gets sent to the Voice Se
 
 Retrieves the types of voice sessions which are supported by the platform.
 
-Voice Session Request Types
-
-| Name | Description |
+| Request Type | Description |
 | :-------- | :-------- |
-| ptt_transcription | A text-only session using the PTT routing url and the text transcription |
-| mic_transcription | A text-only session using the MIC routing url and the text transcription |
-| mic_stream_voice | An audio based session using the MIC routing url and the platform's default audio output format |
-| mic_stream_single | An audio based session using the MIC routing url and the platform's single channel input audio format |
-| mic_factory_test | An audio based session using the MIC routing url and the platform's unprocessed multi-channel audio input format |
+| ptt_transcription | A text-only session using the urlPtt routing url and the text transcription |
+| mic_transcription | A text-only session using the urlHf routing url and the text transcription |
+| mic_stream_default | An audio based session using the urlHf routing url and the platform's default audio output format |
+| mic_stream_single | An audio based session using the urlHf routing url and the platform's single channel audio input format |
+| mic_stream_multi | An audio based session using the urlHf routing url and the platform's multi-channel audio input format |
+| mic_factory_test | An audio based session using the urlHf routing url and the platform's unprocessed multi-channel audio input format |
 
 ### Events
 
