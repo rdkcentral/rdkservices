@@ -88,7 +88,8 @@ VoiceControl interface methods:
 | [configureVoice](#configureVoice) | Configures the RDK's voice stack |
 | [sendVoiceMessage](#sendVoiceMessage) | Sends a message to the Voice Server |
 | [setVoiceInit](#setVoiceInit) | Sets the application metadata in the INIT message that gets sent to the Voice Server |
-| [voiceSessionRequest](#voiceSessionRequest) | Requests a voice session using the specified device type and optional parameters |
+| [voiceSessionTypes](#voiceSessionTypes) | Retrieves the types of voice sessions which are supported by the platform |
+| [voiceSessionRequest](#voiceSessionRequest) | Requests a voice session using the specified request type and optional parameters |
 | [voiceSessionTerminate](#voiceSessionTerminate) | Terminates a voice session using the specified device type and optional parameters |
 | [voiceStatus](#voiceStatus) | Returns the current status of the RDK voice stack |
 
