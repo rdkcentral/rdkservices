@@ -23,13 +23,14 @@ namespace WPEFramework {
             LOGINFO("ctor");
             VoiceControl::_instance = this;
 
-            Register("getApiVersionNumber",   &VoiceControl::getApiVersionNumber, this);
+            Register("getApiVersionNumber",   &VoiceControl::getApiVersionNumber,   this);
 
-            Register("voiceStatus",           &VoiceControl::voiceStatus,         this);
-            Register("configureVoice",        &VoiceControl::configureVoice,      this);
-            Register("setVoiceInit",          &VoiceControl::setVoiceInit,        this);
-            Register("sendVoiceMessage",      &VoiceControl::sendVoiceMessage,    this);
-            Register("voiceSessionByText",    &VoiceControl::voiceSessionByText,  this);
+            Register("voiceStatus",           &VoiceControl::voiceStatus,           this);
+            Register("configureVoice",        &VoiceControl::configureVoice,        this);
+            Register("setVoiceInit",          &VoiceControl::setVoiceInit,          this);
+            Register("sendVoiceMessage",      &VoiceControl::sendVoiceMessage,      this);
+            Register("voiceSessionRequest",   &VoiceControl::voiceSessionRequest,   this);
+            Register("voiceSessionTerminate", &VoiceControl::voiceSessionTerminate, this);
 
             setApiVersionNumber(1);
         }
@@ -424,7 +425,7 @@ namespace WPEFramework {
             returnResponse(bSuccess);
         }
 
-        uint32_t VoiceControl::voiceSessionByText(const JsonObject& parameters, JsonObject& response)
+        uint32_t VoiceControl::voiceSessionRequest(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
 
@@ -456,10 +457,10 @@ namespace WPEFramework {
             if (bSuccess)
             {
                 // Make the IARM call to controlMgr to configure the voice settings
-                res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_CALL_SESSION_BY_TEXT, (void *)call, totalsize);
+                res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_CALL_SESSION_REQUEST, (void *)call, totalsize);
                 if (res != IARM_RESULT_SUCCESS)
                 {
-                    LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_BY_TEXT Bus Call FAILED, res: %d.", (int)res);
+                    LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_REQUEST Bus Call FAILED, res: %d.", (int)res);
                     bSuccess = false;
                 }
                 else
@@ -470,9 +471,70 @@ namespace WPEFramework {
                     bSuccess = result["success"].Boolean();
                     response = result;
                     if(bSuccess) {
-                        LOGINFO("SEND_VOICE_MESSAGE call SUCCESS!");
+                        LOGINFO("SESSION_REQUEST call SUCCESS!");
                     } else {
-                        LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_BY_TEXT returned FAILURE!");
+                        LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_REQUEST returned FAILURE!");
+                    }
+                }
+            }
+
+            if (call != NULL)
+            {
+                free(call);
+            }
+
+            returnResponse(bSuccess);
+        }
+
+        uint32_t VoiceControl::voiceSessionTerminate(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            ctrlm_voice_iarm_call_json_t*   call = NULL;
+            IARM_Result_t                   res;
+            string                          jsonParams;
+            bool                            bSuccess = true;
+
+            // Just pass through the input parameters, without understanding or checking them.
+            parameters.ToString(jsonParams);
+
+            // We must allocate the memory for the call structure. Determine what we will need.
+            size_t totalsize = sizeof(ctrlm_voice_iarm_call_json_t) + jsonParams.size() + 1;
+            call = (ctrlm_voice_iarm_call_json_t*)calloc(1, totalsize);
+
+            if (call != NULL)
+            {
+                // Set the call structure members appropriately.
+                call->api_revision = CTRLM_VOICE_IARM_BUS_API_REVISION;
+                size_t len = jsonParams.copy(call->payload, jsonParams.size());
+                call->payload[len] = '\0';
+            }
+            else
+            {
+                LOGERR("ERROR - Cannot allocate IARM structure - size: %u.", (unsigned)totalsize);
+                bSuccess = false;
+            }
+
+            if (bSuccess)
+            {
+                // Make the IARM call to controlMgr to configure the voice settings
+                res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_CALL_SESSION_TERMINATE, (void *)call, totalsize);
+                if (res != IARM_RESULT_SUCCESS)
+                {
+                    LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_TERMINATE Bus Call FAILED, res: %d.", (int)res);
+                    bSuccess = false;
+                }
+                else
+                {
+                    JsonObject result;
+
+                    result.FromString(call->result);
+                    bSuccess = result["success"].Boolean();
+                    response = result;
+                    if(bSuccess) {
+                        LOGINFO("SESSION_TERMINATE call SUCCESS!");
+                    } else {
+                        LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_TERMINATE returned FAILURE!");
                     }
                 }
             }

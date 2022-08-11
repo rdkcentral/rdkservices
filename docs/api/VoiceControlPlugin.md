@@ -88,7 +88,8 @@ VoiceControl interface methods:
 | [configureVoice](#configureVoice) | Configures the RDK's voice stack |
 | [sendVoiceMessage](#sendVoiceMessage) | Sends a message to the Voice Server |
 | [setVoiceInit](#setVoiceInit) | Sets the application metadata in the INIT message that gets sent to the Voice Server |
-| [voiceSessionByText](#voiceSessionByText) | Sends a voice session with a transcription string to simulate a real voice session for QA |
+| [voiceSessionRequest](#voiceSessionRequest) | Requests a voice session using the specified device type and optional parameters |
+| [voiceSessionTerminate](#voiceSessionTerminate) | Terminates a voice session using the specified device type and optional parameters |
 | [voiceStatus](#voiceStatus) | Returns the current status of the RDK voice stack |
 
 
@@ -281,10 +282,10 @@ Sets the application metadata in the INIT message that gets sent to the Voice Se
 }
 ```
 
-<a name="voiceSessionByText"></a>
-## *voiceSessionByText*
+<a name="voiceSessionRequest"></a>
+## *voiceSessionRequest*
 
-Sends a voice session with a transcription string to simulate a real voice session for QA. Example use cases for this API call include rack and automation testing.
+Requests a voice session using the specified device type and optional parameters. Example use cases for this API call include rack and automation testing.
 
 ### Events
 
@@ -303,8 +304,11 @@ Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [o
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.transcription | string | The transcription text to be sent to the voice server |
-| params?.type | string | <sup>*(optional)*</sup> The device type to simulate the voice session from (PTT, FF, MIC) |
+| params?.transcription | string | <sup>*(optional)*</sup> The transcription text to be sent to the voice server |
+| params?.type | string | <sup>*(optional)*</sup> The device type to initiate the voice session from (PTT, FF, MIC) |
+| params?.audio_format | string | <sup>*(optional)*</sup> The output audio format for the session (PCM_16_BIT, PCM_16_BIT_RAW, PCM_32_BIT, PCM_32_BIT_RAW) |
+| params?.low_latency | boolean | <sup>*(optional)*</sup> Enables low latency mode for the session when set to true |
+| params?.multi_channel | boolean | <sup>*(optional)*</sup> Enables multi-channel mode for the session when set to true |
 
 ### Result
 
@@ -321,11 +325,55 @@ Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [o
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.VoiceControl.1.voiceSessionByText",
+    "method": "org.rdk.VoiceControl.1.voiceSessionRequest",
     "params": {
         "transcription": "Watch Comedy Central",
         "type": "PTT"
     }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="voiceSessionTerminate"></a>
+## *voiceSessionTerminate*
+
+Terminates a voice session using the specified device type and optional parameters.
+
+### Events
+
+No Events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.VoiceControl.1.voiceSessionTerminate",
 }
 ```
 
