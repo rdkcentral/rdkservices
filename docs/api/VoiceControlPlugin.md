@@ -90,7 +90,7 @@ VoiceControl interface methods:
 | [setVoiceInit](#setVoiceInit) | Sets the application metadata in the INIT message that gets sent to the Voice Server |
 | [voiceSessionTypes](#voiceSessionTypes) | Retrieves the types of voice sessions which are supported by the platform |
 | [voiceSessionRequest](#voiceSessionRequest) | Requests a voice session using the specified request type and optional parameters |
-| [voiceSessionTerminate](#voiceSessionTerminate) | Terminates a voice session using the specified device type and optional parameters |
+| [voiceSessionTerminate](#voiceSessionTerminate) | Terminates a voice session using the specified session identifier |
 | [voiceStatus](#voiceStatus) | Returns the current status of the RDK voice stack |
 
 
@@ -351,7 +351,7 @@ Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [o
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.type | string |  The request type to initiate the voice session ("ptt_transcription", "mic_transcription", "mic_single_channel_16_bit", "mic_single_channel_16_bit_raw", "mic_single_channel_32_bit", "mic_single_channel_32_bit_raw", "mic_multi_channel_16_bit", "mic_multi_channel_16_bit_raw", "mic_multi_channel_32_bit", "mic_multi_channel_32_bit_raw") |
+| params.type | string |  The request type to initiate the voice session ("ptt_transcription", "mic_transcription", "mic_single_channel_16_bit", "mic_single_channel_16_bit_raw", "mic_single_channel_32_bit", "mic_single_channel_32_bit_raw", "mic_multi_channel_16_bit", "mic_multi_channel_16_bit_raw", "mic_multi_channel_32_bit", "mic_multi_channel_32_bit_raw") |
 | params?.transcription | string | <sup>*(optional)*</sup> The transcription text to be sent to the voice server for request types "ptt_transcription" and "mic_transcription".|
 
 ### Result
@@ -394,7 +394,7 @@ Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [o
 <a name="voiceSessionTerminate"></a>
 ## *voiceSessionTerminate*
 
-Terminates a voice session using the specified device type and optional parameters.
+Terminates a voice session using the specified session identifier.
 
 ### Events
 
