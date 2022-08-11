@@ -288,6 +288,16 @@ Sets the application metadata in the INIT message that gets sent to the Voice Se
 
 Retrieves the types of voice sessions which are supported by the platform.
 
+Voice Session Request Types
+
+| Name | Description |
+| :-------- | :-------- |
+| ptt_transcription | A text-only session using the PTT routing url and the text transcription |
+| mic_transcription | A text-only session using the MIC routing url and the text transcription |
+| mic_stream_voice | An audio based session using the MIC routing url and the platform's default audio output format |
+| mic_stream_single | An audio based session using the MIC routing url and the platform's single channel input audio format |
+| mic_factory_test | An audio based session using the MIC routing url and the platform's unprocessed multi-channel audio input format |
+
 ### Events
 
 No Events.
@@ -323,7 +333,7 @@ No Parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "types": [ "ptt_transcription", "mic_multi_channel_32_bit_raw" ],
+        "types": [ "ptt_transcription", "mic_factory_test" ],
         "success": true
     }
 }
@@ -351,7 +361,7 @@ Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [o
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.type | string |  The request type to initiate the voice session ("ptt_transcription", "mic_transcription", "mic_single_channel_16_bit", "mic_single_channel_16_bit_raw", "mic_single_channel_32_bit", "mic_single_channel_32_bit_raw", "mic_multi_channel_16_bit", "mic_multi_channel_16_bit_raw", "mic_multi_channel_32_bit", "mic_multi_channel_32_bit_raw") |
+| params.type | string |  The request type to initiate the voice session (see voiceSessionTypes API for list of request types) |
 | params?.transcription | string | <sup>*(optional)*</sup> The transcription text to be sent to the voice server for request types "ptt_transcription" and "mic_transcription".|
 
 ### Result
