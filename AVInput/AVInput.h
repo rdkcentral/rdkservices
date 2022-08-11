@@ -23,14 +23,6 @@
 #include "libIBus.h"
 #include "dsTypes.h"
 
-#define getNumberParameter(paramName, param) { \
-	    if (Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
-	        param = parameters[paramName].Number(); \
-	    else \
-	        try { param = std::stoi( parameters[paramName].String()); } \
-	        catch (...) { param = 0; } \
-}
-
 namespace WPEFramework {
 namespace Plugin {
 
