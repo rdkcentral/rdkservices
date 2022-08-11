@@ -51,9 +51,6 @@ namespace WPEFramework {
             WifiManager(const WifiManager&) = delete;
             WifiManager& operator=(const WifiManager&) = delete;
 
-            static const short API_VERSION_NUMBER_MAJOR;
-            static const short API_VERSION_NUMBER_MINOR;
-
             //Begin methods
             virtual uint32_t getQuirks(const JsonObject& parameters, JsonObject& response) const override;
             virtual uint32_t getCurrentState(const JsonObject& parameters, JsonObject& response) override;

@@ -63,8 +63,9 @@
 
 using namespace std;
 
-#define SYSSRV_MAJOR_VERSION 1
-#define SYSSRV_MINOR_VERSION 0
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -230,6 +231,21 @@ void stringToIarmMode(std::string mode, IARM_Bus_Daemon_SysMode_t& iarmMode)
  * @brief WPEFramework class for SystemServices
  */
 namespace WPEFramework {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::SystemServices> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin {
         //Prototypes
         std::string   SystemServices::m_currentMode = "";
@@ -257,8 +273,7 @@ namespace WPEFramework {
                 IARM_EventId_t eventId, void *data, size_t len);
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
-        SERVICE_REGISTRATION(SystemServices, SYSSRV_MAJOR_VERSION,
-                SYSSRV_MINOR_VERSION);
+        SERVICE_REGISTRATION(SystemServices, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         SystemServices* SystemServices::_instance = nullptr;
         cSettings SystemServices::m_temp_settings(SYSTEM_SERVICE_TEMP_FILE);

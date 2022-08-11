@@ -43,8 +43,10 @@
 #endif //RDKSHELL_READ_MAC_ON_STARTUP
 
 
-const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
-const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MINOR = 0;
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 1 
+
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_MOVE_TO_FRONT = "moveToFront";
@@ -222,6 +224,21 @@ enum AppLastExitReason
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 
 namespace WPEFramework {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::RDKShell> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin {
 
 
@@ -392,6 +409,7 @@ namespace WPEFramework {
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
         std::vector<RDKShellStartupConfig> gStartupConfigs;
         std::map<std::string, bool> gDestroyApplications;
+        std::map<std::string, bool> gExternalDestroyApplications;
         std::map<std::string, bool> gLaunchApplications;
         std::map<std::string, AppLastExitReason> gApplicationsExitReason;
         
@@ -413,7 +431,7 @@ namespace WPEFramework {
           return flag;
         }
 
-        SERVICE_REGISTRATION(RDKShell, 1, 0);
+        SERVICE_REGISTRATION(RDKShell, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         RDKShell* RDKShell::_instance = nullptr;
         std::mutex gRdkShellMutex;
@@ -721,6 +739,12 @@ namespace WPEFramework {
                 }
                 else if (currentState == PluginHost::IShell::DEACTIVATION)
                 {
+                    gLaunchDestroyMutex.lock();
+                    if (gDestroyApplications.find(service->Callsign()) == gDestroyApplications.end())
+                    {
+                        gExternalDestroyApplications[service->Callsign()] = true;
+                    }
+                    gLaunchDestroyMutex.unlock();
                     StateControlNotification* notification = nullptr;
                     gPluginDataMutex.lock();
                     auto notificationIt = gStateNotifications.find(service->Callsign());
@@ -781,6 +805,12 @@ namespace WPEFramework {
                         gPluginsEventListener.erase(pluginStateChangeEntry);
                     }
                     gPluginDataMutex.unlock();
+                    gLaunchDestroyMutex.lock();
+                    if (gExternalDestroyApplications.find(service->Callsign()) != gExternalDestroyApplications.end())
+                    {
+                        gExternalDestroyApplications.erase(service->Callsign());
+                    }
+                    gLaunchDestroyMutex.unlock();
                 }
             }
         }
@@ -1417,6 +1447,7 @@ namespace WPEFramework {
             }
             gKillClientRequests.clear();
             gRdkShellMutex.unlock();
+            gExternalDestroyApplications.clear();
         }
 
         string RDKShell::Information() const
@@ -3795,6 +3826,10 @@ namespace WPEFramework {
             	{
                     isApplicationBeingDestroyed = true;
             	}
+            	if (gExternalDestroyApplications.find(client) != gExternalDestroyApplications.end())
+            	{
+                    isApplicationBeingDestroyed = true;
+            	}
             	gLaunchDestroyMutex.unlock();
             	if (isApplicationBeingDestroyed)
             	{
@@ -6106,6 +6141,10 @@ namespace WPEFramework {
             if (gDestroyApplications.find(client) != gDestroyApplications.end())
             {
                 isApplicationBeingDestroyed = true;
+            }
+            if (gExternalDestroyApplications.find(client) != gExternalDestroyApplications.end())
+            {
+                 isApplicationBeingDestroyed = true;
             }
             gLaunchDestroyMutex.unlock();
             if (isApplicationBeingDestroyed)

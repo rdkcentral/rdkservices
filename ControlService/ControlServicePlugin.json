@@ -5,8 +5,7 @@
       "callsign": "org.rdk.ControlService",
       "locator": "",
       "status": "production",
-      "description": "The `ControlService` plugin provides the ability to manage the remote controls of a STB.",
-      "version": "1.0"
+      "description": "The `ControlService` plugin provides the ability to manage the remote controls of a STB."
     },
     "interface": {
       "$ref": "ControlService.json#"
