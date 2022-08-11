@@ -34,6 +34,10 @@
 
 #define MILESTONES_LOG_FILE                     "/opt/logs/rdk_milestones.log"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 enum SysSrv_ErrorCode {
     SysSrv_FileNotPresent,
     SysSrv_FileAccessFailed
@@ -74,9 +78,23 @@ void populateResponseWithError(int errorCode, JsonObject& response);
 
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::DeviceDiagnostics> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(DeviceDiagnostics, 1, 0);
+        SERVICE_REGISTRATION(DeviceDiagnostics, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         DeviceDiagnostics* DeviceDiagnostics::_instance = nullptr;
 

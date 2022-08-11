@@ -5,8 +5,7 @@
         "callsign": "Packager",
         "locator": "libWPEFrameworkPackager.so",
         "status": "alpha",
-        "description": "The `Packager` plugin allows installation of OPKG, IPKG, and DEB packages to the system from a remote repository.",
-        "version": "1.0"
+        "description": "The `Packager` plugin allows installation of OPKG, IPKG, and DEB packages to the system from a remote repository."
     },
     "interface": {
       "$ref": "Packager.json#"

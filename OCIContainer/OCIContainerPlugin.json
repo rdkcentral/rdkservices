@@ -5,8 +5,7 @@
       "callsign": "org.rdk.OCIContainer",
       "locator": "libWPEFrameworkOCIContainer.so",
       "status": "production",
-      "description": "The `OCIContainer` plugin allows for control of OCI containers using the Dobby hypervisor",
-      "version": "1.0"
+      "description": "The `OCIContainer` plugin allows for control of OCI containers using the Dobby hypervisor"
     },
     "interface": {
       "$ref": "OCIContainer.json#"
