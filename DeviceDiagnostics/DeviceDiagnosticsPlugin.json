@@ -5,8 +5,7 @@
       "callsign": "org.rdk.DeviceDiagnostics",
       "locator": "libWPEFrameworkDeviceDiagnostics.so",
       "status": "production",
-      "description": "The `DeviceDiagnostics` plugin provides additional diagnostics information which includes device configuration and AV decoder status.",
-      "version": "1.0"
+      "description": "The `DeviceDiagnostics` plugin provides additional diagnostics information which includes device configuration and AV decoder status."
     },
     "interface": {
       "$ref": "DeviceDiagnostics.json#"

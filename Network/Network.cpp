@@ -29,8 +29,9 @@ using namespace std;
 #define DEFAULT_PING_PACKETS 15
 #define CIDR_NETMASK_IP_LEN 32
 
-const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MAJOR = 2;
-const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MINOR = 0;
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
@@ -126,9 +127,24 @@ typedef struct
 
 namespace WPEFramework
 {
+    
+    namespace {
+
+        static Plugin::Metadata<Plugin::Network> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Network, Network::API_VERSION_NUMBER_MAJOR, Network::API_VERSION_NUMBER_MINOR);
+        SERVICE_REGISTRATION(Network, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
         Network* Network::_instance = nullptr;
 
         Network::Network()

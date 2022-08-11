@@ -5,8 +5,7 @@
       "callsign": "org.rdk.ScreenCapture",
       "locator": "libWPEFrameworkScreenCapture.so",
       "status": "production",
-      "description": "The `ScreenCapture` plugin is used to upload screen captures.",
-      "version": "1.0"
+      "description": "The `ScreenCapture` plugin is used to upload screen captures."
     },
     "interface": {
       "$ref": "ScreenCapture.json#"
