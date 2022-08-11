@@ -282,10 +282,56 @@ Sets the application metadata in the INIT message that gets sent to the Voice Se
 }
 ```
 
+<a name="voiceSessionTypes"></a>
+## *voiceSessionTypes*
+
+Retrieves the types of voice sessions which are supported by the platform.
+
+### Events
+
+No Events.
+
+### Parameters
+
+No Parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.types | array | If successful, an array of strings indicating the voice session request types which are valid |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.VoiceControl.1.voiceSessionTypes",
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "types": [ "ptt_transcription", "mic_multi_channel_32_bit_raw" ],
+        "success": true
+    }
+}
+```
+
 <a name="voiceSessionRequest"></a>
 ## *voiceSessionRequest*
 
-Requests a voice session using the specified device type and optional parameters. Example use cases for this API call include rack and automation testing.
+Requests a voice session using the specified request type and optional parameters.
 
 ### Events
 
@@ -304,17 +350,15 @@ Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [o
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.transcription | string | <sup>*(optional)*</sup> The transcription text to be sent to the voice server |
-| params?.type | string | <sup>*(optional)*</sup> The device type to initiate the voice session from (PTT, FF, MIC) |
-| params?.audio_format | string | <sup>*(optional)*</sup> The output audio format for the session (PCM_16_BIT, PCM_16_BIT_RAW, PCM_32_BIT, PCM_32_BIT_RAW) |
-| params?.low_latency | boolean | <sup>*(optional)*</sup> Enables low latency mode for the session when set to true |
-| params?.multi_channel | boolean | <sup>*(optional)*</sup> Enables multi-channel mode for the session when set to true |
+| params?.type | string |  The request type to initiate the voice session ("ptt_transcription", "mic_transcription", "mic_single_channel_16_bit", "mic_single_channel_16_bit_raw", "mic_single_channel_32_bit", "mic_single_channel_32_bit_raw", "mic_multi_channel_16_bit", "mic_multi_channel_16_bit_raw", "mic_multi_channel_32_bit", "mic_multi_channel_32_bit_raw") |
+| params?.transcription | string | <sup>*(optional)*</sup> The transcription text to be sent to the voice server for request types "ptt_transcription" and "mic_transcription".|
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result.session_id | string | If successful, the session identifier for use in voiceSessionTerminate |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -327,8 +371,8 @@ Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [o
     "id": 42,
     "method": "org.rdk.VoiceControl.1.voiceSessionRequest",
     "params": {
+        "type": "ptt_transcription"
         "transcription": "Watch Comedy Central",
-        "type": "PTT"
     }
 }
 ```
@@ -340,6 +384,7 @@ Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [o
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "session_id": "abc123",
         "success": true
     }
 }
@@ -356,7 +401,10 @@ No Events.
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.session_id | string | The session identifier of the session to terminate |
 
 ### Result
 
@@ -374,6 +422,9 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.VoiceControl.1.voiceSessionTerminate",
+    "params": {
+        "session_id": "abc123"
+    }
 }
 ```
 
