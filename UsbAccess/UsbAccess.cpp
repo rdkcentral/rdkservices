@@ -400,12 +400,12 @@ namespace Plugin {
     {
         if (strcmp(owner, IARM_BUS_SYSMGR_NAME) != 0)
         {
-            LOGERR("unexpected event: owner %s, eventId: %d, data: %p, size: %u.", owner, (int)eventId, data, len);
+            LOGERR("unexpected event: owner %s, eventId: %d, data: %p, size: %lu.", owner, (int)eventId, data, len);
             return;
         }
         if (data == nullptr || len == 0)
         {
-            LOGERR("event with NO DATA: eventId: %d, data: %p, size: %u.", (int)eventId, data, len);
+            LOGERR("event with NO DATA: eventId: %d, data: %p, size: %lu.", (int)eventId, data, len);
             return;
         }
 
@@ -418,7 +418,7 @@ namespace Plugin {
                 break;
             }
             default:
-                LOGWARN("unexpected event: owner %s, eventId: %d, data: %p, size: %u.", owner, (int)eventId, data, len);
+                LOGWARN("unexpected event: owner %s, eventId: %d, data: %p, size: %lu.", owner, (int)eventId, data, len);
                 break;
         }
     }
