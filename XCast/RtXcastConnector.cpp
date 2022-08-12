@@ -226,7 +226,7 @@ int RtXcastConnector::connectToRemoteService()
     const char * serviceName = "com.comcast.xdialcast";
     
     LOGINFO("connectToRemoteService entry " );
-    err = rtRemoteLocateObject(rtEnvironmentGetGlobal(), serviceName, xdialCastObj, NULL, &RtXcastConnector::remoteDisconnectCallback, m_observer);
+    err = rtRemoteLocateObject(rtEnvironmentGetGlobal(), serviceName, xdialCastObj, 0, &RtXcastConnector::remoteDisconnectCallback, m_observer);
     if(err == RT_OK && xdialCastObj != NULL)
     {
         rtError e = xdialCastObj.send("on", "onApplicationLaunchRequest" , new rtFunctionCallback(RtXcastConnector::onApplicationLaunchRequestCallback, m_observer));
@@ -425,8 +425,8 @@ bool RtXcastConnector::IsDynamicAppListEnabled()
 bool RtXcastConnector::IsAppEnabled(char* strAppName)
 {
     bool ret = false;
-    char* strfound = NULL;
 #ifdef RFC_ENABLED
+    char* strfound = NULL;
     RFC_ParamData_t param;
     WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("Xcast"), "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.AppList", &param);
     if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
