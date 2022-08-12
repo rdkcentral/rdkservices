@@ -119,7 +119,7 @@ void WifiManagerSignalThreshold::setSignalThresholdChangeEnabled(bool enabled, i
     {
         int64_t number = std::stoi(response["state"].String());
         state = (WifiState) number;
-        LOGINFO("wifi state = %d", state);
+        LOGINFO("wifi state = %d", static_cast<int>(state));
     }
     else
     {
