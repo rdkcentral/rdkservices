@@ -123,6 +123,11 @@
             "summary": "The cursor height",
             "type": "number",
             "example": 255
+        },
+        "framerate":{
+            "summary":"display the current Graphics framerate",
+            "type":"number",
+            "example":40
         }
     },
     "methods": {
@@ -1158,6 +1163,24 @@
                 ]
             }
         },
+        "getGraphicsFrameRate":{
+            "summary":"Returns the current Graphics Frame Rate",
+            "result":{
+                "type":"object",
+                "properties":{
+                    "frameRate":{
+                        "$ref": "#/definitions/framerate"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "frameRate",
+                    "success"
+                ]
+            }
+        },
         "hideAllClients": {
             "summary": "Hides/Unhides all the clients. \n \n### Events\n \n No Events.",
             "params": {
@@ -1995,6 +2018,25 @@
                 "required": [
                     "client",
                     "visible"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "setGraphicsFrameRate":{
+            "summary": "Set Graphics Frame Rate.. \n \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "framerate": {
+                        "summary": "Graphics Framerate to be set",
+                        "type":"number",
+                        "example": 60
+                    }
+                },
+                "required": [
+                    "framerate"
                 ]
             },
             "result": {

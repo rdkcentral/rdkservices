@@ -44,7 +44,7 @@
 
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_MINOR 2
 #define API_VERSION_NUMBER_PATCH 0 
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
@@ -130,6 +130,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_CURSOR_SIZE = "
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_CURSOR_SIZE = "setCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INPUT_EVENTS = "enableInputEvents";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE = "getGraphicsFrameRate";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE = "setGraphicsFrameRate";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -926,6 +928,8 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_GET_EASTER_EGGS, &RDKShell::getEasterEggsWrapper, this);
             Register(RDKSHELL_METHOD_ENABLE_INPUT_EVENTS, &RDKShell::enableInputEventsWrapper, this);
             Register(RDKSHELL_METHOD_KEY_REPEAT_CONFIG, &RDKShell::keyRepeatConfigWrapper, this);
+            Register(RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE, &RDKShell::getGraphicsFrameRateWrapper, this);
+            Register(RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE, &RDKShell::setGraphicsFrameRateWrapper, this);
       	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -5486,6 +5490,36 @@ namespace WPEFramework {
             CompositorController::setKeyRepeatConfig(enabled, initialDelay, repeatInterval);
             gRdkShellMutex.unlock();
             returnResponse(true);
+        }
+
+	uint32_t RDKShell::getGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            lockRdkShellMutex();
+            unsigned int value = gCurrentFramerate;
+            gRdkShellMutex.unlock();
+            response["framerate"] = value;
+            returnResponse(true);
+        }
+
+        uint32_t RDKShell::setGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("framerate"))
+            {
+                result = false;
+                response["message"] = "please specify frame rate";
+            }
+            if (result)
+            {
+                unsigned int framerate = parameters["framerate"].Number();
+                lockRdkShellMutex();
+                gCurrentFramerate = framerate;
+                gRdkShellMutex.unlock();
+            }
+            returnResponse(result);
         }
 
         // Registered methods end
