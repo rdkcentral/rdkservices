@@ -917,7 +917,7 @@ namespace WPEFramework
                 if (!autoconfig)
                 {
                     RFC_ParamData_t param;
-                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Network.ManualIPSettings.Enable", param))
+                    if (Utils::getRFCConfig(const_cast<char*>("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Network.ManualIPSettings.Enable"), param))
                     {
                         if (param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
                         {
@@ -1440,12 +1440,12 @@ namespace WPEFramework
         {
             if (strcmp(owner, IARM_BUS_NM_SRV_MGR_NAME) != 0)
             {
-                LOGERR("ERROR - unexpected event: owner %s, eventId: %d, data: %p, size: %ld.", owner, (int)eventId, data, len);
+                LOGERR("ERROR - unexpected event: owner %s, eventId: %d, data: %p, size: %d.", owner, (int)eventId, data, len);
                 return;
             }
             if (data == nullptr || len == 0)
             {
-                LOGERR("ERROR - event with NO DATA: eventId: %d, data: %p, size: %ld.", (int)eventId, data, len);
+                LOGERR("ERROR - event with NO DATA: eventId: %d, data: %p, size: %d.", (int)eventId, data, len);
                 return;
             }
 

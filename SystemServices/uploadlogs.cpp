@@ -74,7 +74,7 @@ namespace
         err_t ret = OK;
 
         CURL *curl;
-        CURLcode res;
+        CURLcode res = CURLE_UPLOAD_FAILED;
         long http_code = 0;
         std::stringstream read;
         string data = "filename=" + filename;
@@ -142,7 +142,7 @@ namespace
         err_t ret = OK;
 
         CURL *curl;
-        CURLcode res;
+        CURLcode res = CURLE_UPLOAD_FAILED;
         long http_code = 0;
         FILE *fd;
         struct stat file_info;

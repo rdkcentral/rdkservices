@@ -66,11 +66,11 @@ enum {
         HDMICEC_EVENT_ACTIVE_SOURCE_STATUS_UPDATED,
 };
 
-static char *eventString[] = {
+static const char *eventString[] = {
 	"onDeviceAdded",
 	"onDeviceRemoved",
 	"onDeviceInfoUpdated",
-        "onActiveSourceStatusUpdated"
+	"onActiveSourceStatusUpdated"
 };
 
 static bool isDeviceActiveSource = false;
@@ -112,57 +112,52 @@ namespace WPEFramework
 //=========================================== HdmiCec cec msg Processor =========================================
        void HdmiCec::process (const ActiveSource &msg, const Header &header)
        {
-             printHeader(header);
-             LOGINFO("Command: ActiveSource %s : %s  : %s \n",GetOpName(msg.opCode()),msg.physicalAddress.name().c_str(),msg.physicalAddress.toString().c_str());
-             HdmiCec::_instance->addDevice(header.from.toInt());
+            printHeader(header);
+            LOGINFO("Command: ActiveSource %s : %s  : %s \n",GetOpName(msg.opCode()),msg.physicalAddress.name().c_str(),msg.physicalAddress.toString().c_str());
+            HdmiCec::_instance->addDevice(header.from.toInt());
        }
        void HdmiCec::process (const ImageViewOn &msg, const Header &header)
        {
-             printHeader(header);
-             LOGINFO("Command: ImageViewOn from %s\n", header.from.toString().c_str());
-             HdmiCec::_instance->addDevice(header.from.toInt());
+            printHeader(header);
+            LOGINFO("Command: ImageViewOn from %s\n", header.from.toString().c_str());
+            HdmiCec::_instance->addDevice(header.from.toInt());
        }
        void HdmiCec::process (const TextViewOn &msg, const Header &header)
        {
-             printHeader(header);
-             LOGINFO("Command: TextViewOn\n");
-             HdmiCec::_instance->addDevice(header.from.toInt());
+            printHeader(header);
+            LOGINFO("Command: TextViewOn\n");
+            HdmiCec::_instance->addDevice(header.from.toInt());
        }
        void HdmiCec::process (const CECVersion &msg, const Header &header)
        {
-	     bool updateStatus;
-	     printHeader(header);
-             LOGINFO("Command: CECVersion Version : %s \n",msg.version.toString().c_str());
+	    printHeader(header);
+            LOGINFO("Command: CECVersion Version : %s \n",msg.version.toString().c_str());
 
 	     HdmiCec::_instance->addDevice(header.from.toInt());
        }
 
        void HdmiCec::process (const SetOSDName &msg, const Header &header)
        {
-             printHeader(header);
-	     bool updateStatus ;
-             LOGINFO("Command: SetOSDName OSDName : %s\n",msg.osdName.toString().c_str());
+            printHeader(header);
+            LOGINFO("Command: SetOSDName OSDName : %s\n",msg.osdName.toString().c_str());
 
-	     bool isOSDNameUpdated = HdmiCec::_instance->deviceList[header.from.toInt()].update(msg.osdName);
-	     if (isOSDNameUpdated)
-	         HdmiCec::_instance->sendDeviceUpdateInfo(header.from.toInt());
+            bool isOSDNameUpdated = HdmiCec::_instance->deviceList[header.from.toInt()].update(msg.osdName);
+	    if (isOSDNameUpdated)
+	        HdmiCec::_instance->sendDeviceUpdateInfo(header.from.toInt());
        }
        void HdmiCec::process (const ReportPhysicalAddress &msg, const Header &header)
        {
-             printHeader(header);
-	     bool updateDeviceTypeStatus;
-	     bool updatePAStatus;
-             LOGINFO("Command: ReportPhysicalAddress\n");
+            printHeader(header);
+            LOGINFO("Command: ReportPhysicalAddress\n");
 
-	     if(!HdmiCec::_instance)
+	    if(!HdmiCec::_instance)
 	        return;
-             HdmiCec::_instance->addDevice(header.from.toInt());
+            HdmiCec::_instance->addDevice(header.from.toInt());
        }
        void HdmiCec::process (const DeviceVendorID &msg, const Header &header)
        {
-	     bool updateStatus ;
-	     printHeader(header);
-             LOGINFO("Command: DeviceVendorID VendorID : %s\n",msg.vendorId.toString().c_str());
+	    printHeader(header);
+            LOGINFO("Command: DeviceVendorID VendorID : %s\n",msg.vendorId.toString().c_str());
 
 	     bool isVendorIdUpdated = HdmiCec::_instance->deviceList[header.from.toInt()].update(msg.vendorId);
 	     if (isVendorIdUpdated)
@@ -170,15 +165,14 @@ namespace WPEFramework
        }
        void HdmiCec::process (const ReportPowerStatus &msg, const Header &header)
        {
-	   uint32_t  oldPowerStatus,newPowerStatus;
-	   printHeader(header);
-	   LOGINFO("Command: ReportPowerStatus Power Status from:%s status : %s \n",header.from.toString().c_str(),msg.status.toString().c_str());
-	   HdmiCec::_instance->addDevice(header.from.toInt());
+            printHeader(header);
+            LOGINFO("Command: ReportPowerStatus Power Status from:%s status : %s \n",header.from.toString().c_str(),msg.status.toString().c_str());
+            HdmiCec::_instance->addDevice(header.from.toInt());
        }
 //=========================================== HdmiCec =========================================
 
         HdmiCec::HdmiCec()
-        : PluginHost::JSONRPC(),smConnection(nullptr),cecEnableStatus(false)
+        : PluginHost::JSONRPC(),cecEnableStatus(false),smConnection(nullptr)
         {
             HdmiCec::_instance = this;
             InitializeIARM();
@@ -333,7 +327,7 @@ namespace WPEFramework
                         cecAddressesChanged(LOGICAL_ADDR_CHANGED);
                     }
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from cecStatusUpdated");
                 }
@@ -469,7 +463,7 @@ namespace WPEFramework
                 {
                     LibCCEC::getInstance().init();
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from CECEnable");
                 }
@@ -591,7 +585,7 @@ namespace WPEFramework
                         cecAddressesChanged(PHYSICAL_ADDR_CHANGED);
                     }
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("DS exception caught from getPhysicalAddress");
             }
@@ -617,7 +611,7 @@ namespace WPEFramework
                     cecAddressesChanged(LOGICAL_ADDR_CHANGED);
                 }
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("CEC exception caught from getLogicalAddress ");
             }

@@ -47,4 +47,3 @@ target_link_libraries(${LIB_NAME}
         ${NAMESPACE}Core::${NAMESPACE}Core
         ${GLIB_GIO_LIBRARIES}
         ${GLIB_LIBRARIES})
-        

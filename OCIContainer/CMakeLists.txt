@@ -55,6 +55,7 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${SYSTEMD_LIBRARIES}
 )
+
 # ${NAMESPACE}Protocols::${NAMESPACE}Protocols
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
