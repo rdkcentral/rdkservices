@@ -106,8 +106,8 @@ namespace Plugin {
 
     SystemAudioPlayer::SystemAudioPlayer()
             : PluginHost::JSONRPC()
-            , _apiVersionNumber(API_VERSION_NUMBER)
             , _notification(this)
+            , _apiVersionNumber(API_VERSION_NUMBER)
     {
     }
 

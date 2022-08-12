@@ -70,7 +70,7 @@ enum {
         HDMICEC2_EVENT_ACTIVE_SOURCE_STATUS_UPDATED,
 };
 
-static char *eventString[] = {
+static const char *eventString[] = {
 	"onDeviceAdded",
 	"onDeviceRemoved",
 	"onDeviceInfoUpdated",
@@ -124,7 +124,7 @@ namespace WPEFramework
                 size_t len = 0;
 
                 in.getBuffer(&buf, &len);
-                for (int i = 0; i < len; i++) {
+                for (unsigned int i = 0; i < len; i++) {
                    sprintf(strBuffer + (i*3) , "%02X ",(uint8_t) *(buf + i));
                 }
                 LOGINFO("   >>>>>    Received CEC Frame: :%s \n",strBuffer);
@@ -798,7 +798,7 @@ namespace WPEFramework
                try{
                     getPhysicalAddress();
 
-                    unsigned int logicalAddr = evtData->logicalAddress;
+                    int logicalAddr = evtData->logicalAddress;
                     std::string logicalAddrDeviceType = DeviceType(LogicalAddress(evtData->logicalAddress).getType()).toString().c_str();
 
                     LOGINFO("cecLogicalAddressUpdated: logical address updated: %d , saved : %d ", logicalAddr, logicalAddress.toInt());
@@ -808,7 +808,7 @@ namespace WPEFramework
                         logicalAddressDeviceType = logicalAddrDeviceType;
                     }
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from cecStatusUpdated");
                 }
@@ -932,7 +932,6 @@ namespace WPEFramework
        uint32_t HdmiCec_2::setOSDNameWrapper(const JsonObject& parameters, JsonObject& response)
        {
            LOGINFOMETHOD();
-            bool enabled = false;
 
             if (parameters.HasLabel("name"))
             {
@@ -958,8 +957,6 @@ namespace WPEFramework
         uint32_t HdmiCec_2::setVendorIdWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-
-            bool enabled = false;
 
             if (parameters.HasLabel("vendorid"))
             {
@@ -1011,7 +1008,6 @@ namespace WPEFramework
             Core::File file;
             file = CEC_SETTING_ENABLED_FILE;
 
-            if( file.Open())
             if( file.Open())
             {
                 JsonObject parameters;
@@ -1168,7 +1164,7 @@ namespace WPEFramework
                 {
                     LibCCEC::getInstance().init();
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from LibCCEC::getInstance().init()");
                 }
@@ -1287,7 +1283,7 @@ namespace WPEFramework
                 {
                    LibCCEC::getInstance().term();
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from LibCCEC::getInstance().term() ");
                 }
@@ -1314,7 +1310,7 @@ namespace WPEFramework
                     physical_addr = {(uint8_t)((physAddress >> 24) & 0xFF),(uint8_t)((physAddress >> 16) & 0xFF),(uint8_t) ((physAddress >> 8)  & 0xFF),(uint8_t)((physAddress) & 0xFF)};
                     LOGINFO("getPhysicalAddress: physicalAddress: %s ", physical_addr.toString().c_str());
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("exception caught from getPhysicalAddress");
             }
@@ -1343,7 +1339,7 @@ namespace WPEFramework
                     logicalAddressDeviceType = logicalAddrDeviceType;
                 }
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("CEC exception caught from getLogicalAddress ");
             }
@@ -1638,7 +1634,6 @@ namespace WPEFramework
 	}
 	void HdmiCec_2::threadSendKeyEvent()
         {
-            int i;
             if(!HdmiCec_2::_instance)
                 return;
 
