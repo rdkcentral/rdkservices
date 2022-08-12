@@ -4704,6 +4704,7 @@ namespace WPEFramework {
                     {
                        std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
                        m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_REQUEST;
+                       m_currentArcRoutingState = ARC_STATE_REQUEST_ARC_INITIATION;
                        m_cecArcRoutingThreadRun = true;
                        arcRoutingCV.notify_one();
                     }
