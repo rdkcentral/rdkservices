@@ -1208,6 +1208,8 @@ namespace WPEFramework
                     break;
                 case BTRMGR_EVENT_MEDIA_TRACKLIST_INFO:
                     break;
+                default:
+                    break;
             }
 
             if (!eventId.empty())
@@ -1573,9 +1575,6 @@ namespace WPEFramework
             bool deviceIDDefined = false;
             string deviceTypeStr;
             bool deviceTypeDefined = false;
-            char ui8volume = 0;
-	    char mute;
-
 
             if (parameters.HasLabel("deviceID"))
             {
@@ -1612,7 +1611,7 @@ namespace WPEFramework
             unsigned char ui8volume = 0;
             int ivolume = 0;
             bool volumeDefined = false;
-            unsigned char mute;
+            unsigned char mute = '0';
             int imute = 0;
             bool muteDefined = false;
 

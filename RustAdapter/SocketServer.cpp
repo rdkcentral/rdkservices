@@ -101,7 +101,7 @@ int SocketServer::Open(const string& address, int port, const function<void (con
     return -1;
   }
 
-  memset(&addr, 0, sizeof(address));
+  memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
   addr.sin_port = htons(port);
   
