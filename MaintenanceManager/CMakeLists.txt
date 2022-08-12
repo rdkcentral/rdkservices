@@ -22,7 +22,8 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         MaintenanceManager.cpp
-        Module.cpp)
+        Module.cpp
+        ../helpers/UtilsSecurityToken.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
