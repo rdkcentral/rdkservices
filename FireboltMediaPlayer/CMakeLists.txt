@@ -54,6 +54,8 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
         -Wl,--whole-archive ${MEDIAPLAYERS_LIBS} -Wl,--no-whole-archive)
 
+target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)
+
 install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 

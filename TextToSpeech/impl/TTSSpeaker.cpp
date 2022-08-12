@@ -41,13 +41,13 @@ std::map<std::string, std::string> TTSConfiguration::m_others;
 TTSConfiguration::TTSConfiguration() :
     m_ttsEndPoint(""),
     m_ttsEndPointSecured(""),
-    m_language("en-US"),
     m_apiKey(""),
+    m_language("en-US"),
     m_voice(""),
     m_volume(MAX_VOLUME),
     m_rate(DEFAULT_RATE),
-    m_enabled(false),
-    m_preemptiveSpeaking(true) { }
+    m_preemptiveSpeaking(true),
+    m_enabled(false) { }
 
 TTSConfiguration::~TTSConfiguration() {}
 

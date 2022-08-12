@@ -105,7 +105,7 @@ enum {
         HDMICECSINK_EVENT_AUDIO_DEVICE_POWER_STATUS,
 };
 
-static char *eventString[] = {
+static const char *eventString[] = {
 	"None",
 	"onActiveSourceChange",
 	"onWakeupFromStandby",
@@ -162,7 +162,7 @@ namespace WPEFramework
                 size_t len = 0;
 
                 in.getBuffer(&buf, &len);
-                for (int i = 0; i < len; i++) {
+                for (unsigned int i = 0; i < len; i++) {
                    sprintf(strBuffer + (i*3) , "%02X ",(uint8_t) *(buf + i));
                 }
                 LOGINFO("   >>>>>    Received CEC Frame: :%s \n",strBuffer);
@@ -873,8 +873,6 @@ namespace WPEFramework
 
        void HdmiCecSink::onHdmiHotPlug(int portId , int connectStatus)
        {
-        	bool previousHdmiState = m_isHdmiInConnected;
-			int i = 0;
 			LOGINFO("onHdmiHotPlug Status : %d ", connectStatus);
                         if(!connectStatus)
                         {
@@ -944,9 +942,7 @@ namespace WPEFramework
        void HdmiCecSink::Process_ShortAudioDescriptor_msg(const ReportShortAudioDescriptor  &msg)
        {
 	    uint8_t numberofdescriptor = msg.numberofdescriptor;
-            uint8_t AudioformatCode;
-            uint8_t  atmos;
-	    uint32 descriptor =0;
+	    uint32_t descriptor =0;
 	    JsonArray audiodescriptor;
 
 	    if (numberofdescriptor)
@@ -1214,7 +1210,7 @@ namespace WPEFramework
                         LOGINFO("getDeviceListWrapper  m_numberOfDevices :%d \n", HdmiCecSink::_instance->m_numberOfDevices);
 			JsonArray deviceList;
 			
-			for (unsigned int n = 0; n < LogicalAddress::UNREGISTERED; n++)
+			for (int n = 0; n < LogicalAddress::UNREGISTERED; n++)
 			{
 
 				if ( n != HdmiCecSink::_instance->m_logicalAddressAllocated && 
@@ -1255,7 +1251,6 @@ namespace WPEFramework
        uint32_t HdmiCecSink::setOSDNameWrapper(const JsonObject& parameters, JsonObject& response)
        {
            LOGINFOMETHOD();
-            bool enabled = false;
 
             if (parameters.HasLabel("name"))
             {
@@ -1327,7 +1322,7 @@ namespace WPEFramework
 					response["available"] = true;
 					response["length"] = route.size();
 
-					for (int i=0; i < route.size(); i++) 
+					for (unsigned int i=0; i < route.size(); i++) 
 					{
 						if ( route[i] != LogicalAddress::UNREGISTERED )
 						{
@@ -1424,8 +1419,6 @@ namespace WPEFramework
         uint32_t HdmiCecSink::setVendorIdWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-
-            bool enabled = false;
 
             if (parameters.HasLabel("vendorid"))
             {
@@ -2279,9 +2272,6 @@ namespace WPEFramework
 		}
 
 		void HdmiCecSink::requestPowerStatus(const int logicalAddress) {
-			int i;
-			int requestType;
-			
 			if(!HdmiCecSink::_instance)
 				return;
                         if(!(_instance->smConnection))
@@ -2294,7 +2284,6 @@ namespace WPEFramework
 		}
 
 		void HdmiCecSink::request(const int logicalAddress) {
-			int i;
 			int requestType;
 			
 			if(!HdmiCecSink::_instance)
@@ -2487,15 +2476,14 @@ namespace WPEFramework
 		}
 		
 		void HdmiCecSink::threadRun()
-        {
-        	int i;
+		{
 			std::vector <int> connected;
 			std::vector <int> disconnected;
 			int logicalAddressRequested = LogicalAddress::UNREGISTERED + TEST_ADD;
 			bool isExit = false;
 
 			if(!HdmiCecSink::_instance)
-                return;
+		            return;
 
                 if(!(_instance->smConnection))
                     return;
@@ -2561,7 +2549,7 @@ namespace WPEFramework
 					_instance->pingDevices(connected, disconnected);
 
 					if ( disconnected.size() ){
-						for( i=0; i< disconnected.size(); i++ )
+						for( unsigned int i=0; i< disconnected.size(); i++ )
 						{
 							LOGWARN("Disconnected Devices [%d]", disconnected.size());
 							_instance->removeDevice(disconnected[i]);
@@ -2570,7 +2558,7 @@ namespace WPEFramework
 
 					if (connected.size()) {
 						LOGWARN("Connected Devices [%d]", connected.size());
-						for( i=0; i< connected.size(); i++ )
+						for( unsigned int i=0; i< connected.size(); i++ )
 						{
 							_instance->addDevice(connected[i]);
 							/* If new device is connected, then try to aquire the information */
@@ -2635,7 +2623,7 @@ namespace WPEFramework
 				{
 					//LOGINFO("POLL_THREAD_STATE_UPDATE");
 
-					for(i=0;i<LogicalAddress::UNREGISTERED + TEST_ADD;i++)
+					for(int i=0;i<LogicalAddress::UNREGISTERED + TEST_ADD;i++)
 					{
 						if( i != _instance->m_logicalAddressAllocated &&
 							_instance->deviceList[i].m_isDevicePresent &&
@@ -2767,7 +2755,7 @@ namespace WPEFramework
                 {
                     LibCCEC::getInstance().init();
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from LibCCEC::getInstance().init()");
                 }
@@ -2878,7 +2866,7 @@ namespace WPEFramework
                 {
                    LibCCEC::getInstance().term();
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from LibCCEC::getInstance().term() ");
                 }
@@ -2905,7 +2893,7 @@ namespace WPEFramework
                     physical_addr = {(uint8_t)((physAddress >> 24) & 0xFF),(uint8_t)((physAddress >> 16) & 0xFF),(uint8_t) ((physAddress >> 8)  & 0xFF),(uint8_t)((physAddress) & 0xFF)};
                     LOGINFO("getPhysicalAddress: physicalAddress: %s ", physical_addr.toString().c_str());
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("exception caught from getPhysicalAddress");
             }
@@ -3060,8 +3048,6 @@ namespace WPEFramework
 
         void HdmiCecSink::threadSendKeyEvent()
         {
-            int i;
-
             if(!HdmiCecSink::_instance)
                 return;
 
@@ -3106,7 +3092,6 @@ namespace WPEFramework
 
         void HdmiCecSink::threadArcRouting()
         {
-        	int i;
 		bool isExit = false;
 		uint32_t currentArcRoutingState;
 

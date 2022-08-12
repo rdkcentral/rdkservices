@@ -417,7 +417,7 @@ namespace WPEFramework {
                     {
                         _sock_adaptor->get_data(data); // closes the socket
                         if (data.size() > 0) {
-                            LOGINFO("Got a clip: %lu bytes", data.size());
+                            LOGINFO("Got a clip: %u bytes", data.size());
                             break;
                         } else {
                             LOGWARN("No data in the socket. One more attempt in %d sec", time_wait_sec);
@@ -478,7 +478,7 @@ namespace WPEFramework {
                 return false;
             }
 
-            LOGWARN("uploading pcm data of size %lu to '%s'", data.size(), url);
+            LOGWARN("uploading pcm data of size %u to '%s'", data.size(), url);
 
             //init curl
             curl_global_init(CURL_GLOBAL_ALL);

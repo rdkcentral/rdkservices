@@ -115,6 +115,8 @@ target_include_directories(${MODULE_NAME}
     PRIVATE
         ${CMAKE_CURRENT_LIST_DIR})
 
+target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)
+
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 

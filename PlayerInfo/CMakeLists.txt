@@ -39,6 +39,8 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 
+target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)
+
 find_package(GSTREAMER REQUIRED)
 
 if (GSTREAMER_FOUND)

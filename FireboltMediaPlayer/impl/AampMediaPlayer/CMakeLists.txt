@@ -47,4 +47,5 @@ target_link_libraries(${LIB_NAME}
         ${NAMESPACE}Core::${NAMESPACE}Core
         ${GLIB_GIO_LIBRARIES}
         ${GLIB_LIBRARIES})
-        
+
+target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)

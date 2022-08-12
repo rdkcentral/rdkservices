@@ -70,6 +70,8 @@ configure_file(
         "${CMAKE_CURRENT_BINARY_DIR}/opkg.conf"
         @ONLY)
 
+target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)
+
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/opkg.conf
         DESTINATION "/usr/share/${NAMESPACE}/${PLUGIN_NAME}")
 

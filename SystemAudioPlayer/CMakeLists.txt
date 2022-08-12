@@ -73,6 +73,8 @@ target_link_libraries(${MODULE_NAME} PRIVATE OpenSSL::SSL)
 target_link_libraries(${MODULE_NAME} PRIVATE OpenSSL::Crypto)
 target_link_libraries(${MODULE_NAME} PRIVATE ${Boost_FILESYSTEM_LIBRARY})
 
+target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)
+
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 

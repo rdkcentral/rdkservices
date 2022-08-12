@@ -45,6 +45,7 @@ endif(IARMBus_FOUND)
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ./)
+target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

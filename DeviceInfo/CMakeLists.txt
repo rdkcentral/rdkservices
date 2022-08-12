@@ -42,6 +42,8 @@ target_include_directories(${MODULE_NAME} PRIVATE
         ${IARMBUS_INCLUDE_DIRS}
         ../helpers)
 
+target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)
+
 set_source_files_properties(DeviceCapabilities.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 target_link_libraries(${MODULE_NAME}

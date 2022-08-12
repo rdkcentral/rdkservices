@@ -3297,7 +3297,6 @@ namespace WPEFramework {
 	{
 		bool retVal = false;
 		string sleepMode;
-        int32_t uploadStatus = E_NOK;
 		ofstream outfile;
 		JsonObject paramIn, paramOut;
 		if (parameters.HasLabel("powerState")) {
@@ -3313,7 +3312,7 @@ namespace WPEFramework {
 
                     /* only if transition from ON -> LIGHT_SLEEP
                      * perform logupload when state change to Standby */
-                    uploadStatus = UploadLogs::LogUploadBeforeDeepSleep();
+                    int32_t uploadStatus = UploadLogs::LogUploadBeforeDeepSleep();
                     if ( E_NOK == uploadStatus ){
                         LOGERR("SystemServices Logupload Disabled \n");
                     }
@@ -3830,7 +3829,7 @@ namespace WPEFramework {
         {
             int seconds = 600; /* 10 Minutes to Reboot */
 
-            LOGINFO("len = %lud\n", len);
+            LOGINFO("len = %d\n", len);
             /* Only handle state events */
             if (eventId != IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) return;
 
