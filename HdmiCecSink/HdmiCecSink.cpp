@@ -269,7 +269,7 @@ namespace WPEFramework
              LOGINFO("Command: GiveOSDName sending SetOSDName : %s\n",osdName.toString().c_str());
              try
              { 
-                 conn.sendTo(header.from, MessageEncoder().encode(SetOSDName(osdName)));
+                 conn.sendToAsync(header.from, MessageEncoder().encode(SetOSDName(osdName)));
              } 
              catch(...)
              {
