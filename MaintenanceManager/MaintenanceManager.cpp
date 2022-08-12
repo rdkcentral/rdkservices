@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -1181,14 +1181,14 @@ namespace WPEFramework {
         uint32_t MaintenanceManager::stopMaintenance(const JsonObject& parameters,
                 JsonObject& response){
 
+                bool result=false;
                 if( checkAbortFlag() ) {
-                    bool result=false;
                     result=stopMaintenanceTasks();
-                    returnResponse(result);
                 }
                 else {
                     LOGINFO("Failed to initiate stopMaintenance, RFC is set as False\n");
                 }
+                returnResponse(result);
         }
 
         bool MaintenanceManager::stopMaintenanceTasks(){
