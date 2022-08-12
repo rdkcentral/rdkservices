@@ -13,10 +13,10 @@
 
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
-#include "UtilsVersions.h"
 
-const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MAJOR = 2;
-const short WPEFramework::Plugin::UsbAccess::API_VERSION_NUMBER_MINOR = 0;
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 const string WPEFramework::Plugin::UsbAccess::SERVICE_NAME = "org.rdk.UsbAccess";
 const string WPEFramework::Plugin::UsbAccess::METHOD_GET_FILE_LIST = "getFileList";
 const string WPEFramework::Plugin::UsbAccess::METHOD_CREATE_LINK = "createLink";
@@ -44,6 +44,21 @@ const WPEFramework::Plugin::UsbAccess::ArchiveLogsErrorMap WPEFramework::Plugin:
 };
 
 namespace WPEFramework {
+
+namespace {
+
+    static Plugin::Metadata<Plugin::UsbAccess> metadata(
+        // Version (Major, Minor, Patch)
+        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+        // Preconditions
+        {},
+        // Terminations
+        {},
+        // Controls
+        {}
+    );
+}
+
 namespace Plugin {
 
     namespace {
@@ -113,7 +128,7 @@ namespace Plugin {
         }
     }
 
-    SERVICE_REGISTRATION(UsbAccess, UsbAccess::API_VERSION_NUMBER_MAJOR, UsbAccess::API_VERSION_NUMBER_MINOR);
+    SERVICE_REGISTRATION(UsbAccess, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     UsbAccess* UsbAccess::_instance = nullptr;
 
@@ -122,15 +137,18 @@ namespace Plugin {
     {
         UsbAccess::_instance = this;
 
-        CreateHandler({2});
+        Register(_T("getFileList"), &UsbAccess::getFileListWrapper, this);
+        Register(_T("createLink"), &UsbAccess::createLinkWrapper, this);
+        Register(_T("clearLink"), &UsbAccess::clearLinkWrapper, this);
 
-        RegisterMethod(this, _T("getFileList"), &UsbAccess::getFileListWrapper, this);
-        RegisterMethod(this, _T("createLink"), &UsbAccess::createLinkWrapper, this);
-        RegisterMethod(this, _T("clearLink"), &UsbAccess::clearLinkWrapper, this);
-        RegisterMethod(this, _T("getAvailableFirmwareFiles"), &UsbAccess::getAvailableFirmwareFilesWrapper, this);
-        RegisterMethod(this, _T("getMounted"), &UsbAccess::getMountedWrapper, this);
-        RegisterMethod(this, _T("updateFirmware"), &UsbAccess::updateFirmware, this);
-        RegisterMethod(this, _T("ArchiveLogs"), &UsbAccess::archiveLogs, this);
+        CreateHandler({2});
+        GetHandler(2)->Register<JsonObject, JsonObject>(_T("getFileList"), &UsbAccess::getFileListWrapper, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>(_T("createLink"), &UsbAccess::createLinkWrapper, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>(_T("clearLink"), &UsbAccess::clearLinkWrapper, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>(_T("getAvailableFirmwareFiles"), &UsbAccess::getAvailableFirmwareFilesWrapper, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>(_T("getMounted"), &UsbAccess::getMountedWrapper, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>(_T("updateFirmware"), &UsbAccess::updateFirmware, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>(_T("ArchiveLogs"), &UsbAccess::archiveLogs, this);
     }
 
     UsbAccess::~UsbAccess()
@@ -140,13 +158,17 @@ namespace Plugin {
         if (archiveLogsThread.joinable())
             archiveLogsThread.join();
 
-        UnregisterMethod(this, _T("getFileList"));
-        UnregisterMethod(this, _T("createLink"));
-        UnregisterMethod(this, _T("clearLink"));
-        UnregisterMethod(this, _T("getAvailableFirmwareFiles"));
-        UnregisterMethod(this, _T("getMounted"));
-        UnregisterMethod(this, _T("updateFirmware"));
-        UnregisterMethod(this, _T("ArchiveLogs"));
+        Unregister(_T("getFileList"));
+        Unregister(_T("createLink"));
+        Unregister(_T("clearLink"));
+
+        GetHandler(2)->Unregister(_T("getFileList"));
+        GetHandler(2)->Unregister(_T("createLink"));
+        GetHandler(2)->Unregister(_T("clearLink"));
+        GetHandler(2)->Unregister(_T("getAvailableFirmwareFiles"));
+        GetHandler(2)->Unregister(_T("getMounted"));
+        GetHandler(2)->Unregister(_T("updateFirmware"));
+        GetHandler(2)->Unregister(_T("ArchiveLogs"));
     }
 
     const string UsbAccess::Initialize(PluginHost::IShell * /* service */)
@@ -366,7 +388,9 @@ namespace Plugin {
             it = ARCHIVE_LOGS_ERRORS.find(ScriptError);
         params["error"] = it->second;
         params["success"] = (error == None);
-        NotifyEvent(this, EVT_ON_ARCHIVE_LOGS.c_str(), params);
+        sendNotify(EVT_ON_ARCHIVE_LOGS.c_str(), params);
+
+        GetHandler(2)->Notify(EVT_ON_ARCHIVE_LOGS.c_str(), params);
     }
 
     // iarm
@@ -428,7 +452,9 @@ namespace Plugin {
         JsonObject params;
         params["mounted"] = mounted;
         params["device"] = device;
-        NotifyEvent(this, EVT_ON_USB_MOUNT_CHANGED.c_str(), params);
+        sendNotify(EVT_ON_USB_MOUNT_CHANGED.c_str(), params);
+
+        GetHandler(2)->Notify(EVT_ON_USB_MOUNT_CHANGED.c_str(), params);
     }
 
     // internal methods

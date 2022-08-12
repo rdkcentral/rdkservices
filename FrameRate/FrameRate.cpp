@@ -24,7 +24,6 @@
 
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
-#include "UtilsVersions.h"
 
 // Methods
 #define METHOD_SET_COLLECTION_FREQUENCY "setCollectionFrequency"
@@ -47,11 +46,29 @@
 #define DEFAULT_MIN_FPS_VALUE 60
 #define DEFAULT_MAX_FPS_VALUE -1
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::FrameRate> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(FrameRate, 1, 0);
+        SERVICE_REGISTRATION(FrameRate, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         FrameRate* FrameRate::_instance = nullptr;
 
@@ -63,30 +80,39 @@ namespace WPEFramework
         {
             FrameRate::_instance = this;
 
-            CreateHandler({2});
+            Register(METHOD_SET_COLLECTION_FREQUENCY, &FrameRate::setCollectionFrequencyWrapper, this);
+            Register(METHOD_START_FPS_COLLECTION, &FrameRate::startFpsCollectionWrapper, this);
+            Register(METHOD_STOP_FPS_COLLECTION, &FrameRate::stopFpsCollectionWrapper, this);
+            Register(METHOD_UPDATE_FPS_COLLECTION, &FrameRate::updateFpsWrapper, this);
 
-            RegisterMethod(this, METHOD_SET_COLLECTION_FREQUENCY, &FrameRate::setCollectionFrequencyWrapper, this);
-            RegisterMethod(this, METHOD_START_FPS_COLLECTION, &FrameRate::startFpsCollectionWrapper, this);
-            RegisterMethod(this, METHOD_STOP_FPS_COLLECTION, &FrameRate::stopFpsCollectionWrapper, this);
-            RegisterMethod(this, METHOD_UPDATE_FPS_COLLECTION, &FrameRate::updateFpsWrapper, this);
-            RegisterMethod(this, METHOD_SET_FRAME_MODE, &FrameRate::setFrmMode, this);
-            RegisterMethod(this, METHOD_GET_FRAME_MODE, &FrameRate::getFrmMode, this);
-            RegisterMethod(this, METHOD_GET_DISPLAY_FRAME_RATE, &FrameRate::getDisplayFrameRate, this);
-            RegisterMethod(this, METHOD_SET_DISPLAY_FRAME_RATE, &FrameRate::setDisplayFrameRate, this);
+            CreateHandler({2});
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_SET_COLLECTION_FREQUENCY, &FrameRate::setCollectionFrequencyWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_START_FPS_COLLECTION, &FrameRate::startFpsCollectionWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_STOP_FPS_COLLECTION, &FrameRate::stopFpsCollectionWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_UPDATE_FPS_COLLECTION, &FrameRate::updateFpsWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_SET_FRAME_MODE, &FrameRate::setFrmMode, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_GET_FRAME_MODE, &FrameRate::getFrmMode, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_GET_DISPLAY_FRAME_RATE, &FrameRate::getDisplayFrameRate, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(METHOD_SET_DISPLAY_FRAME_RATE, &FrameRate::setDisplayFrameRate, this);
 
             m_reportFpsTimer.connect( std::bind( &FrameRate::onReportFpsTimer, this ) );
         }
 
         FrameRate::~FrameRate()
         {
-            UnregisterMethod(this, METHOD_SET_COLLECTION_FREQUENCY);
-            UnregisterMethod(this, METHOD_START_FPS_COLLECTION);
-            UnregisterMethod(this, METHOD_STOP_FPS_COLLECTION);
-            UnregisterMethod(this, METHOD_UPDATE_FPS_COLLECTION);
-            UnregisterMethod(this, METHOD_SET_FRAME_MODE);
-            UnregisterMethod(this, METHOD_GET_FRAME_MODE);
-            UnregisterMethod(this, METHOD_GET_DISPLAY_FRAME_RATE);
-            UnregisterMethod(this, METHOD_SET_DISPLAY_FRAME_RATE);
+            Unregister(METHOD_SET_COLLECTION_FREQUENCY);
+            Unregister(METHOD_START_FPS_COLLECTION);
+            Unregister(METHOD_STOP_FPS_COLLECTION);
+            Unregister(METHOD_UPDATE_FPS_COLLECTION);
+
+            GetHandler(2)->Unregister(METHOD_SET_COLLECTION_FREQUENCY);
+            GetHandler(2)->Unregister(METHOD_START_FPS_COLLECTION);
+            GetHandler(2)->Unregister(METHOD_STOP_FPS_COLLECTION);
+            GetHandler(2)->Unregister(METHOD_UPDATE_FPS_COLLECTION);
+            GetHandler(2)->Unregister(METHOD_SET_FRAME_MODE);
+            GetHandler(2)->Unregister(METHOD_GET_FRAME_MODE);
+            GetHandler(2)->Unregister(METHOD_GET_DISPLAY_FRAME_RATE);
+            GetHandler(2)->Unregister(METHOD_SET_DISPLAY_FRAME_RATE);
         }
 
 	const string FrameRate::Initialize(PluginHost::IShell * /* service */)
@@ -408,7 +434,9 @@ namespace WPEFramework
             params["min"] = minFps;
             params["max"] = maxFps;
             
-            NotifyEvent(this, EVENT_FPS_UPDATE, params);
+            sendNotify(EVENT_FPS_UPDATE, params);
+
+            GetHandler(2)->Notify(EVENT_FPS_UPDATE, params);
         }
         
         void FrameRate::onReportFpsTimer()
@@ -452,7 +480,9 @@ namespace WPEFramework
 
         void FrameRate::frameRatePreChange()
         {
-            NotifyEvent(this, EVENT_FRAMERATE_PRECHANGE, JsonObject());
+            sendNotify(EVENT_FRAMERATE_PRECHANGE, JsonObject());
+
+            GetHandler(2)->Notify(EVENT_FRAMERATE_PRECHANGE, JsonObject());
         }
 
         void FrameRate::FrameRatePostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
@@ -465,7 +495,9 @@ namespace WPEFramework
 
         void FrameRate::frameRatePostChange()
         {
-            NotifyEvent(this, EVENT_FRAMERATE_POSTCHANGE, JsonObject());
+            sendNotify(EVENT_FRAMERATE_POSTCHANGE, JsonObject());
+
+            GetHandler(2)->Notify(EVENT_FRAMERATE_POSTCHANGE, JsonObject());
         }
 
         

@@ -5,8 +5,7 @@
       "callsign": "org.rdk.System",
       "locator": "libWPEFrameworkSystemServices.so",
       "status": "production",
-      "description": "The `System` plugin is used to manage various system-level features such as power settings and firmware updates.",
-      "version": "2.0"
+      "description": "The `System` plugin is used to manage various system-level features such as power settings and firmware updates."
     },
     "interface": {
       "$ref": "System.json#"

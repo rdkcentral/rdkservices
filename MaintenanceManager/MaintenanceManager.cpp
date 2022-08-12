@@ -67,6 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 2
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -167,9 +168,24 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
  * @brief WPEFramework class for Maintenance Manager
  */
 namespace WPEFramework {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::MaintenanceManager> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin {
         //Prototypes
-        SERVICE_REGISTRATION(MaintenanceManager,API_VERSION_NUMBER_MAJOR,API_VERSION_NUMBER_MINOR);
+        SERVICE_REGISTRATION(MaintenanceManager, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
         /* Global time variable */
         MaintenanceManager* MaintenanceManager::_instance = nullptr;
 
@@ -1140,6 +1156,12 @@ namespace WPEFramework {
 
                         /* we set this to false */
                         g_is_critical_maintenance="false";
+
+                        /* if there is any active thread, join it before executing the tasks from startMaintenance
+                        * especially when device is in offline mode*/
+                        if(m_thread.joinable()){
+                            m_thread.join();
+                        }
 
                         m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
 

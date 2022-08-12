@@ -65,12 +65,29 @@ using namespace std;
  */
 #define DIAL_MAX_ADDITIONALURL (1024)
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 
 namespace WPEFramework {
 
+namespace {
+
+    static Plugin::Metadata<Plugin::XCast> metadata(
+        // Version (Major, Minor, Patch)
+        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+        // Preconditions
+        {},
+        // Terminations
+        {},
+        // Controls
+        {}
+    );
+}
+
 namespace Plugin {
 
-SERVICE_REGISTRATION(XCast, 1, 0);
+SERVICE_REGISTRATION(XCast, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
 static RtXcastConnector * _rtConnector  = RtXcastConnector::getInstance();
 static int locateCastObjectRetryCount = 0;
@@ -141,11 +158,6 @@ void XCast::DeinitializeIARM()
      Unregister(METHOD_GET_FRIENDLYNAME);
      Unregister(METHOD_SET_FRIENDLYNAME);
 
-     DeinitializeIARM();
-     if ( m_locateCastTimer.isActive())
-     {
-         m_locateCastTimer.stop();
-     }
 }
 void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
 {
@@ -168,7 +180,7 @@ void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *dat
 
 const string XCast::Initialize(PluginHost::IShell* /* service */)
 {
-    LOGINFO("Activate plugin.");
+    LOGINFO("XCast:: Initialize  plugin called \n");
     _rtConnector  = RtXcastConnector::getInstance();
     _rtConnector->setService(this);
     if (XCast::isCastEnabled)
@@ -190,10 +202,16 @@ const string XCast::Initialize(PluginHost::IShell* /* service */)
 
 void XCast::Deinitialize(PluginHost::IShell* /* service */)
 {
+    LOGINFO("XCast::Deinitialize  called \n ");
+    if ( m_locateCastTimer.isActive())
+    {
+        m_locateCastTimer.stop();
+    }
     if( XCast::isCastEnabled){
         _rtConnector->enableCastService(m_friendlyName,false);
         _rtConnector->shutdown();
     }
+    DeinitializeIARM();
 }
 
 string XCast::Information() const

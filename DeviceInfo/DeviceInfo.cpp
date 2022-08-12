@@ -18,14 +18,30 @@
  */
 
 #include "DeviceInfo.h"
-
 #include "DeviceCapabilities.h"
 #include "FirmwareVersion.h"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework {
+namespace {
+    static Plugin::Metadata<Plugin::DeviceInfo> metadata(
+        // Version (Major, Minor, Patch)
+        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+        // Preconditions
+        {},
+        // Terminations
+        {},
+        // Controls
+        {}
+    );
+}
+
 namespace Plugin {
 
-    SERVICE_REGISTRATION(DeviceInfo, 1, 0);
+    SERVICE_REGISTRATION(DeviceInfo, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     static Core::ProxyPoolType<Web::JSONBodyType<DeviceInfo::Data>> jsonResponseFactory(4);
 

@@ -26,7 +26,6 @@
 #include "dsUtl.h"
 #include "dsError.h"
 #include "dsMgr.h"
-#include "UtilsVersions.h"
 
 #include <vector>
 #include <algorithm>
@@ -53,13 +52,31 @@
 #define HDMIINPUT_EVENT_ON_VIDEO_MODE_UPDATED "videoStreamInfoUpdate"
 #define HDMIINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED "hdmiGameFeatureStatusUpdate"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 using namespace std;
 
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::HdmiInput> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(HdmiInput, 1, 0);
+        SERVICE_REGISTRATION(HdmiInput, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         HdmiInput* HdmiInput::_instance = nullptr;
 
@@ -72,18 +89,27 @@ namespace WPEFramework
 
             CreateHandler({2});
 
-            RegisterMethod(this, HDMIINPUT_METHOD_GET_HDMI_INPUT_DEVICES, &HdmiInput::getHDMIInputDevicesWrapper, this);
-            RegisterMethod(this, HDMIINPUT_METHOD_WRITE_EDID, &HdmiInput::writeEDIDWrapper, this);
-            RegisterMethod(this, HDMIINPUT_METHOD_READ_EDID, &HdmiInput::readEDIDWrapper, this);
-            RegisterMethod(this, HDMIINPUT_METHOD_READ_RAWHDMISPD, &HdmiInput::getRawHDMISPDWrapper, this);
-            RegisterMethod(this, HDMIINPUT_METHOD_READ_HDMISPD, &HdmiInput::getHDMISPDWrapper, this);
-            RegisterMethod(this, HDMIINPUT_METHOD_SET_EDID_VERSION, &HdmiInput::setEdidVersionWrapper, this);
-            RegisterMethod(this, HDMIINPUT_METHOD_GET_EDID_VERSION, &HdmiInput::getEdidVersionWrapper, this);
-            RegisterMethod(this, HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
-            RegisterMethod(this, HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
-            RegisterMethod(this, HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
-            RegisterMethod(this, HDMIINPUT_METHOD_SUPPORTED_GAME_FEATURES, &HdmiInput::getSupportedGameFeatures, this);
-            RegisterMethod(this, HDMIINPUT_METHOD_GAME_FEATURE_STATUS, &HdmiInput::getHdmiGameFeatureStatusWrapper, this);
+            Register(HDMIINPUT_METHOD_GET_HDMI_INPUT_DEVICES, &HdmiInput::getHDMIInputDevicesWrapper, this);
+            Register(HDMIINPUT_METHOD_WRITE_EDID, &HdmiInput::writeEDIDWrapper, this);
+            Register(HDMIINPUT_METHOD_READ_EDID, &HdmiInput::readEDIDWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_READ_RAWHDMISPD, &HdmiInput::getRawHDMISPDWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_READ_HDMISPD, &HdmiInput::getHDMISPDWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_SET_EDID_VERSION, &HdmiInput::setEdidVersionWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_GET_EDID_VERSION, &HdmiInput::getEdidVersionWrapper, this);
+            Register(HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
+            Register(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
+            Register(HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
+
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_GET_HDMI_INPUT_DEVICES, &HdmiInput::getHDMIInputDevicesWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_WRITE_EDID, &HdmiInput::writeEDIDWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_READ_EDID, &HdmiInput::readEDIDWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
+            Register(HDMIINPUT_METHOD_SUPPORTED_GAME_FEATURES, &HdmiInput::getSupportedGameFeatures, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_SUPPORTED_GAME_FEATURES, &HdmiInput::getSupportedGameFeatures, this);
+            Register(HDMIINPUT_METHOD_GAME_FEATURE_STATUS, &HdmiInput::getHdmiGameFeatureStatusWrapper, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>(HDMIINPUT_METHOD_GAME_FEATURE_STATUS, &HdmiInput::getHdmiGameFeatureStatusWrapper, this);
         }
 
         HdmiInput::~HdmiInput()
@@ -388,7 +414,8 @@ namespace WPEFramework
 
             JsonObject params;
             params["devices"] = getHDMIInputDevices();
-            NotifyEvent(this, HDMIINPUT_EVENT_ON_DEVICES_CHANGED, params);
+            sendNotify(HDMIINPUT_EVENT_ON_DEVICES_CHANGED, params);
+            GetHandler(2)->Notify(HDMIINPUT_EVENT_ON_DEVICES_CHANGED, params);
         }
 
         /**
@@ -430,7 +457,8 @@ namespace WPEFramework
                             break;
             }
 
-            NotifyEvent(this, HDMIINPUT_EVENT_ON_SIGNAL_CHANGED, params);
+            sendNotify(HDMIINPUT_EVENT_ON_SIGNAL_CHANGED, params);
+            GetHandler(2)->Notify(HDMIINPUT_EVENT_ON_SIGNAL_CHANGED, params);
         }
 
         /**
@@ -457,7 +485,8 @@ namespace WPEFramework
                 params["status"] = "stopped";
             }
 
-            NotifyEvent(this, HDMIINPUT_EVENT_ON_STATUS_CHANGED, params);
+            sendNotify(HDMIINPUT_EVENT_ON_STATUS_CHANGED, params);
+            GetHandler(2)->Notify(HDMIINPUT_EVENT_ON_STATUS_CHANGED, params);
         }
 
         /**
@@ -563,7 +592,8 @@ namespace WPEFramework
                         break;
             }
 
-            NotifyEvent(this, HDMIINPUT_EVENT_ON_VIDEO_MODE_UPDATED, params);
+            sendNotify(HDMIINPUT_EVENT_ON_VIDEO_MODE_UPDATED, params);
+            GetHandler(2)->Notify(HDMIINPUT_EVENT_ON_VIDEO_MODE_UPDATED, params);
         }
 
         void HdmiInput::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
@@ -659,7 +689,8 @@ namespace WPEFramework
             params["gameFeature"] = "ALLM";
             params["mode"] = allm_mode;
 
-            NotifyEvent(this, HDMIINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED, params);
+            sendNotify(HDMIINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED, params);
+            GetHandler(2)->Notify(HDMIINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED, params);
         }
 
         uint32_t HdmiInput::getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response)

@@ -38,8 +38,10 @@
 // For example, the exposed "startScan" method is mapped to "startScanWrapper()" and that one calls to "startDeviceDiscovery()" internally,
 // which finally calls to "BTRMGR_StartDeviceDiscovery()" in Bluetooth Manager.
 
-const short WPEFramework::Plugin::Bluetooth::API_VERSION_NUMBER_MAJOR = 1;  // corresponds to org.rdk.Bluetooth_5
-const short WPEFramework::Plugin::Bluetooth::API_VERSION_NUMBER_MINOR = 0;
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 const string WPEFramework::Plugin::Bluetooth::SERVICE_NAME = "org.rdk.Bluetooth";
 const string WPEFramework::Plugin::Bluetooth::METHOD_START_SCAN = "startScan";
 const string WPEFramework::Plugin::Bluetooth::METHOD_STOP_SCAN = "stopScan";
@@ -118,9 +120,23 @@ const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_UNMUTE = "AUDIO_UNM
 
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::Bluetooth> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+    
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Bluetooth, Bluetooth::API_VERSION_NUMBER_MAJOR, Bluetooth::API_VERSION_NUMBER_MINOR);
+        SERVICE_REGISTRATION(Bluetooth, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         Bluetooth* Bluetooth::_instance = nullptr;
         static Core::TimerType<DiscoveryTimer> _discoveryTimer(64 * 1024, "DiscoveryTimer");

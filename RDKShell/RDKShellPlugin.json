@@ -6,7 +6,6 @@
       "locator": "libWPEFrameworkRDKShell.so",
       "status": "production",
       "description": "The `RDKShell` plugin controls the management of composition, layout, Z order, and key handling.",
-      "version": "2.0"
     },
     "interface": {
       "$ref": "RDKShell.json#"

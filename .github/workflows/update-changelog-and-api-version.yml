@@ -1,0 +1,33 @@
+name: update changelog and api version
+
+on:
+  push:
+    branches: 
+      - main
+      - 'release/**'
+
+  pull_request:
+    branches: 
+      - main
+      - 'release/**'
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # windows-latest | macos-latest
+    name: Check if changelog and api version were updated
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
+
+      - name: Get changed files using defaults
+        id: changed-files
+        uses: tj-actions/changed-files@v19
+
+      - name: Run step when a CHANGELOG.md didn't change
+        uses: actions/github-script@v3
+        if: ${{ !contains(steps.changed-files.outputs.modified_files, 'CHANGELOG.md') }}
+        with:
+          script: |
+              core.setFailed('CHANGELOG.md should be modified')
