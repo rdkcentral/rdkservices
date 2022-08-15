@@ -83,6 +83,7 @@ const string WPEFramework::Plugin::Bluetooth::EVT_PLAYBACK_NEW_TRACK = "onPlayba
 const string WPEFramework::Plugin::Bluetooth::EVT_DEVICE_FOUND = "onDeviceFound";
 const string WPEFramework::Plugin::Bluetooth::EVT_DEVICE_LOST_OR_OUT_OF_RANGE = "onDeviceLost";
 const string WPEFramework::Plugin::Bluetooth::EVT_DEVICE_DISCOVERY_UPDATE = "onDiscoveredDevice";
+const string WPEFramework::Plugin::Bluetooth::EVT_DEVICE_MEDIA_STATUS = "onDeviceMediaStatus";
 
 const string WPEFramework::Plugin::Bluetooth::STATUS_NO_BLUETOOTH_HARDWARE = "NO_BLUETOOTH_HARDWARE";
 const string WPEFramework::Plugin::Bluetooth::STATUS_SOFTWARE_DISABLED = "SOFTWARE_DISABLED";
@@ -117,6 +118,7 @@ const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_VOLUME_UP = "VOLUME
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_VOLUME_DOWN = "VOLUME_DOWN";
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_MUTE = "AUDIO_MUTE";
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_UNMUTE = "AUDIO_UNMUTE";
+const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_UNKNOWN = "CMD_UNKNOWN";
 
 namespace WPEFramework
 {
@@ -1136,6 +1138,33 @@ namespace WPEFramework
                     params["paired"] = eventMsg.m_discoveredDevice.m_isPairedDevice ? true:false;
 
                     eventId = EVT_DEVICE_DISCOVERY_UPDATE;
+                    break;
+
+                case BTRMGR_EVENT_DEVICE_MEDIA_STATUS:
+                    LOGINFO ("Received %s Event from BTRMgr", C_STR(EVT_DEVICE_MEDIA_STATUS));
+                    params["deviceID"] = std::to_string(eventMsg.m_mediaInfo.m_deviceHandle);
+                    params["name"] = string(eventMsg.m_mediaInfo.m_name);
+                    params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_mediaInfo.m_deviceType);
+                    params["volume"] = std::to_string(eventMsg.m_mediaInfo.m_mediaDevStatus.m_ui8mediaDevVolume);
+                    params["mute"] = eventMsg.m_mediaInfo.m_mediaDevStatus.m_ui8mediaDevMute ? true : false;
+
+                    if (eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd == BTRMGR_MEDIA_CTRL_VOLUMEUP) {
+                        params["command"] = string(CMD_AUDIO_CTRL_VOLUME_UP);
+                    }
+                    else if (eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd == BTRMGR_MEDIA_CTRL_VOLUMEDOWN) {
+                        params["command"] = string(CMD_AUDIO_CTRL_VOLUME_DOWN);
+                    }
+                    else if (eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd == BTRMGR_MEDIA_CTRL_MUTE) {
+                        params["command"] = string(CMD_AUDIO_CTRL_MUTE);
+                    }
+                    else if (eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd == BTRMGR_MEDIA_CTRL_UNMUTE) {
+                        params["command"] = string(CMD_AUDIO_CTRL_UNMUTE);
+                    }
+                    else {
+                        params["command"] = string(CMD_AUDIO_CTRL_UNKNOWN);
+                    }
+
+                    eventId = EVT_DEVICE_MEDIA_STATUS;
                     break;
 
                     // TODO: implement or delete these values from enum
