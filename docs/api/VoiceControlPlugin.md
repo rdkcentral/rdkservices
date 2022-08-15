@@ -114,6 +114,7 @@ Configures the RDK's voice stack. NOTE: The URL Scheme determines which VREX API
 | params?.urlAll | string | <sup>*(optional)*</sup> Specifies the URL for all devices instead of individually specifying the URL for each device |
 | params?.urlPtt | string | <sup>*(optional)*</sup> The PTT URL |
 | params?.urlHf | string | <sup>*(optional)*</sup> The HF (ff and mic) URL |
+| params?.urlMicTap | string | <sup>*(optional)*</sup> The microphone tap URL |
 | params?.enable | boolean | <sup>*(optional)*</sup> Enables or disables all of the voice devices instead of individually enabling or disabling each device |
 | params?.prv | boolean | <sup>*(optional)*</sup> The Press & Release Voice feature. `true` for enable, `false` for disable |
 | params?.wwFeedback | boolean | <sup>*(optional)*</sup> The Wake Word Feedback feature (typically an audible beep). `true` for enable, `false` for disable |
@@ -295,6 +296,8 @@ Retrieves the types of voice sessions which are supported by the platform.
 | mic_stream_default | An audio based session using the urlHf routing url and the platform's default audio output format |
 | mic_stream_single | An audio based session using the urlHf routing url and the platform's single channel audio input format |
 | mic_stream_multi | An audio based session using the urlHf routing url and the platform's multi-channel audio input format |
+| mic_tap_stream_single | An audio based session using the urlMicTap routing url and the platform's single channel audio input format |
+| mic_tap_stream_multi | An audio based session using the urlMicTap routing url and the platform's multi-channel audio input format |
 | mic_factory_test | An audio based session using the urlHf routing url and the platform's unprocessed multi-channel audio input format |
 
 ### Events
@@ -368,7 +371,6 @@ Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [o
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.session_id | string | If successful, the session identifier for use in voiceSessionTerminate |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -394,7 +396,6 @@ Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [o
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "session_id": "abc123",
         "success": true
     }
 }
@@ -414,7 +415,7 @@ No Events.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.session_id | string | The session identifier of the session to terminate |
+| params.sessionId | string | The session identifier of the session from the onSessionBegin event |
 
 ### Result
 
@@ -433,7 +434,7 @@ No Events.
     "id": 42,
     "method": "org.rdk.VoiceControl.1.voiceSessionTerminate",
     "params": {
-        "session_id": "abc123"
+        "sessionId": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
     }
 }
 ```
