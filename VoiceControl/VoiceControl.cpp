@@ -29,6 +29,7 @@ namespace WPEFramework {
             Register("configureVoice",        &VoiceControl::configureVoice,        this);
             Register("setVoiceInit",          &VoiceControl::setVoiceInit,          this);
             Register("sendVoiceMessage",      &VoiceControl::sendVoiceMessage,      this);
+            Register("voiceSessionTypes",     &VoiceControl::voiceSessionTypes,     this);
             Register("voiceSessionRequest",   &VoiceControl::voiceSessionRequest,   this);
             Register("voiceSessionTerminate", &VoiceControl::voiceSessionTerminate, this);
 
