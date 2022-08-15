@@ -269,7 +269,7 @@ namespace WPEFramework
              LOGINFO("Command: GiveOSDName sending SetOSDName : %s\n",osdName.toString().c_str());
              try
              { 
-                 conn.sendTo(header.from, MessageEncoder().encode(SetOSDName(osdName)));
+                 conn.sendToAsync(header.from, MessageEncoder().encode(SetOSDName(osdName)));
              } 
              catch(...)
              {
@@ -1128,7 +1128,7 @@ namespace WPEFramework
             if(!(_instance->smConnection))
                 return;
              LOGINFO(" Send GiveAudioStatus ");
-	      _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(GiveAudioStatus()), 100);
+	      _instance->smConnection->sendToAsync(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(GiveAudioStatus()), 100);
 
         }
         void  HdmiCecSink::reportAudioDevicePowerStatusInfo(const int logicalAddress, const int powerStatus)
