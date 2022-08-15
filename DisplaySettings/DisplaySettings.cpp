@@ -576,11 +576,13 @@ namespace WPEFramework {
                     LOGINFO("DisplaySettings::m_powerState:%d", m_powerState);
                 }
             }
-            RFC_ParamData_t param;
-            bool ret = Utils::getRFCConfig(RFC_PWRMGR2, param);
-            if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
             {
-                m_isPwrMgr2RFCEnabled = true;
+                RFC_ParamData_t param = {0};
+                WDMP_STATUS status = getRFCParameter(NULL, RFC_PWRMGR2, &param);
+                if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+                {
+                    m_isPwrMgr2RFCEnabled = true;
+                }
             }
 
             try
