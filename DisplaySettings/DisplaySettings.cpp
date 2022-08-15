@@ -285,14 +285,6 @@ namespace WPEFramework {
         DisplaySettings::~DisplaySettings()
         {
             LOGINFO("dtor");
-            lock_guard<mutex> lck(m_callMutex);
-            if ( m_timer.isActive()) {
-                m_timer.stop();
-            }
-
-            if ( m_AudioDeviceDetectTimer.isActive()) {
-                m_AudioDeviceDetectTimer.stop();
-            }
         }
 
         void DisplaySettings::AudioPortsReInitialize()
@@ -536,6 +528,24 @@ namespace WPEFramework {
             {
                 LOGERR("exception in thread join %s", e.what());
             }
+
+            {
+                lock_guard<mutex> lck(m_callMutex);
+                if ( m_timer.isActive()) {
+                    m_timer.stop();
+                }
+
+                if ( m_AudioDeviceDetectTimer.isActive()) {
+                    m_AudioDeviceDetectTimer.stop();
+                }
+                for (std::string eventName : m_clientRegisteredEventNames) {
+                    m_client->Unsubscribe(1000, _T(eventName));
+                    LOGINFO("Unsubscribing event %s", eventName.c_str());
+	        }
+                m_clientRegisteredEventNames.clear();
+		m_client.reset();
+            }
+
 
             DeinitializeIARM();
             DisplaySettings::_instance = nullptr;
@@ -4430,24 +4440,31 @@ namespace WPEFramework {
                 if(strcmp(eventName, HDMICECSINK_ARC_INITIATION_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onARCInitiationEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_ARC_TERMINATION_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onARCTerminationEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onShortAudioDescriptorEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onSystemAudioModeEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onAudioDeviceConnectedStatusEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_CEC_ENABLED_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onCecEnabledEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_AUDIO_DEVICE_POWER_STATUS_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onAudioDevicePowerStatusEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
 		} else {
                      err = Core::ERROR_UNAVAILABLE;
                      LOGERR("Unsupported Event: %s ", eventName);
