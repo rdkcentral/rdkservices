@@ -97,10 +97,12 @@ VoiceControl interface methods:
 <a name="configureVoice"></a>
 ## *configureVoice*
 
-Configures the RDK's voice stack. NOTE: The URL Scheme determines which VREX API protocol is used. Supported URL schemes include:  
+Configures the RDK's voice stack. NOTE: The URL Scheme determines which API protocol is used. Supported URL schemes include:  
 * http/https - VREX Legacy HTTP API  
 * ws/wss - VREX XR18 WS API  
 * vrng/vrngs - VREX NextGen WS API.
+* aows/aowss - Audio only over websockets with no protocol layer.
+* sdt - Simple data transfer for direct handling of audio in the protocol layer.
 
 ### Events
 
