@@ -5,8 +5,7 @@
       "callsign": "org.rdk.Bluetooth",
       "locator": "libWPEFrameworkBluetooth.so",
       "status": "production",
-      "description": "The Bluetooth Plugin allows applications to interact with the Bluetooth stack and manage Bluetooth devices.",
-      "version": "2.0"
+      "description": "The Bluetooth Plugin allows applications to interact with the Bluetooth stack and manage Bluetooth devices."
     },
     "interface": {
       "$ref": "Bluetooth.json#"

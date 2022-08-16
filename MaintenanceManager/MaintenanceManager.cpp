@@ -67,6 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 1
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -167,9 +168,24 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
  * @brief WPEFramework class for Maintenance Manager
  */
 namespace WPEFramework {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::MaintenanceManager> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin {
         //Prototypes
-        SERVICE_REGISTRATION(MaintenanceManager,API_VERSION_NUMBER_MAJOR,API_VERSION_NUMBER_MINOR);
+        SERVICE_REGISTRATION(MaintenanceManager, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
         /* Global time variable */
         MaintenanceManager* MaintenanceManager::_instance = nullptr;
 
@@ -1165,14 +1181,14 @@ namespace WPEFramework {
         uint32_t MaintenanceManager::stopMaintenance(const JsonObject& parameters,
                 JsonObject& response){
 
+                bool result=false;
                 if( checkAbortFlag() ) {
-                    bool result=false;
                     result=stopMaintenanceTasks();
-                    returnResponse(result);
                 }
                 else {
                     LOGINFO("Failed to initiate stopMaintenance, RFC is set as False\n");
                 }
+                returnResponse(result);
         }
 
         bool MaintenanceManager::stopMaintenanceTasks(){

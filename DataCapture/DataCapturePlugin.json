@@ -5,8 +5,7 @@
       "callsign": "org.rdk.dataCapture",
       "locator": "libWPEFrameworkDataCapture.so",
       "status": "production",
-      "description": "The DataCapture plugin allows you to capture an audio clip from an audio source and send it to a URL such as a music ID service.",
-      "version": "1.0"
+      "description": "The DataCapture plugin allows you to capture an audio clip from an audio source and send it to a URL such as a music ID service."
     },
     "interface": {
       "$ref": "DataCapture.json#"

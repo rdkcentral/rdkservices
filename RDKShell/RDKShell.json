@@ -123,6 +123,11 @@
             "summary": "The cursor height",
             "type": "number",
             "example": 255
+        },
+        "framerate":{
+            "summary":"display the current Graphics framerate",
+            "type":"number",
+            "example":40
         }
     },
     "methods": {
@@ -1158,6 +1163,24 @@
                 ]
             }
         },
+        "getGraphicsFrameRate":{
+            "summary":"Returns the current Graphics Frame Rate",
+            "result":{
+                "type":"object",
+                "properties":{
+                    "frameRate":{
+                        "$ref": "#/definitions/framerate"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "frameRate",
+                    "success"
+                ]
+            }
+        },
         "hideAllClients": {
             "summary": "Hides/Unhides all the clients. \n \n### Events\n \n No Events.",
             "params": {
@@ -2001,6 +2024,25 @@
                 "$ref": "#/common/result"
             }
         },
+        "setGraphicsFrameRate":{
+            "summary": "Set Graphics Frame Rate.. \n \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "framerate": {
+                        "summary": "Graphics Framerate to be set",
+                        "type":"number",
+                        "example": 60
+                    }
+                },
+                "required": [
+                    "framerate"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "showCursor": {
             "summary": "Shows the cursor on the display using the current cursor size. See `setCursorSize`. The cursor automatically disappears after 5 seconds of inactivity. \n \n### Events\n \n No Events.",
             "result": {
@@ -2094,6 +2136,42 @@
             },
             "result": {
                 "$ref": "#/common/result"
+            }
+        },
+        "keyRepeatConfig": {
+            "summary": "Customizes key repeats. \n \n### Events\n \n No Events.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "input": {
+                        "summary": "input type, can be 'default' or 'keyboard'. If 'input' prop not specified 'default'('keyboard') is assumed",
+                        "type": "string",
+                        "example": "default"
+                    },
+                    "enabled": {
+                        "summary": "`true` to enable key repeats, false to disable key repeats",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "initialDelay": {
+                        "summary": "number of miliseconds until first key repeat event will be sent",
+                        "type": "number",
+                        "example": 500
+                    },
+                    "repeatInterval": {
+                        "summary": "number of miliseconds until following key repeat events will be sent",
+                        "type": "number",
+                        "example": 250
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "initialDelay",
+                    "repeatInterval"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
             }
         }
     },

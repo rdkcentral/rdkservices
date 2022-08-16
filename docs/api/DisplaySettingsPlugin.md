@@ -2,7 +2,7 @@
 <a name="DisplaySettings_Plugin"></a>
 # DisplaySettings Plugin
 
-**Version: 2.0**
+**Version: 1.0**
 
 **Status: :black_circle::black_circle::black_circle:**
 
