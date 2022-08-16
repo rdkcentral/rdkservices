@@ -253,29 +253,6 @@ namespace Plugin {
         ASSERT(service != nullptr);
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
 
-        tvError_t ret = tvERROR_NONE;
-
-	std::system("echo \"Testing dmesg [starts - before tvInit] - TVMgr::Initialize()\" > /dev/kmsg");
-        ret = tvInit();
-	std::system("echo \"Testing dmesg [starts - after tvInit] - TVMgr::Initialize()\" > /dev/kmsg");
-
-	if(ret != tvERROR_NONE) {
-            LOGERR("Platform Init failed, ret: %s \n", getErrorString(ret).c_str());
-
-        }
-        else{
-            LOGINFO("Platform Init successful...\n");
-	    std::system("echo \"Testing dmesg [starts..before tvSD3toCriSyncInit] - TVMgr::Initialize()\" > /dev/kmsg");
-            ret = tvSD3toCriSyncInit();
-	    std::system("echo \"Testing dmesg [starts..after tvSD3toCriSyncInit] - TVMgr::Initialize()\" > /dev/kmsg");
-            if(ret != tvERROR_NONE) {
-                LOGERR(" SD3 <->cri_data sync failed, ret: %s \n", getErrorString(ret).c_str());
-            }
-            else {
-                LOGERR(" SD3 <->cri_data sync success, ret: %s \n", getErrorString(ret).c_str());
-            }
-
-        }
         tvVideoFormatCallbackData callbackData = {this,tvVideoFormatChangeHandler};
         RegisterVideoFormatChangeCB(callbackData);
 
