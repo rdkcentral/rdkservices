@@ -2,7 +2,7 @@
 <a name="DTV_Plugin"></a>
 # DTV Plugin
 
-**Version: 2.0**
+**Version: 1.0**
 
 **Status: :black_circle::black_circle::white_circle:**
 
