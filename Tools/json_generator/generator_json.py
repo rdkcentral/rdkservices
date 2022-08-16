@@ -2274,6 +2274,7 @@ def CreateDocument(schema, path):
         except:
             log.Error("CHANGELOG.md file not found")
 
+
         plugin_class = None
         if "callsign" in info:
             plugin_class = info["callsign"]
