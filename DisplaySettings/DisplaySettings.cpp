@@ -288,14 +288,6 @@ namespace WPEFramework {
         DisplaySettings::~DisplaySettings()
         {
             LOGINFO("dtor");
-            lock_guard<mutex> lck(m_callMutex);
-            if ( m_timer.isActive()) {
-                m_timer.stop();
-            }
-
-            if ( m_AudioDeviceDetectTimer.isActive()) {
-                m_AudioDeviceDetectTimer.stop();
-            }
         }
 
         void DisplaySettings::AudioPortsReInitialize()
@@ -539,6 +531,24 @@ namespace WPEFramework {
             {
                 LOGERR("exception in thread join %s", e.what());
             }
+
+            {
+                lock_guard<mutex> lck(m_callMutex);
+                if ( m_timer.isActive()) {
+                    m_timer.stop();
+                }
+
+                if ( m_AudioDeviceDetectTimer.isActive()) {
+                    m_AudioDeviceDetectTimer.stop();
+                }
+                for (std::string eventName : m_clientRegisteredEventNames) {
+                    m_client->Unsubscribe(1000, _T(eventName));
+                    LOGINFO("Unsubscribing event %s", eventName.c_str());
+	        }
+                m_clientRegisteredEventNames.clear();
+		m_client.reset();
+            }
+
 
             DeinitializeIARM();
             DisplaySettings::_instance = nullptr;
@@ -4149,7 +4159,7 @@ namespace WPEFramework {
                             if(types & dsAUDIOARCSUPPORT_eARC) {
                                 aPort.setStereoAuto(true,true);
                             }
-                            else if (types & dsAUDIOARCSUPPORT_ARC) {
+                            else if (types & dsAUDIOARCSUPPORT_ARC && (m_arcAudioEnabled != pEnable)) {
                                 if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
                                     LOGERR("DisplaySettings::setEnableAudioPort (ARC-Auto): requestShortAudioDescriptor failed !!!\n");;
                                 }
@@ -4161,7 +4171,8 @@ namespace WPEFramework {
                         else{
                             device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
                             mode = aPort.getStereoMode(); //get Last User set stereo mode and set
-                            if((mode == device::AudioStereoMode::kPassThru) && (types & dsAUDIOARCSUPPORT_ARC)){
+                            if((mode == device::AudioStereoMode::kPassThru) && (types & dsAUDIOARCSUPPORT_ARC)
+                                              && (m_arcAudioEnabled != pEnable)){
                                 if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
                                     LOGERR("DisplaySettings::setEnableAudioPort (ARC-Passthru): requestShortAudioDescriptor failed !!!\n");;
                                 }
@@ -4490,24 +4501,31 @@ namespace WPEFramework {
                 if(strcmp(eventName, HDMICECSINK_ARC_INITIATION_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onARCInitiationEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_ARC_TERMINATION_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onARCTerminationEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onShortAudioDescriptorEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onSystemAudioModeEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onAudioDeviceConnectedStatusEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_CEC_ENABLED_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onCecEnabledEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_AUDIO_DEVICE_POWER_STATUS_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onAudioDevicePowerStatusEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
 		} else {
                      err = Core::ERROR_UNAVAILABLE;
                      LOGERR("Unsupported Event: %s ", eventName);
