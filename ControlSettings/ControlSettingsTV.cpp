@@ -116,35 +116,6 @@ namespace Plugin {
 
 	registerMethod("setBacklightFade", &ControlSettingsTV::setBacklightFade, this);
 
-	tvError_t ret = tvERROR_NONE;
-        
-	std::system("echo \"Testing dmesg [starts - before tvInit] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
-        ret = tvInit();
-        std::system("echo \"Testing dmesg [starts - after tvInit] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
-
-        if(ret != tvERROR_NONE) {
-            LOGERR("Platform Init failed, ret: %s \n", getErrorString(ret).c_str());
-
-        }
-        else{
-            LOGINFO("Platform Init successful...\n");
-            std::system("echo \"Testing dmesg [starts..before tvSD3toCriSyncInit] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
-            ret = tvSD3toCriSyncInit();
-            std::system("echo \"Testing dmesg [starts..after tvSD3toCriSyncInit] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
-            if(ret != tvERROR_NONE) {
-                LOGERR(" SD3 <->cri_data sync failed, ret: %s \n", getErrorString(ret).c_str());
-            }
-            else {
-                LOGERR(" SD3 <->cri_data sync success, ret: %s \n", getErrorString(ret).c_str());
-            }
-
-        }
-	std::system("echo \"Testing dmesg [starts..before SyncPQParamsToDriverCache] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
-
-        SyncPQParamsToDriverCache();
-
-        std::system("echo \"Testing dmesg [starts..after SyncPQParamsToDriverCache] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
-
         LOGINFO("Exit\n");
     }
     
@@ -164,6 +135,12 @@ namespace Plugin {
        memset(&param, 0, sizeof(param));
 
        LocatePQSettingsFile(rfc_caller_id);
+
+       std::system("echo \"Testing dmesg [starts..before SyncPQParamsToDriverCache] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
+
+       SyncPQParamsToDriverCache();
+
+       std::system("echo \"Testing dmesg [starts..after SyncPQParamsToDriverCache] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
 
        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, &param);
        if ( tr181Success == err )
