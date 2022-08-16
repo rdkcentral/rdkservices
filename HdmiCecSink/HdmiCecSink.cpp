@@ -2599,7 +2599,8 @@ namespace WPEFramework
 
 					if ( logicalAddressRequested == LogicalAddress::UNREGISTERED + TEST_ADD )
 					{
-						for(i=0;i<LogicalAddress::UNREGISTERED + TEST_ADD;i++)
+						int i = 0;
+						for(;i<LogicalAddress::UNREGISTERED + TEST_ADD;i++)
 						{
 							if( i != _instance->m_logicalAddressAllocated &&
 								_instance->deviceList[i].m_isDevicePresent &&

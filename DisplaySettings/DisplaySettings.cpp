@@ -773,14 +773,6 @@ namespace WPEFramework {
 
 		    if(hdmiin_hotplug_port == hdmiArcPortId) { //HDMI ARC/eARC Port Handling
 
-                	JsonObject audioOutputPortConfig = DisplaySettings::_instance->getAudioOutputPortConfig();
-			if (audioOutputPortConfig.HasLabel("HDMI_ARC")) {
-                            try {
-                            }catch (const device::Exception& err) {
-                                    LOGERR("HDMI_ARC not in config object \n");
-                            }
-			}
-
 			try
 			{
                             int types = dsAUDIOARCSUPPORT_NONE;
@@ -4578,7 +4570,7 @@ namespace WPEFramework {
 
 			std::vector<int> sad_list;
 			for (int i=0; i<shortAudioDescriptorList.Length(); i++) {
-                            LOGINFO("Short Audio Descriptor[%d]: %d \n",i, (int) shortAudioDescriptorList[i].Number());
+                            LOGINFO("Short Audio Descriptor[%d]: %lld \n",i, shortAudioDescriptorList[i].Number());
                             sad_list.push_back(shortAudioDescriptorList[i].Number());
                         }
 

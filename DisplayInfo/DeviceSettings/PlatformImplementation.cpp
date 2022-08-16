@@ -386,7 +386,7 @@ public:
         if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
             LOGERR("Size too large to use ToString base64 wpe api");
         int i = 0;
-        for (i = 0; i < length && i < size; i++)
+        for (; i < length && i < size; i++)
         {
             data[i] = edidVec[i];
         }

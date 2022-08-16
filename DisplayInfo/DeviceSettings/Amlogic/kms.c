@@ -143,6 +143,8 @@ uint32_t kms_get_properties(int fd, drmModeObjectProperties *props, const char *
             id = property->prop_id;
 
         drmModeFreeProperty(property);
+        if ( id )
+            return id;
     }
     return id;
 }
