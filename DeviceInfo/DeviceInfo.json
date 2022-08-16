@@ -141,7 +141,8 @@
         "cisco",
         "pace",
         "samsung",
-        "technicolor"
+        "technicolor",
+        "Amlogic_Inc"
       ],
       "description": "Device manufacturer",
       "example": "pace"
@@ -194,7 +195,51 @@
       "type": "string",
       "enum": [
         "comcast",
-        "xglobal"
+        "xglobal",
+        "sky-de",
+        "sky-italia",
+        "sky-uk",
+        "sky-uk-dev",
+        "sky-deu",
+        "sky-deu-dev",
+        "sky-it",
+        "sky-it-dev",
+        "cox",
+        "cox-hospitality",
+        "cox-dev",
+        "cox-qa",
+        "MIT",
+        "shaw",
+        "shaw-dev",
+        "rogers",
+        "rogers-dev",
+        "videotron",
+        "charter",
+        "charter-dev"
+      ],
+      "enumids": [
+        "COMCAST",
+        "XGLOBAL",
+        "SKY_DE",
+        "SKY_ITALIA",
+        "SKY_UK",
+        "SKY_UK_DEV",
+        "SKY_DEU",
+        "SKY_DEU_DEV",
+        "SKY_IT",
+        "SKY_IT_DEV",
+        "COX",
+        "COX_HOSPITALITY",
+        "COX_DEV",
+        "COX_QA",
+        "MIT",
+        "SHAW",
+        "SHAW_DEV",
+        "ROGERS",
+        "ROGERS_DEV",
+        "VIDEOTRON",
+        "CHARTER",
+        "CHARTER_DEV"
       ],
       "description": "Partner ID or distributor ID for device",
       "example": "comcast"
@@ -632,8 +677,7 @@
           "videoDisplay": {
             "description": "Video display port name",
             "type": "string",
-            "example": "HDMI0",
-            "default": "HDMI0"
+            "example": "HDMI0"
           }
         },
         "required": [
@@ -665,8 +709,7 @@
           "videoDisplay": {
             "description": "Video display port name",
             "type": "string",
-            "example": "HDMI0",
-            "default": "HDMI0"
+            "example": "HDMI0"
           }
         },
         "required": [
@@ -698,8 +741,7 @@
           "videoDisplay": {
             "description": "Video display port name",
             "type": "string",
-            "example": "HDMI0",
-            "default": "HDMI0"
+            "example": "HDMI0"
           }
         },
         "required": [
@@ -731,8 +773,7 @@
           "audioPort": {
             "description": "Audio port name",
             "type": "string",
-            "example": "HDMI0",
-            "default": "HDMI0"
+            "example": "HDMI0"
           }
         },
         "required": [
@@ -764,8 +805,7 @@
           "audioPort": {
             "description": "Audio port name",
             "type": "string",
-            "example": "HDMI0",
-            "default": "HDMI0"
+            "example": "HDMI0"
           }
         },
         "required": [
@@ -797,8 +837,7 @@
           "audioPort": {
             "description": "Audio port name",
             "type": "string",
-            "example": "HDMI0",
-            "default": "HDMI0"
+            "example": "HDMI0"
           }
         },
         "required": [

@@ -5,8 +5,7 @@
       "callsign": "org.rdk.RemoteActionMapping",
       "locator": "libWPEFrameworkRemoteActionMapping.so",
       "status": "production",
-      "description": "The `RemoteActionMapping` plugin controls and maps remote controllers.",
-      "version": "1.0"
+      "description": "The `RemoteActionMapping` plugin controls and maps remote controllers."
     },
     "interface": {
       "$ref": "RemoteActionMapping.json#"

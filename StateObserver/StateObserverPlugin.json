@@ -5,8 +5,7 @@
       "callsign": "com.comcast.StateObserver",
       "locator": "libWPEFrameworkStateObserver.so",
       "status": "production",
-      "description": "The `StateObserver` plugin is used to monitor property values.",
-      "version": "1.0"
+      "description": "The `StateObserver` plugin is used to monitor property values."
     },
     "interface": {
       "$ref": "StateObserver.json#"
