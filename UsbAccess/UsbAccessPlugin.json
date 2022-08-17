@@ -5,8 +5,7 @@
         "callsign": "org.rdk.UsbAccess",
         "locator": "libWPEFrameworkUsbAccess.so",
         "status": "production",
-        "description": "The `UsbAccess` plugin provides the ability to examine the contents on a USB drive and access the content through HTTP URLs.",
-        "version": "1.0"
+        "description": "The `UsbAccess` plugin provides the ability to examine the contents on a USB drive and access the content through HTTP URLs."
     },
     "interface": {
         "$ref": "UsbAccess.json#"

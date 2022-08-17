@@ -127,8 +127,6 @@ namespace WPEFramework {
 
 
         public:
-            static const short API_VERSION_NUMBER_MAJOR;
-            static const short API_VERSION_NUMBER_MINOR;
             static const string SERVICE_NAME;
             static const string METHOD_START_SCAN;
             static const string METHOD_STOP_SCAN;
@@ -170,6 +168,7 @@ namespace WPEFramework {
             static const string EVT_DEVICE_FOUND;
             static const string EVT_DEVICE_LOST_OR_OUT_OF_RANGE;
             static const string EVT_DEVICE_DISCOVERY_UPDATE;
+            static const string EVT_DEVICE_MEDIA_STATUS;
 
             Bluetooth();
             virtual ~Bluetooth();
@@ -220,6 +219,7 @@ namespace WPEFramework {
             static const string CMD_AUDIO_CTRL_VOLUME_DOWN;
             static const string CMD_AUDIO_CTRL_MUTE;
             static const string CMD_AUDIO_CTRL_UNMUTE;
+            static const string CMD_AUDIO_CTRL_UNKNOWN;
 
             uint32_t m_apiVersionNumber;
             // Assuming that there will be only one threaded call at a time (which is the case for Bluetooth)

@@ -19,17 +19,33 @@
 
 #include "TextToSpeech.h"
 
-#define TTS_MAJOR_VERSION 1
-#define TTS_MINOR_VERSION 0
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 #define API_VERSION_NUMBER 1
 
 namespace WPEFramework {
+
+namespace {
+
+    static Plugin::Metadata<Plugin::TextToSpeech> metadata(
+        // Version (Major, Minor, Patch)
+        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+        // Preconditions
+        {},
+        // Terminations
+        {},
+        // Controls
+        {}
+    );
+}
+
 namespace Plugin {
 
     /*
      *Register TextToSpeech module as wpeframework plugin
      **/
-    SERVICE_REGISTRATION(TextToSpeech, TTS_MAJOR_VERSION, TTS_MINOR_VERSION);
+    SERVICE_REGISTRATION(TextToSpeech, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     const string TextToSpeech::Initialize(PluginHost::IShell* service)
     {

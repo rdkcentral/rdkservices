@@ -3,15 +3,16 @@
 RDK services are a set of JSON-RPC based RESTful services for accessing various set-top box components. RDK Services are managed and accessed through the [Thunder](https://github.com/rdkcentral/Thunder) framework. Thunder supports both HTTP and Websocket requests, making the services easily accessible to [Lightning](https://github.com/rdkcentral/Lightning), Web, and native client applications.
 
 [View Latest Documentation](https://rdkcentral.github.io/rdkservices/#/README)
-<br><br>
+<br>
 
 ### Table of Contents ###
 
 [Contributing to RDKServices](#contributing-to-rdkservices)<br>
 [Comcast CI/CD](#comcast-cicd)<br>
 [Documentation](#documentation)<br>
-[Questions?](#questions)<br>
 [Coding Guidelines](#coding-guidelines)<br>
+[Versioning](#versioning)<br>
+[Questions?](#questions)<br>
 
 ## Contributing to RDKServices ##
 
@@ -145,13 +146,6 @@ To generate markdown for all services:
 Use the existing services as a guide when learning the structure of both the plugin and interface schemas.
 <br><br>
 
-## Questions? ##
-
-If you have any questions or concerns reach out to [Anand Kandasamy](mailto:anand_kandasamy@comcast.com)
-
-For a plugin specific question, maintainers might refer you to the plugin owner(s).
-<br><br>
-
 ## Coding Guidelines ##
 
 1. **Be Consistent**
@@ -196,17 +190,67 @@ For a plugin specific question, maintainers might refer you to the plugin owner(
             #include "Module.h"
             MODULE_NAME_DECLARATION(BUILD_REFERENCE)
 
-6. Versioning
-
-    * RDK Service version in MAJOR.MINOR format is reflected in `MyServicePlugin.json`. Increment the MAJOR version when you make incompatible API changes, or MINOR version when you add functionality in a backwards compatible manner.
-
-    * API version (1, 2, etc) is not the same as the plugin version. The API version should remain at 1 for all practical purposes.
-
-7. Initialization and Cleanup
+6. Initialization and Cleanup
 
     * Prefer to do Plugin Initialization within IPlugin [Initialize()](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h#L71). If there is any error in initialization return non-empty string with useful error information. This will ensure that plugin doesn't get activated and also return this error information to the caller. Ensure that any Initialization done within Initialize() gets cleaned up within IPlugin [Deinitialize()](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h#L80) which gets called when the plugin is deactivated.
     
     * Ensure that any std::threads created are joined within Deinitialize() or the destructor to avoid [std::terminate](https://en.cppreference.com/w/cpp/thread/thread/~thread) exception. Use the [ThreadRAII](helpers/UtilsThreadRAII.h) class for creating threads which will ensure that the thread gets joined before destruction.
 
-8.  Inter-plugin communication
+7.  Inter-plugin communication
     * There might be use cases where one RDK Service or plugin needs to call APIs in another RDK Service. Don't use JSON-RPC for such communication since it's an overhead and not preferred for inter-plugin communication. JSON-RPC must be used only by applications. Instead use COM RPC through the IShell Interface API [QueryInterfaceByCallsign()](https://github.com/rdkcentral/Thunder/blob/R2/Source/plugins/IShell.h#L210) exposed for each Plugin. Here is an [example](https://github.com/rdkcentral/rdkservices/blob/main/Messenger/MessengerSecurity.cpp#L35). 
+    <br><br>
+
+## Versioning ##
+
+* Versioning
+
+    * Given a version number MAJOR.MINOR.PATCH, increment the:
+        * MAJOR version when you make incompatible API changes that break backwards compatibility. This could be removing existing APIs, changes to API Signature or major changes to API behavior that breaks API contract, 
+        * MINOR version when you add backward compatible new features like adding new APIs, adding new parameters to existing APIs,
+        * PATCH version when you make backwards compatible bug fixes.
+
+    * RDK Service version in MAJOR.MINOR.PATCH format is updated using SERVICE_REGISTRATION macro.
+
+    ```
+    SERVICE_REGISTRATION(DisplaySettings, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
+    ```
+
+    * There is also a Plugin::Metadata structure maintained for each RDK Service that keeps the versioning information. This is returned in call to Controller.1.status.
+
+    ```
+    static Plugin::Metadata<Plugin::DisplaySettings> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+    ```
+
+    * Changes in version should be updated when commits are added to the main or release branches. There should be a version change per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development.  
+
+* Changelog
+
+    * Each RDK Service has a CHANGELOG file that contains all changes done so far. When version is updated, add a entry in the CHANGELOG.md at the top with user friendly information on what was changed with the new version. Please don't mention JIRA tickets in CHANGELOG. Refer to [Changelog](https://github.com/olivierlacan/keep-a-changelog/blob/main/CHANGELOG.md) as an example and [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) for more details.
+
+    * Please Add entry in the CHANGELOG for each version change and indicate the type of change with these labels:
+        * **Added** for new features.
+        * **Changed** for changes in existing functionality.
+        * **Deprecated** for soon-to-be removed features.
+        * **Removed** for now removed features.
+        * **Fixed** for any bug fixes.
+        * **Security** in case of vulnerabilities.
+
+    * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
+    <br><br>
+
+## Questions? ##
+
+If you have any questions or concerns reach out to [Anand Kandasamy](mailto:anand_kandasamy@comcast.com)
+
+For a plugin specific question, maintainers might refer you to the plugin owner(s).
+<br><br>
