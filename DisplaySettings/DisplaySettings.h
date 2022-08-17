@@ -209,10 +209,9 @@ namespace WPEFramework {
             bool checkPortName(std::string& name) const;
             IARM_Bus_PWRMgr_PowerState_t getSystemPowerState();
 
-	    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getHdmiCecSinkPlugin();
+	    void getHdmiCecSinkPlugin();
 	    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > m_client;
 	    std::vector<std::string> m_clientRegisteredEventNames;
-	    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getSystemPlugin();
 	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
 	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
 	    bool requestShortAudioDescriptor();
