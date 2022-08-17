@@ -43,8 +43,6 @@ target_include_directories( ${MODULE_NAME}
         PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
-target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)
-
 target_link_libraries(${MODULE_NAME}
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug

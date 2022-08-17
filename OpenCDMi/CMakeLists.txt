@@ -68,8 +68,6 @@ target_link_libraries(${PLUGIN_OCDM_IMPLEMENTATION}
                 ${NAMESPACE}Plugins::${NAMESPACE}Plugins
                 ocdm::ocdm)
 
-target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)
-
 # Library definition section
 install(TARGETS ${MODULE_NAME}
         DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)

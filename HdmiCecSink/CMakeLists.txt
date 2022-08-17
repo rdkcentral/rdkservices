@@ -28,7 +28,6 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD_REQUIRED YES)
 
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
-target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror -Wno-error=deprecated)
 
 find_package(DS)
 find_package(IARMBus)

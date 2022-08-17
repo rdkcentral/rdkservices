@@ -35,8 +35,6 @@ target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NA
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
-target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror -Wno-error=format-truncation)
-
 find_package(CTRLM)
 if (CTRLM_FOUND)
     add_definitions(-DCTRLM_FOUND)

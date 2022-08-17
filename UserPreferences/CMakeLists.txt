@@ -47,8 +47,6 @@ target_link_libraries(${MODULE_NAME}
         ${DS_LIBRARIES}
         ${GLIB_LIBRARIES})
 
-target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)
-
 add_definitions(-DDS_FOUND)
 
 install(TARGETS ${MODULE_NAME}

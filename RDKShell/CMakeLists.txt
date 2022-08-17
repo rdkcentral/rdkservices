@@ -48,7 +48,6 @@ set(RDKSHELL_INCLUDES $ENV{RDKSHELL_INCLUDES})
 separate_arguments(RDKSHELL_INCLUDES)
 include_directories(BEFORE ${RDKSHELL_INCLUDES})
 target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${NAMESPACE}SecurityUtil -lrdkshell ${PLUGIN_RDKSHELL_EXTRA_LIBRARIES} trower-base64)
-target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror -Wno-error=deprecated-declarations)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

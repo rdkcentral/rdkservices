@@ -56,8 +56,6 @@ target_link_libraries(${MODULE_NAME}
         ${SYSTEMD_LIBRARIES}
 )
 
-target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)
-
 # ${NAMESPACE}Protocols::${NAMESPACE}Protocols
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

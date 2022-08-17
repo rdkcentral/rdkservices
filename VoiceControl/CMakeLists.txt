@@ -12,7 +12,6 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD_REQUIRED YES)
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
-target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)
 
 find_package(CTRLM)
 if (CTRLM_FOUND)

@@ -42,8 +42,6 @@ set_source_files_properties(Timer.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})
 
-target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)
-
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 

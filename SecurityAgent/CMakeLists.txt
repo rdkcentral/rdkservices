@@ -48,8 +48,6 @@ if (SECAPI)
     add_definitions(-DENABLE_SECAPI)
 endif()
 
-target_compile_options(${MODULE_NAME} PRIVATE -Wall -Werror)
-
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
