@@ -11,9 +11,9 @@ on:
 env:
   BUILD_TYPE: Debug
 
-  # Refs for R2
-  THUNDER_REF: "02f6ccbca6832043cbc94cc28c1bda7d4954a4e6"
-  INTERFACES_REF: "4ec7c6f8e14b152143a105a41f4c62b6723372c4"
+  # Refs for stable2
+  THUNDER_REF: "R2-v1.11"
+  INTERFACES_REF: "R2-v1.11"
 
   THUNDER_BINDING: "127.0.0.1"
   THUNDER_PORT: "55555"
@@ -25,14 +25,17 @@ jobs:
     steps:
       - name: Set up cache
         # Cache Thunder/ThunderInterfaces.
+        # https://github.com/actions/cache
+        # https://docs.github.com/en/rest/actions/cache
         if: ${{ !env.ACT }}
         id: cache
         uses: actions/cache@v3
         with:
           path: |
-            build
+            build/Thunder
+            build/ThunderInterfaces
+            build/ThunderTools
             install
-            !build/rdkservices
             !install/etc/WPEFramework/plugins
             !install/usr/bin/RdkServicesTest
             !install/usr/include/gmock
@@ -47,7 +50,7 @@ jobs:
             !install/usr/lib/pkgconfig/gtest.pc
             !install/usr/lib/pkgconfig/gtest_main.pc
             !install/usr/lib/wpeframework/plugins
-          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}
+          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-2
 
       - name: Set up Python
         uses: actions/setup-python@v3
@@ -161,7 +164,10 @@ jobs:
           -B build/rdkservices
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
-          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/test/headers --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system -DENABLE_TELEMETRY_LOGGING"
+          -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/Tests/headers
+          -I ${{github.workspace}}/rdkservices/Tests/headers/devicesettings
+          --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system
+          -DENABLE_TELEMETRY_LOGGING"
           -DCOMCAST_CONFIG=OFF
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
@@ -177,7 +183,12 @@ jobs:
           -DPLUGIN_AVINPUT=ON
           -DPLUGIN_TELEMETRY=ON
           -DPLUGIN_USBACCESS=ON
+          -DPLUGIN_LOGGINGPREFERENCES=ON
+          -DPLUGIN_USERPREFERENCES=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
+          -DPLUGIN_MESSENGER=ON
+          -DPLUGIN_DEVICEINFO=ON
+          -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DRDK_SERVICES_TEST=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
@@ -198,8 +209,14 @@ jobs:
       - name: Start servers
         # nohup to keep it running.
         run: |
-          nohup python rdkservices/test/source/tr69hostif.py &
+          nohup python rdkservices/Tests/source/tr69hostif.py &
           sleep 0.1
+
+      - name: Set up files
+        run: |
+          printf 'MFG_NAME=Pace\nFRIENDLY_ID="Pace Xi5"\n' | sudo tee /etc/device.properties
+          printf 'deviceType=IpStb\n' | sudo tee /etc/authService.conf
+          printf 'imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\nSDK_VERSION=17.3\nMEDIARITE=8.3.53\nYOCTO_VERSION=dunfell\n' | sudo tee /version.txt
 
       - name: Run unit tests
         run: >
@@ -216,7 +233,7 @@ jobs:
 
       - name: Stop servers
         run: |
-          pkill -f rdkservices/test/source/tr69hostif.py
+          pkill -f rdkservices/Tests/source/tr69hostif.py
 
       - name: Install lcov
         run: >
@@ -236,10 +253,10 @@ jobs:
           '/usr/include/*'
           '*/build/rdkservices/_deps/*'
           '*/install/usr/include/*'
-          '*/test/headers/*'
-          '*/test/mocks/*'
-          '*/test/source/*'
-          '*/test/tests/*'
+          '*/Tests/headers/*'
+          '*/Tests/mocks/*'
+          '*/Tests/source/*'
+          '*/Tests/tests/*'
           '*/DeviceIdentification/Implementation/Realtek/*'
           -o filtered_coverage.info
 

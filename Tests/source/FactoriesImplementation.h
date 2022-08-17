@@ -17,13 +17,6 @@ public:
     ~FactoriesImplementation() override = default;
 
 public:
-    void Statistics(uint32_t& requests, uint32_t& responses, uint32_t& fileBodies, uint32_t& jsonrpc) const
-    {
-        requests = 5;
-        responses = 5;
-        fileBodies = 5;
-        jsonrpc = 5;
-    }
     WPEFramework::Core::ProxyType<WPEFramework::Web::Request> Request() override
     {
         return (_requestFactory.Element());

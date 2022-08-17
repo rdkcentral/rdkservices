@@ -266,9 +266,9 @@ namespace Plugin {
     {
         uint32_t result = Core::ERROR_NONE;
 
-        vector<uint8_t> edidVec({ 'u', 'n', 'k', 'n', 'o', 'w', 'n' });
+        std::vector<uint8_t> edidVec({ 'u', 'n', 'k', 'n', 'o', 'w', 'n' });
         try {
-            vector<unsigned char> edidVec2;
+            std::vector<unsigned char> edidVec2;
             device::Host::getInstance().getHostEDID(edidVec2);
             edidVec = edidVec2;
         } catch (const device::Exception& e) {
@@ -284,8 +284,8 @@ namespace Plugin {
         if (result == Core::ERROR_NONE) {
             // convert to base64
 
-            uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
-            if (edidVec.size() > (size_t)numeric_limits<uint16_t>::max()) {
+            uint16_t size = std::min(edidVec.size(), (size_t)std::numeric_limits<uint16_t>::max());
+            if (edidVec.size() > (size_t)std::numeric_limits<uint16_t>::max()) {
                 result = Core::ERROR_GENERAL;
             } else {
                 string base64String;

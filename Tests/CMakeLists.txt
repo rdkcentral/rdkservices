@@ -36,6 +36,8 @@ add_executable(${PROJECT_NAME}
         source/Wraps.cpp
         )
 
+set_source_files_properties(tests/test_DeviceCapabilities.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
+
 include_directories(../LocationSync
         ../PersistentStore
         ../SecurityAgent
@@ -47,6 +49,10 @@ include_directories(../LocationSync
         ../DataCapture
         ../UsbAccess
         ../Timer
+        ../LoggingPreferences
+        ../UserPreferences
+        ../Messenger
+        ../DeviceInfo
         ../helpers
         )
 link_directories(../LocationSync
@@ -60,6 +66,10 @@ link_directories(../LocationSync
         ../DataCapture
         ../UsbAccess
         ../Timer
+        ../LoggingPreferences
+        ../UserPreferences
+        ../Messenger
+        ../DeviceInfo
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -76,6 +86,10 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}Telemetry
         ${NAMESPACE}UsbAccess
         ${NAMESPACE}Timer
+        ${NAMESPACE}LoggingPreferences
+        ${NAMESPACE}UserPreferences
+        ${NAMESPACE}Messenger
+        ${NAMESPACE}DeviceInfo
         )
 
 target_include_directories(${PROJECT_NAME}
@@ -84,6 +98,7 @@ target_include_directories(${PROJECT_NAME}
         $<INSTALL_INTERFACE:include>
         source
         mocks
+        mocks/devicesettings
         )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
