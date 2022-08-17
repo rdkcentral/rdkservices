@@ -11,9 +11,9 @@ on:
 env:
   BUILD_TYPE: Debug
 
-  # Refs for R2
-  THUNDER_REF: "02f6ccbca6832043cbc94cc28c1bda7d4954a4e6"
-  INTERFACES_REF: "4ec7c6f8e14b152143a105a41f4c62b6723372c4"
+  # Refs for stable2
+  THUNDER_REF: "R2-v1.11"
+  INTERFACES_REF: "R2-v1.11"
 
   THUNDER_BINDING: "127.0.0.1"
   THUNDER_PORT: "55555"
