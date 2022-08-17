@@ -27,7 +27,6 @@
 #include "libIARM.h"
 #include "irMgr.h"
 #include "pwrMgr.h"
-#include "rfcapi.h"
 
 namespace WPEFramework {
 
@@ -233,7 +232,6 @@ namespace WPEFramework {
 	    std::condition_variable arcRoutingCV;
 	    bool m_hdmiInAudioDeviceConnected;
         bool m_arcAudioEnabled;
-            bool m_isPwrMgr2RFCEnabled;
 	    bool m_hdmiCecAudioDeviceDetected;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
