@@ -3107,7 +3107,7 @@ namespace Plugin {
                 } else {
                     //set it to local cache
                     std::string identifier = TVSETTINGS_GENERIC_STRING_RFC_PARAM;
-                    identifier+=std::string("wb.")+color+"."+ctrl;
+                    identifier+=std::string("wb")+std::string(STRING_DIRTY)+color+"."+ctrl;
                     tr181ErrorCode_t err = setLocalParam(rfc_caller_id, identifier.c_str(), val.c_str());
                     if ( err != tr181Success ) {
                         LOGWARN("setLocalParam for %s Failed : %s\n", identifier.c_str(), getTR181ErrorString(err));
