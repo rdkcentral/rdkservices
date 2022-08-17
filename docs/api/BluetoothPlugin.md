@@ -2,7 +2,7 @@
 <a name="Bluetooth_Plugin"></a>
 # Bluetooth Plugin
 
-**Version: 2.0**
+**Version: 1.0**
 
 **Status: :black_circle::black_circle::black_circle:**
 
@@ -1221,10 +1221,9 @@ Gets the volume information of the given Bluetooth device ID.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.volumeInfo | array | An array of objects where each object represents a device volume information |
-| result.volumeInfo[#] | object |  |
-| result.volumeInfo[#].volume | string | Volume value is in between 0 and 255 |
-| result.volumeInfo[#].mute | boolean | Mute value of the device is either 0 or 1 |
+| result.volumeInfo | object | An object which represents current device volume and mute information |
+| result.volumeInfo.volume | string | Volume value is in between 0 and 255 |
+| result.volumeInfo.mute | boolean | Mute value of the device is either true or false |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1250,12 +1249,10 @@ Gets the volume information of the given Bluetooth device ID.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "volumeInfo": [
-            {
-                "volume": "50",
-                "mute": false
-            }
-        ],
+        "volumeInfo": {
+            "volume": "50",
+            "mute": false
+        },
         "success": true
     }
 }
@@ -1264,11 +1261,18 @@ Gets the volume information of the given Bluetooth device ID.
 <a name="setDeviceVolumeMuteInfo"></a>
 ## *setDeviceVolumeMuteInfo*
 
-Sets the volume of the connected Bluetooth device ID. 
+Sets the volume of the connected Bluetooth device ID.  Triggers `onDeviceMediaStatus` 
  
-### Event 
+### Events 
+| Event | Description | 
+| :----------- | :----------- | 
+| `MediaAudioControlCommand`: `VOLUME_UP` | Triggers `onDeviceMediaStatus` event once volume of connected given deviceID is increased. | 
+| `MediaAudioControlCommand`: `VOLUME_DOWN` | Triggers `onDeviceMediaStatus` event once volume of connected given deviceID is decreased. | 
+| `MediaAudioControlCommand`: `MUTE` | Triggers `onDeviceMediaStatus` event when connected given deviceID is muted. | 
+| `MediaAudioControlCommand`: `UNMUTE` | Triggers `onDeviceMediaStatus` event when connected given deviceID is unmuted. | 
+| `MediaAudioControlCommand`: `CMD_UNKNOWN` | Triggers `onDeviceMediaStatus` event when unknown key is pressed on connected given deviceID. |.
 
- No Events.
+Also see: [onDeviceMediaStatus](#onDeviceMediaStatus)
 
 ### Parameters
 
@@ -1278,7 +1282,7 @@ Sets the volume of the connected Bluetooth device ID.
 | params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.deviceProfile | string | Profile of the Bluetooth device |
 | params.volume | string | Volume value is in between 0 and 255 |
-| params.mute | boolean | Mute value of the device is either 0 or 1 |
+| params.mute | string | Mute value of the device is either 1 or 0 |
 
 ### Result
 
@@ -1300,7 +1304,7 @@ Sets the volume of the connected Bluetooth device ID.
         "deviceID": "61579454946360",
         "deviceProfile": "SMARTPHONE",
         "volume": "50",
-        "mute": false
+        "mute": "1"
     }
 }
 ```
@@ -1385,6 +1389,7 @@ Bluetooth interface events:
 | [onStatusChanged](#onStatusChanged) | Triggered when the Bluetooth functionality status changes |
 | [onDeviceFound](#onDeviceFound) | Triggered when the new device got discovered |
 | [onDeviceLost](#onDeviceLost) | Triggered when any discovered device lost or out of range |
+| [onDeviceMediaStatus](#onDeviceMediaStatus) | Triggered when any change occurs to Device Media like volume or mute |
 
 
 <a name="onConnectionRequest"></a>
@@ -1767,6 +1772,45 @@ Triggered when any discovered device lost or out of range.
         "deviceType": "TV",
         "rawDeviceType": "0x060104",
         "lastConnectedState": true
+    }
+}
+```
+
+<a name="onDeviceMediaStatus"></a>
+## *onDeviceMediaStatus*
+
+Triggered when any change occurs to Device Media like volume or mute. Supported Audio Media Control commands are:  
+* `MUTE` - BT audio device muted using remote or external BT device.  
+* `UNMUTE` - BT audio device unmuted using remote or external BT device.  
+* `VOLUME_UP` - BT audio device volume increased using remote or external BT device.  
+* `VOLUME_DOWN`- BT audio device volume decreased using remote or external BT device. 
+* `CMD_UNKNOWN`- Unknown Media control other than MUTE, UNMUTE, VOLUME_UP, VOLUME_DOWN was performed on external BT device. .
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
+| params.name | string | Name of the Bluetooth Device |
+| params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
+| params.volume | string | Volume value is in between 0 and 255 |
+| params.mute | boolean | Mute value of the device is either true or false |
+| params.command | string | Command to send to the connected source |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.1.onDeviceMediaStatus",
+    "params": {
+        "deviceID": "61579454946360",
+        "name": "[TV] UE32J5530",
+        "deviceType": "TV",
+        "volume": "50",
+        "mute": false,
+        "command": "PLAY"
     }
 }
 ```

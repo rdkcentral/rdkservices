@@ -489,10 +489,6 @@ gboolean AudioPlayer::PushDataAppSrc()
     }
     return TRUE;
 }
-static gboolean pop_data(AudioPlayer *player)
-{
-    return player->PushDataAppSrc();
-}
 
 void AudioPlayer::wsConnectionStatus(WSStatus status)
 {

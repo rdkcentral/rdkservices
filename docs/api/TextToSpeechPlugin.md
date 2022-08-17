@@ -658,6 +658,9 @@ Also see: [onvoicechanged](#onvoicechanged)
 | params?.voice | string | <sup>*(optional)*</sup> The TTS Voice |
 | params?.volume | string | <sup>*(optional)*</sup> The TTS Volume |
 | params?.rate | number | <sup>*(optional)*</sup> The TTS Rate |
+| params?.fallbacktext | object | <sup>*(optional)*</sup>  |
+| params?.fallbacktext?.scenario | string | <sup>*(optional)*</sup> Describes the scenario where fallback text is to be used . At present, only `offline` is supported |
+| params?.fallbacktext?.value | string | <sup>*(optional)*</sup> The Text which is to be spoken when the scenario is met |
 | params?.authinfo | object | <sup>*(optional)*</sup>  |
 | params?.authinfo?.type | string | <sup>*(optional)*</sup> The type of authentication. At present, only `apikey` is supported |
 | params?.authinfo?.value | string | <sup>*(optional)*</sup> x api key(secret key) required for GCD Endpoints |
@@ -686,6 +689,10 @@ Also see: [onvoicechanged](#onvoicechanged)
         "voice": "carol",
         "volume": "100.000000",
         "rate": 50,
+        "fallbacktext": {
+            "scenario": "offline",
+            "value": "No Internet connection"
+        },
         "authinfo": {
             "type": "apikey",
             "value": "XXXXXXXXXXXX"

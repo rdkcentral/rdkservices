@@ -38,8 +38,10 @@
 // For example, the exposed "startScan" method is mapped to "startScanWrapper()" and that one calls to "startDeviceDiscovery()" internally,
 // which finally calls to "BTRMGR_StartDeviceDiscovery()" in Bluetooth Manager.
 
-const short WPEFramework::Plugin::Bluetooth::API_VERSION_NUMBER_MAJOR = 1;  // corresponds to org.rdk.Bluetooth_5
-const short WPEFramework::Plugin::Bluetooth::API_VERSION_NUMBER_MINOR = 0;
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 const string WPEFramework::Plugin::Bluetooth::SERVICE_NAME = "org.rdk.Bluetooth";
 const string WPEFramework::Plugin::Bluetooth::METHOD_START_SCAN = "startScan";
 const string WPEFramework::Plugin::Bluetooth::METHOD_STOP_SCAN = "stopScan";
@@ -81,6 +83,7 @@ const string WPEFramework::Plugin::Bluetooth::EVT_PLAYBACK_NEW_TRACK = "onPlayba
 const string WPEFramework::Plugin::Bluetooth::EVT_DEVICE_FOUND = "onDeviceFound";
 const string WPEFramework::Plugin::Bluetooth::EVT_DEVICE_LOST_OR_OUT_OF_RANGE = "onDeviceLost";
 const string WPEFramework::Plugin::Bluetooth::EVT_DEVICE_DISCOVERY_UPDATE = "onDiscoveredDevice";
+const string WPEFramework::Plugin::Bluetooth::EVT_DEVICE_MEDIA_STATUS = "onDeviceMediaStatus";
 
 const string WPEFramework::Plugin::Bluetooth::STATUS_NO_BLUETOOTH_HARDWARE = "NO_BLUETOOTH_HARDWARE";
 const string WPEFramework::Plugin::Bluetooth::STATUS_SOFTWARE_DISABLED = "SOFTWARE_DISABLED";
@@ -115,12 +118,27 @@ const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_VOLUME_UP = "VOLUME
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_VOLUME_DOWN = "VOLUME_DOWN";
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_MUTE = "AUDIO_MUTE";
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_UNMUTE = "AUDIO_UNMUTE";
+const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_UNKNOWN = "CMD_UNKNOWN";
 
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::Bluetooth> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+    
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Bluetooth, Bluetooth::API_VERSION_NUMBER_MAJOR, Bluetooth::API_VERSION_NUMBER_MINOR);
+        SERVICE_REGISTRATION(Bluetooth, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         Bluetooth* Bluetooth::_instance = nullptr;
         static Core::TimerType<DiscoveryTimer> _discoveryTimer(64 * 1024, "DiscoveryTimer");
@@ -1120,6 +1138,33 @@ namespace WPEFramework
                     params["paired"] = eventMsg.m_discoveredDevice.m_isPairedDevice ? true:false;
 
                     eventId = EVT_DEVICE_DISCOVERY_UPDATE;
+                    break;
+
+                case BTRMGR_EVENT_DEVICE_MEDIA_STATUS:
+                    LOGINFO ("Received %s Event from BTRMgr", C_STR(EVT_DEVICE_MEDIA_STATUS));
+                    params["deviceID"] = std::to_string(eventMsg.m_mediaInfo.m_deviceHandle);
+                    params["name"] = string(eventMsg.m_mediaInfo.m_name);
+                    params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_mediaInfo.m_deviceType);
+                    params["volume"] = std::to_string(eventMsg.m_mediaInfo.m_mediaDevStatus.m_ui8mediaDevVolume);
+                    params["mute"] = eventMsg.m_mediaInfo.m_mediaDevStatus.m_ui8mediaDevMute ? true : false;
+
+                    if (eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd == BTRMGR_MEDIA_CTRL_VOLUMEUP) {
+                        params["command"] = string(CMD_AUDIO_CTRL_VOLUME_UP);
+                    }
+                    else if (eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd == BTRMGR_MEDIA_CTRL_VOLUMEDOWN) {
+                        params["command"] = string(CMD_AUDIO_CTRL_VOLUME_DOWN);
+                    }
+                    else if (eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd == BTRMGR_MEDIA_CTRL_MUTE) {
+                        params["command"] = string(CMD_AUDIO_CTRL_MUTE);
+                    }
+                    else if (eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd == BTRMGR_MEDIA_CTRL_UNMUTE) {
+                        params["command"] = string(CMD_AUDIO_CTRL_UNMUTE);
+                    }
+                    else {
+                        params["command"] = string(CMD_AUDIO_CTRL_UNKNOWN);
+                    }
+
+                    eventId = EVT_DEVICE_MEDIA_STATUS;
                     break;
 
                     // TODO: implement or delete these values from enum

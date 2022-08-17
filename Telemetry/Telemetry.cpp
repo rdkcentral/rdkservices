@@ -34,11 +34,30 @@
 #define T2_PERSISTENT_FOLDER "/opt/.t2reportprofiles/"
 #define DEFAULT_PROFILES_FILE "/etc/t2profiles/default.json"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework
 {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::Telemetry> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Telemetry, 1, 0);
+        SERVICE_REGISTRATION(Telemetry, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         Telemetry* Telemetry::_instance = nullptr;
 
