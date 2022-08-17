@@ -1,9 +1,8 @@
 #pragma once
 
-typedef enum
-{
-    WDMP_SUCCESS = 0,                    /**< Success. */
-    WDMP_FAILURE,                        /**< General Failure */
+typedef enum {
+    WDMP_SUCCESS = 0, /**< Success. */
+    WDMP_FAILURE, /**< General Failure */
     WDMP_ERR_TIMEOUT,
     WDMP_ERR_NOT_EXIST,
     WDMP_ERR_INVALID_PARAMETER_NAME,
@@ -43,8 +42,7 @@ typedef enum
     WDMP_ERR_DEFAULT_VALUE
 } WDMP_STATUS;
 
-typedef enum
-{
+typedef enum {
     WDMP_STRING = 0,
     WDMP_INT,
     WDMP_UINT,
@@ -60,11 +58,18 @@ typedef enum
     WDMP_BLOB
 } DATA_TYPE;
 
+#define MAX_PARAM_LEN (2 * 1024)
+
+typedef struct _RFC_Param_t {
+    char value[MAX_PARAM_LEN];
+} RFC_ParamData_t;
+
 class RfcApiImpl {
 public:
     virtual ~RfcApiImpl() = default;
 
-    virtual WDMP_STATUS setRFCParameter(char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) = 0;
+    virtual WDMP_STATUS getRFCParameter(char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) = 0;
+    virtual WDMP_STATUS setRFCParameter(char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) = 0;
 };
 
 class RfcApi {
@@ -76,11 +81,17 @@ public:
     }
 
     RfcApiImpl* impl;
-    
-    static WDMP_STATUS setRFCParameter(char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType)
+
+    static WDMP_STATUS getRFCParameter(char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData)
+    {
+        return getInstance().impl->getRFCParameter(pcCallerID, pcParameterName, pstParamData);
+    }
+
+    static WDMP_STATUS setRFCParameter(char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType)
     {
         return getInstance().impl->setRFCParameter(pcCallerID, pcParameterName, pcParameterValue, eDataType);
     }
 };
 
+constexpr auto getRFCParameter = &RfcApi::getRFCParameter;
 constexpr auto setRFCParameter = &RfcApi::setRFCParameter;
