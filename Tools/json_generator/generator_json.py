@@ -2257,21 +2257,22 @@ def CreateDocument(schema, path):
             if "events" in interface:
                 event_count += len(interface["events"])
 
-        version = info["version"] if "version" in info else "1.0"
-
-        status = info["status"] if "status" in info else "alpha"
-
-        rating = 0
-        if status == "dev" or status == "development":
-            rating = 0
-        elif status == "alpha":
-            rating = 1
-        elif status == "beta":
-            rating = 2
-        elif status == "production" or status == "prod":
-            rating = 3
-        else:
-            raise RuntimeError("invalid status")
+        #To retrieve version from the CHANGELOG.md file
+        change_log_path = os.path.abspath(os.path.dirname(args.path[0])+ "\CHANGELOG.md")
+        matches=[]
+        try:
+            with open(change_log_path,'r') as f:
+                lines = f.read().split("\n")
+                for i,line in enumerate(lines):
+                    m= re.findall(r'\[(\d+.\d+.\d+)\]',line) 
+                    if m:
+                        matches+=m
+            try:
+                version = matches[0]
+            except:
+                log.Error("Version not found in the CHANGELOG.md file")
+        except:
+            log.Error("CHANGELOG.md file not found")
 
         plugin_class = None
         if "callsign" in info:
@@ -2322,7 +2323,6 @@ def CreateDocument(schema, path):
         if "title" in info:
             MdHeader(info["title"])
         MdParagraph(bold("Version: " + version))
-        MdParagraph(bold("Status: " + rating * ":black_circle:" + (3 - rating) * ":white_circle:"))
         MdParagraph("A %s %s for Thunder framework." % (plugin_class, document_type))
 
         if document_type == "interface":
