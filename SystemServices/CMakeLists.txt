@@ -28,11 +28,8 @@ add_library(${MODULE_NAME} SHARED
         SystemServices.cpp
         Module.cpp
         cTimer.cpp
-        ../helpers/cSettings.cpp
-        ../helpers/powerstate.cpp
         thermonitor.cpp
         SystemServicesHelper.cpp
-        ../helpers/utils.cpp
         uploadlogs.cpp
         platformcaps/platformcaps.cpp
         platformcaps/platformcapsdata.cpp

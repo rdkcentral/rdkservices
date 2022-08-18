@@ -35,6 +35,8 @@
 #include "websocket/URL.h"
 
 #include "UtilsIarm.h"
+#include "UtilsJsonRpc.h"
+#include "UtilssyncPersistFile.h"
 
 #define HDMICEC_METHOD_SET_ENABLED "setEnabled"
 #define HDMICEC_METHOD_GET_ENABLED "getEnabled"
@@ -55,7 +57,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 enum {
 	HDMICEC_EVENT_DEVICE_ADDED=0,

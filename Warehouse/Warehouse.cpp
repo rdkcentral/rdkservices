@@ -23,6 +23,7 @@
 #include <fstream>
 
 #include <regex.h>
+#include <time.h>
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "UtilsIarm.h"
@@ -30,8 +31,11 @@
 #include "pwrMgr.h"
 #endif
 
-#include "utils.h"
+#include "UtilsCStr.h"
+#include "UtilsJsonRpc.h"
 #include "UtilsString.h"
+#include "UtilscRunScript.h"
+#include "UtilsfileExists.h"
 
 #include "frontpanel.h"
 
@@ -77,7 +81,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 namespace Utils {
 std::string formatIARMResult(IARM_Result_t result)
@@ -93,6 +97,22 @@ std::string formatIARMResult(IARM_Result_t result)
         tmp << result << " [unknown IARM_Result_t]";
         return tmp.str();
     }
+}
+bool isFileExistsAndOlderThen(const char* pFileName, long age = -1)
+{
+    struct stat fileStat;
+    int res = stat(pFileName, &fileStat);
+    if (0 != res)
+        return false;
+
+    if (-1 == age)
+        return true;
+
+    time_t currentTime = time(nullptr);
+
+    time_t modifiedSecondsAgo = difftime(currentTime, fileStat.st_mtime);
+
+    return modifiedSecondsAgo > age;
 }
 }
 

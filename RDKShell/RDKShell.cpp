@@ -38,6 +38,13 @@
 #include <rdkshell/linuxkeys.h>
 #include "base64.h"
 
+#include "UtilsJsonRpc.h"
+#include "UtilsLOG_MILESTONE.h"
+#include "UtilsSecurityToken.h"
+#include "UtilsUnused.h"
+#include "UtilsgetRFCConfig.h"
+#include "UtilsSecurityToken.h"
+
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 #include "FactoryProtectHal.h"
 #endif //RDKSHELL_READ_MAC_ON_STARTUP
@@ -45,7 +52,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 0 
+#define API_VERSION_NUMBER_PATCH 1
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
