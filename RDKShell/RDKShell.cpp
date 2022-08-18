@@ -845,7 +845,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : PluginHost::JSONRPC(), 
+                : PluginHost::JSONRPC(),
                 mEnableUserInactivityNotification(true),
                 mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)),
                 mCurrentService(nullptr), mLastWakeupKeyCode(0),

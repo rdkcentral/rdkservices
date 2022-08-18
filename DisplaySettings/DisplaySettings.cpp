@@ -3950,7 +3950,7 @@ namespace WPEFramework {
 	
 	bool DisplaySettings::getHdmiCecSinkCecEnableStatus ()
         {
-    	    bool cecEnable = false;
+            bool cecEnable = false;
 
             if (Utils::isPluginActivated(HDMICECSINK_CALLSIGN)) {
                 auto hdmiCecSinkPlugin = getHdmiCecSinkPlugin();

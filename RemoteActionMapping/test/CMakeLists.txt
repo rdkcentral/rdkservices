@@ -29,4 +29,6 @@ target_link_libraries(${PLUGIN_NAME}
     PRIVATE
      ${NAMESPACE}Protocols::${NAMESPACE}Protocols)
 
+target_compile_options(${PLUGIN_NAME} PRIVATE -Wall -Werror -Wno-error=deprecated-declarations)
+
 install(TARGETS ${PLUGIN_NAME} DESTINATION bin)

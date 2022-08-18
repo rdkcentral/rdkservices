@@ -1340,7 +1340,7 @@ namespace WPEFramework
 					response["available"] = true;
 					response["length"] = route.size();
 
-					for (unsigned int i=0; i < route.size(); i++) 
+					for (unsigned int i=0; i < route.size(); i++)
 					{
 						if ( route[i] != LogicalAddress::UNREGISTERED )
 						{
