@@ -44,11 +44,13 @@
 
 #include "tracing/Logging.h"
 #include <syscall.h>
-#include "utils.h"
+
+#include "UtilsCStr.h"
 #include "UtilsIarm.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsSecurityToken.h"
 #include "UtilsString.h"
-#include "dsError.h"
-#include "dsRpc.h"
+#include "UtilsisValidInt.h"
 
 using namespace std;
 
@@ -75,7 +77,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 static bool isCecArcRoutingThreadEnabled = false;
 static bool isCecEnabled = false;

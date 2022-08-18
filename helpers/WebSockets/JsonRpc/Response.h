@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <core/JSONRPC.h>
+#include "Module.h"
 
 namespace WebSockets   {
 namespace JsonRpc      {

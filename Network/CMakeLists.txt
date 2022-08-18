@@ -26,8 +26,7 @@ add_library(${MODULE_NAME} SHARED
         NetUtilsNetlink.cpp
         NetworkTraceroute.cpp
         PingNotifier.cpp
-        Module.cpp
-        ../helpers/utils.cpp)
+        Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11

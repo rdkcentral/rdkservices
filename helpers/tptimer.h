@@ -23,68 +23,118 @@
 //#include <core/Timer.h>
 #include <plugins/plugins.h>
 
-namespace WPEFramework
-{
+namespace WPEFramework {
 
-    namespace Plugin
-    {
-        class TpTimer;
-        
-        class TpTimerJob
-        {
+namespace Plugin {
+    class TpTimer {
+    private:
+        class TpTimerJob {
         private:
             TpTimerJob() = delete;
             TpTimerJob& operator=(const TpTimerJob& RHS) = delete;
 
         public:
-            TpTimerJob(WPEFramework::Plugin::TpTimer* tpt) : m_tptimer(tpt) { }
-            TpTimerJob(const TpTimerJob& copy) : m_tptimer(copy.m_tptimer) { }
+            TpTimerJob(TpTimer* tpt)
+                : m_tptimer(tpt)
+            {
+            }
+            TpTimerJob(const TpTimerJob& copy)
+                : m_tptimer(copy.m_tptimer)
+            {
+            }
             ~TpTimerJob() {}
 
             inline bool operator==(const TpTimerJob& RHS) const
             {
-                return(m_tptimer == RHS.m_tptimer);
+                return (m_tptimer == RHS.m_tptimer);
             }
 
         public:
-            uint64_t Timed(const uint64_t scheduledTime);
+            uint64_t Timed(const uint64_t scheduledTime)
+            {
+                if (m_tptimer) {
+                    m_tptimer->Timed();
+                }
+                return 0;
+            }
 
         private:
-            WPEFramework::Plugin::TpTimer* m_tptimer;
+            TpTimer* m_tptimer;
         };
 
-        class TpTimer
+    public:
+        TpTimer()
+            : baseTimer(64 * 1024, "ThunderPluginBaseTimer")
+            , m_timerJob(this)
+            , m_isActive(false)
+            , m_isSingleShot(false)
+            , m_intervalInMs(-1)
         {
-        public:
-            TpTimer();
-            ~TpTimer();
-            
-            bool isActive();
-            void stop();
-            void start();
-            void start(int msec);
-            void setSingleShot(bool val);
-            void setInterval(int msec);
-            
-            void connect(std::function< void() > callback);
-            
-        private:
-            
-            void Timed();
-            
-            WPEFramework::Core::TimerType<TpTimerJob> baseTimer;
-            TpTimerJob m_timerJob;
-            bool m_isActive;
-            bool m_isSingleShot;
-            int m_intervalInMs;
-            
-            std::function< void() > onTimeoutCallback;
-            
-            friend class TpTimerJob;
-        };
-    }
-    
+        }
+        ~TpTimer()
+        {
+            stop();
+        }
+
+        bool isActive()
+        {
+            return m_isActive;
+        }
+        void stop()
+        {
+            baseTimer.Revoke(m_timerJob);
+            m_isActive = false;
+        }
+        void start()
+        {
+            baseTimer.Revoke(m_timerJob);
+            baseTimer.Schedule(Core::Time::Now().Add(m_intervalInMs), m_timerJob);
+            m_isActive = true;
+        }
+        void start(int msec)
+        {
+            setInterval(msec);
+            start();
+        }
+        void setSingleShot(bool val)
+        {
+            m_isSingleShot = val;
+        }
+        void setInterval(int msec)
+        {
+            m_intervalInMs = msec;
+        }
+
+        void connect(std::function<void()> callback)
+        {
+            onTimeoutCallback = callback;
+        }
+
+    private:
+        void Timed()
+        {
+            if (onTimeoutCallback != nullptr) {
+                onTimeoutCallback();
+            }
+
+            if (m_isActive) {
+                if (m_isSingleShot) {
+                    stop();
+                } else {
+                    start();
+                }
+            }
+        }
+
+        WPEFramework::Core::TimerType<TpTimerJob> baseTimer;
+        TpTimerJob m_timerJob;
+        bool m_isActive;
+        bool m_isSingleShot;
+        int m_intervalInMs;
+
+        std::function<void()> onTimeoutCallback;
+    };
+}
 }
 
 #endif
-

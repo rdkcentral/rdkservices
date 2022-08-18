@@ -38,8 +38,12 @@
 #include <algorithm>
 
 #include "MaintenanceManager.h"
-#include "utils.h"
+
 #include "UtilsIarm.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsSecurityToken.h"
+#include "UtilscRunScript.h"
+#include "UtilsfileExists.h"
 
 enum eRetval { E_NOK = -1,
     E_OK };
@@ -48,10 +52,6 @@ enum eRetval { E_NOK = -1,
 #include "libIARM.h"
 
 #endif /* USE_IARMBUS || USE_IARM_BUS */
-
-#if defined(HAS_API_SYSTEM) && defined(HAS_API_POWERSTATE)
-#include "powerstate.h"
-#endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
 #include "mfrMgr.h"
@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 3
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
