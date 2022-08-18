@@ -88,17 +88,21 @@ VoiceControl interface methods:
 | [configureVoice](#configureVoice) | Configures the RDK's voice stack |
 | [sendVoiceMessage](#sendVoiceMessage) | Sends a message to the Voice Server |
 | [setVoiceInit](#setVoiceInit) | Sets the application metadata in the INIT message that gets sent to the Voice Server |
-| [voiceSessionByText](#voiceSessionByText) | Sends a voice session with a transcription string to simulate a real voice session for QA |
+| [voiceSessionTypes](#voiceSessionTypes) | Retrieves the types of voice sessions which are supported by the platform |
+| [voiceSessionRequest](#voiceSessionRequest) | Requests a voice session using the specified request type and optional parameters |
+| [voiceSessionTerminate](#voiceSessionTerminate) | Terminates a voice session using the specified session identifier |
 | [voiceStatus](#voiceStatus) | Returns the current status of the RDK voice stack |
 
 
 <a name="configureVoice"></a>
 ## *configureVoice*
 
-Configures the RDK's voice stack. NOTE: The URL Scheme determines which VREX API protocol is used. Supported URL schemes include:  
+Configures the RDK's voice stack. NOTE: The URL Scheme determines which API protocol is used. Supported URL schemes include:  
 * http/https - VREX Legacy HTTP API  
 * ws/wss - VREX XR18 WS API  
 * vrng/vrngs - VREX NextGen WS API.
+* aows/aowss - Audio only over websockets with no protocol layer.
+* sdt - Simple data transfer for direct handling of audio in the protocol layer.
 
 ### Events
 
@@ -112,6 +116,7 @@ Configures the RDK's voice stack. NOTE: The URL Scheme determines which VREX API
 | params?.urlAll | string | <sup>*(optional)*</sup> Specifies the URL for all devices instead of individually specifying the URL for each device |
 | params?.urlPtt | string | <sup>*(optional)*</sup> The PTT URL |
 | params?.urlHf | string | <sup>*(optional)*</sup> The HF (ff and mic) URL |
+| params?.urlMicTap | string | <sup>*(optional)*</sup> The microphone tap URL |
 | params?.enable | boolean | <sup>*(optional)*</sup> Enables or disables all of the voice devices instead of individually enabling or disabling each device |
 | params?.prv | boolean | <sup>*(optional)*</sup> The Press & Release Voice feature. `true` for enable, `false` for disable |
 | params?.wwFeedback | boolean | <sup>*(optional)*</sup> The Wake Word Feedback feature (typically an audible beep). `true` for enable, `false` for disable |
@@ -281,10 +286,67 @@ Sets the application metadata in the INIT message that gets sent to the Voice Se
 }
 ```
 
-<a name="voiceSessionByText"></a>
-## *voiceSessionByText*
+<a name="voiceSessionTypes"></a>
+## *voiceSessionTypes*
 
-Sends a voice session with a transcription string to simulate a real voice session for QA. Example use cases for this API call include rack and automation testing.
+Retrieves the types of voice sessions which are supported by the platform.
+
+| Request Type | Description |
+| :-------- | :-------- |
+| ptt_transcription | A text-only session using the urlPtt routing url and the text transcription |
+| mic_transcription | A text-only session using the urlHf routing url and the text transcription |
+| mic_stream_default | An audio based session using the urlHf routing url and the platform's default audio output format |
+| mic_stream_single | An audio based session using the urlHf routing url and the platform's single channel audio input format |
+| mic_stream_multi | An audio based session using the urlHf routing url and the platform's multi-channel audio input format |
+| mic_tap_stream_single | An audio based session using the urlMicTap routing url and the platform's single channel audio input format |
+| mic_tap_stream_multi | An audio based session using the urlMicTap routing url and the platform's multi-channel audio input format |
+| mic_factory_test | An audio based session using the urlHf routing url and the platform's unprocessed multi-channel audio input format |
+
+### Events
+
+No Events.
+
+### Parameters
+
+No Parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.types | array | If successful, an array of strings indicating the voice session request types which are valid |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.VoiceControl.1.voiceSessionTypes",
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "types": [ "ptt_transcription", "mic_factory_test" ],
+        "success": true
+    }
+}
+```
+
+<a name="voiceSessionRequest"></a>
+## *voiceSessionRequest*
+
+Requests a voice session using the specified request type and optional parameters.
 
 ### Events
 
@@ -303,8 +365,8 @@ Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [o
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.transcription | string | The transcription text to be sent to the voice server |
-| params?.type | string | <sup>*(optional)*</sup> The device type to simulate the voice session from (PTT, FF, MIC) |
+| params.type | string |  The request type to initiate the voice session (see voiceSessionTypes API for list of request types) |
+| params?.transcription | string | <sup>*(optional)*</sup> The transcription text to be sent to the voice server for request types "ptt_transcription" and "mic_transcription".|
 
 ### Result
 
@@ -321,10 +383,60 @@ Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [o
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.VoiceControl.1.voiceSessionByText",
+    "method": "org.rdk.VoiceControl.1.voiceSessionRequest",
     "params": {
+        "type": "ptt_transcription"
         "transcription": "Watch Comedy Central",
-        "type": "PTT"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="voiceSessionTerminate"></a>
+## *voiceSessionTerminate*
+
+Terminates a voice session using the specified session identifier.
+
+### Events
+
+No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.sessionId | string | The session identifier of the session from the onSessionBegin event |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.VoiceControl.1.voiceSessionTerminate",
+    "params": {
+        "sessionId": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
     }
 }
 ```
