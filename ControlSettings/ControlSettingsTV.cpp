@@ -1502,7 +1502,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=colortemp;
-            int retval= UpdatePQParamsToCache("set","ColorTemp",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CONTRAST,params);
+            int retval= UpdatePQParamsToCache("set","ColorTemp",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COLOR_TEMPERATURE,params);
             if(retval != 0 ) {
                 LOGWARN("Failed to Save ColorTemperature to ssm_data\n");
             }
@@ -1536,7 +1536,7 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        int retval= UpdatePQParamsToCache("reset","ColorTemp",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CONTRAST,params);
+        int retval= UpdatePQParamsToCache("reset","ColorTemp",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COLOR_TEMPERATURE,params);
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset ColorTemperature\n");
