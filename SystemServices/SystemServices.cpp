@@ -73,8 +73,6 @@ using namespace std;
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 
-#define RFC_PWRMGR2 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.PwrMgr2.Enable"
-
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
 
 #define DEVICE_PROPERTIES_FILE "/etc/device.properties"
@@ -347,8 +345,6 @@ namespace WPEFramework {
 
             m_networkStandbyModeValid = false;
             m_powerStateBeforeRebootValid = false;
-            m_isPwrMgr2RFCEnabled = false;
-
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
 	    m_ManufacturerDataHardwareIdValid = false;
 	    m_ManufacturerDataModelNameValid = false;
@@ -471,15 +467,6 @@ namespace WPEFramework {
             GetHandler(2)->Register<JsonObject, JsonObject>("deletePersistentPath", &SystemServices::deletePersistentPath, this);
             GetHandler(2)->Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
                 &SystemServices::getPlatformConfiguration, this);
-
-            {
-                RFC_ParamData_t param = {0};
-                WDMP_STATUS status = getRFCParameter(NULL, RFC_PWRMGR2, &param);
-                if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
-                {
-                    m_isPwrMgr2RFCEnabled = true;
-                }
-            }
         }
 
 
@@ -4253,6 +4240,11 @@ namespace WPEFramework {
 
             // Everything is OK
             LOGINFO("Successfully deleted persistent path for '%s' (path = '%s')", callsignOrType.c_str(), persistentPath.c_str());
+
+            //Calling container_setup.sh along with callsign as container bundle also gets deleted from the persistent path
+            std::string command = "/lib/rdk/container_setup.sh " + callsignOrType;
+            system(command.c_str());
+            LOGINFO("Calling %s \n", command.c_str());
 
             result = true;
 
