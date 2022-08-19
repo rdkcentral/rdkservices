@@ -146,8 +146,7 @@ std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IEleme
     string query = "token=" + token;
 
     Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
-    static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > thunderClient = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "",false,query);
-    return thunderClient;
+    return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "",false,query);
 }
 
 void Utils::activatePlugin(const char* callSign)
