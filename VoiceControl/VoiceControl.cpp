@@ -5,8 +5,8 @@
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
 
-#define API_VERSION_NUMBER_MAJOR 2
-#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 1
 #define API_VERSION_NUMBER_PATCH 0
 
 using namespace std;
@@ -46,6 +46,7 @@ namespace WPEFramework {
             Register("configureVoice",        &VoiceControl::configureVoice,        this);
             Register("setVoiceInit",          &VoiceControl::setVoiceInit,          this);
             Register("sendVoiceMessage",      &VoiceControl::sendVoiceMessage,      this);
+            Register("voiceSessionByText",    &VoiceControl::voiceSessionByText,    this);
             Register("voiceSessionTypes",     &VoiceControl::voiceSessionTypes,     this);
             Register("voiceSessionRequest",   &VoiceControl::voiceSessionRequest,   this);
             Register("voiceSessionTerminate", &VoiceControl::voiceSessionTerminate, this);
@@ -502,6 +503,31 @@ namespace WPEFramework {
             }
 
             returnResponse(bSuccess);
+        }
+
+        uint32_t VoiceControl::voiceSessionByText(const JsonObject& parameters, JsonObject& response) // DEPRECATED
+        {
+           // Translate the input parameters then call voiceSessionRequest
+           JsonObject parameters_translated;
+
+           if(parameters["type"].empty()) {
+              parameters_translated["type"] = "ptt_transcription";
+           } else {
+              std::string str_type = parameters["type"];
+              transform(str_type.begin(), str_type.end(), str_type.begin(), ::tolower);
+              if(parameters_translated["type"] == "ptt") {
+                 parameters_translated["type"] = "ptt_transcription";
+              } else if(parameters_translated["type"] == "ff") {
+                 parameters_translated["type"] = "ff_transcription";
+              } else if(parameters_translated["type"] == "mic") {
+                 parameters_translated["type"] = "mic_transcription";
+              }
+           }
+           if(!parameters["transcription"].empty()) {
+              parameters_translated["transcription"] = parameters["transcription"];
+           }
+
+           return(voiceSessionRequest(parameters_translated, response));
         }
 
         uint32_t VoiceControl::voiceSessionRequest(const JsonObject& parameters, JsonObject& response)

@@ -88,6 +88,7 @@ VoiceControl interface methods:
 | [configureVoice](#configureVoice) | Configures the RDK's voice stack |
 | [sendVoiceMessage](#sendVoiceMessage) | Sends a message to the Voice Server |
 | [setVoiceInit](#setVoiceInit) | Sets the application metadata in the INIT message that gets sent to the Voice Server |
+| [voiceSessionByText](#voiceSessionByText) | Sends a voice session with a transcription string to simulate a real voice session for QA (DEPRECATED) |
 | [voiceSessionTypes](#voiceSessionTypes) | Retrieves the types of voice sessions which are supported by the platform |
 | [voiceSessionRequest](#voiceSessionRequest) | Requests a voice session using the specified request type and optional parameters |
 | [voiceSessionTerminate](#voiceSessionTerminate) | Terminates a voice session using the specified session identifier |
@@ -270,6 +271,66 @@ Sets the application metadata in the INIT message that gets sent to the Voice Se
             "PRV"
         ],
         "language": "eng-USA"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="voiceSessionByText"></a>
+## *voiceSessionByText*
+
+(DEPRECATED) Sends a voice session with a transcription string to simulate a real voice session for QA. Example use cases for this API call include rack and automation testing.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| `onSessionBegin` |Triggers if the voice session begins |
+| `onStreamBegin` |Triggers if a device starts streaming voice data to the RDK|
+| `onServerMessage` |Triggers if a message is received from the Voice Server |
+| `onStreamEnd` |Triggers if streaming audio is stopped from the device |
+| `onSessionEnd` |Triggers if interaction with the server is end|.
+
+Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [onServerMessage](#onServerMessage), [onStreamEnd](#onStreamEnd), [onSessionEnd](#onSessionEnd)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.transcription | string | The transcription text to be sent to the voice server |
+| params?.type | string | <sup>*(optional)*</sup> The device type to simulate the voice session from (PTT, FF, MIC) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.VoiceControl.1.voiceSessionByText",
+    "params": {
+        "transcription": "Watch Comedy Central",
+        "type": "PTT"
     }
 }
 ```
