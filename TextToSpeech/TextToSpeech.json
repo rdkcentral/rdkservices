@@ -50,6 +50,11 @@
             "type": "string",
             "example": "100.000000"
         },
+        "primvolduckpercent" : {
+            "summary": "The TTS Primary Volumeduckpercentage",
+            "type": "number",
+            "example": 25
+        },
         "rate":{
             "summary": "The TTS Rate",
             "type": "number",
@@ -433,6 +438,9 @@
                     },
                     "volume": {
                         "$ref": "#/definitions/volume"
+                    },
+                    "primvolduckpercent": {
+                         "$ref": "#/definitions/primvolduckpercent"
                     },
                     "rate":{
                         "$ref": "#/definitions/rate"
