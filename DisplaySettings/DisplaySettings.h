@@ -27,6 +27,7 @@
 #include "libIARM.h"
 #include "irMgr.h"
 #include "pwrMgr.h"
+#include "rfcapi.h"
 
 namespace WPEFramework {
 
@@ -208,10 +209,9 @@ namespace WPEFramework {
             bool checkPortName(std::string& name) const;
             IARM_Bus_PWRMgr_PowerState_t getSystemPowerState();
 
-	    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getHdmiCecSinkPlugin();
+	    void getHdmiCecSinkPlugin();
 	    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > m_client;
 	    std::vector<std::string> m_clientRegisteredEventNames;
-	    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getSystemPlugin();
 	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
 	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
 	    bool requestShortAudioDescriptor();
@@ -233,6 +233,7 @@ namespace WPEFramework {
 	    std::condition_variable arcRoutingCV;
 	    bool m_hdmiInAudioDeviceConnected;
         bool m_arcAudioEnabled;
+            bool m_isPwrMgr2RFCEnabled;
 	    bool m_hdmiCecAudioDeviceDetected;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
