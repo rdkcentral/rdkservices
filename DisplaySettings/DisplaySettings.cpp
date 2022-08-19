@@ -171,6 +171,7 @@ namespace WPEFramework {
         {
             LOGINFO("ctor");
             DisplaySettings::_instance = this;
+            m_client = nullptr;
 
             CreateHandler({ 2 });
 
@@ -288,24 +289,7 @@ namespace WPEFramework {
         DisplaySettings::~DisplaySettings()
         {
             LOGINFO("dtor  ");
-            {
-                LOGINFO("de-init timer and subscribbed event if not done as pert of Deinitialize fundtion ");
-                lock_guard<mutex> lck(m_callMutex);
-                if ( m_timer.isActive()) {
-                    m_timer.stop();
-                }
-
-                if ( m_AudioDeviceDetectTimer.isActive()) {
-                    m_AudioDeviceDetectTimer.stop();
-                }
-                for (std::string eventName : m_clientRegisteredEventNames) {
-                    m_client->Unsubscribe(1000, _T(eventName));
-                    LOGINFO("Unsubscribing event %s", eventName.c_str());
-                }
-                m_clientRegisteredEventNames.clear();
-                m_client.reset();
-                LOGINFO("reset m_client :%d  ", m_client.use_count());
-            }
+            stopCecTimeAndUnsubscriveEvent();
         }
 
         void DisplaySettings::AudioPortsReInitialize()
@@ -549,24 +533,7 @@ namespace WPEFramework {
             {
                 LOGERR("exception in thread join %s", e.what());
             }
-
-            {
-                lock_guard<mutex> lck(m_callMutex);
-                if ( m_timer.isActive()) {
-                    m_timer.stop();
-                }
-
-                if ( m_AudioDeviceDetectTimer.isActive()) {
-                    m_AudioDeviceDetectTimer.stop();
-                }
-                for (std::string eventName : m_clientRegisteredEventNames) {
-                    m_client->Unsubscribe(1000, _T(eventName));
-                    LOGINFO("Unsubscribing event %s", eventName.c_str());
-	        }
-                m_clientRegisteredEventNames.clear();
-		m_client.reset();
-            }
-
+            stopCecTimeAndUnsubscriveEvent();
 
             DeinitializeIARM();
             DisplaySettings::_instance = nullptr;
@@ -4315,11 +4282,11 @@ namespace WPEFramework {
         // Thunder plugins communication
         void DisplaySettings::getHdmiCecSinkPlugin()
         {
-            if(m_client == NULL)
+            if(m_client == nullptr)
             { 
                 Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-                m_client =  make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.HdmiCecSink.1", "");
-                LOGINFO("DisplaySettings getHdmiCecSinkPlugin init m_client count: %d  \n",m_client.use_count());
+                m_client = (WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>*)new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(HDMICECSINK_CALLSIGN_VER), (_T(HDMICECSINK_CALLSIGN_VER)));
+                LOGINFO("DisplaySettings getHdmiCecSinkPlugin init m_client\n");
             }
         }
 
@@ -4882,6 +4849,29 @@ namespace WPEFramework {
 
               LOGINFO("updated isCecEnabled [%d] ... \n", isCecEnabled);
 	}
+
+        void DisplaySettings::stopCecTimeAndUnsubscriveEvent() {
+            LOGINFO("de-init cec timer and subscribbed event ");
+            {
+                lock_guard<mutex> lck(m_callMutex);
+                if ( m_timer.isActive()) {
+                    m_timer.stop();
+                }
+
+                if ( m_AudioDeviceDetectTimer.isActive()) {
+                    m_AudioDeviceDetectTimer.stop();
+                }
+                for (std::string eventName : m_clientRegisteredEventNames) {
+                    m_client->Unsubscribe(1000, _T(eventName));
+                    LOGINFO("Unsubscribing event %s", eventName.c_str());
+	        }
+                m_clientRegisteredEventNames.clear();
+                if (nullptr != m_client) {
+                    LOGINFO("deleting m_client ");
+                    delete m_client; m_client = nullptr;
+                }
+            }
+        }
 
         // 6.
         void DisplaySettings::onTimer()
