@@ -454,12 +454,14 @@ namespace WPEFramework {
            } else {
               std::string str_type = parameters["type"].String();
               transform(str_type.begin(), str_type.end(), str_type.begin(), ::tolower);
-              if(parameters_translated["type"] == "ptt") {
+              if(str_type == "ptt") {
                  parameters_translated["type"] = "ptt_transcription";
-              } else if(parameters_translated["type"] == "ff") {
+              } else if(str_type == "ff") {
                  parameters_translated["type"] = "ff_transcription";
-              } else if(parameters_translated["type"] == "mic") {
+              } else if(str_type == "mic") {
                  parameters_translated["type"] = "mic_transcription";
+              } else {
+                 parameters_translated["type"] = "";
               }
            }
            if(parameters.HasLabel("transcription")) {
