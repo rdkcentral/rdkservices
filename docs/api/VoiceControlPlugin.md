@@ -355,7 +355,7 @@ Also see: [onSessionBegin](#event.onSessionBegin), [onStreamBegin](#event.onStre
 Retrieves the types of voice sessions which are supported by the platform.
 
 | Request Type | Description |
-| :-------- | : -------- |
+| :-------- | :-------- |
 | ptt_transcription | A text-only session using the urlPtt routing url and the text transcription |
 | mic_transcription | A text-only session using the urlHf routing url and the text transcription |
 | mic_stream_default | An audio based session using the urlHf routing url and the platform's default audio output format |
