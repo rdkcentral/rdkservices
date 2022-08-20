@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added aows:// and sdt:// protocols to the URL schemes
 - Added urlMicTap device to indicate a virtual microphone tap
 
-### Change
+### Deprecated
 - Deprecate voiceSessionByText API. Instead, use voiceSessionRequest with type "ptt_transcription".
 
 ## [1.0.0] - 2022-05-11
