@@ -449,10 +449,10 @@ namespace WPEFramework {
            // Translate the input parameters then call voiceSessionRequest
            JsonObject parameters_translated;
 
-           if(parameters["type"].empty()) {
+           if(!parameters.HasLabel("type")) {
               parameters_translated["type"] = "ptt_transcription";
            } else {
-              std::string str_type = parameters["type"];
+              std::string str_type = parameters["type"].String();
               transform(str_type.begin(), str_type.end(), str_type.begin(), ::tolower);
               if(parameters_translated["type"] == "ptt") {
                  parameters_translated["type"] = "ptt_transcription";
@@ -462,9 +462,9 @@ namespace WPEFramework {
                  parameters_translated["type"] = "mic_transcription";
               }
            }
-           if(!parameters["transcription"].empty()) {
+           if(parameters.HasLabel("transcription")) {
               parameters_translated["transcription"] = parameters["transcription"];
-           }
+           } // else voiceSessionRequest will return an error if transcription field is not present
 
            return(voiceSessionRequest(parameters_translated, response));
         }
