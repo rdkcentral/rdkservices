@@ -4845,6 +4845,25 @@ namespace WPEFramework {
 		isCecEnabled = true;
 	      } else{
 		isCecEnabled = false;
+		try
+                    {
+                        if(m_hdmiInAudioDeviceConnected ==  true) {
+                            m_hdmiInAudioDeviceConnected = false;
+                            connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
+
+                            device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
+                            LOGINFO("cec Disabled: Disable ARC\n");
+                            aPort.enableARC(dsAUDIOARCSUPPORT_ARC, false);
+                            m_arcAudioEnabled = false;
+                        }
+                        else {
+                            LOGINFO("Skip Disable ARC and not notifying the UI as  m_hdmiInAudioDeviceConnected = false\n");
+                        }
+                    }
+                    catch (const device::Exception& err)
+                    {
+                        LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
+                    }
 	      }
 
               LOGINFO("updated isCecEnabled [%d] ... \n", isCecEnabled);
