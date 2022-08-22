@@ -2258,7 +2258,7 @@ def CreateDocument(schema, path):
                 event_count += len(interface["events"])
 
         #To retrieve version from the CHANGELOG.md file
-        change_log_path = os.path.abspath(os.path.dirname(args.path[0])+ "\CHANGELOG.md")
+        change_log_path = os.path.abspath(os.path.dirname(args.path[0])+ os.path.sep +"CHANGELOG.md")
         matches=[]
         try:
             with open(change_log_path,'r') as f:
