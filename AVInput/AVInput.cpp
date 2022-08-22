@@ -230,10 +230,10 @@ void AVInput::UnregisterAll()
     Unregister(_T(AVINPUT_METHOD_GET_INPUT_DEVICES));
     Unregister(_T(AVINPUT_METHOD_WRITE_EDID));
     Unregister(_T(AVINPUT_METHOD_READ_EDID));
-    Unregister(_T(AVINPUT_METHOD_READ_RAWSPD));
+/*    Unregister(_T(AVINPUT_METHOD_READ_RAWSPD));
     Unregister(_T(AVINPUT_METHOD_READ_SPD));
     Unregister(_T(AVINPUT_METHOD_SET_EDID_VERSION));
-    Unregister(_T(AVINPUT_METHOD_GET_EDID_VERSION));
+    Unregister(_T(AVINPUT_METHOD_GET_EDID_VERSION));*/
     Unregister(_T(AVINPUT_METHOD_START_INPUT));
     Unregister(_T(AVINPUT_METHOD_STOP_INPUT));
     Unregister(_T(AVINPUT_METHOD_SCALE_INPUT));
