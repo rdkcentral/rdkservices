@@ -73,6 +73,8 @@ using namespace std;
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
 #define AUDIO_DEVICE_CONNECTION_CHECK_TIME_IN_MILLISECONDS 3000
 
+#define RFC_PWRMGR2 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.PwrMgr2.Enable"
+
 #define ZOOM_SETTINGS_FILE      "/opt/persistent/rdkservices/zoomSettings.json"
 #define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
 
@@ -169,6 +171,7 @@ namespace WPEFramework {
         {
             LOGINFO("ctor");
             DisplaySettings::_instance = this;
+            m_client = nullptr;
 
             CreateHandler({ 2 });
 
@@ -277,6 +280,7 @@ namespace WPEFramework {
 	    m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
 	    m_cecArcRoutingThreadRun = false;
 	    isCecArcRoutingThreadEnabled = true;
+            m_isPwrMgr2RFCEnabled = false;
 	    m_arcRoutingThread = std::thread(cecArcRoutingThread);
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
             m_AudioDeviceDetectTimer.connect(std::bind(&DisplaySettings::checkAudioDeviceDetectionTimer, this));
@@ -285,24 +289,7 @@ namespace WPEFramework {
         DisplaySettings::~DisplaySettings()
         {
             LOGINFO("dtor  ");
-            {
-                LOGINFO("de-init timer and subscribbed event if not done as pert of Deinitialize fundtion ");
-                lock_guard<mutex> lck(m_callMutex);
-                if ( m_timer.isActive()) {
-                    m_timer.stop();
-                }
-
-                if ( m_AudioDeviceDetectTimer.isActive()) {
-                    m_AudioDeviceDetectTimer.stop();
-                }
-                for (std::string eventName : m_clientRegisteredEventNames) {
-                    m_client->Unsubscribe(1000, _T(eventName));
-                    LOGINFO("Unsubscribing event %s", eventName.c_str());
-                }
-                m_clientRegisteredEventNames.clear();
-                m_client.reset();
-                LOGINFO("reset m_client :%d  ", m_client.use_count());
-            }
+            stopCecTimeAndUnsubscriveEvent();
         }
 
         void DisplaySettings::AudioPortsReInitialize()
@@ -546,24 +533,7 @@ namespace WPEFramework {
             {
                 LOGERR("exception in thread join %s", e.what());
             }
-
-            {
-                lock_guard<mutex> lck(m_callMutex);
-                if ( m_timer.isActive()) {
-                    m_timer.stop();
-                }
-
-                if ( m_AudioDeviceDetectTimer.isActive()) {
-                    m_AudioDeviceDetectTimer.stop();
-                }
-                for (std::string eventName : m_clientRegisteredEventNames) {
-                    m_client->Unsubscribe(1000, _T(eventName));
-                    LOGINFO("Unsubscribing event %s", eventName.c_str());
-	        }
-                m_clientRegisteredEventNames.clear();
-		m_client.reset();
-            }
-
+            stopCecTimeAndUnsubscriveEvent();
 
             DeinitializeIARM();
             DisplaySettings::_instance = nullptr;
@@ -601,7 +571,12 @@ namespace WPEFramework {
                     LOGINFO("DisplaySettings::m_powerState:%d", m_powerState);
                 }
             }
-
+            RFC_ParamData_t param = {0};
+            WDMP_STATUS status = getRFCParameter(NULL, RFC_PWRMGR2, &param);
+            if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+            {
+                m_isPwrMgr2RFCEnabled = true;
+            }
             try
             {
                 //TODO(MROLLINS) this is probably per process so we either need to be running in our own process or be carefull no other plugin is calling it
@@ -1928,21 +1903,43 @@ namespace WPEFramework {
             string portname = parameters["portName"].String();
 
             bool enabled = parameters["enabled"].Boolean();
-            IARM_Bus_PWRMgr_StandbyVideoState_Param_t param;
-            param.isEnabled = enabled;
-            strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
             bool success = true;
-            if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_SetStandbyVideoState, &param, sizeof(param)))
+            IARM_Result_t result = IARM_RESULT_INVALID_STATE;
+            if(!m_isPwrMgr2RFCEnabled)
             {
-                LOGERR("Port: %s. enable: %d", param.port, param.isEnabled);
-                response["error_message"] = "Bus failure";
-                success = false;
+                IARM_Bus_PWRMgr_StandbyVideoState_Param_t param;
+                param.isEnabled = enabled;
+                strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
+                if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_SetStandbyVideoState, &param, sizeof(param)))
+                {
+                    LOGERR("Port: %s. enable: %d", param.port, param.isEnabled);
+                    response["error_message"] = "Bus failure";
+                    success = false;
+                }
+                else if(0 != param.result)
+                {
+                    LOGERR("Result %d. Port: %s. enable:%d", param.result, param.port, param.isEnabled);
+                    response["error_message"] = "internal error";
+                    success = false;
+                }
             }
-            else if(0 != param.result)
+            else
             {
-                LOGERR("Result %d. Port: %s. enable:%d", param.result, param.port, param.isEnabled);
-                response["error_message"] = "internal error";
-                success = false;
+                dsMgrStandbyVideoStateParam_t param;
+                param.isEnabled = enabled;
+                strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
+                if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_API_SetStandbyVideoState, &param, sizeof(param)))
+                {
+                    LOGERR("Port: %s. enable: %d", param.port, param.isEnabled);
+                    response["error_message"] = "Bus failure";
+                    success = false;
+                }
+                else if(0 != param.result)
+                {
+                    LOGERR("Result %d. Port: %s. enable:%d", param.result, param.port, param.isEnabled);
+                    response["error_message"] = "internal error";
+                    success = false;
+                }
             }
             returnResponse(success);
         }
@@ -1955,25 +1952,52 @@ namespace WPEFramework {
             string portname = parameters["portName"].String();
 
             bool success = true;
-            IARM_Bus_PWRMgr_StandbyVideoState_Param_t param;
-            strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
-            if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetStandbyVideoState, &param, sizeof(param)))
+            if(!m_isPwrMgr2RFCEnabled)
             {
-                LOGERR("Port: %s. enable:%d", param.port, param.isEnabled);
-                response["error_message"] = "Bus failure";
-                success = false;
-            }
-            else if(0 != param.result)
-            {
-                LOGERR("Result %d. Port: %s. enable:%d", param.result, param.port, param.isEnabled);
-                response["error_message"] = "internal error";
-                success = false;
+                IARM_Bus_PWRMgr_StandbyVideoState_Param_t param;
+                strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
+                if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetStandbyVideoState, &param, sizeof(param)))
+                {
+                    LOGERR("Port: %s. enable:%d", param.port, param.isEnabled);
+                    response["error_message"] = "Bus failure";
+                    success = false;
+                }
+                else if(0 != param.result)
+                {
+                    LOGERR("Result %d. Port: %s. enable:%d", param.result, param.port, param.isEnabled);
+                    response["error_message"] = "internal error";
+                    success = false;
+                }
+                else
+                {
+                    bool enabled(0 != param.isEnabled);
+                    LOGINFO("video port is %s", enabled ? "enabled" : "disabled");
+                    response["videoPortStatusInStandby"] = enabled;
+                }
             }
             else
             {
-                bool enabled(0 != param.isEnabled);
-                LOGINFO("video port is %s", enabled ? "enabled" : "disabled");
-                response["videoPortStatusInStandby"] = enabled;
+                dsMgrStandbyVideoStateParam_t param;
+                strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
+                if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_API_GetStandbyVideoState, &param, sizeof(param)))
+                {
+                    LOGERR("Port: %s. enable:%d", param.port, param.isEnabled);
+                    response["error_message"] = "Bus failure";
+                    success = false;
+                }
+                else if(0 != param.result)
+                {
+                    LOGERR("Result %d. Port: %s. enable:%d", param.result, param.port, param.isEnabled);
+                    response["error_message"] = "internal error";
+                    success = false;
+                }
+                else
+                {
+                    bool enabled(0 != param.isEnabled);
+                    LOGINFO("video port is %s", enabled ? "enabled" : "disabled");
+                    response["videoPortStatusInStandby"] = enabled;
+                }
+
             }
             returnResponse(success);
         }
@@ -4258,11 +4282,11 @@ namespace WPEFramework {
         // Thunder plugins communication
         void DisplaySettings::getHdmiCecSinkPlugin()
         {
-            if(m_client == NULL)
+            if(m_client == nullptr)
             { 
                 Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-                m_client =  make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.HdmiCecSink.1", "");
-                LOGINFO("DisplaySettings getHdmiCecSinkPlugin init m_client count: %d  \n",m_client.use_count());
+                m_client = (WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>*)new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(HDMICECSINK_CALLSIGN_VER), (_T(HDMICECSINK_CALLSIGN_VER)));
+                LOGINFO("DisplaySettings getHdmiCecSinkPlugin init m_client\n");
             }
         }
 
@@ -4825,6 +4849,29 @@ namespace WPEFramework {
 
               LOGINFO("updated isCecEnabled [%d] ... \n", isCecEnabled);
 	}
+
+        void DisplaySettings::stopCecTimeAndUnsubscriveEvent() {
+            LOGINFO("de-init cec timer and subscribbed event ");
+            {
+                lock_guard<mutex> lck(m_callMutex);
+                if ( m_timer.isActive()) {
+                    m_timer.stop();
+                }
+
+                if ( m_AudioDeviceDetectTimer.isActive()) {
+                    m_AudioDeviceDetectTimer.stop();
+                }
+                for (std::string eventName : m_clientRegisteredEventNames) {
+                    m_client->Unsubscribe(1000, _T(eventName));
+                    LOGINFO("Unsubscribing event %s", eventName.c_str());
+	        }
+                m_clientRegisteredEventNames.clear();
+                if (nullptr != m_client) {
+                    LOGINFO("deleting m_client ");
+                    delete m_client; m_client = nullptr;
+                }
+            }
+        }
 
         // 6.
         void DisplaySettings::onTimer()
