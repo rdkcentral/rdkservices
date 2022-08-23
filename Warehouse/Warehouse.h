@@ -22,7 +22,6 @@
 #include <thread>
 
 #include "Module.h"
-#include "utils.h"
 #include "UtilsThreadRAII.h"
 #include "libIARM.h"
 
@@ -134,6 +133,19 @@ namespace WPEFramework {
 #endif
         public:
             static Warehouse* _instance;
+            bool m_isPwrMgr2RFCEnabled;
+
+            uint32_t processColdFactoryReset();
+            uint32_t processFactoryReset();
+            uint32_t processWareHouseReset();
+            uint32_t processWHReset();
+            uint32_t processWHResetNoReboot();
+            uint32_t processWHClear();
+            uint32_t processWHClearNoReboot();
+            uint32_t processCustomerReset();
+            uint32_t processPersonalityReset();
+            uint32_t processUserFactoryReset();
+
         };
 	} // namespace Plugin
 } // namespace WPEFramework

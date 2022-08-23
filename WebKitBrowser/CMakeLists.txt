@@ -42,6 +42,7 @@ option(PLUGIN_WEBKITBROWSER_RESIDENT_APP "Include Resident App in seperate plugi
 option(PLUGIN_WEBKITBROWSER_SEARCH_AND_DISCOVERY_APP "Include Search&Discovery App in seperate plugin." OFF)
 option(PLUGIN_WEBKITBROWSER_HTML_APP "Include HTML App in seperate plugin." OFF)
 option(PLUGIN_WEBKITBROWSER_LIGHTNING_APP "Include Lightning App in seperate plugin." OFF)
+option(PLUGIN_WEBKITBROWSER_JSPP "Include JSPP in seperate plugin." OFF)
 
 option(PLUGIN_WEBKITBROWSER_ENABLE_JIT "Enable the use of JIT javascript optimalization" ON)
 option(PLUGIN_WEBKITBROWSER_ENABLE_DFG "Enable the use of DFG javascript optimalization" ON)
@@ -128,13 +129,21 @@ set(PLUGIN_HTML_APP_LOCALSTORAGE_ENABLE "false" CACHE STRING "Enable LocalStorag
 set(PLUGIN_HTML_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_HTML_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Html App Memory Pressure")
 
-set(PLUGIN_LIGHTNING_APP_AUTOSTART "false" CACHE STRING "Automatically start Lightninig App plugin")
+set(PLUGIN_LIGHTNING_APP_AUTOSTART "false" CACHE STRING "Automatically start Lightning App plugin")
 set(PLUGIN_LIGHTNING_APP_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 set(PLUGIN_LIGHTNING_APP_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string for Lightning App")
 set(PLUGIN_LIGHTNING_APP_WEBINSPECTOR_ADDRESS ":::10002" CACHE STRING "IP:Port for WebInspector of Lightning App")
 set(PLUGIN_LIGHTNING_APP_LOCALSTORAGE_ENABLE "false" CACHE STRING "Enable LocalStorage of Lightning App")
 set(PLUGIN_LIGHTNING_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_LIGHTNING_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Lightning App Memory Pressure")
+
+set(PLUGIN_JSPP_AUTOSTART "false" CACHE STRING "Automatically start JSPP plugin")
+set(PLUGIN_JSPP_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
+set(PLUGIN_JSPP_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string for JSPP")
+set(PLUGIN_JSPP_LOCALSTORAGE_ENABLE "false" CACHE STRING "Enable LocalStorage of JSPP")
+set(PLUGIN_JSPP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
+set(PLUGIN_JSPP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "JSPP Memory Pressure")
+set(PLUGIN_JSPP_STARTURL "about:blank" CACHE STRING "JSPP default URL to use")
 
 set(PLUGIN_AMAZON_AUTOSTART "false" CACHE STRING "Automatically start Amazon plugin")
 set(PLUGIN_AMAZON_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
@@ -283,6 +292,11 @@ endif()
 # Lightning App configuration
 if(PLUGIN_WEBKITBROWSER_LIGHTNING_APP)
     write_config( LightningApp )
+endif()
+
+# JSPP configuration
+if(PLUGIN_WEBKITBROWSER_JSPP)
+    write_config( JSPP )
 endif()
 
 # Resident App configuration

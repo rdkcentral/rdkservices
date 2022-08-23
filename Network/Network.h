@@ -164,8 +164,6 @@ namespace WPEFramework {
         public:
             static Network *_instance;
             static Network *getInstance() {return _instance;}
-            static const short API_VERSION_NUMBER_MINOR;
-            static const short API_VERSION_NUMBER_MAJOR;
 
         private:
             NetUtils m_netUtils;

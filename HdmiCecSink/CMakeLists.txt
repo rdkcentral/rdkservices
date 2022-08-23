@@ -21,9 +21,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         HdmiCecSink.cpp
-        Module.cpp
-        ../helpers/tptimer.cpp
-        ../helpers/utils.cpp)
+        Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11

@@ -11,8 +11,9 @@ on:
 env:
   BUILD_TYPE: Debug
 
+
   # Refs for 2208_sprint.
-  THUNDER_REF: "331ee30b1eaf82a7e8944ee00b8cb1d1d0aca682"
+  THUNDER_REF: "02f6ccbca6832043cbc94cc28c1bda7d4954a4e6"
   INTERFACES_REF: "cb3b8476aa3b00ae9e73ff0cf64114563d1ee7ae"
 
   THUNDER_BINDING: "127.0.0.1"
@@ -91,7 +92,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
-          --build build/ThunderTools
+          --build build/ThunderTools -j8
 
       - name: Install ThunderTools
         if: steps.cache.outputs.cache-hit != 'true'
@@ -115,7 +116,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
-          --build build/Thunder
+          --build build/Thunder -j8
 
       - name: Install Thunder
         if: steps.cache.outputs.cache-hit != 'true'
@@ -144,7 +145,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
-          --build build/ThunderInterfaces
+          --build build/ThunderInterfaces -j8
 
       - name: Install ThunderInterfaces
         if: steps.cache.outputs.cache-hit != 'true'
@@ -165,9 +166,13 @@ jobs:
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCMAKE_CXX_FLAGS="-I ${{github.workspace}}/rdkservices/Tests/headers
-          -I ${{github.workspace}}/rdkservices/Tests/headers/devicesettings
+          -I ${{github.workspace}}/rdkservices/Tests/headers/audiocapturemgr
+          -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/ds
+          -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmbus
+          -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmmgrs-hal
           --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system
-          -DENABLE_TELEMETRY_LOGGING"
+          -DENABLE_TELEMETRY_LOGGING
+          -DUSE_IARMBUS"
           -DCOMCAST_CONFIG=OFF
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
@@ -188,6 +193,7 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DPLUGIN_MESSENGER=ON
           -DPLUGIN_DEVICEINFO=ON
+          -DPLUGIN_SYSTEMSERVICES=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DRDK_SERVICES_TEST=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
@@ -195,7 +201,7 @@ jobs:
       - name: Build rdkservices
         run: >
           cmake
-          --build build/rdkservices
+          --build build/rdkservices -j8
 
       - name: Install rdkservices
         run: >

@@ -21,6 +21,10 @@
 #include <string.h>
 #include "Network.h"
 
+#include "UtilsLogging.h"
+
+#include <fstream>
+
 //Defines
 
 #define NETUTIL_DEVICE_PROPERTIES_FILE          "/etc/device.properties"
