@@ -1,15 +1,13 @@
 {
- "locator":"libWPEFrameworkSwitchBoard.so",
- "classname":"SwitchBoard",
- "callsign":"org.rdk.SwitchBoard",
- "autostart":true,
- "configuration":{
-  "homeurl":"http://localhost:50050/lxresui/index.html",
-  "lowmem":120,
-  "criticalmem":60,
-  "callsigns":[
-   "Amazon",
-   "Cobalt"
-  ]
- }
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "SwitchBoard Plugin",
+      "callsign": "org.rdk.SwitchBoard",
+      "locator": "libWPEFrameworkSwitchBoard.so",
+      "status": "production",
+      "description": "The `SwitchBoard` plugin allows you to control the state of premium apps so that memory can be free up in legacy devices."
+    },
+    "interface": {
+      "$ref": "SwitchBoard.json#"
+    }
 }
