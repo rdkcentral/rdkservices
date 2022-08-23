@@ -8,6 +8,9 @@ class HostImplMock : public device::HostImpl {
 public:
     virtual ~HostImplMock() = default;
 
+    MOCK_METHOD(device::SleepMode, getPreferredSleepMode, (), (override));
+    MOCK_METHOD(int, setPreferredSleepMode, (const device::SleepMode), (override));
+    MOCK_METHOD(device::List<device::SleepMode>, getAvailableSleepModes, (), (override));
     MOCK_METHOD(device::List<device::VideoOutputPort>, getVideoOutputPorts, (), (override));
     MOCK_METHOD(device::List<device::AudioOutputPort>, getAudioOutputPorts, (), (override));
     MOCK_METHOD(device::List<device::VideoDevice>, getVideoDevices, (), (override));
