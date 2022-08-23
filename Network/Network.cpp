@@ -917,7 +917,7 @@ namespace WPEFramework
                 if (!autoconfig)
                 {
                     RFC_ParamData_t param;
-                    if (Utils::getRFCConfig(const_cast<char*>("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Network.ManualIPSettings.Enable"), param))
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Network.ManualIPSettings.Enable", param))
                     {
                         if (param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
                         {

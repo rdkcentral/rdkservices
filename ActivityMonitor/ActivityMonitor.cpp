@@ -711,7 +711,7 @@ namespace WPEFramework
                             lastIdx = idx;
                         }
                     }
-                    else if (ppids[idx] == (unsigned int)getpid()) // if there is no waylandregistryreceiver.conf, monitoring the children of WPEFramework with "-C <callsign>" parameter
+                    else if (ppids[idx] == static_cast<unsigned int>(getpid())) // if there is no waylandregistryreceiver.conf, monitoring the children of WPEFramework with "-C <callsign>" parameter
                     {
                         if (pid2callSign.find(pids[idx]) == pid2callSign.end())
                         {

@@ -992,7 +992,7 @@ namespace WPEFramework {
             }
             #else
             RFC_ParamData_t macparam;
-            bool macret = Utils::getRFCConfig(const_cast<char*>("Device.DeviceInfo.X_COMCAST-COM_STB_MAC"), macparam);
+            bool macret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", macparam);
             if (true == macret)
             {
                 if (strncasecmp(macparam.value,"00:00:00:00:00:00",17) == 0)
@@ -1015,12 +1015,12 @@ namespace WPEFramework {
 #endif
 #ifdef RFC_ENABLED
             RFC_ParamData_t param;
-            bool ret = Utils::getRFCConfig(const_cast<char*>("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable"), param);
+            bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
             if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
             {
               mEnableUserInactivityNotification = true;
               enableInactivityReporting(true);
-              ret = Utils::getRFCConfig(const_cast<char*>("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.TimeMinutes"), param);
+              ret = Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.TimeMinutes", param);
               if (true == ret)
               {
                 try
@@ -3434,7 +3434,7 @@ namespace WPEFramework {
 
 #ifdef RFC_ENABLED
                     RFC_ParamData_t param;
-                    if (Utils::getRFCConfig(const_cast<char*>("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Netflix.Enable"), param))
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Netflix.Enable", param))
                     {
                         JsonObject root;
                         if (strncasecmp(param.value, "true", 4) == 0)
@@ -3472,7 +3472,7 @@ namespace WPEFramework {
 
 #ifdef RFC_ENABLED
                     RFC_ParamData_t param;
-                    if (Utils::getRFCConfig(const_cast<char*>("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Cobalt.Enable"), param))
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Cobalt.Enable", param))
                     {
                         JsonObject root;
                         if (strncasecmp(param.value, "true", 4) == 0)
@@ -3503,7 +3503,7 @@ namespace WPEFramework {
                 {
 #ifdef RFC_ENABLED
                     RFC_ParamData_t param;
-                    if (Utils::getRFCConfig(const_cast<char*>("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.WPE.Enable"), param))
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.WPE.Enable", param))
                     {
                         JsonObject root;
                         if (strncasecmp(param.value, "true", 4) == 0)
@@ -3533,7 +3533,7 @@ namespace WPEFramework {
                 {
 #ifdef RFC_ENABLED
                     RFC_ParamData_t param;
-                    if (Utils::getRFCConfig(const_cast<char*>("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.SAD.Enable"), param))
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.SAD.Enable", param))
                     {
                         JsonObject root;
                         if (strncasecmp(param.value, "true", 4) == 0)
@@ -5608,7 +5608,7 @@ namespace WPEFramework {
             }
             #else
             RFC_ParamData_t param;
-            bool ret = Utils::getRFCConfig(const_cast<char*>("Device.DeviceInfo.X_COMCAST-COM_STB_MAC"), param);
+            bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", param);
             if (true == ret)
             {
                 if (strncasecmp(param.value,"00:00:00:00:00:00",17) == 0)
