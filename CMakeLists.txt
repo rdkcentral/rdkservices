@@ -324,6 +324,10 @@ if(PLUGIN_LINEARPLAYBACKCONTROL)
     add_subdirectory(LinearPlaybackControl)
 endif()
 
+if(PLUGIN_SWITCHBOARD)
+    add_subdirectory(SwitchBoard)
+endif()
+
 if(RDK_SERVICES_TEST)
     add_subdirectory(Tests)
 endif()
