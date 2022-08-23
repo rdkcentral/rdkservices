@@ -27,6 +27,7 @@ public:
     bool setEnabled(const bool dnabled);
     bool setVolume(const double volume);
     bool setRate(const uint8_t rate);
+    bool setPrimVolDuck(const int8_t primvolduck);
    
     bool isFallbackEnabled();
     void saveFallbackPath(std::string);
@@ -42,6 +43,7 @@ public:
     const std::string &language() { return m_language; }
     const double &volume() { return m_volume; }
     const uint8_t &rate() { return m_rate; }
+    const int8_t &primVolDuck() { return m_primVolDuck; }
     const bool enabled() { return m_enabled; }
     bool isPreemptive() { return m_preemptiveSpeaking; }
     bool loadFromConfigStore();
@@ -61,6 +63,7 @@ private:
     std::string m_voice;
     double m_volume;
     uint8_t m_rate;
+    int8_t m_primVolDuck;
     bool m_preemptiveSpeaking;
     bool m_enabled;
     bool m_fallbackenabled;
