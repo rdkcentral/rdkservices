@@ -155,16 +155,12 @@
                     "devices": {
                         "$ref": "#/definitions/devices"
                     },
-                    "success": {
-                        "$ref": "#/common/success"
-                    },
                     "typeOfInput": {
                         "$ref": "#/definitions/typeOfInput"
                     }
                 },
                 "required": [
-                    "devices",
-                    "success"
+                    "devices"
                 ]
             },
             "errors": [
@@ -194,14 +190,10 @@
                         "summary": "The EDID version",
                         "type": "string",
                         "example": "HDMI2.0"
-                    },
-                    "success": {
-                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
-                    "edidVersion",
-                    "success"
+                    "edidVersion"
                 ]
             },
             "errors": [
@@ -235,14 +227,10 @@
                         "summary": "The SPD information",
                         "type": "string",
                         "example": ""
-                    },
-                    "success": {
-                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
-                    "HDMISPD",
-                    "success"
+                    "HDMISPD"
                 ]
             },
             "errors": [
@@ -276,14 +264,10 @@
                         "summary": "The SPD information as raw bits",
                         "type": "string",
                         "example": ""
-                    },
-                    "success": {
-                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
-                    "HDMISPD",
-                    "success"
+                    "HDMISPD"
                 ]
             },
             "errors": [
@@ -317,14 +301,10 @@
                         "summary": "The EDID Value",
                         "type": "string",
                         "example": ""
-                    },
-                    "success": {
-                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
-                    "EDID",
-                    "success"
+                    "EDID"
                 ]
             },
             "errors": [
@@ -360,7 +340,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/common/result"
+                "$ref": "#/common/results/void"
             },
             "errors": [
                 {
@@ -390,15 +370,7 @@
                 ]
             },
             "result": {
-                "type": "object",
-                "properties": {
-                    "success": {
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "success"
-                ]
+                "$ref": "#/common/results/void"
             },
             "errors": [
                 {
@@ -431,7 +403,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/common/result"
+                "$ref": "#/common/results/void"
             },
             "errors": [
                 {
@@ -482,7 +454,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/common/result"
+                "$ref": "#/common/results/void"
             },
             "errors": [
                 {
@@ -516,8 +488,8 @@
                     "message"
                 ]
             },
-            "result": {
-                "$ref": "#/common/result"
+			"result": {
+                "$ref": "#/common/results/void"
             },
             "errors": [
                 {
@@ -535,14 +507,10 @@
                         "summary": "The supported game Features",
                         "type": "string",
                         "example": "ALLM"
-                    },
-                    "success": {
-                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
-                    "supportedGameFeatures",
-                    "success"
+                    "supportedGameFeatures"
                 ]
             },
             "errors": [
@@ -578,14 +546,10 @@
                         "summary": "The current game feature status. Mode is required only for ALLM. Need to add support for future game features",
                         "type": "boolean",
                         "example": "true"
-                    },
-                    "success": {
-                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
-                    "mode",
-                    "success"
+                    "mode"
                 ]
             },
             "errors": [

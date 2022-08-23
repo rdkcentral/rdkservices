@@ -272,7 +272,6 @@ This method takes no parameters.
 | result.devices[#].id | number | The port identifier for the HDMI/Composite Input |
 | result.devices[#].locator | string | A URL corresponding to the HDMI/Composite Input port |
 | result.devices[#].connected | boolean | Whether a device is currently connected to this HDMI/Composite Input port |
-| result.success | boolean | Whether the request succeeded |
 | result?.typeOfInput | string | <sup>*(optional)*</sup> The type of Input - HDMI/COMPOSITE |
 
 ### Errors
@@ -307,7 +306,6 @@ This method takes no parameters.
                 "connected": true
             }
         ],
-        "success": true,
         "typeOfInput": "HDMI"
     }
 }
@@ -335,7 +333,6 @@ No Events.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.edidVersion | string | The EDID version |
-| result.success | boolean | Whether the request succeeded |
 
 ### Errors
 
@@ -366,8 +363,7 @@ No Events.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "edidVersion": "HDMI2.0",
-        "success": true
+        "edidVersion": "HDMI2.0"
     }
 }
 ```
@@ -394,7 +390,6 @@ No Events.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.HDMISPD | string | The SPD information |
-| result.success | boolean | Whether the request succeeded |
 
 ### Errors
 
@@ -425,8 +420,7 @@ No Events.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "HDMISPD": "...",
-        "success": true
+        "HDMISPD": "..."
     }
 }
 ```
@@ -453,7 +447,6 @@ No Events.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.HDMISPD | string | The SPD information as raw bits |
-| result.success | boolean | Whether the request succeeded |
 
 ### Errors
 
@@ -484,8 +477,7 @@ No Events.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "HDMISPD": "...",
-        "success": true
+        "HDMISPD": "..."
     }
 }
 ```
@@ -512,7 +504,6 @@ No Events.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.EDID | string | The EDID Value |
-| result.success | boolean | Whether the request succeeded |
 
 ### Errors
 
@@ -543,8 +534,7 @@ No Events.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "EDID": "...",
-        "success": true
+        "EDID": "..."
     }
 }
 ```
@@ -574,8 +564,7 @@ Also see: [onInputStatusChanged](#event.onInputStatusChanged), [onSignalChanged]
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
+| result | null | Always null |
 
 ### Errors
 
@@ -606,9 +595,7 @@ Also see: [onInputStatusChanged](#event.onInputStatusChanged), [onSignalChanged]
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": {
-        "success": true
-    }
+    "result": null
 }
 ```
 
@@ -635,8 +622,7 @@ Also see: [onInputStatusChanged](#event.onInputStatusChanged)
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
+| result | null | Always null |
 
 ### Errors
 
@@ -666,9 +652,7 @@ Also see: [onInputStatusChanged](#event.onInputStatusChanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": {
-        "success": true
-    }
+    "result": null
 }
 ```
 
@@ -693,8 +677,7 @@ No Events.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
+| result | null | Always null |
 
 ### Errors
 
@@ -725,9 +708,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": {
-        "success": true
-    }
+    "result": null
 }
 ```
 
@@ -755,8 +736,7 @@ No Events.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
+| result | null | Always null |
 
 ### Errors
 
@@ -790,9 +770,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": {
-        "success": true
-    }
+    "result": null
 }
 ```
 
@@ -817,8 +795,7 @@ No Events.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
+| result | null | Always null |
 
 ### Errors
 
@@ -848,9 +825,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": {
-        "success": true
-    }
+    "result": null
 }
 ```
 
@@ -873,7 +848,6 @@ This method takes no parameters.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.supportedGameFeatures | string | The supported game Features |
-| result.success | boolean | Whether the request succeeded |
 
 ### Errors
 
@@ -900,8 +874,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "supportedGameFeatures": "ALLM",
-        "success": true
+        "supportedGameFeatures": "ALLM"
     }
 }
 ```
@@ -929,7 +902,6 @@ No Events.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.mode | boolean | The current game feature status. Mode is required only for ALLM. Need to add support for future game features |
-| result.success | boolean | Whether the request succeeded |
 
 ### Errors
 
@@ -960,8 +932,7 @@ No Events.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "mode": true,
-        "success": true
+        "mode": true
     }
 }
 ```
