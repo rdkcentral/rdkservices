@@ -13,6 +13,7 @@ public:
     virtual std::vector<std::string> getMS12AudioProfileList() const = 0;
     virtual void getAudioCapabilities(int* capabilities) = 0;
     virtual void getMS12Capabilities(int* capabilities) = 0;
+    virtual bool isAudioMSDecode() const = 0;
 };
 
 class AudioOutputPort {
@@ -37,6 +38,11 @@ public:
     void getMS12Capabilities(int* capabilities)
     {
         return impl->getMS12Capabilities(capabilities);
+    }
+
+    bool isAudioMSDecode()
+    {
+        return impl->isAudioMSDecode();
     }
 };
 
