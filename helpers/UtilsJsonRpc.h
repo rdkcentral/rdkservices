@@ -4,6 +4,14 @@
 
 #define LOGINFOMETHOD() { std::string json; parameters.ToString(json); LOGINFO( "params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); LOGINFO( "response=%s", json.c_str() ); }
+
+/**
+ * DO NOT USE THIS.
+ *
+ * "success" parameter was added for legacy reasons.
+ * Newer APIs should return only error code to match the spec
+ */
+
 #define returnResponse(success) \
     { \
         response["success"] = success; \
@@ -40,6 +48,14 @@
     LOGINFO("Notify %s %s", event, json.c_str()); \
     Notify(event,params); \
 }
+
+/**
+ * DO NOT USE THIS.
+ *
+ * Instead, add YOURPLUGINNAME.json to https://github.com/rdkcentral/ThunderInterfaces
+ * and use the generated classes from <interfaces/json/JsonData_YOURPLUGINNAME.h>
+ */
+
 #define getNumberParameter(paramName, param) { \
     if (WPEFramework::Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
         param = parameters[paramName].Number(); \
