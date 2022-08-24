@@ -18,10 +18,32 @@
  */
  
 #include "LocationSync.h"
+//#include <functional>
+#include "UtilsSecurityToken.h"
+
+#include "UtilsLogging.h" // TODO: for custom builds only
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
+#define SERVER_DETAILS  "127.0.0.1:9998"
+
+// helper functions
+namespace {
+    bool getToken(WPEFramework::PluginHost::IShell* service, const string& token, const string& designator)
+    {
+        bool result = false;
+        auto auth = service->QueryInterfaceByCallsign<WPEFramework::PluginHost::IAuthenticate>("SecurityAgent");
+        if (auth != nullptr) {
+            std::string encoded;
+            result = auth->CreateToken(
+                    static_cast<uint16_t>(token.length()),
+                    reinterpret_cast<const uint8_t *>(token.c_str()),
+                    encoded) == WPEFramework::Core::ERROR_NONE;
+            }
+        return result;
+    }
+} // namespace
 
 namespace WPEFramework {
 namespace Plugin {
@@ -37,10 +59,14 @@ namespace Plugin {
     LocationSync::LocationSync()
         : _skipURL(0)
         , _source()
+                , _interval(0)
+                , _retries(0)
         , _sink(this)
         , _service(nullptr)
+                , _networkReady(false)
     {
         RegisterAll();
+            _netControlTimer.connect(std::bind(&LocationSync::onNetControlTimer, this));
     }
 #ifdef __WINDOWS__
 #pragma warning(default : 4355)
@@ -61,9 +87,25 @@ namespace Plugin {
         if (LocationService::IsSupported(config.Source.Value()) == Core::ERROR_NONE) {
             _skipURL = static_cast<uint16_t>(service->WebPrefix().length());
             _source = config.Source.Value();
+                _interval = config.Interval.Value();
+                _retries = config.Retries.Value();
             _service = service;
-
-            _sink.Initialize(config.Source.Value(), config.Interval.Value(), config.Retries.Value());
+            TRACE(Trace::Information, (_T("Starting netcontrol timer. Source: %s, interval: %d, retries: %d, network check every %d ms")
+                    , _source.c_str()
+                    , _interval
+                    , _retries
+                    , _interval * 1000
+            ));
+            LOGINFO("Starting netcontrol timer. Source: %s, interval: %d, retries: %d, network check every %d ms"
+                    , _source.c_str()
+                    , _interval
+                    , _retries
+                    , _interval * 1000
+            );
+            if(_netControlTimer.isActive()) {
+                _netControlTimer.stop();
+            }
+            _netControlTimer.start(_interval * 1000);
         } else {
             result = _T("URL for retrieving location is incorrect !!!");
         }
@@ -76,6 +118,9 @@ namespace Plugin {
     {
         ASSERT(_service == service);
 
+            if(_netControlTimer.isActive()) {
+                _netControlTimer.stop();
+            }
         _sink.Deinitialize();
     }
 
@@ -164,5 +209,136 @@ namespace Plugin {
         }
     }
 
+        void LocationSync::onNetControlTimer()
+        {
+            static uint8_t remainingAttempts = _retries;
+            bool networkReachable = getConnectivity();
+            remainingAttempts--;
+            TRACE(Trace::Information, (_T("Network is %s"), networkReachable ? "REACHABLE" : "UNREACHABLE"));
+            if (networkReachable || remainingAttempts <= 0)
+            {
+                _netControlTimer.stop();
+                TRACE(Trace::Information, (_T("Network reachability monitoring stopped.")));
+                TRACE(Trace::Information, (_T("Proceeding with LocationService init.")));
+                LOGINFO("Network reachability monitoring stopped. Proceeding with LocationService init.");
+                _sink.Initialize(_source, _interval, _retries);
+            } else {
+                TRACE(Trace::Information, (_T("Doing one more reachability check in %d sec."), _interval));
+                LOGINFO("Doing one more reachability check in %d sec. Remaining attempts: %d", _interval, remainingAttempts);
+            }
+        }
+        bool LocationSync::getConnectivity()
+        {
+            JsonObject joGetParams;
+            JsonObject joGetResult;
+            std::string callsign = "org.rdk.Network.1";
+            std::string token;
+            /* check if plugin active */
+            if (false == Utils::isPluginActivated("org.rdk.Network")) {
+                TRACE(Trace::Information, ("Network plugin is not activated \n"));
+                return false;
+            }
+
+            Utils::SecurityToken::getSecurityToken(token);
+            LOGINFO("Getting token: %s", token.c_str());
+
+            std::string token2;
+            if (getToken(_service, token2, callsign)) {
+                LOGINFO("Getting token via COMRPC: %s", token2.c_str());
+            }
+
+            string query = "token=" + token;
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
+            auto thunder_client = std::make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+            if (thunder_client != nullptr) {
+                uint32_t status = thunder_client->Invoke<JsonObject, JsonObject>(5000, "isConnectedToInternet", joGetParams, joGetResult);
+                if (status > 0) {
+                    TRACE(Trace::Information, ("%s call failed %d", callsign.c_str(), status));
+                    return false;
+                } else if (joGetResult.HasLabel("connectedToInternet")) {
+                    TRACE(Trace::Information, ("connectedToInternet status %s",(joGetResult["connectedToInternet"].Boolean())? "true":"false"));
+                    return joGetResult["connectedToInternet"].Boolean();
+                } else {
+                    return false;
+                }
+            }
+            TRACE(Trace::Information, ("thunder client failed"));
+            return false;
+        }
+        // TIMER
+        Timer::Timer() :
+                baseTimer(64 * 1024, "ThunderPluginBaseTimer")
+                , m_timerJob(this)
+                , m_isActive(false)
+                , m_isSingleShot(false)
+                , m_intervalInMs(-1)
+        {}
+
+        Timer::~Timer()
+        {
+            stop();
+        }
+
+        bool Timer::isActive()
+        {
+            return m_isActive;
+        }
+
+        void Timer::stop()
+        {
+            baseTimer.Revoke(m_timerJob);
+            m_isActive = false;
+        }
+
+        void Timer::start()
+        {
+            baseTimer.Revoke(m_timerJob);
+            baseTimer.Schedule(Core::Time::Now().Add(m_intervalInMs), m_timerJob);
+            m_isActive = true;
+        }
+
+        void Timer::start(int msec)
+        {
+            setInterval(msec);
+            start();
+        }
+
+        void Timer::setSingleShot(bool val)
+        {
+            m_isSingleShot = val;
+        }
+
+        void Timer::setInterval(int msec)
+        {
+            m_intervalInMs = msec;
+        }
+
+        void Timer::connect(std::function< void() > callback)
+        {
+            onTimeoutCallback = callback;
+        }
+
+        void Timer::Timed()
+        {
+            if(onTimeoutCallback != nullptr) {
+                onTimeoutCallback();
+            }
+            // stop in case of a single shot call; start again if it has not been stopped
+            if (m_isActive) {
+                if(m_isSingleShot) {
+                    stop();
+                } else{
+                    start();
+                }
+            }
+        }
+
+        uint64_t TimerJob::Timed(const uint64_t scheduledTime)
+        {
+            if(m_timer) {
+                m_timer->Timed();
+            }
+            return 0;
+        }
 } // namespace Plugin
 } // namespace WPEFramework
