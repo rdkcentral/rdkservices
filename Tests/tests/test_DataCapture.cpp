@@ -209,15 +209,13 @@ TEST_F(DataCaptureTest, ShouldRegisterMethod)
 TEST_F(DataCaptureTest, ShouldReturnErrorWhenParamsAreEmpty)
 {
     string response;
-    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T(""), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler_.Invoke(connection_, _T("enableAudioCapture"), _T(""), response));
 
-    EXPECT_EQ(Core::ERROR_NONE,
+    EXPECT_EQ(Core::ERROR_GENERAL,
         handler_.Invoke(connection_,
             _T("getAudioClip"),
             _T(""),
             response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
 }
 
 TEST_F(DataCaptureTest, ShouldTurnOnAudioCapture)
