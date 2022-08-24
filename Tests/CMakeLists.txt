@@ -36,7 +36,10 @@ add_executable(${PROJECT_NAME}
         source/Wraps.cpp
         )
 
-set_source_files_properties(tests/test_DeviceCapabilities.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
+set_source_files_properties(
+        tests/test_DeviceAudioCapabilities.cpp
+        tests/test_DeviceVideoCapabilities.cpp
+        PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 include_directories(../LocationSync
         ../PersistentStore
