@@ -2,60 +2,22 @@
 <a name="RDKShell_Plugin"></a>
 # RDKShell Plugin
 
-**Version: 2.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: 1.2.1**
 
 A org.rdk.RDKShell plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.RDKShell plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -117,6 +79,7 @@ RDKShell interface methods:
 | [getVirtualResolution](#getVirtualResolution) | Returns the virtual display resolution for the specified client |
 | [getVisibility](#getVisibility) | Gets the visibility of the specified client |
 | [getZOrder](#getZOrder) | Returns an array of clients in Z order, starting with the top most application client first |
+| [getGraphicsFrameRate](#getGraphicsFrameRate) | Returns the current Graphics Frame Rate |
 | [hideAllClients](#hideAllClients) | Hides/Unhides all the clients |
 | [hideCursor](#hideCursor) | Hides the cursor from showing on the display |
 | [hideFullScreenImage](#hideFullScreenImage) | Hides the Full Screen Image |
@@ -152,12 +115,14 @@ RDKShell interface methods:
 | [setTopmost](#setTopmost) | Sets whether the specified client appears above all other clients on the display |
 | [setVirtualResolution](#setVirtualResolution) | Sets the virtual resolution for the specified client |
 | [setVisibility](#setVisibility) | Sets whether the specified client should be visible |
+| [setGraphicsFrameRate](#setGraphicsFrameRate) | Set Graphics Frame Rate |
 | [showCursor](#showCursor) | Shows the cursor on the display using the current cursor size |
 | [showFullScreenImage](#showFullScreenImage) | Shows the Full Screen Image |
 | [showSplashLogo](#showSplashLogo) | Displays the splash screen |
 | [showWatermark](#showWatermark) | Sets whether a watermark shows on the display |
 | [suspend](#suspend) | Suspends an application |
 | [suspendApplication](#suspendApplication) | Suspends an application |
+| [keyRepeatConfig](#keyRepeatConfig) | Customizes key repeats |
 
 
 <a name="addAnimation"></a>
@@ -1904,6 +1869,48 @@ This method takes no parameters.
         "clients": [
             "org.rdk.Netflix"
         ],
+        "success": true
+    }
+}
+```
+
+<a name="getGraphicsFrameRate"></a>
+## *getGraphicsFrameRate*
+
+Returns the current Graphics Frame Rate.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.frameRate | number | display the current Graphics framerate |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.getGraphicsFrameRate"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "frameRate": 40,
         "success": true
     }
 }
@@ -3766,6 +3773,56 @@ Sets whether the specified client should be visible.
 }
 ```
 
+<a name="setGraphicsFrameRate"></a>
+## *setGraphicsFrameRate*
+
+Set Graphics Frame Rate.. 
+ 
+### Events
+ 
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.framerate | number | Graphics Framerate to be set |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.1.setGraphicsFrameRate",
+    "params": {
+        "framerate": 60
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="showCursor"></a>
 ## *showCursor*
 
@@ -4066,543 +4123,26 @@ Also see: [onApplicationSuspended](#onApplicationSuspended)
 }
 ```
 
-<a name="Notifications"></a>
-# Notifications
+<a name="keyRepeatConfig"></a>
+## *keyRepeatConfig*
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
-
-The following events are provided by the org.rdk.RDKShell plugin:
-
-RDKShell interface events:
-
-| Event | Description |
-| :-------- | :-------- |
-| [onApplicationActivated](#onApplicationActivated) | Triggered when an application is activated |
-| [onApplicationConnected](#onApplicationConnected) | Triggered when a connection to an application succeeds |
-| [onApplicationDisconnected](#onApplicationDisconnected) | Triggered when an attempt to disconnect from an application succeeds |
-| [onApplicationFirstFrame](#onApplicationFirstFrame) | Triggered when the first frame of an application is loaded |
-| [onApplicationLaunched](#onApplicationLaunched) | Triggered when an application launches successfully |
-| [onApplicationResumed](#onApplicationResumed) | Triggered when an application resumes from a suspended state |
-| [onApplicationSuspended](#onApplicationSuspended) | Triggered when an application is suspended |
-| [onApplicationTerminated](#onApplicationTerminated) | Triggered when an application terminates |
-| [onDestroyed](#onDestroyed) | Triggered when a runtime is destroyed |
-| [onDeviceCriticallyLowRamWarning](#onDeviceCriticallyLowRamWarning) | Triggered when the RAM memory on the device exceeds the configured `criticallyLowRam` threshold value |
-| [onDeviceCriticallyLowRamWarningCleared](#onDeviceCriticallyLowRamWarningCleared) | Triggered when the RAM memory on the device no longer exceeds the configured `criticallyLowRam` threshold value |
-| [onDeviceLowRamWarning](#onDeviceLowRamWarning) | Triggered when the RAM memory on the device exceeds the configured `lowRam` threshold value |
-| [onDeviceLowRamWarningCleared](#onDeviceLowRamWarningCleared) | Triggered when the RAM memory on the device no longer exceeds the configured `lowRam` threshold value |
-| [onLaunched](#onLaunched) | Triggered when a runtime is launched |
-| [onSuspended](#onSuspended) | Triggered when a runtime is suspended |
-| [onUserInactivity](#onUserInactivity) | Triggered when a device has been inactive for a period of time |
-| [onWillDestroy](#onWillDestroy) | Triggered when an application is set to be destroyed |
-| [onPluginSuspended](#onPluginSuspended) | Triggered when a plugin is suspended |
-| [onScreenshotComplete](#onScreenshotComplete) | Triggered when a screenshot is captured successfully using `getScreenshot` method |
-| [onBlur](#onBlur) | Triggered when the focused client is blurred |
-| [onFocus](#onFocus) | Triggered when a client is set to focus |
-
-
-<a name="onApplicationActivated"></a>
-## *onApplicationActivated*
-
-Triggered when an application is activated.
+Customizes key repeats. 
+ 
+### Events
+ 
+ No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.client | string | The client name |
+| params?.input | string | <sup>*(optional)*</sup> input type, can be 'default' or 'keyboard'. If 'input' prop not specified 'default'('keyboard') is assumed |
+| params.enabled | boolean | `true` to enable key repeats, false to disable key repeats |
+| params.initialDelay | number | number of miliseconds until first key repeat event will be sent |
+| params.repeatInterval | number | number of miliseconds until following key repeat events will be sent |
 
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationActivated",
-    "params": {
-        "client": "org.rdk.Netflix"
-    }
-}
-```
-
-<a name="onApplicationConnected"></a>
-## *onApplicationConnected*
-
-Triggered when a connection to an application succeeds.
-
-### Parameters
+### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationConnected",
-    "params": {
-        "client": "org.rdk.Netflix"
-    }
-}
-```
-
-<a name="onApplicationDisconnected"></a>
-## *onApplicationDisconnected*
-
-Triggered when an attempt to disconnect from an application succeeds.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationDisconnected",
-    "params": {
-        "client": "org.rdk.Netflix"
-    }
-}
-```
-
-<a name="onApplicationFirstFrame"></a>
-## *onApplicationFirstFrame*
-
-Triggered when the first frame of an application is loaded.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationFirstFrame",
-    "params": {
-        "client": "org.rdk.Netflix"
-    }
-}
-```
-
-<a name="onApplicationLaunched"></a>
-## *onApplicationLaunched*
-
-Triggered when an application launches successfully.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationLaunched",
-    "params": {
-        "client": "org.rdk.Netflix"
-    }
-}
-```
-
-<a name="onApplicationResumed"></a>
-## *onApplicationResumed*
-
-Triggered when an application resumes from a suspended state.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationResumed",
-    "params": {
-        "client": "org.rdk.Netflix"
-    }
-}
-```
-
-<a name="onApplicationSuspended"></a>
-## *onApplicationSuspended*
-
-Triggered when an application is suspended.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationSuspended",
-    "params": {
-        "client": "org.rdk.Netflix"
-    }
-}
-```
-
-<a name="onApplicationTerminated"></a>
-## *onApplicationTerminated*
-
-Triggered when an application terminates.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationTerminated",
-    "params": {
-        "client": "org.rdk.Netflix"
-    }
-}
-```
-
-<a name="onDestroyed"></a>
-## *onDestroyed*
-
-Triggered when a runtime is destroyed.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onDestroyed",
-    "params": {
-        "client": "org.rdk.Netflix"
-    }
-}
-```
-
-<a name="onDeviceCriticallyLowRamWarning"></a>
-## *onDeviceCriticallyLowRamWarning*
-
-Triggered when the RAM memory on the device exceeds the configured `criticallyLowRam` threshold value. See `setMemoryMonitor`.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.ram | integer | The amount of free memory remaining in Kilobytes |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceCriticallyLowRamWarning",
-    "params": {
-        "ram": 65536
-    }
-}
-```
-
-<a name="onDeviceCriticallyLowRamWarningCleared"></a>
-## *onDeviceCriticallyLowRamWarningCleared*
-
-Triggered when the RAM memory on the device no longer exceeds the configured `criticallyLowRam` threshold value. See `setMemoryMonitor`.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.ram | integer | The amount of free memory remaining in Kilobytes |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceCriticallyLowRamWarningCleared",
-    "params": {
-        "ram": 65536
-    }
-}
-```
-
-<a name="onDeviceLowRamWarning"></a>
-## *onDeviceLowRamWarning*
-
-Triggered when the RAM memory on the device exceeds the configured `lowRam` threshold value. See `setMemoryMonitor`.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.ram | integer | The amount of free memory remaining in Kilobytes |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceLowRamWarning",
-    "params": {
-        "ram": 65536
-    }
-}
-```
-
-<a name="onDeviceLowRamWarningCleared"></a>
-## *onDeviceLowRamWarningCleared*
-
-Triggered when the RAM memory on the device no longer exceeds the configured `lowRam` threshold value. See `setMemoryMonitor`.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.ram | integer | The amount of free memory remaining in Kilobytes |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceLowRamWarningCleared",
-    "params": {
-        "ram": 65536
-    }
-}
-```
-
-<a name="onLaunched"></a>
-## *onLaunched*
-
-Triggered when a runtime is launched.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-| params.launchType | string | The launch type of an application (must be one of the following: *create*, *active*, *suspend*, *resume*) |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onLaunched",
-    "params": {
-        "client": "org.rdk.Netflix",
-        "launchType": "create"
-    }
-}
-```
-
-<a name="onSuspended"></a>
-## *onSuspended*
-
-Triggered when a runtime is suspended.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onSuspended",
-    "params": {
-        "client": "org.rdk.Netflix"
-    }
-}
-```
-
-<a name="onUserInactivity"></a>
-## *onUserInactivity*
-
-Triggered when a device has been inactive for a period of time. This event is broadcasted at the frequency specified by `setInactivityInterval` if the device is not active. The default frequency is 15 minutes.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.minutes | number | The number of minutes that the device has been inactive |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onUserInactivity",
-    "params": {
-        "minutes": 5
-    }
-}
-```
-
-<a name="onWillDestroy"></a>
-## *onWillDestroy*
-
-Triggered when an application is set to be destroyed.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.callsign | string | The application callsign |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onWillDestroy",
-    "params": {
-        "callsign": "Cobalt"
-    }
-}
-```
-
-<a name="onPluginSuspended"></a>
-## *onPluginSuspended*
-
-Triggered when a plugin is suspended.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onPluginSuspended",
-    "params": {
-        "client": "searchanddiscovery"
-    }
-}
-```
-
-<a name="onScreenshotComplete"></a>
-## *onScreenshotComplete*
-
-Triggered when a screenshot is captured successfully using `getScreenshot` 
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.imageData | string | Base64 encoded image data |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onScreenshotComplete",
-    "params": {
-        "imageData": "AAAAAAAAAA"
-    }
-}
-```
-
-<a name="onBlur"></a>
-## *onBlur*
-
-Triggered when the focused client is blurred.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onBlur",
-    "params": {
-        "client": "searchanddiscovery"
-    }
-}
-```
-
-<a name="onFocus"></a>
-## *onFocus*
-
-Triggered when a client is set to focus.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.client | string | The client name |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onFocus",
-    "params": {
-        "client": "HtmlApp"
-    }
-}
-```
-
