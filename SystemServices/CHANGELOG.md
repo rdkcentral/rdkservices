@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.2] - 2022-08-24
 ### Fixed
-- RDKTV-19132 Update SystemServices to call container_setup.sh script after deleting persistent data
+- Update SystemServices to call container_setup.sh script after deleting persistent data
 
 ## [1.0.1]
 ### Fixed
