@@ -199,27 +199,18 @@ void AVInput::RegisterAll()
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_NUMBER_OF_INPUTS), &AVInput::endpoint_numberOfInputs, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_CURRENT_VIDEO_MODE), &AVInput::endpoint_currentVideoMode, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_CONTENT_PROTECTED), &AVInput::endpoint_contentProtected, this);
-    Register(AVINPUT_METHOD_GET_INPUT_DEVICES, &AVInput::getInputDevicesWrapper, this);
-    GetHandler(2)->Register<JsonObject, JsonObject>(AVINPUT_METHOD_GET_INPUT_DEVICES, &AVInput::getInputDevicesWrapper, this);
-    Register(AVINPUT_METHOD_WRITE_EDID, &AVInput::writeEDIDWrapper, this);
-    GetHandler(2)->Register<JsonObject, JsonObject>(AVINPUT_METHOD_WRITE_EDID, &AVInput::writeEDIDWrapper, this);
-    Register(AVINPUT_METHOD_READ_EDID, &AVInput::readEDIDWrapper, this);
-    GetHandler(2)->Register<JsonObject, JsonObject>(AVINPUT_METHOD_READ_EDID, &AVInput::readEDIDWrapper, this);
-    GetHandler(2)->Register<JsonObject, JsonObject>(AVINPUT_METHOD_READ_RAWSPD, &AVInput::getRawSPDWrapper, this);
-    GetHandler(2)->Register<JsonObject, JsonObject>(AVINPUT_METHOD_READ_SPD, &AVInput::getSPDWrapper, this);
-    GetHandler(2)->Register<JsonObject, JsonObject>(AVINPUT_METHOD_SET_EDID_VERSION, &AVInput::setEdidVersionWrapper, this);
-    GetHandler(2)->Register<JsonObject, JsonObject>(AVINPUT_METHOD_GET_EDID_VERSION, &AVInput::getEdidVersionWrapper, this);
-    Register(AVINPUT_METHOD_START_INPUT, &AVInput::startInput, this);
-    GetHandler(2)->Register<JsonObject, JsonObject>(AVINPUT_METHOD_START_INPUT, &AVInput::startInput, this);
-    Register(AVINPUT_METHOD_STOP_INPUT, &AVInput::stopInput, this);
-    GetHandler(2)->Register<JsonObject, JsonObject>(AVINPUT_METHOD_STOP_INPUT, &AVInput::stopInput, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_INPUT_DEVICES), &AVInput::getInputDevicesWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_WRITE_EDID), &AVInput::writeEDIDWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_READ_EDID), &AVInput::readEDIDWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_READ_RAWSPD), &AVInput::getRawSPDWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_READ_SPD), &AVInput::getSPDWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_EDID_VERSION), &AVInput::setEdidVersionWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_EDID_VERSION), &AVInput::getEdidVersionWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_START_INPUT), &AVInput::startInput, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_STOP_INPUT), &AVInput::stopInput, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SCALE_INPUT), &AVInput::setVideoRectangleWrapper, this);
-    Register(AVINPUT_METHOD_SCALE_INPUT, &AVInput::setVideoRectangleWrapper, this);
-    GetHandler(2)->Register<JsonObject, JsonObject>(AVINPUT_METHOD_SCALE_INPUT, &AVInput::setVideoRectangleWrapper, this);
-    Register(AVINPUT_METHOD_SUPPORTED_GAME_FEATURES, &AVInput::getSupportedGameFeatures, this);
-    GetHandler(2)->Register<JsonObject, JsonObject>(AVINPUT_METHOD_SUPPORTED_GAME_FEATURES, &AVInput::getSupportedGameFeatures, this);
-    Register(AVINPUT_METHOD_GAME_FEATURE_STATUS, &AVInput::getGameFeatureStatusWrapper, this);
-    GetHandler(2)->Register<JsonObject, JsonObject>(AVINPUT_METHOD_GAME_FEATURE_STATUS, &AVInput::getGameFeatureStatusWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SUPPORTED_GAME_FEATURES), &AVInput::getSupportedGameFeatures, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GAME_FEATURE_STATUS), &AVInput::getGameFeatureStatusWrapper, this);
 }
 
 void AVInput::UnregisterAll()
@@ -230,10 +221,10 @@ void AVInput::UnregisterAll()
     Unregister(_T(AVINPUT_METHOD_GET_INPUT_DEVICES));
     Unregister(_T(AVINPUT_METHOD_WRITE_EDID));
     Unregister(_T(AVINPUT_METHOD_READ_EDID));
-/*    Unregister(_T(AVINPUT_METHOD_READ_RAWSPD));
+    Unregister(_T(AVINPUT_METHOD_READ_RAWSPD));
     Unregister(_T(AVINPUT_METHOD_READ_SPD));
     Unregister(_T(AVINPUT_METHOD_SET_EDID_VERSION));
-    Unregister(_T(AVINPUT_METHOD_GET_EDID_VERSION));*/
+    Unregister(_T(AVINPUT_METHOD_GET_EDID_VERSION));
     Unregister(_T(AVINPUT_METHOD_START_INPUT));
     Unregister(_T(AVINPUT_METHOD_STOP_INPUT));
     Unregister(_T(AVINPUT_METHOD_SCALE_INPUT));
