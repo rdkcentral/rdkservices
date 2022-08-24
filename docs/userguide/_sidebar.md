@@ -3,6 +3,7 @@
 - [**User Guide**](/README)
   - Introduction
   - [RDK Services Overview](userguide/intro.md)
+  - [RDK Abbreviation, Acronyms and Terms](userguide/aat.md)
   - Get Started
   - [Quick Start](userguide/quick-start.md)
   - [Discovering Services](userguide/discover.md)
