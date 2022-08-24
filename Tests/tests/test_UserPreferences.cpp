@@ -65,8 +65,7 @@ TEST_F(UserPreferencesTestFixture, registeredMethods)
 
 TEST_F(UserPreferencesTestFixture, paramsMissing)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setUILanguage"), _T("{}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setUILanguage"), _T("{}"), response));
 }
 
 TEST_F(UserPreferencesTestFixture, getUILanguage)
@@ -74,16 +73,14 @@ TEST_F(UserPreferencesTestFixture, getUILanguage)
     EXPECT_EQ(string(""), plugin->Initialize(nullptr));
 
     //Fail  case: File doesn't exists
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
 
     Core::File file(userPrefFile);
     file.Destroy();
     file.Create();
  
     //Fail case: No key exists
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
 
     file.Write(userPrefLang, sizeof(userPrefLang));
 

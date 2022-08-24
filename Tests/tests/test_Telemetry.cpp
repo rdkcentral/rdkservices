@@ -285,14 +285,11 @@ TEST_F(TelemetryTestFixture, Plugin)
     // Initialize
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{}"), response));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"wrongvalue\"}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"wrongvalue\"}"), response));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
     
     EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
@@ -300,11 +297,9 @@ TEST_F(TelemetryTestFixture, Plugin)
     EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"COMPLETE\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\"}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler->Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\"}"), response));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("logApplicationEvent"), _T("{\"eventValue\":\"VALUE\"}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler->Invoke(connection, _T("logApplicationEvent"), _T("{\"eventValue\":\"VALUE\"}"), response));
 
     EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
