@@ -90,24 +90,6 @@
 #define vectorSet(v,s) \
     if (find(begin(v), end(v), s) == end(v)) \
         v.emplace_back(s);
-#define returnIfWrongApiVersion(version)\
-    if(m_apiVersionNumber < version) \
-    { \
-        LOGWARN("method %s not supported. version required=%u actual=%u", __FUNCTION__, version, m_apiVersionNumber); \
-        returnResponse(false); \
-    }
-#define returnIfArrayParamNotFound(param, name) \
-    if (!param.HasLabel(name) || param[name].Content() != WPEFramework::Core::JSON::Variant::type::ARRAY) \
-    { \
-        LOGERR("No argument '%s' or it has incorrect type", name); \
-        returnResponse(false); \
-    }
-#define returnIfObjectParamNotFound(param, name) \
-    if (!param.HasLabel(name) || param[name].Content() != WPEFramework::Core::JSON::Variant::type::OBJECT) \
-    { \
-        LOGERR("No argument '%s' or it has incorrect type", name); \
-        returnResponse(false); \
-    }
 #define getDefaultNumberParameter(paramName, param, default) { \
     if (parameters.HasLabel(paramName)) { \
         if (WPEFramework::Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
