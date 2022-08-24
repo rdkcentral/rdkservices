@@ -12,11 +12,12 @@
  * Newer APIs should return only error code to match the spec
  */
 
-#define returnResponse(success) \
+#define returnResponse(expression) \
     { \
-        response["success"] = success; \
+        bool successBoolean = expression; \
+        response["success"] = successBoolean; \
         LOGTRACEMETHODFIN(); \
-        return (WPEFramework::Core::ERROR_NONE); \
+        return (successBoolean ? WPEFramework::Core::ERROR_NONE : WPEFramework::Core::ERROR_GENERAL); \
     }
 #define returnIfParamNotFound(param, name) \
     if (!param.HasLabel(name)) \
