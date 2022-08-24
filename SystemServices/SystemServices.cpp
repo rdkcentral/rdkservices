@@ -4238,6 +4238,11 @@ namespace WPEFramework {
             // Everything is OK
             LOGINFO("Successfully deleted persistent path for '%s' (path = '%s')", callsignOrType.c_str(), persistentPath.c_str());
 
+	    //Calling container_setup.sh along with callsign as container bundle also gets deleted from the persistent path
+            std::string command = "/lib/rdk/container_setup.sh " + callsignOrType;
+            system(command.c_str());
+            LOGINFO("Calling %s \n", command.c_str());
+
             result = true;
 
           } while(false);
