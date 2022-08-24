@@ -2364,7 +2364,6 @@ def CreateDocument(schema, path):
                 tmp.update(d2[prop])
             return tmp
 
-
         MdHeader("Abbreviation, Acronyms and Terms")
         MdParagraph((
             "[[Refer to this link](userguide/aat.md)]"
