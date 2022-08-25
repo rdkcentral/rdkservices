@@ -274,22 +274,18 @@ namespace WPEFramework {
 
 	    m_subscribed = false; //HdmiCecSink event subscription
 	    m_hdmiInAudioDeviceConnected = false;
-        m_arcAudioEnabled = false;
+	    m_arcAudioEnabled = false;
 	    m_hdmiCecAudioDeviceDetected = false;
             m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
 	    m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
 	    m_cecArcRoutingThreadRun = false;
 	    isCecArcRoutingThreadEnabled = true;
             m_isPwrMgr2RFCEnabled = false;
-	    m_arcRoutingThread = std::thread(cecArcRoutingThread);
-	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
-            m_AudioDeviceDetectTimer.connect(std::bind(&DisplaySettings::checkAudioDeviceDetectionTimer, this));
         }
 
         DisplaySettings::~DisplaySettings()
         {
-            LOGINFO("dtor  ");
-            stopCecTimeAndUnsubscriveEvent();
+            LOGINFO ("dtor");
         }
 
         void DisplaySettings::AudioPortsReInitialize()
@@ -493,6 +489,10 @@ namespace WPEFramework {
 
         const string DisplaySettings::Initialize(PluginHost::IShell* /* service */)
         {
+	    m_arcRoutingThread = std::thread(cecArcRoutingThread);
+	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
+            m_AudioDeviceDetectTimer.connect(std::bind(&DisplaySettings::checkAudioDeviceDetectionTimer, this));
+
             InitializeIARM();
 
             if (IARM_BUS_PWRMGR_POWERSTATE_ON == getSystemPowerState())
@@ -533,7 +533,7 @@ namespace WPEFramework {
             {
                 LOGERR("exception in thread join %s", e.what());
             }
-            stopCecTimeAndUnsubscriveEvent();
+            stopCecTimeAndUnsubscribeEvent();
 
             DeinitializeIARM();
             DisplaySettings::_instance = nullptr;
@@ -4321,7 +4321,7 @@ namespace WPEFramework {
             if(m_client == nullptr)
             { 
                 Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-                m_client = (WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>*)new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(HDMICECSINK_CALLSIGN_VER), (_T(HDMICECSINK_CALLSIGN_VER)));
+                m_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(HDMICECSINK_CALLSIGN_VER), (_T(HDMICECSINK_CALLSIGN_VER)));
                 LOGINFO("DisplaySettings getHdmiCecSinkPlugin init m_client\n");
             }
         }
@@ -4519,33 +4519,34 @@ namespace WPEFramework {
             }
 
 	    if(err == Core::ERROR_NONE) {
+                WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* client = (WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>*) m_client;
                 /* Register handlers for Event reception. */
                 if(strcmp(eventName, HDMICECSINK_ARC_INITIATION_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onARCInitiationEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_ARC_TERMINATION_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onARCTerminationEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onShortAudioDescriptorEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onSystemAudioModeEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onAudioDeviceConnectedStatusEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_CEC_ENABLED_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onCecEnabledEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_AUDIO_DEVICE_POWER_STATUS_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onAudioDevicePowerStatusEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
 		} else {
@@ -4905,8 +4906,8 @@ namespace WPEFramework {
               LOGINFO("updated isCecEnabled [%d] ... \n", isCecEnabled);
 	}
 
-        void DisplaySettings::stopCecTimeAndUnsubscriveEvent() {
-            LOGINFO("de-init cec timer and subscribbed event ");
+        void DisplaySettings::stopCecTimeAndUnsubscribeEvent() {
+            LOGINFO ("de-init cec timer and subscribbed event \n");
             {
                 lock_guard<mutex> lck(m_callMutex);
                 if ( m_timer.isActive()) {
@@ -4916,14 +4917,16 @@ namespace WPEFramework {
                 if ( m_AudioDeviceDetectTimer.isActive()) {
                     m_AudioDeviceDetectTimer.stop();
                 }
-                for (std::string eventName : m_clientRegisteredEventNames) {
-                    m_client->Unsubscribe(1000, _T(eventName));
-                    LOGINFO("Unsubscribing event %s", eventName.c_str());
-	        }
-                m_clientRegisteredEventNames.clear();
                 if (nullptr != m_client) {
-                    LOGINFO("deleting m_client ");
-                    delete m_client; m_client = nullptr;
+                    WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* client = (WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>*) m_client;
+                    for (std::string eventName : m_clientRegisteredEventNames) {
+                        client->Unsubscribe(1000, _T(eventName));
+                        LOGINFO ("Unsubscribing event %s\n", eventName.c_str());
+                    }
+                    m_clientRegisteredEventNames.clear();
+
+                    LOGINFO ("deleting m_client \n");
+                    delete client; m_client = nullptr;
                 }
             }
         }
