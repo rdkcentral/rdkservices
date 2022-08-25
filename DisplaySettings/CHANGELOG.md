@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+##[1.0.5] - 2022-09-01
+### Changed
+- Fixed DisplaySettings::sendHdmiCecSinkAudioDevicePowerOn fprintf.c crash
+
 ##[1.0.4] - 2022-08-31
 ### Changed
 - Changed functionality to route audio to AVR on HDMI CEC off incase of eArc devices as well.
