@@ -57,6 +57,7 @@ include_directories(../LocationSync
         ../Messenger
         ../DeviceInfo
         ../helpers
+        ../SystemServices
         )
 link_directories(../LocationSync
         ../PersistentStore
