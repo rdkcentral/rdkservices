@@ -328,10 +328,6 @@ if(RDK_SERVICES_TEST)
     add_subdirectory(Tests)
 endif()
 
-if(PLUGIN_UNIFIEDPLAYER)
-    add_subdirectory(UnifiedPlayer)
-endif()
-
 if(PLUGIN_UNIFIEDCASMANAGEMENT)
     add_subdirectory(UnifiedCASManagement)
 endif()
