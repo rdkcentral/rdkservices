@@ -210,7 +210,7 @@ namespace WPEFramework {
             IARM_Bus_PWRMgr_PowerState_t getSystemPowerState();
 
 	    void getHdmiCecSinkPlugin();
-	    WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* m_client;
+	    void* m_client;
 	    std::vector<std::string> m_clientRegisteredEventNames;
 	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
 	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
