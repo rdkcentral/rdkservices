@@ -168,7 +168,8 @@ jobs:
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmmgrs-hal
           --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system
           -DENABLE_TELEMETRY_LOGGING
-          -DUSE_IARMBUS"
+          -DUSE_IARMBUS
+          -DENABLE_GTEST"
           -DCOMCAST_CONFIG=OFF
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
@@ -219,6 +220,27 @@ jobs:
           printf 'MFG_NAME=Pace\nFRIENDLY_ID="Pace Xi5"\n' | sudo tee /etc/device.properties
           printf 'deviceType=IpStb\n' | sudo tee /etc/authService.conf
           printf 'imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\nSDK_VERSION=17.3\nMEDIARITE=8.3.53\nYOCTO_VERSION=dunfell\n' | sudo tee /version.txt
+
+          sudo mkdir /opt/secure
+          sudo mkdir /opt/persistent
+          sudo mkdir /opt/secure/reboot
+          sudo mkdir /opt/secure/persistent
+          sudo mkdir /opt/secure/persistent/System
+          sudo mkdir /opt/logs
+          sudo mkdir /lib/rdk
+          sudo chmod -R 1777 /opt
+          sudo chmod -R 1777 /lib/rdk
+
+          printf 'PreviousRebootReason: 18.08.2022_09:51.38 RebootReason: Triggered from SystemServices! MAINTENANCE_REBOOT \n PreviousRebootTime: 18.08.2022_09:51.38 \n PreviousCustomReason:  MAINTENANCE_REBOOT \n PreviousOtherReason:  MAINTENANCE_REBOOT \n' |  sudo tee /opt/logs/rebootInfo.log
+          printf '{\n\"timestamp\":\"Thu Aug 18 13:51:39 UTC 2022\",\n \"source\":\"HAL_CDL_notify_mgr_event",\n \"reason\":\"OPS_TRIGGERED\",\n \"customReason\":\"Unknown",\n \"otherReason\":\"Rebooting the box due to VL_CDL_MANAGER_EVENT_REBOOT...!\"\n}\n' |  sudo tee /opt/persistent/previousreboot.info
+          printf '{\n\"lastHardPowerReset\":\"Thu Aug 18 13:51:39 UTC 2022\"\n}\n' |  sudo tee /opt/persistent/hardpower.info
+          printf 'RDK_STARTED:35755' | sudo tee /opt/logs/rdk_milestones.log
+          printf 'false' | sudo tee /opt/tmtryoptout
+          printf '#!/bin/sh' | sudo tee /lib/rdk/getStateDetails.sh
+          sudo chmod +x /lib/rdk/getStateDetails.sh
+          printf 'M11632TR7543' | sudo tee /tmp/.STB_SER_NO
+          printf 'imagename:AX013AN_5.6p4s1_VBN_sey\nVERSION=5.6.0.4\nBUILD_TIME=\"2022-08-05 16:14:54\"\nGenerated on Fri Aug 05 16:14:54 UTC 2022' | sudo tee /version.txt
+          printf 'Method|xconf \nProto|\nStatus|Failure\nReboot|\nFailureReason|Invalid Request\nDnldVersn|AX013AN_5.6p4s1_VBN_sey\nDnldFile|\nDnlURL|https://dac15cdlserver.ae.ccp.xcal.tv:443/Images/AX013AN_5.6p4s1_VBN_sey-signed.bin\n FwupdateState|Failed\n' | sudo tee /opt/fwdnldstatus.txt
 
       - name: Run unit tests
         run: >
