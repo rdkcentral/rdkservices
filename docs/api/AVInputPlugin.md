@@ -260,7 +260,10 @@ No Events.
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.typeOfInput | string | The type of Input - HDMI/COMPOSITE |
 
 ### Result
 
@@ -272,13 +275,12 @@ This method takes no parameters.
 | result.devices[#].id | number | The port identifier for the HDMI/Composite Input |
 | result.devices[#].locator | string | A URL corresponding to the HDMI/Composite Input port |
 | result.devices[#].connected | boolean | Whether a device is currently connected to this HDMI/Composite Input port |
-| result?.typeOfInput | string | <sup>*(optional)*</sup> The type of Input - HDMI/COMPOSITE |
 
 ### Errors
 
 | Code | Message | Description |
 | :-------- | :-------- | :-------- |
-| 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
+| 30 | ```ERROR_BAD_REQUEST``` | Type of Input is invalid |
 
 ### Example
 
@@ -288,7 +290,10 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.getInputDevices"
+    "method": "org.rdk.AVInput.1.getInputDevices",
+    "params": {
+        "typeOfInput": "HDMI"
+    }
 }
 ```
 
@@ -305,8 +310,7 @@ This method takes no parameters.
                 "locator": "hdmiin://localhost/deviceid/0",
                 "connected": true
             }
-        ],
-        "typeOfInput": "HDMI"
+        ]
     }
 }
 ```
@@ -339,7 +343,7 @@ No Events.
 | Code | Message | Description |
 | :-------- | :-------- | :-------- |
 | 1 | ```ERROR_GENERAL``` | General error |
-| 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
+| 30 | ```ERROR_BAD_REQUEST``` | portId is invalid |
 
 ### Example
 
@@ -396,7 +400,7 @@ No Events.
 | Code | Message | Description |
 | :-------- | :-------- | :-------- |
 | 1 | ```ERROR_GENERAL``` | General error |
-| 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
+| 30 | ```ERROR_BAD_REQUEST``` | portId is invalid |
 
 ### Example
 
@@ -453,7 +457,7 @@ No Events.
 | Code | Message | Description |
 | :-------- | :-------- | :-------- |
 | 1 | ```ERROR_GENERAL``` | General error |
-| 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
+| 30 | ```ERROR_BAD_REQUEST``` | portId is invalid |
 
 ### Example
 
@@ -510,7 +514,7 @@ No Events.
 | Code | Message | Description |
 | :-------- | :-------- | :-------- |
 | 1 | ```ERROR_GENERAL``` | General error |
-| 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
+| 30 | ```ERROR_BAD_REQUEST``` | deviceId is invalid |
 
 ### Example
 
@@ -571,7 +575,7 @@ Also see: [onInputStatusChanged](#event.onInputStatusChanged), [onSignalChanged]
 | Code | Message | Description |
 | :-------- | :-------- | :-------- |
 | 1 | ```ERROR_GENERAL``` | General error |
-| 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
+| 30 | ```ERROR_BAD_REQUEST``` | portId/Type of Input is invalid |
 
 ### Example
 
@@ -629,7 +633,7 @@ Also see: [onInputStatusChanged](#event.onInputStatusChanged)
 | Code | Message | Description |
 | :-------- | :-------- | :-------- |
 | 1 | ```ERROR_GENERAL``` | General error |
-| 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
+| 30 | ```ERROR_BAD_REQUEST``` | Type of Input is invalid |
 
 ### Example
 
@@ -684,7 +688,7 @@ No Events.
 | Code | Message | Description |
 | :-------- | :-------- | :-------- |
 | 1 | ```ERROR_GENERAL``` | General error |
-| 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
+| 30 | ```ERROR_BAD_REQUEST``` | portId/edidVersion is invalid |
 
 ### Example
 
@@ -743,7 +747,7 @@ No Events.
 | Code | Message | Description |
 | :-------- | :-------- | :-------- |
 | 1 | ```ERROR_GENERAL``` | General error |
-| 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
+| 30 | ```ERROR_BAD_REQUEST``` | Coordinates/Type of Input is invalid |
 
 ### Example
 
@@ -801,7 +805,7 @@ No Events.
 
 | Code | Message | Description |
 | :-------- | :-------- | :-------- |
-| 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
+| 30 | ```ERROR_BAD_REQUEST``` | Coordinates/Type of Input is invalid |
 
 ### Example
 
@@ -907,7 +911,7 @@ No Events.
 
 | Code | Message | Description |
 | :-------- | :-------- | :-------- |
-| 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
+| 30 | ```ERROR_BAD_REQUEST``` | Coordinates/Type of Input is invalid |
 
 ### Example
 

@@ -149,14 +149,19 @@
         },
         "getInputDevices": {
             "summary": "Returns an array of available HDMI/Composite Input ports.\n \n### Events\n \nNo Events.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "typeOfInput": {
+                        "$ref": "#/definitions/typeOfInput"
+                    }
+                }
+            },
             "result": {
                 "type": "object",
                 "properties": {
                     "devices": {
                         "$ref": "#/definitions/devices"
-                    },
-                    "typeOfInput": {
-                        "$ref": "#/definitions/typeOfInput"
                     }
                 },
                 "required": [
@@ -165,7 +170,7 @@
             },
             "errors": [
                 {
-                    "description": "User name or room name was invalid",
+                    "description": "Type of Input is invalid",
                     "$ref": "#/common/errors/badrequest"
                 }
             ]
@@ -202,7 +207,7 @@
                     "$ref": "#/common/errors/general"
                 },
                 {
-                  "description": "User name or room name was invalid",
+                  "description": "portId is invalid",
                   "$ref": "#/common/errors/badrequest"
                 }
             ]
@@ -239,7 +244,7 @@
                     "$ref": "#/common/errors/general"
                 },
                 {
-                  "description": "User name or room name was invalid",
+                  "description": "portId is invalid",
                   "$ref": "#/common/errors/badrequest"
                 }
             ]
@@ -276,7 +281,7 @@
                     "$ref": "#/common/errors/general"
                 },
                 {
-                  "description": "User name or room name was invalid",
+                  "description": "portId is invalid",
                   "$ref": "#/common/errors/badrequest"
                 }
             ]
@@ -313,7 +318,7 @@
                     "$ref": "#/common/errors/general"
                 },
                 {
-                  "description": "User name or room name was invalid",
+                  "description": "deviceId is invalid",
                   "$ref": "#/common/errors/badrequest"
                 }
             ]
@@ -348,7 +353,7 @@
                     "$ref": "#/common/errors/general"
                 },
                 {
-                    "description": "User name or room name was invalid",
+                    "description": "portId/Type of Input is invalid",
                     "$ref": "#/common/errors/badrequest"
                 }
             ]
@@ -378,7 +383,7 @@
                     "$ref": "#/common/errors/general"
                 },
                 {
-                    "description": "User name or room name was invalid",
+                    "description": "Type of Input is invalid",
                     "$ref": "#/common/errors/badrequest"
                 }
             ]
@@ -411,7 +416,7 @@
                     "$ref": "#/common/errors/general"
                 },
                 {
-                    "description": "User name or room name was invalid",
+                    "description": "portId/edidVersion is invalid",
                     "$ref": "#/common/errors/badrequest"
                 }
             ]
@@ -462,7 +467,7 @@
                     "$ref": "#/common/errors/general"
                 },
                 {
-                    "description": "User name or room name was invalid",
+                    "description": "Coordinates/Type of Input is invalid",
                     "$ref": "#/common/errors/badrequest"
                 }
             ]
@@ -488,12 +493,12 @@
                     "message"
                 ]
             },
-			"result": {
+            "result": {
                 "$ref": "#/common/results/void"
             },
             "errors": [
                 {
-                    "description": "User name or room name was invalid",
+                    "description": "Coordinates/Type of Input is invalid",
                     "$ref": "#/common/errors/badrequest"
                 }
             ]
@@ -554,7 +559,7 @@
             },
             "errors": [
                 {
-                    "description": "User name or room name was invalid",
+                    "description": "Coordinates/Type of Input is invalid",
                     "$ref": "#/common/errors/badrequest"
                 }
             ]
