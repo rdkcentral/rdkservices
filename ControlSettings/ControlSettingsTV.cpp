@@ -24,7 +24,6 @@
 
 #define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
-
 static const char *component_color[] = {
     [COLOR_ENABLE] = "enable",
     [COLOR_RED] = "red",
@@ -138,9 +137,14 @@ namespace Plugin {
 
        std::system("echo \"Testing dmesg [starts..before SyncPQParamsToDriverCache] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
 
-       SyncPQParamsToDriverCache();
+       SyncPQParamsToDriverCache("current","current","current");
 
        std::system("echo \"Testing dmesg [starts..after SyncPQParamsToDriverCache] - ControlSettingsTV::Initialize()\" > /dev/kmsg");
+
+       std::thread syncThread = std::thread(StartSync);
+       syncThread.detach();
+
+       std::system("echo \"Testing dmesg [AFTER SYNC Thread creation-detached]-ControlSettingsTV::Initialize()\" > /dev/kmsg");
 
        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, &param);
        if ( tr181Success == err )
@@ -3324,6 +3328,5 @@ namespace Plugin {
            returnResponse(true, "success");
         }
     }
-
 }//namespace Plugin
 }//namespace WPEFramework
