@@ -138,33 +138,12 @@ TEST_F(AVInputTestFixture, Plugin)
         .Times(1)
         .WillRepeatedly(::testing::Return(1));
 
-    // called by dsHdmiEventHandler
-/*    EXPECT_CALL(hdmiInputImplMock, isPortConnected(::testing::_))
-        .Times(1)
-        .WillRepeatedly(::testing::Return(true));*/
-
     // called by AVInput::currentVideoMode
     EXPECT_CALL(hdmiInputImplMock, getCurrentVideoMode())
         .Times(1)
         .WillRepeatedly(::testing::Return(string("unknown")));
 
     // IShell expectations
-
-    // called by AVInput::event_onAVInputActive
-/*    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
-                string text;
-                EXPECT_TRUE(json->ToString(text));
-                EXPECT_EQ(text, string(_T("{"
-                                          "\"jsonrpc\":\"2.0\","
-                                          "\"method\":\"org.rdk.AVInput.onAVInputActive\","
-                                          "\"params\":{\"url\":\"avin:\\/\\/input0\"}"
-                                          "}")));
-
-                return Core::ERROR_NONE;
-            }));*/
 
     // Initialize
 
