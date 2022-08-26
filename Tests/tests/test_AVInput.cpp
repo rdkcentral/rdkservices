@@ -160,7 +160,7 @@ TEST_F(AVInputTestFixture, Plugin)
                 EXPECT_EQ(text, string(_T("{"
                                           "\"jsonrpc\":\"2.0\","
                                           "\"method\":\"org.rdk.AVInput.onAVInputActive\","
-                                          "\"params\":{\"url\":\"avin://input0\"}"
+                                          "\"params\":{\"url\":\"avin:\\/\\/input0\"}"
                                           "}")));
 
                 return Core::ERROR_NONE;

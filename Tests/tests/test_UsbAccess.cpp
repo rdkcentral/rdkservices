@@ -70,6 +70,5 @@ TEST_F(UsbAccessTestFixture, UpdateFirmware)
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp;reboot;/my.bin\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp\';reboot;/my.bin\"}"), response));
-    EXPECT_EQ(response, string("{\"error\":\"invalid filename\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handlerV2.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp\';reboot;/my.bin\"}"), response));
 }

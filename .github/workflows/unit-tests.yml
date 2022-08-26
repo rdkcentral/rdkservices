@@ -11,13 +11,9 @@ on:
 env:
   BUILD_TYPE: Debug
 
-
   # Refs for 2208_sprint.
-  THUNDER_REF: "02f6ccbca6832043cbc94cc28c1bda7d4954a4e6"
-  INTERFACES_REF: "cb3b8476aa3b00ae9e73ff0cf64114563d1ee7ae"
-
-  THUNDER_BINDING: "127.0.0.1"
-  THUNDER_PORT: "55555"
+  THUNDER_REF: "R2-v1.11"
+  INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
 
 jobs:
   all:
@@ -109,8 +105,8 @@ jobs:
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DBUILD_TYPE=${{env.BUILD_TYPE}}
-          -DBINDING=${{env.THUNDER_BINDING}}
-          -DPORT=${{env.THUNDER_PORT}}
+          -DBINDING=127.0.0.1
+          -DPORT=55555
 
       - name: Build Thunder
         if: steps.cache.outputs.cache-hit != 'true'

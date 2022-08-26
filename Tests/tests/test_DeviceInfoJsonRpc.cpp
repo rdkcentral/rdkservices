@@ -60,9 +60,8 @@ protected:
 
     virtual void SetUp()
     {
-        EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
-            .Times(1)
-            .WillOnce(::testing::Invoke(
+        ON_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
                 [](const char* memberName, int* isRegistered) {
                     if (iarmName == string(memberName)) {
                         // Return 1 as not interested in all steps of IARM connection
@@ -71,17 +70,16 @@ protected:
                     }
                     return IARM_RESULT_INVALID_PARAM;
                 }));
-        EXPECT_CALL(managerImplMock, Initialize())
-            .Times(1)
-            .WillOnce(::testing::Return());
-        EXPECT_CALL(service, WebPrefix())
-            .Times(1)
-            .WillOnce(::testing::Return(webPrefix));
+        ON_CALL(managerImplMock, Initialize())
+            .WillByDefault(::testing::Return());
+        ON_CALL(service, ConfigLine())
+            .WillByDefault(::testing::Return("{\"root\":{\"mode\":\"Off\"}}"));
+        ON_CALL(service, WebPrefix())
+            .WillByDefault(::testing::Return(webPrefix));
         ON_CALL(service, Version())
             .WillByDefault(::testing::Return(string()));
-        EXPECT_CALL(service, SubSystems())
-            .Times(1)
-            .WillRepeatedly(::testing::Invoke(
+        ON_CALL(service, SubSystems())
+            .WillByDefault(::testing::Invoke(
                 [&]() {
                     PluginHost::ISubSystem* result = (&subSystem);
                     result->AddRef();

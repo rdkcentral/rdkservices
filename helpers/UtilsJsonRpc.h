@@ -4,11 +4,20 @@
 
 #define LOGINFOMETHOD() { std::string json; parameters.ToString(json); LOGINFO( "params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); LOGINFO( "response=%s", json.c_str() ); }
-#define returnResponse(success) \
+
+/**
+ * DO NOT USE THIS.
+ *
+ * "success" parameter was added for legacy reasons.
+ * Newer APIs should return only error code to match the spec
+ */
+
+#define returnResponse(expression) \
     { \
-        response["success"] = success; \
+        bool successBoolean = expression; \
+        response["success"] = successBoolean; \
         LOGTRACEMETHODFIN(); \
-        return (WPEFramework::Core::ERROR_NONE); \
+        return (successBoolean ? WPEFramework::Core::ERROR_NONE : WPEFramework::Core::ERROR_GENERAL); \
     }
 #define returnIfParamNotFound(param, name) \
     if (!param.HasLabel(name)) \
@@ -40,6 +49,14 @@
     LOGINFO("Notify %s %s", event, json.c_str()); \
     Notify(event,params); \
 }
+
+/**
+ * DO NOT USE THIS.
+ *
+ * Instead, add YOURPLUGINNAME.json to https://github.com/rdkcentral/ThunderInterfaces
+ * and use the generated classes from <interfaces/json/JsonData_YOURPLUGINNAME.h>
+ */
+
 #define getNumberParameter(paramName, param) { \
     if (WPEFramework::Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
         param = parameters[paramName].Number(); \
@@ -74,24 +91,6 @@
 #define vectorSet(v,s) \
     if (find(begin(v), end(v), s) == end(v)) \
         v.emplace_back(s);
-#define returnIfWrongApiVersion(version)\
-    if(m_apiVersionNumber < version) \
-    { \
-        LOGWARN("method %s not supported. version required=%u actual=%u", __FUNCTION__, version, m_apiVersionNumber); \
-        returnResponse(false); \
-    }
-#define returnIfArrayParamNotFound(param, name) \
-    if (!param.HasLabel(name) || param[name].Content() != WPEFramework::Core::JSON::Variant::type::ARRAY) \
-    { \
-        LOGERR("No argument '%s' or it has incorrect type", name); \
-        returnResponse(false); \
-    }
-#define returnIfObjectParamNotFound(param, name) \
-    if (!param.HasLabel(name) || param[name].Content() != WPEFramework::Core::JSON::Variant::type::OBJECT) \
-    { \
-        LOGERR("No argument '%s' or it has incorrect type", name); \
-        returnResponse(false); \
-    }
 #define getDefaultNumberParameter(paramName, param, default) { \
     if (parameters.HasLabel(paramName)) { \
         if (WPEFramework::Core::JSON::Variant::type::NUMBER == parameters[paramName].Content()) \
