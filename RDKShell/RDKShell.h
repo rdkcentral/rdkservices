@@ -21,7 +21,6 @@
 
 #include <mutex>
 #include "Module.h"
-#include "utils.h"
 #include <rdkshell/rdkshellevents.h>
 #include <rdkshell/rdkshell.h>
 #include <rdkshell/linuxkeys.h>
@@ -56,8 +55,6 @@ namespace WPEFramework {
             static RDKShell* _instance;
 
         public /*constants*/:
-            static const short API_VERSION_NUMBER_MAJOR;
-            static const short API_VERSION_NUMBER_MINOR;
             static const string SERVICE_NAME;
             //methods
             static const string RDKSHELL_METHOD_MOVE_TO_FRONT;
@@ -139,6 +136,8 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_ADD_EASTER_EGGS;
             static const string RDKSHELL_METHOD_REMOVE_EASTER_EGGS;
             static const string RDKSHELL_METHOD_GET_EASTER_EGGS;
+            static const string RDKSHELL_METHOD_SET_AV_BLOCKED;
+            static const string RDKSHELL_METHOD_GET_AV_BLOCKED_APPS;
             static const string RDKSHELL_METHOD_ENABLE_INPUT_EVENTS;
 
             // events
@@ -250,6 +249,8 @@ namespace WPEFramework {
             uint32_t addEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t removeEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getEasterEggsWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setAVBlockedWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getBlockedAVApplicationsWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t enableInputEventsWrapper(const JsonObject& parameters, JsonObject& response);
 
         private/*internal methods*/:
@@ -323,6 +324,8 @@ namespace WPEFramework {
             bool hideCursor();
             bool setCursorSize(uint32_t width, uint32_t height);
             bool getCursorSize(uint32_t& width, uint32_t& height);
+            bool setAVBlocked(const string callsign, bool blockAV);
+            bool getBlockedAVApplications(JsonArray& appsList);
             bool enableInputEvents(const JsonArray& clients, bool enable);
 
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
@@ -427,6 +430,7 @@ namespace WPEFramework {
             TpTimer m_timer;
             bool mEnableEasterEggs;
             ScreenCapture mScreenCapture;
+            bool mErmEnabled;
         };
 
         struct PluginData

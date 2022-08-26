@@ -46,11 +46,29 @@
 #define DEFAULT_MIN_FPS_VALUE 60
 #define DEFAULT_MAX_FPS_VALUE -1
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::FrameRate> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(FrameRate, 1, 0);
+        SERVICE_REGISTRATION(FrameRate, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         FrameRate* FrameRate::_instance = nullptr;
 

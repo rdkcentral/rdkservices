@@ -30,7 +30,7 @@
 namespace TTS {
 
 struct Configuration {
-    Configuration() : volume(0), rate(0) {};
+    Configuration() : volume(0), rate(0), primVolDuck(25) {};
     ~Configuration() {}
 
     std::string ttsEndPoint;
@@ -41,6 +41,7 @@ struct Configuration {
     FallbackData data;
     double volume;
     uint8_t rate;
+    int8_t primVolDuck;
 };
 
 class TTSEventCallback {

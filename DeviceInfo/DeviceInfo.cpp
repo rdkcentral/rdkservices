@@ -19,13 +19,27 @@
 
 #include "DeviceInfo.h"
 
-#include "DeviceCapabilities.h"
-#include "FirmwareVersion.h"
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 
 namespace WPEFramework {
+namespace {
+    static Plugin::Metadata<Plugin::DeviceInfo> metadata(
+        // Version (Major, Minor, Patch)
+        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+        // Preconditions
+        {},
+        // Terminations
+        {},
+        // Controls
+        {}
+    );
+}
+
 namespace Plugin {
 
-    SERVICE_REGISTRATION(DeviceInfo, 1, 0);
+    SERVICE_REGISTRATION(DeviceInfo, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     static Core::ProxyPoolType<Web::JSONBodyType<DeviceInfo::Data>> jsonResponseFactory(4);
 
@@ -43,23 +57,35 @@ namespace Plugin {
 
         ASSERT(_subSystem != nullptr);
 
-        _deviceCapabilities = Core::Service<DeviceCapabilities>::Create<DeviceCapabilities>();
-        _firmwareVersion = Core::Service<FirmwareVersion>::Create<FirmwareVersion>();
+        _deviceInfo = service->Root<Exchange::IDeviceInfo>(_connectionId, 2000, _T("DeviceInfoImplementation"));
+        _deviceAudioCapabilities = service->Root<Exchange::IDeviceAudioCapabilities>(_connectionId, 2000, _T("DeviceAudioCapabilities"));
+        _deviceVideoCapabilities = service->Root<Exchange::IDeviceVideoCapabilities>(_connectionId, 2000, _T("DeviceVideoCapabilities"));
+        _firmwareVersion = service->Root<Exchange::IFirmwareVersion>(_connectionId, 2000, _T("FirmwareVersion"));
+
+        ASSERT(_deviceInfo != nullptr);
+        ASSERT(_deviceAudioCapabilities != nullptr);
+        ASSERT(_deviceVideoCapabilities != nullptr);
+        ASSERT(_firmwareVersion != nullptr);
 
         // On success return empty, to indicate there is no error text.
 
-        return (_subSystem != nullptr) ? EMPTY_STRING : _T("Could not retrieve System Information.");
+        return ((_subSystem != nullptr)
+                   && (_deviceInfo != nullptr)
+                   && (_deviceAudioCapabilities != nullptr)
+                   && (_deviceVideoCapabilities != nullptr)
+                   && (_firmwareVersion != nullptr))
+            ? EMPTY_STRING
+            : _T("Could not retrieve System Information.");
     }
 
     /* virtual */ void DeviceInfo::Deinitialize(PluginHost::IShell* service)
     {
         ASSERT(_service == service);
 
-        _deviceCapabilities->Release();
-        _deviceCapabilities = nullptr;
-
+        _deviceInfo->Release();
+        _deviceAudioCapabilities->Release();
+        _deviceVideoCapabilities->Release();
         _firmwareVersion->Release();
-        _firmwareVersion = nullptr;
 
         if (_subSystem != nullptr) {
             _subSystem->Release();

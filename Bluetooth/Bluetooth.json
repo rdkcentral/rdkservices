@@ -221,9 +221,9 @@
             "example":"50"
         },
         "mute": {
-            "summary":"Mute value of the device is either 0 or 1",
+            "summary":"Mute value of the device is either true or false",
             "type": "boolean",
-            "example": "false"
+            "example": false
         }
     },
     "methods": {
@@ -810,23 +810,20 @@
                 "type": "object",
                 "properties": {
                     "volumeInfo": {
-                        "summary":"An array of objects where each object represents a device volume information",
-                        "type": "array",
-                        "items": {
-                            "type":"object",
-                            "properties": {
-                                "volume": {
-                                    "$ref": "#/definitions/volume"
-                                },
-                                "mute": {
-                                    "$ref": "#/definitions/mute"
-                                }
+                        "summary":"An object which represents current device volume and mute information",
+                        "type":"object",
+                        "properties": {
+                            "volume": {
+                                "$ref": "#/definitions/volume"
                             },
-                            "required":[
-                                "volume",
-                                "mute"
-                            ]
-                        }
+                            "mute": {
+                                "$ref": "#/definitions/mute"
+                            }
+                        },
+                        "required":[
+                            "volume",
+                            "mute"
+                        ]
                     },
                     "success":{
                         "$ref": "#/common/success"
@@ -839,7 +836,10 @@
             }
         },
         "setDeviceVolumeMuteInfo": {
-            "summary": "Sets the volume of the connected Bluetooth device ID. \n \n### Event \n\n No Events",
+            "summary": "Sets the volume of the connected Bluetooth device ID.  Triggers `onDeviceMediaStatus` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `MediaAudioControlCommand`: `VOLUME_UP` | Triggers `onDeviceMediaStatus` event once volume of connected given deviceID is increased. | \n| `MediaAudioControlCommand`: `VOLUME_DOWN` | Triggers `onDeviceMediaStatus` event once volume of connected given deviceID is decreased. | \n| `MediaAudioControlCommand`: `MUTE` | Triggers `onDeviceMediaStatus` event when connected given deviceID is muted. | \n| `MediaAudioControlCommand`: `UNMUTE` | Triggers `onDeviceMediaStatus` event when connected given deviceID is unmuted. | \n| `MediaAudioControlCommand`: `CMD_UNKNOWN` | Triggers `onDeviceMediaStatus` event when unknown key is pressed on connected given deviceID. |",
+            "events": [
+                "onDeviceMediaStatus"
+            ],
             "params": {
                 "type":"object",
                 "properties": {
@@ -853,7 +853,9 @@
                         "$ref": "#/definitions/volume"
                     },
                     "mute": {
-                        "$ref": "#/definitions/mute"
+                        "summary":"Mute value of the device is either 1 or 0",
+                        "type": "string",
+                        "example": "1"
                     }
                 },
                 "required": [
@@ -1272,6 +1274,40 @@
                     "deviceType",
                     "rawDeviceType",
                     "lastConnectedState"
+                ]
+            }
+        },
+        "onDeviceMediaStatus":{
+            "summary": "Triggered when any change occurs to Device Media like volume or mute. Supported Audio Media Control commands are:  \n* `MUTE` - BT audio device muted using remote or external BT device.  \n* `UNMUTE` - BT audio device unmuted using remote or external BT device.  \n* `VOLUME_UP` - BT audio device volume increased using remote or external BT device.  \n* `VOLUME_DOWN`- BT audio device volume decreased using remote or external BT device. \n* `CMD_UNKNOWN`- Unknown Media control other than MUTE, UNMUTE, VOLUME_UP, VOLUME_DOWN was performed on external BT device. ",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
+                    },
+                    "name": {
+                        "$ref": "#/definitions/name"
+                    },
+                    "deviceType": {
+                        "$ref": "#/definitions/deviceType"
+                    },
+                    "volume": {
+                        "$ref": "#/definitions/volume"
+                    },
+                    "mute": {
+                        "$ref": "#/definitions/mute"
+                    },
+                    "command": {
+                        "$ref": "#/definitions/command"
+                    }
+                },
+                "required": [
+                    "deviceID",
+                    "name",
+                    "deviceType",
+                    "volume",
+                    "mute",
+                    "command"
                 ]
             }
         }

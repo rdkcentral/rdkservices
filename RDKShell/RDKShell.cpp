@@ -38,13 +38,22 @@
 #include <rdkshell/linuxkeys.h>
 #include "base64.h"
 
+#include "UtilsJsonRpc.h"
+#include "UtilsLOG_MILESTONE.h"
+#include "UtilsSecurityToken.h"
+#include "UtilsUnused.h"
+#include "UtilsgetRFCConfig.h"
+#include "UtilsSecurityToken.h"
+
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 #include "FactoryProtectHal.h"
 #endif //RDKSHELL_READ_MAC_ON_STARTUP
 
 
-const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MAJOR = 1;
-const short WPEFramework::Plugin::RDKShell::API_VERSION_NUMBER_MINOR = 0;
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_MOVE_TO_FRONT = "moveToFront";
@@ -127,6 +136,8 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIDE_CURSOR = "hide
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_CURSOR_SIZE = "getCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_CURSOR_SIZE = "setCursorSize";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ENABLE_INPUT_EVENTS = "enableInputEvents";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_AV_BLOCKED = "setAVBlocked";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AV_BLOCKED_APPS = "getBlockedAVApplications";
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -221,6 +232,21 @@ enum AppLastExitReason
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 
 namespace WPEFramework {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::RDKShell> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin {
 
 
@@ -390,8 +416,10 @@ namespace WPEFramework {
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
         std::vector<RDKShellStartupConfig> gStartupConfigs;
         std::map<std::string, bool> gDestroyApplications;
+        std::map<std::string, bool> gExternalDestroyApplications;
         std::map<std::string, bool> gLaunchApplications;
         std::map<std::string, AppLastExitReason> gApplicationsExitReason;
+        std::map<std::string, std::string> gPluginDisplayNameMap;
         
         uint32_t getKeyFlag(std::string modifier)
         {
@@ -411,7 +439,7 @@ namespace WPEFramework {
           return flag;
         }
 
-        SERVICE_REGISTRATION(RDKShell, 1, 0);
+        SERVICE_REGISTRATION(RDKShell, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         RDKShell* RDKShell::_instance = nullptr;
         std::mutex gRdkShellMutex;
@@ -648,7 +676,7 @@ namespace WPEFramework {
                            sem_wait(&request->mSemaphore);
                        }
                        gRdkShellMutex.lock();
-                       RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
+                       RdkShell::CompositorController::addListener(service->Callsign(), mShell.mEventListener);
                        gRdkShellMutex.unlock();
                        gPluginDataMutex.lock();
                        std::string className = service->ClassName();
@@ -719,6 +747,12 @@ namespace WPEFramework {
                 }
                 else if (currentState == PluginHost::IShell::DEACTIVATION)
                 {
+                    gLaunchDestroyMutex.lock();
+                    if (gDestroyApplications.find(service->Callsign()) == gDestroyApplications.end())
+                    {
+                        gExternalDestroyApplications[service->Callsign()] = true;
+                    }
+                    gLaunchDestroyMutex.unlock();
                     StateControlNotification* notification = nullptr;
                     gPluginDataMutex.lock();
                     auto notificationIt = gStateNotifications.find(service->Callsign());
@@ -756,7 +790,7 @@ namespace WPEFramework {
                         gRdkShellMutex.unlock();
                         sem_wait(&request->mSemaphore);
                         gRdkShellMutex.lock();
-                        RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
+                        RdkShell::CompositorController::removeListener(service->Callsign(), mShell.mEventListener);
                         gRdkShellMutex.unlock();
                     }
                     
@@ -779,6 +813,12 @@ namespace WPEFramework {
                         gPluginsEventListener.erase(pluginStateChangeEntry);
                     }
                     gPluginDataMutex.unlock();
+                    gLaunchDestroyMutex.lock();
+                    if (gExternalDestroyApplications.find(service->Callsign()) != gExternalDestroyApplications.end())
+                    {
+                        gExternalDestroyApplications.erase(service->Callsign());
+                    }
+                    gLaunchDestroyMutex.unlock();
                 }
             }
         }
@@ -805,7 +845,7 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : PluginHost::JSONRPC(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0), mEnableEasterEggs(true), mScreenCapture(this)
+                : PluginHost::JSONRPC(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0), mEnableEasterEggs(true), mScreenCapture(this), mErmEnabled(false)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -892,6 +932,8 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_REMOVE_EASTER_EGGS, &RDKShell::removeEasterEggsWrapper, this);
             Register(RDKSHELL_METHOD_GET_EASTER_EGGS, &RDKShell::getEasterEggsWrapper, this);
             Register(RDKSHELL_METHOD_ENABLE_INPUT_EVENTS, &RDKShell::enableInputEventsWrapper, this);
+            Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
+            Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
       	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -1013,6 +1055,7 @@ namespace WPEFramework {
                 sFactoryModeBlockResidentApp = true;
             }
 
+            mErmEnabled = CompositorController::isErmEnabled();
             shellThread = std::thread([=]() {
                 bool isRunning = true;
                 gRdkShellMutex.lock();
@@ -1213,7 +1256,6 @@ namespace WPEFramework {
                 }
             });
 
-            service->Register(mClientsMonitor);
             char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
             if (NULL != thunderAccessValue)
             {
@@ -1415,6 +1457,7 @@ namespace WPEFramework {
             }
             gKillClientRequests.clear();
             gRdkShellMutex.unlock();
+            gExternalDestroyApplications.clear();
         }
 
         string RDKShell::Information() const
@@ -1467,9 +1510,11 @@ namespace WPEFramework {
                     request["callsign"] = "ResidentApp";
                     request["visible"] = true;
                     int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "setVisibility", request, response);
+		    /*
                     gRdkShellMutex.lock();
                     CompositorController::getLastKeyPress(mLastWakeupKeyCode, mLastWakeupKeyModifiers, mLastWakeupKeyTimestamp);
                     gRdkShellMutex.unlock();
+		    */
                 }
             }
         }
@@ -3117,6 +3162,7 @@ namespace WPEFramework {
                 bool suspend = false;
                 bool visible = true;
                 bool focused = true;
+                bool blockAV = false;
                 string configuration;
                 string behind;
 
@@ -3211,6 +3257,14 @@ namespace WPEFramework {
                 if (parameters.HasLabel("autodestroy"))
                 {
                   autoDestroy = parameters["autodestroy"].Boolean();
+                }
+                if (parameters.HasLabel("blockAV"))
+                {
+                    blockAV = parameters["blockAV"].Boolean();
+                    if (true == mErmEnabled)
+                    {
+                        setAVBlocked(callsign, blockAV);
+                    }
                 }
 
                 //check to see if plugin already exists
@@ -3325,6 +3379,8 @@ namespace WPEFramework {
                         std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(callsign, displayName, width, height);
                         request->mAutoDestroy = autoDestroy;
                         lockRdkShellMutex();
+                        gPluginDisplayNameMap[callsign] = displayName;
+                        std::cout << "Added displayname : "<<displayName<< std::endl;
                         gCreateDisplayRequests.push_back(request);
                         gRdkShellMutex.unlock();
                         sem_wait(&request->mSemaphore);
@@ -3374,7 +3430,7 @@ namespace WPEFramework {
                     if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Netflix.Enable", param))
                     {
                         JsonObject root;
-                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        if (strncasecmp(param.value, "true", 4) == 0)
                         {
                             std::cout << "dobby rfc true - launching netflix in container mode " << std::endl;
                             root = configSet["root"].Object();
@@ -3412,7 +3468,7 @@ namespace WPEFramework {
                     if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Cobalt.Enable", param))
                     {
                         JsonObject root;
-                        if (param.type == WDMP_BOOLEAN && strncasecmp(param.value, "true", 4) == 0)
+                        if (strncasecmp(param.value, "true", 4) == 0)
                         {
                             std::cout << "dobby rfc true - launching cobalt in container mode " << std::endl;
                             root = configSet["root"].Object();
@@ -3432,6 +3488,67 @@ namespace WPEFramework {
                     }
 #else
                     std::cout << "rfc is disabled and unable to check for cobalt container mode " << std::endl;
+#endif
+                }
+
+                // One RFC controls all WPE-based apps
+                if (!type.empty() && (type == "HtmlApp" || type == "LightningApp"))
+                {
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.WPE.Enable", param))
+                    {
+                        JsonObject root;
+                        if (strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby WPE rfc true - launching " << type << " in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby WPE rfc false - launching " << type << " in out-of-process mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["outofprocess"] = JsonValue(true);
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading dobby WPE rfc failed - launching " << type << " in default mode" << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for " << type << " container mode " << std::endl;
+#endif
+                }
+
+                if (!type.empty() && type == "SearchAndDiscoveryApp" )
+                {
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.SAD.Enable", param))
+                    {
+                        JsonObject root;
+                        if (strncasecmp(param.value, "true", 4) == 0)
+                        {
+                            std::cout << "dobby SAD rfc true - launching " << type << " in container mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["mode"] = JsonValue("Container");
+                        }
+                        else
+                        {
+                            std::cout << "dobby SAD rfc false - launching " << type << " in out-of-process mode " << std::endl;
+                            root = configSet["root"].Object();
+                            root["outofprocess"] = JsonValue(true);
+                        }
+                        configSet["root"] = root;
+                    }
+                    else
+                    {
+                        std::cout << "reading dobby SAD rfc failed - launching " << type << " in default mode" << std::endl;
+                    }
+#else
+                    std::cout << "rfc is disabled and unable to check for " << type << " container mode " << std::endl;
 #endif
                 }
 
@@ -3790,6 +3907,10 @@ namespace WPEFramework {
                 bool isApplicationBeingDestroyed = false;
             	gLaunchDestroyMutex.lock();
             	if (gDestroyApplications.find(client) != gDestroyApplications.end())
+            	{
+                    isApplicationBeingDestroyed = true;
+            	}
+            	if (gExternalDestroyApplications.find(client) != gExternalDestroyApplications.end())
             	{
                     isApplicationBeingDestroyed = true;
             	}
@@ -5392,6 +5513,63 @@ namespace WPEFramework {
 
             returnResponse(result);
         }
+
+        uint32_t RDKShell::getBlockedAVApplicationsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool status = true;
+
+            if (true == mErmEnabled)
+            {
+                JsonArray appsList = JsonArray();
+                status = getBlockedAVApplications(appsList);
+                if (true == status)
+                {
+                    response["getBlockedAVApplications"]=appsList;
+                }
+            }
+            else
+            {
+                response["message"] = "ERM not enabled";
+            }
+            returnResponse(status);
+        }
+
+        uint32_t RDKShell::setAVBlockedWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool status = true;
+
+            if (true == mErmEnabled)
+            {
+                const JsonArray apps = parameters.HasLabel("applications") ? parameters["applications"].Array() : JsonArray();
+                JsonArray result;
+                for (int i=0; i< apps.Length(); i++) {
+                    const JsonObject& appInfo = apps[i].Object();
+                    if (appInfo.HasLabel("callsign") && appInfo.HasLabel("callsign"))
+                    {
+                        std::string app = appInfo["callsign"].String();
+                        bool blockAV    = appInfo["blocked"].Boolean();
+                        cout<<"callsign : "<< app << std::endl;
+                        cout<<"blocked  : "<<std::boolalpha << blockAV << std::endl;
+
+                        status = (status && setAVBlocked(app, blockAV));
+                        cout<< "EssRMgrAddToBlackList returned : "<<std::boolalpha <<status<< std::endl;
+                    }
+                    else
+                    {
+                        std::string jsonstr;
+                        appInfo.ToString(jsonstr);
+                        cout<<"ERROR: callsign and callsign status required in "<< jsonstr << std::endl;
+                    }
+                }
+            }
+            else
+            {
+                response["message"] = "ERM not enabled";
+            }
+            returnResponse(status);
+        }
         // Registered methods end
 
         // Events begin
@@ -5534,6 +5712,57 @@ namespace WPEFramework {
             }
         }
 
+        bool RDKShell::setAVBlocked(const string callsign, bool blockAV)
+        {
+            bool status = true;
+
+            gRdkShellMutex.lock();
+            std::map<std::string, std::string>::iterator displayNameItr = gPluginDisplayNameMap.find(callsign);
+            if (displayNameItr != gPluginDisplayNameMap.end())
+            {
+                std::string clientId(callsign + ',' + displayNameItr->second);
+                std::cout << "setAVBlocked callsign: " << callsign << " clientIdentifier:<"<<clientId<<">blockAV:"<<std::boolalpha << blockAV << std::endl;
+                status = CompositorController::setAVBlocked(clientId, blockAV);
+            }
+            else
+            {
+                status = false;
+                std::cout << "display not found for " << callsign << std::endl;
+            }
+            gRdkShellMutex.unlock();
+            if (false == status)
+            {
+                std::cout << "setAVBlocked failed for " << callsign << std::endl;
+            }
+
+            return status;
+        }
+
+        bool RDKShell::getBlockedAVApplications(JsonArray& appsList)
+        {
+            bool status = true;
+
+            std::vector<std::string> apps;
+            gRdkShellMutex.lock();
+            status = CompositorController::getBlockedAVApplications(apps);
+            gRdkShellMutex.unlock();
+            if (true == status)
+            {
+                std::string appCallSign;
+                for (std::vector<std::string>::iterator appsItr = apps.begin(); appsItr != apps.end(); appsItr++)
+                {
+                    appCallSign = *appsItr;
+                    std::string::size_type pos = appCallSign.find(',');
+                    if (pos != std::string::npos)
+                    {
+                        appsList.Add(appCallSign.substr(0, pos));
+                    }
+                }
+            }
+
+            return status;
+        }
+
         // Internal methods begin
 
         bool RDKShell::moveToFront(const string& client)
@@ -5652,6 +5881,8 @@ namespace WPEFramework {
             RdkShell::CompositorController::removeListener(client, mEventListener);
             std::shared_ptr<KillClientRequest> request = std::make_shared<KillClientRequest>(client);
             gKillClientRequests.push_back(request);
+            gPluginDisplayNameMap.erase(client);
+            std::cout << "removed displayname : "<<client<< std::endl;
             gRdkShellMutex.unlock();
             sem_wait(&request->mSemaphore);
             ret = request->mResult;
@@ -6104,6 +6335,10 @@ namespace WPEFramework {
             if (gDestroyApplications.find(client) != gDestroyApplications.end())
             {
                 isApplicationBeingDestroyed = true;
+            }
+            if (gExternalDestroyApplications.find(client) != gExternalDestroyApplications.end())
+            {
+                 isApplicationBeingDestroyed = true;
             }
             gLaunchDestroyMutex.unlock();
             if (isApplicationBeingDestroyed)

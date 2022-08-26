@@ -35,13 +35,11 @@ using std::ofstream;
 
 #include "Module.h"
 #include "tracing/Logging.h"
-#include "utils.h"
 #include "UtilsThreadRAII.h"
 #include "SystemServicesHelper.h"
 #include "platformcaps/platformcaps.h"
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
-#include "irMgr.h"
 #include "pwrMgr.h"
 #include "host.hpp"
 #include "sleepMode.hpp"
@@ -135,7 +133,7 @@ namespace WPEFramework {
 
                 std::string m_powerStateBeforeReboot;
                 bool m_powerStateBeforeRebootValid;
-
+                bool m_isPwrMgr2RFCEnabled;
 		std::string m_strTerritory;
                 std::string m_strRegion;
 

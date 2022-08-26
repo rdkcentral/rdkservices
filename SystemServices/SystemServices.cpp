@@ -17,11 +17,6 @@
 * limitations under the License.
 **/
 
-/**
- * @file SystemServices.cpp
- * @brief Thunder Plugin based Implementation for System service API's.
- * @reference RDK-25849.
- */
 #include <stdlib.h>
 #include <errno.h>
 #include <cstdio>
@@ -39,11 +34,10 @@
 
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
-#include "utils.h"
-#include "UtilsString.h"
 #include "uploadlogs.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+#include "libIBusDaemon.h"
 #include "UtilsIarm.h"
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
@@ -52,7 +46,8 @@
 #endif /* ENABLE_THERMAL_PROTECTION */
 
 #if defined(HAS_API_SYSTEM) && defined(HAS_API_POWERSTATE)
-#include "powerstate.h"
+#include "libIBus.h"
+#include "pwrMgr.h"
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
 #include "mfrMgr.h"
@@ -61,14 +56,24 @@
 #include "deepSleepMgr.h"
 #endif
 
+#include "UtilsCStr.h"
+#include "UtilsIarm.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsString.h"
+#include "UtilscRunScript.h"
+#include "UtilsfileExists.h"
+
 using namespace std;
 
-#define SYSSRV_MAJOR_VERSION 1
-#define SYSSRV_MINOR_VERSION 0
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
+
+#define RFC_PWRMGR2 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.PwrMgr2.Enable"
 
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
 
@@ -84,8 +89,6 @@ using namespace std;
 
 #define STORE_DEMO_FILE "/opt/persistent/store-mode-video/videoFile.mp4"
 #define STORE_DEMO_LINK "file:///opt/persistent/store-mode-video/videoFile.mp4"
-
-#define RFC_CALLERID           "SystemServices"
 
 /**
  * @struct firmwareUpdate
@@ -222,6 +225,30 @@ void stringToIarmMode(std::string mode, IARM_Bus_Daemon_SysMode_t& iarmMode)
     }
 }
 
+bool setPowerState(std::string powerState)
+{
+    IARM_Bus_PWRMgr_SetPowerState_Param_t param;
+    if (powerState == "STANDBY") {
+        param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+    } else if (powerState == "ON") {
+        param.newState = IARM_BUS_PWRMGR_POWERSTATE_ON;
+    } else if (powerState == "DEEP_SLEEP") {
+        param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
+    } else if (powerState == "LIGHT_SLEEP") {
+        param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+    } else {
+        return false;
+    }
+
+    IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_SetPowerState,
+        (void*)&param, sizeof(param));
+
+    if (res == IARM_RESULT_SUCCESS)
+        return true;
+    else
+        return false;
+}
+
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
 #define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
@@ -230,6 +257,21 @@ void stringToIarmMode(std::string mode, IARM_Bus_Daemon_SysMode_t& iarmMode)
  * @brief WPEFramework class for SystemServices
  */
 namespace WPEFramework {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::SystemServices> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin {
         //Prototypes
         std::string   SystemServices::m_currentMode = "";
@@ -257,8 +299,7 @@ namespace WPEFramework {
                 IARM_EventId_t eventId, void *data, size_t len);
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
-        SERVICE_REGISTRATION(SystemServices, SYSSRV_MAJOR_VERSION,
-                SYSSRV_MINOR_VERSION);
+        SERVICE_REGISTRATION(SystemServices, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         SystemServices* SystemServices::_instance = nullptr;
         cSettings SystemServices::m_temp_settings(SYSTEM_SERVICE_TEMP_FILE);
@@ -306,6 +347,8 @@ namespace WPEFramework {
 
             m_networkStandbyModeValid = false;
             m_powerStateBeforeRebootValid = false;
+            m_isPwrMgr2RFCEnabled = false;
+
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
 	    m_ManufacturerDataHardwareIdValid = false;
 	    m_ManufacturerDataModelNameValid = false;
@@ -428,6 +471,15 @@ namespace WPEFramework {
             GetHandler(2)->Register<JsonObject, JsonObject>("deletePersistentPath", &SystemServices::deletePersistentPath, this);
             GetHandler(2)->Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
                 &SystemServices::getPlatformConfiguration, this);
+
+            {
+                RFC_ParamData_t param = {0};
+                WDMP_STATUS status = getRFCParameter(NULL, RFC_PWRMGR2, &param);
+                if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+                {
+                    m_isPwrMgr2RFCEnabled = true;
+                }
+            }
         }
 
 
@@ -1775,7 +1827,7 @@ namespace WPEFramework {
             bool status = false;
             JsonArray standbyModes;
             try {
-                const device::List<device::SleepMode> sleepModes =
+                    device::List<device::SleepMode> sleepModes =
                     device::Host::getInstance().getAvailableSleepModes();
                 for (unsigned int i = 0; i < sleepModes.size(); i++) {
                     standbyModes.Add(sleepModes.at(i).toString());
@@ -2085,7 +2137,8 @@ namespace WPEFramework {
          */
         void SystemServices::getMacAddressesAsync(SystemServices *pSs)
         {
-            int i, listLength = 0;
+	    long unsigned int i=0;
+            long unsigned int listLength = 0;
             JsonObject params;
             string macTypeList[] = {"ecm_mac", "estb_mac", "moca_mac",
                 "eth_mac", "wifi_mac", "bluetooth_mac", "rf4ce_mac"};
@@ -2345,7 +2398,8 @@ namespace WPEFramework {
 	bool SystemServices::isStrAlphaUpper(string strVal)
 	{
 		try{
-			for(int i=0; i<= strVal.length()-1; i++)
+			long unsigned int i=0;
+			for(i=0; i<= strVal.length()-1; i++)
 			{
 				if((isalpha(strVal[i])== 0) || (isupper(strVal[i])==0))
 				{
@@ -2510,7 +2564,8 @@ namespace WPEFramework {
                 return false;
             }
 
-            for (int n = 0 ; n < dirs.size(); n++) {
+	    long unsigned int n=0;
+            for (n = 0 ; n < dirs.size(); n++) {
                 std::string name = dirs[n];
 
                 size_t pathEnd = name.find_last_of("/") + 1;
@@ -2712,19 +2767,20 @@ namespace WPEFramework {
             }
 
             smatch match;
-            if (!regex_search(rebootInfo, match, regex("(?:PreviousRebootReason:\\s*)(\\d{2}\\.\\d{2}\\.\\d{4}_\\d{2}:\\d{2}\\.\\d{2})(?:\\s*RebootReason:)([^\\n]*)"))
-                    || match.size() < 3) {
-                LOGERR("%s doesn't have timestamp with reboot reason information", REBOOT_INFO_LOG_FILE);
-                returnResponse(false);
-            }
 
-            string timeStamp = trim(match[1]);
-            string reason = trim(match[2]);
+            string timeStamp = "Unknown";
+            string reason = "Unknown";
             string source = "Unknown";
             string customReason = "Unknown";
             string otherReason = "Unknown";
 
             string temp;
+            if (regex_search(rebootInfo, match, regex("(?:PreviousRebootTime:)([^\\n]+)")) &&  match.size() > 1) temp = trim(match[1]);
+            if (temp.size() > 0) timeStamp = temp;
+
+            if (regex_search(rebootInfo, match, regex("(?:PreviousRebootReason: RebootReason:)([^\\n]+)")) &&  match.size() > 1) temp = trim(match[1]);
+            if (temp.size() > 0) reason = temp;
+
             if (regex_search(rebootInfo, match, regex("(?:PreviousRebootInitiatedBy:)([^\\n]+)")) &&  match.size() > 1) temp = trim(match[1]);
             if (temp.size() > 0) source = temp;
 
@@ -3046,9 +3102,10 @@ namespace WPEFramework {
 
                         WDMP_STATUS wdmpStatus;
                         RFC_ParamData_t rfcParam;
+			char sysServices[] = "SystemServices";
 
                         memset(&rfcParam, 0, sizeof(rfcParam));
-                        wdmpStatus = getRFCParameter(RFC_CALLERID, jsonRFCList[i].String().c_str(), &rfcParam);
+                        wdmpStatus = getRFCParameter(sysServices, jsonRFCList[i].String().c_str(), &rfcParam);
                         if(WDMP_SUCCESS == wdmpStatus || WDMP_ERR_DEFAULT_VALUE == wdmpStatus)
                             cmdResponse = rfcParam.value;
                         else
@@ -3241,7 +3298,23 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retVal = false;
-            string powerState = CPowerState::instance()->getPowerState();
+            string powerState;
+
+            {
+                std::string currentState = "UNKNOWN";
+                IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState,
+                    (void*)&param, sizeof(param));
+
+                if (res == IARM_RESULT_SUCCESS) {
+                    if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON)
+                        currentState = "ON";
+                    else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
+                        currentState = "STANDBY";
+                }
+                
+                powerState = currentState;
+            }
 
             LOGWARN("getPowerState called, power state : %s\n",
                     powerState.c_str());
@@ -3303,9 +3376,9 @@ namespace WPEFramework {
 					LOGWARN("SystemServices::_instance is NULL.\n");
 				}
 				if (convert("DEEP_SLEEP", sleepMode)) {
-					retVal = CPowerState::instance()->setPowerState(sleepMode);
+					retVal = setPowerState(sleepMode);
 				} else {
-					retVal = CPowerState::instance()->setPowerState(state);
+					retVal = setPowerState(state);
 				}
 				outfile.open(STANDBY_REASON_FILE, ios::out);
 				if (outfile.is_open()) {
@@ -3316,7 +3389,7 @@ namespace WPEFramework {
 					populateResponseWithError(SysSrv_FileAccessFailed, response);
 				}
 			} else {
-				retVal = CPowerState::instance()->setPowerState(state);
+				retVal = setPowerState(state);
 			}
             m_current_state=state; /* save the old state */
 		} else {
@@ -3800,7 +3873,7 @@ namespace WPEFramework {
         {
             int seconds = 600; /* 10 Minutes to Reboot */
 
-            LOGINFO("len = %d\n", len);
+            LOGINFO("len = %lud\n", len);
             /* Only handle state events */
             if (eventId != IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) return;
 
@@ -4181,6 +4254,11 @@ namespace WPEFramework {
 
             // Everything is OK
             LOGINFO("Successfully deleted persistent path for '%s' (path = '%s')", callsignOrType.c_str(), persistentPath.c_str());
+
+            //Calling container_setup.sh along with callsign as container bundle also gets deleted from the persistent path
+            std::string command = "/lib/rdk/container_setup.sh " + callsignOrType;
+            system(command.c_str());
+            LOGINFO("Calling %s \n", command.c_str());
 
             result = true;
 

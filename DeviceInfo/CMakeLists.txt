@@ -18,18 +18,22 @@
 set(PLUGIN_NAME DeviceInfo)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_DEVICEINFO_MODE "Off" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
-find_package(RFC REQUIRED)
-find_package(DS REQUIRED)
+find_package(RFC)
+find_package(DS)
 find_package(IARMBus)
 
 add_library(${MODULE_NAME} SHARED
         DeviceInfo.cpp
         DeviceInfoJsonRpc.cpp
-        DeviceCapabilities.cpp
-        FirmwareVersion.cpp
+        Implementation/DeviceAudioCapabilities.cpp
+        Implementation/DeviceVideoCapabilities.cpp
+        Implementation/FirmwareVersion.cpp
+        Implementation/DeviceInfo.cpp
         Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -41,6 +45,12 @@ target_include_directories(${MODULE_NAME} PRIVATE
         ${DS_INCLUDE_DIRS}
         ${IARMBUS_INCLUDE_DIRS}
         ../helpers)
+
+set_source_files_properties(
+        Implementation/DeviceAudioCapabilities.cpp
+        Implementation/DeviceVideoCapabilities.cpp
+        PROPERTIES
+        COMPILE_FLAGS "-fexceptions")
 
 target_link_libraries(${MODULE_NAME}
         PRIVATE

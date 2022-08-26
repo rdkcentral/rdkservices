@@ -28,17 +28,14 @@ add_library(${MODULE_NAME} SHARED
         SystemServices.cpp
         Module.cpp
         cTimer.cpp
-        ../helpers/cSettings.cpp
-        ../helpers/powerstate.cpp
         thermonitor.cpp
         SystemServicesHelper.cpp
-        ../helpers/utils.cpp
         uploadlogs.cpp
         platformcaps/platformcaps.cpp
         platformcaps/platformcapsdata.cpp
         platformcaps/platformcapsdatarpc.cpp
         )
-
+set_source_files_properties(SystemServices.cpp thermonitor.cpp platformcaps/platformcapsdata.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)

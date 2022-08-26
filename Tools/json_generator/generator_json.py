@@ -709,495 +709,12 @@ def LoadSchema(file, include_path, cpp_include_path, header_include_paths):
                     raise RuntimeError("$ref file '%s' not found" % ref_tok[0])
                 ref_file = '"file:%s#%s"' % (urllib.request.pathname2url(ref_tok[0]), ref_tok[1])
                 tokens[c + 2] = ref_file
-            elif t == '"$cppref"' and tokens[c + 1] == ":" and tokens[c + 2][:2] != '"#':
-                ref_file = tokens[c + 2].strip('"')
-                ref_tok = ref_file.split("#", 1) if "#" in ref_file else [ref_file, ""]
-                if "{cppinterfacedir}/" in ref_file:
-                    ref_tok[0] = ref_tok[0].replace("{cppinterfacedir}/", (cpp_include_path + os.sep) if cpp_include_path else "")
-                    if not cpp_include_path:
-                        ref_tok[0] = os.path.join(path, ref_tok[0])
-                else:
-                    if os.path.isfile(os.path.join(path, ref_tok[0])):
-                        ref_tok[0] = os.path.join(path, ref_tok[0])
-                if not os.path.isfile(ref_tok[0]):
-                    raise RuntimeError("$cppref file '%s' not found" % ref_tok[0])
-                cppif = LoadInterface(ref_tok[0], header_include_paths)
-                if cppif:
-                    tokens[c] = json.dumps(cppif)
-                    tokens[c - 1] = ""
-                    tokens[c + 1] = ""
-                    tokens[c + 2] = ""
-                    if tokens[c + 4] == '"include"':
-                        log.Warn("Using 'include' in 'interface' is deprecated, use a list of interfaces instead")
-                        tokens[c + 16] = ""
-                    else:
-                        tokens[c + 3] = ""
-                else:
-                    raise RuntimeError("failed to parse C++ header '%s'" % ref_tok[0])
         # Return back the preprocessed JSON as a string
         return " ".join(tokens)
 
     with open(file, "r") as json_file:
         jsonPre = PreprocessJson(file, json_file.read(), include_path, cpp_include_path, header_include_paths)
         return jsonref.loads(jsonPre, object_pairs_hook=OrderedDict)
-
-
-
-########################################################
-#
-# C++ TO JSON CONVERTER
-#
-
-def LoadInterface(file, includePaths = []):
-    tree = ProxyStubGenerator.CppParser.ParseFiles([os.path.join(os.path.dirname(os.path.realpath(__file__)), posixpath.normpath(DEFAULT_DEFINITIONS_FILE)), file], includePaths)
-    interfaces = [i for i in ProxyStubGenerator.Interface.FindInterfaceClasses(tree, INTERFACE_NAMESPACE, file) if i.obj.is_json]
-
-    def Build(face):
-        schema = OrderedDict()
-        methods = OrderedDict()
-        properties = OrderedDict()
-        events = OrderedDict()
-
-        schema["$schema"] = "interface.json.schema"
-        schema["jsonrpc"] = "2.0"
-        schema["dorpc"] = True
-        schema["interfaceonly"] = True
-        schema["fromheader"] = True
-        schema["configuration"] = { "nodefault" : True }
-
-        info = dict()
-        if not face.obj.parent.full_name.endswith(INTERFACE_NAMESPACE):
-            info["namespace"] = face.obj.parent.name
-        info["class"] = face.obj.name[1:] if face.obj.name[0] == "I" else face.obj.name
-        qualified_face = face.obj.full_name.split("::")[1:]
-        if qualified_face[0] == FRAMEWORK_NAMESPACE:
-            qualified_face = qualified_face[1:]
-        info["interface"] = "::".join(qualified_face)
-        info["sourcefile"] = os.path.basename(file)
-        if face.obj.sourcelocation:
-            info["sourcelocation"] = face.obj.sourcelocation
-        info["title"] = info["class"] + " API"
-        info["description"] = info["class"] + " JSON-RPC interface"
-        schema["info"] = info
-
-        event_interfaces = set()
-
-        for method in face.obj.methods:
-            def ResolveTypedef(type):
-                return type.Resolve()
-
-            def StripFrameworkNamespace(identifier):
-                return str(identifier).replace("::" + FRAMEWORK_NAMESPACE + "::", "")
-
-            def StripInterfaceNamespace(identifier):
-                return str(identifier).replace(INTERFACE_NAMESPACE + "::", "").replace("::" + FRAMEWORK_NAMESPACE + "::", "")
-
-            def ConvertType(var):
-                var_type = ResolveTypedef(var.type)
-                cppType = var_type.Type()
-                is_iterator = isinstance(cppType, ProxyStubGenerator.CppParser.Class) and cppType.is_iterator
-                # Pointers
-                if var_type.IsPointer() and (is_iterator or (var.meta.length and var.meta.length != ["void"])):
-                    # Special case for serializing C-style buffers, that will be converted to base64 encoded strings
-                    if isinstance(cppType, ProxyStubGenerator.CppParser.Integer) and cppType.size == "char":
-                        props = dict()
-                        if var.meta.maxlength:
-                            props["length"] = " ".join(var.meta.maxlength)
-                        elif var.meta.length:
-                            props["length"] = " ".join(var.meta.length)
-                        if "length" in props:
-                            props["cpptype"] = cppType.type
-                        props["encode"] = cppType.type != "char"
-                        return "string", props if props else None
-                    # Special case for iterators, that will be converted to JSON arrays
-                    elif is_iterator and len(cppType.args) == 2:
-                        # Take element type from return value of the Current() method
-                        currentMethod = next((x for x in cppType.methods if x.name == "Current"), None)
-                        if currentMethod == None:
-                            raise CppParseError(var, "%s does not appear to a be an @iterator type" % cppType.type)
-                        result = ["array", { "items": ConvertParameter(currentMethod.retval), "iterator": StripInterfaceNamespace(cppType.type) } ]
-                        if var_type.IsPointerToPointer():
-                            result[1]["ptr"] = True
-                        return result
-                    # All other pointer types are not supported
-                    else:
-                        raise CppParseError(var, "unable to convert C++ type to JSON type: %s - input pointer allowed only on interator or C-style buffer" % cppType.type)
-                # Primitives
-                else:
-                    result = None
-                    # String
-                    if isinstance(cppType, ProxyStubGenerator.CppParser.String):
-                        result = [ "string", {} ]
-                    # Boolean
-                    elif isinstance(cppType, ProxyStubGenerator.CppParser.Bool):
-                        result = ["boolean", {} ]
-                    # Integer
-                    elif isinstance(cppType, ProxyStubGenerator.CppParser.Integer):
-                        size = 8 if cppType.size == "char" else 16 if cppType.size == "short" else \
-                            32 if cppType.size == "int" or cppType.size == "long" else 64 if cppType.size == "long long" else 32
-                        result = [ "integer", { "size": size, "signed": cppType.signed } ]
-                    # Float
-                    elif isinstance(cppType, ProxyStubGenerator.CppParser.Float):
-                        result = [ "float", { "size": 32 if cppType.type == "float" else 64 if cppType.type == "double" else 128 } ]
-                    # Null
-                    elif isinstance(cppType, ProxyStubGenerator.CppParser.Void):
-                        result = [ "null", {} ]
-                    # Enums
-                    elif isinstance(cppType, ProxyStubGenerator.CppParser.Enum):
-                        if len(cppType.items) > 1:
-                            enumValues = [e.autoValue for e in cppType.items]
-                            for i, e in enumerate(cppType.items, 0):
-                                if enumValues[i - 1] != enumValues[i]:
-                                    raise CppParseError(var, "enumerator values in an enum must all be explicit or all be implied")
-                        enumSpec = { "enum": [e.meta.text if e.meta.text else e.name.replace("_"," ").title().replace(" ","") for e in cppType.items], "enumtyped": var.type.Type().scoped  }
-                        enumSpec["enumids"] = [e.name for e in cppType.items]
-                        enumSpec["class"] = var.type.Type().name
-                        if not cppType.items[0].autoValue:
-                            enumSpec["enumvalues"] = [e.value for e in cppType.items]
-                        result = [ "string", enumSpec ]
-                    # POD objects
-                    elif isinstance(cppType, ProxyStubGenerator.CppParser.Class):
-                        def GenerateObject(ctype):
-                            properties = dict()
-                            for p in ctype.vars:
-                                name = p.name.lower()
-                                if isinstance(ResolveTypedef(p.type).Type(), ProxyStubGenerator.CppParser.Class):
-                                    _, props = GenerateObject(ResolveTypedef(p.type).Type())
-                                    properties[p.name] = props
-                                    properties[p.name]["type"] = "object"
-                                    properties[p.name]["typename"] = StripFrameworkNamespace(p.type.Type().full_name)
-                                else:
-                                    properties[p.name] = ConvertParameter(p)
-                                properties[p.name]["original"] = p.name.lower()
-                            return "object", { "properties": properties, "required": list(properties.keys()) }
-                        result = GenerateObject(cppType)
-                    # All other types are not supported
-                    else:
-                        raise CppParseError(var, "unable to convert C++ type to JSON type: %s" % cppType.type)
-                    if var_type.IsPointer():
-                        result[1]["ptr"] = True
-                    if var_type.IsReference():
-                        result[1]["ref"] = True
-                    return result
-
-            def ExtractExample(var):
-                egidx = var.meta.brief.index("(e.g.") if "(e.g." in var.meta.brief else None
-                if egidx != None and ")" in var.meta.brief[egidx + 1:]:
-                    example = var.meta.brief[egidx + 5:var.meta.brief.rfind(")")].strip()
-                    description = var.meta.brief[0:egidx].strip()
-                    return [example, description]
-                else:
-                    return None
-
-            def ConvertParameter(var):
-                jsonType, args = ConvertType(var)
-                properties = {"type": jsonType}
-                if args != None:
-                    properties.update(args)
-                    try:
-                        properties["typename"] = StripFrameworkNamespace(var.type.Type().full_name)
-                    except:
-                        pass
-                if var.meta.brief:
-                    # Also attempt to craft some description
-                    pair = ExtractExample(var)
-                    if pair:
-                        properties["example"] = pair[0]
-                        properties["description"] = pair[1]
-                    else:
-                        properties["description"] = var.meta.brief
-                return properties
-
-            def EventParameters(vars):
-                events = []
-                for var in vars:
-                    def ResolveTypedef(resolved, events, type):
-                        if not isinstance(type, list):
-                            if isinstance(type.Type(), ProxyStubGenerator.CppParser.Typedef):
-                                if type.Type().is_event:
-                                    events.append(type)
-                                ResolveTypedef(resolved, events, type.Type())
-                            else:
-                                if isinstance(type.Type(), ProxyStubGenerator.CppParser.Class) and type.Type().is_event:
-                                    events.append(type)
-                        if isinstance(type, list):
-                            raise CppParseError(var, "undefined type: '%s'" % " ".join(type))
-                        resolved.append(type)
-                        return events
-
-                    resolved = []
-                    events = ResolveTypedef(resolved, events, var.type)
-                return events
-
-            def BuildParameters(vars, json_extended, prop=False, test=False):
-                params = {"type": "object"}
-                properties = OrderedDict()
-                required = []
-                for var in vars:
-                    if var.meta.input or not var.meta.output:
-                        if not var.type.IsConst() or (var.type.IsPointer() and not var.type.IsPointerToConst()):
-                            if not var.meta.input:
-                                log.WarnLine(var, "'%s': non-const parameter assumed to be input (forgot 'const'?)" % var.name)
-                            elif not var.meta.output:
-                                log.WarnLine(var, "'%s': non-const parameter marked with @in tag (forgot 'const'?)" % var.name)
-                        var_name = var.meta.text if var.meta.text else var.name.lower()
-                        if var_name.startswith("__unnamed") and not test:
-                            raise CppParseError(var, "unnamed parameter, can't deduce parameter name")
-                        properties[var_name] = ConvertParameter(var)
-                        properties[var_name]["original"] = var.name.lower()
-                        properties[var_name]["position"] = vars.index(var)
-                        if not prop and "description" not in properties[var_name]:
-                            log.DocIssue("'%s': parameter is missing description" % var_name)
-                        required.append(var_name)
-                        if properties[var_name]["type"] == "string" and not var.type.IsReference() and not var.type.IsPointer() and not "enum" in properties[var_name]:
-                            log.WarnLine(var, "'%s': passing string by value (forgot &?)" % var.name)
-                params["properties"] = properties
-                params["required"] = required
-                if prop:
-                    if len(properties) == 1:
-                        return list(properties.values())[0]
-                    elif len(properties) > 1:
-                        params["required"] = required
-                        return params
-                    else:
-                        return None
-                else:
-                    if (len(properties) == 0):
-                        return {}
-                    elif (len(properties) == 1) and not json_extended:
-                        # New way of things: if only one parameter present then omit the outer object
-                        return list(properties.values())[0]
-                    else:
-                        return params
-
-            def BuildResult(vars, prop = False):
-                params = {"type": "object"}
-                properties = OrderedDict()
-                required = []
-                for var in vars:
-                    var_type = ResolveTypedef(var.type)
-                    if var.meta.output:
-                        if var_type.IsValue():
-                            raise CppParseError(var, "parameter marked with @out tag must be either a reference or a pointer")
-                        if var_type.IsConst():
-                            raise CppParseError(var, "parameter marked with @out tag must not be const")
-                        var_name = var.meta.text if var.meta.text else var.name.lower()
-                        if var_name.startswith("__unnamed") and len(vars) > 1:
-                            raise CppParseError(var, "unnamed parameter, can't deduce parameter name")
-                        properties[var_name] = ConvertParameter(var)
-                        properties[var_name]["original"] = var.name.lower()
-                        properties[var_name]["position"] = vars.index(var)
-                        required.append(var_name)
-                params["properties"] = properties
-                if len(properties) == 1:
-                    return list(properties.values())[0]
-                elif len(properties) > 1:
-                    params["required"] = required
-                    return params
-                elif not prop:
-                    void = {"type": "null"}
-                    void["description"] = "Always null"
-                    return void
-                else:
-                    return None
-
-            if method.is_excluded:
-                continue
-
-            prefix = (face.obj.parent.name.lower() + "_") if face.obj.parent.full_name != INTERFACE_NAMESPACE else ""
-            method_name = method.retval.meta.text if method.retval.meta.text else method.name
-            method_name_lower = method_name.lower()
-
-            event_params = EventParameters(method.vars)
-            for e in event_params:
-                exists = any(x.obj.type == e.type.type for x in event_interfaces)
-                if not exists:
-                    event_interfaces.add(ProxyStubGenerator.Interface.Interface(ResolveTypedef(e).type, 0, file))
-
-            obj = None
-
-            if method.retval.meta.is_property or (prefix + method_name_lower) in properties:
-                try:
-                    obj = properties[prefix + method_name_lower]
-                    obj["cppname"] = method.name
-                except:
-                    obj = OrderedDict()
-                    obj["cppname"] = method.name
-                    properties[prefix + method_name_lower] = obj
-
-                indexed_property = (len(method.vars) == 2 and method.vars[0].meta.is_index)
-
-                if len(method.vars) == 1 or (len(method.vars) == 2 and indexed_property):
-                    if indexed_property:
-                        if method.vars[0].type.IsPointer():
-                            raise CppParseError(method.vars[0], "index to a property must not be pointer")
-                        if not method.vars[0].type.IsConst() and method.vars[0].type.IsReference():
-                            raise CppParseError(method.vars[0], "index to a property must be an input parameter")
-                        if "index" not in obj:
-                            obj["index"] = BuildParameters([method.vars[0]], False, True)
-                            obj["index"]["name"] = method.vars[0].name
-                            if "enum" in obj["index"]:
-                                obj["index"]["example"] = obj["index"]["enum"][0]
-                            if "example" not in obj["index"]:
-                                # example not specified, let's invent something...
-                                obj["index"]["example"] = ("0" if obj["index"]["type"] == "integer" else "xyz")
-                            if obj["index"]["type"] not in ["integer", "string"]:
-                                raise CppParseError(method.vars[0], "index to a property must be integer, enum or string type")
-                        else:
-                            test = BuildParameters([method.vars[0]], False, True, True)
-                            if not test:
-                                raise CppParseError(method.vars[value], "property index must be an input parameter")
-                            if obj["index"]["type"] != test["type"]:
-                                raise CppParseError(method.vars[0], "setter and getter of the same property must have same index type")
-                        if method.vars[1].meta.is_index:
-                            raise CppParseError(method.vars[0], "index must be the first parameter to property method")
-
-                        value = 1
-                    else:
-                        value = 0
-
-                    if "const" in method.qualifiers:
-                        if method.vars[value].type.IsConst():
-                            raise CppParseError(method.vars[value], "property getter method must not use const parameter")
-                        else:
-                            if "writeonly" in obj:
-                                del obj["writeonly"]
-                            else:
-                                obj["readonly"] = True
-                            if "params" not in obj:
-                                obj["params"] = BuildResult([method.vars[value]], True)
-                            else:
-                                test = BuildResult([method.vars[value]], True)
-                                if not test:
-                                    raise CppParseError(method.vars[value], "property getter method must have one output parameter")
-                                if obj["params"]["type"] != test["type"]:
-                                    raise CppParseError(method.vars[value], "setter and getter of the same property must have same type")
-                                if "ptr" in test and test["ptr"]:
-                                    obj["params"]["ptr"] = True
-                            if obj["params"] == None:
-                                raise CppParseError(method.vars[value], "property getter method must have one output parameter")
-                    else:
-                        if not method.vars[value].type.IsConst():
-                            raise CppParseError(method.vars[value], "property setter method must use a const parameter")
-                        else:
-                            if "readonly" in obj:
-                                del obj["readonly"]
-                            else:
-                                obj["writeonly"] = True
-                            if "params" not in obj:
-                                obj["params"] = BuildParameters([method.vars[value]], False, True)
-                            else:
-                                test = BuildParameters([method.vars[value]], False, True, True)
-                                if not test:
-                                    raise CppParseError(method.vars[value], "property setter method must have one input parameter")
-                                if obj["params"]["type"] != test["type"]:
-                                    raise CppParseError(method.vars[value], "setter and getter of the same property must have same type")
-                                if "ref" in test and test["ref"]:
-                                    obj["params"]["ref"] = True
-                            if obj["params"] == None:
-                                raise CppParseError(method.vars[value], "property setter method must have one input parameter")
-                else:
-                    raise CppParseError(method, "property method must have one parameter")
-
-            elif method.IsPureVirtual() and not event_params:
-                if method.retval.type and (isinstance(method.retval.type.Type(), ProxyStubGenerator.CppParser.Void) or (isinstance(method.retval.type.Type(), ProxyStubGenerator.CppParser.Integer) and method.retval.type.Type().size == "long")):
-                    obj = OrderedDict()
-                    params = BuildParameters(method.vars, face.obj.is_extended)
-                    if "properties" in params and params["properties"]:
-                        if method.name.lower() in [x.lower() for x in params["required"]]:
-                            raise CppParseError(method, "parameters must not use the same name as the method")
-                    if params:
-                        obj["params"] = params
-                    obj["result"] = BuildResult(method.vars)
-                    obj["cppname"] = method_name
-                    methods[prefix + method_name_lower] = obj
-                else:
-                    raise CppParseError(method, "method return type must be uint32_t (error code) or void (i.e. pass other return values by reference)")
-
-            if obj:
-                if method.retval.meta.is_deprecated:
-                    obj["deprecated"] = True
-                elif method.retval.meta.is_obsolete:
-                    obj["obsolete"] = True
-                if method.retval.meta.brief:
-                    obj["summary"] = method.retval.meta.brief
-                elif (prefix + method_name_lower) not in properties:
-                    log.DocIssue("'%s': %s is missing brief description" % (method.name, "property" if method.retval.meta.is_property else "method"))
-                if method.retval.meta.details:
-                    obj["description"] = method.retval.meta.details
-                if method.retval.meta.retval:
-                    errors = []
-                    for err in method.retval.meta.retval:
-                        errEntry = OrderedDict()
-                        errEntry["description"] = method.retval.meta.retval[err]
-                        errEntry["message"] = err
-                        errors.append(errEntry)
-                    if errors:
-                        obj["errors"] = errors
-
-        for f in event_interfaces:
-            for method in f.obj.methods:
-                if method.IsPureVirtual() and method.is_excluded == False:
-                    obj = OrderedDict()
-                    obj["cppname"] = method.name
-                    varsidx = 0
-                    if len(method.vars) > 0:
-                        for v in method.vars[1:]:
-                            if v.meta.is_index:
-                                log.WarnLine(method,"@index ignored on non-first parameter of %s" % method.name)
-                        if method.vars[0].meta.is_index:
-                            if method.vars[0].type.IsPointer():
-                                raise CppParseError(method.vars[0], "index to a notification must not be pointer")
-                            if not method.vars[0].type.IsConst() and method.vars[0].type.IsReference():
-                                raise CppParseError(method.vars[0], "index to a notification must be an input parameter")
-                            obj["id"] = BuildParameters([method.vars[0]], False)
-                            obj["id"]["name"] = method.vars[0].name
-                            if "example" not in obj["id"]:
-                                obj["id"]["example"] = "0" if obj["id"]["type"] == "integer" else "abc"
-                            if obj["id"]["type"] not in ["integer", "string"]:
-                                raise CppParseError(method.vars[0], "index to a notification must be integer, enum or string type")
-                            varsidx = 1
-                    if method.retval.meta.is_listener:
-                        obj["statuslistener"] = True
-                    params = BuildParameters(method.vars[varsidx:], f.obj.is_extended)
-                    if method.retval.meta.is_deprecated:
-                        obj["deprecated"] = True
-                    elif method.retval.meta.is_obsolete:
-                        obj["obsolete"] = True
-                    if method.retval.meta.brief:
-                        obj["summary"] = method.retval.meta.brief
-                    else:
-                        log.DocIssue("'%s': event is missing brief description" % method.name)
-                    if method.retval.meta.details:
-                        obj["description"] = method.retval.meta.details
-                    if params:
-                        obj["params"] = params
-                    method_name = method.retval.meta.text if method.retval.meta.text else method.name
-                    events[prefix + method_name.lower()] = obj
-
-        if methods:
-            schema["methods"] = methods
-        if properties:
-            schema["properties"] = properties
-        if events:
-            schema["events"] = events
-
-        if DUMP_JSON:
-            print("\n// JSON interface for {} -----------".format(face.obj.name))
-            print(json.dumps(schema, indent=2))
-            print("// ----------------\n")
-        return schema
-
-    schemas = []
-    if interfaces:
-        for face in interfaces:
-            schema = Build(face)
-            if schema:
-                schemas.append(schema)
-    else:
-        log.Info("No interfaces found")
-
-    return schemas
 
 
 
@@ -2740,21 +2257,22 @@ def CreateDocument(schema, path):
             if "events" in interface:
                 event_count += len(interface["events"])
 
-        version = info["version"] if "version" in info else "1.0"
-
-        status = info["status"] if "status" in info else "alpha"
-
-        rating = 0
-        if status == "dev" or status == "development":
-            rating = 0
-        elif status == "alpha":
-            rating = 1
-        elif status == "beta":
-            rating = 2
-        elif status == "production" or status == "prod":
-            rating = 3
+        #To retrieve version from the CHANGELOG.md file
+        change_log_path = os.path.abspath(os.path.dirname(args.path[0])+ os.path.sep +"CHANGELOG.md")
+        matches=[]
+        if os.path.exists(change_log_path):
+            with open(change_log_path,'r') as f:
+                lines = f.read().split("\n")
+                for i,line in enumerate(lines):
+                    m= re.findall(r'\[(\d+.\d+.\d+)\]',line) 
+                    if m:
+                        matches+=m
+            try:
+                version = matches[0]
+            except:
+                log.Error("Version not found in the CHANGELOG.md file")
         else:
-            raise RuntimeError("invalid status")
+            version = "1.0.0"
 
         plugin_class = None
         if "callsign" in info:
@@ -2805,7 +2323,6 @@ def CreateDocument(schema, path):
         if "title" in info:
             MdHeader(info["title"])
         MdParagraph(bold("Version: " + version))
-        MdParagraph(bold("Status: " + rating * ":black_circle:" + (3 - rating) * ":white_circle:"))
         MdParagraph("A %s %s for Thunder framework." % (plugin_class, document_type))
 
         if document_type == "interface":
@@ -2824,7 +2341,7 @@ def CreateDocument(schema, path):
 
         # Emit TOC.
         MdHeader("Table of Contents", 3)
-        MdBody("- " + link("head.Introduction"))
+        MdBody("- " + link("head.Abbreviation,_Acronyms_and_Terms"))
         if "description" in info:
             MdBody("- " + link("head.Description"))
         if document_type == "plugin":
@@ -2848,68 +2365,10 @@ def CreateDocument(schema, path):
             return tmp
 
 
-        MdHeader("Introduction")
-        MdHeader("Scope", 2)
-        if "scope" in info:
-            MdParagraph(info["scope"])
-        elif "title" in info:
-            extra = ""
-            if document_type == 'plugin':
-                extra = "configuration"
-            if method_count and property_count and event_count:
-                if extra:
-                    extra += ", "
-                extra += "methods and properties provided, as well as notifications sent"
-            elif method_count and property_count:
-                if extra:
-                    extra += ", "
-                extra += "methods and properties provided"
-            elif method_count and event_count:
-                if extra:
-                    extra += ", "
-                extra += "methods provided and notifications sent"
-            elif property_count and event_count:
-                if extra:
-                    extra += ", "
-                extra += "properties provided and notifications sent"
-            elif method_count:
-                if extra:
-                    extra += " and "
-                extra += "methods provided"
-            elif property_count:
-                if extra:
-                    extra += " and "
-                extra += "properties provided"
-            elif event_count:
-                if extra:
-                    extra += " and "
-                extra += "notifications sent"
-            if extra:
-                extra = " It includes detailed specification about its " + extra + "."
-            MdParagraph("This document describes purpose and functionality of the %s %s.%s" % (plugin_class, document_type, extra))
-
-        MdHeader("Case Sensitivity", 2)
+        MdHeader("Abbreviation, Acronyms and Terms")
         MdParagraph((
-            "All identifiers of the interfaces described in this document are case-sensitive. "
-            "Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such."
+            "[[Refer to this link](userguide/aat.md)]"
         ))
-
-        if "acronyms" in info or "acronyms" in commons or "terms" in info or "terms" in commons:
-            MdHeader("Acronyms, Abbreviations and Terms", 2)
-            if "acronyms" in info or "acronyms" in commons:
-                MdParagraph("The table below provides and overview of acronyms used in this document and their definitions.")
-                PlainTable(mergedict(commons, info, "acronyms"), ["Acronym", "Description"], "acronym")
-            if "terms" in info or "terms" in commons:
-                MdParagraph("The table below provides and overview of terms and abbreviations used in this document and their definitions.")
-                PlainTable(mergedict(commons, info, "terms"), ["Term", "Description"], "term")
-
-        if "standards" in info:
-            MdHeader("Standards", 2)
-            MdParagraph(info["standards"])
-
-        if "references" in commons or "references" in info:
-            MdHeader("References", 2)
-            PlainTable(mergedict(commons, info, "references"), ["Ref ID", "Description"])
 
         if "description" in info:
             MdHeader("Description")
@@ -3357,10 +2816,7 @@ if __name__ == "__main__":
             log.Header(path)
             try:
                 log.Header(path)
-                if path.endswith(".h"):
-                    schemas = LoadInterface(path, args.includePaths)
-                else:
-                    schemas = [LoadSchema(path, args.if_dir, args.cppif_dir, args.includePaths)]
+                schemas = [LoadSchema(path, args.if_dir, args.cppif_dir, args.includePaths)]
                 for schema in schemas:
                     if schema:
                         warnings = GENERATED_JSON
@@ -3389,6 +2845,8 @@ if __name__ == "__main__":
             except IOError as err:
                 log.Error(str(err))
             except ValueError as err:
+                log.Error(str(err))
+            except jsonref.JsonRefError as err:
                 log.Error(str(err))
         log.Info("JsonGenerator: All done, {} files parsed, {} error{}.".format(len(files), len(log.errors) if log.errors else 'no',
                                                               '' if len(log.errors) == 1 else 's'))

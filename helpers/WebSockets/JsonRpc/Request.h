@@ -20,9 +20,7 @@
 #pragma once
 
 #include <atomic>
-#include <string>
-
-#include <core/JSONRPC.h>
+#include "Module.h"
 
 namespace WebSockets   {
 namespace JsonRpc      {

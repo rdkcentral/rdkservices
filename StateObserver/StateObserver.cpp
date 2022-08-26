@@ -42,17 +42,32 @@
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
 
-#define STATEOBSERVER_MAJOR_VERSION 1
-#define STATEOBSERVER_MINOR_VERSION 0
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 #define DEBUG_INFO 0
 
 namespace WPEFramework {
+
+	namespace {
+
+		static Plugin::Metadata<Plugin::StateObserver> metadata(
+			// Version (Major, Minor, Patch)
+			API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+			// Preconditions
+			{},
+			// Terminations
+			{},
+			// Controls
+			{}
+		);
+	}
 
 		namespace Plugin {
 		/*
 		 *Register StateObserver  module as wpeframework plugin
 		 **/
-		SERVICE_REGISTRATION(StateObserver, STATEOBSERVER_MAJOR_VERSION, STATEOBSERVER_MINOR_VERSION);
+		SERVICE_REGISTRATION(StateObserver, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
 		StateObserver* StateObserver::_instance = nullptr;
 
