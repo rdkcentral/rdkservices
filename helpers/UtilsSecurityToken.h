@@ -21,6 +21,18 @@
 
 #include <plugins/plugins.h>
 
+/**
+ * DO NOT USE THIS.
+ *
+ * Instead, use:
+ * - ThunderInterfaces
+ * - IShell notifications:
+ *      PluginHost::IShell::Register
+ *      PluginHost::IPlugin::INotification
+ * - PluginHost::IShell::Job
+ * - Preconditions
+ */
+
 namespace Utils
 {
     struct SecurityToken

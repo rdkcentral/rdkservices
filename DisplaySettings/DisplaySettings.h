@@ -221,7 +221,7 @@ namespace WPEFramework {
 	    bool getHdmiCecSinkAudioDeviceConnectedStatus();
 	    static void  cecArcRoutingThread();
 	    void onTimer();
-	    void stopCecTimeAndUnsubscriveEvent();
+	    void stopCecTimeAndUnsubscribeEvent();
             void checkAudioDeviceDetectionTimer();
 
 	    TpTimer m_timer;

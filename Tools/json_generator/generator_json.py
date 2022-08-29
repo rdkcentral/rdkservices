@@ -2260,7 +2260,7 @@ def CreateDocument(schema, path):
         #To retrieve version from the CHANGELOG.md file
         change_log_path = os.path.abspath(os.path.dirname(args.path[0])+ os.path.sep +"CHANGELOG.md")
         matches=[]
-        try:
+        if os.path.exists(change_log_path):
             with open(change_log_path,'r') as f:
                 lines = f.read().split("\n")
                 for i,line in enumerate(lines):
@@ -2271,8 +2271,8 @@ def CreateDocument(schema, path):
                 version = matches[0]
             except:
                 log.Error("Version not found in the CHANGELOG.md file")
-        except:
-            log.Error("CHANGELOG.md file not found")
+        else:
+            version = "1.0.0"
 
         plugin_class = None
         if "callsign" in info:
@@ -2341,7 +2341,7 @@ def CreateDocument(schema, path):
 
         # Emit TOC.
         MdHeader("Table of Contents", 3)
-        MdBody("- " + link("head.Introduction"))
+        MdBody("- " + link("head.Abbreviation,_Acronyms_and_Terms"))
         if "description" in info:
             MdBody("- " + link("head.Description"))
         if document_type == "plugin":
@@ -2365,68 +2365,10 @@ def CreateDocument(schema, path):
             return tmp
 
 
-        MdHeader("Introduction")
-        MdHeader("Scope", 2)
-        if "scope" in info:
-            MdParagraph(info["scope"])
-        elif "title" in info:
-            extra = ""
-            if document_type == 'plugin':
-                extra = "configuration"
-            if method_count and property_count and event_count:
-                if extra:
-                    extra += ", "
-                extra += "methods and properties provided, as well as notifications sent"
-            elif method_count and property_count:
-                if extra:
-                    extra += ", "
-                extra += "methods and properties provided"
-            elif method_count and event_count:
-                if extra:
-                    extra += ", "
-                extra += "methods provided and notifications sent"
-            elif property_count and event_count:
-                if extra:
-                    extra += ", "
-                extra += "properties provided and notifications sent"
-            elif method_count:
-                if extra:
-                    extra += " and "
-                extra += "methods provided"
-            elif property_count:
-                if extra:
-                    extra += " and "
-                extra += "properties provided"
-            elif event_count:
-                if extra:
-                    extra += " and "
-                extra += "notifications sent"
-            if extra:
-                extra = " It includes detailed specification about its " + extra + "."
-            MdParagraph("This document describes purpose and functionality of the %s %s.%s" % (plugin_class, document_type, extra))
-
-        MdHeader("Case Sensitivity", 2)
+        MdHeader("Abbreviation, Acronyms and Terms")
         MdParagraph((
-            "All identifiers of the interfaces described in this document are case-sensitive. "
-            "Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such."
+            "[[Refer to this link](userguide/aat.md)]"
         ))
-
-        if "acronyms" in info or "acronyms" in commons or "terms" in info or "terms" in commons:
-            MdHeader("Acronyms, Abbreviations and Terms", 2)
-            if "acronyms" in info or "acronyms" in commons:
-                MdParagraph("The table below provides and overview of acronyms used in this document and their definitions.")
-                PlainTable(mergedict(commons, info, "acronyms"), ["Acronym", "Description"], "acronym")
-            if "terms" in info or "terms" in commons:
-                MdParagraph("The table below provides and overview of terms and abbreviations used in this document and their definitions.")
-                PlainTable(mergedict(commons, info, "terms"), ["Term", "Description"], "term")
-
-        if "standards" in info:
-            MdHeader("Standards", 2)
-            MdParagraph(info["standards"])
-
-        if "references" in commons or "references" in info:
-            MdHeader("References", 2)
-            PlainTable(mergedict(commons, info, "references"), ["Ref ID", "Description"])
 
         if "description" in info:
             MdHeader("Description")
@@ -2903,6 +2845,8 @@ if __name__ == "__main__":
             except IOError as err:
                 log.Error(str(err))
             except ValueError as err:
+                log.Error(str(err))
+            except jsonref.JsonRefError as err:
                 log.Error(str(err))
         log.Info("JsonGenerator: All done, {} files parsed, {} error{}.".format(len(files), len(log.errors) if log.errors else 'no',
                                                               '' if len(log.errors) == 1 else 's'))

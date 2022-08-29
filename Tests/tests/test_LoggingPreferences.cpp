@@ -100,8 +100,7 @@ TEST_F(LoggingPreferencesTestFixture, registeredMethods)
 
 TEST_F(LoggingPreferencesTestFixture, paramsMissing)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{}"), response));
 }
 
 TEST_F(LoggingPreferencesTestFixture, getKeystrokeMask)
@@ -265,14 +264,11 @@ TEST_F(LoggingPreferencesTestFixture, errorCases)
                 return IARM_RESULT_IPCCORE_FAIL;
             });
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isKeystrokeMaskEnabled"), _T("{}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("isKeystrokeMaskEnabled"), _T("{}"), response));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
 
     plugin->Deinitialize(nullptr);
 }
