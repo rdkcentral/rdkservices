@@ -70,7 +70,6 @@ TEST_F(SystemServicesTest, RegisteredMethods)
 	EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("fireFirmwarePendingReboot")));
 	EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("setFirmwareAutoReboot")));
 	EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("setFirmwareRebootDelay")));
-	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("updateFirmware")));
 	EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getLastFirmwareFailureReason")));
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDownloadedFirmwareInfo")));
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFirmwareDownloadPercent")));
@@ -93,10 +92,10 @@ TEST_F(SystemServicesTest, SystemUptime)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("requestSystemUptime"), _T("{}"), response));
 
-    size_t pos1 = response.find(",");
-
-    string result = response.substr(pos1+1, response.length()-pos1-2);
-    EXPECT_EQ(result,string("\"success\":true"));
+    EXPECT_THAT(response, ::testing::MatchesRegex(_T("\\{"
+				    "\"systemUptime\":\"[0-9]+.[0-9]+\","
+				    "\"success\":true"
+				    "\\}")));
 }
     
 
@@ -148,14 +147,11 @@ TEST_F(SystemServicesTest, RebootDelay)
 
 TEST_F(SystemServicesTest, Firmware)
 {
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updateFirmware"), _T("{}"),response));
-    EXPECT_EQ(response,string("{\"success\":true}"));
-	
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("getLastFirmwareFailureReason"), _T("{}"),response));
-    EXPECT_EQ(response,string("{\"failReason\":\"None\",\"success\":true}"));
+	EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("getLastFirmwareFailureReason"), _T("{}"),response));
+    EXPECT_EQ(response,string("{\"failReason\":\"Invalid Request\",\"success\":true}"));
 
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDownloadedFirmwareInfo"), _T("{}"),response));
-    EXPECT_EQ(response,string("{\"currentFWVersion\":\"AX013AN_5.6p4s1_VBN_sey\",\"downloadedFWVersion\":\"\",\"downloadedFWLocation\":\"\",\"isRebootDeferred\":false,\"success\":true}"));
+    EXPECT_EQ(response,string("{\"currentFWVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\",\"downloadedFWVersion\":\"\",\"downloadedFWLocation\":\"\",\"isRebootDeferred\":false,\"success\":true}"));
 
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareDownloadPercent"), _T("{}"),response));
     EXPECT_EQ(response,string("{\"downloadPercent\":-1,\"success\":true}"));
@@ -190,21 +186,21 @@ TEST_F(SystemServicesTest, Timezone)
 
 TEST_F(SystemServicesTest, InvalidTerritory)
 {
-	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US\",\"region\":\"US-NYC\"}"),response));
-    EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid territory\"},\"success\":false}"));
+	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US\",\"region\":\"US-NYC\"}"),response));
+    EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid territory\"}}"));
 
-	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"U-NYC\"}"),response));
-	EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid region\"},\"success\":false}"));
+	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"U-NYC\"}"),response));
+	EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid region\"}}"));
 
-	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US@\",\"region\":\"US-NYC\"}"),response));
-    EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid territory\"},\"success\":false}"));
+	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US@\",\"region\":\"US-NYC\"}"),response));
+    EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid territory\"}}"));
 
-	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"US-N$C\"}"),response));
-    EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid region\"},\"success\":false}"));
+	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"US-N$C\"}"),response));
+    EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid region\"}}"));
 
-	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US12\",\"region\":\"US-NYC\"}"),response));
-    EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid territory\"},\"success\":false}"));
-
+	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US12\",\"region\":\"US-NYC\"}"),response));
+    EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid territory\"}}"));
+    
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTerritory"), _T("{}"),response));
     EXPECT_EQ(response,string("{\"territory\":\"\",\"region\":\"\",\"success\":true}"));
 
@@ -237,7 +233,7 @@ TEST_F(SystemServicesTest, reboot)
 TEST_F(SystemServicesTest, rebootReason)
 {
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPreviousRebootInfo"), _T("{}"),response));
-    EXPECT_EQ(response,string("{\"timeStamp\":\"18.08.2022_09:51.38\",\"reason\":\"Triggered from SystemServices! MAINTENANCE_REBOOT\",\"source\":\"Unknown\",\"customReason\":\"MAINTENANCE_REBOOT\",\"otherReason\":\"MAINTENANCE_REBOOT\",\"success\":true}"));
+      EXPECT_EQ(response,string("{\"timeStamp\":\"18.08.2022_09:51.38\",\"reason\":\"Triggered from SystemServices! MAINTENANCE_REBOOT\",\"source\":\"HAL_CDL_notify_mgr_event\",\"customReason\":\"MAINTENANCE_REBOOT\",\"otherReason\":\"MAINTENANCE_REBOOT\",\"success\":true}"));
 	
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPreviousRebootInfo2"), _T("{}"),response));
     EXPECT_EQ(response,string("{\"rebootInfo\":{\"timestamp\":\"Thu Aug 18 13:51:39 UTC 2022\",\"source\":\"HAL_CDL_notify_mgr_event\",\"reason\":\"OPS_TRIGGERED\",\"customReason\":\"Unknown\",\"lastHardPowerReset\":\"Thu Aug 18 13:51:39 UTC 2022\"},\"success\":true}"));
@@ -245,10 +241,12 @@ TEST_F(SystemServicesTest, rebootReason)
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPreviousRebootReason"), _T("{}"),response));
     EXPECT_EQ(response,string("{\"reason\":\"OPS_TRIGGERED\",\"success\":true}"));
 
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMilestones"), _T("{}"),response));
+}
+
+TEST_F(SystemServicesTest, MileStones)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMilestones"), _T("{}"),response));
     EXPECT_EQ(response,string("{\"milestones\":[\"RDK_STARTED:35755\"],\"deprecated\":true,\"success\":true}"));
-
-
 }
 
 TEST_F(SystemServicesTest, Telemetry)
@@ -268,5 +266,5 @@ TEST_F(SystemServicesTest, Telemetry)
 TEST_F(SystemServicesTest, SystemVersions)
 {
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSystemVersions"), _T("{}"),response));
-    EXPECT_EQ(response,string("{\"stbVersion\":\"AX013AN_5.6p4s1_VBN_sey\",\"receiverVersion\":\"5.6.0.4\",\"stbTimestamp\":\"Fri 05 Aug 2022 16:14:54 AP UTC\",\"success\":true}"));
+    EXPECT_EQ(response,string("{\"stbVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\",\"receiverVersion\":\"000.36.0.0\",\"stbTimestamp\":\"Fri 05 Aug 2022 16:14:54 AP UTC\",\"success\":true}"));
 }

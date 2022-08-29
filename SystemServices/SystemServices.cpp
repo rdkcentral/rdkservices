@@ -2309,7 +2309,7 @@ namespace WPEFramework {
 								error["message"] = "Invalid region";
 								response["error"] = error;
 								LOGWARN("Please enter valid region");
-								returnResponse(resp);
+								return false;
 							}
 						}
 					}else{
@@ -2321,7 +2321,7 @@ namespace WPEFramework {
 					error["message"] =  "Invalid territory";
 					response["error"] = error;
 					LOGWARN("Please enter valid territory Parameter value.");
-					returnResponse(resp);
+					return false;
 				}
 				if(resp == true){
 					//call event on Territory changed
@@ -2337,7 +2337,7 @@ namespace WPEFramework {
 			error["message"] =  "Invalid territory name";
 			response["error"] = error;
 			LOGWARN("Please enter valid territory Parameter name.");
-			resp = false;
+			return false;
 		}
 		returnResponse(resp);
 	}
@@ -3878,7 +3878,7 @@ namespace WPEFramework {
 
             LOGINFO("len = %lud\n", len);
             int state = 0;
-	    	IARM_Bus_SYSMgr_SystemState_t stateId;
+	    	IARM_Bus_SYSMgr_SystemState_t stateId = IARM_BUS_SYSMGR_SYSSTATE_CHANNELMAP;//0
 	    	IARM_Bus_SYSMgr_EventData_t *sysEventData = nullptr;
             /* Only handle state events */
             if (eventId != IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) return;
@@ -4071,7 +4071,7 @@ namespace WPEFramework {
         uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)
         {
             bool retStatus = true;
-            FwFailReason failReason = FwFailReasonNone;
+            string flReason ="";
 
             std::vector<string> lines;
             if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
@@ -4090,14 +4090,14 @@ namespace WPEFramework {
                                       return strcasecmp(C_STR(t.first), C_STR(str)) == 0;
                                   });
                 if (it != FwFailReasonFromText.end())
-                    failReason = it->second;
+                    flReason = it->first;
                 else if (!str.empty())
                     LOGWARN("Unrecognised FailureReason!");
             } else {
                 LOGINFO("Could not read file %s", FWDNLDSTATUS_FILE_NAME);
             }
 
-            response["failReason"] = FwFailReasonToText.at(failReason);
+            response["failReason"] = flReason;
             returnResponse(retStatus);
         }
         /***
