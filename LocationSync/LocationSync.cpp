@@ -21,29 +21,10 @@
 //#include <functional>
 #include "UtilsSecurityToken.h"
 
-#include "UtilsLogging.h" // TODO: for custom builds only
-
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
 #define SERVER_DETAILS  "127.0.0.1:9998"
-
-// helper functions
-namespace {
-    bool getToken(WPEFramework::PluginHost::IShell* service, const string& token, const string& designator)
-    {
-        bool result = false;
-        auto auth = service->QueryInterfaceByCallsign<WPEFramework::PluginHost::IAuthenticate>("SecurityAgent");
-        if (auth != nullptr) {
-            std::string encoded;
-            result = auth->CreateToken(
-                    static_cast<uint16_t>(token.length()),
-                    reinterpret_cast<const uint8_t *>(token.c_str()),
-                    encoded) == WPEFramework::Core::ERROR_NONE;
-            }
-        return result;
-    }
-} // namespace
 
 namespace WPEFramework {
 namespace Plugin {
@@ -96,12 +77,6 @@ namespace Plugin {
                     , _retries
                     , _interval * 1000
             ));
-            LOGINFO("Starting netcontrol timer. Source: %s, interval: %d, retries: %d, network check every %d ms"
-                    , _source.c_str()
-                    , _interval
-                    , _retries
-                    , _interval * 1000
-            );
             if(_netControlTimer.isActive()) {
                 _netControlTimer.stop();
             }
@@ -220,11 +195,9 @@ namespace Plugin {
                 _netControlTimer.stop();
                 TRACE(Trace::Information, (_T("Network reachability monitoring stopped.")));
                 TRACE(Trace::Information, (_T("Proceeding with LocationService init.")));
-                LOGINFO("Network reachability monitoring stopped. Proceeding with LocationService init.");
                 _sink.Initialize(_source, _interval, _retries);
             } else {
-                TRACE(Trace::Information, (_T("Doing one more reachability check in %d sec."), _interval));
-                LOGINFO("Doing one more reachability check in %d sec. Remaining attempts: %d", _interval, remainingAttempts);
+                TRACE(Trace::Information, (_T("Doing one more reachability check in %d sec, remaining attempts: %d"), _interval, remainingAttempts));
             }
         }
         bool LocationSync::getConnectivity()
@@ -240,13 +213,6 @@ namespace Plugin {
             }
 
             Utils::SecurityToken::getSecurityToken(token);
-            LOGINFO("Getting token: %s", token.c_str());
-
-            std::string token2;
-            if (getToken(_service, token2, callsign)) {
-                LOGINFO("Getting token via COMRPC: %s", token2.c_str());
-            }
-
             string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
             auto thunder_client = std::make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
