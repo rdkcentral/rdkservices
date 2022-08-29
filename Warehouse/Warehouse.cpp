@@ -270,7 +270,7 @@ namespace WPEFramework
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         static void WareHouseResetIARM(Warehouse *wh, bool suppressReboot, const string& resetType)
         {
-            IARM_Result_t err;
+            IARM_Result_t err = IARM_RESULT_IPCCORE_FAIL;
             uint32_t ret = Core::ERROR_GENERAL;
             JsonObject params;
             bool isWareHouse = false;

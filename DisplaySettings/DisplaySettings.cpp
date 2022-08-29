@@ -1892,7 +1892,6 @@ namespace WPEFramework {
 
             bool enabled = parameters["enabled"].Boolean();
             bool success = true;
-            IARM_Result_t result = IARM_RESULT_INVALID_STATE;
             if(!m_isPwrMgr2RFCEnabled)
             {
                 IARM_Bus_PWRMgr_StandbyVideoState_Param_t param;
