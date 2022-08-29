@@ -22,7 +22,9 @@
 #include <stdint.h>
 #include "ccec/FrameListener.hpp"
 #include "ccec/Connection.hpp"
-
+// RDK-37266 Implement HdmiCec_2 thunder API for sendKeyPressEvent
+#include <mutex>
+#include <condition_variable>
 #include "libIARM.h"
 #include "ccec/Assert.hpp"
 #include "ccec/Messages.hpp"
@@ -99,6 +101,10 @@ namespace WPEFramework {
 		short m_deviceInfoStatus;
 	        bool m_isOSDNameUpdated;
 	        bool m_isVendorIDUpdated;
+		// RDK-37266 Implement HdmiCec_2 thunder API for sendKeyPressEvent
+		std::mutex m_;
+                std::condition_variable cv_;
+		std::unique_lock<std::mutex> lk;
 
 		CECDeviceInfo_2()
 		: m_logicalAddress(0),m_vendorID(0,0,0),m_osdName("NA"), m_isOSDNameUpdated (false), m_isVendorIDUpdated (false)
@@ -155,6 +161,29 @@ namespace WPEFramework {
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
         class HdmiCec_2 : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+	// RDK-37266 Implement HdmiCec_2 thunder API for sendKeyPressEvent
+		enum {
+				VOLUME_UP     = 0x41,
+				VOLUME_DOWN   = 0x42,
+				MUTE          = 0x43,
+				UP            = 0x01,
+				DOWN	      = 0x02,
+				LEFT	      = 0x03,
+				RIGHT	      = 0x04,
+				SELECT	      = 0x00,
+				HOME	      = 0x09,
+				BACK	      = 0x0D,
+				NUMBER_0      = 0x20,
+				NUMBER_1      = 0x21,
+				NUMBER_2      = 0x22,
+				NUMBER_3      = 0x23,
+				NUMBER_4      = 0x24,
+				NUMBER_5      = 0x25,
+				NUMBER_6      = 0x26,
+				NUMBER_7      = 0x27,
+				NUMBER_8      = 0x28,
+				NUMBER_9      = 0x29
+		      };
         public:
             HdmiCec_2();
             virtual ~HdmiCec_2();
@@ -174,7 +203,14 @@ namespace WPEFramework {
             void removeDevice(const int logicalAddress);
             void sendUnencryptMsg(unsigned char* msg, int size);
             void sendDeviceUpdateInfo(const int logicalAddress);
-
+            // RDK-37266 Implement HdmiCec_2 thunder API for sendKeyPressEvent
+            void sendKeyPressEvent(const int logicalAddress, int keyCode);
+	    // RDK-37266 Implement HdmiCec_2 thunder API for sendKeyPressEvent
+		typedef struct sendKeyInfo
+                {
+                   int logicalAddr;
+                   int keyCode;
+                }SendKeyInfo;
             BEGIN_INTERFACE_MAP(HdmiCec_2)
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
@@ -198,7 +234,9 @@ namespace WPEFramework {
             uint32_t sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getDeviceList (const JsonObject& parameters, JsonObject& response);
             uint32_t getActiveSourceStatus(const JsonObject& parameters, JsonObject& response);
-
+            // RDK-37266 Implement HdmiCec_2 thunder API for sendKeyPressEvent
+            uint32_t sendRemoteKeyPressWrapper(const JsonObject& parameters, JsonObject& response);
+		
             //End methods
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;
@@ -211,7 +249,13 @@ namespace WPEFramework {
             std::thread m_pollThread;
             bool m_updateThreadExit;
             std::thread m_UpdateThread;
-
+            // RDK-37266 Implement HdmiCec_2 thunder API for sendKeyPressEvent
+	    bool m_sendKeyEventThreadExit;
+	    bool m_sendKeyEventThreadRun;
+	    std::mutex m_sendKeyEventMutex;
+	    std::queue<SendKeyInfo> m_SendKeyQueue;
+	    std::condition_variable m_sendKeyCV;
+		
             HdmiCec_2Processor *msgProcessor;
             HdmiCec_2FrameListener *msgFrameListener;
             const void InitializeIARM();
@@ -245,6 +289,8 @@ namespace WPEFramework {
             void requestCecDevDetails(const int logicalAddress);
             static void threadRun();
             static void threadUpdateCheck();
+	    // RDK-37266 Implement HdmiCec_2 thunder API for sendKeyPressEvent
+	    static void  threadSendKeyEvent();
         };
 	} // namespace Plugin
 } // namespace WPEFramework
