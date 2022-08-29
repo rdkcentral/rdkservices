@@ -643,12 +643,7 @@ void TTSSpeaker::createPipeline() {
     }
 
     // set the TTS volume to max.
-    #if defined(PLATFORM_REALTEK)
-    g_object_set(G_OBJECT(m_audioVolume), "volume", (double) 4.0 * (m_defaultConfig.volume() / MAX_VOLUME), NULL);
-    #else
     g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (m_defaultConfig.volume() / MAX_VOLUME), NULL);
-    #endif
-
     // Add elements to pipeline and link
     if(m_pcmAudioEnabled) {
         //Add raw audio caps
@@ -856,11 +851,7 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
 
         g_object_set(G_OBJECT(m_source), "location", constructURL(config, data).c_str(), NULL);
         // PCM Sink seems to be accepting volume change before PLAYING state
-        #if defined(PLATFORM_REALTEK)
-        g_object_set(G_OBJECT(m_audioVolume), "volume", (double) 4.0 * (data.client->configuration()->volume() / MAX_VOLUME), NULL);
-        #else
         g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
-        #endif
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
         #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
         setMixGain(MIXGAIN_PRIM,25);
