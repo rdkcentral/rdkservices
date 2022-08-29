@@ -171,6 +171,7 @@ WPEFramework::Plugin::RustAdapter::GetAuthToken(WPEFramework::PluginHost::IShell
     if (auth->CreateToken(n, (const uint8_t*) buff, encoded) == WPEFramework::Core::ERROR_NONE) {
       return encoded;
     }
+    auth->Release();
   }
 
   return auth_token;
