@@ -2269,10 +2269,12 @@ def CreateDocument(schema, path):
                         matches+=m
             try:
                 version = matches[0]
+                link_to_version="https://github.com/rdkcentral/rdkservices/blob/main/"+os.path.basename(os.path.dirname(args.path[0]))+"/CHANGELOG.md"
             except:
                 log.Error("Version not found in the CHANGELOG.md file")
         else:
             version = "1.0.0"
+            link_to_version=""
 
         plugin_class = None
         if "callsign" in info:
@@ -2322,7 +2324,10 @@ def CreateDocument(schema, path):
         # Emit title bar
         if "title" in info:
             MdHeader(info["title"])
-        MdParagraph(bold("Version: " + version))
+        MdParagraph(bold("Version: [{}]({})").format(version,link_to_version))
+
+ 
+
         MdParagraph("A %s %s for Thunder framework." % (plugin_class, document_type))
 
         if document_type == "interface":

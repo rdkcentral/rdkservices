@@ -2,7 +2,7 @@
 <a name="VoiceControl_Plugin"></a>
 # VoiceControl Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/VoiceControl/CHANGELOG.md)**
 
 A org.rdk.VoiceControl plugin for Thunder framework.
 
