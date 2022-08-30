@@ -215,7 +215,7 @@ namespace Plugin {
             Utils::SecurityToken::getSecurityToken(token);
             string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
-            static auto *thunder_client = new WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>(callsign.c_str(),"",false, query);
+            auto *thunder_client = new WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>(callsign.c_str(),"",false, query);
 
             if (thunder_client != nullptr) {
                 uint32_t status = thunder_client->Invoke<JsonObject, JsonObject>(5000, "isConnectedToInternet", joGetParams, joGetResult);
@@ -228,6 +228,7 @@ namespace Plugin {
                 } else {
                     return false;
                 }
+                delete thunder_client;
             }
             TRACE(Trace::Fatal, ("thunder client failed"));
             return false;
