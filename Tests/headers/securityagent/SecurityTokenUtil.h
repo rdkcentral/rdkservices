@@ -1,6 +1,7 @@
 #pragma once
 extern "C" {
     int GetSecurityToken(unsigned short maxLength, unsigned char buffer[]){
-    	return 1;
+    	buffer = "";
+        return 1;
     }
 }

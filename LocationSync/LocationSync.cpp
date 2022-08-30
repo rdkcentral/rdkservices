@@ -26,19 +26,6 @@
 #define API_VERSION_NUMBER_PATCH 0
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
-namespace {
-#if __cplusplus >= 201402L // C++14+
-    using std::make_unique;
-#else
-    template<typename T, typename... Args>
-    std::unique_ptr<T> make_unique(Args &&... args)
-    {
-        static_assert(!std::is_array<T>::value, "arrays not supported");
-        return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-    }
-#endif
-} // namespace details
-
 namespace WPEFramework {
 namespace Plugin {
 
@@ -221,18 +208,19 @@ namespace Plugin {
             std::string token;
             /* check if plugin active */
             if (false == Utils::isPluginActivated("org.rdk.Network")) {
-                TRACE(Trace::Information, ("Network plugin is not activated \n"));
+                TRACE(Trace::Fatal, ("Network plugin is not activated \n"));
                 return false;
             }
 
             Utils::SecurityToken::getSecurityToken(token);
             string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
-            auto thunder_client = make_unique<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>(callsign.c_str(), "");
+            static auto *thunder_client = new WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>(callsign.c_str(),"",false, query);
+
             if (thunder_client != nullptr) {
                 uint32_t status = thunder_client->Invoke<JsonObject, JsonObject>(5000, "isConnectedToInternet", joGetParams, joGetResult);
                 if (status > 0) {
-                    TRACE(Trace::Information, ("%s call failed %d", callsign.c_str(), status));
+                    TRACE(Trace::Fatal, ("%s call failed %d", callsign.c_str(), status));
                     return false;
                 } else if (joGetResult.HasLabel("connectedToInternet")) {
                     TRACE(Trace::Information, ("connectedToInternet status %s",(joGetResult["connectedToInternet"].Boolean())? "true":"false"));
@@ -241,7 +229,7 @@ namespace Plugin {
                     return false;
                 }
             }
-            TRACE(Trace::Information, ("thunder client failed"));
+            TRACE(Trace::Fatal, ("thunder client failed"));
             return false;
         }
         // TIMER
