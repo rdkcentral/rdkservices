@@ -144,13 +144,6 @@ namespace Plugin {
         void Deactivated(RPC::IRemoteConnection* connection);
         void Info(JsonData::PlayerInfo::CodecsData&) const;
 
-#if DOLBY_SUPPORT
-        uint32_t get_playerinfo(JsonData::PlayerInfo::CodecsData&) const;
-
-        uint32_t get_dolbymode(Core::JSON::EnumType<JsonData::PlayerInfo::DolbyType>&) const;
-        uint32_t set_dolbymode(const Core::JSON::EnumType<JsonData::PlayerInfo::DolbyType>&);
-#endif
-
     private:
         uint8_t _skipURL;
         uint32_t _connectionId;
