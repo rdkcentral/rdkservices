@@ -328,7 +328,10 @@ namespace WPEFramework {
             bool getBlockedAVApplications(JsonArray& appsList);
             bool enableInputEvents(const JsonArray& clients, bool enable);
 
+        public:
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
+
+        private:
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getOCIContainerPlugin();
 

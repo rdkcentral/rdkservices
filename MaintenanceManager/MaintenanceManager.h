@@ -137,6 +137,7 @@ namespace WPEFramework {
                 std::thread m_thread;
 
                 std::map<string, bool> m_task_map;
+                PluginHost::IShell* m_service;
 
                 bool isDeviceOnline();
                 void task_execution_thread();
