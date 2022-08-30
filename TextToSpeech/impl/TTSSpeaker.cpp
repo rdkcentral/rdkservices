@@ -46,6 +46,8 @@ TTSConfiguration::TTSConfiguration() :
     m_voice(""),
     m_volume(MAX_VOLUME),
     m_rate(DEFAULT_RATE),
+    m_primVolDuck(25),
+    m_fallbackenabled(false),
     m_enabled(false),
     m_preemptiveSpeaking(true) { }
 
@@ -60,6 +62,7 @@ TTSConfiguration::TTSConfiguration(TTSConfiguration &config)
     m_voice = config.m_voice;
     m_volume = config.m_volume;
     m_rate = config.m_rate;
+    m_primVolDuck = config.m_primVolDuck;
     m_enabled = config.m_enabled;
     m_preemptiveSpeaking = config.m_preemptiveSpeaking;
     m_data.scenario = config.m_data.scenario;
@@ -76,6 +79,7 @@ TTSConfiguration& TTSConfiguration::operator = (const TTSConfiguration &config)
     m_voice = config.m_voice;
     m_volume = config.m_volume;
     m_rate = config.m_rate;
+    m_primVolDuck = config.m_primVolDuck;
     m_enabled = config.m_enabled;
     m_preemptiveSpeaking = config.m_preemptiveSpeaking;
     m_data.scenario = config.m_data.scenario;
@@ -145,8 +149,6 @@ bool TTSConfiguration::setVolume(const double volume) {
     return false;
 }
 
-
-
 bool TTSConfiguration::setRate(const uint8_t rate) {
     if(rate >= 1 && rate <= 100)
     {
@@ -154,6 +156,16 @@ bool TTSConfiguration::setRate(const uint8_t rate) {
     }
     else
         TTSLOG_VERBOSE("Invalid Rate input \"%u\"", rate);
+    return false;
+}
+
+bool TTSConfiguration::setPrimVolDuck(const int8_t primvolduck) {
+    if(primvolduck >= 0 && primvolduck <= 100)
+    {
+        UPDATE_AND_RETURN(m_primVolDuck, primvolduck);
+    }
+    else
+        TTSLOG_VERBOSE("Invalid PrimVolDuck input \"%d\"", primvolduck);
     return false;
 }
 
@@ -325,14 +337,14 @@ void TTSSpeaker::ensurePipeline(bool flag) {
     m_condition.notify_one();
 }
 
-int TTSSpeaker::speak(TTSSpeakerClient *client, uint32_t id, std::string text, bool secure) {
+int TTSSpeaker::speak(TTSSpeakerClient *client, uint32_t id, std::string text, bool secure,int8_t primVolDuck) {
     TTSLOG_TRACE("id=%d, text=\"%s\"", id, text.c_str());
 
     // If force speak is set, clear old queued data & stop speaking
     if(client->configuration()->isPreemptive())
         reset();
 
-    SpeechData data(client, id, text, secure);
+    SpeechData data(client, id, text, secure,primVolDuck);
     queueData(data);
 
     return 0;
@@ -527,10 +539,19 @@ void TTSSpeaker::setMixGain(MixGain gain, int volume)
 {
 #if defined(PLATFORM_AMLOGIC)
      //Prim Mix gain
-     double volGain = (double)volume/100;
-     //convert voltage gain/loss to db
-     double dbOut = round(1000000*20*(std::log(volGain)/std::log(10)))/1000000;
      int ret;
+     double volGain,dbOut;
+     if(volume != 0)
+     {
+         volGain = (double)volume/100;
+         //convert voltage gain/loss to db
+         dbOut = round(1000000*20*(std::log(volGain)/std::log(10)))/1000000;
+     }
+     else
+     {
+         //minimum dBout value -96dB
+         dbOut = -96.00000;
+     }
      char mixgain_cmd[32];
      if(gain == MIXGAIN_PRIM)
          snprintf(mixgain_cmd, sizeof(mixgain_cmd), "prim_mixgain=%d", (int)round(dbOut));
@@ -854,7 +875,7 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
         g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
         #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
-        setMixGain(MIXGAIN_PRIM,25);
+        setMixGain(MIXGAIN_PRIM,data.primVolDuck);
         #endif
         TTSLOG_VERBOSE("Speaking.... ( %d, \"%s\")", data.id, data.text.c_str());
 
@@ -1045,7 +1066,7 @@ bool TTSSpeaker::handleMessage(GstMessage *message) {
                             m_isPaused = false;
 			    // -12db is almost 25%
                             #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
-			    setMixGain(MIXGAIN_PRIM,25);
+                            setMixGain(MIXGAIN_PRIM,m_currentSpeech->primVolDuck);
                             #endif
                             m_clientSpeaking->resumed(m_currentSpeech->id);
                             m_condition.notify_one();
