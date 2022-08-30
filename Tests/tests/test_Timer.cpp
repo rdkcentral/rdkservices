@@ -81,16 +81,11 @@ TEST_F(TimerTestFixture, registeredMethods)
 
 TEST_F(TimerTestFixture, paramsMissing)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), _T("{}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cancel"), _T("{}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("suspend"), _T("{}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resume"), _T("{}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimerStatus"), _T("{}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("startTimer"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("cancel"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("suspend"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("resume"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getTimerStatus"), _T("{}"), response));
 }
 
 TEST_F(TimerTestFixture, jsonRpc)
@@ -107,8 +102,7 @@ TEST_F(TimerTestFixture, jsonRpc)
                                                      "\"success\":true"
                                                      "\\}")));
     //Get timer status - Negative test case - get status of a wrong timer
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimerStatus"), _T("{\"timerId\":10}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getTimerStatus"), _T("{\"timerId\":10}"), response));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimers"), _T("{}"), response));
     EXPECT_THAT(response, ::testing::MatchesRegex(_T("\\{"
@@ -128,31 +122,25 @@ TEST_F(TimerTestFixture, jsonRpc)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("suspend"), _T("{\"timerId\":0}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
     //Suspend the timer - Negative test case - Suspend an already suspended timer
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("suspend"), _T("{\"timerId\":0}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("suspend"), _T("{\"timerId\":0}"), response));
     //Suspend the timer - Negative test case - Suspend a wrong timer
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("suspend"), _T("{\"timerId\":10}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("suspend"), _T("{\"timerId\":10}"), response));
 
     //Resume the timer
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resume"), _T("{\"timerId\":0}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
     //Resume the timer - Negative test case - Resume an already resumed timer
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resume"), _T("{\"timerId\":0}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("resume"), _T("{\"timerId\":0}"), response));
     //Resume the timer - Negative test case - Resume a wrong timer
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resume"), _T("{\"timerId\":10}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("resume"), _T("{\"timerId\":10}"), response));
 
     //Cancel the timer
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cancel"), _T("{\"timerId\":0}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
     //Cancel the timer - Negative test case - Cancel an already cancelled timer
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cancel"), _T("{\"timerId\":0}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("cancel"), _T("{\"timerId\":0}"), response));
     //Cancel the timer - Negative test case - Cancel a wrong timer
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cancel"), _T("{\"timerId\":10}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("cancel"), _T("{\"timerId\":10}"), response));
 }
 
 TEST_F(TimerTestFixture, timerExpiry)

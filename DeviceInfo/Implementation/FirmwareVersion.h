@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Module.h"
+#include "../Module.h"
 #include <interfaces/IFirmwareVersion.h>
 
 namespace WPEFramework {
 namespace Plugin {
-
     class FirmwareVersion : public Exchange::IFirmwareVersion {
     private:
         FirmwareVersion(const FirmwareVersion&) = delete;
@@ -19,13 +18,11 @@ namespace Plugin {
         END_INTERFACE_MAP
 
     private:
-        //   IFirmwareVersion methods
-        // -------------------------------------------------------------------------------------------------------
+        // IFirmwareVersion interface
         uint32_t Imagename(string& imagename) const override;
         uint32_t Sdk(string& sdk) const override;
         uint32_t Mediarite(string& mediarite) const override;
         uint32_t Yocto(string& yocto) const override;
     };
-
-} // namespace Plugin
-} // namespace WPEFramework
+}
+}
