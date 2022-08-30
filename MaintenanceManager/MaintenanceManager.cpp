@@ -772,6 +772,8 @@ namespace WPEFramework {
                             /*will be set to false once COMEPLETE/ERROR received for LOGUPLOAD*/
                             LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
                             break;
+                        default:
+                            break;
                     }
                 }
                 else{
@@ -929,7 +931,6 @@ namespace WPEFramework {
         {
             bool result = false;
             string starttime="";
-            unsigned long int start_time=0;
 
             starttime = Utils::cRunScript("/lib/rdk/getMaintenanceStartTime.sh &");
             if (!starttime.empty()){
@@ -1130,11 +1131,8 @@ namespace WPEFramework {
                 JsonObject& response)
                 {
                     bool result = false;
-                    int32_t exec_status=E_NOK;
-                    Maint_notify_status_t notify_status = MAINTENANCE_IDLE;
                     /* check what mode we currently have */
                     string current_mode="";
-                    bool skip_task=false;
 
                     /* only one maintenance at a time */
                     /* Lock so that m_notify_status will not be updated  further */
@@ -1242,7 +1240,7 @@ namespace WPEFramework {
                                     task_incomplete = true;
                                 }
                                 else{
-                                    LOGINFO("Failed to terminate with error %d \n",script_names[i].c_str(),k_ret);
+                                    LOGINFO("Failed to terminate with error %s - %d \n",script_names[i].c_str(),k_ret);
                                 }
                             }
                             else {
@@ -1312,7 +1310,6 @@ namespace WPEFramework {
             struct dirent* ent;
             char* endptr;
             char buf[512];
-            char *ch =0;
 
             while((ent = readdir(dir)) != NULL) {
                 long lpid = strtol(ent->d_name, &endptr, 10);

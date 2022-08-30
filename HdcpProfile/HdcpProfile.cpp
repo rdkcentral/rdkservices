@@ -130,7 +130,7 @@ namespace WPEFramework
                 device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort(strVideoPort.c_str());
                 hdcpProtocol = (dsHdcpProtocolVersion_t)vPort.getHDCPProtocol();
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("DS exception caught from %s\r\n", __FUNCTION__);
             }
@@ -183,7 +183,7 @@ namespace WPEFramework
                     isHDCPEnabled = false;
                 }
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("DS exception caught from %s\r\n", __FUNCTION__);
             }
