@@ -18,13 +18,26 @@
  */
  
 #include "LocationSync.h"
-//#include <functional>
 #include "UtilsSecurityToken.h"
+#include <memory>
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
 #define SERVER_DETAILS  "127.0.0.1:9998"
+
+namespace {
+#if __cplusplus >= 201402L // C++14+
+    using std::make_unique;
+#else
+    template<typename T, typename... Args>
+    std::unique_ptr<T> make_unique(Args &&... args)
+    {
+        static_assert(!std::is_array<T>::value, "arrays not supported");
+        return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+    }
+#endif
+} // namespace details
 
 namespace WPEFramework {
 namespace Plugin {
@@ -215,7 +228,7 @@ namespace Plugin {
             Utils::SecurityToken::getSecurityToken(token);
             string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
-            auto thunder_client = std::make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+            auto thunder_client = make_unique<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>(callsign.c_str(), "");
             if (thunder_client != nullptr) {
                 uint32_t status = thunder_client->Invoke<JsonObject, JsonObject>(5000, "isConnectedToInternet", joGetParams, joGetResult);
                 if (status > 0) {
