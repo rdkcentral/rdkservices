@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "FirmwareVersion.h"
+#include "Implementation/FirmwareVersion.h"
 
 using namespace WPEFramework;
 
