@@ -412,6 +412,33 @@ static GSourceFuncs _handlerIntervention =
             Config& operator=(const Config&) = delete;
 
         public:
+            class EnvironmentVariable : public Core::JSON::Container {
+            public:
+                EnvironmentVariable(const EnvironmentVariable& origin)
+                    : Core::JSON::Container()
+                    , Name(origin.Name)
+                    , Value(origin.Value)
+                {
+                    Add(_T("name"), &Name);
+                    Add(_T("value"), &Value);
+                }
+                EnvironmentVariable& operator=(const EnvironmentVariable&) = delete;
+
+                EnvironmentVariable()
+                    : Core::JSON::Container()
+                    , Name("")
+                    , Value("")
+                {
+                    Add(_T("name"), &Name);
+                    Add(_T("value"), &Value);
+                }
+                ~EnvironmentVariable() = default;
+
+            public:
+                Core::JSON::String Name;
+                Core::JSON::String Value;
+            };
+
             class JavaScriptSettings : public Core::JSON::Container {
             public:
                 JavaScriptSettings(const JavaScriptSettings&) = delete;
@@ -508,6 +535,7 @@ static GSourceFuncs _handlerIntervention =
                 , AllowFileURLsCrossAccess()
                 , SpatialNavigation()
                 , CookieAcceptPolicy()
+                , EnvironmentVariables()
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -570,6 +598,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("allowfileurlscrossaccess"), &AllowFileURLsCrossAccess);
                 Add(_T("spatialnavigation"), &SpatialNavigation);
                 Add(_T("cookieacceptpolicy"), &CookieAcceptPolicy);
+                Add(_T("environmentvariables"), &EnvironmentVariables);
             }
             ~Config()
             {
@@ -637,6 +666,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::Boolean AllowFileURLsCrossAccess;
             Core::JSON::Boolean SpatialNavigation;
             Core::JSON::EnumType<HTTPCookieAcceptPolicyType> CookieAcceptPolicy;
+            Core::JSON::ArrayType<EnvironmentVariable> EnvironmentVariables;
         };
 
         class HangDetector
@@ -2206,6 +2236,11 @@ static GSourceFuncs _handlerIntervention =
 
             if (height.empty() == false) {
                 Core::SystemInfo::SetEnvironment(_T("GST_VIRTUAL_DISP_HEIGHT"), height, !environmentOverride);
+            }
+
+            for (auto environmentVariableIndex = 0; environmentVariableIndex < _config.EnvironmentVariables.Length(); environmentVariableIndex++) {
+                const auto& environmentVariable = _config.EnvironmentVariables[environmentVariableIndex];
+                Core::SystemInfo::SetEnvironment(environmentVariable.Name.Value(), environmentVariable.Value.Value());
             }
 
             // Oke, so we are good to go.. Release....

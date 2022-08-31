@@ -210,7 +210,6 @@ int main(int argc, char *argv[]) {
 
     int choice;
     JsonObject result;
-    uint32_t ret;
     string stext;
 
     MyStream stream((argc > 1 ? argv[1] : "example.txt"));
@@ -288,7 +287,7 @@ int main(int argc, char *argv[]) {
                        bool enable;
                        stream.getInput(enable, "1.Enable/0.Disable TTS : ");
                        params["enabletts"] = JsonValue((bool)enable);
-                       ret = remoteObject->Invoke<JsonObject, JsonObject>(2000,
+                       remoteObject->Invoke<JsonObject, JsonObject>(2000,
                                 _T("enabletts"), params, result);
                        if (result["success"].Boolean()) {
                            cout << "TextToSpeech: enabletts call Success" << endl;
@@ -308,7 +307,7 @@ int main(int argc, char *argv[]) {
                         stream.getInput(language, "Enter the language [\"*\" - all voices, \".\" - current voice]: ");
                         params["language"] = language;
                         params.ToString(json);
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                 _T("listvoices"), params, result);
                         if (result["success"].Boolean()) {
                             voices = result["voices"].String();
@@ -334,7 +333,7 @@ int main(int argc, char *argv[]) {
                         params["volume"] = volume;
                         stream.getInput(rate, "Enter speed [0-100] : ");
                         params["rate"] = JsonValue(rate);
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                 _T("setttsconfiguration"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "setttsconfiguration call Success" << endl;
@@ -347,7 +346,7 @@ int main(int argc, char *argv[]) {
                     case OPT_GET_CONFIG:
                     {
                         JsonObject params;
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                 _T("getttsconfiguration"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "ttsEndPoint : " << result["ttsendpoint"].String() << endl;
@@ -365,7 +364,7 @@ int main(int argc, char *argv[]) {
                     case OPT_TTS_ENABLED:
                     {
                         JsonObject params;
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                 _T("isttsenabled"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "TTS is " << (result["isenabled"].Boolean()? "Enabled": "Disabled") << endl;
@@ -380,7 +379,7 @@ int main(int argc, char *argv[]) {
                         JsonObject params;
                         stream.getInput(stext, "Enter text to be spoken : ");
                         params["text"] = stext;
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                 _T("speak"), params, result);
                         if (result["success"].Boolean()) {
                             currentSpeechId = result["speechid"].Number();
@@ -396,7 +395,7 @@ int main(int argc, char *argv[]) {
                     {
                         JsonObject params;
                         params["speechid"] = currentSpeechId;
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                 _T("cancel"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "cancel call success" << endl;
@@ -410,7 +409,7 @@ int main(int argc, char *argv[]) {
                     {
                         JsonObject params;
                         params["speechid"] = currentSpeechId;
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                 _T("pause"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "pause call success" << endl;
@@ -424,7 +423,7 @@ int main(int argc, char *argv[]) {
                     {
                         JsonObject params;
                         params["speechid"] = currentSpeechId;
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                 _T("resume"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "resume call success" << endl;
@@ -438,7 +437,7 @@ int main(int argc, char *argv[]) {
                     {
                         JsonObject params;
                         params["speechid"] = currentSpeechId;
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                 _T("isspeaking"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "isspeaking : (" << result["speaking"].String() << ")" << endl;
@@ -452,7 +451,7 @@ int main(int argc, char *argv[]) {
                     {
                         JsonObject params;
                         params["speechid"] = currentSpeechId;
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                 _T("getspeechstate"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "Speech State : (" << result["speechstate"].String() << ")" << endl;

@@ -30,9 +30,9 @@ class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
 
 public:
     DeviceImplementation()
-        : _identifier()
-        , _chipset()
+        : _chipset()
         , _firmwareVersion()
+        , _identifier()
     {
         UpdateDeviceInfo(_identifier, _chipset, _firmwareVersion);
     }
