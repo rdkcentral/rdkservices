@@ -10,6 +10,11 @@
         "$ref": "../common/common.json"
     },
     "definitions": {
+        "maskPii": {
+            "summary": "Indicated is PII should be masked (1 - mask PII, 0 display PII",
+            "type": "boolean",
+            "example": true
+        },
         "capabilities": {
             "summary": "A list of capabilities",
             "type": "array",
@@ -396,6 +401,9 @@
             "params":{
                 "type": "object",
                 "properties": {
+                    "maskPii": {
+                        "$ref": "#/definitions/maskPii"
+                    },
                     "msgType": {
                         "summary": "Message type from the server",
                         "type": "string",
@@ -495,6 +503,9 @@
                     },
                     "remoteId": {
                         "$ref": "#/definitions/remoteId"
+                    },
+                    "maskPii": {
+                        "$ref": "#/definitions/maskPii"
                     },
                     "sessionId": {
                         "$ref": "#/definitions/sessionId"
