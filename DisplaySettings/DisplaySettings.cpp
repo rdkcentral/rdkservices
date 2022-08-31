@@ -291,7 +291,6 @@ namespace WPEFramework {
         void DisplaySettings::AudioPortsReInitialize()
         {
             LOGINFO("Entering DisplaySettings::AudioPortsReInitialize");
-            uint32_t ret = Core::ERROR_NONE;
             try
             {
                 device::List<device::AudioOutputPort> aPorts = device::Host::getInstance().getAudioOutputPorts();
@@ -349,7 +348,7 @@ namespace WPEFramework {
                         #ifdef APP_CONTROL_AUDIOPORT_INIT
                         if(isPortPersistenceValEnabled ) {
                             LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Enabled\n");
-                        #else if
+                        #else
                         if(isPortPersistenceValEnabled &&  m_hdmiCecAudioDeviceDetected) {
                             LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Disabled\n");
                         #endif 
@@ -459,7 +458,7 @@ namespace WPEFramework {
                         #ifdef APP_CONTROL_AUDIOPORT_INIT
                         if(isPortPersistenceValEnabled) {
                            LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Enabled\n");
-                        #else if
+                        #else
                         if(isPortPersistenceValEnabled || !m_hdmiCecAudioDeviceDetected) {
                            LOGWARN("Audio Port : APP_CONTROL_AUDIOPORT_INIT Disabled\n");
                         #endif
@@ -776,17 +775,6 @@ namespace WPEFramework {
             }
 
 		    if(hdmiin_hotplug_port == hdmiArcPortId) { //HDMI ARC/eARC Port Handling
-			bool arc_port_enabled =  false;
-
-                        JsonObject audioOutputPortConfig = DisplaySettings::_instance->getAudioOutputPortConfig();
-			if (audioOutputPortConfig.HasLabel("HDMI_ARC")) {
-                            try {
-                                    arc_port_enabled = audioOutputPortConfig["HDMI_ARC"].Boolean();
-                            }catch (const device::Exception& err) {
-                                    LOGERR("HDMI_ARC not in config object \n");
-                                    arc_port_enabled = false;
-                            }
-			}
 
 			try
 			{
@@ -796,6 +784,16 @@ namespace WPEFramework {
                             if(hdmiin_hotplug_conn) {
                                 aPort.getSupportedARCTypes(&types);
                                 LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG  HDMI_ARC Port, types: %d \n",  types);
+				if((types & dsAUDIOARCSUPPORT_eARC)) {
+                                    if ((DisplaySettings::_instance->m_hdmiCecAudioDeviceDetected== true) && \
+						   (DisplaySettings::_instance->m_hdmiInAudioDeviceConnected == false)) {
+                                        LOGINFO("m_hdmiInAudioDeviceConnected... %d, Triggering Power status request", DisplaySettings::_instance->m_hdmiInAudioDeviceConnected);
+                                        std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
+                                        DisplaySettings::_instance->m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_REQUEST;
+                                        DisplaySettings::_instance->m_cecArcRoutingThreadRun = true;
+                                        DisplaySettings::_instance->arcRoutingCV.notify_one();
+                                    }
+                                }
 			    }
                             else {
                                 if (DisplaySettings::_instance->m_hdmiInAudioDeviceConnected == true) {
@@ -929,7 +927,7 @@ namespace WPEFramework {
                   {
                     IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                     std::string pLang = eventData->data.AudioLanguageInfo.audioLanguage;
-                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_PRIMARY_LANGUAGE_CHANGED. Primary Language: %s \n", pLang);
+                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_PRIMARY_LANGUAGE_CHANGED. Primary Language: %s \n", pLang.c_str());
                     if(DisplaySettings::_instance) {
                         DisplaySettings::_instance->notifyPrimaryLanguageChange(pLang);
                     }
@@ -939,7 +937,7 @@ namespace WPEFramework {
                   {
                     IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                     std::string sLang = eventData->data.AudioLanguageInfo.audioLanguage;
-                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_SECONDARY_LANGUAGE_CHANGED. Secondary Language: %s \n", sLang);
+                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_AUDIO_SECONDARY_LANGUAGE_CHANGED. Secondary Language: %s \n", sLang.c_str());
                     if(DisplaySettings::_instance) {
                         DisplaySettings::_instance->notifySecondaryLanguageChange(sLang);
                     }
@@ -1904,7 +1902,6 @@ namespace WPEFramework {
 
             bool enabled = parameters["enabled"].Boolean();
             bool success = true;
-            IARM_Result_t result = IARM_RESULT_INVALID_STATE;
             if(!m_isPwrMgr2RFCEnabled)
             {
                 IARM_Bus_PWRMgr_StandbyVideoState_Param_t param;
@@ -3980,8 +3977,7 @@ namespace WPEFramework {
 	
 	bool DisplaySettings::getHdmiCecSinkCecEnableStatus ()
         {
-            bool success = true;
-	    bool cecEnable = false;
+            bool cecEnable = false;
 
             if (Utils::isPluginActivated(HDMICECSINK_CALLSIGN)) {
                 getHdmiCecSinkPlugin();
@@ -3998,13 +3994,11 @@ namespace WPEFramework {
 		    LOGINFO("get-cecEnabled [%d]\n",cecEnable);
 
                     if (!hdmiCecSinkResult["success"].Boolean()) {
-                        success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
                     }
                 }
             }
             else {
-                success = false;
                 LOGERR("HdmiCecSink plugin not ready\n");
             }
             return cecEnable;
@@ -4012,7 +4006,6 @@ namespace WPEFramework {
 
 	bool DisplaySettings::getHdmiCecSinkAudioDeviceConnectedStatus ()
         {
-            bool success = true;
             bool hdmiAudioDeviceDetected = false;
 
             if (Utils::isPluginActivated(HDMICECSINK_CALLSIGN)) {
@@ -4030,13 +4023,11 @@ namespace WPEFramework {
                     LOGINFO("getAudioDeviceConnectedStatus [%d]\n",hdmiAudioDeviceDetected);
 
                     if (!hdmiCecSinkResult["success"].Boolean()) {
-                        success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
                     }
                 }
             }
             else {
-                success = false;
                 LOGERR("HdmiCecSink plugin not ready\n");
             }
             return hdmiAudioDeviceDetected;
@@ -4688,7 +4679,7 @@ namespace WPEFramework {
 
 			std::vector<int> sad_list;
 			for (int i=0; i<shortAudioDescriptorList.Length(); i++) {
-                            LOGINFO("Short Audio Descriptor[%d]: %ld \n",i, shortAudioDescriptorList[i].Number());
+                            LOGINFO("Short Audio Descriptor[%d]: %lld \n",i, shortAudioDescriptorList[i].Number());
                             sad_list.push_back(shortAudioDescriptorList[i].Number());
                         }
 
@@ -4785,7 +4776,6 @@ namespace WPEFramework {
 	/* Event handler when Audio Device is Added/Removed     */
 	void DisplaySettings::onAudioDeviceConnectedStatusEventHandler(const JsonObject& parameters)
 	{
-            int types = dsAUDIOARCSUPPORT_NONE;
 	    string value;
 
 	    if (parameters.HasLabel("audioDeviceConnected"))
@@ -4945,7 +4935,6 @@ namespace WPEFramework {
                 sleep(HDMICECSINK_PLUGIN_ACTIVATION_TIME);
             }
 
-            static bool isInitDone = false;
             bool pluginActivated = Utils::isPluginActivated(HDMICECSINK_CALLSIGN);
             LOGWARN ("DisplaySettings::onTimer pluginActivated:%d line:%d", pluginActivated, __LINE__);
             if(!m_subscribed) {
