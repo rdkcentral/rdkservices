@@ -35,7 +35,10 @@ add_library(${MODULE_NAME} SHARED
     LocationSync.cpp
     LocationService.cpp
     LocationSyncJsonRpc.cpp
+    ../helpers/UtilsSecurityToken.cpp
 )
+
+target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
@@ -45,7 +48,8 @@ target_link_libraries(${MODULE_NAME}
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
-
+target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
+target_include_directories(${MODULE_NAME} PRIVATE ./)
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
