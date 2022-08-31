@@ -77,7 +77,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 7
 
 static bool isCecArcRoutingThreadEnabled = false;
 static bool isCecEnabled = false;
@@ -787,6 +787,16 @@ namespace WPEFramework {
                             if(hdmiin_hotplug_conn) {
                                 aPort.getSupportedARCTypes(&types);
                                 LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG  HDMI_ARC Port, types: %d \n",  types);
+				if((types & dsAUDIOARCSUPPORT_eARC)) {
+                                    if ((DisplaySettings::_instance->m_hdmiCecAudioDeviceDetected== true) && \
+						   (DisplaySettings::_instance->m_hdmiInAudioDeviceConnected == false)) {
+                                        LOGINFO("m_hdmiInAudioDeviceConnected... %d, Triggering Power status request", DisplaySettings::_instance->m_hdmiInAudioDeviceConnected);
+                                        std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
+                                        DisplaySettings::_instance->m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_REQUEST;
+                                        DisplaySettings::_instance->m_cecArcRoutingThreadRun = true;
+                                        DisplaySettings::_instance->arcRoutingCV.notify_one();
+                                    }
+                                }
 			    }
                             else {
                                 if (DisplaySettings::_instance->m_hdmiInAudioDeviceConnected == true) {
