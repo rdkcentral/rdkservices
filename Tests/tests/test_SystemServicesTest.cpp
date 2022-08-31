@@ -174,32 +174,25 @@ TEST_F(SystemServicesTest, Timezone)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"),response));
     EXPECT_EQ(response,string("{\"timeZone\":\"America\\/Costa_Rica\",\"success\":true}"));
-
-	EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("getTimeZones"), _T("{}"),response));
-
-	size_t pos = response.length() - 15 ;
-    string timeZones = response.substr(pos,response.length());
-
-    EXPECT_EQ(timeZones,string("\"success\":true}"));
 }
 
 
 TEST_F(SystemServicesTest, InvalidTerritory)
 {
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US\",\"region\":\"US-NYC\"}"),response));
-    EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid territory\"}}"));
+	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US\",\"region\":\"US-NYC\"}"),response));
+    EXPECT_EQ(response,string(""));
 
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"U-NYC\"}"),response));
-	EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid region\"}}"));
+	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"U-NYC\"}"),response));
+	EXPECT_EQ(response,string(""));
 
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US@\",\"region\":\"US-NYC\"}"),response));
-    EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid territory\"}}"));
+	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US@\",\"region\":\"US-NYC\"}"),response));
+    EXPECT_EQ(response,string(""));
 
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"US-N$C\"}"),response));
-    EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid region\"}}"));
+	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"US-N$C\"}"),response));
+    EXPECT_EQ(response,string(""));
 
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US12\",\"region\":\"US-NYC\"}"),response));
-    EXPECT_EQ(response,string("{\"error\":{\"message\":\"Invalid territory\"}}"));
+	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US12\",\"region\":\"US-NYC\"}"),response));
+    EXPECT_EQ(response,string(""));
     
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTerritory"), _T("{}"),response));
     EXPECT_EQ(response,string("{\"territory\":\"\",\"region\":\"\",\"success\":true}"));

@@ -329,9 +329,8 @@ namespace WPEFramework {
 
                 LOGINFO("first boot so setting mode to '%s' ('%s' does not contain(\"mode\"))\n",
                         (param["mode"].String()).c_str(), SYSTEM_SERVICE_TEMP_FILE);
-#ifndef ENABLE_GTEST
                 setMode(mode, response);
-#endif
+
             } else if (m_currentMode.empty()) {
                 JsonObject mode,param,response;
                 param["duration"] = m_temp_settings.getValue("mode_duration");
@@ -340,9 +339,7 @@ namespace WPEFramework {
 
                 LOGINFO("receiver restarted so setting mode:%s duration:%d\n",
                         (param["mode"].String()).c_str(), (int)param["duration"].Number());
-#ifndef ENABLE_GTEST
                 setMode(mode, response);
-#endif
             }
 
             SystemServices::m_FwUpdateState_LatestEvent=FirmwareUpdateStateUninitialized;
@@ -473,7 +470,7 @@ namespace WPEFramework {
             GetHandler(2)->Register<JsonObject, JsonObject>("deletePersistentPath", &SystemServices::deletePersistentPath, this);
             GetHandler(2)->Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
                 &SystemServices::getPlatformConfiguration, this);
-#ifndef ENABLE_GTEST
+
             {
                 RFC_ParamData_t param = {0};
                 WDMP_STATUS status = getRFCParameter(NULL, RFC_PWRMGR2, &param);
@@ -482,7 +479,6 @@ namespace WPEFramework {
                     m_isPwrMgr2RFCEnabled = true;
                 }
             }
-#endif
         }
 
 
@@ -2309,7 +2305,7 @@ namespace WPEFramework {
 								error["message"] = "Invalid region";
 								response["error"] = error;
 								LOGWARN("Please enter valid region");
-								return false;
+								returnResponse(resp);
 							}
 						}
 					}else{
@@ -2321,7 +2317,7 @@ namespace WPEFramework {
 					error["message"] =  "Invalid territory";
 					response["error"] = error;
 					LOGWARN("Please enter valid territory Parameter value.");
-					return false;
+					returnResponse(resp);
 				}
 				if(resp == true){
 					//call event on Territory changed
@@ -2337,7 +2333,7 @@ namespace WPEFramework {
 			error["message"] =  "Invalid territory name";
 			response["error"] = error;
 			LOGWARN("Please enter valid territory Parameter name.");
-			return false;
+			resp = false;
 		}
 		returnResponse(resp);
 	}
@@ -3876,17 +3872,12 @@ namespace WPEFramework {
             int seconds = 600; /* 10 Minutes to Reboot */
 
             LOGINFO("len = %lud\n", len);
-            int state = 0;
-	    	IARM_Bus_SYSMgr_SystemState_t stateId = IARM_BUS_SYSMGR_SYSSTATE_CHANNELMAP;//0
-	    	IARM_Bus_SYSMgr_EventData_t *sysEventData = nullptr;
             /* Only handle state events */
             if (eventId != IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) return;
 
-            if(data != nullptr){
-                sysEventData = (IARM_Bus_SYSMgr_EventData_t*)data;
-                stateId = sysEventData->data.systemStates.stateId;
-                state = sysEventData->data.systemStates.state;
-            }
+            IARM_Bus_SYSMgr_EventData_t * sysEventData = (IARM_Bus_SYSMgr_EventData_t*)data;
+            IARM_Bus_SYSMgr_SystemState_t stateId = sysEventData->data.systemStates.stateId;
+            int state = sysEventData->data.systemStates.state;
 
             switch (stateId) {
                 case IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE:

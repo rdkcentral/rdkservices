@@ -168,8 +168,7 @@ jobs:
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmmgrs-hal
           --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system
           -DENABLE_TELEMETRY_LOGGING
-          -DUSE_IARMBUS
-          -DENABLE_GTEST"
+          -DUSE_IARMBUS"
           -DCOMCAST_CONFIG=OFF
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
