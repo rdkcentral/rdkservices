@@ -152,7 +152,7 @@ bool WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonObject
 {
     WiFiConnectedSSIDInfo_t param;
     char buff[BUFFER_SIZE] = {'\0'};
-    int phyrate, noise, rssi,freq,avgRssi;
+    int phyrate, noise, rssi,freq;
     bool result = false;
     std::string security_mode = "";
     std::string auth = "";
