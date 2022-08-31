@@ -48,7 +48,7 @@ TTSConfiguration::TTSConfiguration() :
     m_rate(DEFAULT_RATE),
     m_primVolDuck(25),
     m_preemptiveSpeaking(true),
-    m_enabled(false) { }
+    m_enabled(false),
     m_fallbackenabled(false) { }
 
 TTSConfiguration::~TTSConfiguration() {}
