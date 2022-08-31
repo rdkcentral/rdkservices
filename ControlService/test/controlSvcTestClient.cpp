@@ -314,7 +314,6 @@ int main(int argc, char** argv)
     string lastCmd;
     int remoteId = 255;
     int timeOutPeriod = 0;
-    bool bOnlyLastUsed = false;
     int pairingMode = 255;
     int restrictPairing;
     bool bNeedExtraLineRead = false;
@@ -330,7 +329,7 @@ int main(int argc, char** argv)
     if(pSecurity) {
         JsonObject pSecurityJson;
         std::string pSecurityOutput;
-        int         pSecurityOutputTrimIndex;
+        size_t pSecurityOutputTrimIndex;
         std::array<char, 256> pSecurityBuffer;
 
         while(fgets(pSecurityBuffer.data(), 256, pSecurity) != NULL) {

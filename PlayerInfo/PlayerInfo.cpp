@@ -158,7 +158,7 @@ namespace Plugin {
 
         _connectionId = 0;
         _service = nullptr;
-        _player == nullptr;
+        _player = nullptr;
     }
 
     /* virtual */ string PlayerInfo::Information() const
