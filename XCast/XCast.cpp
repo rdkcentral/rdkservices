@@ -460,7 +460,8 @@ void XCast::getUrlFromAppLaunchParams (const char *app_name, const char *payload
     LOGINFO("getUrlFromAppLaunchParams : Application launch request: appName: %s  query: [%s], payload: [%s], additionalDataUrl [%s]\n",
         app_name, query_string, payload, additional_data_url);
 
-    memset (url, '\0', sizeof(url));
+    int url_len = DIAL_MAX_PAYLOAD+DIAL_MAX_ADDITIONALURL+100;
+    memset (url, '\0', url_len);
     if(strcmp(app_name,"YouTube") == 0) {
         if ((payload != NULL) && (additional_data_url != NULL)){
             sprintf( url, "https://www.youtube.com/tv?%s&additionalDataUrl=%s", payload, additional_data_url);
@@ -489,7 +490,7 @@ void XCast::getUrlFromAppLaunchParams (const char *app_name, const char *payload
         }
     }
     else if(strcmp(app_name,"Netflix") == 0) {
-        memset( url, 0, sizeof(url) );
+        memset( url, 0, url_len );
         strcat( url, "source_type=12" );
         if(payload != NULL)
         {
@@ -507,8 +508,6 @@ void XCast::getUrlFromAppLaunchParams (const char *app_name, const char *payload
         }
     }
     else {
-        int url_len = DIAL_MAX_PAYLOAD+DIAL_MAX_ADDITIONALURL+100;
-        {
             memset( url, 0, url_len );
             url_len -= DIAL_MAX_ADDITIONALURL+1; //save for &additionalDataUrl
             url_len -= 1; //save for nul byte
@@ -541,7 +540,6 @@ void XCast::getUrlFromAppLaunchParams (const char *app_name, const char *payload
             strcat(url, additional_data_url);
             }
             LOGINFO(" url is [%s]\r\n", url);
-        }
     }
 }
 
