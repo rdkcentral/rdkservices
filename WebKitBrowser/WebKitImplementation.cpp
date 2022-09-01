@@ -2201,6 +2201,7 @@ static GSourceFuncs _handlerIntervention =
 
             webkit_settings_set_enable_encrypted_media(preferences, TRUE);
             webkit_settings_set_enable_mediasource(preferences, TRUE);
+            webkit_settings_set_enable_page_cache(preferences, FALSE);
 
             // Turn on/off WebGL
             webkit_settings_set_enable_webgl(preferences, _config.WebGLEnabled.Value());
@@ -2402,6 +2403,9 @@ static GSourceFuncs _handlerIntervention =
 
             // Turn on/off local storage
             WKPreferencesSetLocalStorageEnabled(preferences, _localStorageEnabled);
+
+            // Turn off BackForwardList
+            WKPreferencesSetPageCacheEnabled(preferences, FALSE);
 
             // Media Content Types Requiring Hardware Support
             if (_config.MediaContentTypesRequiringHardwareSupport.IsSet() == true
