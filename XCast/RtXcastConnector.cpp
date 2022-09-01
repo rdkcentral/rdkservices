@@ -225,7 +225,7 @@ int RtXcastConnector::connectToRemoteService()
     const char * serviceName = "com.comcast.xdialcast";
     
     LOGINFO("connectToRemoteService entry " );
-    err = rtRemoteLocateObject(rtEnvironmentGetGlobal(), serviceName, xdialCastObj, NULL, &RtXcastConnector::remoteDisconnectCallback, m_observer);
+    err = rtRemoteLocateObject(rtEnvironmentGetGlobal(), serviceName, xdialCastObj, 0, &RtXcastConnector::remoteDisconnectCallback, m_observer);
     if(err == RT_OK && xdialCastObj != NULL)
     {
         rtError e = xdialCastObj.send("on", "onApplicationLaunchRequest" , new rtFunctionCallback(RtXcastConnector::onApplicationLaunchRequestCallback, m_observer));

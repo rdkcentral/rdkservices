@@ -191,6 +191,29 @@
                 "$ref": "#/common/result"
             }
         },
+        "sendKeyPressEvent": {
+            "summary": "Sends the CEC \\<User Control Pressed\\> message when TV remote key is pressed.\n  \n### Event \n\n No Events",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress":{
+                        "$ref": "#/definitions/logicalAddress"
+                    },
+                    "keyCode":{
+                        "summary":"The key code for the pressed key",
+                        "type": "integer",
+                        "example": 65
+                    }
+                },
+                "required": [
+                    "logicalAddress",
+                    "keyCode"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "sendStandbyMessage": {
             "summary": "Sends a CEC \\<Standby\\> message to the logical address of the device.\n  \n### Events \n\n No Events",
             "result": {

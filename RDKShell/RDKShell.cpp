@@ -539,7 +539,7 @@ namespace WPEFramework {
                     api.append(requestName);
                     auto thunderController = getThunderControllerClient();
                     JsonObject joResult;
-                    uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, api.c_str(), apiRequest.mRequest, joResult);
+                    thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, api.c_str(), apiRequest.mRequest, joResult);
                 } 
             });
             rdkshellRequestsThread.detach();
@@ -568,7 +568,7 @@ namespace WPEFramework {
         {
             bool exist = false;
             lockRdkShellMutex();
-            for (int i=0; i<gCreateDisplayRequests.size(); i++)
+            for (unsigned int i=0; i<gCreateDisplayRequests.size(); i++)
             {
               if (gCreateDisplayRequests[i]->mClient.compare(client) == 0)
               {
@@ -732,7 +732,7 @@ namespace WPEFramework {
                                   JsonObject request, response;
                                   std::cout << "about to launch factory app\n";
                                   request["resetagingtime"] = "true";
-                                  uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(1, "launchFactoryApp", request, response);
+                                  getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(1, "launchFactoryApp", request, response);
                                 }
                             }
                         }
@@ -845,7 +845,15 @@ namespace WPEFramework {
         }
 
         RDKShell::RDKShell()
-                : PluginHost::JSONRPC(), mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)), mEnableUserInactivityNotification(true), mCurrentService(nullptr), mLastWakeupKeyCode(0), mLastWakeupKeyModifiers(0), mLastWakeupKeyTimestamp(0), mEnableEasterEggs(true), mScreenCapture(this), mErmEnabled(false)
+                : PluginHost::JSONRPC(),
+                mEnableUserInactivityNotification(true),
+                mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)),
+                mCurrentService(nullptr), mLastWakeupKeyCode(0),
+                mLastWakeupKeyModifiers(0),
+                mLastWakeupKeyTimestamp(0),
+                mEnableEasterEggs(true),
+                mScreenCapture(this),
+                mErmEnabled(false)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -1156,7 +1164,7 @@ namespace WPEFramework {
                       {
                           Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
                           auto thunderController = getThunderControllerClient();
-                          int32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", joResult);
+                          thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", joResult);
                           JsonArray stateArray;
                           for (uint16_t i = 0; i < joResult.Length(); i++)
                           {
@@ -1318,7 +1326,6 @@ namespace WPEFramework {
                     for (int k = 0; k < jsonValue.Length(); k++)
                     {
                         std::string name("");
-                        uint32_t timeout = 0;
                         std::string actionJson("");
       
                         if (!(jsonValue[k].Content() == JsonValue::type::OBJECT))
@@ -1444,13 +1451,13 @@ namespace WPEFramework {
             mEnableUserInactivityNotification = false;
             gActivePluginsData.clear();
             gRdkShellMutex.lock();
-            for (int i=0; i<gCreateDisplayRequests.size(); i++)
+            for (unsigned int i=0; i<gCreateDisplayRequests.size(); i++)
             {
                 sem_destroy(&gCreateDisplayRequests[i]->mSemaphore);
                 gCreateDisplayRequests[i] = nullptr;
             }
             gCreateDisplayRequests.clear();
-            for (int i=0; i<gKillClientRequests.size(); i++)
+            for (unsigned int i=0; i<gKillClientRequests.size(); i++)
             {
                 sem_destroy(&gKillClientRequests[i]->mSemaphore);
                 gKillClientRequests[i] = nullptr;
@@ -1500,7 +1507,7 @@ namespace WPEFramework {
                     std::cout << "Received power state change to sleep " << std::endl;
                     JsonObject request, response;
                     request["visible"] = false;
-                    int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchResidentApp", request, response);
+                    getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "launchResidentApp", request, response);
                 }
  
                 if ((prevState == "STANDBY" || prevState == "LIGHT_SLEEP" || prevState == "DEEP_SLEEP" || prevState == "OFF")
@@ -1509,7 +1516,7 @@ namespace WPEFramework {
                     JsonObject request, response;
                     request["callsign"] = "ResidentApp";
                     request["visible"] = true;
-                    int32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "setVisibility", request, response);
+                    getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(0, "setVisibility", request, response);
 		    /*
                     gRdkShellMutex.lock();
                     CompositorController::getLastKeyPress(mLastWakeupKeyCode, mLastWakeupKeyModifiers, mLastWakeupKeyTimestamp);
@@ -1657,7 +1664,7 @@ namespace WPEFramework {
                 size_t lastPositionOfDot = invoke.find_last_of(".");
                 auto thunderController = getThunderControllerClient();
                 bool isRDKShellPluginRequest = false;
-                if (lastPositionOfDot != -1)
+                if (lastPositionOfDot != std::string::npos)
                 {
                     std::string callsign = invoke.substr(0, lastPositionOfDot);
                     std::cout << "callsign will be " << callsign << std::endl;
@@ -1667,7 +1674,7 @@ namespace WPEFramework {
                         JsonObject activateParams;
                         activateParams.Set("callsign",callsign.c_str());
                         JsonObject activateResult;
-                        int32_t activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
+                        thunderController->Invoke(3500, "activate", activateParams, activateResult);
                     }
                     else
                     {
@@ -4348,7 +4355,7 @@ namespace WPEFramework {
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
             auto thunderController = getThunderControllerClient();
-            uint32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
+            thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
 
             JsonArray availableTypes;
             for (uint16_t i = 0; i < joResult.Length(); i++)
@@ -4487,8 +4494,7 @@ namespace WPEFramework {
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
             auto thunderController = getThunderControllerClient();
-            uint32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
-
+            thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
 
             JsonArray stateArray;
             for (uint16_t i = 0; i < joResult.Length(); i++)
@@ -4581,7 +4587,7 @@ namespace WPEFramework {
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
             auto thunderController = getThunderControllerClient();
-            uint32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
+            thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
 
             /*std::cout << "DEACTIVATED: " << PluginHost::MetaData::Service::state::DEACTIVATED << std::endl;
                     std::cout << "DEACTIVATION: " << PluginHost::MetaData::Service::state::DEACTIVATION << std::endl;
@@ -4713,7 +4719,6 @@ namespace WPEFramework {
                 }
             }
 
-            uint32_t result;
             char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
             if (NULL != factoryAppUrl)
             {
@@ -4736,7 +4741,7 @@ namespace WPEFramework {
                 {
                     JsonObject destroyRequest, destroyResponse;
                     destroyRequest["callsign"] = "ResidentApp";
-                    result = destroyWrapper(destroyRequest, destroyResponse);
+                    destroyWrapper(destroyRequest, destroyResponse);
                 }
                 JsonObject launchRequest;
                 launchRequest["callsign"] = "factoryapp";
@@ -4744,7 +4749,7 @@ namespace WPEFramework {
                 launchRequest["uri"] = std::string(factoryAppUrl);
                 launchRequest["focused"] = true;
                 std::cout << "launching " << launchRequest["callsign"].String().c_str() << std::endl;
-                result = launchWrapper(launchRequest, response);
+                launchWrapper(launchRequest, response);
                 bool launchFactoryResult = response.HasLabel("success")?response["success"].Boolean():false;
                 if (true == launchFactoryResult)
                 {
@@ -4933,7 +4938,7 @@ namespace WPEFramework {
             //try to kill factoryapp once more if kill apps missed killing due to timeout
             JsonObject destroyRequest, destroyResponse;
             destroyRequest["callsign"] = "factoryapp";
-            uint32_t result = destroyWrapper(destroyRequest, destroyResponse);
+            destroyWrapper(destroyRequest, destroyResponse);
 
             std::cout << "attempting to stop hdmi input...\n";
             JsonObject joStopHdmiParams;
@@ -4966,7 +4971,7 @@ namespace WPEFramework {
                 JsonObject configSet;
                 configSet.FromString(configString.Value());
                 updatedUrl = configSet["url"].String();
-                if (updatedUrl.find("?") != -1)
+                if (updatedUrl.find("?") != string::npos)
                 {
                     updatedUrl.append("&adjustPowerStateAtStartup=false");
                 }
@@ -5035,7 +5040,6 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool ret = true;
-            uint32_t status = 0;
             std::string callsign("factoryapp");
             bool isFactoryAppRunning = false;
             std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(callsign);
@@ -5047,12 +5051,12 @@ namespace WPEFramework {
             if (isFactoryAppRunning)
             {
                 sForceResidentAppLaunch = true;
-                status = launchResidentAppWrapper(parameters, response);
+                launchResidentAppWrapper(parameters, response);
                 sForceResidentAppLaunch = false;
             }
             else
             {
-                status = launchFactoryAppWrapper(parameters, response);
+                launchFactoryAppWrapper(parameters, response);
             }
             ret = response.HasLabel("success")?response["success"].Boolean():false;
             returnResponse(ret);
@@ -5338,7 +5342,7 @@ namespace WPEFramework {
                          unsigned int key = res["wakeupKeyCode"].Number();
                          unsigned long flags = 0;
                          uint32_t mappedKeyCode = key, mappedFlags = 0;
-                         bool ret = keyCodeFromWayland(key, flags, mappedKeyCode, mappedFlags);
+                         keyCodeFromWayland(key, flags, mappedKeyCode, mappedFlags);
                          response["keyCode"] = JsonValue(mappedKeyCode);
                          response["modifiers"] = JsonValue(mappedFlags);
                          std::cout << "Got LastWakeupKey, keyCode: " << mappedKeyCode << " modifiers: " << mappedFlags << std::endl;
@@ -5391,8 +5395,8 @@ namespace WPEFramework {
 			   if ( keyCode != KEYCODE_INVALID )
 			   {
 				unsigned long flags = 0;
-	                        uint32_t mappedKeyCode = keyCode, mappedFlags = 0;
-				bool ret = keyCodeFromWayland(keyCode, flags, mappedKeyCode, mappedFlags);
+				uint32_t mappedKeyCode = keyCode, mappedFlags = 0;
+				keyCodeFromWayland(keyCode, flags, mappedKeyCode, mappedFlags);
 				response["keyCode"] = JsonValue(mappedKeyCode);
 				response["modifiers"] = JsonValue(mappedFlags);
 				std::cout << "Got LastWakeupKey, keyCode: " << mappedKeyCode << " modifiers: " << mappedFlags << std::endl;
@@ -5421,10 +5425,9 @@ namespace WPEFramework {
             lockRdkShellMutex();
             std::vector<std::string> clientList;
             CompositorController::getClients(clientList);
-            bool targetFound = false;
             for (size_t i=0; i<clientList.size(); i++)
             {
-                bool ret = CompositorController::setVisibility(clientList[i], !hide);
+                CompositorController::setVisibility(clientList[i], !hide);
             }
             gRdkShellMutex.unlock();
             returnResponse(true);
@@ -5729,9 +5732,8 @@ namespace WPEFramework {
 
         void RDKShell::killAllApps(bool enableDestroyEvent)
         {
-            bool ret = false;
             JsonObject stateRequest, stateResponse;
-            uint32_t result = getState(stateRequest, stateResponse);
+            getState(stateRequest, stateResponse);
             const JsonArray stateList = stateResponse.HasLabel("state")?stateResponse["state"].Array():JsonArray();
 
             if (enableDestroyEvent)
@@ -5758,7 +5760,7 @@ namespace WPEFramework {
                 {
                    JsonObject destroyRequest, destroyResponse;
                    destroyRequest["callsign"] = stateInfo["callsign"].String();
-                   result = destroyWrapper(destroyRequest, destroyResponse);
+                   destroyWrapper(destroyRequest, destroyResponse);
                 }
             }
         }
@@ -5911,7 +5913,6 @@ namespace WPEFramework {
                 std::map<std::string, PluginData>::iterator focusedEntry = activePluginsData.find(client);
                 if (focusedEntry != activePluginsData.end())
                 {
-                    PluginData& pluginData = focusedEntry->second;
                     std::cout << "setting the focus of " << client << " to true " << std::endl;
                     Exchange::IFocus *focusedCallsign = mCurrentService->QueryInterfaceByCallsign<Exchange::IFocus>(client);
                     if (focusedCallsign != NULL)
