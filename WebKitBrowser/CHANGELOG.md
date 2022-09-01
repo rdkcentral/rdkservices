@@ -16,6 +16,20 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.0] - 2022-09-01
+### Added
+- Support for GLib based APIs (wpe-2.28)
+- Added options for
+    * Local Storage Quota
+    * WebInspector Server
+    * IndexedDB (location, quota)
+    * Spatial Navigation
+    * Window closure through scripts
+    * Universal access
+- Configuration to build with libsoup3
+- Provision to pass user scripts
+- Log enhancement
+
 ## [1.0.0] - 2022-05-11
 ### Added
 - Add CHANGELOG
