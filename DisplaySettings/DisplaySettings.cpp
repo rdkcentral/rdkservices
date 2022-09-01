@@ -77,7 +77,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 5
+#define API_VERSION_NUMBER_PATCH 6
 
 static bool isCecArcRoutingThreadEnabled = false;
 static bool isCecEnabled = false;
@@ -271,21 +271,17 @@ namespace WPEFramework {
 
 	    m_subscribed = false; //HdmiCecSink event subscription
 	    m_hdmiInAudioDeviceConnected = false;
-        m_arcAudioEnabled = false;
+	    m_arcAudioEnabled = false;
 	    m_hdmiCecAudioDeviceDetected = false;
             m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
 	    m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
 	    m_cecArcRoutingThreadRun = false;
 	    isCecArcRoutingThreadEnabled = true;
-	    m_arcRoutingThread = std::thread(cecArcRoutingThread);
-	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
-            m_AudioDeviceDetectTimer.connect(std::bind(&DisplaySettings::checkAudioDeviceDetectionTimer, this));
         }
 
         DisplaySettings::~DisplaySettings()
         {
-            LOGINFO("dtor  ");
-            stopCecTimeAndUnsubscriveEvent();
+            LOGINFO ("dtor");
         }
 
         void DisplaySettings::AudioPortsReInitialize()
@@ -489,6 +485,10 @@ namespace WPEFramework {
 
         const string DisplaySettings::Initialize(PluginHost::IShell* /* service */)
         {
+	    m_arcRoutingThread = std::thread(cecArcRoutingThread);
+	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
+            m_AudioDeviceDetectTimer.connect(std::bind(&DisplaySettings::checkAudioDeviceDetectionTimer, this));
+
             InitializeIARM();
 
             if (IARM_BUS_PWRMGR_POWERSTATE_ON == getSystemPowerState())
@@ -529,7 +529,7 @@ namespace WPEFramework {
             {
                 LOGERR("exception in thread join %s", e.what());
             }
-            stopCecTimeAndUnsubscriveEvent();
+            stopCecTimeAndUnsubscribeEvent();
 
             DeinitializeIARM();
             DisplaySettings::_instance = nullptr;
@@ -4222,7 +4222,7 @@ namespace WPEFramework {
             if(m_client == nullptr)
             { 
                 Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-                m_client = (WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>*)new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(HDMICECSINK_CALLSIGN_VER), (_T(HDMICECSINK_CALLSIGN_VER)));
+                m_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(HDMICECSINK_CALLSIGN_VER), (_T(HDMICECSINK_CALLSIGN_VER)));
                 LOGINFO("DisplaySettings getHdmiCecSinkPlugin init m_client\n");
             }
         }
@@ -4806,8 +4806,8 @@ namespace WPEFramework {
               LOGINFO("updated isCecEnabled [%d] ... \n", isCecEnabled);
 	}
 
-        void DisplaySettings::stopCecTimeAndUnsubscriveEvent() {
-            LOGINFO("de-init cec timer and subscribbed event ");
+        void DisplaySettings::stopCecTimeAndUnsubscribeEvent() {
+            LOGINFO ("de-init cec timer and subscribbed event \n");
             {
                 lock_guard<mutex> lck(m_callMutex);
                 if ( m_timer.isActive()) {
@@ -4817,13 +4817,14 @@ namespace WPEFramework {
                 if ( m_AudioDeviceDetectTimer.isActive()) {
                     m_AudioDeviceDetectTimer.stop();
                 }
-                for (std::string eventName : m_clientRegisteredEventNames) {
-                    m_client->Unsubscribe(1000, _T(eventName));
-                    LOGINFO("Unsubscribing event %s", eventName.c_str());
-	        }
-                m_clientRegisteredEventNames.clear();
                 if (nullptr != m_client) {
-                    LOGINFO("deleting m_client ");
+                    for (std::string eventName : m_clientRegisteredEventNames) {
+                        m_client->Unsubscribe(1000, _T(eventName));
+                        LOGINFO ("Unsubscribing event %s\n", eventName.c_str());
+                    }
+                    m_clientRegisteredEventNames.clear();
+
+                    LOGINFO ("deleting m_client \n");
                     delete m_client; m_client = nullptr;
                 }
             }
