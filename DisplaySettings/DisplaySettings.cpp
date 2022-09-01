@@ -75,7 +75,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 5
 
 static bool isCecArcRoutingThreadEnabled = false;
 static bool isCecEnabled = false;
@@ -3954,7 +3954,7 @@ namespace WPEFramework {
                     JsonObject hdmiCecSinkResult;
                     JsonObject param;
 
-                    LOGINFO("%s: Send Audio Device Power On !!!\n");
+                    LOGINFO("Send Audio Device Power On !!!\n");
                     m_client->Invoke<JsonObject, JsonObject>(2000, "sendAudioDevicePowerOnMessage", param, hdmiCecSinkResult);
                     if (!hdmiCecSinkResult["success"].Boolean()) {
                         success = false;
@@ -4156,7 +4156,7 @@ namespace WPEFramework {
                                 }
                             }
                             else {
-                                LOGINFO("%s: No handling required\n");
+                                LOGINFO("%s: No handling required\n",__FUNCTION__);
                             }
                        }
                     }
@@ -4626,7 +4626,7 @@ namespace WPEFramework {
                         aPort.getSupportedARCTypes(&types);
                         if((types & dsAUDIOARCSUPPORT_eARC) && (m_hdmiInAudioDeviceConnected == false)) {
                             m_hdmiInAudioDeviceConnected = true;
-                            LOGINFO("%s: eARC device sent system audio mode ON: Notify UI !!! \n");
+                            LOGINFO("%s: eARC device sent system audio mode ON: Notify UI !!! \n",__FUNCTION__);
                             connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, true);
                         }
 			else if(types & dsAUDIOARCSUPPORT_ARC) {
@@ -4735,7 +4735,7 @@ namespace WPEFramework {
                     aPort.getSupportedARCTypes(&types);
                     if((types & dsAUDIOARCSUPPORT_eARC) && (m_hdmiInAudioDeviceConnected == false)) {
                         m_hdmiInAudioDeviceConnected = true;
-                        LOGINFO("%s: Triggered from HPD: eARC audio device power on: Notify UI !!! \n");
+                        LOGINFO("Triggered from HPD: eARC audio device power on: Notify UI !!! \n");
                         connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, true);
                     }
                     else if(types & dsAUDIOARCSUPPORT_ARC) {
