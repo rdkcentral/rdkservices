@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+##[1.0.4] - 2022-08-31
+### Changed
+- Changed functionality to route audio to AVR on HDMI CEC off incase of eArc devices as well.
+
 ## [1.0.3] - 2022-08-25
 ### Fixed
 - Fixed std:: Displaysettings side JSONRPC::LinkType crash fix
