@@ -41,7 +41,6 @@
 
 #include "UtilsIarm.h"
 #include "UtilsJsonRpc.h"
-#include "UtilsSecurityToken.h"
 #include "UtilscRunScript.h"
 #include "UtilsfileExists.h"
 
@@ -345,19 +344,17 @@ namespace WPEFramework {
             JsonObject joGetParams;
             JsonObject joGetResult;
             std::string callsign = "org.rdk.AuthService.1";
-            std::string token;
             uint8_t i = 0;
-            bool isAuthSerivcePluginActive = false;
             std::string ret_status("invalid");
 
             /* check if plugin active */
-            isAuthSerivcePluginActive = Utils::isPluginActivated("org.rdk.AuthService");
-            if (!isAuthSerivcePluginActive){
+            auto auth = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>("org.rdk.AuthService");
+            if (auth == nullptr){
                 LOGINFO("AuthService plugin is not activated.Retrying.. \n");
                 //if plugin is not activated we need to retry
                 do{
-                    isAuthSerivcePluginActive = Utils::isPluginActivated("org.rdk.AuthService");
-                    if ( !isAuthSerivcePluginActive ){
+                    auth = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>("org.rdk.AuthService");
+                    if (auth == nullptr){
                         sleep(10);
                         i++;
                         LOGINFO("AuthService retries [%d/4] \n",i);
@@ -367,7 +364,7 @@ namespace WPEFramework {
                     }
                 }while( i < MAX_ACTIVATION_RETRIES );
 
-                if ( !isAuthSerivcePluginActive ){
+                if (auth == nullptr){
                     LOGINFO("AuthService plugin is Still not active");
                     return ret_status;
                 }
@@ -375,8 +372,10 @@ namespace WPEFramework {
                     LOGINFO("AuthService plugin is Now active");
                 }
             }
-
-            Utils::SecurityToken::getSecurityToken(token);
+            if (auth != nullptr){
+                LOGINFO("AuthService is active");
+                auth->Release();
+            }
 
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
             auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
@@ -457,17 +456,7 @@ namespace WPEFramework {
             JsonObject joGetParams;
             JsonObject joGetResult;
             std::string callsign = "org.rdk.Network.1";
-            std::string token;
 
-            /* check if plugin active */
-            if (false == Utils::isPluginActivated("org.rdk.Network")) {
-                    LOGINFO("Network plugin is not activated \n");
-                    return false;
-            }
-
-            Utils::SecurityToken::getSecurityToken(token);
-
-            string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
             auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
             if (thunder_client != nullptr) {
@@ -517,21 +506,33 @@ namespace WPEFramework {
             MaintenanceManager::_instance = nullptr;
         }
 
-        const string MaintenanceManager::Initialize(PluginHost::IShell*)
+        const string MaintenanceManager::Initialize(PluginHost::IShell* service)
         {
+            ASSERT(service != nullptr);
+            ASSERT(m_service == nullptr);
+
+            m_service = service;
+            m_service->AddRef();
+
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
 
-        void MaintenanceManager::Deinitialize(PluginHost::IShell*)
+        void MaintenanceManager::Deinitialize(PluginHost::IShell* service)
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             stopMaintenanceTasks();
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+
+            ASSERT(service == m_service);
+
+            m_service->Release();
+            m_service = nullptr;
         }
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
