@@ -263,7 +263,7 @@ namespace WPEFramework
                     }
                 }
             }
-            catch (const std::exception e)  {
+            catch (const std::exception& e)  {
                 LOGWARN("CompositeInputService::getCompositeInputDevices Failed");
             }
 

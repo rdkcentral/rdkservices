@@ -49,6 +49,12 @@
     LOGINFO("Notify %s %s", event, json.c_str()); \
     Notify(event,params); \
 }
+#define sendNotifyMaskParameters(event,params) { \
+    std::string json; \
+    params.ToString(json); \
+    LOGINFO("Notify %s <***>", event); \
+    Notify(event,params); \
+}
 
 /**
  * DO NOT USE THIS.

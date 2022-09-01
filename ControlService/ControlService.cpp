@@ -1577,6 +1577,7 @@ namespace WPEFramework {
 
                         case CTRLM_RCU_REVERSE_CMD_CONTROLLER_NOT_CAPABLE:  status_code = STATUS_FMR_NOT_SUPPORTED; break;
                         case CTRLM_RCU_REVERSE_CMD_DISABLED:                status_code = STATUS_FMR_NOT_SUPPORTED; break;
+                        default:    break;
                     }
                 }
             }
