@@ -49,6 +49,7 @@ using namespace std;
 #define METHOD_GET_PROTOCOLVERSION "getProtocolVersion"
 
 #define METHOD_REG_APPLICATIONS "registerApplications"
+#define METHOD_UNREG_APPLICATIONS "unregisterApplications"
 
 #define LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS  5000  //5 seconds
 #define LOCATE_CAST_SECOND_TIMEOUT_IN_MILLIS 15000  //15 seconds
@@ -96,7 +97,6 @@ bool XCast::m_xcastEnable= false;
 string XCast::m_friendlyName = "";
 bool XCast::m_standbyBehavior = false;
 bool XCast::m_enableStatus = false;
-string strDyAppConfig = "";
 
 IARM_Bus_PWRMgr_PowerState_t XCast::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
 
@@ -117,6 +117,7 @@ XCast::XCast() : PluginHost::JSONRPC()
         Register(METHOD_GET_FRIENDLYNAME, &XCast::getFriendlyName, this);
         Register(METHOD_SET_FRIENDLYNAME, &XCast::setFriendlyName, this);
         Register(METHOD_REG_APPLICATIONS, &XCast::registerApplications, this);
+        Register(METHOD_UNREG_APPLICATIONS, &XCast::unregisterApplications, this);
         Register(METHOD_GET_PROTOCOLVERSION, &XCast::getProtocolVersion, this);
         
         m_locateCastTimer.connect( bind( &XCast::onLocateCastTimer, this ));
@@ -365,15 +366,16 @@ uint32_t XCast::registerApplications(const JsonObject& parameters, JsonObject& r
 
        if(_rtConnector)
        {
-	       LOGINFO("%s:%d _rtConnector Not NULL", __FUNCTION__, __LINE__);
+           LOGINFO("%s:%d _rtConnector Not NULL", __FUNCTION__, __LINE__);
            if(_rtConnector->IsDynamicAppListEnabled()) {
                /*Disable cast service before registering Applications*/
                _rtConnector->enableCastService(m_friendlyName,false);
 
-               _rtConnector->registerApplications (parameters["applications"].String());
+               //Register dynamic application list to app cache map
+               _rtConnector->updateDynamicAppCache(parameters["applications"].String());
+               //Pass the dynamic cache to xdial process
+               _rtConnector->registerApplications ();
 
-               /*Save the config*/
-               strDyAppConfig.assign(parameters["applications"].String());
                /*Reenabling cast service after registering Applications*/
                if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
                    LOGINFO("Enable CastService  m_xcastEnable: %d m_standbyBehavior: %d m_powerState:%d", m_xcastEnable, m_standbyBehavior, m_powerState);
@@ -383,6 +385,46 @@ uint32_t XCast::registerApplications(const JsonObject& parameters, JsonObject& r
                    LOGINFO("CastService not enabled m_xcastEnable: %d m_standbyBehavior: %d m_powerState:%d", m_xcastEnable, m_standbyBehavior, m_powerState);
                }
                returnResponse(true);
+           }
+           else {
+               returnResponse(false);
+           }
+       }
+       else
+           returnResponse(false);
+    }
+    else {
+        returnResponse(false);
+    }
+}
+
+uint32_t XCast::unregisterApplications(const JsonObject& parameters, JsonObject& response)
+{
+    LOGINFO("XcastService::unregisterApplications \n ");
+    bool hasAppReq = parameters.HasLabel("applications");
+    if (hasAppReq) {
+       LOGINFO ("\nInput string is:%s\n", parameters["applications"].String().c_str());
+
+       if(_rtConnector)
+       {
+	       LOGINFO("%s:%d _rtConnector Not NULL", __FUNCTION__, __LINE__);
+           if(_rtConnector->IsDynamicAppListEnabled()) {
+               /*Disable cast service before registering Applications*/
+               _rtConnector->enableCastService(m_friendlyName,false);
+               //Remove app names from cache map
+               bool ret = _rtConnector->deleteFromDynamicAppCache (parameters["applications"].String());
+               //Pass the modified dynamic cache to xdial process
+               _rtConnector->registerApplications ();
+
+               /*Reenabling cast service after registering Applications*/
+               if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
+                   LOGINFO("Enable CastService  m_xcastEnable: %d m_standbyBehavior: %d m_powerState:%d", m_xcastEnable, m_standbyBehavior, m_powerState);
+                   _rtConnector->enableCastService(m_friendlyName,true);
+               }
+               else {
+                   LOGINFO("CastService not enabled m_xcastEnable: %d m_standbyBehavior: %d m_powerState:%d", m_xcastEnable, m_standbyBehavior, m_powerState);
+               }
+               returnResponse(ret);
            }
            else {
                returnResponse(false);
@@ -428,17 +470,17 @@ void XCast::onLocateCastTimer()
     locateCastObjectRetryCount = 0;
     m_locateCastTimer.stop();
 
-    if ((!strDyAppConfig.empty()) && (NULL != _rtConnector)) {
+    if (NULL != _rtConnector) {
         if (_rtConnector->IsDynamicAppListEnabled()) {
-            LOGINFO("XCast::onLocateCastTimer : strDyAppConfig: %s", strDyAppConfig.c_str());
-            _rtConnector->registerApplications (strDyAppConfig);
+            LOGINFO("XCast::onLocateCastTimer : calling registerApplications");
+            _rtConnector->registerApplications ();
         }
         else {
             LOGINFO("XCast::onLocateCastTimer : DynamicAppList not enabled");
         }
     }
     else {
-        LOGINFO("XCast::onLocateCastTimer : strDyAppConfig: %s _rtConnector: %p", strDyAppConfig.c_str(), _rtConnector);
+        LOGINFO("XCast::onLocateCastTimer :_rtConnector: %p",  _rtConnector);
     }
     if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
         _rtConnector->enableCastService(m_friendlyName,true);
@@ -553,7 +595,7 @@ void XCast::onXcastApplicationLaunchRequestWithLaunchParam (string appName,
     char url[DIAL_MAX_PAYLOAD+DIAL_MAX_ADDITIONALURL+100] = {0,};
 
     if(_rtConnector) {
-        RegAppLaunchParams reqParam;
+        DynamicAppConfig reqParam;
         _rtConnector->getEntryFromAppLaunchParamList (appName.c_str(), &reqParam);
 
         /*Replacing with App requested payload and query*/

@@ -28,11 +28,14 @@
 #include "RtNotifier.h"
 using namespace std;
 
-typedef struct _RegAppLaunchParams {
+typedef struct _DynamicAppConfig {
     char *appName = NULL;
+    char *prefixes = NULL;
+    char *cors = NULL;
+    int  allowStop = 0; //Default allowStop value is false
     char *query = NULL;
     char *payload = NULL;
-}RegAppLaunchParams;
+}DynamicAppConfig;
 
 /**
  * This is the connector class for interacting with xdial client using rtRemote.
@@ -42,8 +45,6 @@ protected:
     RtXcastConnector():m_runEventThread(true){
         }
 public:
-    std::list<RegAppLaunchParams> m_appLaunchParamList;
-
     virtual ~RtXcastConnector();
     /**
      * Initialize rtRemote communication with rtDial server
@@ -72,7 +73,10 @@ public:
      *@param friendlyname - friendlyname
      */
     void updateFriendlyName(string friendlyname);
-    void registerApplications (string strApps);
+    bool deleteFromDynamicAppCache(string strAppNames);
+    void updateDynamicAppCache(string strApps);
+    void registerApplications ();
+    void unregisterApplications(string strApps);
     string  getProtocolVersion(void);
     /**
      *Request the single instance of this class
@@ -83,7 +87,7 @@ public:
      */
     int connectToRemoteService();
     bool IsDynamicAppListEnabled();
-    bool getEntryFromAppLaunchParamList (const char* appName, RegAppLaunchParams* reqParam);
+    bool getEntryFromAppLaunchParamList (const char* appName, DynamicAppConfig* reqParam);
     
     void setService(RtNotifier * service){
         m_observer = service;
@@ -98,10 +102,15 @@ private:
     mutex m_threadlock;
     // Boolean event thread exit condition
     bool m_runEventThread;
+    bool m_IsDefaultDynamicAppListEnabled;
+    std::mutex m_appConfigMutex;
+    std::vector<DynamicAppConfig*> m_appConfigCache;
     // Member function to handle RT messages.
     void processRtMessages();
-    void clearAppLaunchParamList ();
     bool IsAppEnabled(char* strAppName);
+    void DumpDynamicAppConfigCache(string strListName, std::vector<DynamicAppConfig*> appConfigList);
+    void initDynamicAppCache();
+    bool deleteFromDynamicAppCache(vector<string>& appsToDelete);
 
     // Class level contracts
     // Singleton instance

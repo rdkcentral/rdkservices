@@ -31,6 +31,13 @@ using namespace WPEFramework;
 #define LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS  60000  //60 seconds
 #define EVENT_LOOP_ITERATION_IN_100MS     100000
 
+//default app list to store
+#define defaultDynamicAppsString "[{\"names\":[\"Netflix\"],\"cors\":[\".netflix.com\"],\"properties\":{\"allowStop\" :true}},\
+                                   {\"names\":[\"YouTube\", \"YouTubeKids\", \"YouTubeTV\"],\"cors\":[\".youtube.com\"],\"properties\":{\"allowStop\" :true}},\
+                                   {\"names\":[\"AmazonInstantVideo\"],\"cors\":[\".amazonprime.com\"],\"properties\":{\"allowStop\" :true}},\
+                                   {\"names\":[\"com.spotify.Spotify.TV\"],\"prefixes\":[\"com.spotify\"],\"cors\":[\".spotify.com\"],\"properties\":{\"allowStop\" :true}},\
+                                   {\"names\":[\"Pairing\"],\"cors\":[\".comcast.com\"],\"properties\":{\"allowStop\" :true}}]"
+
 static rtObjectRef xdialCastObj = NULL;
 RtXcastConnector * RtXcastConnector::_instance = nullptr;
 
@@ -258,7 +265,7 @@ bool RtXcastConnector::initialize()
     rtError err;
     rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
     err = rtRemoteInit(env);
-    
+    m_IsDefaultDynamicAppListEnabled = false;
     if(err != RT_OK){
         LOGINFO("Xcastservice: rtRemoteInit failed : Reason %s", rtStrError(err));
     }
@@ -266,6 +273,7 @@ bool RtXcastConnector::initialize()
         m_runEventThread = true;
         m_eventMtrThread = std::thread(threadRun, this);
     }
+    initDynamicAppCache();
     return (err == RT_OK) ? true:false;
 }
 void RtXcastConnector::shutdown()
@@ -334,48 +342,32 @@ void RtXcastConnector::updateFriendlyName(string friendlyname)
         LOGINFO(" xdialCastObj is NULL ");
 }
 
-void RtXcastConnector::clearAppLaunchParamList (){
-   for (RegAppLaunchParams regAppLaunchParam : m_appLaunchParamList) {
-       if (NULL != regAppLaunchParam.appName) {
-           free (regAppLaunchParam.appName);
-           regAppLaunchParam.appName = NULL;
-       }
-       if (NULL != regAppLaunchParam.query) {
-           free (regAppLaunchParam.query);
-           regAppLaunchParam.query = NULL;
-       }
-       if (NULL != regAppLaunchParam.payload) {
-           free (regAppLaunchParam.payload);
-           regAppLaunchParam.payload = NULL;
-       }
-    }
-    m_appLaunchParamList.clear();
-}
-
-bool RtXcastConnector::getEntryFromAppLaunchParamList (const char* appName, RegAppLaunchParams* reqParam){
+bool RtXcastConnector::getEntryFromAppLaunchParamList (const char* appName, DynamicAppConfig* reqParam){
     bool isEntryFound = false;
-    for (RegAppLaunchParams regAppLaunchParam : m_appLaunchParamList) {
-        if (0 == strcmp (regAppLaunchParam.appName, appName)) {
-            isEntryFound = true;
-            int iNameLen = strlen (regAppLaunchParam.appName);
-            reqParam->appName = (char*) malloc (iNameLen+1);
-            memset (reqParam->appName, '\0', iNameLen+1);
-            strcpy (reqParam->appName, regAppLaunchParam.appName);
+    {lock_guard<mutex> lck(m_appConfigMutex);
+        for (DynamicAppConfig* regAppLaunchParam : m_appConfigCache) {
+            if (0 == strcmp (regAppLaunchParam->appName, appName)) {
+                isEntryFound = true;
+                int iNameLen = strlen (regAppLaunchParam->appName);
+                reqParam->appName = (char*) malloc (iNameLen+1);
+                memset (reqParam->appName, '\0', iNameLen+1);
+                strcpy (reqParam->appName, regAppLaunchParam->appName);
 
-            if (regAppLaunchParam.query) {
-                int iQueryLen = strlen (regAppLaunchParam.query);
-                reqParam->query = (char*) malloc (iQueryLen+1);
-                memset (reqParam->query, '\0', iQueryLen+1);
-                strcpy (reqParam->query, regAppLaunchParam.query);
-            }
+                if (regAppLaunchParam->query) {
+                    int iQueryLen = strlen (regAppLaunchParam->query);
+                    reqParam->query = (char*) malloc (iQueryLen+1);
+                    memset (reqParam->query, '\0', iQueryLen+1);
+                    strcpy (reqParam->query, regAppLaunchParam->query);
+                }
 
-            if (regAppLaunchParam.payload) {
-                int iPayLoad = strlen (regAppLaunchParam.payload);
-                reqParam->payload = (char*) malloc (iPayLoad+1);
-                memset (reqParam->payload, '\0', iPayLoad+1);
-                strcpy (reqParam->payload, regAppLaunchParam.payload);
+                if (regAppLaunchParam->payload) {
+                    int iPayLoad = strlen (regAppLaunchParam->payload);
+                    reqParam->payload = (char*) malloc (iPayLoad+1);
+                    memset (reqParam->payload, '\0', iPayLoad+1);
+                    strcpy (reqParam->payload, regAppLaunchParam->payload);
+                }
+                break;
             }
-            break;
         }
     }
     return isEntryFound;
@@ -398,9 +390,97 @@ string RtXcastConnector::getProtocolVersion(void)
     return strVersion.cString();
 }
 
-void RtXcastConnector::registerApplications(string strApps)
+void RtXcastConnector::DumpDynamicAppConfigCache(string strListName, std::vector<DynamicAppConfig*> appConfigList) {
+    LOGINFO("appConfigList count: %d", appConfigList.size());
+    /*Check if existing cache need to be updated*/
+    std::vector<int> entriesTodelete;
+    LOGINFO ("=================Current dynamic %s is:===========================", strListName.c_str());
+    for (DynamicAppConfig* pDynamicAppConfig : appConfigList) {
+        LOGINFO ("Apps: appName:%s, prefixes:%s, cors:%s, allowStop:%d, query:%s, payload:%s",
+                  pDynamicAppConfig->appName,
+                  pDynamicAppConfig->prefixes,
+                  pDynamicAppConfig->cors,
+                  pDynamicAppConfig->allowStop,
+                  pDynamicAppConfig->query,
+                  pDynamicAppConfig->payload);
+    }
+    LOGINFO ("=================================================================");
+}
+
+bool RtXcastConnector::deleteFromDynamicAppCache(vector<string>& appsToDelete) {
+    bool ret = true;
+    {lock_guard<mutex> lck(m_appConfigMutex);
+        /*Check if existing cache need to be updated*/
+        std::vector<int> entriesTodelete;
+        for (string appNameToDelete : appsToDelete) {
+            bool found = false;
+            int index = 0;
+            for (DynamicAppConfig* pDynamicAppConfigOld : m_appConfigCache) {
+                if (0 == strcmp(pDynamicAppConfigOld->appName, appNameToDelete.c_str())){
+                    entriesTodelete.push_back(index);
+                    found = true;
+                    break;
+                }
+                index ++;
+            }
+            if (!found) {
+                LOGINFO("%s not existing in the dynamic cache", appNameToDelete.c_str());
+            }
+            ret = (ret&&found);
+        }
+        std::sort(entriesTodelete.begin(), entriesTodelete.end(), std::greater<int>());
+        for (int indexToDelete : entriesTodelete) {
+            LOGINFO("Going to delete the entry: %d from m_appConfigCache size: %d", indexToDelete, m_appConfigCache.size());
+            //Delete the old unwanted item here.
+            DynamicAppConfig* pDynamicAppConfigOld = m_appConfigCache[indexToDelete];
+            m_appConfigCache.erase (m_appConfigCache.begin()+indexToDelete);
+            free (pDynamicAppConfigOld->appName); pDynamicAppConfigOld->appName=NULL;
+            free (pDynamicAppConfigOld->prefixes); pDynamicAppConfigOld->prefixes=NULL;
+            free (pDynamicAppConfigOld->cors); pDynamicAppConfigOld->cors=NULL;
+            free (pDynamicAppConfigOld->query); pDynamicAppConfigOld->query = NULL;
+            free (pDynamicAppConfigOld->payload); pDynamicAppConfigOld->payload = NULL;
+            free (pDynamicAppConfigOld); pDynamicAppConfigOld = NULL;
+        }
+        entriesTodelete.clear();
+
+    }
+    return ret;
+}
+
+bool RtXcastConnector::deleteFromDynamicAppCache(string strAppNames)
 {
-    LOGINFO("XcastService::registerApplications");
+    bool ret = false;
+    cJSON *itrName = NULL;
+    if (!strAppNames.empty()) {
+        cJSON *applications = cJSON_Parse(strAppNames.c_str());
+        if (!cJSON_IsArray(applications)) {
+            LOGINFO ("deleteFromDynamicAppCache::applications array passed: %s", strAppNames.c_str());
+            LOGINFO ("deleteFromDynamicAppCache::Invalid applications array exititng");
+            cJSON_Delete(applications);
+            return ret;
+        }
+        int iIndex = 0;
+        vector<string> appsToDelete;
+        cJSON_ArrayForEach(itrName, applications) {
+            if (!cJSON_IsString(itrName)) {
+                LOGINFO ("Invalid name format at application index. Skipping%d", iIndex);
+                continue;
+            }
+            LOGINFO("App name to delete: %s, size:%d", itrName->valuestring, strlen (itrName->valuestring));
+            appsToDelete.push_back(string(itrName->valuestring));
+            iIndex++;
+        }
+        //Remove specified appl list from dynamic app cache
+        ret = deleteFromDynamicAppCache (appsToDelete);
+        appsToDelete.clear();
+        cJSON_Delete(applications);
+    }
+    return ret;
+}
+
+void RtXcastConnector::updateDynamicAppCache(string strApps)
+{
+    LOGINFO("XcastService::UpdateDynamicAppCache");
 
     cJSON *itrApp = NULL;
 
@@ -419,175 +499,283 @@ void RtXcastConnector::registerApplications(string strApps)
     cJSON *jLaunchParam = NULL;
     cJSON *jQuery = NULL;
     cJSON *jPayload = NULL;
+
+    std::vector <DynamicAppConfig*> appConfigList;
     if (!strApps.empty()) {
         cJSON *applications = cJSON_Parse(strApps.c_str());
         if (!cJSON_IsArray(applications)) {
             LOGINFO ("applications array passed: %s", strApps.c_str());
-            LOGINFO ("\nInvalid applications array exititng\n");
+            LOGINFO ("Invalid applications array exititng");
             cJSON_Delete(applications);
             return;
         }
 
         /* iterate over ints */
-        LOGINFO("Applications:\n");
+        LOGINFO("Applications:");
         int iIndex = 0;
-        rtArrayObject *appReqList = new rtArrayObject;
-
-        /*Clear all existing launch param*/
-        clearAppLaunchParamList ();
 
         cJSON_ArrayForEach(itrApp, applications) {
-            LOGINFO("Application: %d \n", iIndex);
+            std::vector <DynamicAppConfig*> appConfigListTemp;
+            LOGINFO("Application: %d", iIndex);
             if (!cJSON_IsObject(itrApp)) {
-                LOGINFO ("\nInvalid appliaction format at index. Skipping%d\n", iIndex);
+                LOGINFO ("Invalid appliaction format at index. Skipping%d", iIndex);
                 continue;
             }
-            rtObjectRef appReq = new rtMapObject;
             jNames = cJSON_GetObjectItem(itrApp, "names");
             if (!cJSON_IsArray(jNames)) {
-                LOGINFO ("\nInvalid names format at application index %d. Skipping the application\n", iIndex);
+                LOGINFO ("Invalid names format at application index %d. Skipping the application", iIndex);
                 continue;
             }
             else {
-                rtArrayObject *appNameList = new rtArrayObject;
                 cJSON_ArrayForEach(itrName, jNames) {
                     if (!cJSON_IsString(itrName)) {
-                        LOGINFO ("\nInvalid name format at application index. Skipping%d\n", iIndex);
+                        LOGINFO ("Invalid name format at application index. Skipping%d", iIndex);
                         continue;
                     }
-                    LOGINFO("%s, ", itrName->valuestring);
-                    appNameList->pushBack (itrName->valuestring);
+                    LOGINFO("%s, size:%d", itrName->valuestring, strlen (itrName->valuestring));
+                    DynamicAppConfig* pDynamicAppConfig = (DynamicAppConfig*) malloc (sizeof(DynamicAppConfig));
+                    memset (pDynamicAppConfig, '0', sizeof(DynamicAppConfig));
+                    int iFieldLen = strlen (itrName->valuestring);
+                    pDynamicAppConfig->appName = (char*) malloc (iFieldLen+1);
+                    memset (pDynamicAppConfig->appName, '\0', iFieldLen+1);
+                    strcpy (pDynamicAppConfig->appName, itrName->valuestring);
+                    pDynamicAppConfig->prefixes = NULL;
+                    pDynamicAppConfig->cors = NULL;
+                    pDynamicAppConfig->query = NULL;
+                    pDynamicAppConfig->payload = NULL;
+                    appConfigListTemp.push_back (pDynamicAppConfig);
                 }
-                appReq.set ("Names", rtValue(appNameList));
-                LOGINFO("\n");
+                LOGINFO("");
             }
 
             jPrefixes = cJSON_GetObjectItem(itrApp, "prefixes");
             if (!cJSON_IsArray(jPrefixes)) {
-                LOGINFO ("\nInvalid prefixes format at application index %d\n", iIndex);
+                LOGINFO ("Invalid prefixes format at application index %d", iIndex);
             }
             else {
-                rtArrayObject *appPrefixes = new rtArrayObject;
                 cJSON_ArrayForEach(itrPrefix, jPrefixes) {
                     if (!cJSON_IsString(itrPrefix)) {
-                        LOGINFO ("\nInvalid prefix format at application index. Skipping%d\n", iIndex);
+                        LOGINFO ("Invalid prefix format at application index. Skipping%d", iIndex);
                         continue;
                     }
-                    LOGINFO("%s, ", itrPrefix->valuestring);
-                    appPrefixes->pushBack (itrPrefix->valuestring);
+                    LOGINFO("%s, size:%d", itrPrefix->valuestring, strlen (itrPrefix->valuestring));
+                    for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
+                        int iFieldLen = strlen (itrPrefix->valuestring);
+                        pDynamicAppConfig->prefixes = (char*) malloc (iFieldLen+1);
+                        memset (pDynamicAppConfig->prefixes, '\0', iFieldLen+1);
+                        strcpy (pDynamicAppConfig->prefixes, itrPrefix->valuestring);
+                    }
                 }
-                appReq.set ("prefixes", rtValue(appPrefixes));
-                LOGINFO("\n");
+                LOGINFO("");
             }
 
             jCors = cJSON_GetObjectItem(itrApp, "cors");
             if (!cJSON_IsArray(jCors)) {
-                LOGINFO ("\nInvalid cors format at application index %d. Skipping the application\n", iIndex);
+                LOGINFO ("Invalid cors format at application index %d. Skipping the application", iIndex);
                 continue;
             }
             else {
-                rtArrayObject *appCors = new rtArrayObject;
                 cJSON_ArrayForEach(itrCor, jCors) {
                     if (!cJSON_IsString(itrCor)) {
-                        LOGINFO ("\nInvalid cor format at application index. Skipping%d\n", iIndex);
+                        LOGINFO ("Invalid cor format at application index. Skipping%d", iIndex);
                         continue;
                     }
-                    LOGINFO("%s, ", itrCor->valuestring);
-                    appCors->pushBack (itrCor->valuestring);
+                    LOGINFO("%s, size:%d", itrCor->valuestring, strlen (itrCor->valuestring));
+                    for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
+                        int iFieldLen = strlen (itrCor->valuestring);
+                        pDynamicAppConfig->cors = (char*) malloc (iFieldLen+1);
+                        memset (pDynamicAppConfig->cors, '\0', iFieldLen+1);
+                        strcpy (pDynamicAppConfig->cors, itrCor->valuestring);
+                    }
                 }
-                appReq.set ("cors", rtValue(appCors));
-                LOGINFO("\n");
+                LOGINFO("");
             }
 
             jProperties = cJSON_GetObjectItem(itrApp, "properties");
             if (!cJSON_IsObject(jProperties)) {
-                LOGINFO ("\nInvalid property format at application index %d\n", iIndex);
+                LOGINFO ("Invalid property format at application index %d", iIndex);
             }
             else {
-                rtObjectRef appProp = new rtMapObject;
                 jAllowStop = cJSON_GetObjectItem(jProperties, "allowStop");
                 if (!cJSON_IsBool(jAllowStop)) {
-                    LOGINFO ("\nInvalid allowStop format at application index %d\n", iIndex);
+                    LOGINFO ("Invalid allowStop format at application index %d", iIndex);
                 }
                 else {
                     LOGINFO("allowStop: %d", jAllowStop->valueint);
-                    appProp.set("allowStop",jAllowStop->valueint);
-                    LOGINFO("\n");
+                    for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
+                        pDynamicAppConfig->allowStop = jAllowStop->valueint;
+                    }
+                    LOGINFO("");
                 }
-                appReq.set ("properties", rtValue(appProp));
             }
 
             jLaunchParam = cJSON_GetObjectItem(itrApp, "launchParameters");
             if (!cJSON_IsObject(jLaunchParam)) {
-                LOGINFO ("\nInvalid Launch param format at application index %d\n", iIndex);
+                LOGINFO ("Invalid Launch param format at application index %d", iIndex);
             }
             else {
                 jQuery = cJSON_GetObjectItem(jLaunchParam, "query");
                 if (!cJSON_IsString(jQuery)) {
-                    LOGINFO ("\nInvalid query format at application index %d\n", iIndex);
+                    LOGINFO ("Invalid query format at application index %d", iIndex);
                 }
                 else {
-                    LOGINFO("query: %s, ", jQuery->valuestring);
+                    LOGINFO("query: %s, size:%d", jQuery->valuestring, strlen (jQuery->valuestring));
                 }
                 jPayload = cJSON_GetObjectItem(jLaunchParam, "payload");
                 if (!cJSON_IsString(jPayload)) {
-                    LOGINFO ("\nInvalid payload format at application index %d\n", iIndex);
+                    LOGINFO ("Invalid payload format at application index %d", iIndex);
                 }
                 else {
-                    LOGINFO("payload: %s", jPayload->valuestring);
-                    LOGINFO("\n");
+                    LOGINFO("payload: %s, size:%d", jPayload->valuestring, strlen (jPayload->valuestring));
+                    LOGINFO("");
                 }
                 //Set launchParameters in list for later usage
-                rtObjectRef appNames;
-                int err = appReq.get ("Names", appNames);
-                if(err == RT_OK) {
-                    for(int i = 0 ; i< 25; i ++) {
-                        rtString appName;
-                        err = appNames.get(i,appName);
-                        if(err == RT_OK) {
-                            RegAppLaunchParams reqAppLaunchParams;
+                for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
+                    int iFieldLen = strlen (jQuery->valuestring);
+                    pDynamicAppConfig->query = (char*) malloc (iFieldLen+1);
+                    memset (pDynamicAppConfig->query, '\0', iFieldLen+1);
+                    strcpy (pDynamicAppConfig->query, jQuery->valuestring);
 
-                            int iNameLen = strlen (appName.cString());
-                            reqAppLaunchParams.appName = (char*) malloc (iNameLen+1);
-                            memset (reqAppLaunchParams.appName, '\0', iNameLen+1);
-                            strcpy (reqAppLaunchParams.appName, appName.cString());
-                            LOGINFO("reqAppLaunchParams.appName:%s iNameLen:%d appName:%s", reqAppLaunchParams.appName, iNameLen, appName.cString());
-
-                            if (cJSON_IsString(jQuery)) {
-                                int iQueryLen = strlen (jQuery->valuestring);
-                                reqAppLaunchParams.query = (char*) malloc (iQueryLen+1);
-                                memset (reqAppLaunchParams.query, '\0', iQueryLen+1);
-                                strcpy (reqAppLaunchParams.query, jQuery->valuestring);
-                                LOGINFO("reqAppLaunchParams.query:%s iQueryLen:%d jQuery:%s", reqAppLaunchParams.query, iQueryLen, jQuery->valuestring);
-                            }
-
-                            if (cJSON_IsString(jPayload)) {
-                                int iPayLoadLen = strlen (jPayload->valuestring);
-                                reqAppLaunchParams.payload = (char*) malloc (iPayLoadLen+1);
-                                memset (reqAppLaunchParams.payload, '\0', iPayLoadLen+1);
-                                strcpy (reqAppLaunchParams.payload, jPayload->valuestring);
-                                LOGINFO("reqAppLaunchParams.payload:%s iPayLoadLen:%d jPayload:%s", reqAppLaunchParams.payload, iPayLoadLen, jPayload->valuestring);
-                            }
-                            m_appLaunchParamList.push_back (reqAppLaunchParams);
-                        }
-                    }
+                    iFieldLen = strlen (jPayload->valuestring);
+                    pDynamicAppConfig->payload = (char*) malloc (iFieldLen+1);
+                    memset (pDynamicAppConfig->payload, '\0', iFieldLen+1);
+                    strcpy (pDynamicAppConfig->payload, jPayload->valuestring);
                 }
+
             }
+            for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
+                appConfigList.push_back(pDynamicAppConfig);
+            }
+            appConfigListTemp.clear();
             iIndex++;
+        }
+        LOGINFO("");
+        DumpDynamicAppConfigCache(string("appConfigList"), appConfigList);
+        vector<string> appsToDelete;
+        for (DynamicAppConfig* pDynamicAppConfig : appConfigList) {
+            appsToDelete.push_back(string(pDynamicAppConfig->appName));
+        }
+        deleteFromDynamicAppCache (appsToDelete);
+
+        LOGINFO("appConfigList count: %d", appConfigList.size());
+        //Update the new entries here.
+        for (DynamicAppConfig* pDynamicAppConfig : appConfigList) {
+            m_appConfigCache.push_back(pDynamicAppConfig);
+        }
+        LOGINFO("m_appConfigCache count: %d", m_appConfigCache.size());
+
+        //Clear the tempopary list here
+        appsToDelete.clear();
+        appConfigList.clear();
+        cJSON_Delete(applications);
+    }
+    DumpDynamicAppConfigCache(string("m_appConfigCache"), m_appConfigCache);
+    return;
+}
+
+
+void RtXcastConnector::initDynamicAppCache()
+{
+    //If current cache is empty load with default values
+    if ((!m_IsDefaultDynamicAppListEnabled) &&
+        (0 == m_appConfigCache.size())) {
+        LOGINFO("XcastService::initDynamicApplications m_appConfigCache is empty load with default values");
+        updateDynamicAppCache(string(defaultDynamicAppsString));
+    }
+}
+
+void RtXcastConnector::registerApplications()
+{
+    LOGINFO("XcastService::registerApplications");
+
+    rtArrayObject *appReqList = new rtArrayObject;
+    {lock_guard<mutex> lck(m_appConfigMutex);
+        for (DynamicAppConfig* pDynamicAppConfig : m_appConfigCache) {
+            //populate the rtParam here
+            rtObjectRef appReq = new rtMapObject;
+
+            rtArrayObject *appNameList = new rtArrayObject;
+            appNameList->pushBack (pDynamicAppConfig->appName);
+            appReq.set ("Names", rtValue(appNameList));
+
+            if (NULL != pDynamicAppConfig->prefixes) {
+                rtArrayObject *appPrefixes = new rtArrayObject;
+                appPrefixes->pushBack (pDynamicAppConfig->prefixes);
+                appReq.set ("prefixes", rtValue(appPrefixes));
+            }
+
+            if (NULL != pDynamicAppConfig->cors) {
+                rtArrayObject *appCors = new rtArrayObject;
+                appCors->pushBack (pDynamicAppConfig->cors);
+                appReq.set ("cors", rtValue(appCors));
+            }
+
+            rtObjectRef appProp = new rtMapObject;
+            appProp.set("allowStop",pDynamicAppConfig->allowStop);
+            appReq.set ("properties", rtValue(appProp));
+
             appReqList->pushBack(rtValue(appReq));
+        }
+    }
+
+
+    DumpDynamicAppConfigCache(string("m_appConfigCache"), m_appConfigCache);
+    if((xdialCastObj != NULL) && (m_appConfigCache.size() > 0))
+    {
+        LOGINFO("%s:%d xdialCastObj Not NULL", __FUNCTION__, __LINE__);
+        int ret = xdialCastObj.send("onRegisterApplications", appReqList);
+        LOGINFO("XcastService send onRegisterApplications ret:%d",ret);
+    }
+    else
+        LOGINFO(" xdialCastObj is NULL ");
+}
+
+void RtXcastConnector::unregisterApplications(string strApps)
+{
+    LOGINFO("XcastService::unregisterApplications");
+
+    cJSON *itrAppName = NULL;
+
+    if (!strApps.empty()) {
+        cJSON *applications = cJSON_Parse(strApps.c_str());
+        if (!cJSON_IsArray(applications)) {
+            LOGINFO ("applications array passed: %s", strApps.c_str());
+            LOGINFO ("\nInvalid applications array. exititng\n");
+            cJSON_Delete(applications);
+            return;
+        }
+
+        rtObjectRef appReq = new rtMapObject;
+        appReq.set ("Names", rtValue(applications));
+        /* iterate over ints */
+        LOGINFO("Applications:\n");
+        int iIndex = 0;
+        rtArrayObject *appReqList = new rtArrayObject;
+        appReqList->pushBack(rtValue(appReq));
+
+        if(xdialCastObj != NULL)
+        {
+            LOGINFO("%s:%d xdialCastObj Not NULL strApps:%s", __FUNCTION__, __LINE__, strApps.c_str());
+            int ret = xdialCastObj.send("onUnregisterApplications", appReqList);
+            LOGINFO("XcastService send onRegisterApplications ret:%d",ret);
+        }
+        else
+            LOGINFO(" xdialCastObj is NULL ");
+
+        cJSON_ArrayForEach(itrAppName, applications) {
+            LOGINFO("Application: %d \n", iIndex);
+            if (!cJSON_IsString(itrAppName)) {
+                LOGINFO ("\nInvalid name format at application index. Skipping%d\n", iIndex);
+                continue;
+            }
+            LOGINFO("%s, ", itrAppName->valuestring);
+            //Using itrAppName->valuestring remove entry from m_appLaunchParamList, saved for later use.
+            iIndex++;
         }
         LOGINFO("\n");
 
         cJSON_Delete(applications);
 
-        if(xdialCastObj != NULL)
-        {
-	        LOGINFO("%s:%d xdialCastObj Not NULL strApps:%s", __FUNCTION__, __LINE__, strApps.c_str());
-            int ret = xdialCastObj.send("onRegisterApplications", appReqList);
-            LOGINFO("XcastService send onRegisterApplications ret:%d",ret);
-        }
-        else
-            LOGINFO(" xdialCastObj is NULL ");
     }
 }
 
