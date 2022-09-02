@@ -330,7 +330,6 @@ namespace WPEFramework {
                 LOGINFO("first boot so setting mode to '%s' ('%s' does not contain(\"mode\"))\n",
                         (param["mode"].String()).c_str(), SYSTEM_SERVICE_TEMP_FILE);
                 setMode(mode, response);
-
             } else if (m_currentMode.empty()) {
                 JsonObject mode,param,response;
                 param["duration"] = m_temp_settings.getValue("mode_duration");
@@ -3871,7 +3870,7 @@ namespace WPEFramework {
         {
             int seconds = 600; /* 10 Minutes to Reboot */
 
-            LOGINFO("len = %lud\n", len);
+            LOGINFO("len = %zu\n", len);
             /* Only handle state events */
             if (eventId != IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) return;
 
@@ -3898,15 +3897,13 @@ namespace WPEFramework {
 
                 case IARM_BUS_SYSMGR_SYSSTATE_TIME_SOURCE:
                     {
-                        if(sysEventData != nullptr){
-                            if (sysEventData->data.systemStates.state)
-                            {
-                                LOGWARN("Clock is set.");
-                                if (SystemServices::_instance) {
-                                    SystemServices::_instance->onClockSet();
-                                } else {
-                                    LOGERR("SystemServices::_instance is NULL.\n");
-                                }
+                        if (sysEventData->data.systemStates.state)
+                        {
+                            LOGWARN("Clock is set.");
+                            if (SystemServices::_instance) {
+                                SystemServices::_instance->onClockSet();
+                            } else {
+                                LOGERR("SystemServices::_instance is NULL.\n");
                             }
                         }
                     } break;
@@ -4061,7 +4058,8 @@ namespace WPEFramework {
         uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)
         {
             bool retStatus = true;
-            string flReason ="";
+            //string flReason ="";
+	    FwFailReason failReason = FwFailReasonNone;
 
             std::vector<string> lines;
             if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
@@ -4080,14 +4078,15 @@ namespace WPEFramework {
                                       return strcasecmp(C_STR(t.first), C_STR(str)) == 0;
                                   });
                 if (it != FwFailReasonFromText.end())
-                    flReason = it->first;
+                    failReason = it->second;
+
                 else if (!str.empty())
                     LOGWARN("Unrecognised FailureReason!");
             } else {
                 LOGINFO("Could not read file %s", FWDNLDSTATUS_FILE_NAME);
             }
 
-            response["failReason"] = flReason;
+	        response["failReason"] = FwFailReasonToText.at(failReason);
             returnResponse(retStatus);
         }
         /***
