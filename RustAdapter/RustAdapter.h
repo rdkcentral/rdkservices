@@ -52,7 +52,7 @@ public:
       LibName = rhs.LibName;
     }
 
-    Config() : Core::JSON::Container(), OutOfProcess(true)
+    Config() : Core::JSON::Container(), OutOfProcess(false)
     {
       Add(_T("outofprocess"), &OutOfProcess);
       Add(_T("address"), &Address);
