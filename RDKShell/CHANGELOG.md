@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.2.2]
+### Changed
+- launch webkitbrowser plugin in container mode
+
 ## [1.2.1]
 ### Fixed
 - Optimize include
