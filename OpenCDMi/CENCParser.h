@@ -21,6 +21,7 @@
 #define __CENCPARSER_H
 
 #include "Module.h"
+#include "Protobuf.h"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -46,25 +47,25 @@ namespace Plugin {
             WIDEVINE = 0x0008
         };
 
-        class KeyId : public OCDM::KeyId {
+        class KeyId : public Exchange::KeyId {
         public:
             inline KeyId()
-                : OCDM::KeyId()
+                : Exchange::KeyId()
                 , _systems(0)
             {
             }
             inline KeyId(const systemType type, const uint8_t kid[], const uint8_t length)
-                : OCDM::KeyId(kid, length)
+                : Exchange::KeyId(kid, length)
                 , _systems(type)
             {
             }
             inline KeyId(const systemType type, const uint32_t a, const uint16_t b, const uint16_t c, const uint8_t d[])
-                : OCDM::KeyId(a, b, c, d)
+                : Exchange::KeyId(a, b, c, d)
                 , _systems(type)
             {
             }
             inline KeyId(const KeyId& copy)
-                : OCDM::KeyId(copy)
+                : Exchange::KeyId(copy)
                 , _systems(copy._systems)
             {
             }
@@ -74,23 +75,23 @@ namespace Plugin {
 
             inline KeyId& operator=(const KeyId& rhs)
             {
-                OCDM::KeyId::operator=(rhs);
+                Exchange::KeyId::operator=(rhs);
                 _systems = rhs._systems;
                 return (*this);
             }
 
         public:
-            inline bool operator==(const OCDM::KeyId& rhs) const
+            inline bool operator==(const Exchange::KeyId& rhs) const
             {
-                return (OCDM::KeyId::operator== (rhs));
+                return (Exchange::KeyId::operator== (rhs));
             }   
-            inline bool operator!=(const OCDM::KeyId& rhs) const
+            inline bool operator!=(const Exchange::KeyId& rhs) const
             {
                 return (!operator==(rhs));
             }
             inline bool operator==(const KeyId& rhs) const
             {
-                return (OCDM::KeyId::operator== (rhs));
+                return (Exchange::KeyId::operator== (rhs));
             }   
             inline bool operator!=(const KeyId& rhs) const
             {
@@ -126,13 +127,13 @@ namespace Plugin {
         }
 
     public:
-        inline ::OCDM::ISession::KeyStatus Status() const
+        inline Exchange::ISession::KeyStatus Status() const
         {
-            return (_keyIds.size() > 0 ? _keyIds.begin()->Status() : ::OCDM::ISession::StatusPending);
+            return (_keyIds.size() > 0 ? _keyIds.begin()->Status() : Exchange::ISession::StatusPending);
         }
-        inline ::OCDM::ISession::KeyStatus Status(const KeyId& key) const
+        inline Exchange::ISession::KeyStatus Status(const KeyId& key) const
         {
-            ::OCDM::ISession::KeyStatus result(::OCDM::ISession::StatusPending);
+            Exchange::ISession::KeyStatus result(Exchange::ISession::StatusPending);
             if (key.IsValid() == true) {
                 std::list<KeyId>::const_iterator index(std::find(_keyIds.begin(), _keyIds.end(), key));
                 if (index != _keyIds.end()) {
@@ -145,7 +146,7 @@ namespace Plugin {
         {
             return (Iterator(_keyIds));
         }
-        inline bool HasKeyId(const OCDM::KeyId& keyId) const
+        inline bool HasKeyId(const Exchange::KeyId& keyId) const
         {
             return (std::find(_keyIds.begin(), _keyIds.end(), keyId) != _keyIds.end());
         }
@@ -161,7 +162,7 @@ namespace Plugin {
                 index->Flag(key.Systems());
             }
         }
-        inline const KeyId* UpdateKeyStatus(::OCDM::ISession::KeyStatus status, const KeyId& key)
+        inline const KeyId* UpdateKeyStatus(Exchange::ISession::KeyStatus status, const KeyId& key)
         {
             KeyId* entry = nullptr;
 
@@ -256,87 +257,117 @@ namespace Plugin {
 
             do {
                 // Check if this is a PSSH box...
-                uint32_t size = (data[offset] << 24) | (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3];
-                if (size == 0) {
-                    TRACE(Trace::Information, (_T("While parsing CENC, found chunk of size 0, are you sure the data is valid? %d\n"), __LINE__));
-                    break;
-                }
-
-                if ((size <= static_cast<uint32_t>(length - offset)) && (memcmp(&(data[offset + 4]), PSSHeader, 4) == 0)) {
-                    ParsePSSHBox(&(data[offset + 4 + 4]), size - 4 - 4);
-                } else {
-                    uint32_t XMLSize = (data[offset] | (data[offset + 1] << 8) | (data[offset + 2] << 16) | (data[offset + 3] << 24));
-
-                    if (XMLSize <= static_cast<uint32_t>(length - offset)) {
-
-                        uint16_t stringLength = (data[offset + 8] | (data[offset + 9] << 8));
-                        if (stringLength <= (XMLSize - 10)) {
-
-                            // Seems like it is an XMLBlob, without PSSH header, we have seen that on PlayReady only..
-                            ParseXMLBox(&(data[offset + 10]), stringLength);
-                        }
-
-                        offset += XMLSize;
-
-                    } else if ((offset == 0) && (data[0] == '<') && (data[2] == 'W') && (data[4] == 'R') && (data[6] == 'M')) {
-                        ParseXMLBox(data, size);
+                uint32_t sizeBE = ((data[offset] << 24) | (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3]);
+                if ((sizeBE <= static_cast<uint32_t>(length - offset)) && ((length - offset) >= 4)
+                        && (::memcmp(&(data[offset + 4]), PSSHeader, 4) == 0)) {
+                    TRACE(Trace::Information, (_T("Initdata contains a PSSH box")));
+                    ParsePSSHBox(&(data[offset + 4 + 4]), (sizeBE - 4 - 4));
+                    offset += sizeBE;
+                } else if (offset == 0) {
+                    uint32_t sizeLE = (data[offset] | (data[offset + 1] << 8) | (data[offset + 2] << 16) | (data[offset + 3] << 24));
+                    if ((data[0] == '<') && (data[2] == 'W') && (data[4] == 'R') && (data[6] == 'M')) {
+                        // Playready XML data without PSSH header and withouth Playready Rights Managment Header
+                        TRACE(Trace::Information, (_T("Initdata contains Playready XML data")));
+                        ParseXMLBox(data, length);
                         offset = length;
                     } else if (std::string(reinterpret_cast<const char*>(data), length).find(JSONKeyIds) != std::string::npos) {
-                        /* keyids initdata type */
-                        TRACE(Trace::Information, (_T("Initdata contains clearkey's key ids")));
-
+                        // keyids initdata type
+                        TRACE(Trace::Information, (_T("Initdata contains ClearKey key IDs")));
                         ParseJSONInitData(reinterpret_cast<const char*>(data), length);
-                    } else {
-                        TRACE(Trace::Information, (_T("Have no clue what this is!!! %d\n"), __LINE__));
+                        offset = length;
+                    } else if (sizeLE == length) {
+                        // Seems like it is an XMLBlob, without PSSH header, we have seen that on PlayReady only..
+                        TRACE(Trace::Information, (_T("Initdata contains Playready PSSH payload")));
+                        if (ParsePlayReadyPSSHData(&data[offset], length) == true) {
+                            offset = length;
+                        }
                     }
+                    break;
+                } else {
+                    break;
                 }
-                offset += size;
-
             } while (offset < length);
+
+            if (offset != length) {
+                TRACE(Trace::Information, (_T("Have no clue what this is!!!")));
+            }
         }
 
         void ParsePSSHBox(const uint8_t data[], const uint16_t length)
         {
-            systemType system(COMMON);
-            const uint8_t* psshData(&(data[KeyId::Length() + 4 /* flags */]));
-            uint32_t count((psshData[0] << 24) | (psshData[1] << 16) | (psshData[2] << 8) | psshData[3]);
-            uint16_t stringLength = (data[8] | (data[9] << 8));
+            const uint16_t PSSH_HEADER_SIZE_V0 = 24;
+            const uint16_t PSSH_HEADER_SIZE_V1 = 28;
 
-            if (::memcmp(&(data[4]), CommonEncryption, KeyId::Length()) == 0) {
-                psshData += 4;
-                TRACE(Trace::Information, (_T("Common detected [%d]\n"), __LINE__));
-            } else if (::memcmp(&(data[4]), PlayReady, KeyId::Length()) == 0) {
-                if (stringLength <= (length - 10)) {
-                    ParseXMLBox(&(psshData[10]), count);
-                    TRACE(Trace::Information, (_T("PlayReady XML detected [%d]\n"), __LINE__));
-                    count = 0;
+            if (length >= PSSH_HEADER_SIZE_V0) {
+                systemType system(COMMON);
+                const uint8_t version(data[0]);
+                const uint8_t* keyIdData(nullptr);
+                uint32_t keyIdCount(0);
+                const uint8_t* psshData(nullptr);
+                uint32_t psshDataSize(0);
+
+                auto Read32BE = [](const uint8_t ptr[]) -> uint32_t {
+                    return ((ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3]);
+                };
+
+                if (version == 0) {
+                    psshData = &data[PSSH_HEADER_SIZE_V0];
+                    psshDataSize = Read32BE(psshData - 4);
+                    if ((psshDataSize + PSSH_HEADER_SIZE_V0) > length) {
+                        psshData = nullptr;
+                    }
+                } else if (version == 1) {
+                    /* Version 1 inserts raw key IDs before DRM system specific payload. */
+                    keyIdData = &data[PSSH_HEADER_SIZE_V0];
+                    keyIdCount = Read32BE(keyIdData - 4);
+                    if (((keyIdCount * KeyId::Length()) + PSSH_HEADER_SIZE_V1) > length) {
+                        keyIdData = nullptr;
+                    } else {
+                        psshData = &data[PSSH_HEADER_SIZE_V1 + (keyIdCount * KeyId::Length())];
+                        psshDataSize = Read32BE(psshData - 4);
+                        if (psshDataSize + PSSH_HEADER_SIZE_V1 + (keyIdCount * KeyId::Length()) > length) {
+                            psshData = nullptr;
+                        }
+                    }
                 } else {
-                    TRACE(Trace::Information, (_T("PlayReady BIN detected [%d]\n"), __LINE__));
-                    system = PLAYREADY;
-                    psshData += 4;
+                    TRACE(Trace::Error, (_T("Unsupported PSSH version (%hhu)"), version));
                 }
-            } else if (::memcmp(&(data[4]), WideVine, KeyId::Length()) == 0) {
-                TRACE(Trace::Information, (_T("WideVine detected [%d]\n"), __LINE__));
-                system = WIDEVINE;
-                psshData += 4 + 4 /* God knows what this uint32 means, we just skip it. */;
-            } else if (::memcmp(&(data[4]), ClearKey, KeyId::Length()) == 0) {
-                TRACE(Trace::Information, (_T("ClearKey detected [%d]\n"), __LINE__));
-                system = CLEARKEY;
-                psshData += 4;
+
+                if ((keyIdData != nullptr) || (psshData != nullptr)) {
+                    if (::memcmp(&(data[4]), CommonEncryption, 16) == 0) {
+                        TRACE(Trace::Information, (_T("Common encryption detected")));
+                    } else if (::memcmp(&(data[4]), PlayReady, 16) == 0) {
+                        TRACE(Trace::Information, (_T("PlayReady detected")));
+                        system = PLAYREADY;
+                        if (psshData != nullptr) {
+                            ParsePlayReadyPSSHData(psshData, psshDataSize);
+                        }
+                    } else if (::memcmp(&(data[4]), WideVine, 16) == 0) {
+                        TRACE(Trace::Information, (_T("Widevine detected")));
+                        system = WIDEVINE;
+                        if (psshData != nullptr) {
+                            ParseWidevinePSSHData(psshData, psshDataSize);
+                        }
+                    } else if (::memcmp(&(data[4]), ClearKey, 16) == 0) {
+                        TRACE(Trace::Information, (_T("ClearKey detected")));
+                        system = CLEARKEY;
+                    } else {
+                        TRACE(Trace::Information, (_T("Unknown DRM system: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X"),
+                                data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]));
+                    }
+
+                    if (keyIdData != nullptr) {
+                        TRACE(Trace::Information, (_T("Adding %d keys from PSSHv1 box"), keyIdCount));
+                        while (keyIdCount-- != 0) {
+                            AddKeyId(KeyId(system, keyIdData, KeyId::Length()));
+                            keyIdData += KeyId::Length();
+                        }
+                    }
+                } else {
+                    TRACE(Trace::Error, (_T("Invalid PSSH data")));
+                }
             } else {
-                TRACE(Trace::Information, (_T("Unknown system: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X.\n"), data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]));
-                count = 0;
-            }
-
-            if (data[0] != 1) {
-                count /= KeyId::Length();
-            }
-
-            TRACE(Trace::Information, (_T("Adding %d keys from PSSH box\n"), count));
-
-            while (count-- != 0) {
-                AddKeyId(KeyId(system, psshData, KeyId::Length()));
-                psshData += KeyId::Length();
+                TRACE(Trace::Error, (_T("Invalid PSSH box")));
             }
         }
 
@@ -413,10 +444,10 @@ namespace Plugin {
                 while ((size > 0) && ((begin = FindInXML(slot, size, "<KID ", 5)) < size)) {
                     uint16_t end = FindInXML(&(slot[begin + 10]), size - begin - 10, "</KID>", 6);
 
-                    uint16_t keyValue = FindInXML(&(slot[begin + 10]), end, "VALUE", 5);  
+                    uint16_t keyValue = FindInXML(&(slot[begin + 10]), end, "VALUE", 5);
                     uint16_t keyStart = FindInXML(&(slot[begin + 10 + keyValue + 10]), end - keyValue - 10, "\"", 1) + 2;
                     uint16_t keyLength = FindInXML(&(slot[begin + 10 + keyValue + 10 + keyStart]), end - keyValue - 10 - keyStart - 2, "\"", 1) - 2;
-                    
+
                     if (end < (size - begin - 10)) {
                         uint8_t byteArray[32];
 
@@ -474,6 +505,101 @@ namespace Plugin {
                 Core::FromString(keyID64, keyID, decodeLength);
                 AddKeyId(KeyId(system, keyID, static_cast<uint8_t>(sizeof(keyID))));
             }
+        }
+
+        bool ParsePlayReadyPSSHData(const uint8_t data[], const uint16_t length)
+        {
+            auto Read16LE = [](const uint8_t ptr[]) -> uint16_t {
+                return (ptr[0] | (ptr[1] << 8));
+            };
+            auto Read32LE = [](const uint8_t ptr[]) -> uint32_t {
+                return (ptr[0] | (ptr[1] << 8) | (ptr[2] << 16) | (ptr[3] << 24));
+            };
+
+            bool result = false;
+
+            uint32_t size = Read32LE(data);
+            data += 4;
+            if (size == length) {
+                uint16_t count = Read16LE(data);
+                if (count > 0) {
+                    const uint8_t* dataEnd = (data + length);
+                    data += 2;
+                    while ((data + 4) < dataEnd) {
+                        const uint16_t recordType = Read16LE(data);
+                        const uint16_t recordLength = Read16LE(data + 2);
+                        data += 4;
+                        if ((data + recordLength) >= dataEnd) {
+                            break;
+                        }
+                        if (recordType == 1 /* rights management */) {
+                            ParseXMLBox(data, recordLength);
+                        }
+                        data += recordLength;
+                        if (--count == 0) {
+                            break;
+                        }
+                    }
+                }
+                result = (count == 0);
+            }
+
+            return (result);
+        }
+
+        bool ParseWidevinePSSHData(const uint8_t data[], const uint16_t length)
+        {
+            class WidevinePsshPB2 : public Protobuf::Message {
+            public:
+                enum class algorithm : Protobuf::UInt32::type {
+                    UNENCRYPTED,
+                    AES_CTR = 1
+                };
+
+            public:
+                WidevinePsshPB2()
+                {
+                    Add(1, &Algorithm);
+                    Add(2, &KeyIDs);
+                    Add(3, &Provider);
+                    Add(4, &ContentID);
+                    Add(5, &TrackType);
+                    Add(6, &Policy);
+                    Add(7, &CryptoPeriodIndex);
+                    Add(8, &GroupedLicense);
+                    Add(9, &ProtectionScheme);
+                    Add(10,&CryptoPeriodDuration);
+                }
+
+            public:
+                Protobuf::EnumType<algorithm> Algorithm;
+                Protobuf::RepeatedType<Protobuf::Bytes> KeyIDs;
+                Protobuf::Utf8String Provider;
+                Protobuf::Utf8String ContentID;
+                Protobuf::Utf8String TrackType;
+                Protobuf::Utf8String Policy;
+                Protobuf::UInt32 CryptoPeriodIndex;
+                Protobuf::Bytes GroupedLicense;
+                Protobuf::UInt32 ProtectionScheme;
+                Protobuf::UInt32 CryptoPeriodDuration;
+            };
+
+            bool result = false;
+
+            WidevinePsshPB2 wvpb2;
+            if ((wvpb2.FromBuffer(data, length) == true) && (wvpb2.IsValid() == true)) {
+                if (wvpb2.KeyIDs.IsSet() == true) {
+                    for (auto const& keyID : wvpb2.KeyIDs.Elements()) {
+                        AddKeyId(KeyId(WIDEVINE, keyID.Value().data(), keyID.Value().size()));
+                    }
+                } else {
+                    TRACE(Trace::Information, (_T("No key IDs specified in Widevine PSSH data")));
+                }
+
+                result = true;
+            }
+
+            return (result);
         }
 
     private:

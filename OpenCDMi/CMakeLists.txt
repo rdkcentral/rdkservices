@@ -24,8 +24,9 @@ set(PLUGIN_OPENCDMI_MODE "Local" CACHE STRING "Controls if the plugin should run
 set(PLUGIN_OCDM_STARTUPORDER "" CACHE STRING "To configure startup order of OCDM plugin")
 
 # deprecated/legacy flags support
-if(PLUGIN_OPENCDMI_OOP)
-    unset(PLUGIN_OPENCDMI_MODE CACHE)
+if(PLUGIN_OPENCDMI_OOP STREQUAL "false")
+    set(PLUGIN_OPENCDMI_MODE "Off" CACHE STRING "Process mode"  FORCE)
+    unset(PLUGIN_OPENCDMI_OOP CACHE)
 elseif(PLUGIN_OPENCDMI_OUTOFPROCESS STREQUAL "false")
     set(PLUGIN_OPENCDMI_MODE "Off" CACHE STRING "Process mode"  FORCE)
     unset(PLUGIN_OPENCDMI_OUTOFPROCESS CACHE)
