@@ -2352,7 +2352,7 @@ namespace WPEFramework
 
 				case CECDeviceParams::REQUEST_OSD_NAME :	
 				{
-					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GiveOSDName()), 200);
+					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GiveOSDName()), 500);
 				}
 					break;
 
