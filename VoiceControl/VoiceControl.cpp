@@ -6,7 +6,7 @@
 #include "UtilsIarm.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_MINOR 2
 #define API_VERSION_NUMBER_PATCH 0
 
 using namespace std;
@@ -689,7 +689,7 @@ namespace WPEFramework {
 
             params.FromString(eventData->payload);
 
-            sendNotify("onServerMessage", params);
+            sendNotify_("onServerMessage", params);
         }
 
         void VoiceControl::onStreamEnd(ctrlm_voice_iarm_event_json_t* eventData)
@@ -707,7 +707,7 @@ namespace WPEFramework {
 
             params.FromString(eventData->payload);
 
-            sendNotify("onSessionEnd", params);
+            sendNotify_("onSessionEnd", params);
         }
         //End events
 
@@ -716,6 +716,27 @@ namespace WPEFramework {
         {
             LOGINFO("setting version: %d", (int)apiVersionNumber);
             m_apiVersionNumber = apiVersionNumber;
+        }
+
+        void VoiceControl::sendNotify_(const char* eventName, JsonObject parameters)
+        {
+            bool value = false;
+            const char* paramKey = NULL;
+
+            paramKey = "maskPii";
+            if (parameters.HasLabel(paramKey))
+            {
+                getBoolParameter(paramKey, value);
+            }
+
+            if(value)
+            {
+                sendNotifyMaskParameters(eventName, parameters);
+            }
+            else
+            {
+                sendNotify(eventName, parameters);
+            }
         }
         //End local private utility methods
 

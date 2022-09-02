@@ -93,6 +93,11 @@ TTS_Error TTSManager::listVoices(std::string language, std::vector<std::string> 
         key = m_defaultConfiguration.language();
     } else if(language != "*") {
         key += language; // return voices for only the passed language
+        if(m_defaultConfiguration.m_others.find(key) != m_defaultConfiguration.m_others.end())
+        {
+            voices.push_back(m_defaultConfiguration.m_others[key]);
+        }
+        return TTS_OK;
     }
 
     if(returnCurrentConfiguration) {
@@ -123,15 +128,23 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
            updated = true;
         }
     }
-    updated |= m_defaultConfiguration.setLanguage(configuration.language);
     /* Set default voice for the language only when voice is empty*/
     if(!configuration.language.empty() && configuration.voice.empty()) {
         std::vector<std::string> voices;
         listVoices(configuration.language, voices);
-        updated |= m_defaultConfiguration.setVoice(voices.front());
+        if(voices.empty()) {
+            TTSLOG_WARNING("voice is empty and no voices are defined for the specified language ('%s')!!!", configuration.language.c_str());
+            return TTS_FAIL;
+        }
+        else {
+            updated |= m_defaultConfiguration.setVoice(voices.front());
+            updated |= m_defaultConfiguration.setLanguage(configuration.language);
+        }
     }
-    else
+    else {
         updated |= m_defaultConfiguration.setVoice(configuration.voice);
+        updated |= m_defaultConfiguration.setLanguage(configuration.language);
+    }
 
     updated |= m_defaultConfiguration.setVolume(configuration.volume);
     updated |= m_defaultConfiguration.setRate(configuration.rate);
