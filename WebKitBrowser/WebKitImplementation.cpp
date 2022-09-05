@@ -68,6 +68,11 @@ WK_EXPORT WKProcessID WKPageGetProcessIdentifier(WKPageRef page);
 #include "HTML5Notification.h"
 #include "WebKitBrowser.h"
 
+#if defined(ENABLE_CLOUD_COOKIE_JAR)
+#include "CookieJar.h"
+#include <libsoup/soup.h>
+#endif
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -350,6 +355,10 @@ static GSourceFuncs _handlerIntervention =
                                  public Exchange::IBrowser,
                                  public Exchange::IWebBrowser,
                                  public Exchange::IApplication,
+                                 public Exchange::IBrowserScripting,
+                                 #if defined(ENABLE_CLOUD_COOKIE_JAR)
+                                 public Exchange::IBrowserCookieJar,
+                                 #endif
                                  public PluginHost::IStateControl {
     public:
         class BundleConfig : public Core::JSON::Container {
@@ -472,6 +481,7 @@ static GSourceFuncs _handlerIntervention =
                 , Whitelist()
                 , PageGroup(_T("WPEPageGroup"))
                 , CookieStorage()
+                , CloudCookieJarEnabled(false)
                 , LocalStorage()
                 , LocalStorageEnabled(false)
                 , LocalStorageSize()
@@ -532,6 +542,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("whitelist"), &Whitelist);
                 Add(_T("pagegroup"), &PageGroup);
                 Add(_T("cookiestorage"), &CookieStorage);
+                Add(_T("cloudcookiejarenabled"), &CloudCookieJarEnabled);
                 Add(_T("localstorage"), &LocalStorage);
                 Add(_T("localstorageenabled"), &LocalStorageEnabled);
                 Add(_T("localstoragesize"), &LocalStorageSize);
@@ -599,6 +610,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::String Whitelist;
             Core::JSON::String PageGroup;
             Core::JSON::String CookieStorage;
+            Core::JSON::Boolean CloudCookieJarEnabled;
             Core::JSON::String LocalStorage;
             Core::JSON::Boolean LocalStorageEnabled;
             Core::JSON::DecUInt16 LocalStorageSize;
@@ -772,6 +784,7 @@ static GSourceFuncs _handlerIntervention =
             , _notificationManager()
             , _httpCookieAcceptPolicy(kWKHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain)
             , _navigationRef(nullptr)
+            , _userContentController(nullptr)
 #endif
             , _adminLock()
             , _fps(0)
@@ -1150,6 +1163,330 @@ static GSourceFuncs _handlerIntervention =
             });
             return Core::ERROR_NONE;
         }
+
+        uint32_t RunJavaScript(const string& script) override
+        {
+            if (_context == nullptr)
+                return Core::ERROR_GENERAL;
+
+            using RunJavaScriptData = std::tuple<WebKitImplementation*, string>;
+            auto* data = new RunJavaScriptData(this, script);
+
+            g_main_context_invoke_full(
+                _context,
+                G_PRIORITY_DEFAULT,
+                [](gpointer customdata) -> gboolean {
+                    auto& data = *static_cast<RunJavaScriptData*>(customdata);
+                    WebKitImplementation* object = std::get<0>(data);
+                    auto& script = std::get<1>(data);
+#ifdef WEBKIT_GLIB_API
+                    webkit_web_view_run_javascript(object->_view, script.c_str(), nullptr, nullptr, nullptr);
+#else
+                    auto scriptRef = WKStringCreateWithUTF8CString(script.c_str());
+                    WKPageRunJavaScriptInMainFrame(object->_page, scriptRef, nullptr, [](WKSerializedScriptValueRef, WKErrorRef, void*){});
+                    WKRelease(scriptRef);
+#endif
+                    return G_SOURCE_REMOVE;
+                },
+                data,
+                [](gpointer customdata) {
+                    delete static_cast<RunJavaScriptData*>(customdata);
+                });
+            return Core::ERROR_NONE;
+        }
+
+        uint32_t AddUserScript(const string& script, bool topFrameOnly) override
+        {
+            if (_context == nullptr)
+                return Core::ERROR_GENERAL;
+            using AddUserScriptData = std::tuple<WebKitImplementation*, string, bool>;
+            auto* data = new AddUserScriptData(this, script, topFrameOnly);
+            g_main_context_invoke_full(
+                _context,
+                G_PRIORITY_DEFAULT,
+                [](gpointer customdata) -> gboolean {
+                    auto& data = *static_cast<AddUserScriptData*>(customdata);
+                    WebKitImplementation* object = std::get<0>(data);
+                    const auto& scriptContent = std::get<1>(data);
+                    const bool topFrameOnly = std::get<2>(data);
+                    object->AddUserScriptImpl(scriptContent.c_str(), topFrameOnly);
+                    return G_SOURCE_REMOVE;
+                },
+                data,
+                [](gpointer customdata) {
+                    delete static_cast<AddUserScriptData*>(customdata);
+                });
+            return Core::ERROR_NONE;
+        }
+
+        uint32_t RemoveAllUserScripts() override
+        {
+            if (_context == nullptr)
+                return Core::ERROR_GENERAL;
+
+            g_main_context_invoke_full(
+                _context,
+                G_PRIORITY_DEFAULT,
+                [](gpointer customdata) -> gboolean {
+                    WebKitImplementation* object = static_cast<WebKitImplementation*>(customdata);
+#ifdef WEBKIT_GLIB_API
+                    auto* userContentManager = webkit_web_view_get_user_content_manager(object->_view);
+                    webkit_user_content_manager_remove_all_scripts(userContentManager);
+#else
+                    WKUserContentControllerRemoveAllUserScripts(object->_userContentController);
+#endif
+                    return G_SOURCE_REMOVE;
+                },
+                this,
+                nullptr);
+            return Core::ERROR_NONE;
+        }
+
+#if defined(ENABLE_CLOUD_COOKIE_JAR)
+        uint32_t CookieJar(uint32_t& version /* @out */, uint32_t& checksum /* @out */, string& payload /* @out */) const override
+        {
+            uint32_t result = Core::ERROR_GENERAL;
+
+            if (_context == nullptr)
+                return result;
+
+            _adminLock.Lock();
+            if (_cookieJar.IsStale()) {
+                _adminLock.Unlock();
+
+                g_main_context_invoke(
+                    _context,
+                    [](gpointer customdata) -> gboolean {
+                        WebKitImplementation& object =
+                            *static_cast<WebKitImplementation*>(customdata);
+                        object.RefreshCookieJar();
+                        return G_SOURCE_REMOVE;
+                    },
+                    const_cast<WebKitImplementation*>(this));
+
+                if (!_cookieJar.WaitForRefresh(1000))
+                    return Core::ERROR_TIMEDOUT;
+
+                _adminLock.Lock();
+            }
+            result = _cookieJar.Pack(version, checksum, payload);
+            _adminLock.Unlock();
+
+            return result;
+        }
+
+        uint32_t CookieJar(const uint32_t version, const uint32_t checksum, const string& payload) override
+        {
+            uint32_t result = Core::ERROR_GENERAL;
+            if (_context == nullptr)
+                return result;
+
+            _adminLock.Lock();
+            result = _cookieJar.Unpack(version, checksum, payload);
+            _adminLock.Unlock();
+
+            if (result == Core::ERROR_NONE)
+            {
+                g_main_context_invoke(
+                    _context,
+                    [](gpointer customdata) -> gboolean {
+                        auto& object = *static_cast<WebKitImplementation*>(customdata);
+
+                        std::vector<std::string> cookies;
+                        object._adminLock.Lock();
+                        cookies = object._cookieJar.GetCookies();
+                        object._adminLock.Unlock();
+
+                        object.SetCookies(cookies);
+                        return G_SOURCE_REMOVE;
+                    },
+                    this);
+            }
+
+            return result;
+        }
+
+        void Register(Exchange::IBrowserCookieJar::INotification* sink) override
+        {
+            _adminLock.Lock();
+
+            // Make sure a sink is not registered multiple times.
+            ASSERT(std::find(_cookieJarClients.begin(), _cookieJarClients.end(), sink) == _cookieJarClients.end());
+
+            _cookieJarClients.push_back(sink);
+            sink->AddRef();
+
+            TRACE(Trace::Information, (_T("Registered cookie jar notification client %p"), sink));
+
+            _adminLock.Unlock();
+        }
+
+        void Unregister(Exchange::IBrowserCookieJar::INotification* sink) override
+        {
+            _adminLock.Lock();
+
+            auto index(std::find(_cookieJarClients.begin(), _cookieJarClients.end(), sink));
+
+            // Make sure you do not unregister something you did not register !!!
+            ASSERT(index != _cookieJarClients.end());
+
+            if (index != _cookieJarClients.end()) {
+                (*index)->Release();
+                _cookieJarClients.erase(index);
+                TRACE(Trace::Information, (_T("Unregistered cookie jar notification client %p"), sink));
+            }
+
+            _adminLock.Unlock();
+        }
+
+        void NotifyCookieJarChanged()
+        {
+            _adminLock.Lock();
+
+            _cookieJar.MarkAsStale();
+
+            auto index(_cookieJarClients.begin());
+            while (index != _cookieJarClients.end()) {
+                (*index)->CookieJarChanged();
+                index++;
+            }
+
+            _adminLock.Unlock();
+        }
+
+        void RefreshCookieJar()
+        {
+            #ifdef WEBKIT_GLIB_API
+            #else
+            static const auto toSoupCookie = [](WKCookieRef cookie) -> SoupCookie*
+            {
+                auto name   = WKCookieGetName(cookie);
+                auto value  = WKCookieGetValue(cookie);
+                auto domain = WKCookieGetDomain(cookie);
+                auto path   = WKCookieGetPath(cookie);
+                SoupCookie* soupCookie = soup_cookie_new(
+                    WKStringToString(name).c_str(),
+                    WKStringToString(value).c_str(),
+                    WKStringToString(domain).c_str(),
+                    WKStringToString(path).c_str(),
+                    -1);
+                SoupDate* expires = soup_date_new_from_time_t(WKCookieGetExpires(cookie) / 1000.0);
+                soup_cookie_set_expires(soupCookie, expires);
+                soup_date_free(expires);
+                soup_cookie_set_http_only(soupCookie, WKCookieGetHttpOnly(cookie));
+                soup_cookie_set_secure(soupCookie, WKCookieGetSecure(cookie));
+                WKRelease(path);
+                WKRelease(domain);
+                WKRelease(value);
+                WKRelease(name);
+                return soupCookie;
+            };
+
+            WKCookieManagerGetCookies(
+                _cookieManager, this, [](WKArrayRef cookies, WKErrorRef error, void* clientInfo) {
+                WebKitImplementation& browser = *static_cast< WebKitImplementation*>(clientInfo);
+                if (error) {
+                    auto errorDomain = WKErrorCopyDomain(error);
+                    auto errorDescription = WKErrorCopyLocalizedDescription(error);
+                    TRACE_GLOBAL(Trace::Error,
+                                 (_T("GetCookies failed, error(code=%d, domain=%s, message=%s)"),
+                                     WKErrorGetErrorCode(error),
+                                     WKStringToString(errorDomain).c_str(),
+                                     WKStringToString(errorDescription).c_str()));
+                    WKRelease(errorDescription);
+                    WKRelease(errorDomain);
+                    return;
+                }
+                std::vector<std::string> cookieVector;
+                size_t size = cookies ? WKArrayGetSize(cookies) : 0;
+                if (size > 0)
+                {
+                    cookieVector.reserve(size);
+                    for (size_t i = 0; i < size; ++i)
+                    {
+                        WKCookieRef cookie = static_cast<WKCookieRef>(WKArrayGetItemAtIndex(cookies, i));
+                        if (WKCookieGetSession(cookie))
+                            continue;
+                        SoupCookie* soupCookie = toSoupCookie(cookie);
+                        gchar *cookieHeader = soup_cookie_to_set_cookie_header(soupCookie);
+                        cookieVector.push_back(cookieHeader);
+                        soup_cookie_free(soupCookie);
+                        g_free(cookieHeader);
+                    }
+                    cookieVector.shrink_to_fit();
+                }
+                browser._adminLock.Lock();
+                browser._cookieJar.SetCookies(std::move(cookieVector));
+                browser._adminLock.Unlock();
+            });
+            #endif
+        }
+
+        void SetCookies(const std::vector<std::string>& cookies)
+        {
+            #ifdef WEBKIT_GLIB_API
+            // TODO
+            #else
+            auto toWKCookie = [](SoupCookie* cookie) -> WKCookieRef
+            {
+                SoupDate* expires = soup_cookie_get_expires(cookie);
+                auto name   = WKStringCreateWithUTF8CString(soup_cookie_get_name(cookie));
+                auto value  = WKStringCreateWithUTF8CString(soup_cookie_get_value(cookie));
+                auto domain = WKStringCreateWithUTF8CString(soup_cookie_get_domain(cookie));
+                auto path   = WKStringCreateWithUTF8CString(soup_cookie_get_path(cookie));
+                WKCookieRef cookieRef =
+                    WKCookieCreate(
+                        name,
+                        value,
+                        domain,
+                        path,
+                        expires ? static_cast<double>(soup_date_to_time_t(expires)) * 1000 : 0,
+                        soup_cookie_get_http_only(cookie),
+                        soup_cookie_get_secure(cookie),
+                        !expires);
+                WKRelease(name);
+                WKRelease(value);
+                WKRelease(domain);
+                WKRelease(path);
+                return cookieRef;
+            };
+            size_t idx = 0;
+            auto cookiesArray = std::unique_ptr<WKTypeRef[]>(new WKTypeRef[cookies.size()]);
+            for (const auto& cookie : cookies)
+            {
+                std::unique_ptr<SoupCookie, void(*)(SoupCookie*)> sc(soup_cookie_parse(cookie.c_str(), nullptr), soup_cookie_free);
+                if (!sc)
+                    continue;
+                const char* domain = soup_cookie_get_domain(sc.get());
+                if (!domain)
+                    continue;
+                // soup_cookie_parse() may prepend '.' to the domain,
+                // check the original cookie string and remove '.' if needed
+                if (domain[0] == '.')
+                {
+                    const char kDomainNeedle[] = "domain=";
+                    const size_t kDomainNeedleLength = sizeof(kDomainNeedle) - 1;
+                    auto it = std::search(
+                        cookie.begin(), cookie.end(), kDomainNeedle, kDomainNeedle + kDomainNeedleLength,
+                        [](const char c1, const char c2) {
+                            return ::tolower(c1) == c2;
+                        });
+                    if (it != cookie.end())
+                        it += kDomainNeedleLength;
+                    if (it != cookie.end() && *it != '.' && *it != ';')
+                    {
+                        char* adjustedDomain = g_strdup(domain + 1);
+                        soup_cookie_set_domain(sc.get(), adjustedDomain);
+                    }
+                }
+                cookiesArray[idx++] = toWKCookie(sc.get());
+            }
+            auto cookieArray = WKArrayCreateAdoptingValues(cookiesArray.get(), idx);
+            WKCookieManagerSetCookies(_cookieManager, cookieArray);
+            WKRelease(cookieArray);
+            #endif
+        }
+#endif
 
         uint32_t Visibility(VisibilityType& visible) const override
         {
@@ -1988,6 +2325,10 @@ static GSourceFuncs _handlerIntervention =
         INTERFACE_ENTRY(Exchange::IWebBrowser)
         INTERFACE_ENTRY(Exchange::IBrowser)
         INTERFACE_ENTRY (Exchange::IApplication)
+        INTERFACE_ENTRY (Exchange::IBrowserScripting)
+#if defined(ENABLE_CLOUD_COOKIE_JAR)
+        INTERFACE_ENTRY (Exchange::IBrowserCookieJar)
+#endif
         INTERFACE_ENTRY(PluginHost::IStateControl)
         END_INTERFACE_MAP
 
@@ -2375,7 +2716,7 @@ static GSourceFuncs _handlerIntervention =
                 reinterpret_cast<GCallback>(wpeNotifyWPEFrameworkMessageReceivedCallback), this);
             webkit_user_content_manager_register_script_message_handler(userContentManager, "wpeNotifyWPEFramework");
 
-            TryLoadingUserScripts(userContentManager);
+            TryLoadingUserScripts();
 
             if (_config.Transparent.Value() == true) {
                 WebKitColor transparent { 0, 0, 0, 0};
@@ -2543,27 +2884,41 @@ static GSourceFuncs _handlerIntervention =
 
             WKPageGroupSetPreferences(pageGroup, preferences);
 
-            auto userContentController = WKUserContentControllerCreate();
+            _userContentController = WKUserContentControllerCreate();
             auto pageConfiguration = WKPageConfigurationCreate();
             WKPageConfigurationSetContext(pageConfiguration, wkContext);
             WKPageConfigurationSetPageGroup(pageConfiguration, pageGroup);
-            WKPageConfigurationSetUserContentController(pageConfiguration, userContentController);
+            WKPageConfigurationSetUserContentController(pageConfiguration, _userContentController);
 
-            TryLoadingUserScripts(userContentController);
+            TryLoadingUserScripts();
 
-            gchar* cookieDatabasePath;
-
-            if (_config.CookieStorage.IsSet() == true && _config.CookieStorage.Value().empty() == false) {
-                cookieDatabasePath = g_build_filename(_config.CookieStorage.Value().c_str(), "cookies.db", nullptr);
-            } else {
-                cookieDatabasePath = g_build_filename(g_get_user_cache_dir(), "cookies.db", nullptr);
+            _cookieManager = WKContextGetCookieManager(wkContext);
+            #if defined(ENABLE_CLOUD_COOKIE_JAR)
+            if (_config.CloudCookieJarEnabled.IsSet() && _config.CloudCookieJarEnabled.Value()) {
+                WKCookieManagerClientV0 client = {
+                    { 0, this },
+                    // cookiesDidChange
+                    [](WKCookieManagerRef, const void* clientInfo) {
+                        WebKitImplementation* browser = const_cast<WebKitImplementation*>(static_cast<const WebKitImplementation*>(clientInfo));
+                        browser->NotifyCookieJarChanged();
+                    }
+                };
+                WKCookieManagerSetClient(_cookieManager, &client.base);
+                WKCookieManagerStartObservingCookieChanges(_cookieManager);
+            } else
+            #endif
+            {
+                gchar* cookieDatabasePath;
+                if (_config.CookieStorage.IsSet() == true && _config.CookieStorage.Value().empty() == false) {
+                    cookieDatabasePath = g_build_filename(_config.CookieStorage.Value().c_str(), "cookies.db", nullptr);
+                } else {
+                    cookieDatabasePath = g_build_filename(g_get_user_cache_dir(), "cookies.db", nullptr);
+                }
+                auto path = WKStringCreateWithUTF8CString(cookieDatabasePath);
+                g_free(cookieDatabasePath);
+                WKCookieManagerSetCookiePersistentStorage(_cookieManager, path, kWKCookieStorageTypeSQLite);
             }
-
-            auto path = WKStringCreateWithUTF8CString(cookieDatabasePath);
-            g_free(cookieDatabasePath);
-            auto cookieManager = WKContextGetCookieManager(wkContext);
-            WKCookieManagerSetCookiePersistentStorage(cookieManager, path, kWKCookieStorageTypeSQLite);
-            WKCookieManagerSetHTTPCookieAcceptPolicy(cookieManager, _httpCookieAcceptPolicy);
+            WKCookieManagerSetHTTPCookieAcceptPolicy(_cookieManager, _httpCookieAcceptPolicy);
 
 #ifdef WPE_WEBKIT_DEPRECATED_API
             _view = WKViewCreateWithViewBackend(wpe_view_backend_create(), pageConfiguration);
@@ -2646,7 +3001,7 @@ static GSourceFuncs _handlerIntervention =
             if (_automationSession) WKRelease(_automationSession);
 
             WKRelease(_view);
-            WKRelease(userContentController);
+            WKRelease(_userContentController);
             WKRelease(pageConfiguration);
             WKRelease(pageGroup);
             WKRelease(wkContext);
@@ -2660,45 +3015,41 @@ static GSourceFuncs _handlerIntervention =
         }
 #endif // WEBKIT_GLIB_API
 
+        void AddUserScriptImpl(const char* scriptContent, bool topFrameOnly)
+        {
 #ifdef WEBKIT_GLIB_API
-        void TryLoadingUserScripts(WebKitUserContentManager* userContentManager)
+            auto* userContentManager = webkit_web_view_get_user_content_manager(_view);
+            auto* script = webkit_user_script_new(
+                scriptContent,
+                topFrameOnly ? WEBKIT_USER_CONTENT_INJECT_TOP_FRAME : WEBKIT_USER_CONTENT_INJECT_ALL_FRAMES,
+                WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START,
+                nullptr,
+                nullptr
+                );
+            webkit_user_content_manager_add_script(userContentManager, script);
+            webkit_user_script_unref(script);
 #else
-        void TryLoadingUserScripts(WKUserContentControllerRef userContentController)
+            auto scriptContentRef = WKStringCreateWithUTF8CString(scriptContent);
+            auto scriptRef = WKUserScriptCreateWithSource(scriptContentRef, kWKInjectAtDocumentStart, topFrameOnly);
+            WKUserContentControllerAddUserScript(_userContentController, scriptRef);
+            WKRelease(scriptRef);
+            WKRelease(scriptContentRef);
 #endif
+        }
+
+        void TryLoadingUserScripts()
         {
             if (_config.UserScripts.IsSet()) {
-                auto loadScript =
-                    [&](const std::string& path) {
-                        gchar* scriptContent;
-                        auto success = g_file_get_contents(path.c_str(), &scriptContent, nullptr, nullptr);
-                        if (!success) {
-                            SYSLOG(Trace::Error, (_T("Unable to read user script '%s'"), path.c_str()));
-                            return;
-                        }
-#ifdef WEBKIT_GLIB_API
-                        auto* script = webkit_user_script_new(
-                            scriptContent,
-                            WEBKIT_USER_CONTENT_INJECT_ALL_FRAMES,
-                            WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START,
-                            nullptr,
-                            nullptr
-                        );
-                        webkit_user_content_manager_add_script(userContentManager, script);
-                        webkit_user_script_unref(script);
-#else
-                        auto scriptCs = WKStringCreateWithUTF8CString(scriptContent);
-                        WKUserContentControllerAddUserScript(
-                            userContentController,
-                            WKUserScriptCreateWithSource(
-                                scriptCs,
-                                kWKInjectAtDocumentStart,
-                                false
-                            )
-                        );
-                        WKRelease(scriptCs);
-#endif
-                        g_free(scriptContent);
-                    };
+                auto loadScript = [&](const std::string& path) {
+                    gchar* scriptContent;
+                    auto success = g_file_get_contents(path.c_str(), &scriptContent, nullptr, nullptr);
+                    if (!success) {
+                        SYSLOG(Trace::Error, (_T("Unable to read user script '%s'"), path.c_str()));
+                        return;
+                    }
+                    AddUserScriptImpl(scriptContent, false);
+                    g_free(scriptContent);
+                };
                 for (unsigned userScriptIndex = 0; userScriptIndex < _config.UserScripts.Length(); userScriptIndex++) {
                     const auto& scriptPath = _config.UserScripts[userScriptIndex].Value();
                     const auto fullScriptPath = (!scriptPath.empty() && scriptPath[0] == '/') || _dataPath.empty()
@@ -2861,6 +3212,12 @@ static GSourceFuncs _handlerIntervention =
         WKHTTPCookieAcceptPolicy _httpCookieAcceptPolicy;
         WKNavigationRef _navigationRef;
         string _consoleLogPrefix;
+        WKUserContentControllerRef _userContentController;
+        WKCookieManagerRef _cookieManager;
+#endif
+#if defined(ENABLE_CLOUD_COOKIE_JAR)
+        Plugin::CookieJar _cookieJar;
+        std::list<Exchange::IBrowserCookieJar::INotification*> _cookieJarClients;
 #endif
         mutable Core::CriticalSection _adminLock;
         uint32_t _fps;
