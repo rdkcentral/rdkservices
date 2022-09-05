@@ -89,13 +89,13 @@ AVInput interface methods:
 | [currentVideoMode](#method.currentVideoMode) | Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input |
 | [numberOfInputs](#method.numberOfInputs) | Returns an integer that specifies the number of available inputs |
 | [getInputDevices](#method.getInputDevices) | Returns an array of available HDMI/Composite Input ports |
-| [getEdidVersion](#method.getEdidVersion) | (Version 2) Returns the EDID version |
-| [getSPD](#method.getSPD) | (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device |
-| [getRawSPD](#method.getRawSPD) | (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits |
+| [getEdidVersion](#method.getEdidVersion) | Returns the EDID version |
+| [getSPD](#method.getSPD) | Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device |
+| [getRawSPD](#method.getRawSPD) | Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits |
 | [readEDID](#method.readEDID) | Returns the current EDID value |
 | [startInput](#method.startInput) | Activates the specified HDMI/Composite Input port as the primary video source |
 | [stopInput](#method.stopInput) | Deactivates the HDMI/Composite Input port currently selected as the primary video source |
-| [setEdidVersion](#method.setEdidVersion) | (Version 2) Sets an HDMI EDID version |
+| [setEdidVersion](#method.setEdidVersion) | Sets an HDMI EDID version |
 | [setVideoRectangle](#method.setVideoRectangle) | Sets an HDMI/Composite Input video window |
 | [writeEDID](#method.writeEDID) | Changes a current EDID value |
 | [getSupportedGameFeatures](#method.getSupportedGameFeatures) | Returns the list of supported game features |
@@ -318,7 +318,7 @@ No Events.
 <a name="method.getEdidVersion"></a>
 ## *getEdidVersion [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Returns the EDID version.
+Returns the EDID version.
  
 ### Events
  
@@ -329,7 +329,7 @@ No Events.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params?.portId | number | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 
 ### Result
 
@@ -355,7 +355,7 @@ No Events.
     "id": 42,
     "method": "org.rdk.AVInput.1.getEdidVersion",
     "params": {
-        "portId": "0"
+        "portId": 0
     }
 }
 ```
@@ -375,7 +375,7 @@ No Events.
 <a name="method.getSPD"></a>
 ## *getSPD [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.
+Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.
  
 ### Events
  
@@ -386,7 +386,7 @@ No Events.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params?.portId | number | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 
 ### Result
 
@@ -412,7 +412,7 @@ No Events.
     "id": 42,
     "method": "org.rdk.AVInput.1.getSPD",
     "params": {
-        "portId": "0"
+        "portId": 0
     }
 }
 ```
@@ -432,7 +432,7 @@ No Events.
 <a name="method.getRawSPD"></a>
 ## *getRawSPD [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.
+Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.
  
 ### Events
  
@@ -443,7 +443,7 @@ No Events.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params.portId | number | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 
 ### Result
 
@@ -469,7 +469,7 @@ No Events.
     "id": 42,
     "method": "org.rdk.AVInput.1.getRawSPD",
     "params": {
-        "portId": "0"
+        "portId": 0
     }
 }
 ```
@@ -561,7 +561,7 @@ Also see: [onInputStatusChanged](#event.onInputStatusChanged), [onSignalChanged]
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params?.portId | number | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 | params.typeOfInput | string | The type of Input - HDMI/COMPOSITE |
 
 ### Result
@@ -587,7 +587,7 @@ Also see: [onInputStatusChanged](#event.onInputStatusChanged), [onSignalChanged]
     "id": 42,
     "method": "org.rdk.AVInput.1.startInput",
     "params": {
-        "portId": "0",
+        "portId": 0,
         "typeOfInput": "HDMI"
     }
 }
@@ -663,7 +663,7 @@ Also see: [onInputStatusChanged](#event.onInputStatusChanged)
 <a name="method.setEdidVersion"></a>
 ## *setEdidVersion [<sup>method</sup>](#head.Methods)*
 
-(Version 2) Sets an HDMI EDID version.
+Sets an HDMI EDID version.
  
 ### Events
  
@@ -674,7 +674,7 @@ No Events.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params.portId | number | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 | params.edidVersion | string | The EDID version |
 
 ### Result
@@ -700,7 +700,7 @@ No Events.
     "id": 42,
     "method": "org.rdk.AVInput.1.setEdidVersion",
     "params": {
-        "portId": "0",
+        "portId": 0,
         "edidVersion": "HDMI2.0"
     }
 }
@@ -851,7 +851,8 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.supportedGameFeatures | string | The supported game Features |
+| result.supportedGameFeatures | array | The supported game Features |
+| result.supportedGameFeatures[#] | string |  |
 
 ### Errors
 
@@ -878,7 +879,9 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "supportedGameFeatures": "ALLM"
+        "supportedGameFeatures": [
+            "ALLM"
+        ]
     }
 }
 ```
@@ -897,7 +900,7 @@ No Events.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params?.portId | number | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 | params.gameFeature | string | Game Feature to which current status requested |
 
 ### Result
@@ -923,7 +926,7 @@ No Events.
     "id": 42,
     "method": "org.rdk.AVInput.1.getGameFeatureStatus",
     "params": {
-        "portId": "0",
+        "portId": 0,
         "gameFeature": "ALLM"
     }
 }
@@ -952,62 +955,12 @@ AVInput interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onAVInputActive](#event.onAVInputActive) | Triggered when an active device is connected to an AVInput port |
-| [onAVInputInActive](#event.onAVInputInActive) | Triggered when an active device is disconnected from an AVInput port or when the device becomes inactive |
 | [onDevicesChanged](#event.onDevicesChanged) | Triggered whenever a new HDMI/Composite device is connected to an HDMI/Composite Input |
 | [onInputStatusChanged](#event.onInputStatusChanged) | Triggered whenever the status changes for an HDMI/Composite Input |
 | [onSignalChanged](#event.onSignalChanged) | Triggered whenever the signal status changes for an HDMI/Composite Input |
 | [videoStreamInfoUpdate](#event.videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI Input video stream info |
-| [AVGameFeatureStatusUpdate](#event.AVGameFeatureStatusUpdate) | Triggered whenever game feature(ALLM) status changes for an HDMI Input |
+| [gameFeatureStatusUpdate](#event.gameFeatureStatusUpdate) | Triggered whenever game feature(ALLM) status changes for an HDMI Input |
 
-
-<a name="event.onAVInputActive"></a>
-## *onAVInputActive [<sup>event</sup>](#head.Notifications)*
-
-Triggered when an active device is connected to an AVInput port.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.url | string | The URL of the port with an active device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onAVInputActive",
-    "params": {
-        "url": "avin://input0"
-    }
-}
-```
-
-<a name="event.onAVInputInActive"></a>
-## *onAVInputInActive [<sup>event</sup>](#head.Notifications)*
-
-Triggered when an active device is disconnected from an AVInput port or when the device becomes inactive.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.url | string | The URL of the port with an inactive device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.1.onAVInputInActive",
-    "params": {
-        "url": "avin://input0"
-    }
-}
-```
 
 <a name="event.onDevicesChanged"></a>
 ## *onDevicesChanged [<sup>event</sup>](#head.Notifications)*
@@ -1135,8 +1088,8 @@ Triggered whenever there is an update in HDMI Input video stream info.
 }
 ```
 
-<a name="event.AVGameFeatureStatusUpdate"></a>
-## *AVGameFeatureStatusUpdate [<sup>event</sup>](#head.Notifications)*
+<a name="event.gameFeatureStatusUpdate"></a>
+## *gameFeatureStatusUpdate [<sup>event</sup>](#head.Notifications)*
 
 Triggered whenever game feature(ALLM) status changes for an HDMI Input.
 
@@ -1145,7 +1098,7 @@ Triggered whenever game feature(ALLM) status changes for an HDMI Input.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params.id | number | The port identifier for the HDMI/Composite Input |
 | params.gameFeature | string | Game Feature to which current status requested |
 | params.mode | boolean | The current game feature status. Mode is required only for ALLM. Need to add support for future game features |
 
@@ -1154,9 +1107,9 @@ Triggered whenever game feature(ALLM) status changes for an HDMI Input.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.AVGameFeatureStatusUpdate",
+    "method": "client.events.1.gameFeatureStatusUpdate",
     "params": {
-        "portId": "0",
+        "id": 0,
         "gameFeature": "ALLM",
         "mode": true
     }
