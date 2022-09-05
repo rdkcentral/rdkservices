@@ -528,11 +528,11 @@ uint32_t AVInput::readEDIDWrapper(const JsonObject& parameters, JsonObject& resp
     }
 
     string edid = readEDID (portId);
-    response["EDID"] = edid;
     if (edid.empty()) {
         return Core::ERROR_GENERAL;
     }
     else {
+        response["EDID"] = edid;
         return Core::ERROR_NONE;
     }
 }

@@ -45,8 +45,8 @@
         },
         "connected": {
             "summary": "Whether a device is currently connected to this HDMI/Composite Input port",
-            "type": "boolean",
-            "example": true
+            "type": "string",
+            "example": "true"
         },
         "portId":{
             "summary": "An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method",
@@ -291,12 +291,12 @@
             "params": {
                 "type":"object",
                 "properties": {
-                    "deviceId": {
-                        "$ref": "#/definitions/id"
+                    "portId":{
+                        "$ref": "#/definitions/portId"
                     }
                 },
                 "required": [
-                    "deviceId"
+                    "portId"
                 ]
             },
             "result": {
