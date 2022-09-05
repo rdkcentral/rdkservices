@@ -170,12 +170,12 @@ TEST_F(AVInputTestFixture, Plugin)
 
     EXPECT_TRUE(dsHdmiEventHandler != nullptr);
 
-    handler.Subscribe(0, _T("onAVInputActive"), _T("org.rdk.AVInput"), message);
+    handler.Subscribe(0, _T("onDevicesChanged"), _T("org.rdk.AVInput"), message);
 
     dsHdmiEventHandler(
         IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, nullptr, 0);
 
-    handler.Unsubscribe(0, _T("onAVInputActive"), _T("org.rdk.AVInput"), message);
+    handler.Unsubscribe(0, _T("onDevicesChanged"), _T("org.rdk.AVInput"), message);
 
     dispatcher->Deactivate();
 

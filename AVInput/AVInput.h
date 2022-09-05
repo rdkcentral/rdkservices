@@ -48,10 +48,6 @@ public:
     virtual void Deinitialize(PluginHost::IShell *service) override;
     virtual string Information() const override;
 
-public:
-    void event_onAVInputActive(int id);
-    void event_onAVInputInactive(int id);
-
 protected:
     void InitializeIARM();
     void DeinitializeIARM();

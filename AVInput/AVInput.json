@@ -50,7 +50,7 @@
         },
         "portId":{
             "summary": "An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method",
-            "type": "string",
+            "type": "number",
             "example": "0"
         },
         "typeOfInput":{
@@ -176,7 +176,7 @@
             ]
         },
         "getEdidVersion":{
-            "summary": "(Version 2) Returns the EDID version.\n \n### Events\n \nNo Events.",
+            "summary": "Returns the EDID version.\n \n### Events\n \nNo Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -213,7 +213,7 @@
             ]
         },
         "getSPD": {
-            "summary": "(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.\n \n### Events\n \nNo Events.",
+            "summary": "Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.\n \n### Events\n \nNo Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -250,7 +250,7 @@
             ]
         },
         "getRawSPD":{
-            "summary": "(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.\n \n### Events\n \nNo Events.",
+            "summary": "Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.\n \n### Events\n \nNo Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -389,7 +389,7 @@
             ]
         },
         "setEdidVersion": {
-            "summary": "(Version 2) Sets an HDMI EDID version.\n \n### Events\n \nNo Events.",
+            "summary": "Sets an HDMI EDID version.\n \n### Events\n \nNo Events.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -510,8 +510,11 @@
                 "properties": {
                     "supportedGameFeatures": {
                         "summary": "The supported game Features",
-                        "type": "string",
-                        "example": "ALLM"
+                        "type": "array",
+                        "items": {
+                            "type":"string",
+                            "example": "ALLM"
+                        }
                     }
                 },
                 "required": [
@@ -566,39 +569,6 @@
         }
     },
     "events": {
-        "onAVInputActive":{
-            "summary": "Triggered when an active device is connected to an AVInput port",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "url": {
-                        "summary": "The URL of the port with an active device",
-                        "type": "string",
-                        "example": "avin://input0"
-                    }
-                },
-                "required": [
-                    "url"
-                ]
-            }
-        },
-        "onAVInputInActive": {
-            "summary": "Triggered when an active device is disconnected from an AVInput port or when the device becomes inactive",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "url": {
-                        "summary": "The URL of the port with an inactive device",
-                        "type": "string",
-                        "example": "avin://input0"
-                    }
-                },
-                "required": [
-                    "url"
-                ]
-                
-            }
-        },
         "onDevicesChanged": {
             "summary": "Triggered whenever a new HDMI/Composite device is connected to an HDMI/Composite Input",
             "params": {
@@ -709,13 +679,13 @@
                 ]
             }
         },
-        "AVGameFeatureStatusUpdate": {
+        "gameFeatureStatusUpdate": {
             "summary": "Triggered whenever game feature(ALLM) status changes for an HDMI Input",
             "params": {
                 "type": "object",
                 "properties": {
-                   "portId": {
-                        "$ref": "#/definitions/portId"
+                   "id": {
+                        "$ref": "#/definitions/id"
                     },
                      "gameFeature": {
                         "summary": "Game Feature to which current status requested",
@@ -729,7 +699,7 @@
                     }
                 },
                 "required": [
-                    "portId",
+                    "id",
                     "gameFeature",
                     "mode"
                 ]
