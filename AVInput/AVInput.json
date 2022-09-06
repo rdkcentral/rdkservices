@@ -318,7 +318,7 @@
                     "$ref": "#/common/errors/general"
                 },
                 {
-                  "description": "deviceId is invalid",
+                  "description": "portId is invalid",
                   "$ref": "#/common/errors/badrequest"
                 }
             ]
@@ -477,10 +477,8 @@
             "params": {
                 "type":"object",
                 "properties": {
-                    "deviceId":{
-                        "summary": "The ID of an input device for which the EDID should be changed",
-                        "type": "number",
-                        "example": 0
+                    "portId":{
+                        "$ref": "#/definitions/portId"
                     },
                     "message":{
                         "summary": "A new EDID value",
@@ -489,7 +487,7 @@
                     }
                 },
                 "required": [
-                    "deviceId",
+                    "portId",
                     "message"
                 ]
             },

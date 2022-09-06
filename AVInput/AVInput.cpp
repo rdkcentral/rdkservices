@@ -499,11 +499,11 @@ uint32_t AVInput::writeEDIDWrapper(const JsonObject& parameters, JsonObject& res
 {
     LOGINFOMETHOD();
 
-    int deviceId;
+    int portId;
     std::string message;
 
-    if (parameters.HasLabel("deviceId") && parameters.HasLabel("message")) {
-        deviceId = parameters["deviceId"].Number();
+    if (parameters.HasLabel("portId") && parameters.HasLabel("message")) {
+        portId = parameters["portId"].Number();
         message = parameters["message"].String();
     }
     else {
@@ -511,7 +511,7 @@ uint32_t AVInput::writeEDIDWrapper(const JsonObject& parameters, JsonObject& res
         return Core::ERROR_BAD_REQUEST;
     }
 
-    writeEDID(deviceId, message);
+    writeEDID(portId, message);
     return Core::ERROR_NONE;
 }
 
@@ -576,7 +576,7 @@ JsonArray AVInput::getInputDevices(int iType)
     return list;
 }
 
-void AVInput::writeEDID(int deviceId, std::string message)
+void AVInput::writeEDID(int portId, std::string message)
 {
 }
 

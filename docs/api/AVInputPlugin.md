@@ -500,7 +500,7 @@ No Events.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceId | number | The port identifier for the HDMI/Composite Input |
+| params.portId | number | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 
 ### Result
 
@@ -514,7 +514,7 @@ No Events.
 | Code | Message | Description |
 | :-------- | :-------- | :-------- |
 | 1 | ```ERROR_GENERAL``` | General error |
-| 30 | ```ERROR_BAD_REQUEST``` | deviceId is invalid |
+| 30 | ```ERROR_BAD_REQUEST``` | portId is invalid |
 
 ### Example
 
@@ -526,7 +526,7 @@ No Events.
     "id": 42,
     "method": "org.rdk.AVInput.1.readEDID",
     "params": {
-        "deviceId": 0
+        "portId": 0
     }
 }
 ```
@@ -792,7 +792,7 @@ No Events.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.deviceId | number | The ID of an input device for which the EDID should be changed |
+| params.portId | number | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 | params.message | string | A new EDID value |
 
 ### Result
@@ -817,7 +817,7 @@ No Events.
     "id": 42,
     "method": "org.rdk.AVInput.1.writeEDID",
     "params": {
-        "deviceId": 0,
+        "portId": 0,
         "message": "EDID"
     }
 }
