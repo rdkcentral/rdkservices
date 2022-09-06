@@ -565,7 +565,7 @@ JsonArray AVInput::getInputDevices(int iType)
                     hash["connected"] = device::CompositeInput::getInstance().isPortConnected(i);
                 }
                 hash["locator"] = locator.str();
-                LOGWARN("AVInputService::getInputDevices id %d, locator=[%s], connected=[%d]", i, hash["locator"].String().c_str(), hash["connected"]);
+                LOGWARN("AVInputService::getInputDevices id %d, locator=[%s], connected=[%d]", i, hash["locator"].String().c_str(), hash["connected"].Boolean());
                 list.Add(hash);
             }
         }
