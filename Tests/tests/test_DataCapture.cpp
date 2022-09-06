@@ -17,7 +17,7 @@
  * limitations under the License.
  **/
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include <future>
 #include <thread>
@@ -94,53 +94,50 @@ using testing::Test;
 using namespace WPEFramework;
 
 class DataCaptureTest : public Test {
-public:
+protected:
+    Core::ProxyType<Plugin::DataCapture> dataCapture_;
+    Core::JSONRPC::Connection connection_;
+    Core::JSONRPC::Handler& handler_;
+
     DataCaptureTest()
         : dataCapture_(Core::ProxyType<Plugin::DataCapture>::Create())
         , connection_(1, 0)
         , handler_(*dataCapture_)
     {
     }
+    virtual ~DataCaptureTest() = default;
+};
 
-    virtual void SetUp()
+class DataCaptureInitializedTest : public DataCaptureTest {
+protected:
+    NiceMock<IarmBusImplMock> iarmBusImplMock_;
+
+    DataCaptureInitializedTest()
+        : DataCaptureTest()
     {
         IarmBus::getInstance().impl = &iarmBusImplMock_;
-        PluginHost::IFactories::Assign(&factoriesImplementation_);
-    }
 
-    virtual void TearDown()
-    {
-        IarmBus::getInstance().impl = nullptr;
-        PluginHost::IFactories::Assign(nullptr);
-    }
-
-    void initService()
-    {
-        EXPECT_CALL(iarmBusImplMock_, IARM_Bus_IsConnected)
-            .Times(AtLeast(2))
-            .WillRepeatedly([](const char* memberName, int* isRegistered) {
-                if (iarmName == string(memberName)) {
-                    *isRegistered = 0;
+        ON_CALL(iarmBusImplMock_, IARM_Bus_IsConnected(::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [](const char*, int* isRegistered) {
+                    *isRegistered = 1;
                     return IARM_RESULT_SUCCESS;
-                }
-                return IARM_RESULT_INVALID_PARAM;
-            });
-
-        EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Init)
-            .WillOnce([](const char* name) {
-                if (iarmName == string(name)) {
-                    return IARM_RESULT_SUCCESS;
-                }
-                return IARM_RESULT_INVALID_PARAM;
-            });
-
-        EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Connect)
-            .WillOnce(Return(IARM_RESULT_SUCCESS));
+                }));
 
         EXPECT_EQ(string(""), dataCapture_->Initialize(nullptr));
     }
+    virtual ~DataCaptureInitializedTest() override
+    {
+        dataCapture_->Deinitialize(nullptr);
 
-    void enableAudioCapture()
+        IarmBus::getInstance().impl = nullptr;
+    }
+};
+
+class DataCaptureInitializedEnableAudioCaptureTest : public DataCaptureInitializedTest {
+protected:
+    DataCaptureInitializedEnableAudioCaptureTest()
+        : DataCaptureInitializedTest()
     {
         EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Call)
             .WillOnce(
@@ -189,15 +186,32 @@ public:
         EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":6}"), response));
         EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
     }
+    virtual ~DataCaptureInitializedEnableAudioCaptureTest() override = default;
+};
 
+class DataCaptureInitializedEnableAudioCaptureEventTest : public DataCaptureInitializedEnableAudioCaptureTest {
 protected:
-    Core::ProxyType<Plugin::DataCapture> dataCapture_;
-    Core::JSONRPC::Connection connection_;
-    Core::JSONRPC::Handler& handler_;
-    NiceMock<IarmBusImplMock> iarmBusImplMock_;
     ServiceMock service_;
     Core::JSONRPC::Message message_;
     FactoriesImplementation factoriesImplementation_;
+    PluginHost::IDispatcher* dispatcher;
+
+    DataCaptureInitializedEnableAudioCaptureEventTest()
+        : DataCaptureInitializedEnableAudioCaptureTest()
+    {
+        PluginHost::IFactories::Assign(&factoriesImplementation_);
+
+        dispatcher = static_cast<PluginHost::IDispatcher*>(
+            dataCapture_->QueryInterface(PluginHost::IDispatcher::ID));
+        dispatcher->Activate(&service_);
+    }
+    virtual ~DataCaptureInitializedEnableAudioCaptureEventTest() override
+    {
+        dispatcher->Deactivate();
+        dispatcher->Release();
+
+        PluginHost::IFactories::Assign(nullptr);
+    }
 };
 
 TEST_F(DataCaptureTest, ShouldRegisterMethod)
@@ -210,19 +224,11 @@ TEST_F(DataCaptureTest, ShouldReturnErrorWhenParamsAreEmpty)
 {
     string response;
     EXPECT_EQ(Core::ERROR_GENERAL, handler_.Invoke(connection_, _T("enableAudioCapture"), _T(""), response));
-
-    EXPECT_EQ(Core::ERROR_GENERAL,
-        handler_.Invoke(connection_,
-            _T("getAudioClip"),
-            _T(""),
-            response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler_.Invoke(connection_, _T("getAudioClip"), _T(""), response));
 }
 
-TEST_F(DataCaptureTest, ShouldTurnOnAudioCapture)
+TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOnAudioCapture)
 {
-    initService();
-    enableAudioCapture();
-
     EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Call)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -239,15 +245,10 @@ TEST_F(DataCaptureTest, ShouldTurnOnAudioCapture)
             _T("{\"clipRequest\":{\"stream\":\"primary\",\"url\":\"https://192.168.0.1\",\"duration\":8,\"captureMode\":\"preCapture\"}}"),
             response));
     EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
-
-    dataCapture_->Deinitialize(nullptr);
 }
 
-TEST_F(DataCaptureTest, ShouldTurnOffAudioCapture)
+TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOffAudioCapture)
 {
-    initService();
-    enableAudioCapture();
-
     EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Call)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -270,7 +271,7 @@ TEST_F(DataCaptureTest, ShouldTurnOffAudioCapture)
     EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
 }
 
-TEST_F(DataCaptureTest, ShouldUploadData)
+TEST_F(DataCaptureInitializedEnableAudioCaptureEventTest, ShouldUploadData)
 {
     constexpr const char dataLocator[] = "dataLocator123";
     constexpr const char owner[] = "DataCaptureTest";
@@ -287,13 +288,6 @@ TEST_F(DataCaptureTest, ShouldUploadData)
     serverReadyFuture.wait();
     socketReadyFuture.wait();
 
-    EXPECT_EQ(std::string{}, dataCapture_->Initialize(nullptr));
-
-    EXPECT_CALL(service_, Callsign).WillOnce(::testing::Return("dataCapture"));
-    auto dispatcher = static_cast<PluginHost::IDispatcher*>(
-        dataCapture_->QueryInterface(PluginHost::IDispatcher::ID));
-    EXPECT_TRUE(dispatcher != nullptr);
-    dispatcher->Activate(&service_);
     handler_.Subscribe(0, _T("onAudioClipReady"), _T("org.rdk.dataCapture"), message_);
 
     EXPECT_CALL(service_, Submit)
@@ -309,9 +303,6 @@ TEST_F(DataCaptureTest, ShouldUploadData)
 
                 return Core::ERROR_NONE;
             });
-
-    // Enable audio capture
-    enableAudioCapture();
 
     EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Call)
         .WillOnce(
@@ -337,9 +328,7 @@ TEST_F(DataCaptureTest, ShouldUploadData)
     dataCapture_->eventHandler(owner, DATA_CAPTURE_IARM_EVENT_AUDIO_CLIP_READY, static_cast<void*>(&data), sizeof(data));
 
     handler_.Unsubscribe(0, _T("onAudioClipReady"), _T("org.rdk.dataCapture"), message_);
-    dispatcher->Deactivate();
-    dispatcher->Release();
-    dataCapture_->Deinitialize(nullptr);
+
     serverThread.join();
     socketThread.join();
 }
