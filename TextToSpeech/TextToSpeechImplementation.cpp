@@ -72,6 +72,7 @@ namespace Plugin {
         ttsConfig->setVoice(GET_STR(config, "voice", ""));
         ttsConfig->setVolume(std::stod(GET_STR(config, "volume", "100")));
         ttsConfig->setRate(std::stoi(GET_STR(config, "rate", "50")));
+        ttsConfig->setPrimVolDuck(std::stoi(GET_STR(config,"primvolduckpercent", "25")));
 
         if(config.HasLabel("voices")) {
             JsonObject voices = config["voices"].Object();
@@ -91,6 +92,7 @@ namespace Plugin {
         TTSLOG_INFO("Voice : %s", ttsConfig->voice().c_str());
         TTSLOG_INFO("Volume : %lf", ttsConfig->volume());
         TTSLOG_INFO("Rate : %u", ttsConfig->rate());
+        TTSLOG_INFO("PrimaryVolumeDuck percentage : %d", ttsConfig->primVolDuck());
         TTSLOG_INFO("TTS is %s", ttsConfig->enabled()? "Enabled" : "Disabled");
 
         auto it = ttsConfig->m_others.begin();
@@ -183,6 +185,7 @@ namespace Plugin {
         config.language = GET_STR(parameters, "language", "");
         config.voice = GET_STR(parameters, "voice", "");
         config.volume = std::stod(GET_STR(parameters, "volume", "0.0"));
+        config.primVolDuck = std::stoi(GET_STR(parameters,"primvolduckpercent","-1"));
 
         if(parameters.HasLabel("rate")) {
             int rate=0;
@@ -536,6 +539,7 @@ namespace Plugin {
                 ttsConfig.setEnabled(enabled.Value());
                 ttsConfig.setVolume(std::stod(GET_STR(config,"volume","0.0")));
                 ttsConfig.setRate(static_cast<uint8_t>(std::stoi(GET_STR(config,"rate","0"))));
+                ttsConfig.setPrimVolDuck(static_cast<int8_t>(std::stoi(GET_STR(config,"primvolduckpercent","25"))));
                 ttsConfig.setVoice(GET_STR(config,"voice",""));
                 ttsConfig.setLanguage(GET_STR(config,"language",""));
                 if(config.HasLabel("fallbacktext")) {
@@ -564,6 +568,7 @@ namespace Plugin {
         config["enabled"] = JsonValue((bool)ttsConfig.enabled());
         config["volume"] = std::to_string(ttsConfig.volume());
         config["rate"] = std::to_string(ttsConfig.rate());
+        config["primvolduckpercent"] = std::to_string(ttsConfig.primVolDuck());
         config["voice"] = ttsConfig.voice();
         config["language"] = ttsConfig.language();
         if(ttsConfig.isFallbackEnabled())

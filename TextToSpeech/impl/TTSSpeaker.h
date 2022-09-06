@@ -69,13 +69,14 @@ public:
 
 struct SpeechData {
     public:
-        SpeechData() : client(NULL), secure(false), id(0), text() {}
-        SpeechData(TTSSpeakerClient *c, uint32_t i, std::string t, bool s=false) : client(c), secure(s), id(i), text(t) {}
+        SpeechData() : client(NULL), secure(false), id(0), text(), primVolDuck(25) {}
+        SpeechData(TTSSpeakerClient *c, uint32_t i, std::string t, bool s=false,int8_t vol=25) : client(c), secure(s), id(i), text(t), primVolDuck(vol) {}
         SpeechData(const SpeechData &n) {
             client = n.client;
             id = n.id;
             text = n.text;
             secure = n.secure;
+            primVolDuck = n.primVolDuck;
         }
         ~SpeechData() {}
 
@@ -83,6 +84,7 @@ struct SpeechData {
         bool secure;
         uint32_t id;
         std::string text;
+        int8_t primVolDuck;
 };
 
 class TTSSpeaker {
@@ -93,7 +95,7 @@ public:
     void ensurePipeline(bool flag=true);
 
     // Speak Functions
-    int speak(TTSSpeakerClient* client, uint32_t id, std::string text, bool secure); // Formalize data to speak API
+    int speak(TTSSpeakerClient* client, uint32_t id, std::string text, bool secure,int8_t primVolDuck); // Formalize data to speak API
     bool isSpeaking(uint32_t id);
     SpeechState getSpeechState(uint32_t id);
     bool cancelSpeech(uint32_t id=0);
