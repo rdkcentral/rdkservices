@@ -2,7 +2,7 @@
 <a name="DeviceInfo_Plugin"></a>
 # DeviceInfo Plugin
 
-**Version: 1.0.2**
+**Version: [1.0.3](https://github.com/rdkcentral/rdkservices/blob/main/DeviceInfo/CHANGELOG.md)**
 
 A DeviceInfo plugin for Thunder framework.
 

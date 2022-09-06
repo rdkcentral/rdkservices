@@ -2,7 +2,7 @@
 <a name="CompositeInput_Plugin"></a>
 # CompositeInput Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/CompositeInput/CHANGELOG.md)**
 
 A org.rdk.CompositeInput plugin for Thunder framework.
 
