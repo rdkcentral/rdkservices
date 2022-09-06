@@ -558,14 +558,14 @@ JsonArray AVInput::getInputDevices(int iType)
                 std::stringstream locator;
                 if (iType == HDMI) {
                     locator << "hdmiin://localhost/deviceid/" << i;
-                    hash["connected"] = device::HdmiInput::getInstance().isPortConnected(i) ? "true" : "false";
+                    hash["connected"] = device::HdmiInput::getInstance().isPortConnected(i);
                 }
                 else if (iType == COMPOSITE) {
                     locator << "cvbsin://localhost/deviceid/" << i;
-                    hash["connected"] = device::CompositeInput::getInstance().isPortConnected(i) ? "true" : "false";
+                    hash["connected"] = device::CompositeInput::getInstance().isPortConnected(i);
                 }
                 hash["locator"] = locator.str();
-                LOGWARN("AVInputService::getInputDevices id %d, locator=[%s], connected=[%s]", i, hash["locator"].String().c_str(), hash["connected"].String().c_str());
+                LOGWARN("AVInputService::getInputDevices id %d, locator=[%s], connected=[%d]", i, hash["locator"].String().c_str(), hash["connected"]);
                 list.Add(hash);
             }
         }

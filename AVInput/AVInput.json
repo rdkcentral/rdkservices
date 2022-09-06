@@ -45,8 +45,8 @@
         },
         "connected": {
             "summary": "Whether a device is currently connected to this HDMI/Composite Input port",
-            "type": "string",
-            "example": "true"
+            "type": "boolean",
+            "example": true
         },
         "portId":{
             "summary": "An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method",
@@ -553,7 +553,7 @@
                     "mode": {
                         "summary": "The current game feature status. Mode is required only for ALLM. Need to add support for future game features",
                         "type": "boolean",
-                        "example": "true"
+                        "example": true
                     }
                 },
                 "required": [
@@ -655,7 +655,7 @@
                     "progressive": {
                         "summary": "Whether the streaming video is progressive or not?",
                         "type": "boolean",
-                        "example": "true"
+                        "example": true
                     },
                     "frameRateN": {
                         "summary": "FrameRate Numerator",
@@ -695,7 +695,7 @@
                     "mode": {
                         "summary": "The current game feature status. Mode is required only for ALLM. Need to add support for future game features",
                         "type": "boolean",
-                        "example": "true"
+                        "example": true
                     }
                 },
                 "required": [
