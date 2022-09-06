@@ -20,7 +20,7 @@
 #include "WebKitBrowser.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_MINOR 1
 #define API_VERSION_NUMBER_PATCH 0
 
 namespace WPEFramework {
@@ -114,6 +114,17 @@ namespace Plugin {
         } else {
             RegisterAll();
             Exchange::JWebBrowser::Register(*this, _browser);
+
+            _cookieJar = _browser->QueryInterface<Exchange::IBrowserCookieJar>();
+            if (_cookieJar) {
+                _cookieJar->Register(&_notification);
+                Exchange::JBrowserCookieJar::Register(*this, _cookieJar);
+            }
+
+            _browserScripting = _browser->QueryInterface<Exchange::IBrowserScripting>();
+            if (_browserScripting) {
+                Exchange::JBrowserScripting::Register(*this, _browserScripting);
+            }
         }
 
         return message;
@@ -135,6 +146,15 @@ namespace Plugin {
         _memory->Release();
         _application->Release();
         Exchange::JWebBrowser::Unregister(*this);
+        if (_browserScripting) {
+            Exchange::JBrowserScripting::Unregister(*this);
+            _browserScripting->Release();
+        }
+        if (_cookieJar) {
+            Exchange::JBrowserCookieJar::Unregister(*this);
+            _cookieJar->Unregister(&_notification);
+            _cookieJar->Release();
+        }
         UnregisterAll();
 
         PluginHost::IStateControl* stateControl(_browser->QueryInterface<PluginHost::IStateControl>());
@@ -312,6 +332,11 @@ namespace Plugin {
     {
         TRACE(Trace::Information, (_T("BridgeQuery: %s"), message.c_str()));
         event_bridgequery(message);
+    }
+
+    void WebKitBrowser::CookieJarChanged()
+    {
+        Exchange::JBrowserCookieJar::Event::CookieJarChanged(*this);
     }
 
     void WebKitBrowser::StateChange(const PluginHost::IStateControl::state state)
