@@ -28,102 +28,103 @@
 
 using namespace WPEFramework;
 
-namespace {
-const string iarmName = _T("Thunder_Plugins");
-}
-
-class LoggingPreferencesTestFixture : public ::testing::Test {
+class LoggingPreferencesTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::LoggingPreferences> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
-    ServiceMock service;
-    Core::JSONRPC::Message message;
-    IarmBusImplMock iarmBusImplMock;
-    FactoriesImplementation factoriesImplementation;
 
-    LoggingPreferencesTestFixture()
+    LoggingPreferencesTest()
         : plugin(Core::ProxyType<Plugin::LoggingPreferences>::Create())
         , handler(*(plugin))
         , connection(1, 0)
     {
-        PluginHost::IFactories::Assign(&factoriesImplementation);
     }
-    virtual ~LoggingPreferencesTestFixture()
-    {
-        PluginHost::IFactories::Assign(nullptr);
-    }
+    virtual ~LoggingPreferencesTest() = default;
+};
 
-    virtual void SetUp()
+class LoggingPreferencesInitializedTest : public LoggingPreferencesTest {
+protected:
+    IarmBusImplMock iarmBusImplMock;
+
+    LoggingPreferencesInitializedTest()
+        : LoggingPreferencesTest()
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
-    }
 
-    virtual void TearDown()
-    {
-        IarmBus::getInstance().impl = nullptr;
-    }
-
-    void initService()
-    {
-        EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected)
-            .Times(testing::AtLeast(2))
-            .WillRepeatedly([](const char* memberName, int* isRegistered) {
-                if (iarmName == string(memberName)) {
-                    *isRegistered = 0;
+        ON_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [](const char*, int* isRegistered) {
+                    *isRegistered = 1;
                     return IARM_RESULT_SUCCESS;
-                }
-                return IARM_RESULT_INVALID_PARAM;
-            });
-
-        EXPECT_CALL(iarmBusImplMock, IARM_Bus_Init)
-            .WillOnce([](const char* name) {
-                if (iarmName == string(name)) {
-                    return IARM_RESULT_SUCCESS;
-                }
-                return IARM_RESULT_INVALID_PARAM;
-            });
-
-        EXPECT_CALL(iarmBusImplMock, IARM_Bus_Connect)
-            .WillOnce(testing::Return(IARM_RESULT_SUCCESS));
+                }));
 
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
     }
+    virtual ~LoggingPreferencesInitializedTest() override
+    {
+        plugin->Deinitialize(nullptr);
+
+        IarmBus::getInstance().impl = nullptr;
+    }
 };
 
-TEST_F(LoggingPreferencesTestFixture, registeredMethods)
+class LoggingPreferencesInitializedEventTest : public LoggingPreferencesInitializedTest {
+protected:
+    ServiceMock service;
+    Core::JSONRPC::Message message;
+    FactoriesImplementation factoriesImplementation;
+    PluginHost::IDispatcher* dispatcher;
+
+    LoggingPreferencesInitializedEventTest()
+        : LoggingPreferencesInitializedTest()
+    {
+        PluginHost::IFactories::Assign(&factoriesImplementation);
+
+        dispatcher = static_cast<PluginHost::IDispatcher*>(
+            plugin->QueryInterface(PluginHost::IDispatcher::ID));
+        dispatcher->Activate(&service);
+    }
+    virtual ~LoggingPreferencesInitializedEventTest() override
+    {
+        dispatcher->Deactivate();
+        dispatcher->Release();
+
+        PluginHost::IFactories::Assign(nullptr);
+    }
+};
+
+TEST_F(LoggingPreferencesTest, registeredMethods)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("isKeystrokeMaskEnabled")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setKeystrokeMaskEnabled")));
 }
 
-TEST_F(LoggingPreferencesTestFixture, paramsMissing)
+TEST_F(LoggingPreferencesTest, paramsMissing)
 {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{}"), response));
 }
 
-TEST_F(LoggingPreferencesTestFixture, getKeystrokeMask)
+TEST_F(LoggingPreferencesInitializedTest, getKeystrokeMask)
 {
-    initService();
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_TRUE(strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0);
                 auto* param = static_cast<IARM_BUS_SYSMGR_KEYCodeLoggingInfo_Param_t*>(arg);
-                param->logStatus = 1;   //Setting 1 returns response as false
+                param->logStatus = 1; //Setting 1 returns response as false
                 return IARM_RESULT_SUCCESS;
             });
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isKeystrokeMaskEnabled"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"keystrokeMaskEnabled\":false,\"success\":true}"));
-
-    plugin->Deinitialize(nullptr);
 }
 
-TEST_F(LoggingPreferencesTestFixture, enableKeystrokeMask)
+TEST_F(LoggingPreferencesInitializedEventTest, enableKeystrokeMask)
 {
-    initService();
+    Core::Event onKeystrokeMaskEnabledChange(false, true);
+
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -144,7 +145,6 @@ TEST_F(LoggingPreferencesTestFixture, enableKeystrokeMask)
                 EXPECT_TRUE(strcmp(methodName, IARM_BUS_SYSMGR_API_SetKeyCodeLoggingPref) == 0);
                 return IARM_RESULT_SUCCESS;
             });
-
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         // called by onKeystrokeMaskEnabledChange
@@ -158,35 +158,28 @@ TEST_F(LoggingPreferencesTestFixture, enableKeystrokeMask)
                                           "\"params\":{\"keystrokeMaskEnabled\":true}"
                                           "}")));
 
+                onKeystrokeMaskEnabledChange.SetEvent();
+
                 return Core::ERROR_NONE;
             }));
-
-    auto dispatcher = static_cast<PluginHost::IDispatcher*>(
-        plugin->QueryInterface(PluginHost::IDispatcher::ID));
-    EXPECT_TRUE(dispatcher != nullptr);
-
-    dispatcher->Activate(&service);
 
     handler.Subscribe(0, _T("onKeystrokeMaskEnabledChange"), _T("org.rdk.LoggingPreferences"), message);
 
     //Simulating the case for setting the same value again
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":true}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
+    EXPECT_EQ(Core::ERROR_NONE, onKeystrokeMaskEnabledChange.Lock());
+
     handler.Unsubscribe(0, _T("onKeystrokeMaskEnabledChange"), _T("org.rdk.LoggingPreferences"), message);
-
-    dispatcher->Deactivate();
-    dispatcher->Release();
-
-    plugin->Deinitialize(nullptr);
 }
 
-TEST_F(LoggingPreferencesTestFixture, disbleKeystrokeMask)
+TEST_F(LoggingPreferencesInitializedEventTest, disbleKeystrokeMask)
 {
-    initService();
+    Core::Event onKeystrokeMaskEnabledChange(false, true);
+
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -195,13 +188,11 @@ TEST_F(LoggingPreferencesTestFixture, disbleKeystrokeMask)
                 param->logStatus = 0;
                 return IARM_RESULT_SUCCESS;
             })
-
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_TRUE(strcmp(methodName, IARM_BUS_SYSMGR_API_SetKeyCodeLoggingPref) == 0);
                 return IARM_RESULT_SUCCESS;
             });
-
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         // called by onKeystrokeMaskEnabledChange
@@ -215,31 +206,23 @@ TEST_F(LoggingPreferencesTestFixture, disbleKeystrokeMask)
                                           "\"params\":{\"keystrokeMaskEnabled\":false}"
                                           "}")));
 
+                onKeystrokeMaskEnabledChange.SetEvent();
+
                 return Core::ERROR_NONE;
             }));
-
-    auto dispatcher = static_cast<PluginHost::IDispatcher*>(
-        plugin->QueryInterface(PluginHost::IDispatcher::ID));
-    EXPECT_TRUE(dispatcher != nullptr);
-
-    dispatcher->Activate(&service);
 
     handler.Subscribe(0, _T("onKeystrokeMaskEnabledChange"), _T("org.rdk.LoggingPreferences"), message);
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
+    EXPECT_EQ(Core::ERROR_NONE, onKeystrokeMaskEnabledChange.Lock());
+
     handler.Unsubscribe(0, _T("onKeystrokeMaskEnabledChange"), _T("org.rdk.LoggingPreferences"), message);
-
-    dispatcher->Deactivate();
-    dispatcher->Release();
-
-    plugin->Deinitialize(nullptr);
 }
 
-TEST_F(LoggingPreferencesTestFixture, errorCases)
+TEST_F(LoggingPreferencesInitializedTest, errorCases)
 {
-    initService();
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -265,10 +248,6 @@ TEST_F(LoggingPreferencesTestFixture, errorCases)
             });
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("isKeystrokeMaskEnabled"), _T("{}"), response));
-
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
-
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
-
-    plugin->Deinitialize(nullptr);
 }

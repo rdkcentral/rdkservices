@@ -17,7 +17,6 @@ const string deviceId = _T("WPEdGVzdElkZW50aXR5");
 
 namespace WPEFramework {
 namespace Plugin {
-
     class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
     public:
         virtual ~DeviceImplementation() = default;
@@ -38,95 +37,69 @@ namespace Plugin {
     };
 
     SERVICE_REGISTRATION(DeviceImplementation, 1, 0);
-
 }
 }
 
-class DeviceIdentificationTestFixture : public ::testing::Test {
+class DeviceIdentificationTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::DeviceIdentification> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
-    Core::Sink<SystemInfo> subSystem;
-    ServiceMock service;
     string response;
 
-    DeviceIdentificationTestFixture()
+    DeviceIdentificationTest()
         : plugin(Core::ProxyType<Plugin::DeviceIdentification>::Create())
         , handler(*plugin)
         , connection(1, 0)
     {
     }
-    virtual ~DeviceIdentificationTestFixture()
+    virtual ~DeviceIdentificationTest()
     {
     }
 };
 
-void PrepareExpectCallsForMockMethods(ServiceMock& service, Core::Sink<SystemInfo>& subSystem)
+class DeviceIdentificationInitializedTest : public DeviceIdentificationTest {
+protected:
+    Core::Sink<SystemInfo> subSystem;
+    ServiceMock service;
+
+    DeviceIdentificationInitializedTest()
+        : DeviceIdentificationTest()
+    {
+        ON_CALL(service, ConfigLine())
+            .WillByDefault(::testing::Return("{\n"
+                                             "   \"root\":{\n"
+                                             "      \"outofprocess\":false\n"
+                                             "   }\n"
+                                             "}"));
+        ON_CALL(service, Locator())
+            .WillByDefault(::testing::Return(string()));
+        ON_CALL(service, SubSystems())
+            .WillByDefault(::testing::Invoke(
+                [&]() {
+                    PluginHost::ISubSystem* result = (&subSystem);
+                    result->AddRef();
+                    return result;
+                }));
+        ON_CALL(service, COMLink())
+            .WillByDefault(::testing::Return(&service));
+
+        EXPECT_EQ(string(""), plugin->Initialize(&service));
+    }
+    virtual ~DeviceIdentificationInitializedTest() override
+    {
+        plugin->Deinitialize(&service);
+    }
+};
+
+TEST_F(DeviceIdentificationInitializedTest, RegisteredMethods)
 {
-    EXPECT_CALL(service, ConfigLine())
-        .Times(1)
-        .WillOnce(::testing::Return("{\n"
-                                    "   \"root\":{\n"
-                                    "      \"outofprocess\":false\n"
-                                    "   }\n"
-                                    "}"));
-
-    EXPECT_CALL(service, Locator())
-        .Times(1)
-        .WillOnce(::testing::Return(string()));
-
-    EXPECT_CALL(service, SubSystems())
-        .Times(2)
-        .WillRepeatedly(::testing::Invoke(
-            [&]() {
-                PluginHost::ISubSystem* result = (&subSystem);
-
-                result->AddRef();
-
-                return result;
-            }));
-
-    ON_CALL(service, COMLink())
-        .WillByDefault(::testing::Return(&service));
-
-    return;
-}
-
-TEST_F(DeviceIdentificationTestFixture, RegisteredMethods)
-{
-
-    PrepareExpectCallsForMockMethods(service, subSystem);
-
-    EXPECT_EQ(string(""), plugin->Initialize(&service));
-
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("deviceidentification")));
-
-    plugin->Deinitialize(&service);
 }
 
-TEST_F(DeviceIdentificationTestFixture, Property)
+TEST_F(DeviceIdentificationInitializedTest, deviceidentification)
 {
-    PrepareExpectCallsForMockMethods(service, subSystem);
-
-    EXPECT_EQ(string(""), plugin->Initialize(&service));
-
     EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::IDENTIFIER) != nullptr);
-
-    EXPECT_EQ(Core::ERROR_NONE,
-        handler.Invoke(connection, _T("deviceidentification"), _T(""), response));
-    EXPECT_TRUE(response.empty() == false);
-
-    JsonObject params;
-
-    EXPECT_TRUE(params.FromString(response));
-    EXPECT_TRUE(params.HasLabel(_T("firmwareversion")));
-    EXPECT_TRUE(params.HasLabel(_T("chipset")));
-    EXPECT_TRUE(params.HasLabel(_T("deviceid")));
-
-    EXPECT_EQ(testFirmwareVersion, params[_T("firmwareversion")].Value());
-    EXPECT_EQ(testChipset, params[_T("chipset")].Value());
-    EXPECT_EQ(deviceId, params[_T("deviceid")].Value());
-
-    plugin->Deinitialize(&service);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deviceidentification"), _T(""), response));
+    EXPECT_EQ(response, _T("{\"firmwareversion\":\"testFirmwareVersion\",\"chipset\":\"testChipset\",\"deviceid\":\"WPEdGVzdElkZW50aXR5\"}"));
 }

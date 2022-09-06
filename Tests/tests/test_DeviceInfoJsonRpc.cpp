@@ -14,26 +14,28 @@
 
 #include "source/SystemInfo.h"
 
+#include <fstream>
+
 using namespace WPEFramework;
 
 namespace {
 const string webPrefix = _T("/Service/DeviceInfo");
-const string iarmName = _T("Thunder_Plugins");
 }
 
 class DeviceInfoJsonRpcTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::DeviceInfo> plugin;
     Core::JSONRPC::Handler& handler;
+    Core::JSONRPC::Connection connection;
+    string response;
 
     DeviceInfoJsonRpcTest()
         : plugin(Core::ProxyType<Plugin::DeviceInfo>::Create())
         , handler(*plugin)
+        , connection(1, 0)
     {
     }
-    virtual ~DeviceInfoJsonRpcTest()
-    {
-    }
+    virtual ~DeviceInfoJsonRpcTest() = default;
 };
 
 class DeviceInfoJsonRpcInitializedTest : public DeviceInfoJsonRpcTest {
@@ -42,33 +44,18 @@ protected:
     ManagerImplMock managerImplMock;
     ServiceMock service;
     Core::Sink<SystemInfo> subSystem;
-    Core::JSONRPC::Connection connection;
-    string response;
 
     DeviceInfoJsonRpcInitializedTest()
         : DeviceInfoJsonRpcTest()
-        , connection(1, 0)
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
         device::Manager::getInstance().impl = &managerImplMock;
-    }
-    virtual ~DeviceInfoJsonRpcInitializedTest()
-    {
-        IarmBus::getInstance().impl = nullptr;
-        device::Manager::getInstance().impl = nullptr;
-    }
 
-    virtual void SetUp()
-    {
         ON_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
-                [](const char* memberName, int* isRegistered) {
-                    if (iarmName == string(memberName)) {
-                        // Return 1 as not interested in all steps of IARM connection
-                        *isRegistered = 1;
-                        return IARM_RESULT_SUCCESS;
-                    }
-                    return IARM_RESULT_INVALID_PARAM;
+                [](const char*, int* isRegistered) {
+                    *isRegistered = 1;
+                    return IARM_RESULT_SUCCESS;
                 }));
         ON_CALL(managerImplMock, Initialize())
             .WillByDefault(::testing::Return());
@@ -88,27 +75,41 @@ protected:
 
         EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
-
-    virtual void TearDown()
+    virtual ~DeviceInfoJsonRpcInitializedTest() override
     {
         plugin->Deinitialize(&service);
+
+        IarmBus::getInstance().impl = nullptr;
+        device::Manager::getInstance().impl = nullptr;
     }
 };
 
-class DeviceInfoJsonRpcDsTest : public DeviceInfoJsonRpcInitializedTest {
+class DeviceInfoJsonRpcInitializedDsTest : public DeviceInfoJsonRpcInitializedTest {
 protected:
     HostImplMock hostImplMock;
-    VideoOutputPortConfigImplMock videoOutputPortConfigImplMock;
 
-    DeviceInfoJsonRpcDsTest()
+    DeviceInfoJsonRpcInitializedDsTest()
         : DeviceInfoJsonRpcInitializedTest()
     {
         device::Host::getInstance().impl = &hostImplMock;
-        device::VideoOutputPortConfig::getInstance().impl = &videoOutputPortConfigImplMock;
     }
-    virtual ~DeviceInfoJsonRpcDsTest()
+    virtual ~DeviceInfoJsonRpcInitializedDsTest() override
     {
         device::Host::getInstance().impl = nullptr;
+    }
+};
+
+class DeviceInfoJsonRpcInitializedDsVideoOutputTest : public DeviceInfoJsonRpcInitializedDsTest {
+protected:
+    VideoOutputPortConfigImplMock videoOutputPortConfigImplMock;
+
+    DeviceInfoJsonRpcInitializedDsVideoOutputTest()
+        : DeviceInfoJsonRpcInitializedDsTest()
+    {
+        device::VideoOutputPortConfig::getInstance().impl = &videoOutputPortConfigImplMock;
+    }
+    virtual ~DeviceInfoJsonRpcInitializedDsVideoOutputTest() override
+    {
         device::VideoOutputPortConfig::getInstance().impl = nullptr;
     }
 };
@@ -173,29 +174,45 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, socketinfo)
 
 TEST_F(DeviceInfoJsonRpcInitializedTest, firmwareversion)
 {
+    std::ofstream file("/version.txt");
+    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\nSDK_VERSION=17.3\nMEDIARITE=8.3.53\nYOCTO_VERSION=dunfell\n";
+    file.close();
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("firmwareversion"), _T(""), response));
     EXPECT_EQ(response, _T("{\"imagename\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\",\"sdk\":\"17.3\",\"mediarite\":\"8.3.53\",\"yocto\":\"dunfell\"}"));
 }
 
 TEST_F(DeviceInfoJsonRpcInitializedTest, make)
 {
+    std::ofstream file("/etc/device.properties");
+    file << "MFG_NAME=Pace\nFRIENDLY_ID=\"Pace Xi5\"\n";
+    file.close();
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("make"), _T(""), response));
     EXPECT_EQ(response, _T("{\"make\":\"pace\"}"));
 }
 
 TEST_F(DeviceInfoJsonRpcInitializedTest, modelname)
 {
+    std::ofstream file("/etc/device.properties");
+    file << "MFG_NAME=Pace\nFRIENDLY_ID=\"Pace Xi5\"\n";
+    file.close();
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("modelname"), _T(""), response));
     EXPECT_EQ(response, _T("{\"model\":\"Pace Xi5\"}"));
 }
 
 TEST_F(DeviceInfoJsonRpcInitializedTest, devicetype)
 {
+    std::ofstream file("/etc/authService.conf");
+    file << "deviceType=IpStb";
+    file.close();
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("devicetype"), _T(""), response));
     EXPECT_EQ(response, _T("{\"devicetype\":\"IpStb\"}"));
 }
 
-TEST_F(DeviceInfoJsonRpcDsTest, supportedaudioports)
+TEST_F(DeviceInfoJsonRpcInitializedDsTest, supportedaudioports)
 {
     AudioOutputPortMock audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
@@ -203,17 +220,17 @@ TEST_F(DeviceInfoJsonRpcDsTest, supportedaudioports)
     string audioPort(_T("HDMI0"));
 
     EXPECT_CALL(audioOutputPortMock, getName())
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(audioPort));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::ReturnRef(audioPort));
     EXPECT_CALL(hostImplMock, getAudioOutputPorts())
-        .Times(1)
-        .WillOnce(::testing::Return(device::List<device::AudioOutputPort>({ audioOutputPort })));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Return(device::List<device::AudioOutputPort>({ audioOutputPort })));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("supportedaudioports"), _T(""), response));
     EXPECT_EQ(response, _T("{\"supportedAudioPorts\":[\"HDMI0\"]}"));
 }
 
-TEST_F(DeviceInfoJsonRpcDsTest, supportedvideodisplays)
+TEST_F(DeviceInfoJsonRpcInitializedDsTest, supportedvideodisplays)
 {
     VideoOutputPortMock videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
@@ -221,23 +238,23 @@ TEST_F(DeviceInfoJsonRpcDsTest, supportedvideodisplays)
     string videoPort(_T("HDMI0"));
 
     EXPECT_CALL(videoOutputPortMock, getName())
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(videoPort));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::ReturnRef(videoPort));
     EXPECT_CALL(hostImplMock, getVideoOutputPorts())
-        .Times(1)
-        .WillOnce(::testing::Return(device::List<device::VideoOutputPort>({ videoOutputPort })));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Return(device::List<device::VideoOutputPort>({ videoOutputPort })));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("supportedvideodisplays"), _T(""), response));
     EXPECT_EQ(response, _T("{\"supportedVideoDisplays\":[\"HDMI0\"]}"));
 }
 
-TEST_F(DeviceInfoJsonRpcDsTest, hostedid)
+TEST_F(DeviceInfoJsonRpcInitializedDsTest, hostedid)
 {
     std::vector<uint8_t> edidVec({ 't', 'e', 's', 't' });
 
     EXPECT_CALL(hostImplMock, getHostEDID(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
             [&](std::vector<uint8_t>& edid) {
                 edid = edidVec;
             }));
@@ -246,7 +263,7 @@ TEST_F(DeviceInfoJsonRpcDsTest, hostedid)
     EXPECT_EQ(response, _T("{\"EDID\":\"dGVzdA==\"}"));
 }
 
-TEST_F(DeviceInfoJsonRpcDsTest, defaultresolution)
+TEST_F(DeviceInfoJsonRpcInitializedDsTest, defaultresolution)
 {
     VideoOutputPortMock videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
@@ -258,23 +275,23 @@ TEST_F(DeviceInfoJsonRpcDsTest, defaultresolution)
     string videoPortDefaultResolution(_T("1080p"));
 
     EXPECT_CALL(videoResolutionMock, getName())
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(videoPortDefaultResolution));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::ReturnRef(videoPortDefaultResolution));
     EXPECT_CALL(videoOutputPortMock, getDefaultResolution())
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(videoResolution));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::ReturnRef(videoResolution));
     EXPECT_CALL(hostImplMock, getDefaultVideoPortName())
-        .Times(1)
-        .WillOnce(::testing::Return(videoPort));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Return(videoPort));
     EXPECT_CALL(hostImplMock, getVideoOutputPort(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(videoOutputPort));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::ReturnRef(videoOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("defaultresolution"), _T(""), response));
     EXPECT_EQ(response, _T("{\"defaultResolution\":\"1080p\"}"));
 }
 
-TEST_F(DeviceInfoJsonRpcDsTest, supportedresolutions)
+TEST_F(DeviceInfoJsonRpcInitializedDsVideoOutputTest, supportedresolutions)
 {
     VideoOutputPortMock videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
@@ -289,32 +306,32 @@ TEST_F(DeviceInfoJsonRpcDsTest, supportedresolutions)
     string videoPortSupportedResolution(_T("1080p"));
 
     EXPECT_CALL(videoResolutionMock, getName())
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(videoPortSupportedResolution));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::ReturnRef(videoPortSupportedResolution));
     EXPECT_CALL(videoOutputPortTypeMock, getSupportedResolutions())
-        .Times(1)
-        .WillOnce(::testing::Return(device::List<device::VideoResolution>({ videoResolution })));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Return(device::List<device::VideoResolution>({ videoResolution })));
     EXPECT_CALL(videoOutputPortTypeMock, getId())
-        .Times(1)
-        .WillOnce(::testing::Return(0));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Return(0));
     EXPECT_CALL(videoOutputPortMock, getType())
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(videoOutputPortType));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::ReturnRef(videoOutputPortType));
     EXPECT_CALL(hostImplMock, getDefaultVideoPortName())
-        .Times(1)
-        .WillOnce(::testing::Return(videoPort));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Return(videoPort));
     EXPECT_CALL(hostImplMock, getVideoOutputPort(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(videoOutputPort));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::ReturnRef(videoOutputPort));
     EXPECT_CALL(videoOutputPortConfigImplMock, getPortType(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(videoOutputPortType));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::ReturnRef(videoOutputPortType));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("supportedresolutions"), _T(""), response));
     EXPECT_EQ(response, _T("{\"supportedResolutions\":[\"1080p\"]}"));
 }
 
-TEST_F(DeviceInfoJsonRpcDsTest, supportedhdcp)
+TEST_F(DeviceInfoJsonRpcInitializedDsVideoOutputTest, supportedhdcp)
 {
     VideoOutputPortMock videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
@@ -322,20 +339,20 @@ TEST_F(DeviceInfoJsonRpcDsTest, supportedhdcp)
     string videoPort(_T("HDMI0"));
 
     EXPECT_CALL(videoOutputPortMock, getHDCPProtocol())
-        .Times(1)
-        .WillOnce(::testing::Return(dsHDCP_VERSION_2X));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Return(dsHDCP_VERSION_2X));
     EXPECT_CALL(hostImplMock, getDefaultVideoPortName())
-        .Times(1)
-        .WillOnce(::testing::Return(videoPort));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Return(videoPort));
     EXPECT_CALL(videoOutputPortConfigImplMock, getPort(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(videoOutputPort));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::ReturnRef(videoOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("supportedhdcp"), _T(""), response));
     EXPECT_EQ(response, _T("{\"supportedHDCPVersion\":\"2.2\"}"));
 }
 
-TEST_F(DeviceInfoJsonRpcDsTest, audiocapabilities)
+TEST_F(DeviceInfoJsonRpcInitializedDsTest, audiocapabilities)
 {
     AudioOutputPortMock audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
@@ -343,25 +360,25 @@ TEST_F(DeviceInfoJsonRpcDsTest, audiocapabilities)
     string audioPort(_T("HDMI0"));
 
     EXPECT_CALL(audioOutputPortMock, getAudioCapabilities(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
             [&](int* capabilities) {
                 ASSERT_TRUE(capabilities != nullptr);
                 EXPECT_EQ(*capabilities, dsAUDIOSUPPORT_NONE);
                 *capabilities = dsAUDIOSUPPORT_ATMOS | dsAUDIOSUPPORT_DD | dsAUDIOSUPPORT_DDPLUS | dsAUDIOSUPPORT_DAD | dsAUDIOSUPPORT_DAPv2 | dsAUDIOSUPPORT_MS12;
             }));
     EXPECT_CALL(hostImplMock, getDefaultAudioPortName())
-        .Times(1)
-        .WillOnce(::testing::Return(audioPort));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Return(audioPort));
     EXPECT_CALL(hostImplMock, getAudioOutputPort(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(audioOutputPort));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::ReturnRef(audioOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("audiocapabilities"), _T(""), response));
     EXPECT_EQ(response, _T("{\"AudioCapabilities\":[\"ATMOS\",\"DOLBY DIGITAL\",\"DOLBY DIGITAL PLUS\",\"Dual Audio Decode\",\"DAPv2\",\"MS12\"]}"));
 }
 
-TEST_F(DeviceInfoJsonRpcDsTest, ms12capabilities)
+TEST_F(DeviceInfoJsonRpcInitializedDsTest, ms12capabilities)
 {
     AudioOutputPortMock audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
@@ -369,25 +386,25 @@ TEST_F(DeviceInfoJsonRpcDsTest, ms12capabilities)
     string audioPort(_T("HDMI0"));
 
     EXPECT_CALL(audioOutputPortMock, getMS12Capabilities(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
             [&](int* capabilities) {
                 ASSERT_TRUE(capabilities != nullptr);
                 EXPECT_EQ(*capabilities, dsMS12SUPPORT_NONE);
                 *capabilities = dsMS12SUPPORT_DolbyVolume | dsMS12SUPPORT_InteligentEqualizer | dsMS12SUPPORT_DialogueEnhancer;
             }));
     EXPECT_CALL(hostImplMock, getDefaultAudioPortName())
-        .Times(1)
-        .WillOnce(::testing::Return(audioPort));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Return(audioPort));
     EXPECT_CALL(hostImplMock, getAudioOutputPort(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(audioOutputPort));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::ReturnRef(audioOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("ms12capabilities"), _T(""), response));
     EXPECT_EQ(response, _T("{\"MS12Capabilities\":[\"Dolby Volume\",\"Inteligent Equalizer\",\"Dialogue Enhancer\"]}"));
 }
 
-TEST_F(DeviceInfoJsonRpcDsTest, supportedms12audioprofiles)
+TEST_F(DeviceInfoJsonRpcInitializedDsTest, supportedms12audioprofiles)
 {
     AudioOutputPortMock audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
@@ -396,14 +413,14 @@ TEST_F(DeviceInfoJsonRpcDsTest, supportedms12audioprofiles)
     string audioPortMS12AudioProfile(_T("Movie"));
 
     EXPECT_CALL(audioOutputPortMock, getMS12AudioProfileList())
-        .Times(1)
-        .WillOnce(::testing::Return(std::vector<std::string>({ audioPortMS12AudioProfile })));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Return(std::vector<std::string>({ audioPortMS12AudioProfile })));
     EXPECT_CALL(hostImplMock, getDefaultAudioPortName())
-        .Times(1)
-        .WillOnce(::testing::Return(audioPort));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Return(audioPort));
     EXPECT_CALL(hostImplMock, getAudioOutputPort(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(audioOutputPort));
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::ReturnRef(audioOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("supportedms12audioprofiles"), _T(""), response));
     EXPECT_EQ(response, _T("{\"supportedMS12AudioProfiles\":[\"Movie\"]}"));

@@ -208,35 +208,14 @@ jobs:
         run: >
           sudo apt update && sudo apt install -y valgrind
 
-      - name: Start servers
-        # nohup to keep it running.
-        run: |
-          nohup python rdkservices/Tests/source/tr69hostif.py &
-          sleep 0.1
-
       - name: Set up files
         run: |
-          printf 'MFG_NAME=Pace\nFRIENDLY_ID="Pace Xi5"\n' | sudo tee /etc/device.properties
-          printf 'deviceType=IpStb\n' | sudo tee /etc/authService.conf
-          printf 'imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\nSDK_VERSION=17.3\nMEDIARITE=8.3.53\nYOCTO_VERSION=dunfell\nVERSION=000.36.0.0\nBUILD_TIME=\"2022-08-05 16:14:54\"\n' | sudo tee /version.txt
-
-          sudo mkdir /opt/secure
-          sudo mkdir /opt/persistent
-          sudo mkdir /opt/secure/reboot
-          sudo mkdir /opt/secure/persistent
-          sudo mkdir /opt/secure/persistent/System
-          sudo mkdir /opt/logs
-          sudo mkdir /lib/rdk
-          sudo chmod -R 1777 /opt
-          sudo chmod -R 1777 /lib/rdk
-
-          printf 'PreviousRebootReason: RebootReason: Triggered from SystemServices! MAINTENANCE_REBOOT \n PreviousRebootTime: 18.08.2022_09:51.38\nPreviousRebootInitiatedBy: HAL_CDL_notify_mgr_event\nPreviousCustomReason: MAINTENANCE_REBOOT \n PreviousOtherReason: MAINTENANCE_REBOOT \n' |  sudo tee /opt/logs/rebootInfo.log
-
-          printf '{\n\"timestamp\":\"Thu Aug 18 13:51:39 UTC 2022\",\n \"source\":\"HAL_CDL_notify_mgr_event",\n \"reason\":\"OPS_TRIGGERED\",\n \"customReason\":\"Unknown",\n \"otherReason\":\"Rebooting the box due to VL_CDL_MANAGER_EVENT_REBOOT...!\"\n}\n' |  sudo tee /opt/persistent/previousreboot.info
-          printf '{\n\"lastHardPowerReset\":\"Thu Aug 18 13:51:39 UTC 2022\"\n}\n' |  sudo tee /opt/persistent/hardpower.info
-          printf 'RDK_STARTED:35755' | sudo tee /opt/logs/rdk_milestones.log
-          printf 'false' | sudo tee /opt/tmtryoptout
-          printf 'Method|xconf \nProto|\nStatus|Failure\nReboot|\nFailureReason|Invalid Request\nDnldVersn|AX013AN_5.6p4s1_VBN_sey\nDnldFile|\nDnlURL|https://dac15cdlserver.ae.ccp.xcal.tv:443/Images/AX013AN_5.6p4s1_VBN_sey-signed.bin\n FwupdateState|Failed\n' | sudo tee /opt/fwdnldstatus.txt
+          sudo touch /etc/device.properties
+          sudo touch /etc/authService.conf
+          sudo touch /version.txt
+          sudo chmod 777 /etc/device.properties
+          sudo chmod 777 /etc/authService.conf
+          sudo chmod 777 /version.txt
 
       - name: Run unit tests
         run: >
@@ -250,10 +229,6 @@ jobs:
           --track-fds=yes
           --fair-sched=try
           RdkServicesTest
-
-      - name: Stop servers
-        run: |
-          pkill -f rdkservices/Tests/source/tr69hostif.py
 
       - name: Install lcov
         run: >
