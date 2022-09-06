@@ -4,11 +4,9 @@
 
 #include "IarmBusMock.h"
 
-using namespace WPEFramework;
+#include <fstream>
 
-namespace {
-const string iarmName = _T("Thunder_Plugins");
-}
+using namespace WPEFramework;
 
 class DeviceInfoTest : public ::testing::Test {
 protected:
@@ -19,60 +17,65 @@ protected:
     DeviceInfoTest()
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
-    }
-    virtual ~DeviceInfoTest()
-    {
-        IarmBus::getInstance().impl = nullptr;
-    }
 
-    virtual void SetUp()
-    {
-        EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
-            .Times(1)
-            .WillOnce(::testing::Invoke(
-                [](const char* memberName, int* isRegistered) {
-                    if (iarmName == string(memberName)) {
-                        // Return 1 as not interested in all steps of IARM connection
-                        *isRegistered = 1;
-                        return IARM_RESULT_SUCCESS;
-                    }
-                    return IARM_RESULT_INVALID_PARAM;
+        ON_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [](const char*, int* isRegistered) {
+                    *isRegistered = 1;
+                    return IARM_RESULT_SUCCESS;
                 }));
 
         deviceInfoImplementation = Core::ProxyType<Plugin::DeviceInfoImplementation>::Create();
 
         interface = static_cast<Exchange::IDeviceInfo*>(
             deviceInfoImplementation->QueryInterface(Exchange::IDeviceInfo::ID));
+    }
+    virtual ~DeviceInfoTest()
+    {
+        interface->Release();
+        IarmBus::getInstance().impl = nullptr;
+    }
+
+    virtual void SetUp()
+    {
         ASSERT_TRUE(interface != nullptr);
     }
 
     virtual void TearDown()
     {
         ASSERT_TRUE(interface != nullptr);
-        interface->Release();
     }
 };
 
 TEST_F(DeviceInfoTest, Make)
 {
-    string make;
+    std::ofstream file("/etc/device.properties");
+    file << "MFG_NAME=Pace";
+    file.close();
 
+    string make;
     EXPECT_EQ(Core::ERROR_NONE, interface->Make(make));
     EXPECT_EQ(make, _T("Pace"));
 }
 
 TEST_F(DeviceInfoTest, Model)
 {
-    string model;
+    std::ofstream file("/etc/device.properties");
+    file << "FRIENDLY_ID=\"Pace Xi5\"";
+    file.close();
 
+    string model;
     EXPECT_EQ(Core::ERROR_NONE, interface->Model(model));
     EXPECT_EQ(model, _T("Pace Xi5"));
 }
 
 TEST_F(DeviceInfoTest, DeviceType)
 {
-    string deviceType;
+    std::ofstream file("/etc/authService.conf");
+    file << "deviceType=IpStb";
+    file.close();
 
+    string deviceType;
     EXPECT_EQ(Core::ERROR_NONE, interface->DeviceType(deviceType));
     EXPECT_EQ(deviceType, _T("IpStb"));
 }
