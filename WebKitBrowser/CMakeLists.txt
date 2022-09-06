@@ -48,6 +48,7 @@ option(PLUGIN_WEBKITBROWSER_ENABLE_JIT "Enable the use of JIT javascript optimal
 option(PLUGIN_WEBKITBROWSER_ENABLE_DFG "Enable the use of DFG javascript optimalization" ON)
 option(PLUGIN_APPS_ENABLE_JIT "Enable the use of JIT javascript optimalization" OFF)
 option(PLUGIN_APPS_ENABLE_DFG "Enable the use of DFG javascript optimalization" OFF)
+option(PLUGIN_WEBKITBROWSER_CLOUD_COOKIEJAR "Enable support for exporting/importing cookie jar" OFF)
 
 set(PLUGIN_WEBKITBROWSER_IMPLEMENTATION "${MODULE_NAME}Impl" CACHE STRING "Specify a library with a webkit implementation." )
 
@@ -189,6 +190,18 @@ target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
         WPEBackend::WPEBackend
         WPEWebKit::WPEWebKit)
+
+if (PLUGIN_WEBKITBROWSER_CLOUD_COOKIEJAR)
+    find_package(ZLIB REQUIRED)
+    target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
+        PRIVATE
+        ZLIB::ZLIB)
+    target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
+        PRIVATE
+        ENABLE_CLOUD_COOKIE_JAR=1)
+    target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE CookieJar.cpp)
+    include(CookieJarCrypto/CMakeLists.txt)
+endif()
 
 if(WPE_WEBKIT_DEPRECATED_API)
     target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE WPE_WEBKIT_DEPRECATED_API)
