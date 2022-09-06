@@ -17,6 +17,7 @@
 * limitations under the License.
 **/
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "LocationSync.h"
@@ -34,45 +35,70 @@ namespace {
 const string webPrefix = _T("/Service/LocationSync");
 }
 
-class LocationSyncTestFixture : public ::testing::Test {
+namespace {
+class SystemInfoMock : public SystemInfo {
+public:
+    virtual ~SystemInfoMock() = default;
+    MOCK_METHOD(void, Set, (const subsystem type, WPEFramework::Core::IUnknown* information), (override));
+};
+}
+
+class LocationSyncTest : public ::testing::Test {
 protected:
     Core::ProxyType<WorkerPoolImplementation> workerPool;
     FactoriesImplementation factoriesImplementation;
-
     ServiceMock service;
-    Core::Sink<SystemInfo> subSystem;
-
+    Core::Sink<SystemInfoMock> subSystem;
     Core::ProxyType<Plugin::LocationSync> plugin;
     Core::JSONRPC::Handler& handler;
-
     Core::JSONRPC::Connection connection;
     Core::JSONRPC::Message message;
     string response;
+    PluginHost::IDispatcher* dispatcher;
 
-    Core::Event locationchange;
-
-    LocationSyncTestFixture()
+    LocationSyncTest()
         : workerPool(Core::ProxyType<WorkerPoolImplementation>::Create(
             5, Core::Thread::DefaultStackSize(), 16))
         , plugin(Core::ProxyType<Plugin::LocationSync>::Create())
         , handler(*plugin)
         , connection(1, 0)
-        , locationchange(false, true)
-    {
-    }
-    virtual ~LocationSyncTestFixture()
-    {
-    }
-
-    virtual void SetUp()
     {
         PluginHost::IFactories::Assign(&factoriesImplementation);
         Core::IWorkerPool::Assign(&(*workerPool));
         workerPool->Run();
-    }
 
-    virtual void TearDown()
+        ON_CALL(service, ConfigLine())
+            .WillByDefault(::testing::Return("{\n"
+                                             "\"interval\":10,\n"
+                                             "\"retries\":20,\n"
+                                             "\"source\":\"http://jsonip.metrological.com/?maf=true\"\n"
+                                             "}"));
+        ON_CALL(service, WebPrefix())
+            .WillByDefault(::testing::Return(webPrefix));
+        ON_CALL(service, SubSystems())
+            .WillByDefault(::testing::Invoke(
+                [&]() {
+                    PluginHost::ISubSystem* result = (&subSystem);
+                    result->AddRef();
+                    return result;
+                }));
+        ON_CALL(subSystem, Set(::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [&](const PluginHost::ISubSystem::subsystem type, WPEFramework::Core::IUnknown* information) {
+                    subSystem.SystemInfo::Set(type, information);
+                }));
+        ON_CALL(service, Version())
+            .WillByDefault(::testing::Return(string()));
+
+        dispatcher = static_cast<PluginHost::IDispatcher*>(
+            plugin->QueryInterface(PluginHost::IDispatcher::ID));
+        dispatcher->Activate(&service);
+    }
+    virtual ~LocationSyncTest()
     {
+        dispatcher->Deactivate();
+        dispatcher->Release();
+
         plugin.Release();
 
         Core::IWorkerPool::Assign(nullptr);
@@ -81,34 +107,10 @@ protected:
     }
 };
 
-TEST_F(LocationSyncTestFixture, registeredMethods)
+TEST_F(LocationSyncTest, activate_locationchange_location_deactivate)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("sync")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("location")));
-}
+    Core::Event locationchange(false, true);
 
-TEST_F(LocationSyncTestFixture, activate_locationchange_location_deactivate)
-{
-    EXPECT_CALL(service, ConfigLine())
-        .Times(1)
-        .WillOnce(::testing::Return("{\n"
-                                    "\"interval\":10,\n"
-                                    "\"retries\":20,\n"
-                                    "\"source\":\"http://jsonip.metrological.com/?maf=true\"\n"
-                                    "}"));
-    EXPECT_CALL(service, WebPrefix())
-        .Times(1)
-        .WillOnce(::testing::Return(webPrefix));
-    EXPECT_CALL(service, SubSystems())
-        .Times(2)
-        .WillRepeatedly(::testing::Invoke(
-            [&]() {
-                PluginHost::ISubSystem* result = (&subSystem);
-                result->AddRef();
-                return result;
-            }));
-    ON_CALL(service, Version())
-        .WillByDefault(::testing::Return(string()));
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -126,10 +128,6 @@ TEST_F(LocationSyncTestFixture, activate_locationchange_location_deactivate)
                 return Core::ERROR_NONE;
             }));
 
-    auto dispatcher = static_cast<PluginHost::IDispatcher*>(
-        plugin->QueryInterface(PluginHost::IDispatcher::ID));
-    EXPECT_TRUE(dispatcher != nullptr);
-    dispatcher->Activate(&service);
     handler.Subscribe(0, _T("locationchange"), _T("LocationSync"), message);
 
     EXPECT_EQ(string(""), plugin->Initialize(&service));
@@ -149,33 +147,12 @@ TEST_F(LocationSyncTestFixture, activate_locationchange_location_deactivate)
                                                   "\\}"));
 
     handler.Unsubscribe(0, _T("locationchange"), _T("LocationSync"), message);
-    dispatcher->Deactivate();
-    dispatcher->Release();
+
     plugin->Deinitialize(&service);
 }
 
-TEST_F(LocationSyncTestFixture, activate_sync_deactivate)
+TEST_F(LocationSyncTest, activate_sync_deactivate)
 {
-    EXPECT_CALL(service, ConfigLine())
-        .Times(1)
-        .WillOnce(::testing::Return("{\n"
-                                    "\"interval\":10,\n"
-                                    "\"retries\":20,\n"
-                                    "\"source\":\"http://jsonip.metrological.com/?maf=true\"\n"
-                                    "}"));
-    EXPECT_CALL(service, WebPrefix())
-        .Times(1)
-        .WillOnce(::testing::Return(webPrefix));
-    ON_CALL(service, SubSystems())
-        .WillByDefault(::testing::Invoke(
-            [&]() {
-                PluginHost::ISubSystem* result = (&subSystem);
-                result->AddRef();
-                return result;
-            }));
-    ON_CALL(service, Version())
-        .WillByDefault(::testing::Return(string()));
-
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
     EXPECT_EQ(Core::ERROR_INPROGRESS, handler.Invoke(connection, _T("sync"), _T("{}"), response));
@@ -183,62 +160,44 @@ TEST_F(LocationSyncTestFixture, activate_sync_deactivate)
     plugin->Deinitialize(&service);
 }
 
-TEST_F(LocationSyncTestFixture, activateWithIncorrectUrl)
+TEST_F(LocationSyncTest, activateWithIncorrectUrl)
 {
-    EXPECT_CALL(service, ConfigLine())
-        .Times(1)
-        .WillOnce(::testing::Return("{\n"
-                                    "\"interval\":10,\n"
-                                    "\"retries\":20,\n"
-                                    "\"source\":\"http://0.0.0.0\"\n"
-                                    "}"));
-    ON_CALL(service, Version())
-        .WillByDefault(::testing::Return(string()));
+    ON_CALL(service, ConfigLine())
+        .WillByDefault(::testing::Return("{\n"
+                                         "\"interval\":10,\n"
+                                         "\"retries\":20,\n"
+                                         "\"source\":\"http://0.0.0.0\"\n"
+                                         "}"));
 
     EXPECT_EQ(string("URL for retrieving location is incorrect !!!"), plugin->Initialize(&service));
 }
 
-TEST_F(LocationSyncTestFixture, activateWithUnreachableHost_locationchange_location_deactivate)
+TEST_F(LocationSyncTest, activateWithUnreachableHost_location_deactivate)
 {
-    EXPECT_CALL(service, ConfigLine())
-        .Times(1)
-        .WillOnce(::testing::Return("{\n"
-                                    "\"interval\":1,\n"
-                                    "\"retries\":1,\n"
-                                    "\"source\":\"http://jsonip.metrological.com:1234/?maf=true\"\n"
-                                    "}"));
-    EXPECT_CALL(service, WebPrefix())
-        .Times(1)
-        .WillOnce(::testing::Return(webPrefix));
-    EXPECT_CALL(service, SubSystems())
-        .Times(2)
-        .WillOnce(::testing::Invoke(
-            [&]() {
-                PluginHost::ISubSystem* result = (&subSystem);
-                result->AddRef();
+    Core::Event location(false, true);
+    Core::Event internet(false, true);
 
-                locationchange.SetEvent();
-
-                return result;
-            }))
-        .WillOnce(::testing::Invoke(
-            [&]() {
-                PluginHost::ISubSystem* result = (&subSystem);
-                result->AddRef();
-                return result;
+    ON_CALL(service, ConfigLine())
+        .WillByDefault(::testing::Return("{\n"
+                                         "\"interval\":1,\n"
+                                         "\"retries\":1,\n"
+                                         "\"source\":\"http://jsonip.metrological.com:1234/?maf=true\"\n"
+                                         "}"));
+    ON_CALL(subSystem, Set(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](const PluginHost::ISubSystem::subsystem type, WPEFramework::Core::IUnknown* information) {
+                subSystem.SystemInfo::Set(type, information);
+                if (type == PluginHost::ISubSystem::LOCATION) {
+                    location.SetEvent();
+                } else if (type == PluginHost::ISubSystem::INTERNET) {
+                    internet.SetEvent();
+                }
             }));
-    ON_CALL(service, Version())
-        .WillByDefault(::testing::Return(string()));
-
-    auto dispatcher = static_cast<PluginHost::IDispatcher*>(
-        plugin->QueryInterface(PluginHost::IDispatcher::ID));
-    EXPECT_TRUE(dispatcher != nullptr);
-    dispatcher->Activate(&service);
-    handler.Subscribe(0, _T("locationchange"), _T("LocationSync"), message);
 
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
-    EXPECT_EQ(Core::ERROR_NONE, locationchange.Lock(100000)); // 100s
+    EXPECT_EQ(Core::ERROR_NONE, location.Lock(100000)); // 100s
+    EXPECT_EQ(Core::ERROR_NONE, internet.Lock(100000)); // 100s
 
     EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::LOCATION) != nullptr);
     EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::INTERNET) != nullptr);
@@ -252,65 +211,5 @@ TEST_F(LocationSyncTestFixture, activateWithUnreachableHost_locationchange_locat
                                                   "\"publicip\":\"\""
                                                   "\\}"));
 
-    handler.Unsubscribe(0, _T("locationchange"), _T("LocationSync"), message);
-    dispatcher->Deactivate();
-    dispatcher->Release();
-    plugin->Deinitialize(&service);
-}
-
-TEST_F(LocationSyncTestFixture, activate_locationchange_sync_locationchange_sync_locationchange_deactivate)
-{
-    int iteration = 0;
-    int numIterations = 2;
-
-    EXPECT_CALL(service, ConfigLine())
-        .Times(1)
-        .WillOnce(::testing::Return("{\n"
-                                    "\"interval\":10,\n"
-                                    "\"retries\":20,\n"
-                                    "\"source\":\"http://jsonip.metrological.com/?maf=true\"\n"
-                                    "}"));
-    EXPECT_CALL(service, WebPrefix())
-        .Times(1)
-        .WillOnce(::testing::Return(webPrefix));
-    EXPECT_CALL(service, SubSystems())
-        .Times(numIterations + 1)
-        .WillRepeatedly(::testing::Invoke(
-            [&]() {
-                PluginHost::ISubSystem* result = (&subSystem);
-                result->AddRef();
-                return result;
-            }));
-    ON_CALL(service, Version())
-        .WillByDefault(::testing::Return(string()));
-    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
-        .Times(numIterations + 1)
-        .WillRepeatedly(::testing::Invoke(
-            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>&) {
-                if (iteration++ < numIterations) {
-                    std::thread t([&]() {
-                        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sync"), _T("{}"), response));
-                    });
-                    t.detach();
-                } else {
-                    locationchange.SetEvent();
-                }
-
-                return Core::ERROR_NONE;
-            }));
-
-    auto dispatcher = static_cast<PluginHost::IDispatcher*>(
-        plugin->QueryInterface(PluginHost::IDispatcher::ID));
-    EXPECT_TRUE(dispatcher != nullptr);
-    dispatcher->Activate(&service);
-    handler.Subscribe(0, _T("locationchange"), _T("LocationSync"), message);
-
-    EXPECT_EQ(string(""), plugin->Initialize(&service));
-
-    EXPECT_EQ(Core::ERROR_NONE, locationchange.Lock(100000)); // 100s
-
-    handler.Unsubscribe(0, _T("locationchange"), _T("LocationSync"), message);
-    dispatcher->Deactivate();
-    dispatcher->Release();
     plugin->Deinitialize(&service);
 }
