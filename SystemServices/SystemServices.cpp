@@ -329,6 +329,7 @@ namespace WPEFramework {
 
                 LOGINFO("first boot so setting mode to '%s' ('%s' does not contain(\"mode\"))\n",
                         (param["mode"].String()).c_str(), SYSTEM_SERVICE_TEMP_FILE);
+
                 setMode(mode, response);
             } else if (m_currentMode.empty()) {
                 JsonObject mode,param,response;
@@ -338,6 +339,7 @@ namespace WPEFramework {
 
                 LOGINFO("receiver restarted so setting mode:%s duration:%d\n",
                         (param["mode"].String()).c_str(), (int)param["duration"].Number());
+
                 setMode(mode, response);
             }
 
@@ -3874,7 +3876,7 @@ namespace WPEFramework {
             /* Only handle state events */
             if (eventId != IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) return;
 
-            IARM_Bus_SYSMgr_EventData_t * sysEventData = (IARM_Bus_SYSMgr_EventData_t*)data;
+            IARM_Bus_SYSMgr_EventData_t *sysEventData = (IARM_Bus_SYSMgr_EventData_t*)data;
             IARM_Bus_SYSMgr_SystemState_t stateId = sysEventData->data.systemStates.stateId;
             int state = sysEventData->data.systemStates.state;
 
@@ -4078,14 +4080,13 @@ namespace WPEFramework {
                                   });
                 if (it != FwFailReasonFromText.end())
                     failReason = it->second;
-
                 else if (!str.empty())
                     LOGWARN("Unrecognised FailureReason!");
             } else {
                 LOGINFO("Could not read file %s", FWDNLDSTATUS_FILE_NAME);
             }
 
-	        response["failReason"] = FwFailReasonToText.at(failReason);
+            response["failReason"] = FwFailReasonToText.at(failReason);
             returnResponse(retStatus);
         }
         /***
