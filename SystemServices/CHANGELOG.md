@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.3]
+### Fixed
+- Warnings fix
+
 ## [1.0.2] - 2022-08-24
 ### Fixed
 - Update SystemServices to call container_setup.sh script after deleting persistent data
