@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.7]
+### Fixed
+- Use Controller via COM-RPC instead of JSON-RPC
+
 ##[1.0.6] - 2022-09-01
 ### Changed
 - Fixed DisplaySettings dtor crash in LinkType
