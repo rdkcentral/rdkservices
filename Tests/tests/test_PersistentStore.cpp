@@ -40,13 +40,12 @@ class PersistentStoreTest : public ::testing::Test {
 protected:
     Core::ProxyType<PersistentStoreMock> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context context;
     string response;
 
     PersistentStoreTest()
         : plugin(Core::ProxyType<PersistentStoreMock>::Create())
         , handler(*plugin)
-        , connection(1, 0)
     {
     }
     virtual ~PersistentStoreTest() = default;
@@ -116,32 +115,32 @@ TEST_F(PersistentStoreTest, registeredMethods)
 
 TEST_F(PersistentStoreTest, paramsMissing)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setValue"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getValue"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getKeys"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deleteKey"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deleteNamespace"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("setValue"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("getValue"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("getKeys"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("deleteKey"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("deleteNamespace"), _T("{}"), response));
 }
 
 TEST_F(PersistentStoreTest, paramsEmpty)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"\",\"key\":\"\",\"value\":\"\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getValue"), _T("{\"namespace\":\"\",\"key\":\"\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getKeys"), _T("{\"namespace\":\"\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deleteKey"), _T("{\"namespace\":\"\",\"key\":\"\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deleteNamespace"), _T("{\"namespace\":\"\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("setValue"), _T("{\"namespace\":\"\",\"key\":\"\",\"value\":\"\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("getValue"), _T("{\"namespace\":\"\",\"key\":\"\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("getKeys"), _T("{\"namespace\":\"\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("deleteKey"), _T("{\"namespace\":\"\",\"key\":\"\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("deleteNamespace"), _T("{\"namespace\":\"\"}"), response));
 }
 
 TEST_F(PersistentStoreTest, notInitialized)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"a\",\"value\":\"1\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getValue"), _T("{\"namespace\":\"test\",\"key\":\"a\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getNamespaces"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getStorageSize"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getKeys"), _T("{\"namespace\":\"test\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deleteKey"), _T("{\"namespace\":\"test\",\"key\":\"a\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deleteNamespace"), _T("{\"namespace\":\"test\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("flushCache"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"a\",\"value\":\"1\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("getValue"), _T("{\"namespace\":\"test\",\"key\":\"a\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("getNamespaces"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("getStorageSize"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("getKeys"), _T("{\"namespace\":\"test\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("deleteKey"), _T("{\"namespace\":\"test\",\"key\":\"a\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("deleteNamespace"), _T("{\"namespace\":\"test\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("flushCache"), _T("{}"), response));
 }
 
 TEST_F(PersistentStoreInitializedEventTest, jsonRpc)
@@ -167,24 +166,24 @@ TEST_F(PersistentStoreInitializedEventTest, jsonRpc)
 
     handler.Subscribe(0, _T("onValueChanged"), _T("org.rdk.PersistentStore"), message);
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"a\",\"value\":\"1\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"a\",\"value\":\"1\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, onValueChanged.Lock());
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getValue"), _T("{\"namespace\":\"test\",\"key\":\"a\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("getValue"), _T("{\"namespace\":\"test\",\"key\":\"a\"}"), response));
     EXPECT_EQ(response, _T("{\"value\":\"1\",\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getNamespaces"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("getNamespaces"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"namespaces\":[\"test\"],\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStorageSize"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("getStorageSize"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"namespaceSizes\":{\"test\":2},\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getKeys"), _T("{\"namespace\":\"test\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("getKeys"), _T("{\"namespace\":\"test\"}"), response));
     EXPECT_EQ(response, _T("{\"keys\":[\"a\"],\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deleteKey"), _T("{\"namespace\":\"test\",\"key\":\"a\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("deleteKey"), _T("{\"namespace\":\"test\",\"key\":\"a\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deleteNamespace"), _T("{\"namespace\":\"test\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("deleteNamespace"), _T("{\"namespace\":\"test\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("flushCache"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("flushCache"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     handler.Unsubscribe(0, _T("onValueChanged"), _T("org.rdk.PersistentStore"), message);
@@ -192,7 +191,7 @@ TEST_F(PersistentStoreInitializedEventTest, jsonRpc)
 
 TEST_F(PersistentStoreInitializedTest, maxValue)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"a\",\"value\":\"123456789123456789\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"a\",\"value\":\"123456789123456789\"}"), response));
 }
 
 TEST_F(PersistentStoreInitializedEventTest, onStorageExceeded)
@@ -218,15 +217,15 @@ TEST_F(PersistentStoreInitializedEventTest, onStorageExceeded)
 
     handler.Subscribe(0, _T("onStorageExceeded"), _T("org.rdk.PersistentStore"), message);
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"a\",\"value\":\"123456789\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"a\",\"value\":\"123456789\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"b\",\"value\":\"12345678\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"b\",\"value\":\"12345678\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"c\",\"value\":\"1\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"c\",\"value\":\"1\"}"), response));
 
     EXPECT_EQ(Core::ERROR_NONE, onStorageExceeded.Lock());
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deleteNamespace"), _T("{\"namespace\":\"test\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("deleteNamespace"), _T("{\"namespace\":\"test\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     handler.Unsubscribe(0, _T("onStorageExceeded"), _T("org.rdk.PersistentStore"), message);
@@ -259,7 +258,7 @@ TEST_F(PersistentStoreTest, legacyLocation)
 
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"d\",\"value\":\"abc\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"d\",\"value\":\"abc\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     plugin->Deinitialize(&service);
@@ -271,9 +270,9 @@ TEST_F(PersistentStoreTest, legacyLocation)
 
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getValue"), _T("{\"namespace\":\"test\",\"key\":\"d\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("getValue"), _T("{\"namespace\":\"test\",\"key\":\"d\"}"), response));
     EXPECT_EQ(response, _T("{\"value\":\"abc\",\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deleteNamespace"), _T("{\"namespace\":\"test\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("deleteNamespace"), _T("{\"namespace\":\"test\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     plugin->Deinitialize(&service);

@@ -16,13 +16,12 @@ class AVInputTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::AVInput> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context context;
     string response;
 
     AVInputTest()
         : plugin(Core::ProxyType<Plugin::AVInput>::Create())
         , handler(*(plugin))
-        , connection(1, 0)
     {
     }
     virtual ~AVInputTest() = default;
@@ -134,7 +133,7 @@ TEST_F(AVInputTest, RegisteredMethods)
 
 TEST_F(AVInputTest, contentProtected)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("contentProtected"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("contentProtected"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"isContentProtected\":true,\"success\":true}"));
 }
 
@@ -144,7 +143,7 @@ TEST_F(AVInputDsTest, numberOfInputs)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(::testing::Return(1));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("numberOfInputs"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("numberOfInputs"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"numberOfInputs\":1,\"success\":true}"));
 }
 
@@ -154,7 +153,7 @@ TEST_F(AVInputDsTest, currentVideoMode)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(::testing::Return(string("unknown")));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("currentVideoMode"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("currentVideoMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"currentVideoMode\":\"unknown\",\"success\":true}"));
 }
 

@@ -28,12 +28,11 @@ protected:
     Core::ProxyType<Plugin::DeviceDiagnostics> deviceDiagnostic_;
     Core::JSONRPC::Handler& handler_;
     string response;
-    Core::JSONRPC::Connection connection_;
+    Core::JSONRPC::Context context;
 
     DeviceDiagnosticsTest()
         : deviceDiagnostic_(Core::ProxyType<Plugin::DeviceDiagnostics>::Create())
         , handler_(*deviceDiagnostic_)
-        , connection_(1, 0)
     {
     }
 };
@@ -67,7 +66,7 @@ TEST_F(DeviceDiagnosticsTest, getConfiguration)
         close(connection);
     });
 
-    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("getConfiguration"), _T("{\"names\":[\"test\"]}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(context, _T("getConfiguration"), _T("{\"names\":[\"test\"]}"), response));
     EXPECT_EQ(response, _T("{\"paramList\":[\"Device.X_CISCO_COM_LED.RedPwm\":123],\"success\":true}"));
 
     thread.join();
@@ -77,6 +76,6 @@ TEST_F(DeviceDiagnosticsTest, getConfiguration)
 
 TEST_F(DeviceDiagnosticsTest, getAVDecoderStatus)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("getAVDecoderStatus"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(context, _T("getAVDecoderStatus"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"avDecoderStatus\":\"IDLE\",\"success\":true}"));
 }

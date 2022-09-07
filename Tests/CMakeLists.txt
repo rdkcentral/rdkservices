@@ -30,16 +30,18 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 file(GLOB TESTS tests/*.cpp)
+
+# R2 and R3.5 interfaces have diverged
+list(FILTER TESTS EXCLUDE REGEX test_DeviceInfo)
+list(FILTER TESTS EXCLUDE REGEX test_DeviceAudioCapabilities)
+list(FILTER TESTS EXCLUDE REGEX test_DeviceVideoCapabilities)
+list(FILTER TESTS EXCLUDE REGEX test_FirmwareVersion)
+
 add_executable(${PROJECT_NAME}
         ${TESTS}
         source/Module.cpp
         source/Wraps.cpp
         )
-
-set_source_files_properties(
-        tests/test_DeviceAudioCapabilities.cpp
-        tests/test_DeviceVideoCapabilities.cpp
-        PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 include_directories(../LocationSync
         ../PersistentStore
@@ -55,7 +57,6 @@ include_directories(../LocationSync
         ../LoggingPreferences
         ../UserPreferences
         ../Messenger
-        ../DeviceInfo
         ../helpers
         )
 link_directories(../LocationSync
@@ -73,7 +74,6 @@ link_directories(../LocationSync
         ../SystemServices
         ../UserPreferences
         ../Messenger
-        ../DeviceInfo
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -94,7 +94,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}SystemServices
         ${NAMESPACE}UserPreferences
         ${NAMESPACE}Messenger
-        ${NAMESPACE}DeviceInfo
         )
 
 target_include_directories(${PROJECT_NAME}

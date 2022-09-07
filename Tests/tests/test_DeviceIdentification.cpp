@@ -44,13 +44,12 @@ class DeviceIdentificationTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::DeviceIdentification> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context context;
     string response;
 
     DeviceIdentificationTest()
         : plugin(Core::ProxyType<Plugin::DeviceIdentification>::Create())
         , handler(*plugin)
-        , connection(1, 0)
     {
     }
     virtual ~DeviceIdentificationTest()
@@ -100,6 +99,6 @@ TEST_F(DeviceIdentificationInitializedTest, RegisteredMethods)
 TEST_F(DeviceIdentificationInitializedTest, deviceidentification)
 {
     EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::IDENTIFIER) != nullptr);
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deviceidentification"), _T(""), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("deviceidentification"), _T(""), response));
     EXPECT_EQ(response, _T("{\"firmwareversion\":\"testFirmwareVersion\",\"chipset\":\"testChipset\",\"deviceid\":\"WPEdGVzdElkZW50aXR5\"}"));
 }

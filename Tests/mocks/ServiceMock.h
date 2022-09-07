@@ -67,10 +67,15 @@ public:
     MOCK_METHOD(void, Register, (WPEFramework::RPC::IRemoteConnection::INotification*), (override));
     MOCK_METHOD(void, Unregister, (WPEFramework::RPC::IRemoteConnection::INotification*), (override));
     MOCK_METHOD(WPEFramework::RPC::IRemoteConnection*, RemoteConnection, (const uint32_t), (override));
-    MOCK_METHOD(void*, Instantiate, (const WPEFramework::RPC::Object&, const uint32_t, uint32_t&, const string&, const string&), (override));
+    MOCK_METHOD(void*, Instantiate, (const WPEFramework::RPC::Object&, const uint32_t, uint32_t&), (override));
     MOCK_METHOD(uint8_t, Major, (), (const, override));
     MOCK_METHOD(uint8_t, Minor, (), (const, override));
     MOCK_METHOD(uint8_t, Patch, (), (const, override));
+    MOCK_METHOD(string, SystemPath, (), (const, override));
+    MOCK_METHOD(string, PluginPath, (), (const, override));
+    MOCK_METHOD(uint32_t, ConfigLine, (const string& config), (override));
+    MOCK_METHOD(void, Register, (WPEFramework::PluginHost::IShell::ICOMLink::INotification* sink), (override));
+    MOCK_METHOD(void, Unregister, (WPEFramework::PluginHost::IShell::ICOMLink::INotification* sink), (override));
 };
 
 #endif //SERVICEMOCK_H

@@ -37,16 +37,15 @@ protected:
     ServiceMock service;
     Core::ProxyType<Plugin::Telemetry> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context context;
     string response;
 
     TelemetryTest()
         : T2Test()
         , plugin(Core::ProxyType<Plugin::Telemetry>::Create())
         , handler(*plugin)
-        , connection(1, 0)
     {
-        Core::Directory(t2PpersistentFolder.c_str()).Destroy(true);
+        Core::Directory(t2PpersistentFolder.c_str()).Destroy();
     }
     virtual ~TelemetryTest() override = default;
 };
@@ -203,16 +202,16 @@ TEST_F(TelemetryRfcTest, Plugin)
 
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"wrongvalue\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("setReportProfileStatus"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("setReportProfileStatus"), _T("{\"status\":\"wrongvalue\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"COMPLETE\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("setReportProfileStatus"), _T("{\"status\":\"COMPLETE\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventValue\":\"VALUE\"}"), response));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("logApplicationEvent"), _T("{\"eventValue\":\"VALUE\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     plugin->Deinitialize(nullptr);

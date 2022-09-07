@@ -32,13 +32,12 @@ class UserPreferencesTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::UserPreferences> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context context;
     string response;
 
     UserPreferencesTest()
         : plugin(Core::ProxyType<Plugin::UserPreferences>::Create())
         , handler(*(plugin))
-        , connection(1, 0)
     {
     }
     virtual ~UserPreferencesTest() = default;
@@ -52,24 +51,24 @@ TEST_F(UserPreferencesTest, registeredMethods)
 
 TEST_F(UserPreferencesTest, paramsMissing)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setUILanguage"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("setUILanguage"), _T("{}"), response));
 }
 
 TEST_F(UserPreferencesTest, getUILanguage)
 {
     //Fail  case: File doesn't exists
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("getUILanguage"), _T("{}"), response));
 
     Core::File file(userPrefFile);
     file.Destroy();
     file.Create();
 
     //Fail case: No key exists
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("getUILanguage"), _T("{}"), response));
 
     file.Write(userPrefLang, sizeof(userPrefLang));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("getUILanguage"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"ui_language\":\"US_en\",\"success\":true}"));
 
     file.Destroy();
@@ -80,9 +79,9 @@ TEST_F(UserPreferencesTest, setUILanguage)
     Core::File file(userPrefFile);
     file.Create();
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setUILanguage"), _T("{\"ui_language\":\"US_en\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("setUILanguage"), _T("{\"ui_language\":\"US_en\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("getUILanguage"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"ui_language\":\"US_en\",\"success\":true}"));
 
     file.Destroy();

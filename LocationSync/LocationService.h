@@ -122,7 +122,7 @@ namespace Plugin {
         Core::NodeId _sourceNode;
         uint32_t _tryInterval;
         uint32_t _retries;
-        Core::IDispatch* _callback;
+        Core::IDispatchType<void>* _callback;
         string _publicIPAddress;
         string _timeZone;
         string _country;

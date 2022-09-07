@@ -12,14 +12,13 @@ protected:
     Core::ProxyType<Plugin::UsbAccess> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Handler& handlerV2;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context context;
     string response;
 
     UsbAccessTest()
         : plugin(Core::ProxyType<Plugin::UsbAccess>::Create())
         , handler(*(plugin))
         , handlerV2(*(plugin->GetHandler(2)))
-        , connection(1, 0)
     {
     }
 };
@@ -55,10 +54,10 @@ TEST_F(UsbAccessTest, UpdateFirmware)
                 return 0;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp;reboot;/my.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(context, _T("updateFirmware"), _T("{\"fileName\":\"/tmp;reboot;/my.bin\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handlerV2.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp\';reboot;/my.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handlerV2.Invoke(context, _T("updateFirmware"), _T("{\"fileName\":\"/tmp\';reboot;/my.bin\"}"), response));
 
     Udev::getInstance().impl = nullptr;
     Wraps::getInstance().impl = nullptr;

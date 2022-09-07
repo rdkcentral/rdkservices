@@ -45,7 +45,7 @@ protected:
     Core::ProxyType<WorkerPoolImplementation> workerPool;
     Core::ProxyType<Plugin::SecurityAgent> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context context;
     string response;
 
     SecurityAgentTest()
@@ -53,7 +53,6 @@ protected:
             2, Core::Thread::DefaultStackSize(), 16))
         , plugin(Core::ProxyType<Plugin::SecurityAgent>::Create())
         , handler(*plugin)
-        , connection(1, 0)
     {
         Core::IWorkerPool::Assign(&(*workerPool));
 
@@ -117,7 +116,7 @@ TEST_F(SecurityAgentInitializedTest, validate)
 
     EXPECT_EQ(0, token.rfind(tokenPrefix, 0));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("validate"), "{\"token\":\"" + token + "\"}", response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("validate"), "{\"token\":\"" + token + "\"}", response));
     EXPECT_EQ(response, _T("{\"valid\":true}"));
 }
 

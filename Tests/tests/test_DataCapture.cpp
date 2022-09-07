@@ -96,12 +96,11 @@ using namespace WPEFramework;
 class DataCaptureTest : public Test {
 protected:
     Core::ProxyType<Plugin::DataCapture> dataCapture_;
-    Core::JSONRPC::Connection connection_;
+    Core::JSONRPC::Context context;
     Core::JSONRPC::Handler& handler_;
 
     DataCaptureTest()
         : dataCapture_(Core::ProxyType<Plugin::DataCapture>::Create())
-        , connection_(1, 0)
         , handler_(*dataCapture_)
     {
     }
@@ -183,7 +182,7 @@ protected:
                 });
 
         string response;
-        EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":6}"), response));
+        EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(context, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":6}"), response));
         EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
     }
     virtual ~DataCaptureInitializedEnableAudioCaptureTest() override = default;
@@ -223,8 +222,8 @@ TEST_F(DataCaptureTest, ShouldRegisterMethod)
 TEST_F(DataCaptureTest, ShouldReturnErrorWhenParamsAreEmpty)
 {
     string response;
-    EXPECT_EQ(Core::ERROR_GENERAL, handler_.Invoke(connection_, _T("enableAudioCapture"), _T(""), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler_.Invoke(connection_, _T("getAudioClip"), _T(""), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler_.Invoke(context, _T("enableAudioCapture"), _T(""), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler_.Invoke(context, _T("getAudioClip"), _T(""), response));
 }
 
 TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOnAudioCapture)
@@ -240,7 +239,7 @@ TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOnAudioCapture)
 
     string response;
     EXPECT_EQ(Core::ERROR_NONE,
-        handler_.Invoke(connection_,
+        handler_.Invoke(context,
             _T("getAudioClip"),
             _T("{\"clipRequest\":{\"stream\":\"primary\",\"url\":\"https://192.168.0.1\",\"duration\":8,\"captureMode\":\"preCapture\"}}"),
             response));
@@ -267,7 +266,7 @@ TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOffAudioCapture)
 
     string response;
     // Turn off audio capture
-    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":0}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(context, _T("enableAudioCapture"), _T("{\"bufferMaxDuration\":0}"), response));
     EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
 }
 
@@ -316,7 +315,7 @@ TEST_F(DataCaptureInitializedEnableAudioCaptureEventTest, ShouldUploadData)
     // setup http://127.0.0.1:9999 as url
     string response;
     EXPECT_EQ(Core::ERROR_NONE,
-        handler_.Invoke(connection_,
+        handler_.Invoke(context,
             _T("getAudioClip"),
             _T("{\"clipRequest\":{\"stream\":\"primary\",\"url\":\"http://127.0.0.1:9999\",\"duration\":8,\"captureMode\":\"preCapture\"}}"),
             response));

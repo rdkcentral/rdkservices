@@ -31,13 +31,12 @@ class TimerTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::Timer> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context context;
     string response;
 
     TimerTest()
         : plugin(Core::ProxyType<Plugin::Timer>::Create())
         , handler(*(plugin))
-        , connection(1, 0)
     {
     }
     virtual ~TimerTest() = default;
@@ -106,18 +105,18 @@ TEST_F(TimerTest, registeredMethods)
 
 TEST_F(TimerTest, paramsMissing)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("startTimer"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("cancel"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("suspend"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("resume"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getTimerStatus"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("startTimer"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("cancel"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("suspend"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("resume"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("getTimerStatus"), _T("{}"), response));
 }
 
 TEST_F(TimerTest, jsonRpc)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), _T("{\"interval\":10,\"repeatInterval\":15,\"remindBefore\":5}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("startTimer"), _T("{\"interval\":10,\"repeatInterval\":15,\"remindBefore\":5}"), response));
     EXPECT_EQ(response, _T("{\"timerId\":0,\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimerStatus"), _T("{\"timerId\":0}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("getTimerStatus"), _T("{\"timerId\":0}"), response));
     EXPECT_THAT(response, ::testing::MatchesRegex(_T("\\{"
                                                      "\"state\":\"RUNNING\","
                                                      "\"mode\":\"GENERIC\","
@@ -127,9 +126,9 @@ TEST_F(TimerTest, jsonRpc)
                                                      "\"success\":true"
                                                      "\\}")));
     //Get timer status - Negative test case - get status of a wrong timer
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getTimerStatus"), _T("{\"timerId\":10}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("getTimerStatus"), _T("{\"timerId\":10}"), response));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimers"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("getTimers"), _T("{}"), response));
     EXPECT_THAT(response, ::testing::MatchesRegex(_T("\\{"
                                                      "\"timers\":\\["
                                                      "\\{"
@@ -144,28 +143,28 @@ TEST_F(TimerTest, jsonRpc)
                                                      "\"success\":true"
                                                      "\\}")));
     //Suspend the timer
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("suspend"), _T("{\"timerId\":0}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("suspend"), _T("{\"timerId\":0}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
     //Suspend the timer - Negative test case - Suspend an already suspended timer
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("suspend"), _T("{\"timerId\":0}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("suspend"), _T("{\"timerId\":0}"), response));
     //Suspend the timer - Negative test case - Suspend a wrong timer
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("suspend"), _T("{\"timerId\":10}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("suspend"), _T("{\"timerId\":10}"), response));
 
     //Resume the timer
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resume"), _T("{\"timerId\":0}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("resume"), _T("{\"timerId\":0}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
     //Resume the timer - Negative test case - Resume an already resumed timer
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("resume"), _T("{\"timerId\":0}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("resume"), _T("{\"timerId\":0}"), response));
     //Resume the timer - Negative test case - Resume a wrong timer
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("resume"), _T("{\"timerId\":10}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("resume"), _T("{\"timerId\":10}"), response));
 
     //Cancel the timer
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cancel"), _T("{\"timerId\":0}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("cancel"), _T("{\"timerId\":0}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
     //Cancel the timer - Negative test case - Cancel an already cancelled timer
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("cancel"), _T("{\"timerId\":0}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("cancel"), _T("{\"timerId\":0}"), response));
     //Cancel the timer - Negative test case - Cancel a wrong timer
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("cancel"), _T("{\"timerId\":10}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("cancel"), _T("{\"timerId\":10}"), response));
 }
 
 TEST_F(TimerInitializedEventTest, timerExpiry)
@@ -213,7 +212,7 @@ TEST_F(TimerInitializedEventTest, timerExpiry)
     handler.Subscribe(0, _T("timerExpiryReminder"), _T("org.rdk.Timer"), message);
     handler.Subscribe(0, _T("timerExpired"), _T("org.rdk.Timer"), message);
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startTimer"), _T("{\"interval\":0.2,\"mode\":\"WAKE\",\"remindBefore\":0.1}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("startTimer"), _T("{\"interval\":0.2,\"mode\":\"WAKE\",\"remindBefore\":0.1}"), response));
     EXPECT_EQ(response, _T("{\"timerId\":0,\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, timerExpiryReminder.Lock());

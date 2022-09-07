@@ -89,16 +89,16 @@ namespace Plugin {
     // TokenCheckFunction
 
     // Note, token is assumed to be a URL
-    bool Messenger::CheckToken(const string& token, const string& method, const string& parameters)
+    PluginHost::JSONRPC::classification Messenger::CheckToken(const string& token, const string& method, const string& parameters)
     {
-        bool result = false;
+        PluginHost::JSONRPC::classification result = PluginHost::JSONRPC::classification::INVALID;
 
         if (method != _T("join")) {
-            result = true;
+            result = PluginHost::JSONRPC::classification::VALID;
         } else if (token.empty()) {
             TRACE(Trace::Warning, (_T("Security ignored: no token")));
 
-            result = true;
+            result = PluginHost::JSONRPC::classification::VALID;
         } else {
             JoinParamsData params;
             params.FromString(parameters);
@@ -108,9 +108,9 @@ namespace Plugin {
             const auto& acl = params.Acl;
 
             if (secure != SecureType::SECURE) {
-                result = true;
+                result = PluginHost::JSONRPC::classification::VALID;
             } else if (user.empty() || room.empty()) {
-                result = true;
+                result = PluginHost::JSONRPC::classification::VALID;
             } else {
                 _adminLock.Lock();
 
@@ -141,7 +141,7 @@ namespace Plugin {
                             retval.first->second.emplace_back(index.Current().Value());
                         }
 
-                        result = true;
+                        result = PluginHost::JSONRPC::classification::VALID;
                     }
                 } else {
                     TRACE(Trace::Information, (_T("Joining room '%s' w/ ACL"), room.c_str()));
@@ -164,7 +164,7 @@ namespace Plugin {
                                           it->c_str(),
                                           room.c_str()));
 
-                            result = true;
+                            result = PluginHost::JSONRPC::classification::VALID;
                         }
                     }
                 }

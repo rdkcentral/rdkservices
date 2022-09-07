@@ -51,7 +51,7 @@ protected:
     Core::Sink<SystemInfoMock> subSystem;
     Core::ProxyType<Plugin::LocationSync> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context context;
     Core::JSONRPC::Message message;
     string response;
     PluginHost::IDispatcher* dispatcher;
@@ -61,7 +61,6 @@ protected:
             5, Core::Thread::DefaultStackSize(), 16))
         , plugin(Core::ProxyType<Plugin::LocationSync>::Create())
         , handler(*plugin)
-        , connection(1, 0)
     {
         PluginHost::IFactories::Assign(&factoriesImplementation);
         Core::IWorkerPool::Assign(&(*workerPool));
@@ -137,7 +136,7 @@ TEST_F(LocationSyncTest, activate_locationchange_location_deactivate)
     EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::LOCATION) != nullptr);
     EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::INTERNET) != nullptr);
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("location"), _T(""), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("location"), _T(""), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{"
                                                   "\"city\":\".*\","
                                                   "\"country\":\".*\","
@@ -155,7 +154,7 @@ TEST_F(LocationSyncTest, activate_sync_deactivate)
 {
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
-    EXPECT_EQ(Core::ERROR_INPROGRESS, handler.Invoke(connection, _T("sync"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_INPROGRESS, handler.Invoke(context, _T("sync"), _T("{}"), response));
 
     plugin->Deinitialize(&service);
 }
@@ -202,7 +201,7 @@ TEST_F(LocationSyncTest, activateWithUnreachableHost_location_deactivate)
     EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::LOCATION) != nullptr);
     EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::INTERNET) != nullptr);
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("location"), _T(""), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("location"), _T(""), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{"
                                                   "\"city\":\"\","
                                                   "\"country\":\"\","

@@ -31,13 +31,12 @@ class MessengerTest : public ::testing::Test {
 protected:
     Core::ProxyType<Messenger> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context context;
     string response;
 
     MessengerTest()
         : plugin(Core::ProxyType<Messenger>::Create())
         , handler(*plugin)
-        , connection(1, 0)
     {
     }
     virtual ~MessengerTest() = default;
@@ -140,13 +139,13 @@ TEST_F(MessengerInitializedEventTest, activate_join_roomupdate_leave_roomupdate_
 
     plugin->Subscribe(handler, 0, _T("roomupdate"), _T("Messenger"), message);
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("join"), _T("{\"user\":\"user1\",\"room\":\"room1\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("join"), _T("{\"user\":\"user1\",\"room\":\"room1\"}"), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{\"roomid\":\"[a-z0-9]+\"\\}"));
 
     EXPECT_EQ(Core::ERROR_NONE, created.Lock());
 
     string paramsStr = response;
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("leave"), paramsStr, response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("leave"), paramsStr, response));
     EXPECT_EQ(response, _T(""));
 
     EXPECT_EQ(Core::ERROR_NONE, destroyed.Lock());
@@ -180,7 +179,7 @@ TEST_F(MessengerInitializedEventTest, activate_join_roomupdateOnSubscribe_deacti
                 return Core::ERROR_NONE;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("join"), _T("{\"user\":\"user2\",\"room\":\"room2\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("join"), _T("{\"user\":\"user2\",\"room\":\"room2\"}"), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{\"roomid\":\"[a-z0-9]+\"\\}"));
 
     plugin->Subscribe(handler, 0, _T("roomupdate"), _T("Messenger"), message);
@@ -253,7 +252,7 @@ TEST_F(MessengerInitializedEventTest, activate_join_userupdate_join_userupdate_l
                 return Core::ERROR_NONE;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("join"), _T("{\"user\":\"user3\",\"room\":\"room3\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("join"), _T("{\"user\":\"user3\",\"room\":\"room3\"}"), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{\"roomid\":\"[a-z0-9]+\"\\}"));
 
     JsonObject params;
@@ -263,13 +262,13 @@ TEST_F(MessengerInitializedEventTest, activate_join_userupdate_join_userupdate_l
 
     EXPECT_EQ(Core::ERROR_NONE, joined3.Lock());
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("join"), _T("{\"user\":\"user4\",\"room\":\"room3\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("join"), _T("{\"user\":\"user4\",\"room\":\"room3\"}"), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{\"roomid\":\"[a-z0-9]+\"\\}"));
 
     EXPECT_EQ(Core::ERROR_NONE, joined4.Lock());
 
     string paramsStr = response;
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("leave"), paramsStr, response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("leave"), paramsStr, response));
     EXPECT_EQ(response, _T(""));
 
     EXPECT_EQ(Core::ERROR_NONE, left4.Lock());
@@ -340,7 +339,7 @@ TEST_F(MessengerInitializedEventTest, activate_join_join_send_message_leave_send
                 return Core::ERROR_NONE;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("join"), _T("{\"user\":\"user5\",\"room\":\"room4\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("join"), _T("{\"user\":\"user5\",\"room\":\"room4\"}"), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{\"roomid\":\"[a-z0-9]+\"\\}"));
 
     JsonObject params5;
@@ -348,7 +347,7 @@ TEST_F(MessengerInitializedEventTest, activate_join_join_send_message_leave_send
     string roomid5 = params5["roomid"].String();
     plugin->Subscribe(handler, 0, _T("message"), (roomid5 + _T(".Messenger")), message);
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("join"), _T("{\"user\":\"user6\",\"room\":\"room4\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("join"), _T("{\"user\":\"user6\",\"room\":\"room4\"}"), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{\"roomid\":\"[a-z0-9]+\"\\}"));
 
     JsonObject params6;
@@ -356,16 +355,16 @@ TEST_F(MessengerInitializedEventTest, activate_join_join_send_message_leave_send
     string roomid6 = params6["roomid"].String();
     plugin->Subscribe(handler, 0, _T("message"), (roomid6 + _T(".Messenger")), message);
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("send"), ("{\"message\":\"Hi, user5\",\"roomid\":\"" + roomid6 + "\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("send"), ("{\"message\":\"Hi, user5\",\"roomid\":\"" + roomid6 + "\"}"), response));
     EXPECT_EQ(response, _T(""));
 
     EXPECT_EQ(Core::ERROR_NONE, message6_1.Lock());
     EXPECT_EQ(Core::ERROR_NONE, message6_2.Lock());
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("leave"), ("{\"roomid\":\"" + roomid6 + "\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("leave"), ("{\"roomid\":\"" + roomid6 + "\"}"), response));
     EXPECT_EQ(response, _T(""));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("send"), ("{\"message\":\"Hi, user6\",\"roomid\":\"" + roomid5 + "\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("send"), ("{\"message\":\"Hi, user6\",\"roomid\":\"" + roomid5 + "\"}"), response));
     EXPECT_EQ(response, _T(""));
 
     EXPECT_EQ(Core::ERROR_NONE, message5.Lock());

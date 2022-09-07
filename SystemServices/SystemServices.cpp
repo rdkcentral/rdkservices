@@ -4211,7 +4211,7 @@ namespace WPEFramework {
                 if (file.IsDirectory() == true)
                 {
                   Core::Directory dir(file.Name().c_str());
-                  if (dir.Destroy(true) == false)
+                  if (dir.Destroy() == false)
                   {
                     response["message"] = "failed to delete dir: '" + file.Name() + "'";
                     break;
@@ -4238,7 +4238,7 @@ namespace WPEFramework {
             if (file.IsDirectory() == true)
             {
               Core::Directory dir(persistentPath.c_str());
-              if (dir.Destroy(true) == false)
+              if (dir.Destroy() == false)
               {
                 response["message"] = "failed to delete dir: '" + persistentPath + "'";
                 break;

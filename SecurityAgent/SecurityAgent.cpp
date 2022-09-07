@@ -97,7 +97,7 @@ namespace Plugin {
         string version = service->Version();
 
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
-        Core::File aclFile(service->PersistentPath() + config.ACL.Value(), true);
+        Core::File aclFile(service->PersistentPath() + config.ACL.Value());
 
         PluginHost::ISubSystem* subSystem = service->SubSystems();
 

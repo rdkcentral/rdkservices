@@ -436,7 +436,7 @@ namespace Plugin {
 
             ASSERT(_infoCarrier.IsValid() == true);
 
-            element->Body<Web::IBody>(Core::proxy_cast<Web::IBody>(Core::ProxyType<Web::TextBody>::Create()));
+            element->Body<Web::IBody>(Core::ProxyType<Web::IBody>(Core::ProxyType<Web::TextBody>::Create()));
         }
     }
 
@@ -591,7 +591,7 @@ namespace Plugin {
 
         // See if we need rescheduling
         if (result != Core::infinite) {
-            _activity.Schedule(Core::Time::Now().Add(result));
+            _activity.Reschedule(Core::Time::Now().Add(result));
         }
     }
 

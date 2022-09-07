@@ -32,13 +32,12 @@ class LoggingPreferencesTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::LoggingPreferences> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
+    Core::JSONRPC::Context context;
     string response;
 
     LoggingPreferencesTest()
         : plugin(Core::ProxyType<Plugin::LoggingPreferences>::Create())
         , handler(*(plugin))
-        , connection(1, 0)
     {
     }
     virtual ~LoggingPreferencesTest() = default;
@@ -103,7 +102,7 @@ TEST_F(LoggingPreferencesTest, registeredMethods)
 
 TEST_F(LoggingPreferencesTest, paramsMissing)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("setKeystrokeMaskEnabled"), _T("{}"), response));
 }
 
 TEST_F(LoggingPreferencesInitializedTest, getKeystrokeMask)
@@ -117,7 +116,7 @@ TEST_F(LoggingPreferencesInitializedTest, getKeystrokeMask)
                 return IARM_RESULT_SUCCESS;
             });
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isKeystrokeMaskEnabled"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("isKeystrokeMaskEnabled"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"keystrokeMaskEnabled\":false,\"success\":true}"));
 }
 
@@ -166,9 +165,9 @@ TEST_F(LoggingPreferencesInitializedEventTest, enableKeystrokeMask)
     handler.Subscribe(0, _T("onKeystrokeMaskEnabledChange"), _T("org.rdk.LoggingPreferences"), message);
 
     //Simulating the case for setting the same value again
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":true}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":true}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, onKeystrokeMaskEnabledChange.Lock());
@@ -213,7 +212,7 @@ TEST_F(LoggingPreferencesInitializedEventTest, disbleKeystrokeMask)
 
     handler.Subscribe(0, _T("onKeystrokeMaskEnabledChange"), _T("org.rdk.LoggingPreferences"), message);
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(context, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, onKeystrokeMaskEnabledChange.Lock());
@@ -247,7 +246,7 @@ TEST_F(LoggingPreferencesInitializedTest, errorCases)
                 return IARM_RESULT_IPCCORE_FAIL;
             });
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("isKeystrokeMaskEnabled"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("isKeystrokeMaskEnabled"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(context, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
 }

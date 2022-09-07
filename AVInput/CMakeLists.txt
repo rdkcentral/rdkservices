@@ -19,7 +19,6 @@ set(PLUGIN_NAME AVInput)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
-find_package(${NAMESPACE}Protocols REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         AVInput.cpp
@@ -33,11 +32,6 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
-
-target_link_libraries(${MODULE_NAME}
-        PRIVATE
-        ${NAMESPACE}Protocols::${NAMESPACE}Protocols
-        )
 
 find_package(DS)
 find_package(IARMBus)
@@ -53,4 +47,4 @@ target_link_libraries(${MODULE_NAME} PUBLIC ${NAMESPACE}Plugins::${NAMESPACE}Plu
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
-write_config(${PLUGIN_NAME})
+write_config(PLUGINS ${PLUGIN_NAME})

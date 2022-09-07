@@ -33,7 +33,7 @@ TEST(UtilsFileTest, createFolder_createFile_moveFile_verifyFile)
 {
     Core::Directory dir(_T("/tmp/UtilsFileTest"));
 
-    EXPECT_TRUE(dir.Destroy(false));
+    EXPECT_TRUE(dir.Destroy());
     ASSERT_TRUE(dir.CreatePath());
 
     Core::File file(string(_T("/tmp/UtilsFileTest/file")));
