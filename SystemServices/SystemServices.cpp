@@ -4058,8 +4058,7 @@ namespace WPEFramework {
         uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)
         {
             bool retStatus = true;
-            //string flReason ="";
-	    FwFailReason failReason = FwFailReasonNone;
+            FwFailReason failReason = FwFailReasonNone;
 
             std::vector<string> lines;
             if (getFileContent(FWDNLDSTATUS_FILE_NAME, lines)) {
