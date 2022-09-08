@@ -1,98 +1,89 @@
 #include <gtest/gtest.h>
 
 #include "Telemetry.h"
-#include "ServiceMock.h"
-#include "RfcApiMock.h"
-#include "TelemetryMock.h"
 
 #include "FactoriesImplementation.h"
+#include "RfcApiMock.h"
+#include "ServiceMock.h"
+#include "TelemetryMock.h"
 
 namespace {
-
 const string profileFN = _T("/tmp/DefaultProfile.json");
 const string t2PpersistentFolder = _T("/tmp/.t2reportprofiles/");
-
 const uint8_t profileContent[] = "{\"profile\":\"default\"}";
 }
 
 using namespace WPEFramework;
 
-class TelemetryTestFixture : public ::testing::Test {
+class T2Test : public ::testing::Test {
 protected:
-    
-    Core::JSONRPC::Connection connection;
-    RfcApiImplMock rfcApiImplMock;
     TelemetryApiImplMock telemetryApiImplMock;
 
-    string response;
-    ServiceMock service;
-    Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
-
-    TelemetryTestFixture()
-        : connection(1, 0)
+    T2Test()
     {
-        PluginHost::IFactories::Assign(&factoriesImplementation);
-    }
-    virtual ~TelemetryTestFixture()
-    {
-        PluginHost::IFactories::Assign(nullptr);
-    }
-
-    virtual void SetUp()
-    {
-        RfcApi::getInstance().impl = &rfcApiImplMock;
         TelemetryApi::getInstance().impl = &telemetryApiImplMock;
 
-        Core::Directory(t2PpersistentFolder.c_str()).Destroy(true);
+        EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
+            .Times(1);
     }
-
-    virtual void TearDown()
+    virtual ~T2Test()
     {
-        RfcApi::getInstance().impl = nullptr;
         TelemetryApi::getInstance().impl = nullptr;
     }
 };
 
-TEST_F(TelemetryTestFixture, RegisteredMethods)
+class TelemetryTest : public T2Test {
+protected:
+    ServiceMock service;
+    Core::ProxyType<Plugin::Telemetry> plugin;
+    Core::JSONRPC::Handler& handler;
+    Core::JSONRPC::Connection connection;
+    string response;
+
+    TelemetryTest()
+        : T2Test()
+        , plugin(Core::ProxyType<Plugin::Telemetry>::Create())
+        , handler(*plugin)
+        , connection(1, 0)
+    {
+        Core::Directory(t2PpersistentFolder.c_str()).Destroy(true);
+    }
+    virtual ~TelemetryTest() override = default;
+};
+
+class TelemetryRfcTest : public TelemetryTest {
+protected:
+    RfcApiImplMock rfcApiImplMock;
+
+    TelemetryRfcTest()
+        : TelemetryTest()
+    {
+        RfcApi::getInstance().impl = &rfcApiImplMock;
+    }
+    virtual ~TelemetryRfcTest() override
+    {
+        RfcApi::getInstance().impl = nullptr;
+    }
+};
+
+TEST_F(TelemetryTest, RegisteredMethods)
 {
-    EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [](char *component) {
-                EXPECT_EQ(string(component), _T("Thunder_Plugins"));
-                return;
-            }));
-
-    Core::ProxyType<Plugin::Telemetry> plugin(Core::ProxyType<Plugin::Telemetry>::Create());
-    Core::JSONRPC::Handler* handler(&((Core::JSONRPC::Handler&)(*(plugin))));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler->Exists(_T("setReportProfileStatus")));
-    EXPECT_EQ(Core::ERROR_NONE, handler->Exists(_T("logApplicationEvent")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setReportProfileStatus")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("logApplicationEvent")));
 }
 
-TEST_F(TelemetryTestFixture, InitializeDefaultProfile)
+TEST_F(TelemetryRfcTest, InitializeDefaultProfile)
 {
-    EXPECT_CALL(service, ConfigLine())
-        .Times(1)
-        .WillOnce(
+    ON_CALL(service, ConfigLine())
+        .WillByDefault(
             ::testing::Return("{"
-                                "\"t2PersistentFolder\":\"/tmp/.t2reportprofiles/\","
-                                "\"defaultProfilesFile\":\"/tmp/DefaultProfile.json\""
+                              "\"t2PersistentFolder\":\"/tmp/.t2reportprofiles/\","
+                              "\"defaultProfilesFile\":\"/tmp/DefaultProfile.json\""
                               "}"));
-
-    EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [](char *component) {
-                EXPECT_EQ(string(component), _T("Thunder_Plugins"));
-                return;
-            }));
-
     EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+            [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
                 EXPECT_EQ(string(pcCallerID), _T("Telemetry"));
                 EXPECT_EQ(string(pcParameterName), _T("Device.X_RDKCENTRAL-COM_T2.ReportProfiles"));
                 EXPECT_EQ(string(pcParameterValue), _T("{\\\"profile\\\":\\\"default\\\"}"));
@@ -100,161 +91,91 @@ TEST_F(TelemetryTestFixture, InitializeDefaultProfile)
 
                 return WDMP_SUCCESS;
             }));
-
     {
         Core::Directory(t2PpersistentFolder.c_str()).CreatePath();
-
         Core::File file(profileFN);
         file.Create();
         file.Write(profileContent, sizeof(profileContent));
     }
 
-    Core::ProxyType<Plugin::Telemetry> plugin(Core::ProxyType<Plugin::Telemetry>::Create());
-    
-    // Initialize
     EXPECT_EQ(string(""), plugin->Initialize(&service));
-
-    // Deinitialize
     plugin->Deinitialize(nullptr);
 }
 
-TEST_F(TelemetryTestFixture, InitializeDefaultProfileRFCFailure)
+TEST_F(TelemetryRfcTest, InitializeDefaultProfileRFCFailure)
 {
-    EXPECT_CALL(service, ConfigLine())
-        .Times(1)
-        .WillOnce(
+    ON_CALL(service, ConfigLine())
+        .WillByDefault(
             ::testing::Return("{"
-                                "\"t2PersistentFolder\":\"/tmp/.t2reportprofiles/\","
-                                "\"defaultProfilesFile\":\"/tmp/DefaultProfile.json\""
+                              "\"t2PersistentFolder\":\"/tmp/.t2reportprofiles/\","
+                              "\"defaultProfilesFile\":\"/tmp/DefaultProfile.json\""
                               "}"));
-
-    EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [](char *component) {
-                EXPECT_EQ(string(component), _T("Thunder_Plugins"));
-                return;
-            }));
-
     EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+            [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
                 return WDMP_FAILURE;
             }));
-
     {
         Core::Directory(t2PpersistentFolder.c_str()).CreatePath();
-
         Core::File file(profileFN);
         file.Create();
         file.Write(profileContent, sizeof(profileContent));
     }
 
-    Core::ProxyType<Plugin::Telemetry> plugin(Core::ProxyType<Plugin::Telemetry>::Create());
-    
-    // Initialize
     EXPECT_EQ(string(""), plugin->Initialize(&service));
-
-    // Deinitialize
     plugin->Deinitialize(nullptr);
 }
 
-
-TEST_F(TelemetryTestFixture, InitializeZeroSizeDefaultProfile)
+TEST_F(TelemetryTest, InitializeZeroSizeDefaultProfile)
 {
-    EXPECT_CALL(service, ConfigLine())
-        .Times(1)
-        .WillOnce(
+    ON_CALL(service, ConfigLine())
+        .WillByDefault(
             ::testing::Return("{"
-                                "\"t2PersistentFolder\":\"/tmp/.t2reportprofiles/\","
-                                "\"defaultProfilesFile\":\"/tmp/DefaultProfile.json\""
+                              "\"t2PersistentFolder\":\"/tmp/.t2reportprofiles/\","
+                              "\"defaultProfilesFile\":\"/tmp/DefaultProfile.json\""
                               "}"));
-
-    EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [](char *component) {
-                EXPECT_EQ(string(component), _T("Thunder_Plugins"));
-                return;
-            }));
-
     {
         Core::Directory(t2PpersistentFolder.c_str()).CreatePath();
-
         Core::File file(profileFN);
         file.Create();
     }
 
-    Core::ProxyType<Plugin::Telemetry> plugin(Core::ProxyType<Plugin::Telemetry>::Create());
-    
-    // Initialize
     EXPECT_EQ(string(""), plugin->Initialize(&service));
-
-    // Deinitialize
     plugin->Deinitialize(nullptr);
 }
 
-TEST_F(TelemetryTestFixture, InitializePersistentFolder)
+TEST_F(TelemetryTest, InitializePersistentFolder)
 {
-    EXPECT_CALL(service, ConfigLine())
-        .Times(1)
-        .WillOnce(
+    ON_CALL(service, ConfigLine())
+        .WillByDefault(
             ::testing::Return("{"
-                                "\"t2PersistentFolder\":\"/tmp/.t2reportprofiles/\","
-                                "\"defaultProfilesFile\":\"/tmp/DefaultProfile.json\""
+                              "\"t2PersistentFolder\":\"/tmp/.t2reportprofiles/\","
+                              "\"defaultProfilesFile\":\"/tmp/DefaultProfile.json\""
                               "}"));
-
-    EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [](char *component) {
-                EXPECT_EQ(string(component), _T("Thunder_Plugins"));
-                return;
-            }));
-
     {
         Core::Directory(t2PpersistentFolder.c_str()).CreatePath();
-
         Core::File file(t2PpersistentFolder + "SomeReport");
         file.Create();
     }
 
-    Core::ProxyType<Plugin::Telemetry> plugin(Core::ProxyType<Plugin::Telemetry>::Create());
-    
-    // Initialize
     EXPECT_EQ(string(""), plugin->Initialize(&service));
-
-    // Deinitialize
     plugin->Deinitialize(nullptr);
 }
 
-TEST_F(TelemetryTestFixture, Plugin)
+TEST_F(TelemetryRfcTest, Plugin)
 {
-    EXPECT_CALL(service, ConfigLine())
-        .Times(1)
-        .WillOnce(
+    ON_CALL(service, ConfigLine())
+        .WillByDefault(
             ::testing::Return("{}"));
-
-    EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [](char *component) {
-                EXPECT_EQ(string(component), _T("Thunder_Plugins"));
-                return;
-            }));
-
-    Core::ProxyType<Plugin::Telemetry> plugin(Core::ProxyType<Plugin::Telemetry>::Create());
-    Core::JSONRPC::Handler* handler(&((Core::JSONRPC::Handler&)(*(plugin))));
-
     EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(3)
         .WillOnce(::testing::Invoke(
-            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+            [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
                 return WDMP_FAILURE;
             }))
         .WillOnce(::testing::Invoke(
-            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+            [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
                 EXPECT_EQ(string(pcCallerID), _T("Telemetry"));
                 EXPECT_EQ(string(pcParameterName), _T("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.FTUEReport.Enable"));
                 EXPECT_EQ(string(pcParameterValue), _T("false"));
@@ -263,7 +184,7 @@ TEST_F(TelemetryTestFixture, Plugin)
                 return WDMP_SUCCESS;
             }))
         .WillOnce(::testing::Invoke(
-            [](char *pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+            [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
                 EXPECT_EQ(string(pcCallerID), _T("Telemetry"));
                 EXPECT_EQ(string(pcParameterName), _T("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.FTUEReport.Enable"));
                 EXPECT_EQ(string(pcParameterValue), _T("true"));
@@ -271,8 +192,6 @@ TEST_F(TelemetryTestFixture, Plugin)
 
                 return WDMP_SUCCESS;
             }));
-
-
     EXPECT_CALL(telemetryApiImplMock, t2_event_s(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -282,28 +201,19 @@ TEST_F(TelemetryTestFixture, Plugin)
                 return T2ERROR_SUCCESS;
             }));
 
-    // Initialize
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{}"), response));
-
-    EXPECT_EQ(Core::ERROR_GENERAL, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"wrongvalue\"}"), response));
-
-    EXPECT_EQ(Core::ERROR_GENERAL, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
-    
-    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"wrongvalue\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"STARTED\"}"), response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"COMPLETE\"}"), response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventValue\":\"VALUE\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("setReportProfileStatus"), _T("{\"status\":\"COMPLETE\"}"), response));
-    EXPECT_EQ(response, _T("{\"success\":true}"));
-
-    EXPECT_EQ(Core::ERROR_GENERAL, handler->Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\"}"), response));
-
-    EXPECT_EQ(Core::ERROR_GENERAL, handler->Invoke(connection, _T("logApplicationEvent"), _T("{\"eventValue\":\"VALUE\"}"), response));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE\"}"), response));
-    EXPECT_EQ(response, _T("{\"success\":true}"));
-
-    // Deinitialize
     plugin->Deinitialize(nullptr);
 }

@@ -17,35 +17,61 @@
  * limitations under the License.
  */
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "SqliteStore.h"
 
-#include "StoreNotificationMock.h"
-
 using namespace WPEFramework;
 
-class SqliteStoreTestFixture : public ::testing::Test {
+namespace {
+class StoreNotificationMock : public WPEFramework::Exchange::IStore::INotification {
+public:
+    virtual ~StoreNotificationMock() = default;
+
+    MOCK_METHOD(void, ValueChanged, (const string&, const string&, const string&), (override));
+    MOCK_METHOD(void, StorageExceeded, (), (override));
+
+    BEGIN_INTERFACE_MAP(StoreNotificationMock)
+    INTERFACE_ENTRY(WPEFramework::Exchange::IStore::INotification)
+    END_INTERFACE_MAP
+};
+}
+
+class SqliteStoreTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::SqliteStore> store;
+
+    SqliteStoreTest()
+        : store(Core::ProxyType<Plugin::SqliteStore>::Create())
+    {
+    }
+    virtual ~SqliteStoreTest() = default;
+};
+
+class SqliteStoreNotificationTest : public SqliteStoreTest {
+protected:
     Core::ProxyType<StoreNotificationMock> notification;
+
+    SqliteStoreNotificationTest()
+        : SqliteStoreTest()
+        , notification(Core::ProxyType<StoreNotificationMock>::Create())
+    {
+        EXPECT_EQ(Core::ERROR_NONE, store->Register(&*notification));
+    }
+    virtual ~SqliteStoreNotificationTest() override
+    {
+        EXPECT_EQ(Core::ERROR_NONE, store->Unregister(&*notification));
+    }
+};
+
+TEST_F(SqliteStoreTest, interface)
+{
     string value;
     std::vector<string> namespaces;
     std::map<string, uint64_t> namespaceSizes;
     std::vector<string> keys;
 
-    SqliteStoreTestFixture()
-        : store(Core::ProxyType<Plugin::SqliteStore>::Create())
-        , notification(Core::ProxyType<StoreNotificationMock>::Create())
-    {
-    }
-    virtual ~SqliteStoreTestFixture()
-    {
-    }
-};
-
-TEST_F(SqliteStoreTestFixture, interface)
-{
     EXPECT_EQ(Core::ERROR_NONE, store->Open("/tmp/rdkservicestore", "", 20, 10));
     EXPECT_EQ(Core::ERROR_NONE, store->SetValue("test", "a", "1"));
     EXPECT_EQ(Core::ERROR_NONE, store->GetValue("test", "a", value));
@@ -65,33 +91,29 @@ TEST_F(SqliteStoreTestFixture, interface)
     EXPECT_EQ(Core::ERROR_NONE, store->Term());
 }
 
-TEST_F(SqliteStoreTestFixture, valueChanged)
+TEST_F(SqliteStoreNotificationTest, valueChanged)
 {
     EXPECT_CALL(*notification, ValueChanged("test", "a", "12345"))
         .Times(1)
-        .WillOnce(
-            ::testing::Return());
+        .WillOnce(::testing::Return());
 
-    EXPECT_EQ(Core::ERROR_NONE, store->Register(&*notification));
     EXPECT_EQ(Core::ERROR_NONE, store->Open("/tmp/rdkservicestore", "", 20, 10));
     EXPECT_EQ(Core::ERROR_NONE, store->SetValue("test", "a", "12345"));
     EXPECT_EQ(Core::ERROR_NONE, store->DeleteNamespace("test"));
     EXPECT_EQ(Core::ERROR_NONE, store->Term());
-    EXPECT_EQ(Core::ERROR_NONE, store->Unregister(&*notification));
 }
 
-TEST_F(SqliteStoreTestFixture, storageExceeded)
+TEST_F(SqliteStoreNotificationTest, storageExceeded)
 {
+    string value;
+
     EXPECT_CALL(*notification, ValueChanged("test", "a", "123456789123456789"))
         .Times(1)
-        .WillOnce(
-            ::testing::Return());
+        .WillOnce(::testing::Return());
     EXPECT_CALL(*notification, StorageExceeded())
         .Times(1)
-        .WillOnce(
-            ::testing::Return());
+        .WillOnce(::testing::Return());
 
-    EXPECT_EQ(Core::ERROR_NONE, store->Register(&*notification));
     EXPECT_EQ(Core::ERROR_NONE, store->Open("/tmp/rdkservicestore", "", 20, 20));
     EXPECT_EQ(Core::ERROR_NONE, store->SetValue("test", "a", "123456789123456789"));
     EXPECT_EQ(Core::ERROR_WRITE_ERROR, store->SetValue("test", "b", "1"));
@@ -99,18 +121,19 @@ TEST_F(SqliteStoreTestFixture, storageExceeded)
     EXPECT_EQ(value, "123456789123456789");
     EXPECT_EQ(Core::ERROR_NONE, store->DeleteNamespace("test"));
     EXPECT_EQ(Core::ERROR_NONE, store->Term());
-    EXPECT_EQ(Core::ERROR_NONE, store->Unregister(&*notification));
 }
 
-TEST_F(SqliteStoreTestFixture, maxValue)
+TEST_F(SqliteStoreTest, maxValue)
 {
     EXPECT_EQ(Core::ERROR_NONE, store->Open("/tmp/rdkservicestore", "", 20, 10));
     EXPECT_EQ(Core::ERROR_INVALID_INPUT_LENGTH, store->SetValue("test", "a", "123456789123456789"));
     EXPECT_EQ(Core::ERROR_NONE, store->Term());
 }
 
-TEST_F(SqliteStoreTestFixture, corrupt)
+TEST_F(SqliteStoreTest, corrupt)
 {
+    string value;
+
     EXPECT_EQ(Core::ERROR_NONE, store->Open("/tmp/rdkservicestore", "", 20, 10));
     EXPECT_EQ(Core::ERROR_NONE, store->SetValue("test", "a", "1"));
     EXPECT_EQ(Core::ERROR_NONE, store->GetValue("test", "a", value));
@@ -128,8 +151,10 @@ TEST_F(SqliteStoreTestFixture, corrupt)
     EXPECT_EQ(Core::ERROR_NONE, store->Term());
 }
 
-TEST_F(SqliteStoreTestFixture, replaceValue)
+TEST_F(SqliteStoreTest, replaceValue)
 {
+    string value;
+
     EXPECT_EQ(Core::ERROR_NONE, store->Open("/tmp/rdkservicestore", "", 20, 10));
     EXPECT_EQ(Core::ERROR_NONE, store->SetValue("test", "a", "1"));
     EXPECT_EQ(Core::ERROR_NONE, store->GetValue("test", "a", value));
@@ -141,8 +166,10 @@ TEST_F(SqliteStoreTestFixture, replaceValue)
     EXPECT_EQ(Core::ERROR_NONE, store->Term());
 }
 
-TEST_F(SqliteStoreTestFixture, unknownKey)
+TEST_F(SqliteStoreTest, unknownKey)
 {
+    string value;
+
     EXPECT_EQ(Core::ERROR_NONE, store->Open("/tmp/rdkservicestore", "", 20, 10));
     EXPECT_EQ(Core::ERROR_GENERAL, store->GetValue("test", "unknown", value));
     EXPECT_EQ(Core::ERROR_NONE, store->Term());
