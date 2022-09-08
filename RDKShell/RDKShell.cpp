@@ -45,7 +45,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1 
+#define API_VERSION_NUMBER_PATCH 2
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -589,7 +589,7 @@ namespace WPEFramework {
         static void updateSurfaceClientIdentifiers( void)
         {
           uint32_t status = 0;
-          auto thunderController = getThunderControllerClient();
+          auto thunderController = RDKShell::getThunderControllerClient();
           WPEFramework::Core::JSON::String configString;
           Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
           status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
@@ -1020,7 +1020,20 @@ namespace WPEFramework {
             enableInactivityReporting(true);
 #endif
 
-            Utils::SecurityToken::getSecurityToken(sThunderSecurityToken);
+            auto auth = mCurrentService->QueryInterfaceByCallsign<WPEFramework::PluginHost::IAuthenticate>("SecurityAgent");
+            if (auth != nullptr) {
+                string payload = "http://localhost";
+                string token;
+                if (auth->CreateToken(
+                        static_cast<uint16_t>(payload.length()),
+                        reinterpret_cast<const uint8_t*>(payload.c_str()),
+                        token)
+                    == WPEFramework::Core::ERROR_NONE) {
+                    sThunderSecurityToken = token;
+                    std::cout << "RDKShell got security token" << std::endl;
+                }
+            }
+
             service->Register(mClientsMonitor);
 
             static PluginHost::IShell* pluginService = nullptr;
@@ -6598,8 +6611,11 @@ namespace WPEFramework {
         {
             int32_t status = Core::ERROR_GENERAL;
 
-            if (Utils::isPluginActivated(SYSTEM_SERVICE_CALLSIGN))
+            auto systemService = mCurrentService->QueryInterfaceByCallsign<PluginHost::IDispatcher>(SYSTEM_SERVICE_CALLSIGN);
+            if (systemService != nullptr)
             {
+                systemService->Release();
+
                 std::cout << "SystemService is already activated" << std::endl;
 
                 if (nullptr == gSystemServiceConnection)

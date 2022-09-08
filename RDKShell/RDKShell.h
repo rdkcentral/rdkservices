@@ -323,7 +323,10 @@ namespace WPEFramework {
             bool getCursorSize(uint32_t& width, uint32_t& height);
             bool enableInputEvents(const JsonArray& clients, bool enable);
 
+        public:
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getThunderControllerClient(std::string callsign="", std::string localidentifier="");
+
+        private:
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getOCIContainerPlugin();
 
