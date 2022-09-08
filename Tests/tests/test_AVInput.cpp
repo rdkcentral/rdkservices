@@ -63,7 +63,7 @@ protected:
             .Times(::testing::AnyNumber())
             .WillRepeatedly(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
-                    if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) {
+                    if (string(IARM_BUS_DSMGR_NAME) == string(ownerName)) {
                         EXPECT_TRUE(handler != nullptr);
                         dsHdmiEventHandler = handler;
                     }
