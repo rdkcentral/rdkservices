@@ -19,6 +19,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Fixed
 - Fixed No audio from AVR issue in case of delayed HPD scenarios
 
+## [1.0.7] - 2022-09-07
+### Fixed
+- Use Controller via COM-RPC instead of JSON-RPC
+
 ##[1.0.6] - 2022-09-01
 ### Changed
 - Fixed DisplaySettings dtor crash in LinkType
