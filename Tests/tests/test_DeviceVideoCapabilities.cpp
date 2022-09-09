@@ -26,13 +26,6 @@ protected:
         IarmBus::getInstance().impl = &iarmBusImplMock;
         device::Manager::getInstance().impl = &managerImplMock;
 
-        EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
-            .Times(::testing::AnyNumber())
-            .WillRepeatedly(::testing::Invoke(
-                [](const char*, int* isRegistered) {
-                    *isRegistered = 1;
-                    return IARM_RESULT_SUCCESS;
-                }));
         EXPECT_CALL(managerImplMock, Initialize())
             .Times(::testing::AnyNumber())
             .WillRepeatedly(::testing::Return());
@@ -88,12 +81,10 @@ TEST_F(DeviceVideoCapabilitiesDsTest, SupportedVideoDisplays)
     string videoPort(_T("HDMI0"));
     string element;
 
-    EXPECT_CALL(videoOutputPortMock, getName())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::ReturnRef(videoPort));
-    EXPECT_CALL(hostImplMock, getVideoOutputPorts())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Return(device::List<device::VideoOutputPort>({ videoOutputPort })));
+    ON_CALL(videoOutputPortMock, getName())
+        .WillByDefault(::testing::ReturnRef(videoPort));
+    ON_CALL(hostImplMock, getVideoOutputPorts())
+        .WillByDefault(::testing::Return(device::List<device::VideoOutputPort>({ videoOutputPort })));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SupportedVideoDisplays(supportedVideoDisplays));
     ASSERT_TRUE(supportedVideoDisplays != nullptr);
@@ -105,14 +96,12 @@ TEST_F(DeviceVideoCapabilitiesDsTest, SupportedVideoDisplays)
 
 TEST_F(DeviceVideoCapabilitiesDsTest, HostEDID)
 {
-    std::vector<uint8_t> edidVec({ 't', 'e', 's', 't' });
     string edid;
 
-    EXPECT_CALL(hostImplMock, getHostEDID(::testing::_))
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Invoke(
+    ON_CALL(hostImplMock, getHostEDID(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](std::vector<uint8_t>& edid) {
-                edid = edidVec;
+                edid = { 't', 'e', 's', 't' };
             }));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->HostEDID(edid));
@@ -131,18 +120,14 @@ TEST_F(DeviceVideoCapabilitiesDsTest, DefaultResolution_noParam)
     string videoPortDefaultResolution(_T("1080p"));
     string defaultResolution;
 
-    EXPECT_CALL(videoResolutionMock, getName())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::ReturnRef(videoPortDefaultResolution));
-    EXPECT_CALL(videoOutputPortMock, getDefaultResolution())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::ReturnRef(videoResolution));
-    EXPECT_CALL(hostImplMock, getDefaultVideoPortName())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Return(videoPort));
-    EXPECT_CALL(hostImplMock, getVideoOutputPort(::testing::_))
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::ReturnRef(videoOutputPort));
+    ON_CALL(videoResolutionMock, getName())
+        .WillByDefault(::testing::ReturnRef(videoPortDefaultResolution));
+    ON_CALL(videoOutputPortMock, getDefaultResolution())
+        .WillByDefault(::testing::ReturnRef(videoResolution));
+    ON_CALL(hostImplMock, getDefaultVideoPortName())
+        .WillByDefault(::testing::Return(videoPort));
+    ON_CALL(hostImplMock, getVideoOutputPort(::testing::_))
+        .WillByDefault(::testing::ReturnRef(videoOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->DefaultResolution(string(), defaultResolution));
     EXPECT_EQ(defaultResolution, videoPortDefaultResolution);
@@ -164,27 +149,20 @@ TEST_F(DeviceVideoCapabilitiesDsTest, SupportedResolutions_noParam)
     string videoPortSupportedResolution(_T("1080p"));
     string element;
 
-    EXPECT_CALL(videoResolutionMock, getName())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::ReturnRef(videoPortSupportedResolution));
-    EXPECT_CALL(videoOutputPortTypeMock, getSupportedResolutions())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Return(device::List<device::VideoResolution>({ videoResolution })));
-    EXPECT_CALL(videoOutputPortTypeMock, getId())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Return(0));
-    EXPECT_CALL(videoOutputPortMock, getType())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::ReturnRef(videoOutputPortType));
-    EXPECT_CALL(hostImplMock, getDefaultVideoPortName())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Return(videoPort));
-    EXPECT_CALL(hostImplMock, getVideoOutputPort(::testing::_))
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::ReturnRef(videoOutputPort));
-    EXPECT_CALL(videoOutputPortConfigImplMock, getPortType(::testing::_))
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::ReturnRef(videoOutputPortType));
+    ON_CALL(videoResolutionMock, getName())
+        .WillByDefault(::testing::ReturnRef(videoPortSupportedResolution));
+    ON_CALL(videoOutputPortTypeMock, getSupportedResolutions())
+        .WillByDefault(::testing::Return(device::List<device::VideoResolution>({ videoResolution })));
+    ON_CALL(videoOutputPortTypeMock, getId())
+        .WillByDefault(::testing::Return(0));
+    ON_CALL(videoOutputPortMock, getType())
+        .WillByDefault(::testing::ReturnRef(videoOutputPortType));
+    ON_CALL(hostImplMock, getDefaultVideoPortName())
+        .WillByDefault(::testing::Return(videoPort));
+    ON_CALL(hostImplMock, getVideoOutputPort(::testing::_))
+        .WillByDefault(::testing::ReturnRef(videoOutputPort));
+    ON_CALL(videoOutputPortConfigImplMock, getPortType(::testing::_))
+        .WillByDefault(::testing::ReturnRef(videoOutputPortType));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SupportedResolutions(string(), supportedResolutions));
     ASSERT_TRUE(supportedResolutions != nullptr);
@@ -202,15 +180,12 @@ TEST_F(DeviceVideoCapabilitiesDsTest, SupportedHdcp_noParam)
     string videoPort(_T("HDMI0"));
     auto supportedHDCPVersion = Exchange::IDeviceVideoCapabilities::CopyProtection::HDCP_UNAVAILABLE;
 
-    EXPECT_CALL(videoOutputPortMock, getHDCPProtocol())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Return(dsHDCP_VERSION_2X));
-    EXPECT_CALL(hostImplMock, getDefaultVideoPortName())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Return(videoPort));
-    EXPECT_CALL(videoOutputPortConfigImplMock, getPort(::testing::_))
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::ReturnRef(videoOutputPort));
+    ON_CALL(videoOutputPortMock, getHDCPProtocol())
+        .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
+    ON_CALL(hostImplMock, getDefaultVideoPortName())
+        .WillByDefault(::testing::Return(videoPort));
+    ON_CALL(videoOutputPortConfigImplMock, getPort(::testing::_))
+        .WillByDefault(::testing::ReturnRef(videoOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SupportedHdcp(string(), supportedHDCPVersion));
     EXPECT_EQ(supportedHDCPVersion, Exchange::IDeviceVideoCapabilities::CopyProtection::HDCP_22);
@@ -220,9 +195,8 @@ TEST_F(DeviceVideoCapabilitiesDsTest, SupportedVideoDisplays_exception)
 {
     RPC::IStringIterator* supportedVideoDisplays = nullptr;
 
-    EXPECT_CALL(hostImplMock, getVideoOutputPorts())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Invoke(
+    ON_CALL(hostImplMock, getVideoOutputPorts())
+        .WillByDefault(::testing::Invoke(
             [&]() -> device::List<device::VideoOutputPort> {
                 throw device::Exception("test");
             }));
@@ -235,9 +209,8 @@ TEST_F(DeviceVideoCapabilitiesDsTest, HostEDID_exception)
 {
     string edid;
 
-    EXPECT_CALL(hostImplMock, getHostEDID(::testing::_))
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Invoke(
+    ON_CALL(hostImplMock, getHostEDID(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](std::vector<uint8_t>& edid) {
                 throw device::Exception("test");
             }));
@@ -250,9 +223,8 @@ TEST_F(DeviceVideoCapabilitiesDsTest, DefaultResolution_HDMI0_exception)
 {
     string defaultResolution;
 
-    EXPECT_CALL(hostImplMock, getVideoOutputPort(::testing::_))
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Invoke(
+    ON_CALL(hostImplMock, getVideoOutputPort(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](const std::string& name) -> device::VideoOutputPort& {
                 EXPECT_EQ(name, _T("HDMI0"));
                 throw device::Exception("test");
@@ -266,9 +238,8 @@ TEST_F(DeviceVideoCapabilitiesDsTest, SupportedResolutions_HDMI0_exception)
 {
     RPC::IStringIterator* supportedResolutions = nullptr;
 
-    EXPECT_CALL(hostImplMock, getVideoOutputPort(::testing::_))
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Invoke(
+    ON_CALL(hostImplMock, getVideoOutputPort(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](const std::string& name) -> device::VideoOutputPort& {
                 EXPECT_EQ(name, _T("HDMI0"));
                 throw device::Exception("test");
@@ -282,9 +253,8 @@ TEST_F(DeviceVideoCapabilitiesDsTest, SupportedHdcp_HDMI0_exception)
 {
     auto supportedHDCPVersion = Exchange::IDeviceVideoCapabilities::CopyProtection::HDCP_UNAVAILABLE;
 
-    EXPECT_CALL(videoOutputPortConfigImplMock, getPort(::testing::_))
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Invoke(
+    ON_CALL(videoOutputPortConfigImplMock, getPort(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](const std::string& name) -> device::VideoOutputPort& {
                 EXPECT_EQ(name, _T("HDMI0"));
                 throw device::Exception("test");

@@ -87,8 +87,6 @@ protected:
                 [&](const PluginHost::ISubSystem::subsystem type, WPEFramework::Core::IUnknown* information) {
                     subSystem.SystemInfo::Set(type, information);
                 }));
-        ON_CALL(service, Version())
-            .WillByDefault(::testing::Return(string()));
 
         dispatcher = static_cast<PluginHost::IDispatcher*>(
             plugin->QueryInterface(PluginHost::IDispatcher::ID));
@@ -183,8 +181,9 @@ TEST_F(LocationSyncTest, activateWithUnreachableHost_location_deactivate)
                                          "\"retries\":1,\n"
                                          "\"source\":\"http://jsonip.metrological.com:1234/?maf=true\"\n"
                                          "}"));
-    ON_CALL(subSystem, Set(::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke(
+    EXPECT_CALL(subSystem, Set(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
             [&](const PluginHost::ISubSystem::subsystem type, WPEFramework::Core::IUnknown* information) {
                 subSystem.SystemInfo::Set(type, information);
                 if (type == PluginHost::ISubSystem::LOCATION) {

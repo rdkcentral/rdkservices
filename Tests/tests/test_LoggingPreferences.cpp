@@ -53,13 +53,6 @@ protected:
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
 
-        ON_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
-            .WillByDefault(::testing::Invoke(
-                [](const char*, int* isRegistered) {
-                    *isRegistered = 1;
-                    return IARM_RESULT_SUCCESS;
-                }));
-
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
     }
     virtual ~LoggingPreferencesInitializedTest() override
@@ -108,12 +101,13 @@ TEST_F(LoggingPreferencesTest, paramsMissing)
 
 TEST_F(LoggingPreferencesInitializedTest, getKeystrokeMask)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
-        .WillOnce(
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0);
-                auto* param = static_cast<IARM_BUS_SYSMGR_KEYCodeLoggingInfo_Param_t*>(arg);
-                param->logStatus = 1; //Setting 1 returns response as false
+                if (strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0) {
+                    auto* param = static_cast<IARM_BUS_SYSMGR_KEYCodeLoggingInfo_Param_t*>(arg);
+                    param->logStatus = 1; //Setting 1 returns response as false
+                }
                 return IARM_RESULT_SUCCESS;
             });
 
@@ -125,24 +119,13 @@ TEST_F(LoggingPreferencesInitializedEventTest, enableKeystrokeMask)
 {
     Core::Event onKeystrokeMaskEnabledChange(false, true);
 
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
-        .WillOnce(
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0);
-                auto* param = static_cast<IARM_BUS_SYSMGR_KEYCodeLoggingInfo_Param_t*>(arg);
-                param->logStatus = 1;
-                return IARM_RESULT_SUCCESS;
-            })
-        .WillOnce(
-            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0);
-                auto* param = static_cast<IARM_BUS_SYSMGR_KEYCodeLoggingInfo_Param_t*>(arg);
-                param->logStatus = 1;
-                return IARM_RESULT_SUCCESS;
-            })
-        .WillOnce(
-            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARM_BUS_SYSMGR_API_SetKeyCodeLoggingPref) == 0);
+                if (strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0) {
+                    auto* param = static_cast<IARM_BUS_SYSMGR_KEYCodeLoggingInfo_Param_t*>(arg);
+                    param->logStatus = 1;
+                }
                 return IARM_RESULT_SUCCESS;
             });
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
@@ -180,17 +163,13 @@ TEST_F(LoggingPreferencesInitializedEventTest, disbleKeystrokeMask)
 {
     Core::Event onKeystrokeMaskEnabledChange(false, true);
 
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
-        .WillOnce(
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0);
-                auto* param = static_cast<IARM_BUS_SYSMGR_KEYCodeLoggingInfo_Param_t*>(arg);
-                param->logStatus = 0;
-                return IARM_RESULT_SUCCESS;
-            })
-        .WillOnce(
-            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARM_BUS_SYSMGR_API_SetKeyCodeLoggingPref) == 0);
+                if (strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0) {
+                    auto* param = static_cast<IARM_BUS_SYSMGR_KEYCodeLoggingInfo_Param_t*>(arg);
+                    param->logStatus = 0;
+                }
                 return IARM_RESULT_SUCCESS;
             });
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
@@ -223,28 +202,16 @@ TEST_F(LoggingPreferencesInitializedEventTest, disbleKeystrokeMask)
 
 TEST_F(LoggingPreferencesInitializedTest, errorCases)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
-        .WillOnce(
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0);
-                return IARM_RESULT_IPCCORE_FAIL;
-            })
-        .WillOnce(
-            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0);
-                return IARM_RESULT_IPCCORE_FAIL;
-            })
-        .WillOnce(
-            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0);
-                auto* param = static_cast<IARM_BUS_SYSMGR_KEYCodeLoggingInfo_Param_t*>(arg);
-                param->logStatus = 0;
+                if (strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0) {
+                    return IARM_RESULT_IPCCORE_FAIL;
+                } else if (strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0) {
+                    auto* param = static_cast<IARM_BUS_SYSMGR_KEYCodeLoggingInfo_Param_t*>(arg);
+                    param->logStatus = 0;
+                }
                 return IARM_RESULT_SUCCESS;
-            })
-        .WillOnce(
-            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARM_BUS_SYSMGR_API_SetKeyCodeLoggingPref) == 0);
-                return IARM_RESULT_IPCCORE_FAIL;
             });
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("isKeystrokeMaskEnabled"), _T("{}"), response));
