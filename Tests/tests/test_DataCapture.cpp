@@ -117,13 +117,6 @@ protected:
     {
         IarmBus::getInstance().impl = &iarmBusImplMock_;
 
-        ON_CALL(iarmBusImplMock_, IARM_Bus_IsConnected(::testing::_, ::testing::_))
-            .WillByDefault(::testing::Invoke(
-                [](const char*, int* isRegistered) {
-                    *isRegistered = 1;
-                    return IARM_RESULT_SUCCESS;
-                }));
-
         EXPECT_EQ(string(""), dataCapture_->Initialize(nullptr));
     }
     virtual ~DataCaptureInitializedTest() override
@@ -139,46 +132,31 @@ protected:
     DataCaptureInitializedEnableAudioCaptureTest()
         : DataCaptureInitializedTest()
     {
-        EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Call)
-            .WillOnce(
+        ON_CALL(iarmBusImplMock_, IARM_Bus_Call)
+            .WillByDefault(
                 [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                    EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_OPEN) == 0);
-                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
-                    param->session_id = 10;
-                    param->result = 0;
-                    return IARM_RESULT_SUCCESS;
-                })
-            .WillOnce(
-                [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                    EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_GET_OUTPUT_PROPS) == 0);
-                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
-                    param->details.arg_output_props.output.max_buffer_duration = 6;
-                    param->result = 0;
-                    return IARM_RESULT_SUCCESS;
-                })
-            .WillOnce(
-                [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                    EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_SET_OUTPUT_PROPERTIES) == 0);
-                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
-                    param->result = 0;
-                    return IARM_RESULT_SUCCESS;
-                })
-            .WillOnce(
-                [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                    EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_GET_AUDIO_PROPS) == 0);
-                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
-                    audiocapturemgr::audio_properties_ifce_t answer;
-                    answer.format = acmFormate16BitStereo;
-                    answer.sampling_frequency = acmFreqe48000;
-                    param->details.arg_audio_properties = answer;
-                    param->result = 0;
-                    return IARM_RESULT_SUCCESS;
-                })
-            .WillOnce(
-                [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                    EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_START) == 0);
-                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
-                    param->result = 0;
+                    if (strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_OPEN) == 0) {
+                        auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                        param->session_id = 10;
+                        param->result = 0;
+                    } else if (strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_GET_OUTPUT_PROPS) == 0) {
+                        auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                        param->details.arg_output_props.output.max_buffer_duration = 6;
+                        param->result = 0;
+                    } else if (strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_SET_OUTPUT_PROPERTIES) == 0) {
+                        auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                        param->result = 0;
+                    } else if (strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_GET_AUDIO_PROPS) == 0) {
+                        auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                        audiocapturemgr::audio_properties_ifce_t answer;
+                        answer.format = acmFormate16BitStereo;
+                        answer.sampling_frequency = acmFreqe48000;
+                        param->details.arg_audio_properties = answer;
+                        param->result = 0;
+                    } else if (strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_START) == 0) {
+                        auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                        param->result = 0;
+                    }
                     return IARM_RESULT_SUCCESS;
                 });
 
@@ -229,12 +207,13 @@ TEST_F(DataCaptureTest, ShouldReturnErrorWhenParamsAreEmpty)
 
 TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOnAudioCapture)
 {
-    EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Call)
-        .WillOnce(
+    ON_CALL(iarmBusImplMock_, IARM_Bus_Call)
+        .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_REQUEST_SAMPLE) == 0);
-                auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
-                param->result = 0;
+                if (strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_REQUEST_SAMPLE) == 0) {
+                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                    param->result = 0;
+                }
                 return IARM_RESULT_SUCCESS;
             });
 
@@ -249,19 +228,16 @@ TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOnAudioCapture)
 
 TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOffAudioCapture)
 {
-    EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Call)
-        .WillOnce(
+    ON_CALL(iarmBusImplMock_, IARM_Bus_Call)
+        .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_STOP) == 0);
-                auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
-                param->result = 0;
-                return IARM_RESULT_SUCCESS;
-            })
-        .WillOnce(
-            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_CLOSE) == 0);
-                auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
-                param->result = 0;
+                if (strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_STOP) == 0) {
+                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                    param->result = 0;
+                } else if (strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_CLOSE) == 0) {
+                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                    param->result = 0;
+                }
                 return IARM_RESULT_SUCCESS;
             });
 
@@ -304,12 +280,13 @@ TEST_F(DataCaptureInitializedEnableAudioCaptureEventTest, ShouldUploadData)
                 return Core::ERROR_NONE;
             });
 
-    EXPECT_CALL(iarmBusImplMock_, IARM_Bus_Call)
-        .WillOnce(
+    ON_CALL(iarmBusImplMock_, IARM_Bus_Call)
+        .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_TRUE(strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_REQUEST_SAMPLE) == 0);
-                auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
-                param->result = 0;
+                if (strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_REQUEST_SAMPLE) == 0) {
+                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
+                    param->result = 0;
+                }
                 return IARM_RESULT_SUCCESS;
             });
 

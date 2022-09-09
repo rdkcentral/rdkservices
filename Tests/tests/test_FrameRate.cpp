@@ -40,12 +40,6 @@ protected:
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
 
-        ON_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
-            .WillByDefault(::testing::Invoke(
-                [](const char*, int* isRegistered) {
-                    *isRegistered = 1;
-                    return IARM_RESULT_SUCCESS;
-                }));
         ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
@@ -62,9 +56,6 @@ protected:
     }
     virtual ~FrameRateInitializedTest() override
     {
-        ON_CALL(iarmBusImplMock, IARM_Bus_UnRegisterEventHandler(::testing::_, ::testing::_))
-            .WillByDefault(::testing::Return(IARM_RESULT_SUCCESS));
-
         plugin->Deinitialize(nullptr);
 
         IarmBus::getInstance().impl = nullptr;
@@ -147,9 +138,8 @@ TEST_F(FrameRateTest, setCollectionFrequency_startFpsCollection_stopFpsCollectio
 
 TEST_F(FrameRateDsTest, setFrmMode)
 {
-    EXPECT_CALL(videoDeviceMock, setFRFMode(::testing::_))
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Invoke(
+    ON_CALL(videoDeviceMock, setFRFMode(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](int param) {
                 EXPECT_EQ(param, 0);
                 return 0;
@@ -161,9 +151,8 @@ TEST_F(FrameRateDsTest, setFrmMode)
 
 TEST_F(FrameRateDsTest, getFrmMode)
 {
-    EXPECT_CALL(videoDeviceMock, getFRFMode(::testing::_))
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Invoke(
+    ON_CALL(videoDeviceMock, getFRFMode(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](int* param) {
                 *param = 0;
                 return 0;
@@ -175,9 +164,8 @@ TEST_F(FrameRateDsTest, getFrmMode)
 
 TEST_F(FrameRateDsTest, setDisplayFrameRate)
 {
-    EXPECT_CALL(videoDeviceMock, setDisplayframerate(::testing::_))
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Invoke(
+    ON_CALL(videoDeviceMock, setDisplayframerate(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](const char* param) {
                 EXPECT_EQ(param, string("3840x2160px48"));
                 return 0;
@@ -189,9 +177,8 @@ TEST_F(FrameRateDsTest, setDisplayFrameRate)
 
 TEST_F(FrameRateDsTest, getDisplayFrameRate)
 {
-    EXPECT_CALL(videoDeviceMock, getCurrentDisframerate(::testing::_))
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Invoke(
+    ON_CALL(videoDeviceMock, getCurrentDisframerate(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](char* param) {
                 string framerate("3840x2160px48");
                 ::memcpy(param, framerate.c_str(), framerate.length());
@@ -204,6 +191,7 @@ TEST_F(FrameRateDsTest, getDisplayFrameRate)
 
 TEST_F(FrameRateInitializedEventTest, onDisplayFrameRateChanging)
 {
+    ASSERT_TRUE(handlerOnDisplayFrameRateChanging != nullptr);
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -227,6 +215,7 @@ TEST_F(FrameRateInitializedEventTest, onDisplayFrameRateChanging)
 
 TEST_F(FrameRateInitializedEventTest, onDisplayFrameRateChanged)
 {
+    ASSERT_TRUE(handlerOnDisplayFrameRateChanged != nullptr);
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
