@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.1] - 2022-09-07
+### Fixed
+- Use Controller via COM-RPC instead of JSON-RPC
+
 ## [1.3.0] - 2022-09-08
 ### Added
 - Added setAVBlocked api.
