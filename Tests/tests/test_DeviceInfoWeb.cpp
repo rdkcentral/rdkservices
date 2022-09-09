@@ -56,20 +56,10 @@ protected:
         IarmBus::getInstance().impl = &iarmBusImplMock;
         device::Manager::getInstance().impl = &managerImplMock;
 
-        ON_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
-            .WillByDefault(::testing::Invoke(
-                [](const char*, int* isRegistered) {
-                    *isRegistered = 1;
-                    return IARM_RESULT_SUCCESS;
-                }));
-        ON_CALL(managerImplMock, Initialize())
-            .WillByDefault(::testing::Return());
         ON_CALL(service, ConfigLine())
             .WillByDefault(::testing::Return("{\"root\":{\"mode\":\"Off\"}}"));
         ON_CALL(service, WebPrefix())
             .WillByDefault(::testing::Return(webPrefix));
-        ON_CALL(service, Version())
-            .WillByDefault(::testing::Return(string()));
         ON_CALL(service, SubSystems())
             .WillByDefault(::testing::Invoke(
                 [&]() {

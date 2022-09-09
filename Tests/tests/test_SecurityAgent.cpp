@@ -97,8 +97,6 @@ protected:
             .WillByDefault(::testing::Return(proxyStubPath));
         ON_CALL(service, Callsign())
             .WillByDefault(::testing::Return(callSign));
-        ON_CALL(service, Version())
-            .WillByDefault(::testing::Return(string()));
 
         EXPECT_EQ(string(""), plugin->Initialize(&service));
     }

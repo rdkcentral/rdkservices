@@ -18,13 +18,6 @@ protected:
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
 
-        ON_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
-            .WillByDefault(::testing::Invoke(
-                [](const char*, int* isRegistered) {
-                    *isRegistered = 1;
-                    return IARM_RESULT_SUCCESS;
-                }));
-
         deviceInfoImplementation = Core::ProxyType<Plugin::DeviceInfoImplementation>::Create();
 
         interface = static_cast<Exchange::IDeviceInfo*>(
