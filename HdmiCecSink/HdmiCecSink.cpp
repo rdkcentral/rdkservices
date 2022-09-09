@@ -148,7 +148,7 @@ static int32_t HdmiArcPortID = -1;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 namespace WPEFramework
 {
@@ -360,6 +360,7 @@ namespace WPEFramework
 	     LOGINFO("updateDeviceTypeStatus %d updatePAStatus %d \n",updateDeviceTypeStatus,updatePAStatus);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.physicalAddress);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.deviceType);
+	     HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
 	     HdmiCecSink::_instance->updateDeviceChain(header.from, msg.physicalAddress);
 	     if (!updateDeviceTypeStatus || !updatePAStatus)
              HdmiCecSink::_instance->sendDeviceUpdateInfo(header.from.toInt());
@@ -1136,7 +1137,9 @@ namespace WPEFramework
             JsonObject params;
             params["powerStatus"] = JsonValue(powerStatus);
             LOGINFO("Notify DS!!! logicalAddress = %d , Audio device power status = %d \n", logicalAddress, powerStatus);
-            m_audioDevicePowerStatusRequested = false;
+	    /* update audio device power status request flag only if Audio device is ON or in STANDBY not in other states */
+	    if((powerStatus == 0) || (powerStatus == 1))
+	        m_audioDevicePowerStatusRequested = false;
             sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_POWER_STATUS], params);
         }
 
@@ -2291,6 +2294,7 @@ namespace WPEFramework
                                         sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS], params)
                                 }
 
+				_instance->deviceList[logicalAddress].m_isRequestRetry = 0;
 				_instance->deviceList[logicalAddress].clear();
 				sendNotify(eventString[HDMICECSINK_EVENT_DEVICE_REMOVED], JsonObject());
 			}
