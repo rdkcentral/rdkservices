@@ -254,7 +254,9 @@ namespace WPEFramework {
             };
 
             int m_hdmiInAudioDevicePowerState;
-            int m_currentArcRoutingState; 
+            int m_currentArcRoutingState;
+
+            PluginHost::IShell* m_service;
 
         public:
             static DisplaySettings* _instance;
