@@ -16,6 +16,16 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.0] - 2022-08-18
+### Added
+- Updated API version to 1.1.0
+- Added voiceSessionTypes, voiceSessionRequest, and voiceSessionTerminate APIs
+- Added aows:// and sdt:// protocols to the URL schemes
+- Added urlMicTap device to indicate a virtual microphone tap
+
+### Deprecated
+- Deprecate voiceSessionByText API. Instead, use voiceSessionRequest with type "ptt_transcription".
+
 ## [1.0.0] - 2022-05-11
 ### Added
 - Add CHANGELOG
