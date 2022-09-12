@@ -72,8 +72,6 @@ protected:
                                              "      \"outofprocess\":false\n"
                                              "   }\n"
                                              "}"));
-        ON_CALL(service, Locator())
-            .WillByDefault(::testing::Return(string()));
         ON_CALL(service, SubSystems())
             .WillByDefault(::testing::Invoke(
                 [&]() {

@@ -53,15 +53,8 @@ protected:
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
 
-        ON_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
+        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
-                [](const char*, int* isRegistered) {
-                    *isRegistered = 1;
-                    return IARM_RESULT_SUCCESS;
-                }));
-        EXPECT_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
-            .Times(::testing::AnyNumber())
-            .WillRepeatedly(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                     if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG)) {
                         EXPECT_TRUE(handler != nullptr);
@@ -74,9 +67,6 @@ protected:
     }
     virtual ~AVInputInitializedTest() override
     {
-        ON_CALL(iarmBusImplMock, IARM_Bus_UnRegisterEventHandler(::testing::_, ::testing::_))
-            .WillByDefault(::testing::Return(IARM_RESULT_SUCCESS));
-
         plugin->Deinitialize(nullptr);
 
         IarmBus::getInstance().impl = nullptr;
@@ -140,9 +130,8 @@ TEST_F(AVInputTest, contentProtected)
 
 TEST_F(AVInputDsTest, numberOfInputs)
 {
-    EXPECT_CALL(hdmiInputImplMock, getNumberOfInputs())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Return(1));
+    ON_CALL(hdmiInputImplMock, getNumberOfInputs())
+        .WillByDefault(::testing::Return(1));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("numberOfInputs"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"numberOfInputs\":1,\"success\":true}"));
@@ -150,9 +139,8 @@ TEST_F(AVInputDsTest, numberOfInputs)
 
 TEST_F(AVInputDsTest, currentVideoMode)
 {
-    EXPECT_CALL(hdmiInputImplMock, getCurrentVideoMode())
-        .Times(::testing::AnyNumber())
-        .WillRepeatedly(::testing::Return(string("unknown")));
+    ON_CALL(hdmiInputImplMock, getCurrentVideoMode())
+        .WillByDefault(::testing::Return(string("unknown")));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("currentVideoMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"currentVideoMode\":\"unknown\",\"success\":true}"));
