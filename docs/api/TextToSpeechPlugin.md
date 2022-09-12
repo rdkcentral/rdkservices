@@ -2,7 +2,7 @@
 <a name="TextToSpeech_Plugin"></a>
 # TextToSpeech Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/TextToSpeech/CHANGELOG.md)**
 
 A org.rdk.TextToSpeech plugin for Thunder framework.
 
