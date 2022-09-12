@@ -21,6 +21,7 @@ project(RdkServicesTest)
 set(CMAKE_CXX_STANDARD 11)
 
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(${NAMESPACE}Tracing REQUIRED)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -79,6 +80,7 @@ link_directories(../LocationSync
 target_link_libraries(${PROJECT_NAME}
         gmock_main
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}Tracing::${NAMESPACE}Tracing
         ${NAMESPACE}DataCapture
         ${NAMESPACE}DeviceDiagnostics
         ${NAMESPACE}LocationSync
