@@ -172,6 +172,10 @@ namespace WPEFramework {
             LOGWARN("emitTemperatureThresholdChange invoked.");
             reportTemperatureThresholdChange(thresholdType, isAboveThreshold, temperature);
         }
+
+        void CThermalMonitor::reportTemperatureThresholdChange(std::string thresholdType, bool isAboveThreshold, float temperature){
+            LOGWARN("reportTemperatureThresholdChange called.");
+        }
     }
 }
 /** @} */
