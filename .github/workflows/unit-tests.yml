@@ -210,6 +210,21 @@ jobs:
 
       - name: Set up files
         run: |
+          sudo mkdir /opt/secure
+          sudo mkdir /opt/persistent
+          sudo mkdir /opt/secure/reboot
+          sudo mkdir /opt/secure/persistent
+          sudo mkdir /opt/secure/persistent/System
+          sudo mkdir /opt/logs
+          sudo mkdir /lib/rdk
+          sudo chmod -R 1777 /opt
+          sudo chmod -R 1777 /lib/rdk
+          sudo touch /opt/logs/rebootInfo.log
+          sudo touch /opt/persistent/previousreboot.info
+          sudo touch /opt/persistent/hardpower.info
+          sudo touch /opt/logs/rdk_milestones.log
+          sudo touch /opt/tmtryoptout
+          sudo touch /opt/fwdnldstatus.txt
           sudo touch /etc/device.properties
           sudo touch /etc/authService.conf
           sudo touch /version.txt
