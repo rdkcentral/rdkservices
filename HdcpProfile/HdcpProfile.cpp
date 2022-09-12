@@ -247,6 +247,8 @@ namespace WPEFramework
             LOGWARN("[%s]-HDCPStatus::receiverHDCPVersion: %s", trigger, status["receiverHDCPVersion"].String().c_str());
             LOGWARN("[%s]-HDCPStatus::currentHDCPVersion %s", trigger, status["currentHDCPVersion"].String().c_str());
             LOGWARN("[%s]-HDCPStatus::hdcpReason %s", trigger, status["hdcpReason"].String().c_str());
+            LOGWARN("[%s]-HDCPStatus Response: %s,%s,%s,%s,%s,%s", trigger,  status["isConnected"].Boolean() ? "true" : "false",status["isHDCPEnabled"].Boolean() ? "true" : "false",status["isHDCPCompliant"].Boolean() ? "true" : "false",
+                                              status["supportedHDCPVersion"].String().c_str(), status["receiverHDCPVersion"].String().c_str(), status["currentHDCPVersion"].String().c_str(), status["hdcpReason"].String().c_str());
         }
 
         void HdcpProfile::onHdmiOutputHDCPStatusEvent(int hdcpStatus)
