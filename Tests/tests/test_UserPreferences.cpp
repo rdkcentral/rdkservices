@@ -20,65 +20,50 @@
 #include "gtest/gtest.h"
 
 #include "UserPreferences.h"
-#include "FactoriesImplementation.h"
-#include "ServiceMock.h"
 
 using namespace WPEFramework;
-
-namespace {
-const string iarmName = _T("Thunder_Plugins");
-}
 
 namespace {
 const string userPrefFile = _T("/opt/user_preferences.conf");
 const uint8_t userPrefLang[] = "[General]\nui_language=US_en\n";
 }
 
-class UserPreferencesTestFixture : public ::testing::Test {
+class UserPreferencesTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::UserPreferences> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
-    ServiceMock service;
-    Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
 
-    UserPreferencesTestFixture()
+    UserPreferencesTest()
         : plugin(Core::ProxyType<Plugin::UserPreferences>::Create())
         , handler(*(plugin))
         , connection(1, 0)
     {
-        PluginHost::IFactories::Assign(&factoriesImplementation);
     }
-    virtual ~UserPreferencesTestFixture()
-    {
-        PluginHost::IFactories::Assign(nullptr);
-    }
+    virtual ~UserPreferencesTest() = default;
 };
 
-TEST_F(UserPreferencesTestFixture, registeredMethods)
+TEST_F(UserPreferencesTest, registeredMethods)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getUILanguage")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setUILanguage")));
 }
 
-TEST_F(UserPreferencesTestFixture, paramsMissing)
+TEST_F(UserPreferencesTest, paramsMissing)
 {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setUILanguage"), _T("{}"), response));
 }
 
-TEST_F(UserPreferencesTestFixture, getUILanguage)
+TEST_F(UserPreferencesTest, getUILanguage)
 {
-    EXPECT_EQ(string(""), plugin->Initialize(nullptr));
-
     //Fail  case: File doesn't exists
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
 
     Core::File file(userPrefFile);
     file.Destroy();
     file.Create();
- 
+
     //Fail case: No key exists
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
 
@@ -88,28 +73,17 @@ TEST_F(UserPreferencesTestFixture, getUILanguage)
     EXPECT_EQ(response, _T("{\"ui_language\":\"US_en\",\"success\":true}"));
 
     file.Destroy();
-    plugin->Deinitialize(nullptr);
 }
 
-TEST_F(UserPreferencesTestFixture, setUILanguage)
+TEST_F(UserPreferencesTest, setUILanguage)
 {
-    EXPECT_EQ(string(""), plugin->Initialize(nullptr));
-
-    // JSON-RPC events - This is added to increase code coverage
-    auto dispatcher = static_cast<PluginHost::IDispatcher*>(
-        plugin->QueryInterface(PluginHost::IDispatcher::ID));
-    EXPECT_TRUE(dispatcher != nullptr);
-
-    dispatcher->Activate(&service);
-
     Core::File file(userPrefFile);
     file.Create();
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setUILanguage"), _T("{\"ui_language\":\"US_en\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"ui_language\":\"US_en\",\"success\":true}"));
 
     file.Destroy();
-    dispatcher->Deactivate();
-    dispatcher->Release();
-    plugin->Deinitialize(nullptr);
 }

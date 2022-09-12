@@ -2,7 +2,7 @@
 <a name="Timer_Plugin"></a>
 # Timer Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/Timer/CHANGELOG.md)**
 
 A org.rdk.Timer plugin for Thunder framework.
 
