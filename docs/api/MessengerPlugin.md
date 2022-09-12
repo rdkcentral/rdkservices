@@ -2,7 +2,7 @@
 <a name="Messenger_Plugin"></a>
 # Messenger Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/Messenger/CHANGELOG.md)**
 
 A Messenger plugin for Thunder framework.
 

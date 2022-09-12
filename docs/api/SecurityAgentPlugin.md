@@ -2,7 +2,7 @@
 <a name="SecurityAgent_Plugin"></a>
 # SecurityAgent Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/SecurityAgent/CHANGELOG.md)**
 
 A SecurityAgent plugin for Thunder framework.
 
