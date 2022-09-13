@@ -240,7 +240,8 @@ namespace WPEFramework
             bool success = true;
             try
             {
-                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
+                auto videoDevices = device::Host::getInstance().getVideoDevices();
+                device::VideoDevice& device = videoDevices.at(0);
                 device.setFRFMode(frfmode);
             }
             catch (const device::Exception& err)
@@ -261,7 +262,8 @@ namespace WPEFramework
             bool success = true;
             try
             {
-                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
+                auto videoDevices = device::Host::getInstance().getVideoDevices();
+                device::VideoDevice& device = videoDevices.at(0);
                 device.getFRFMode(&frmmode);
             }
             catch(const device::Exception& err)
@@ -286,7 +288,8 @@ namespace WPEFramework
             bool success = true;
             try
             {
-                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
+                auto videoDevices = device::Host::getInstance().getVideoDevices();
+                device::VideoDevice& device = videoDevices.at(0);
                 device.setDisplayframerate(sFramerate.c_str());
             }
             catch (const device::Exception& err)
@@ -306,7 +309,8 @@ namespace WPEFramework
             bool success = true;
             try
             {
-                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
+                auto videoDevices = device::Host::getInstance().getVideoDevices();
+                device::VideoDevice& device = videoDevices.at(0);
                 device.getCurrentDisframerate(sFramerate);
             }
             catch (const device::Exception& err)
