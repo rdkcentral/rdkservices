@@ -650,6 +650,11 @@ namespace WPEFramework {
                 }
                 if(service->Reason() == PluginHost::IShell::FAILURE)
                 {
+                    std::map<std::string, PluginData>::iterator iter = gActivePluginsData.find(service->Callsign());
+                    if ((currentState == PluginHost::IShell::DEACTIVATED) && (iter != gActivePluginsData.end()) && !(iter->second.mUri.empty()))
+                    {
+                        std::cout << "Application " << service->Callsign() << " crashed with url - " << iter->second.mUri << std::endl;
+                    }
                     gApplicationsExitReason[service->Callsign()] = AppLastExitReason::CRASH;
                 }
                 gExitReasonMutex.unlock();
@@ -3840,6 +3845,12 @@ namespace WPEFramework {
                         {
                             std::cout << "failed to set url to " << uri << " with status code " << status << std::endl;
                         }
+                        gPluginDataMutex.lock();
+                        if (gActivePluginsData.find(callsign) != gActivePluginsData.end())
+                        {
+                            gActivePluginsData[callsign].mUri = uri;
+                        }
+                        gPluginDataMutex.unlock();
                     }
                 }
 
