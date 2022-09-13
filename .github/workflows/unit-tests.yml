@@ -204,10 +204,6 @@ jobs:
           cmake
           --install build/rdkservices
 
-      - name: Install valgrind
-        run: >
-          sudo apt update && sudo apt install -y valgrind
-
       - name: Set up files
         run: |
           sudo mkdir /opt/secure
@@ -236,13 +232,6 @@ jobs:
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
-          valgrind
-          --tool=memcheck
-          --log-file=valgrind_log
-          --leak-check=yes
-          --show-reachable=yes
-          --track-fds=yes
-          --fair-sched=try
           RdkServicesTest
 
       - name: Install lcov
@@ -284,4 +273,3 @@ jobs:
           name: artifacts
           path: |
             coverage/
-            valgrind_log
