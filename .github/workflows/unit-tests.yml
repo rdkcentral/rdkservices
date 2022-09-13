@@ -210,13 +210,13 @@ jobs:
 
       - name: Set up files
         run: |
-          sudo mkdir /opt/secure
-          sudo mkdir /opt/persistent
-          sudo mkdir /opt/secure/reboot
-          sudo mkdir /opt/secure/persistent
-          sudo mkdir /opt/secure/persistent/System
-          sudo mkdir /opt/logs
-          sudo mkdir /lib/rdk
+          sudo mkdir -p /opt/secure
+          sudo mkdir -p /opt/persistent
+          sudo mkdir -p /opt/secure/reboot
+          sudo mkdir -p /opt/secure/persistent
+          sudo mkdir -p /opt/secure/persistent/System
+          sudo mkdir -p /opt/logs
+          sudo mkdir -p /lib/rdk
           sudo chmod -R 1777 /opt
           sudo chmod -R 1777 /lib/rdk
           sudo touch /opt/logs/rebootInfo.log
