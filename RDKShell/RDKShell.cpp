@@ -3103,8 +3103,10 @@ namespace WPEFramework {
             LOGINFOMETHOD();
 
             double launchStartTime = RdkShell::seconds();
+            #ifdef RDKSHELL_ENABLE_TELEMETRY_LOGGING
 	    double responseTime;
-            bool result = true;
+            #endif
+	    bool result = true;
 	    bool autoDestroy = true;
 
             if (!parameters.HasLabel("callsign"))
@@ -3360,7 +3362,7 @@ namespace WPEFramework {
                     uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams, joResult, true);
 		    #ifdef RDKSHELL_ENABLE_TELEMETRY_LOGGING
                     responseTime = (RdkShell::seconds() - launchStartTime)*1000;
-                    LOGINFO("cloning of a plugin tooks : %f ms", responseTime);
+                    LOGINFO("Time to clone %s tooks : %f ms", callsign, responseTime);
                     #endif
 
                     std::cout << "clone status: " << status << std::endl;
@@ -3373,7 +3375,7 @@ namespace WPEFramework {
                         status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams2, joResult, true);
 			#ifdef RDKSHELL_ENABLE_TELEMETRY_LOGGING
                         responseTime = (RdkShell::seconds() - launchStartTime)*1000;
-                        LOGINFO("cloning of a plugin tooks : %f ms", responseTime);
+			LOGINFO("Time to clone %s tooks : %f ms", callsign, responseTime);
                         #endif
                         std::cout << "clone status: " << status << std::endl;
                     }
@@ -3582,7 +3584,7 @@ namespace WPEFramework {
                 status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
 		#ifdef RDKSHELL_ENABLE_TELEMETRY_LOGGING
                 responseTime = (RdkShell::seconds() - launchStartTime)*1000;
-                LOGINFO("set plugin configuration tooks : %f ms", responseTime);
+                LOGINFO("Time to configure %s tooks : %f ms", callsign, responseTime);
                 #endif
 
                 std::cout << "set status: " << status << std::endl;
@@ -3592,7 +3594,7 @@ namespace WPEFramework {
                     status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
 		    #ifdef RDKSHELL_ENABLE_TELEMETRY_LOGGING
                     responseTime = (RdkShell::seconds() - launchStartTime)*1000;
-                    LOGINFO("set plugin configuration tooks : %f ms", responseTime);
+                    LOGINFO("Time to configure %s tooks : %f ms", callsign, responseTime);
                     #endif
                     std::cout << "set status: " << status << std::endl;
                 }
@@ -3625,7 +3627,7 @@ namespace WPEFramework {
                             status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
                             #ifdef RDKSHELL_ENABLE_TELEMETRY_LOGGING
                             responseTime = (RdkShell::seconds() - launchStartTime)*1000;
-                            LOGINFO("activation of a plugin tooks : %f ms", responseTime);
+                             LOGINFO("Time to activate %s tooks : %f ms", callsign, responseTime);
                             #endif
 
                             std::cout << "activate 1 status: " << status << std::endl;
@@ -3637,7 +3639,7 @@ namespace WPEFramework {
                                 status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams2, joResult);
 				#ifdef RDKSHELL_ENABLE_TELEMETRY_LOGGING
                                 responseTime = (RdkShell::seconds() - launchStartTime)*1000;
-                                LOGINFO("activation of a plugin tooks : %f ms", responseTime);
+			        LOGINFO("Time to activate %s tooks : %f ms", callsign, responseTime);
                                 #endif
                                 std::cout << "activate 1 status: " << status << std::endl;
                             }
@@ -3651,7 +3653,7 @@ namespace WPEFramework {
                         status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
 			#ifdef RDKSHELL_ENABLE_TELEMETRY_LOGGING
                         responseTime = (RdkShell::seconds() - launchStartTime)*1000;
-                        LOGINFO("activation of a plugin tooks : %f ms", responseTime);
+                        LOGINFO("Time to activate %s tooks : %f ms", callsign, responseTime);
                         #endif
                         std::cout << "activate 2 status: " << status << std::endl;
                         if (status > 0)
@@ -3662,7 +3664,7 @@ namespace WPEFramework {
                             status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams2, joResult);
 			    #ifdef RDKSHELL_ENABLE_TELEMETRY_LOGGING
                             responseTime = (RdkShell::seconds() - launchStartTime)*1000;
-                            LOGINFO("activation of a plugin tooks : %f ms", responseTime);
+                            LOGINFO("Time to activate %s tooks : %f ms", callsign, responseTime);
                             #endif
                             std::cout << "activate 2 status: " << status << std::endl;
                         }
@@ -3675,7 +3677,7 @@ namespace WPEFramework {
                     status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
 		    #ifdef RDKSHELL_ENABLE_TELEMETRY_LOGGING
                     responseTime = (RdkShell::seconds() - launchStartTime)*1000;
-                    LOGINFO("activation of a plugin tooks : %f ms", responseTime);
+                    LOGINFO("Time to activate %s tooks : %f ms", callsign, responseTime);
                     #endif
 
                     std::cout << "activate 3 status: " << status << std::endl;
@@ -3687,7 +3689,7 @@ namespace WPEFramework {
                         status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams2, joResult);
 			#ifdef RDKSHELL_ENABLE_TELEMETRY_LOGGING
                         responseTime = (RdkShell::seconds() - launchStartTime)*1000;
-                        LOGINFO("activation of a plugin tooks : %f ms", responseTime);
+			LOGINFO("Time to activate %s tooks : %f ms", callsign, responseTime);
                         #endif
                         std::cout << "activate 3 status: " << status << std::endl;
                     }
@@ -3832,7 +3834,7 @@ namespace WPEFramework {
                             status = JSONRPCDirectLink(mCurrentService, callsign).Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
 			    #ifdef RDKSHELL_ENABLE_TELEMETRY_LOGGING
                             responseTime = (RdkShell::seconds() - launchStartTime)*1000;
-                            LOGINFO("setting the state to suspended tooks : %f ms", responseTime);
+                            LOGINFO("Time took for %s to suspended state :  %f ms", callsign, responseTime);
                             #endif
                             
                             std::cout << "setting the state to suspended\n";
@@ -3859,7 +3861,7 @@ namespace WPEFramework {
                             status = JSONRPCDirectLink(mCurrentService, callsign).Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
 			    #ifdef RDKSHELL_ENABLE_TELEMETRY_LOGGING
                             responseTime = (RdkShell::seconds() - launchStartTime)*1000;
-                            LOGINFO("setting the state to resumed tooks : %f ms", responseTime);
+                            LOGINFO("Time took for %s to resumed state :  %f ms", callsign, responseTime);
                             #endif
 
                             std::cout << "setting the state to resumed\n";
