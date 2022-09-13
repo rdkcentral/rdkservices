@@ -27,12 +27,25 @@ target_include_directories(PlayerInfoDolby
 
 if(${DOLBY_IMPLEMENTATION} STREQUAL "AMLogic")
 
-    find_library(AUDIO_CLIENT
-        NAMES audio_client)
+    find_library(AUDIO_CLIENT NAMES audio_client)
 
-    target_sources(PlayerInfoDolby
-        PRIVATE
-            ${CMAKE_CURRENT_LIST_DIR}/AMLogic/Implementation.cpp)
+    if (DOLBY_IMPLEMENTATION_PATH)
+        target_sources(PlayerInfoDolby
+            PRIVATE
+                ${DOLBY_IMPLEMENTATION_PATH}/Implementation.cpp)
+    else()
+        include(GetExternalCode)
+        set(DOLBY_IMPLEMENTATION_VERSION "master" CACHE STRING "dolby implementation version: commit_id_or_tag_or_branch_name")
+        set(DOLBY_IMPLEMENTATION_REPOSITORY "https://github.com/WebPlatformForEmbedded/Dolby-AmLogic" CACHE STRING "dolby implementation repository")
+        GetExternalCode(
+            GIT_REPOSITORY ${DOLBY_IMPLEMENTATION_REPOSITORY}
+            GIT_VERSION ${DOLBY_IMPLEMENTATION_VERSION}
+            SOURCE_DIR "AMLogic"
+        )
+        target_sources(PlayerInfoDolby
+            PRIVATE
+                AMLogic/Implementation.cpp)
+    endif()
 
     target_link_libraries(PlayerInfoDolby
         PRIVATE
