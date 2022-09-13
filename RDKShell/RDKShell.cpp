@@ -592,24 +592,6 @@ namespace WPEFramework {
             return exist;
         }
        
-        static std::string getHostname(std::string uri)
-        {
-            std::size_t startIdx = uri.find("://");
-            if(startIdx == std::string::npos)
-            {
-                return uri;
-            }
-            else
-            {
-                startIdx += 3;
-                size_t endIdx = uri.find("/",startIdx);
-                if(endIdx == std::string::npos)
-                    return uri.substr(startIdx);
-                else
-                    return uri.substr(startIdx, endIdx - startIdx);
-            }
-        }
-
         static void updateSurfaceClientIdentifiers( void)
         {
           uint32_t status = 0;
@@ -671,7 +653,7 @@ namespace WPEFramework {
                     std::map<std::string, PluginData>::iterator iter = gActivePluginsData.find(service->Callsign());
                     if ((currentState == PluginHost::IShell::DEACTIVATED) && (iter != gActivePluginsData.end()) && !(iter->second.mUri.empty()))
                     {
-                        std::cout << "Application " << service->Callsign() << " crashed with url - " << getHostname(iter->second.mUri) << std::endl;
+                        std::cout << "Application " << service->Callsign() << " crashed with url - " << iter->second.mUri << std::endl;
                     }
                     gApplicationsExitReason[service->Callsign()] = AppLastExitReason::CRASH;
                 }
