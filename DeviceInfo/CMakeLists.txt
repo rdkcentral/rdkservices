@@ -19,6 +19,7 @@ set(PLUGIN_NAME DeviceInfo)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_DEVICEINFO_MODE "Off" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
+set(PLUGIN_DEVICEINFO_STARTUPORDER "" CACHE STRING "Start-up order for DeviceInfo plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)

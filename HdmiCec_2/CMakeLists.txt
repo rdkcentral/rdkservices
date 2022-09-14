@@ -17,6 +17,8 @@
 set(PLUGIN_NAME HdmiCec_2)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_HDMICEC2_STARTUPORDER "" CACHE STRING "To configure startup order of HdmiCec_2 plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
