@@ -317,32 +317,6 @@ namespace WPEFramework {
 
             CreateHandler({ 2 });
 
-            //Initialise timer with interval and callback function.
-            m_operatingModeTimer.setInterval(updateDuration, MODE_TIMER_UPDATE_INTERVAL);
-
-            //first boot? then set to NORMAL mode
-            if (!m_temp_settings.contains("mode") && m_currentMode == "") {
-                JsonObject mode,param,response;
-                param["duration"] = -1;
-                param["mode"] = MODE_NORMAL;
-                mode["modeInfo"] = param;
-
-                LOGINFO("first boot so setting mode to '%s' ('%s' does not contain(\"mode\"))\n",
-                        (param["mode"].String()).c_str(), SYSTEM_SERVICE_TEMP_FILE);
-
-                setMode(mode, response);
-            } else if (m_currentMode.empty()) {
-                JsonObject mode,param,response;
-                param["duration"] = m_temp_settings.getValue("mode_duration");
-                param["mode"] = m_temp_settings.getValue("mode");
-                mode["modeInfo"] = param;
-
-                LOGINFO("receiver restarted so setting mode:%s duration:%d\n",
-                        (param["mode"].String()).c_str(), (int)param["duration"].Number());
-
-                setMode(mode, response);
-            }
-
             SystemServices::m_FwUpdateState_LatestEvent=FirmwareUpdateStateUninitialized;
 
             m_networkStandbyModeValid = false;
@@ -495,6 +469,33 @@ namespace WPEFramework {
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
             m_shellService = service;
             m_shellService->AddRef();
+
+            //Initialise timer with interval and callback function.
+            m_operatingModeTimer.setInterval(updateDuration, MODE_TIMER_UPDATE_INTERVAL);
+
+            //first boot? then set to NORMAL mode
+            if (!m_temp_settings.contains("mode") && m_currentMode == "") {
+                JsonObject mode,param,response;
+                param["duration"] = -1;
+                param["mode"] = MODE_NORMAL;
+                mode["modeInfo"] = param;
+
+                LOGINFO("first boot so setting mode to '%s' ('%s' does not contain(\"mode\"))\n",
+                        (param["mode"].String()).c_str(), SYSTEM_SERVICE_TEMP_FILE);
+
+                setMode(mode, response);
+            } else if (m_currentMode.empty()) {
+                JsonObject mode,param,response;
+                param["duration"] = m_temp_settings.getValue("mode_duration");
+                param["mode"] = m_temp_settings.getValue("mode");
+                mode["modeInfo"] = param;
+
+                LOGINFO("receiver restarted so setting mode:%s duration:%d\n",
+                        (param["mode"].String()).c_str(), (int)param["duration"].Number());
+
+                setMode(mode, response);
+            }
+
             /* On Success; return empty to indicate no error text. */
             return (string());
         }

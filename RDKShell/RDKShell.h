@@ -438,7 +438,9 @@ namespace WPEFramework {
 
         struct PluginData
         {
+          PluginData(): mClassName(""), mUri("") {}
           std::string mClassName;
+          std::string mUri;
         };
 
         class PluginStateChangeData

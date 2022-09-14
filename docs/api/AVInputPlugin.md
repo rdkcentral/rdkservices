@@ -2,7 +2,7 @@
 <a name="head.AVInput_Plugin"></a>
 # AVInput Plugin
 
-**Version: 1.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
 
 **Status: :black_circle::black_circle::black_circle:**
 

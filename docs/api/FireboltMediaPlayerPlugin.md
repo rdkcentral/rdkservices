@@ -2,7 +2,7 @@
 <a name="FireboltMediaPlayerPlugin"></a>
 # FireboltMediaPlayerPlugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/FireboltMediaPlayer/CHANGELOG.md)**
 
 A org.rdk.FireboltMediaPlayer plugin for Thunder framework.
 

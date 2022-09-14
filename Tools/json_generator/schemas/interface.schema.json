@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema#",
   "type": "object",
   "properties": {
     "jsonrpc": {
@@ -61,12 +61,12 @@
             "params": {
               "description": "JSON-Schema of the procedure parameters.",
               "type": "object",
-              "$ref": "http://json-schema.org/draft-07/schema#"
+              "$ref": "https://json-schema.org/draft/2020-12/schema#"
             },
             "result": {
               "description": "JSON-Schema of the procedure result.",
               "type": "object",
-              "$ref": "http://json-schema.org/draft-07/schema#"
+              "$ref": "https://json-schema.org/draft/2020-12/schema#"
             },
             "events": {
               "description": "Events related.",
@@ -150,7 +150,7 @@
             "params": {
               "description": "JSON-Schema of the property value.",
               "type": "object",
-              "$ref": "http://json-schema.org/draft-07/schema#"
+              "$ref": "https://json-schema.org/draft/2020-12/schema#"
             },
             "events": {
               "description": "Events related.",
@@ -227,7 +227,7 @@
             "params": {
               "description": "JSON-Schema of the event params.",
               "type": "object",
-              "$ref": "http://json-schema.org/draft-07/schema#"
+              "$ref": "https://json-schema.org/draft/2020-12/schema#"
             }
           },
           "required": [
