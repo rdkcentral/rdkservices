@@ -18,32 +18,28 @@
  */
 
 #include <gtest/gtest.h>
+
 #include "SystemServices.h"
-#include "IarmBusMock.h"
+
 #include "RfcApiMock.h"
-#include "WrapsMock.h"
+
 #include <fstream>
+
 using namespace WPEFramework;
 
 class SystemInitializeTest: public::testing::Test
 {
 	protected:
-	    	IarmBusImplMock iarmBusImplMock;
 	    	RfcApiImplMock rfcApiImplMock;
-            	WrapsImplMock wrapsImplMock;
 
 	SystemInitializeTest()
 	{
-		IarmBus::getInstance().impl = &iarmBusImplMock;
         	RfcApi::getInstance().impl = &rfcApiImplMock;
-        	Wraps::getInstance().impl = &wrapsImplMock;
 	}
 
 	virtual ~SystemInitializeTest()
 	{
-		IarmBus::getInstance().impl = nullptr;
         	RfcApi::getInstance().impl = nullptr;
-        	Wraps::getInstance().impl = nullptr;
 	}
 };
 

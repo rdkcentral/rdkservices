@@ -39,7 +39,7 @@ add_executable(${PROJECT_NAME}
 set_source_files_properties(
         tests/test_DeviceAudioCapabilities.cpp
         tests/test_DeviceVideoCapabilities.cpp
-        tests/test_SystemServicesTest.cpp
+        tests/test_SystemServices.cpp
         PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 include_directories(../LocationSync
