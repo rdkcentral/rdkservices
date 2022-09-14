@@ -124,8 +124,8 @@
                       "marker"
                   ]
               },
-              "success": {
-                  "$ref": "#/common/success"
+              "result": {
+                  "$ref": "#/common/result"
               }
          },
         "getAVDecoderStatus":{
