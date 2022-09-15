@@ -1041,18 +1041,24 @@ namespace WPEFramework {
             enableInactivityReporting(true);
 #endif
 
-            auto auth = mCurrentService->QueryInterfaceByCallsign<WPEFramework::PluginHost::IAuthenticate>("SecurityAgent");
-            if (auth != nullptr) {
+            // TODO: use interfaces and remove token
+            auto security = mCurrentService->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+            if (security != nullptr) {
                 string payload = "http://localhost";
                 string token;
-                if (auth->CreateToken(
+                if (security->CreateToken(
                         static_cast<uint16_t>(payload.length()),
                         reinterpret_cast<const uint8_t*>(payload.c_str()),
                         token)
-                    == WPEFramework::Core::ERROR_NONE) {
+                    == Core::ERROR_NONE) {
                     sThunderSecurityToken = token;
                     std::cout << "RDKShell got security token" << std::endl;
+                } else {
+                    std::cout << "RDKShell failed to get security token" << std::endl;
                 }
+                security->Release();
+            } else {
+                std::cout << "No security agent" << std::endl;
             }
 
             service->Register(mClientsMonitor);
