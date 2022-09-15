@@ -4996,7 +4996,6 @@ namespace WPEFramework {
                 sleep(HDMICECSINK_PLUGIN_ACTIVATION_TIME);
             }
 
-            static bool isInitDone = false;
             bool pluginActivated = false;
 
             hdmiCecSink = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(HDMICECSINK_CALLSIGN);

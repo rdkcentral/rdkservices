@@ -31,6 +31,7 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD_REQUIRED YES)
 
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
+target_compile_options(${MODULE_NAME} PRIVATE -Wno-error=attribute-warning)
 
 find_package(DS)
 if (DS_FOUND)
