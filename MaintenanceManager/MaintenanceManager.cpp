@@ -377,8 +377,29 @@ namespace WPEFramework {
                 auth->Release();
             }
 
+            string token;
+
+            // TODO: use interfaces and remove token
+            auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+            if (security != nullptr) {
+                string payload = "http://localhost";
+                if (security->CreateToken(
+                        static_cast<uint16_t>(payload.length()),
+                        reinterpret_cast<const uint8_t*>(payload.c_str()),
+                        token)
+                    == Core::ERROR_NONE) {
+                    std::cout << "MaintenanceManager got security token" << std::endl;
+                } else {
+                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                }
+                security->Release();
+            } else {
+                std::cout << "No security agent" << std::endl;
+            }
+
+            string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
-            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "", false, query);
             if (thunder_client != nullptr) {
                 uint32_t status = thunder_client->Invoke<JsonObject, JsonObject>(5000, "getActivationStatus", joGetParams, joGetResult);
                 LOGINFO("Invoke status : %d",status);
@@ -457,8 +478,29 @@ namespace WPEFramework {
             JsonObject joGetResult;
             std::string callsign = "org.rdk.Network.1";
 
+            string token;
+
+            // TODO: use interfaces and remove token
+            auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+            if (security != nullptr) {
+                string payload = "http://localhost";
+                if (security->CreateToken(
+                        static_cast<uint16_t>(payload.length()),
+                        reinterpret_cast<const uint8_t*>(payload.c_str()),
+                        token)
+                    == Core::ERROR_NONE) {
+                    std::cout << "MaintenanceManager got security token" << std::endl;
+                } else {
+                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                }
+                security->Release();
+            } else {
+                std::cout << "No security agent" << std::endl;
+            }
+
+            string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
-            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "", false, query);
             if (thunder_client != nullptr) {
                 uint32_t status = thunder_client->Invoke<JsonObject, JsonObject>(5000, "isConnectedToInternet", joGetParams, joGetResult);
                 if (status > 0) {
