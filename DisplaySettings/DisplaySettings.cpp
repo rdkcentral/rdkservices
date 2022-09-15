@@ -1088,6 +1088,7 @@ namespace WPEFramework {
                 if(tvResolutions & dsTV_RESOLUTION_2160p30)supportedTvResolutions.emplace_back("2160p30");
 		if(tvResolutions & dsTV_RESOLUTION_2160p50)supportedTvResolutions.emplace_back("2160p50");
                 if(tvResolutions & dsTV_RESOLUTION_2160p60)supportedTvResolutions.emplace_back("2160p60");
+                if(tvResolutions & dsTV_RESOLUTION_AUTO)supportedTvResolutions.emplace_back("AUTO");
             }
             catch(const device::Exception& err)
             {
