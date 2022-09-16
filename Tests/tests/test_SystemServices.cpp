@@ -29,39 +29,28 @@
 
 using namespace WPEFramework;
 
-class SystemInitializeTest : public ::testing::Test {
-protected:
-    RfcApiImplMock rfcApiImplMock;
-
-    SystemInitializeTest()
-    {
-        RfcApi::getInstance().impl = &rfcApiImplMock;
-    }
-
-    virtual ~SystemInitializeTest()
-    {
-        RfcApi::getInstance().impl = nullptr;
-    }
-};
-
-class SystemServicesTest : public SystemInitializeTest {
+class SystemServicesTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::SystemServices> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Handler& handlerV2;
     Core::JSONRPC::Connection connection;
     string response;
+    RfcApiImplMock rfcApiImplMock;
 
     SystemServicesTest()
-        : SystemInitializeTest()
-        , plugin(Core::ProxyType<Plugin::SystemServices>::Create())
+        : plugin(Core::ProxyType<Plugin::SystemServices>::Create())
         , handler(*plugin)
         , handlerV2(*(plugin->GetHandler(2)))
         , connection(1, 0)
     {
+        RfcApi::getInstance().impl = &rfcApiImplMock;
     }
 
-    virtual ~SystemServicesTest() override = default;
+    virtual ~SystemServicesTest() override
+    {
+        RfcApi::getInstance().impl = nullptr;
+    }
 };
 
 class SystemServicesEventTest : public SystemServicesTest {
