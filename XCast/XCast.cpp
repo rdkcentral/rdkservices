@@ -607,7 +607,6 @@ void XCast::updateDynamicAppCache(string strApps)
                 }
                 else {
                     LOGINFO("payload: %s, size:%d", jPayload->valuestring, strlen (jPayload->valuestring));
-                    LOGINFO("");
                 }
                 //Set launchParameters in list for later usage
                 for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
