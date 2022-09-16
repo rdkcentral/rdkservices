@@ -20,6 +20,8 @@
 #pragma once
 
 #include "Module.h"
+#include "libIBus.h"
+#include "dsTypes.h"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -46,10 +48,6 @@ public:
     virtual void Deinitialize(PluginHost::IShell *service) override;
     virtual string Information() const override;
 
-public:
-    void event_onAVInputActive(int id);
-    void event_onAVInputInactive(int id);
-
 protected:
     void InitializeIARM();
     void DeinitializeIARM();
@@ -64,6 +62,46 @@ protected:
 private:
     static int numberOfInputs(bool &success);
     static string currentVideoMode(bool &success);
+
+    //Begin methods
+    uint32_t getInputDevicesWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t writeEDIDWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t readEDIDWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t getRawSPDWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t getSPDWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t setEdidVersionWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t getEdidVersionWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t startInput(const JsonObject& parameters, JsonObject& response);
+    uint32_t stopInput(const JsonObject& parameters, JsonObject& response);
+    uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response);
+    uint32_t getGameFeatureStatusWrapper(const JsonObject& parameters, JsonObject& response);
+    //End methods
+
+    JsonArray getInputDevices(int iType);
+    void writeEDID(int deviceId, std::string message);
+    std::string readEDID(int iPort);
+    std::string getRawSPD(int iPort);
+    std::string getSPD(int iPort);
+    int setEdidVersion(int iPort, int iEdidVer);
+    int getEdidVersion(int iPort);
+    bool setVideoRectangle(int x, int y, int width, int height, int type);
+    bool getALLMStatus(int iPort);
+
+    void AVInputHotplug(int input , int connect, int type);
+    static void dsAVEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
+    void AVInputSignalChange( int port , int signalStatus, int type);
+    static void dsAVSignalStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
+    void AVInputStatusChange( int port , bool isPresented, int type);
+    static void dsAVStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
+    void AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution);
+    static void dsAVVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
+    void AVInputALLMChange( int port , bool allmMode);
+    static void dsAVGameFeatureStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
 public:
     static AVInput* _instance;

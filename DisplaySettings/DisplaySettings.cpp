@@ -1086,6 +1086,7 @@ namespace WPEFramework {
 		if(tvResolutions & dsTV_RESOLUTION_1080p50)supportedTvResolutions.emplace_back("1080p50");
                 if(tvResolutions & dsTV_RESOLUTION_1080p60)supportedTvResolutions.emplace_back("1080p60");
                 if(tvResolutions & dsTV_RESOLUTION_2160p30)supportedTvResolutions.emplace_back("2160p30");
+		if(tvResolutions & dsTV_RESOLUTION_2160p50)supportedTvResolutions.emplace_back("2160p50");
                 if(tvResolutions & dsTV_RESOLUTION_2160p60)supportedTvResolutions.emplace_back("2160p60");
             }
             catch(const device::Exception& err)
@@ -4349,9 +4350,30 @@ namespace WPEFramework {
         void DisplaySettings::getHdmiCecSinkPlugin()
         {
             if(m_client == nullptr)
-            { 
+            {
+                string token;
+
+                // TODO: use interfaces and remove token
+                auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+                if (security != nullptr) {
+                    string payload = "http://localhost";
+                    if (security->CreateToken(
+                            static_cast<uint16_t>(payload.length()),
+                            reinterpret_cast<const uint8_t*>(payload.c_str()),
+                            token)
+                        == Core::ERROR_NONE) {
+                        std::cout << "DisplaySettings got security token" << std::endl;
+                    } else {
+                        std::cout << "DisplaySettings failed to get security token" << std::endl;
+                    }
+                    security->Release();
+                } else {
+                    std::cout << "No security agent" << std::endl;
+                }
+
+                string query = "token=" + token;
                 Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-                m_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(HDMICECSINK_CALLSIGN_VER), (_T(HDMICECSINK_CALLSIGN_VER)));
+                m_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(HDMICECSINK_CALLSIGN_VER), (_T(HDMICECSINK_CALLSIGN_VER)), false, query);
                 LOGINFO("DisplaySettings getHdmiCecSinkPlugin init m_client\n");
             }
         }
@@ -4995,7 +5017,6 @@ namespace WPEFramework {
                 sleep(HDMICECSINK_PLUGIN_ACTIVATION_TIME);
             }
 
-            static bool isInitDone = false;
             bool pluginActivated = false;
 
             hdmiCecSink = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(HDMICECSINK_CALLSIGN);
