@@ -54,6 +54,7 @@ XCast interface methods:
 | [getStandbyBehavior](#getStandbyBehavior) | Gets the expected xcast behavior in standby mode |
 | [onApplicationStateChanged](#onApplicationStateChanged) | Provides notification whenever an application changes state due to user activity, an internal error, or other reasons |
 | [registerApplications](#registerApplications) | Registers an application |
+| [unregisterApplications](#unregisterApplications) | Unregisters an application |
 | [setEnabled](#setEnabled) | Enables or disables xcast |
 | [setFriendlyName](#setFriendlyName) | Sets the friendly name of device |
 | [setStandbyBehavior](#setStandbyBehavior) | Sets the expected xcast behavior in standby mode |
@@ -358,7 +359,7 @@ The following table provides a client error mapping example:
 <a name="registerApplications"></a>
 ## *registerApplications*
 
-Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list.
+This API registers applications passed with XCast service. This allows to whitelist the apps which support dial service. Calling this api again, with a new set of APP names, will append those APP names to existing whitelist. Passing an existing whitelisted app, with a modified parameter value, will update the curresponding field in the whitelist.
   
 ### Events 
 
@@ -378,8 +379,8 @@ Registers an application. This allows to whitelist the apps which support dial s
 | result | object |  |
 | result.success | boolean | Whether the request succeeded |
 
-### Example
-
+### Example 1
+Following call will register NetflixApp to the gdisl dynamic list.
 #### Request
 
 ```json
@@ -388,7 +389,122 @@ Registers an application. This allows to whitelist the apps which support dial s
     "id": 42,
     "method": "org.rdk.Xcast.1.registerApplications",
     "params": {
-        "applications": "NetflixApp"
+        "applications": {
+            "names":["Netflix"],
+            "cors":[".netflix.com"]
+         }
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+### Example 2
+Following call will update the existing NetflixApp properties to the gdisl dynamic list and insert new applications YouTube, YouTubeKids and YouTubeTV.
+#### Request
+
+```json
+{
+    "jsonrpc":"2.0",
+    "id":"3",
+    "method": "org.rdk.Xcast.1.registerApplications",
+    "params":{
+        "applications":[{
+               "names":["Netflix"],
+               "cors":[".netflix.com"],
+               "properties":{"allowStop" :true}
+           }, 
+           {
+               "names":["YouTube", "YouTubeKids", "YouTubeTV"],
+               "cors":[".youtube.com"],
+               "properties":{"allowStop" :true}
+           }]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="unregisterApplications"></a>
+## *unregisterApplications*
+
+This API will remove the specified APP names from the existing whitelist. This API call will simply ignore the request and return success, if specified apps are not present in the whitelist. Invoking this API, with the empty list, will clear the whitelist and wont allow any of the applications to cast.
+  
+### Events 
+
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.applications | string | The application name to register |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example 1
+Following call will remove NetflixApp and YouTubeKids from gdial whitelistied applications.
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Xcast.1.unregisterApplications",
+    "params": {
+        "applications": ["NetflixApp", "YouTubeKids"]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+### Example 1
+Following call will clear the gdial application whitelist. Once this call is invoked, it wont be able to cast any of the aaplications using XCast.
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Xcast.1.unregisterApplications",
+    "params": {
+        "applications": []
     }
 }
 ```
