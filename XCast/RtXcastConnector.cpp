@@ -385,7 +385,6 @@ void RtXcastConnector::registerApplications(std::vector<DynamicAppConfig*>& appC
 
     if(xdialCastObj != NULL)
     {
-        LOGINFO("%s:%d xdialCastObj Not NULL", __FUNCTION__, __LINE__);
         int ret = xdialCastObj.send("onRegisterApplications", appReqList);
         LOGINFO("XcastService send onRegisterApplications ret:%d",ret);
     }
