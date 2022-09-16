@@ -755,13 +755,13 @@ void TTSSpeaker::waitForAudioToFinishTimeout(float timeout_s) {
     m_isEOS = false;
 }
 
-void TTSSpeaker::replaceIfIsolated(std::string& text, const std::string& search, const std::string& replace) {
+void TTSSpeaker::replaceIfIsolated(std::string& text, const std::string& search, const std::string& replace, bool skipIsolationCheck) {
     size_t pos = 0;
     while ((pos = text.find(search, pos)) != std::string::npos) {
         bool punctBefore = (pos == 0 || std::ispunct(text[pos-1]) || std::isspace(text[pos-1]));
         bool punctAfter = (pos+1 == text.length() || std::ispunct(text[pos+1]) || std::isspace(text[pos+1]));
 
-        if(punctBefore && punctAfter) {
+        if((punctBefore && punctAfter) || skipIsolationCheck) {
             text.replace(pos, search.length(), replace);
             pos += replace.length();
         } else {
@@ -815,6 +815,7 @@ void TTSSpeaker::curlSanitize(std::string &sanitizedString) {
 void TTSSpeaker::sanitizeString(std::string &input, std::string &sanitizedString) {
     sanitizedString = input;
 
+    replaceIfIsolated(sanitizedString, "://", " colon slash slash ", true);
     replaceIfIsolated(sanitizedString, "$", "dollar");
     replaceIfIsolated(sanitizedString, "#", "pound");
     replaceIfIsolated(sanitizedString, "&", "and");
