@@ -77,7 +77,7 @@ Sets the status of telemetry reporting.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Telemetry.1.setReportProfileStatus",
+    "method": "org.rdk.Telemetry.setReportProfileStatus",
     "params": {
         "status": "STARTED"
     }
@@ -124,7 +124,7 @@ Logs an application
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Telemetry.1.logApplicationEvent",
+    "method": "org.rdk.Telemetry.logApplicationEvent",
     "params": {
         "eventName": "...",
         "eventValue": "..."

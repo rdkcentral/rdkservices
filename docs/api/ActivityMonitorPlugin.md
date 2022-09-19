@@ -95,7 +95,7 @@ Also see: [onCPUThresholdOccurred](#onCPUThresholdOccurred), [onMemoryThresholdO
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ActivityMonitor.1.enableMonitoring",
+    "method": "org.rdk.ActivityMonitor.enableMonitoring",
     "params": {
         "config": [
             {
@@ -153,7 +153,7 @@ No events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ActivityMonitor.1.disableMonitoring",
+    "method": "org.rdk.ActivityMonitor.disableMonitoring",
     "params": {}
 }
 ```
@@ -205,7 +205,7 @@ No events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ActivityMonitor.1.getApplicationMemoryUsage",
+    "method": "org.rdk.ActivityMonitor.getApplicationMemoryUsage",
     "params": {
         "pid": 6763
     }
@@ -265,7 +265,7 @@ No events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ActivityMonitor.1.getAllMemoryUsage",
+    "method": "org.rdk.ActivityMonitor.getAllMemoryUsage",
     "params": {}
 }
 ```
@@ -324,7 +324,7 @@ Triggered when an application exceeds the given memory threshold.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onMemoryThresholdOccurred",
+    "method": "client.events.onMemoryThresholdOccurred",
     "params": {
         "appPid": 6763,
         "threshold": "exceeded",
@@ -352,7 +352,7 @@ Triggered when an application exceeds the `cpuThresholdPercent` value for a dura
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onCPUThresholdOccurred",
+    "method": "client.events.onCPUThresholdOccurred",
     "params": {
         "appPid": 6763,
         "threshold": "exceeded",

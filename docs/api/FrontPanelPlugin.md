@@ -90,7 +90,7 @@ Get the brightness of the specified LED or FrontPanel.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.getBrightness",
+    "method": "org.rdk.FrontPanel.getBrightness",
     "params": {
         "index": "power_led"
     }
@@ -135,7 +135,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.getClockBrightness"
+    "method": "org.rdk.FrontPanel.getClockBrightness"
 }
 ```
 
@@ -187,7 +187,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.getFrontPanelLights"
+    "method": "org.rdk.FrontPanel.getFrontPanelLights"
 }
 ```
 
@@ -243,7 +243,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.getPreferences"
+    "method": "org.rdk.FrontPanel.getPreferences"
 }
 ```
 
@@ -286,7 +286,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.is24HourClock"
+    "method": "org.rdk.FrontPanel.is24HourClock"
 }
 ```
 
@@ -330,7 +330,7 @@ Switches the specified LED off.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.powerLedOff",
+    "method": "org.rdk.FrontPanel.powerLedOff",
     "params": {
         "index": "power_led"
     }
@@ -376,7 +376,7 @@ Switches the specified LED indicator on. The LED must be powered on prior to set
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.powerLedOn",
+    "method": "org.rdk.FrontPanel.powerLedOn",
     "params": {
         "index": "power_led"
     }
@@ -422,7 +422,7 @@ Sets the clock mode to either 12 or 24 hour.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.set24HourClock",
+    "method": "org.rdk.FrontPanel.set24HourClock",
     "params": {
         "is24Hour": false
     }
@@ -479,7 +479,7 @@ Sets a blinking pattern for a particular LED indicator.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.setBlink",
+    "method": "org.rdk.FrontPanel.setBlink",
     "params": {
         "blinkInfo": {
             "ledIndicator": "power_led",
@@ -539,7 +539,7 @@ Sets the brightness of the specified LED indicator. If no indicator is specified
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.setBrightness",
+    "method": "org.rdk.FrontPanel.setBrightness",
     "params": {
         "brightness": 50,
         "index": "power_led"
@@ -586,7 +586,7 @@ Sets the clock brightness.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.setClockBrightness",
+    "method": "org.rdk.FrontPanel.setClockBrightness",
     "params": {
         "brightness": 50
     }
@@ -633,7 +633,7 @@ Allows you to set a test pattern on the STB clock (`88 88`).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.setClockTestPattern",
+    "method": "org.rdk.FrontPanel.setClockTestPattern",
     "params": {
         "show": true,
         "timeInterval": 4
@@ -685,7 +685,7 @@ Set preferences for the specified Front Panel LED indicator. Data are not valida
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.setLED",
+    "method": "org.rdk.FrontPanel.setLED",
     "params": {
         "ledIndicator": "power_led",
         "brightness": 50,
@@ -736,7 +736,7 @@ Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_serv
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.setPreferences",
+    "method": "org.rdk.FrontPanel.setPreferences",
     "params": {
         "preferences": {}
     }

@@ -96,7 +96,7 @@ Closes the system audio player with the specified ID. The `SystemAudioPlayer` pl
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.SystemAudioPlayer.1.close",
+    "method": "org.rdk.SystemAudioPlayer.close",
     "params": {
         "id": 1
     }
@@ -157,7 +157,7 @@ Configures playback for a PCM audio source (audio/x-raw) on the specified player
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.SystemAudioPlayer.1.config",
+    "method": "org.rdk.SystemAudioPlayer.config",
     "params": {
         "id": 1,
         "pcmconfig": {
@@ -223,7 +223,7 @@ Gets the session ID from the provided the URL. The session is the ID returned in
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.SystemAudioPlayer.1.getPlayerSessionId",
+    "method": "org.rdk.SystemAudioPlayer.getPlayerSessionId",
     "params": {
         "url": "http://localhost:50050/nuanceEve/tts?voice=ava&language=en-US&rate=50&text=SETTINGS"
     }
@@ -274,7 +274,7 @@ Checks if playback is in progress.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.SystemAudioPlayer.1.isspeaking",
+    "method": "org.rdk.SystemAudioPlayer.isspeaking",
     "params": {
         "id": 1
     }
@@ -331,7 +331,7 @@ Also See: [close](#close).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.SystemAudioPlayer.1.open",
+    "method": "org.rdk.SystemAudioPlayer.open",
     "params": {
         "audiotype": "pcm",
         "sourcetype": "websocket",
@@ -387,7 +387,7 @@ Also see: [onsapevents](#onsapevents)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.SystemAudioPlayer.1.pause",
+    "method": "org.rdk.SystemAudioPlayer.pause",
     "params": {
         "id": 1
     }
@@ -444,7 +444,7 @@ Also see: [onsapevents](#onsapevents)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.SystemAudioPlayer.1.play",
+    "method": "org.rdk.SystemAudioPlayer.play",
     "params": {
         "id": 1,
         "url": "http://localhost:50050/nuanceEve/tts?voice=ava&language=en-US&rate=50&text=SETTINGS"
@@ -499,7 +499,7 @@ Also see: [onsapevents](#onsapevents)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.SystemAudioPlayer.1.playbuffer",
+    "method": "org.rdk.SystemAudioPlayer.playbuffer",
     "params": {
         "id": 1,
         "data": "180"
@@ -553,7 +553,7 @@ Also see: [onsapevents](#onsapevents)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.SystemAudioPlayer.1.resume",
+    "method": "org.rdk.SystemAudioPlayer.resume",
     "params": {
         "id": 1
     }
@@ -605,7 +605,7 @@ Sets the audio level on the specified player. The `SystemAudioPlayer` plugin can
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.SystemAudioPlayer.1.setMixerLevels",
+    "method": "org.rdk.SystemAudioPlayer.setMixerLevels",
     "params": {
         "id": 1,
         "primaryVolume": "20",
@@ -662,7 +662,7 @@ Sets the smart volume audio control on the specified player. The plugin can cont
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.SystemAudioPlayer.1.setSmartVolControl",
+    "method": "org.rdk.SystemAudioPlayer.setSmartVolControl",
     "params": {
         "id": 1,
         "enable": true,
@@ -717,7 +717,7 @@ Stops playback on the specified player.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.SystemAudioPlayer.1.stop",
+    "method": "org.rdk.SystemAudioPlayer.stop",
     "params": {
         "id": 1
     }
@@ -781,7 +781,7 @@ The following events are supported.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onsapevents",
+    "method": "client.events.onsapevents",
     "params": {
         "id": 1,
         "event": "PLAYBACK_STARTED"
