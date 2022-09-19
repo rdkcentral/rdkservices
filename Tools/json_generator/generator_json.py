@@ -2147,7 +2147,6 @@ def CreateDocument(schema, path):
                 ErrorTable(props["errors"])
 
             MdHeader("Example", 3)
-
             if is_notification:
                 method = "client.events." + method
             elif is_property:
