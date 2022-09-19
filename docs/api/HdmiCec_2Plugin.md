@@ -92,7 +92,7 @@ Gets the active source status of the device.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.1.getActiveSourceStatus",
+    "method": "org.rdk.HdmiCec_2.getActiveSourceStatus",
     "params": {
         "status": true
     }
@@ -145,7 +145,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.1.getDeviceList"
+    "method": "org.rdk.HdmiCec_2.getDeviceList"
 }
 ```
 
@@ -198,7 +198,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.1.getEnabled"
+    "method": "org.rdk.HdmiCec_2.getEnabled"
 }
 ```
 
@@ -244,7 +244,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.1.getOSDName"
+    "method": "org.rdk.HdmiCec_2.getOSDName"
 }
 ```
 
@@ -290,7 +290,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.1.getOTPEnabled"
+    "method": "org.rdk.HdmiCec_2.getOTPEnabled"
 }
 ```
 
@@ -336,7 +336,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.1.getVendorId"
+    "method": "org.rdk.HdmiCec_2.getVendorId"
 }
 ```
 
@@ -381,7 +381,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.1.performOTPAction"
+    "method": "org.rdk.HdmiCec_2.performOTPAction"
 }
 ```
 
@@ -425,7 +425,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.1.sendStandbyMessage"
+    "method": "org.rdk.HdmiCec_2.sendStandbyMessage"
 }
 ```
 
@@ -472,7 +472,7 @@ Enables or disables HDMI-CEC driver.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.1.setEnabled",
+    "method": "org.rdk.HdmiCec_2.setEnabled",
     "params": {
         "enabled": false
     }
@@ -522,7 +522,7 @@ Sets the OSD name of the application.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.1.setOSDName",
+    "method": "org.rdk.HdmiCec_2.setOSDName",
     "params": {
         "name": "Sky TV"
     }
@@ -572,7 +572,7 @@ Enables or disables HDMI-CEC OTP option.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.1.setOTPEnabled",
+    "method": "org.rdk.HdmiCec_2.setOTPEnabled",
     "params": {
         "enabled": false
     }
@@ -622,7 +622,7 @@ Sets the vendor ID of the application.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.1.setVendorId",
+    "method": "org.rdk.HdmiCec_2.setVendorId",
     "params": {
         "vendorid": "0x0019FB"
     }
@@ -676,7 +676,7 @@ Triggered when the device active source status changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onActiveSourceStatusUpdated",
+    "method": "client.events.onActiveSourceStatusUpdated",
     "params": {
         "status": true
     }
@@ -700,7 +700,7 @@ Triggered when an HDMI cable is physically connected to the HDMI port on a TV, o
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceAdded",
+    "method": "client.events.onDeviceAdded",
     "params": {
         "logicalAddress": 0
     }
@@ -724,7 +724,7 @@ Triggered when device system information is updated (vendorID, osdName).
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceInfoUpdated",
+    "method": "client.events.onDeviceInfoUpdated",
     "params": {
         "logicalAddress": 0
     }
@@ -748,7 +748,7 @@ Triggered when HDMI cable is physically removed from the HDMI port on a TV or th
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceRemoved",
+    "method": "client.events.onDeviceRemoved",
     "params": {
         "logicalAddress": 0
     }
@@ -772,7 +772,7 @@ Triggered when the source device changes status to `STANDBY`.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.standbyMessageReceived",
+    "method": "client.events.standbyMessageReceived",
     "params": {
         "logicalAddress": 0
     }
