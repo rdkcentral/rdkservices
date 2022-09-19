@@ -81,7 +81,7 @@ Returns the TV's Extended Display Identification Data (EDID).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.edid",
+    "method": "DisplayInfo.edid",
     "params": {
         "length": 0
     }
@@ -124,7 +124,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.widthincentimeters"
+    "method": "DisplayInfo.widthincentimeters"
 }
 ```
 
@@ -161,7 +161,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.heightincentimeters"
+    "method": "DisplayInfo.heightincentimeters"
 }
 ```
 
@@ -225,7 +225,7 @@ Provides access to the total GPU DRAM memory (in bytes).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.totalgpuram"
+    "method": "DisplayInfo.totalgpuram"
 }
 ```
 
@@ -260,7 +260,7 @@ Provides access to the free GPU DRAM memory (in bytes).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.freegpuram"
+    "method": "DisplayInfo.freegpuram"
 }
 ```
 
@@ -295,7 +295,7 @@ Provides access to the current audio passthrough status on HDMI.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.isaudiopassthrough"
+    "method": "DisplayInfo.isaudiopassthrough"
 }
 ```
 
@@ -330,7 +330,7 @@ Provides access to the current HDMI connection status.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.connected"
+    "method": "DisplayInfo.connected"
 }
 ```
 
@@ -365,7 +365,7 @@ Provides access to the horizontal resolution of the TV.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.width"
+    "method": "DisplayInfo.width"
 }
 ```
 
@@ -400,7 +400,7 @@ Provides access to the vertical resolution of the TV.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.height"
+    "method": "DisplayInfo.height"
 }
 ```
 
@@ -435,7 +435,7 @@ Provides access to the vertical Frequency.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.verticalfreq"
+    "method": "DisplayInfo.verticalfreq"
 }
 ```
 
@@ -470,7 +470,7 @@ Provides access to the HDCP protocol used for transmission.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.hdcpprotection"
+    "method": "DisplayInfo.hdcpprotection"
 }
 ```
 
@@ -505,7 +505,7 @@ Provides access to the video output port on the STB used for connecting to the T
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.portname"
+    "method": "DisplayInfo.portname"
 }
 ```
 
@@ -540,7 +540,7 @@ Provides access to the HDR formats supported by the TV.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.tvcapabilities"
+    "method": "DisplayInfo.tvcapabilities"
 }
 ```
 
@@ -575,7 +575,7 @@ Provides access to the HDR formats supported by the STB.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.stbcapabilities"
+    "method": "DisplayInfo.stbcapabilities"
 }
 ```
 
@@ -610,7 +610,7 @@ Provides access to the HDR format in use.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.hdrsetting"
+    "method": "DisplayInfo.hdrsetting"
 }
 ```
 
@@ -645,7 +645,7 @@ Provides access to the display color space (chroma subsampling format).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.colorspace"
+    "method": "DisplayInfo.colorspace"
 }
 ```
 
@@ -680,7 +680,7 @@ Provides access to the display frame rate.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.framerate"
+    "method": "DisplayInfo.framerate"
 }
 ```
 
@@ -715,7 +715,7 @@ Provides access to the display colour depth.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.colourdepth"
+    "method": "DisplayInfo.colourdepth"
 }
 ```
 
@@ -750,7 +750,7 @@ Provides access to the display quantization range.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.quantizationrange"
+    "method": "DisplayInfo.quantizationrange"
 }
 ```
 
@@ -785,7 +785,7 @@ Provides access to the display colorimetry.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.colorimetry"
+    "method": "DisplayInfo.colorimetry"
 }
 ```
 
@@ -820,7 +820,7 @@ Provides access to the display Electro Optical Transfer Function (EOTF).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.eotf"
+    "method": "DisplayInfo.eotf"
 }
 ```
 
@@ -865,7 +865,7 @@ Triggered when the connection changes or is updated.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.updated",
+    "method": "client.events.updated",
     "params": {
         "event": "HdmiChange"
     }

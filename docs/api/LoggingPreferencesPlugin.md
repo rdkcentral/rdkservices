@@ -80,7 +80,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.LoggingPreferences.1.isKeystrokeMaskEnabled"
+    "method": "org.rdk.LoggingPreferences.isKeystrokeMaskEnabled"
 }
 ```
 
@@ -131,7 +131,7 @@ Also see: [onKeystrokeMaskEnabledChange](#onKeystrokeMaskEnabledChange)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.LoggingPreferences.1.setKeystrokeMaskEnabled",
+    "method": "org.rdk.LoggingPreferences.setKeystrokeMaskEnabled",
     "params": {
         "keystrokeMaskEnabled": false
     }
@@ -181,7 +181,7 @@ Triggered when the keystroke mask is changed.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onKeystrokeMaskEnabledChange",
+    "method": "client.events.onKeystrokeMaskEnabledChange",
     "params": {
         "keystrokeMaskEnabled": false
     }

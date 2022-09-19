@@ -89,7 +89,7 @@ Sets traces. Enables or disables all or select category traces for the specified
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TraceControl.1.set",
+    "method": "TraceControl.set",
     "params": {
         "module": "Plugin_Monitor",
         "category": "Information",
@@ -148,7 +148,7 @@ Retrieves the actual trace status information for the specified module and categ
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TraceControl.1.status",
+    "method": "TraceControl.status",
     "params": {
         "module": "Plugin_Monitor",
         "category": "Information"

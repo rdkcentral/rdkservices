@@ -90,7 +90,7 @@ Also see: [uploadComplete](#uploadComplete)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ScreenCapture.1.uploadScreenCapture",
+    "method": "org.rdk.ScreenCapture.uploadScreenCapture",
     "params": {
         "url": "http://server/cgi-bin/upload.cgi",
         "callGUID": "12345"
@@ -143,7 +143,7 @@ Triggered after uploading a screen capture.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.uploadComplete",
+    "method": "client.events.uploadComplete",
     "params": {
         "status": true,
         "message": "Success",

@@ -79,7 +79,7 @@ Returns `true` if the content coming in the HDMI input is protected; otherwise, 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.contentProtected",
+    "method": "org.rdk.AVInput.contentProtected",
     "params": {}
 }
 ```
@@ -129,7 +129,7 @@ Returns a string encoding the video mode being supplied by the device currently 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.currentVideoMode",
+    "method": "org.rdk.AVInput.currentVideoMode",
     "params": {}
 }
 ```
@@ -180,7 +180,7 @@ Returns an integer that specifies the number of available inputs. For example, a
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.numberOfInputs",
+    "method": "org.rdk.AVInput.numberOfInputs",
     "params": {}
 }
 ```
@@ -231,7 +231,7 @@ Triggered when an active device is connected to an AVInput port.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onAVInputActive",
+    "method": "client.events.onAVInputActive",
     "params": {
         "url": "avin://input0"
     }
@@ -255,7 +255,7 @@ Triggered when an active device is disconnected from an AVInput port or when the
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onAVInputInActive",
+    "method": "client.events.onAVInputInActive",
     "params": {
         "url": "avin://input0"
     }
