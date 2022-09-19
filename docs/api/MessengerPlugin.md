@@ -97,7 +97,7 @@ Also see: [userupdate](#userupdate)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Messenger.1.join",
+    "method": "Messenger.join",
     "params": {
         "user": "Bob",
         "room": "Lounge",
@@ -159,7 +159,7 @@ Also see: [userupdate](#userupdate)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Messenger.1.leave",
+    "method": "Messenger.leave",
     "params": {
         "roomid": "1e217990dd1cd4f66124"
     }
@@ -215,7 +215,7 @@ Also see: [message](#message)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Messenger.1.send",
+    "method": "Messenger.send",
     "params": {
         "roomid": "1e217990dd1cd4f66124",
         "message": "Hello!"
@@ -272,7 +272,7 @@ Register to this event to be notified about room status updates. Immediately aft
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.roomupdate",
+    "method": "client.events.roomupdate",
     "params": {
         "room": "Lounge",
         "secure": "secure",
@@ -305,7 +305,7 @@ Register to this event to be notified about room status updates. Immediately aft
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "1e217990dd1cd4f66124.client.events.1.userupdate",
+    "method": "1e217990dd1cd4f66124.client.events.userupdate",
     "params": {
         "user": "Bob",
         "action": "joined"
@@ -337,7 +337,7 @@ Register to this event to be notified about new messages in a room.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "1e217990dd1cd4f66124.client.events.1.message",
+    "method": "1e217990dd1cd4f66124.client.events.message",
     "params": {
         "user": "Bob",
         "message": "Hello!"

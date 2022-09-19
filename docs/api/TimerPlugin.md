@@ -86,7 +86,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.cancel",
+    "method": "org.rdk.Timer.cancel",
     "params": {
         "timerID": 0
     }
@@ -141,7 +141,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.getTimers"
+    "method": "org.rdk.Timer.getTimers"
 }
 ```
 
@@ -203,7 +203,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.getTimerStatus",
+    "method": "org.rdk.Timer.getTimerStatus",
     "params": {
         "timerId": 0
     }
@@ -258,7 +258,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.resume",
+    "method": "org.rdk.Timer.resume",
     "params": {
         "timerID": 0
     }
@@ -317,7 +317,7 @@ Also see: [timerExpired](#timerExpired), [timerExpiryReminder](#timerExpiryRemin
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.startTimer",
+    "method": "org.rdk.Timer.startTimer",
     "params": {
         "interval": 1.2,
         "mode": "WAKE",
@@ -371,7 +371,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.suspend",
+    "method": "org.rdk.Timer.suspend",
     "params": {
         "timerID": 0
     }
@@ -424,7 +424,7 @@ Triggered when a timer expires.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.timerExpired",
+    "method": "client.events.timerExpired",
     "params": {
         "timerId": 0,
         "mode": "WAKE",
@@ -452,7 +452,7 @@ Triggered before a timer actually expires. It is triggered only when a non-zero 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.timerExpiryReminder",
+    "method": "client.events.timerExpiryReminder",
     "params": {
         "timerId": 0,
         "mode": "WAKE",
