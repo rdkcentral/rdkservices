@@ -2,7 +2,7 @@
 <a name="RDKShell_Plugin"></a>
 # RDKShell Plugin
 
-**Version: [1.2.2](https://github.com/rdkcentral/rdkservices/blob/main/RDKShell/CHANGELOG.md)**
+**Version: [1.3.2](https://github.com/rdkcentral/rdkservices/blob/main/RDKShell/CHANGELOG.md)**
 
 A org.rdk.RDKShell plugin for Thunder framework.
 
@@ -123,6 +123,8 @@ RDKShell interface methods:
 | [suspend](#suspend) | Suspends an application |
 | [suspendApplication](#suspendApplication) | Suspends an application |
 | [keyRepeatConfig](#keyRepeatConfig) | Customizes key repeats |
+| [setAVBlocked](#setAVBlocked) | adds/removes the list of applications with the given callsigns to/from the blacklist |
+| [getBlockedAVApplications](#getBlockedAVApplications) | Gets a list of blacklisted clients |
 
 
 <a name="addAnimation"></a>
@@ -168,7 +170,7 @@ Performs the set of animations.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.addAnimation",
+    "method": "org.rdk.RDKShell.addAnimation",
     "params": {
         "animations": [
             {
@@ -236,7 +238,7 @@ Adds a key intercept to the client application specified. The keys are specified
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.addKeyIntercept",
+    "method": "org.rdk.RDKShell.addKeyIntercept",
     "params": {
         "keyCode": 10,
         "modifiers": [
@@ -298,7 +300,7 @@ Adds the list of key intercepts.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.addKeyIntercepts",
+    "method": "org.rdk.RDKShell.addKeyIntercepts",
     "params": {
         "intercepts": [
             {
@@ -369,7 +371,7 @@ Adds a key listener to an application. The keys are bubbled up based on their z-
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.addKeyListener",
+    "method": "org.rdk.RDKShell.addKeyListener",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix",
@@ -432,7 +434,7 @@ Adds the key metadata listeners.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.addKeyMetadataListener",
+    "method": "org.rdk.RDKShell.addKeyMetadataListener",
     "params": {
         "client": "searchanddiscovery",
         "callsign": "searchanddiscovery"
@@ -492,7 +494,7 @@ Adds the key metadata listeners.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.createDisplay",
+    "method": "org.rdk.RDKShell.createDisplay",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix",
@@ -554,7 +556,7 @@ Also see: [onDestroyed](#onDestroyed)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.destroy",
+    "method": "org.rdk.RDKShell.destroy",
     "params": {
         "callsign": "Cobalt"
     }
@@ -604,7 +606,7 @@ Enables or disables inactivity reporting and events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.enableInactivityReporting",
+    "method": "org.rdk.RDKShell.enableInactivityReporting",
     "params": {
         "enable": true
     }
@@ -654,7 +656,7 @@ Enables or disables key repeats.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.enableKeyRepeats",
+    "method": "org.rdk.RDKShell.enableKeyRepeats",
     "params": {
         "enable": true
     }
@@ -704,7 +706,7 @@ Enables or disables flushing all logs.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.enableLogsFlushing",
+    "method": "org.rdk.RDKShell.enableLogsFlushing",
     "params": {
         "enable": true
     }
@@ -756,7 +758,7 @@ Enables or disables a virtual display for the specified client.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.enableVirtualDisplay",
+    "method": "org.rdk.RDKShell.enableVirtualDisplay",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix",
@@ -815,7 +817,7 @@ Triggers the key events (key press and release).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.generateKey",
+    "method": "org.rdk.RDKShell.generateKey",
     "params": {
         "keys": [
             {
@@ -874,7 +876,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getAvailableTypes"
+    "method": "org.rdk.RDKShell.getAvailableTypes"
 }
 ```
 
@@ -930,7 +932,7 @@ Gets the bounds of the specified client.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getBounds",
+    "method": "org.rdk.RDKShell.getBounds",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix"
@@ -986,7 +988,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getClients"
+    "method": "org.rdk.RDKShell.getClients"
 }
 ```
 
@@ -1035,7 +1037,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getCursorSize"
+    "method": "org.rdk.RDKShell.getCursorSize"
 }
 ```
 
@@ -1086,7 +1088,7 @@ Returns whether video hole punching is enabled or disabled for the specified cli
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getHolePunch",
+    "method": "org.rdk.RDKShell.getHolePunch",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix"
@@ -1136,7 +1138,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getKeyRepeatsEnabled"
+    "method": "org.rdk.RDKShell.getKeyRepeatsEnabled"
 }
 ```
 
@@ -1185,7 +1187,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getLastWakeupKey"
+    "method": "org.rdk.RDKShell.getLastWakeupKey"
 }
 ```
 
@@ -1235,7 +1237,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getLogLevel"
+    "method": "org.rdk.RDKShell.getLogLevel"
 }
 ```
 
@@ -1281,7 +1283,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getLogsFlushingEnabled"
+    "method": "org.rdk.RDKShell.getLogsFlushingEnabled"
 }
 ```
 
@@ -1330,7 +1332,7 @@ Gets the opacity of the specified client.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getOpacity",
+    "method": "org.rdk.RDKShell.getOpacity",
     "params": {
         "client": "org.rdk.Netflix"
     }
@@ -1383,7 +1385,7 @@ Returns the scale of an application.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getScale",
+    "method": "org.rdk.RDKShell.getScale",
     "params": {
         "client": "org.rdk.Netflix"
     }
@@ -1434,7 +1436,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getScreenResolution"
+    "method": "org.rdk.RDKShell.getScreenResolution"
 }
 ```
 
@@ -1483,7 +1485,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getScreenshot"
+    "method": "org.rdk.RDKShell.getScreenshot"
 }
 ```
 
@@ -1532,7 +1534,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getState"
+    "method": "org.rdk.RDKShell.getState"
 }
 ```
 
@@ -1586,7 +1588,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getSystemMemory"
+    "method": "org.rdk.RDKShell.getSystemMemory"
 }
 ```
 
@@ -1638,7 +1640,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getSystemResourceInfo"
+    "method": "org.rdk.RDKShell.getSystemResourceInfo"
 }
 ```
 
@@ -1694,7 +1696,7 @@ Returns whether virtual display is enabled or disabled for the specified client.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getVirtualDisplayEnabled",
+    "method": "org.rdk.RDKShell.getVirtualDisplayEnabled",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix"
@@ -1749,7 +1751,7 @@ Returns the virtual display resolution for the specified client.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getVirtualResolution",
+    "method": "org.rdk.RDKShell.getVirtualResolution",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix"
@@ -1804,7 +1806,7 @@ Gets the visibility of the specified client.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getVisibility",
+    "method": "org.rdk.RDKShell.getVisibility",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix"
@@ -1855,7 +1857,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getZOrder"
+    "method": "org.rdk.RDKShell.getZOrder"
 }
 ```
 
@@ -1899,7 +1901,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.getGraphicsFrameRate"
+    "method": "org.rdk.RDKShell.getGraphicsFrameRate"
 }
 ```
 
@@ -1947,7 +1949,7 @@ Hides/Unhides all the clients.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.hideAllClients",
+    "method": "org.rdk.RDKShell.hideAllClients",
     "params": {
         "hide": true
     }
@@ -1994,7 +1996,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.hideCursor"
+    "method": "org.rdk.RDKShell.hideCursor"
 }
 ```
 
@@ -2038,7 +2040,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.hideFullScreenImage"
+    "method": "org.rdk.RDKShell.hideFullScreenImage"
 }
 ```
 
@@ -2082,7 +2084,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.hideSplashLogo"
+    "method": "org.rdk.RDKShell.hideSplashLogo"
 }
 ```
 
@@ -2125,7 +2127,7 @@ Blocks user key inputs.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.ignoreKeyInputs",
+    "method": "org.rdk.RDKShell.ignoreKeyInputs",
     "params": {
         "ignore": false
     }
@@ -2177,7 +2179,7 @@ Injects the keys.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.injectKey",
+    "method": "org.rdk.RDKShell.injectKey",
     "params": {
         "keycode": 10,
         "modifiers": [
@@ -2231,7 +2233,7 @@ Kills the specified client.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.kill",
+    "method": "org.rdk.RDKShell.kill",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix"
@@ -2304,7 +2306,7 @@ Also see: [onLaunched](#onLaunched)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.launch",
+    "method": "org.rdk.RDKShell.launch",
     "params": {
         "callsign": "Cobalt",
         "type": "HtmlApp",
@@ -2380,7 +2382,7 @@ Also see: [onApplicationLaunched](#onApplicationLaunched)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.launchApplication",
+    "method": "org.rdk.RDKShell.launchApplication",
     "params": {
         "client": "HtmlApp",
         "uri": "https://x1box-app.xumo.com/3.0.70/index.html%22",
@@ -2431,7 +2433,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.launchResidentApp"
+    "method": "org.rdk.RDKShell.launchResidentApp"
 }
 ```
 
@@ -2479,7 +2481,7 @@ Moves the specified client behind the specified target client.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.moveBehind",
+    "method": "org.rdk.RDKShell.moveBehind",
     "params": {
         "client": "org.rdk.Netflix",
         "target": "org.rdk.RDKBrowser2"
@@ -2531,7 +2533,7 @@ Moves the specified client to the back or bottom of the Z order.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.moveToBack",
+    "method": "org.rdk.RDKShell.moveToBack",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix"
@@ -2583,7 +2585,7 @@ Moves the specified client to the front or top of the Z order.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.moveToFront",
+    "method": "org.rdk.RDKShell.moveToFront",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix"
@@ -2631,7 +2633,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.removeAllKeyIntercepts"
+    "method": "org.rdk.RDKShell.removeAllKeyIntercepts"
 }
 ```
 
@@ -2675,7 +2677,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.removeAllKeyListeners"
+    "method": "org.rdk.RDKShell.removeAllKeyListeners"
 }
 ```
 
@@ -2723,7 +2725,7 @@ Removes the current animation for the specified client.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.removeAnimation",
+    "method": "org.rdk.RDKShell.removeAnimation",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix"
@@ -2777,7 +2779,7 @@ Removes a key intercept.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.removeKeyIntercept",
+    "method": "org.rdk.RDKShell.removeKeyIntercept",
     "params": {
         "keyCode": 10,
         "modifiers": [
@@ -2837,7 +2839,7 @@ Removes a key listener for an application.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.removeKeyListener",
+    "method": "org.rdk.RDKShell.removeKeyListener",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix",
@@ -2897,7 +2899,7 @@ Removes the key metadata listeners.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.removeKeyMetadataListener",
+    "method": "org.rdk.RDKShell.removeKeyMetadataListener",
     "params": {
         "client": "searchanddiscovery",
         "callsign": "searchanddiscovery"
@@ -2945,7 +2947,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.resetInactivityTime"
+    "method": "org.rdk.RDKShell.resetInactivityTime"
 }
 ```
 
@@ -2995,7 +2997,7 @@ Also see: [onApplicationResumed](#onApplicationResumed)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.resumeApplication",
+    "method": "org.rdk.RDKShell.resumeApplication",
     "params": {
         "client": "HtmlApp"
     }
@@ -3050,7 +3052,7 @@ Scales the specified client to fit the current bounds.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.scaleToFit",
+    "method": "org.rdk.RDKShell.scaleToFit",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix",
@@ -3110,7 +3112,7 @@ Sets the bounds of the specified client.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.setBounds",
+    "method": "org.rdk.RDKShell.setBounds",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix",
@@ -3166,7 +3168,7 @@ Sets the cursor size.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.setCursorSize",
+    "method": "org.rdk.RDKShell.setCursorSize",
     "params": {
         "width": 255,
         "height": 255
@@ -3218,7 +3220,7 @@ Sets focus to the specified client.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.setFocus",
+    "method": "org.rdk.RDKShell.setFocus",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix"
@@ -3271,7 +3273,7 @@ Enables or disables video hole punching for the specified client.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.setHolePunch",
+    "method": "org.rdk.RDKShell.setHolePunch",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix",
@@ -3326,7 +3328,7 @@ Also see: [onUserInactivity](#onUserInactivity)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.setInactivityInterval",
+    "method": "org.rdk.RDKShell.setInactivityInterval",
     "params": {
         "interval": 15
     }
@@ -3376,7 +3378,7 @@ Sets the logging level.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.setLogLevel",
+    "method": "org.rdk.RDKShell.setLogLevel",
     "params": {
         "logLevel": "INFO"
     }
@@ -3429,7 +3431,7 @@ Enables or disables RAM memory monitoring on the device. Upon enabling, triggers
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.setMemoryMonitor",
+    "method": "org.rdk.RDKShell.setMemoryMonitor",
     "params": {
         "enable": true,
         "interval": 300,
@@ -3483,7 +3485,7 @@ Sets the opacity of the specified client.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.setOpacity",
+    "method": "org.rdk.RDKShell.setOpacity",
     "params": {
         "client": "org.rdk.Netflix",
         "opacity": 100
@@ -3537,7 +3539,7 @@ Scales an application.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.setScale",
+    "method": "org.rdk.RDKShell.setScale",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix",
@@ -3591,7 +3593,7 @@ Sets the screen resolution.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.setScreenResolution",
+    "method": "org.rdk.RDKShell.setScreenResolution",
     "params": {
         "w": 1920,
         "h": 1080
@@ -3644,7 +3646,7 @@ Sets whether the specified client appears above all other clients on the display
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.setTopmost",
+    "method": "org.rdk.RDKShell.setTopmost",
     "params": {
         "client": "org.rdk.Netflix",
         "topmost": true,
@@ -3698,7 +3700,7 @@ Sets the virtual resolution for the specified client.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.setVirtualResolution",
+    "method": "org.rdk.RDKShell.setVirtualResolution",
     "params": {
         "client": "org.rdk.Netflix",
         "width": 1920,
@@ -3752,7 +3754,7 @@ Sets whether the specified client should be visible.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.setVisibility",
+    "method": "org.rdk.RDKShell.setVisibility",
     "params": {
         "client": "org.rdk.Netflix",
         "callsign": "org.rdk.Netflix",
@@ -3804,7 +3806,7 @@ Set Graphics Frame Rate..
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.setGraphicsFrameRate",
+    "method": "org.rdk.RDKShell.setGraphicsFrameRate",
     "params": {
         "framerate": 60
     }
@@ -3851,7 +3853,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.showCursor"
+    "method": "org.rdk.RDKShell.showCursor"
 }
 ```
 
@@ -3898,7 +3900,7 @@ Shows the Full Screen Image.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.showFullScreenImage",
+    "method": "org.rdk.RDKShell.showFullScreenImage",
     "params": {
         "path": "/tmp/netflix.png"
     }
@@ -3948,7 +3950,7 @@ Displays the splash screen.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.showSplashLogo",
+    "method": "org.rdk.RDKShell.showSplashLogo",
     "params": {
         "displayTime": 5
     }
@@ -3998,7 +4000,7 @@ Sets whether a watermark shows on the display.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.showWatermark",
+    "method": "org.rdk.RDKShell.showWatermark",
     "params": {
         "show": true
     }
@@ -4051,7 +4053,7 @@ Also see: [onSuspended](#onSuspended)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.suspend",
+    "method": "org.rdk.RDKShell.suspend",
     "params": {
         "callsign": "Cobalt"
     }
@@ -4104,7 +4106,7 @@ Also see: [onApplicationSuspended](#onApplicationSuspended)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RDKShell.1.suspendApplication",
+    "method": "org.rdk.RDKShell.suspendApplication",
     "params": {
         "client": "HtmlApp"
     }

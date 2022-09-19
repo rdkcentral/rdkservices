@@ -94,7 +94,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdcpProfile.1.getHDCPStatus"
+    "method": "org.rdk.HdcpProfile.getHDCPStatus"
 }
 ```
 
@@ -149,7 +149,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdcpProfile.1.getSettopHDCPSupport"
+    "method": "org.rdk.HdcpProfile.getSettopHDCPSupport"
 }
 ```
 
@@ -205,7 +205,7 @@ Triggered if HDMI was connected or disconnected upon receiving `onHdmiOutputHotP
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDisplayConnectionChanged",
+    "method": "client.events.onDisplayConnectionChanged",
     "params": {
         "HDCPStatus": {
             "isConnected": false,
