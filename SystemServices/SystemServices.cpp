@@ -322,7 +322,6 @@ namespace WPEFramework {
 
             m_networkStandbyModeValid = false;
             m_powerStateBeforeRebootValid = false;
-            m_isPwrMgr2RFCEnabled = false;
 
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
 	    m_ManufacturerDataHardwareIdValid = false;
@@ -448,15 +447,6 @@ namespace WPEFramework {
                 &SystemServices::getPlatformConfiguration, this);
             GetHandler(2)->Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
                 &SystemServices::getPlatformConfiguration, this);
-
-            {
-                RFC_ParamData_t param = {0};
-                WDMP_STATUS status = getRFCParameter(NULL, RFC_PWRMGR2, &param);
-                if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
-                {
-                    m_isPwrMgr2RFCEnabled = true;
-                }
-            }
         }
 
 
