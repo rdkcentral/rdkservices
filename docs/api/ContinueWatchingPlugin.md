@@ -78,7 +78,7 @@ Deletes the stored tokens for a particular application.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ContinueWatching.1.deleteApplicationToken",
+    "method": "org.rdk.ContinueWatching.deleteApplicationToken",
     "params": {
         "applicationName": "netflix"
     }
@@ -128,7 +128,7 @@ Retrieves the tokens for a particular application.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ContinueWatching.1.getApplicationToken",
+    "method": "org.rdk.ContinueWatching.getApplicationToken",
     "params": {
         "applicationName": "netflix"
     }
@@ -183,7 +183,7 @@ Sets the given tokens for an application.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ContinueWatching.1.setApplicationToken",
+    "method": "org.rdk.ContinueWatching.setApplicationToken",
     "params": {
         "applicationName": "netflix",
         "application_token": {

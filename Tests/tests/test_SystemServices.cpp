@@ -33,7 +33,6 @@ class SystemServicesTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::SystemServices> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Handler& handlerV2;
     Core::JSONRPC::Connection connection;
     string response;
     RfcApiImplMock rfcApiImplMock;
@@ -41,7 +40,6 @@ protected:
     SystemServicesTest()
         : plugin(Core::ProxyType<Plugin::SystemServices>::Create())
         , handler(*plugin)
-        , handlerV2(*(plugin->GetHandler(2)))
         , connection(1, 0)
     {
         RfcApi::getInstance().impl = &rfcApiImplMock;
@@ -82,10 +80,10 @@ protected:
 TEST_F(SystemServicesTest, RegisterMethods)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("requestSystemUptime")));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("fireFirmwarePendingReboot")));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("setFirmwareAutoReboot")));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("setFirmwareRebootDelay")));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getLastFirmwareFailureReason")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("fireFirmwarePendingReboot")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setFirmwareAutoReboot")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setFirmwareRebootDelay")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getLastFirmwareFailureReason")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDownloadedFirmwareInfo")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFirmwareDownloadPercent")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFirmwareUpdateState")));
@@ -146,7 +144,7 @@ TEST_F(SystemServicesEventTest, PendingReboot)
                 return WDMP_SUCCESS;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("fireFirmwarePendingReboot"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("fireFirmwarePendingReboot"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, onFirmwarePendingReboot.Lock());
@@ -165,7 +163,7 @@ TEST_F(SystemServicesTest, AutoReboot)
                 return WDMP_SUCCESS;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("setFirmwareAutoReboot"), _T("{\"enable\":true}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareAutoReboot"), _T("{\"enable\":true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
@@ -179,7 +177,7 @@ TEST_F(SystemServicesTest, RebootDelay)
                 EXPECT_EQ(strcmp(pcParameterName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"), 0);
                 return WDMP_SUCCESS;
             }));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":10}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":10}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
@@ -194,7 +192,7 @@ TEST_F(SystemServicesTest, Firmware)
 
     file.close();
 
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("getLastFirmwareFailureReason"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getLastFirmwareFailureReason"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"failReason\":\"None\",\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDownloadedFirmwareInfo"), _T("{}"), response));

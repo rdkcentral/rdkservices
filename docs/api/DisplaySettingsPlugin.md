@@ -159,7 +159,7 @@ Enables or disables Surround Decoder capability. The Surround Decoder is an upmi
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.enableSurroundDecoder",
+    "method": "org.rdk.DisplaySettings.enableSurroundDecoder",
     "params": {
         "audioPort": "SPEAKER0",
         "surroundDecoderEnable": true
@@ -211,7 +211,7 @@ Returns `true` if the STB HDMI output is currently connected to the active input
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getActiveInput",
+    "method": "org.rdk.DisplaySettings.getActiveInput",
     "params": {
         "videoDisplay": "HDMI0"
     }
@@ -263,7 +263,7 @@ Returns the audio delay (in ms) on the selected audio port. If the `audioPort` a
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getAudioDelay",
+    "method": "org.rdk.DisplaySettings.getAudioDelay",
     "params": {
         "audioPort": "HDMI0"
     }
@@ -315,7 +315,7 @@ Returns the audio delay offset (in ms) on the selected audio port. If the `audio
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getAudioDelayOffset",
+    "method": "org.rdk.DisplaySettings.getAudioDelayOffset",
     "params": {
         "audioPort": "HDMI0"
     }
@@ -366,7 +366,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getAudioFormat"
+    "method": "org.rdk.DisplaySettings.getAudioFormat"
 }
 ```
 
@@ -419,7 +419,7 @@ Returns the current status of the Bass Enhancer settings.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getBassEnhancer",
+    "method": "org.rdk.DisplaySettings.getBassEnhancer",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -470,7 +470,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getConnectedAudioPorts"
+    "method": "org.rdk.DisplaySettings.getConnectedAudioPorts"
 }
 ```
 
@@ -519,7 +519,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getConnectedVideoDisplays"
+    "method": "org.rdk.DisplaySettings.getConnectedVideoDisplays"
 }
 ```
 
@@ -571,7 +571,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getCurrentOutputSettings"
+    "method": "org.rdk.DisplaySettings.getCurrentOutputSettings"
 }
 ```
 
@@ -624,7 +624,7 @@ Returns the current resolution on the selected video display port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getCurrentResolution",
+    "method": "org.rdk.DisplaySettings.getCurrentResolution",
     "params": {
         "videoDisplay": "HDMI0"
     }
@@ -673,7 +673,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getDefaultResolution"
+    "method": "org.rdk.DisplaySettings.getDefaultResolution"
 }
 ```
 
@@ -723,7 +723,7 @@ Returns the current Dialog Enhancer level (port HDMI0).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getDialogEnhancement",
+    "method": "org.rdk.DisplaySettings.getDialogEnhancement",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -773,7 +773,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getDolbyVolumeMode"
+    "method": "org.rdk.DisplaySettings.getDolbyVolumeMode"
 }
 ```
 
@@ -822,7 +822,7 @@ Returns the current Dynamic Range Control mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getDRCMode",
+    "method": "org.rdk.DisplaySettings.getDRCMode",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -874,7 +874,7 @@ Returns the current Dynamic Range Control mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getEnableAudioPort",
+    "method": "org.rdk.DisplaySettings.getEnableAudioPort",
     "params": {
         "audioPort": "HDMI0"
     }
@@ -926,7 +926,7 @@ Returns the current gain value.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getGain",
+    "method": "org.rdk.DisplaySettings.getGain",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -979,7 +979,7 @@ Returns the current Graphic Equalizer Mode setting (port HDMI0).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getGraphicEqualizerMode",
+    "method": "org.rdk.DisplaySettings.getGraphicEqualizerMode",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -1033,7 +1033,7 @@ Returns the current Intelligent Equalizer Mode setting (port HDMI0).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getIntelligentEqualizerMode",
+    "method": "org.rdk.DisplaySettings.getIntelligentEqualizerMode",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -1086,7 +1086,7 @@ Returns the current status of Media Intelligence Steering settings.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getMISteering",
+    "method": "org.rdk.DisplaySettings.getMISteering",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -1139,7 +1139,7 @@ Returns the current audio compression settings.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getMS12AudioCompression",
+    "method": "org.rdk.DisplaySettings.getMS12AudioCompression",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -1192,7 +1192,7 @@ Returns the current MS12 audio profile settings.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getMS12AudioProfile",
+    "method": "org.rdk.DisplaySettings.getMS12AudioProfile",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -1244,7 +1244,7 @@ Returns whether audio is muted on a given port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getMuted",
+    "method": "org.rdk.DisplaySettings.getMuted",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -1297,7 +1297,7 @@ Returns the current color depth on the selected video display port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getPreferredColorDepth",
+    "method": "org.rdk.DisplaySettings.getPreferredColorDepth",
     "params": {
         "videoDisplay": "HDMI0",
         "persist": true
@@ -1351,7 +1351,7 @@ Returns the set-top audio capabilities for the specified audio port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getSettopAudioCapabilities",
+    "method": "org.rdk.DisplaySettings.getSettopAudioCapabilities",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -1404,7 +1404,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getSettopHDRSupport"
+    "method": "org.rdk.DisplaySettings.getSettopHDRSupport"
 }
 ```
 
@@ -1457,7 +1457,7 @@ Returns the set-top MS12 audio capabilities for the specified audio port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getSettopMS12Capabilities",
+    "method": "org.rdk.DisplaySettings.getSettopMS12Capabilities",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -1508,7 +1508,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getSinkAtmosCapability"
+    "method": "org.rdk.DisplaySettings.getSinkAtmosCapability"
 }
 ```
 
@@ -1557,7 +1557,7 @@ Returns the sound mode for the incoming video display. If the argument is `Null`
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getSoundMode",
+    "method": "org.rdk.DisplaySettings.getSoundMode",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -1615,7 +1615,7 @@ For **Auto** mode in DS5, this API has the following extra specification:
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getSupportedAudioModes",
+    "method": "org.rdk.DisplaySettings.getSupportedAudioModes",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -1667,7 +1667,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getSupportedAudioPorts"
+    "method": "org.rdk.DisplaySettings.getSupportedAudioPorts"
 }
 ```
 
@@ -1719,7 +1719,7 @@ Returns list of platform supported MS12 audio profiles for the specified audio p
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getSupportedMS12AudioProfiles",
+    "method": "org.rdk.DisplaySettings.getSupportedMS12AudioProfiles",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -1774,7 +1774,7 @@ Returns supported resolutions on the selected video display port (both TV and ST
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getSupportedResolutions",
+    "method": "org.rdk.DisplaySettings.getSupportedResolutions",
     "params": {
         "videoDisplay": "HDMI0"
     }
@@ -1826,7 +1826,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getSupportedSettopResolutions"
+    "method": "org.rdk.DisplaySettings.getSupportedSettopResolutions"
 }
 ```
 
@@ -1878,7 +1878,7 @@ Returns supported TV resolutions on the selected video display port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getSupportedTvResolutions",
+    "method": "org.rdk.DisplaySettings.getSupportedTvResolutions",
     "params": {
         "videoDisplay": "HDMI0"
     }
@@ -1930,7 +1930,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getSupportedVideoDisplays"
+    "method": "org.rdk.DisplaySettings.getSupportedVideoDisplays"
 }
 ```
 
@@ -1982,7 +1982,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getSurroundVirtualizer",
+    "method": "org.rdk.DisplaySettings.getSurroundVirtualizer",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -2037,7 +2037,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getTVHDRCapabilities"
+    "method": "org.rdk.DisplaySettings.getTVHDRCapabilities"
 }
 ```
 
@@ -2085,7 +2085,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getTvHDRSupport"
+    "method": "org.rdk.DisplaySettings.getTvHDRSupport"
 }
 ```
 
@@ -2136,7 +2136,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getVideoFormat"
+    "method": "org.rdk.DisplaySettings.getVideoFormat"
 }
 ```
 
@@ -2189,7 +2189,7 @@ Returns video port status in standby mode (failure if the port name is missing).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getVideoPortStatusInStandby",
+    "method": "org.rdk.DisplaySettings.getVideoPortStatusInStandby",
     "params": {
         "portName": "HDMI0"
     }
@@ -2242,7 +2242,7 @@ Returns the current volume level.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getVolumeLevel",
+    "method": "org.rdk.DisplaySettings.getVolumeLevel",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -2295,7 +2295,7 @@ Returns the current volume level.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getVolumeLeveller",
+    "method": "org.rdk.DisplaySettings.getVolumeLeveller",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -2345,7 +2345,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getZoomSetting"
+    "method": "org.rdk.DisplaySettings.getZoomSetting"
 }
 ```
 
@@ -2391,7 +2391,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.isConnectedDeviceRepeater"
+    "method": "org.rdk.DisplaySettings.isConnectedDeviceRepeater"
 }
 ```
 
@@ -2440,7 +2440,7 @@ Returns the current status of Surround Decoder.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.isSurroundDecoderEnabled",
+    "method": "org.rdk.DisplaySettings.isSurroundDecoderEnabled",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -2489,7 +2489,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.readEDID"
+    "method": "org.rdk.DisplaySettings.readEDID"
 }
 ```
 
@@ -2535,7 +2535,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.readHostEDID"
+    "method": "org.rdk.DisplaySettings.readHostEDID"
 }
 ```
 
@@ -2583,7 +2583,7 @@ Resets the dialog enhancer level to its default bassboost value.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.resetBassEnhancer",
+    "method": "org.rdk.DisplaySettings.resetBassEnhancer",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -2633,7 +2633,7 @@ Resets the dialog enhancer level to its default enhancer level.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.resetDialogEnhancement",
+    "method": "org.rdk.DisplaySettings.resetDialogEnhancement",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -2683,7 +2683,7 @@ Resets the surround virtualizer to its default boost value.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.resetSurroundVirtualizer",
+    "method": "org.rdk.DisplaySettings.resetSurroundVirtualizer",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -2733,7 +2733,7 @@ Resets the Volume Leveller level to default volume value.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.resetVolumeLeveller",
+    "method": "org.rdk.DisplaySettings.resetVolumeLeveller",
     "params": {
         "audioPort": "SPEAKER0"
     }
@@ -2783,7 +2783,7 @@ Sets ATMOS audio output mode (on HDMI0).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setAudioAtmosOutputMode",
+    "method": "org.rdk.DisplaySettings.setAudioAtmosOutputMode",
     "params": {
         "enable": true
     }
@@ -2834,7 +2834,7 @@ Sets the audio delay (in ms) on the selected audio port. If the `audioPort` argu
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setAudioDelay",
+    "method": "org.rdk.DisplaySettings.setAudioDelay",
     "params": {
         "audioPort": "HDMI0",
         "audioDelay": "0"
@@ -2886,7 +2886,7 @@ Sets the audio delay offset (in ms) on the selected audio port. If the `audioPor
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setAudioDelayOffset",
+    "method": "org.rdk.DisplaySettings.setAudioDelayOffset",
     "params": {
         "audioPort": "HDMI0",
         "audioDelayOffset": "0"
@@ -2938,7 +2938,7 @@ Sets the Bass Enhancer. Bass Enhancer provides the consumer a single control to 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setBassEnhancer",
+    "method": "org.rdk.DisplaySettings.setBassEnhancer",
     "params": {
         "audioPort": "SPEAKER0",
         "bassBoost": 50
@@ -2996,7 +2996,7 @@ Also see: [resolutionPreChange](#resolutionPreChange), [resolutionChanged](#reso
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setCurrentResolution",
+    "method": "org.rdk.DisplaySettings.setCurrentResolution",
     "params": {
         "videoDisplay": "HDMI0",
         "resolution": "1080p",
@@ -3050,7 +3050,7 @@ Sets the Dialog Enhancer level.A dialog enhancer boosts the speech audio separat
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setDialogEnhancement",
+    "method": "org.rdk.DisplaySettings.setDialogEnhancement",
     "params": {
         "audioPort": "SPEAKER0",
         "enhancerlevel": 0
@@ -3101,7 +3101,7 @@ Enables or disables Dolby Volume mode on audio track (audio output port HDMI0).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setDolbyVolumeMode",
+    "method": "org.rdk.DisplaySettings.setDolbyVolumeMode",
     "params": {
         "dolbyVolumeMode": true
     }
@@ -3152,7 +3152,7 @@ Sets the Dynamic Range Control (DRC) setting. DRC is a compression control appli
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setDRCMode",
+    "method": "org.rdk.DisplaySettings.setDRCMode",
     "params": {
         "audioPort": "SPEAKER0",
         "DRCMode": 1
@@ -3204,7 +3204,7 @@ Enable or disable the specified audio port based on the input audio port name. T
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setEnableAudioPort",
+    "method": "org.rdk.DisplaySettings.setEnableAudioPort",
     "params": {
         "audioPort": "HDMI0",
         "enable": true
@@ -3255,7 +3255,7 @@ Enables or disables the force HDR mode. If enabled, the HDR format that is curre
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setForceHDRMode",
+    "method": "org.rdk.DisplaySettings.setForceHDRMode",
     "params": {
         "hdr_mode": true
     }
@@ -3306,7 +3306,7 @@ Adjusts the gain on a specific port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setGain",
+    "method": "org.rdk.DisplaySettings.setGain",
     "params": {
         "audioPort": "SPEAKER0",
         "gain": 10.0
@@ -3358,7 +3358,7 @@ Sets the Graphic Equalizer Mode. The Graphic Equalizer is a multi-band equalizer
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setGraphicEqualizerMode",
+    "method": "org.rdk.DisplaySettings.setGraphicEqualizerMode",
     "params": {
         "audioPort": "SPEAKER0",
         "graphicEqualizerMode": 2
@@ -3410,7 +3410,7 @@ Sets the Intelligent Equalizer Mode (port HDMI0). An Intelligent Equalizer conti
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setIntelligentEqualizerMode",
+    "method": "org.rdk.DisplaySettings.setIntelligentEqualizerMode",
     "params": {
         "audioPort": "SPEAKER0",
         "intelligentEqualizerMode": 2
@@ -3462,7 +3462,7 @@ Enables or Disables Media Intelligent Steering. Media Intelligence analyzes audi
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setMISteering",
+    "method": "org.rdk.DisplaySettings.setMISteering",
     "params": {
         "audioPort": "SPEAKER0",
         "MISteeringEnable": true
@@ -3514,7 +3514,7 @@ Sets the audio dynamic range compression level (port HDMI0).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setMS12AudioCompression",
+    "method": "org.rdk.DisplaySettings.setMS12AudioCompression",
     "params": {
         "audioPort": "SPEAKER0",
         "compresionLevel": 5
@@ -3566,7 +3566,7 @@ Sets the selected MS12 audio profile.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setMS12AudioProfile",
+    "method": "org.rdk.DisplaySettings.setMS12AudioProfile",
     "params": {
         "audioPort": "SPEAKER0",
         "ms12AudioProfile": "Game"
@@ -3617,7 +3617,7 @@ Overrides individual MS12 audio settings in order to optimize the customer exper
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setMS12ProfileSettingsOverride",
+    "method": "org.rdk.DisplaySettings.setMS12ProfileSettingsOverride",
     "params": {
         "audioPort": "SPEAKER0",
         "operation": "...",
@@ -3672,7 +3672,7 @@ Mutes or unmutes audio on a specific port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setMuted",
+    "method": "org.rdk.DisplaySettings.setMuted",
     "params": {
         "audioPort": "SPEAKER0",
         "muted": true
@@ -3722,7 +3722,7 @@ Sets the current color depth for the videoDisplay.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setPreferredColorDepth",
+    "method": "org.rdk.DisplaySettings.setPreferredColorDepth",
     "params": {
         "videoDisplay": "HDMI0",
         "colorDepth": "12 Bit",
@@ -3785,7 +3785,7 @@ Possible values:
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setScartParameter",
+    "method": "org.rdk.DisplaySettings.setScartParameter",
     "params": {
         "scartParameter": "aspect_ratio",
         "scartParameterData": "4x3"
@@ -3838,7 +3838,7 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setSoundMode",
+    "method": "org.rdk.DisplaySettings.setSoundMode",
     "params": {
         "audioPort": "HDMI0",
         "soundMode": "STEREO",
@@ -3892,7 +3892,7 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setSurroundVirtualizer",
+    "method": "org.rdk.DisplaySettings.setSurroundVirtualizer",
     "params": {
         "audioPort": "SPEAKER0",
         "mode": 1,
@@ -3946,7 +3946,7 @@ Sets the specified video port status to be used in standby mode (failure if the 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setVideoPortStatusInStandby",
+    "method": "org.rdk.DisplaySettings.setVideoPortStatusInStandby",
     "params": {
         "portName": "HDMI0",
         "enabled": true
@@ -3999,7 +3999,7 @@ Adjusts the Volume Level on a specific port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setVolumeLevel",
+    "method": "org.rdk.DisplaySettings.setVolumeLevel",
     "params": {
         "audioPort": "SPEAKER0",
         "volumeLevel": 50
@@ -4052,7 +4052,7 @@ Adjusts the Volume Level on a specific port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setVolumeLeveller",
+    "method": "org.rdk.DisplaySettings.setVolumeLeveller",
     "params": {
         "audioPort": "SPEAKER0",
         "mode": 1,
@@ -4105,7 +4105,7 @@ Sets the current zoom value.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.setZoomSetting",
+    "method": "org.rdk.DisplaySettings.setZoomSetting",
     "params": {
         "zoomSetting": "FULL"
     }
@@ -4154,7 +4154,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.1.getColorDepthCapabilities"
+    "method": "org.rdk.DisplaySettings.getColorDepthCapabilities"
 }
 ```
 
@@ -4211,7 +4211,7 @@ Triggered on active input change (RxSense).
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.activeInputChanged",
+    "method": "client.events.activeInputChanged",
     "params": {
         "activeInput": true
     }
@@ -4237,7 +4237,7 @@ Triggered when the configured audio format changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.audioFormatChanged",
+    "method": "client.events.audioFormatChanged",
     "params": {
         "supportedAudioFormat": [
             "`NONE`, `PCM`, `DOLBY AC3`, `DOLBY EAC3`, `DOLBY AC4`, `DOLBY MAT', 'DOLBY TRUEHD', 'DOLBY EAC3 ATMOS', 'DOLBY TRUEHD ATMOS', 'DOLBY MAT ATMOS', 'DOLBY AC4 ATMOS'"
@@ -4265,7 +4265,7 @@ Triggered when the connected audio port is updated.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.connectedAudioPortUpdated",
+    "method": "client.events.connectedAudioPortUpdated",
     "params": {
         "HotpluggedAudioPort": "HDMI_ARC0",
         "isConnected": "connected"
@@ -4291,7 +4291,7 @@ Triggered when the connected video display is updated and returns the connected 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.connectedVideoDisplaysUpdated",
+    "method": "client.events.connectedVideoDisplaysUpdated",
     "params": {
         "connectedVideoDisplays": [
             "HDMI0"
@@ -4320,7 +4320,7 @@ Triggered when the resolution is changed by the user and returns the current res
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.resolutionChanged",
+    "method": "client.events.resolutionChanged",
     "params": {
         "width": 1920,
         "height": 1080,
@@ -4344,7 +4344,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.resolutionPreChange"
+    "method": "client.events.resolutionPreChange"
 }
 ```
 
@@ -4366,7 +4366,7 @@ Triggered when the zoom setting changes and returns the zoom setting values for 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.zoomSettingUpdated",
+    "method": "client.events.zoomSettingUpdated",
     "params": {
         "zoomSetting": "FULL",
         "videoDisplayType": "HDMI0"
@@ -4393,7 +4393,7 @@ Triggered when the video format of connected video port changes and returns the 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.videoFormatChanged",
+    "method": "client.events.videoFormatChanged",
     "params": {
         "supportedVideoFormat": [
             "`SDR`, `HDR10`, `HLG`, `DV`, `Technicolor Prime`"
