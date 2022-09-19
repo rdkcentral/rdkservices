@@ -67,6 +67,7 @@ public:
     MOCK_METHOD(uint8_t, Major, (), (const, override));
     MOCK_METHOD(uint8_t, Minor, (), (const, override));
     MOCK_METHOD(uint8_t, Patch, (), (const, override));
+    MOCK_METHOD(uint32_t, ConfigLine, (const string& config), (override));
 };
 
 #endif //SERVICEMOCK_H
