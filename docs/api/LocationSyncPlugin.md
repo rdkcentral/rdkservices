@@ -92,7 +92,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LocationSync.1.sync"
+    "method": "LocationSync.sync"
 }
 ```
 
@@ -144,7 +144,7 @@ Provides access to the location information.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LocationSync.1.location"
+    "method": "LocationSync.location"
 }
 ```
 
@@ -192,7 +192,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.locationchange"
+    "method": "client.events.locationchange"
 }
 ```
 

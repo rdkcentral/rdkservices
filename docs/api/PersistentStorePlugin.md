@@ -89,7 +89,7 @@ Deletes a key from the specified namespace.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.deleteKey",
+    "method": "org.rdk.PersistentStore.deleteKey",
     "params": {
         "namespace": "ns1",
         "key": "key1"
@@ -140,7 +140,7 @@ Deletes the specified namespace.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.deleteNamespace",
+    "method": "org.rdk.PersistentStore.deleteNamespace",
     "params": {
         "namespace": "ns1"
     }
@@ -187,7 +187,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.flushCache"
+    "method": "org.rdk.PersistentStore.flushCache"
 }
 ```
 
@@ -236,7 +236,7 @@ Returns the keys that are stored in the specified namespace.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.getKeys",
+    "method": "org.rdk.PersistentStore.getKeys",
     "params": {
         "namespace": "ns1"
     }
@@ -288,7 +288,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.getNamespaces"
+    "method": "org.rdk.PersistentStore.getNamespaces"
 }
 ```
 
@@ -338,7 +338,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.getStorageSize"
+    "method": "org.rdk.PersistentStore.getStorageSize"
 }
 ```
 
@@ -391,7 +391,7 @@ Returns the value of a key from the specified namespace.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.getValue",
+    "method": "org.rdk.PersistentStore.getValue",
     "params": {
         "namespace": "ns1",
         "key": "key1"
@@ -449,7 +449,7 @@ Also see: [onStorageExceeded](#onStorageExceeded), [onValueChanged](#onValueChan
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.setValue",
+    "method": "org.rdk.PersistentStore.setValue",
     "params": {
         "namespace": "ns1",
         "key": "key1",
@@ -499,7 +499,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onStorageExceeded"
+    "method": "client.events.onStorageExceeded"
 }
 ```
 
@@ -522,7 +522,7 @@ Triggered whenever any of the values stored are changed using setValue.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onValueChanged",
+    "method": "client.events.onValueChanged",
     "params": {
         "namespace": "ns1",
         "key": "key1",

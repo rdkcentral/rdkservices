@@ -86,7 +86,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.CompositeInput.1.getCompositeInputDevices"
+    "method": "org.rdk.CompositeInput.getCompositeInputDevices"
 }
 ```
 
@@ -143,7 +143,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.CompositeInput.1.setVideoRectangle",
+    "method": "org.rdk.CompositeInput.setVideoRectangle",
     "params": {
         "x": 900,
         "y": 500,
@@ -200,7 +200,7 @@ Also see: [onInputStatusChanged](#onInputStatusChanged), [onSignalChanged](#onSi
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.CompositeInput.1.startCompositeInput",
+    "method": "org.rdk.CompositeInput.startCompositeInput",
     "params": {
         "portId": 0
     }
@@ -250,7 +250,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.CompositeInput.1.stopCompositeInput"
+    "method": "org.rdk.CompositeInput.stopCompositeInput"
 }
 ```
 
@@ -303,7 +303,7 @@ Triggered when the composite input device changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDevicesChanged",
+    "method": "client.events.onDevicesChanged",
     "params": {
         "devices": [
             {
@@ -335,7 +335,7 @@ Triggered when the status of the composite input changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onInputStatusChanged",
+    "method": "client.events.onInputStatusChanged",
     "params": {
         "id": 0,
         "locator": "cvbsin://localhost/deviceid/0",
@@ -363,7 +363,7 @@ Triggered when the status of the composite input signal changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onSignalChanged",
+    "method": "client.events.onSignalChanged",
     "params": {
         "id": 0,
         "locator": "cvbsin://localhost/deviceid/0",

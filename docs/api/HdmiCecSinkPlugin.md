@@ -109,7 +109,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.getActiveRoute"
+    "method": "org.rdk.HdmiCecSink.getActiveRoute"
 }
 ```
 
@@ -174,7 +174,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.getActiveSource"
+    "method": "org.rdk.HdmiCecSink.getActiveSource"
 }
 ```
 
@@ -228,7 +228,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.getAudioDeviceConnectedStatus"
+    "method": "org.rdk.HdmiCecSink.getAudioDeviceConnectedStatus"
 }
 ```
 
@@ -284,7 +284,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.getDeviceList"
+    "method": "org.rdk.HdmiCecSink.getDeviceList"
 }
 ```
 
@@ -342,7 +342,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.getEnabled"
+    "method": "org.rdk.HdmiCecSink.getEnabled"
 }
 ```
 
@@ -388,7 +388,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.getOSDName"
+    "method": "org.rdk.HdmiCecSink.getOSDName"
 }
 ```
 
@@ -434,7 +434,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.getVendorId"
+    "method": "org.rdk.HdmiCecSink.getVendorId"
 }
 ```
 
@@ -480,7 +480,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.printDeviceList"
+    "method": "org.rdk.HdmiCecSink.printDeviceList"
 }
 ```
 
@@ -530,7 +530,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.requestActiveSource"
+    "method": "org.rdk.HdmiCecSink.requestActiveSource"
 }
 ```
 
@@ -577,7 +577,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.requestShortAudioDescriptor"
+    "method": "org.rdk.HdmiCecSink.requestShortAudioDescriptor"
 }
 ```
 
@@ -624,7 +624,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.sendAudioDevicePowerOnMessage"
+    "method": "org.rdk.HdmiCecSink.sendAudioDevicePowerOnMessage"
 }
 ```
 
@@ -671,7 +671,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.sendGetAudioStatusMessage"
+    "method": "org.rdk.HdmiCecSink.sendGetAudioStatusMessage"
 }
 ```
 
@@ -719,7 +719,7 @@ Sends the CEC \<User Control Pressed\> message when TV remote key is pressed.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.sendKeyPressEvent",
+    "method": "org.rdk.HdmiCecSink.sendKeyPressEvent",
     "params": {
         "logicalAddress": 4,
         "keyCode": 65
@@ -767,7 +767,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.sendStandbyMessage"
+    "method": "org.rdk.HdmiCecSink.sendStandbyMessage"
 }
 ```
 
@@ -814,7 +814,7 @@ Sets the source device to active (`setStreamPath`). The source wakes from standb
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.setActivePath",
+    "method": "org.rdk.HdmiCecSink.setActivePath",
     "params": {
         "activePath": "1.0.0.0"
     }
@@ -861,7 +861,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.setActiveSource"
+    "method": "org.rdk.HdmiCecSink.setActiveSource"
 }
 ```
 
@@ -911,7 +911,7 @@ Also see: [reportCecEnabledEvent](#reportCecEnabledEvent)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.setEnabled",
+    "method": "org.rdk.HdmiCecSink.setEnabled",
     "params": {
         "enabled": false
     }
@@ -961,7 +961,7 @@ Updates the internal data structure with the new menu Language and also broadcas
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.setMenuLanguage",
+    "method": "org.rdk.HdmiCecSink.setMenuLanguage",
     "params": {
         "language": "chi"
     }
@@ -1011,7 +1011,7 @@ Sets the OSD Name used by host device.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.setOSDName",
+    "method": "org.rdk.HdmiCecSink.setOSDName",
     "params": {
         "name": "Fire TV Stick"
     }
@@ -1062,7 +1062,7 @@ Changes routing while switching between HDMI inputs and TV.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.setRoutingChange",
+    "method": "org.rdk.HdmiCecSink.setRoutingChange",
     "params": {
         "oldPort": "HDMI0",
         "newPort": "TV"
@@ -1115,7 +1115,7 @@ Also see: [arcInitiationEvent](#arcInitiationEvent), [arcTerminationEvent](#arcT
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.setupARCRouting",
+    "method": "org.rdk.HdmiCecSink.setupARCRouting",
     "params": {
         "enabled": true
     }
@@ -1165,7 +1165,7 @@ Sets a vendor ID used by host device.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCecSink.1.setVendorId",
+    "method": "org.rdk.HdmiCecSink.setVendorId",
     "params": {
         "vendorid": "0019fc"
     }
@@ -1230,7 +1230,7 @@ Triggered when routing though the HDMI ARC port is successfully established.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.arcInitiationEvent",
+    "method": "client.events.arcInitiationEvent",
     "params": {
         "status": "success"
     }
@@ -1254,7 +1254,7 @@ Triggered when routing though the HDMI ARC port terminates.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.arcTerminationEvent",
+    "method": "client.events.arcTerminationEvent",
     "params": {
         "status": "success"
     }
@@ -1279,7 +1279,7 @@ Triggered with the active source device changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onActiveSourceChange",
+    "method": "client.events.onActiveSourceChange",
     "params": {
         "logicalAddress": 4,
         "physicalAddress": "1.0.0.0"
@@ -1304,7 +1304,7 @@ Triggered when an HDMI cable is physically connected to the HDMI port on a TV, o
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceAdded",
+    "method": "client.events.onDeviceAdded",
     "params": {
         "logicalAddress": 4
     }
@@ -1328,7 +1328,7 @@ Triggered when device information changes (physicalAddress, deviceType, vendorID
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceInfoUpdated",
+    "method": "client.events.onDeviceInfoUpdated",
     "params": {
         "logicalAddress": 4
     }
@@ -1352,7 +1352,7 @@ Triggered when HDMI cable is physically removed from the HDMI port on a TV or th
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceRemoved",
+    "method": "client.events.onDeviceRemoved",
     "params": {
         "logicalAddress": 4
     }
@@ -1376,7 +1376,7 @@ Triggered when an \<Image View ON\> CEC message is received from the source devi
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onImageViewOnMsg",
+    "method": "client.events.onImageViewOnMsg",
     "params": {
         "logicalAddress": 4
     }
@@ -1401,7 +1401,7 @@ Triggered when the source is no longer active.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onInActiveSource",
+    "method": "client.events.onInActiveSource",
     "params": {
         "logicalAddress": 4,
         "physicalAddress": "1.0.0.0"
@@ -1426,7 +1426,7 @@ Triggered when a \<Text View ON\> CEC message is received from the source device
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onTextViewOnMsg",
+    "method": "client.events.onTextViewOnMsg",
     "params": {
         "logicalAddress": 4
     }
@@ -1450,7 +1450,7 @@ Triggered when the TV is in standby mode and it receives \<Image View ON\>/ \<Te
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onWakeupFromStandby",
+    "method": "client.events.onWakeupFromStandby",
     "params": {
         "logicalAddress": 4
     }
@@ -1475,7 +1475,7 @@ Triggered when an audio device is added or removed.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.reportAudioDeviceConnectedStatus",
+    "method": "client.events.reportAudioDeviceConnectedStatus",
     "params": {
         "status": "success",
         "audioDeviceConnected": "true"
@@ -1501,7 +1501,7 @@ Triggered when CEC \<Report Audio Status\> message of device is received.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.reportAudioStatusEvent",
+    "method": "client.events.reportAudioStatusEvent",
     "params": {
         "muteStatus": 0,
         "volumeLevel": 28
@@ -1526,7 +1526,7 @@ Triggered when the HDMI-CEC is enabled.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.reportCecEnabledEvent",
+    "method": "client.events.reportCecEnabledEvent",
     "params": {
         "cecEnable": "true"
     }
@@ -1550,7 +1550,7 @@ Triggered when CEC \<Set System Audio Mode\> message of device is received.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.setSystemAudioModeEvent",
+    "method": "client.events.setSystemAudioModeEvent",
     "params": {
         "audioMode": "On"
     }
@@ -1575,7 +1575,7 @@ Triggered when SAD is received from the connected audio device. See `requestShor
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.shortAudiodesciptorEvent",
+    "method": "client.events.shortAudiodesciptorEvent",
     "params": {
         "ShortAudioDescriptor": [
             [
@@ -1605,7 +1605,7 @@ Triggered when the source device changes status to `STANDBY`.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.standbyMessageReceived",
+    "method": "client.events.standbyMessageReceived",
     "params": {
         "logicalAddress": 4
     }
