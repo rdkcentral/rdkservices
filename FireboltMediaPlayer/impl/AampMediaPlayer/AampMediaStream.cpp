@@ -338,6 +338,7 @@ namespace {
             ADD_SETTER_LICENSESERVERURL(org.w3.clearkey, eDRM_ClearKey)
             m_setters["customHeaderLicense"] = [] (PlayerInstanceAAMP* aamp, string const& label, Variant const& value) {
                 string setting;
+                bool result = false;
                 if (!extractSetting(label, value, setting))
                     return false;
                 LOGINFO("customHeaderLicense setup: %s", setting.c_str());
@@ -367,9 +368,14 @@ namespace {
                         {
                             LOGINFO("Invoking PlayerInstanceAAMP::AddCustomHTTPHeader() headerName=%s headerValue=%s", headerName.c_str(), headerValue[0].c_str());
                             aamp->AddCustomHTTPHeader(headerName, headerValue, true);
+                            result = true;
+                        } else {
+                            result = false;
+                            break;
                         }
                     }
                 }
+                return result;
             };
             m_setters["preferredKeysystem"] = [] (PlayerInstanceAAMP* aamp, string const& label, Variant const& value) {
                 string setting;
