@@ -76,7 +76,7 @@ Provides access to the current channel.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LinearPlaybackControl.1.channel@0"
+    "method": "LinearPlaybackControl.channel@0"
 }
 ```
 
@@ -98,7 +98,7 @@ Provides access to the current channel.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LinearPlaybackControl.1.channel@0",
+    "method": "LinearPlaybackControl.channel@0",
     "params": {
         "channel": "chan_select"
     }
@@ -145,7 +145,7 @@ Provides access to the TSB seek position offset, from live position, in seconds.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LinearPlaybackControl.1.seek@0"
+    "method": "LinearPlaybackControl.seek@0"
 }
 ```
 
@@ -167,7 +167,7 @@ Provides access to the TSB seek position offset, from live position, in seconds.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LinearPlaybackControl.1.seek@0",
+    "method": "LinearPlaybackControl.seek@0",
     "params": {
         "seekPosInSeconds": 0
     }
@@ -214,7 +214,7 @@ Provides access to the trick play speed and direction.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LinearPlaybackControl.1.trickPlay@0"
+    "method": "LinearPlaybackControl.trickPlay@0"
 }
 ```
 
@@ -236,7 +236,7 @@ Provides access to the trick play speed and direction.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LinearPlaybackControl.1.trickPlay@0",
+    "method": "LinearPlaybackControl.trickPlay@0",
     "params": {
         "speed": -4
     }
@@ -290,7 +290,7 @@ Provides access to the current TSB status information containing buffer size, se
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LinearPlaybackControl.1.status@0"
+    "method": "LinearPlaybackControl.status@0"
 }
 ```
 
@@ -340,7 +340,7 @@ Provides access to the tracing enable/disable flag.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LinearPlaybackControl.1.tracing"
+    "method": "LinearPlaybackControl.tracing"
 }
 ```
 
@@ -362,7 +362,7 @@ Provides access to the tracing enable/disable flag.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LinearPlaybackControl.1.tracing",
+    "method": "LinearPlaybackControl.tracing",
     "params": {
         "tracing": true
     }
@@ -411,7 +411,7 @@ Indicates that the trick play speed has changed.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.speedchanged",
+    "method": "client.events.speedchanged",
     "params": {
         "speed": -4,
         "muxId": 0

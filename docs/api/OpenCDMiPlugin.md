@@ -86,7 +86,7 @@ Provides access to the supported DRM systems.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "OCDM.1.drms"
+    "method": "OCDM.drms"
 }
 ```
 
@@ -137,7 +137,7 @@ Provides access to the DRM key systems.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "OCDM.1.keysystems@PlayReady"
+    "method": "OCDM.keysystems@PlayReady"
 }
 ```
 

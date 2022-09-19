@@ -91,7 +91,7 @@ Executes a command inside a running container. The path to the executable must r
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.executeCommand",
+    "method": "org.rdk.OCIContainer.executeCommand",
     "params": {
         "containerId": "com.bskyb.epgui",
         "options": "--cwd=PATH",
@@ -160,7 +160,7 @@ Gets information about a running container such as CPU, memory, and GPU usage (G
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.getContainerInfo",
+    "method": "org.rdk.OCIContainer.getContainerInfo",
     "params": {
         "containerId": "com.bskyb.epgui"
     }
@@ -236,7 +236,7 @@ Gets the state of a currently running container.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.getContainerState",
+    "method": "org.rdk.OCIContainer.getContainerState",
     "params": {
         "containerId": "com.bskyb.epgui"
     }
@@ -289,7 +289,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.listContainers"
+    "method": "org.rdk.OCIContainer.listContainers"
 }
 ```
 
@@ -342,7 +342,7 @@ Pauses a currently running container.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.pauseContainer",
+    "method": "org.rdk.OCIContainer.pauseContainer",
     "params": {
         "containerId": "com.bskyb.epgui"
     }
@@ -392,7 +392,7 @@ Resumes a previously paused container.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.resumeContainer",
+    "method": "org.rdk.OCIContainer.resumeContainer",
     "params": {
         "containerId": "com.bskyb.epgui"
     }
@@ -451,7 +451,7 @@ Also see: [onContainerStarted](#onContainerStarted)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.startContainer",
+    "method": "org.rdk.OCIContainer.startContainer",
     "params": {
         "containerId": "com.bskyb.epgui",
         "bundlePath": "/containers/myBundle",
@@ -515,7 +515,7 @@ Also see: [onContainerStarted](#onContainerStarted)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.startContainerFromDobbySpec",
+    "method": "org.rdk.OCIContainer.startContainerFromDobbySpec",
     "params": {
         "containerId": "com.bskyb.epgui",
         "dobbySpec": "/containers/dobbySpec",
@@ -573,7 +573,7 @@ Also see: [onContainerStopped](#onContainerStopped)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.stopContainer",
+    "method": "org.rdk.OCIContainer.stopContainer",
     "params": {
         "containerId": "com.bskyb.epgui",
         "force": true
@@ -626,7 +626,7 @@ Triggered when a new container has started running.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onContainerStarted",
+    "method": "client.events.onContainerStarted",
     "params": {
         "descriptor": 91,
         "name": "com.bskyb.epgui"
@@ -652,7 +652,7 @@ Triggered when the container has stopped running.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onContainerStopped",
+    "method": "client.events.onContainerStopped",
     "params": {
         "descriptor": 91,
         "name": "com.bskyb.epgui"
