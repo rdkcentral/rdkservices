@@ -26,9 +26,6 @@
 
 #include "libIBus.h"
 
-// TODO: remove this
-#define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
-
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
@@ -37,6 +34,28 @@ namespace {
     using WPEFramework::Plugin::WifiManager;
     using WifiManagerConstMethod = uint32_t (WifiManager::*)(const JsonObject &parameters, JsonObject &response) const;
     using WifiManagerMethod = uint32_t (WifiManager::*)(const JsonObject &parameters, JsonObject &response);
+
+    std::vector<std::pair<const char*, WifiManagerMethod>> mutableMethods = {
+        {"stopScan", &WifiManager::stopScan},
+        {"setEnabled", &WifiManager::setEnabled},
+        {"connect", &WifiManager::connect},
+        {"disconnect", &WifiManager::disconnect},
+        {"cancelWPSPairing", &WifiManager::cancelWPSPairing},
+        {"saveSSID", &WifiManager::saveSSID},
+        {"clearSSID", &WifiManager::clearSSID},
+        {"setSignalThresholdChangeEnabled", &WifiManager::setSignalThresholdChangeEnabled},
+        {"getPairedSSID", &WifiManager::getPairedSSID},
+        {"getPairedSSIDInfo", &WifiManager::getPairedSSIDInfo},
+        {"isPaired", &WifiManager::isPaired},
+        {"getCurrentState", &WifiManager::getCurrentState},
+        {"getConnectedSSID", &WifiManager::getConnectedSSID},
+    };
+
+    std::vector<std::pair<const char*, WifiManagerConstMethod>> constMethods = {
+        {"getQuirks", &WifiManager::getQuirks},
+        {"startScan", &WifiManager::startScan},
+        {"isSignalThresholdChangeEnabled", &WifiManager::isSignalThresholdChangeEnabled}
+    };
 }
 
 namespace WPEFramework
@@ -66,28 +85,21 @@ namespace WPEFramework
         {
             CreateHandler({ 2 });
 
-            registerMethod("stopScan", &WifiManager::stopScan, this);
-            registerMethod("setEnabled", &WifiManager::setEnabled, this);
-            registerMethod("connect", &WifiManager::connect, this);
-            registerMethod("disconnect", &WifiManager::disconnect, this);
-            registerMethod("cancelWPSPairing", &WifiManager::cancelWPSPairing, this);
-            registerMethod("saveSSID", &WifiManager::saveSSID, this);
-            registerMethod("clearSSID", &WifiManager::clearSSID, this);
-            registerMethod("setSignalThresholdChangeEnabled", &WifiManager::setSignalThresholdChangeEnabled, this);
-            registerMethod("getPairedSSID", &WifiManager::getPairedSSID, this);
-            registerMethod("getPairedSSIDInfo", &WifiManager::getPairedSSIDInfo, this);
-            registerMethod("isPaired", &WifiManager::isPaired, this);
-            registerMethod("getCurrentState", &WifiManager::getCurrentState, this);
-            registerMethod("getConnectedSSID", &WifiManager::getConnectedSSID, this);
-            registerMethod("getQuirks", &WifiManager::getQuirks, this);
-            registerMethod("startScan", &WifiManager::startScan, this);
-            registerMethod("isSignalThresholdChangeEnabled", &WifiManager::isSignalThresholdChangeEnabled, this);
-            registerMethod("getSupportedSecurityModes", &WifiManager::getSupportedSecurityModes, this);
+            for (const auto& mapping : constMethods) {
+                Register(mapping.first, mapping.second, this);
+                GetHandler(2)->Register<JsonObject, JsonObject>(mapping.first, mapping.second, this);
+            }
+
+            for (const auto& mapping : mutableMethods) {
+                Register(mapping.first, mapping.second, this);
+                GetHandler(2)->Register<JsonObject, JsonObject>(mapping.first, mapping.second, this);
+            }
 
             /* Version 1 only API */
             Register("initiateWPSPairing", &WifiManager::initiateWPSPairing, this);
 
             /* Version 2 API */
+            GetHandler(2)->Register<JsonObject, JsonObject>("getSupportedSecurityModes", &WifiManager::getSupportedSecurityModes, this);
             GetHandler(2)->Register<JsonObject, JsonObject>("initiateWPSPairing", &WifiManager::initiateWPSPairing2, this);
         }
 
@@ -315,6 +327,7 @@ namespace WPEFramework
                 wifiWPS.updateWifiWPSCache(false);
             }
             sendNotify("onWIFIStateChanged", params);
+            GetHandler(2)->Notify("onWIFIStateChanged", params);
             if (state == WifiState::CONNECTED)
             {
                 wifiSignalThreshold.setSignalThresholdChangeEnabled(true);
@@ -335,6 +348,7 @@ namespace WPEFramework
             JsonObject params;
             params["code"] = static_cast<int>(code);
             sendNotify("onError", params);
+            GetHandler(2)->Notify("onError", params);
         }
 
         void WifiManager::onSSIDsChanged()
@@ -342,6 +356,7 @@ namespace WPEFramework
             wifiWPS.updateWifiWPSCache(false);
             wifiState.resetWifiStateConnectedCache(false);
             sendNotify("onSSIDsChanged", JsonObject());
+            GetHandler(2)->Notify("onSSIDsChanged", JsonObject());
         }
 
         void WifiManager::onWifiSignalThresholdChanged(float signalStrength, const std::string &strength)
@@ -363,6 +378,7 @@ namespace WPEFramework
         void WifiManager::onAvailableSSIDs(JsonObject const& ssids)
         {
             sendNotify("onAvailableSSIDs", ssids);
+            GetHandler(2)->Notify("onAvailableSSIDs", ssids);
         }
 
         /**
