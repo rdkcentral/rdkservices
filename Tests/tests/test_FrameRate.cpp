@@ -15,14 +15,12 @@ class FrameRateTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::FrameRate> plugin;
     Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Handler& handlerV2;
     Core::JSONRPC::Connection connection;
     string response;
 
     FrameRateTest()
         : plugin(Core::ProxyType<Plugin::FrameRate>::Create())
         , handler(*(plugin))
-        , handlerV2(*(plugin->GetHandler(2)))
         , connection(1, 0)
     {
     }
@@ -114,14 +112,10 @@ TEST_F(FrameRateTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("startFpsCollection")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("stopFpsCollection")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("updateFps")));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("setCollectionFrequency")));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("startFpsCollection")));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("stopFpsCollection")));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("updateFps")));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("setFrmMode")));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getFrmMode")));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("getDisplayFrameRate")));
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Exists(_T("setDisplayFrameRate")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setFrmMode")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFrmMode")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDisplayFrameRate")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setDisplayFrameRate")));
 }
 
 TEST_F(FrameRateTest, setCollectionFrequency_startFpsCollection_stopFpsCollection_updateFps)
@@ -145,7 +139,7 @@ TEST_F(FrameRateDsTest, setFrmMode)
                 return 0;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("setFrmMode"), _T("{\"frmmode\":0}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFrmMode"), _T("{\"frmmode\":0}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
@@ -158,7 +152,7 @@ TEST_F(FrameRateDsTest, getFrmMode)
                 return 0;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("getFrmMode"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFrmMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"auto-frm-mode\":0,\"success\":true}"));
 }
 
@@ -171,7 +165,7 @@ TEST_F(FrameRateDsTest, setDisplayFrameRate)
                 return 0;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("setDisplayFrameRate"), _T("{\"framerate\":\"3840x2160px48\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setDisplayFrameRate"), _T("{\"framerate\":\"3840x2160px48\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
@@ -185,7 +179,7 @@ TEST_F(FrameRateDsTest, getDisplayFrameRate)
                 return 0;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("getDisplayFrameRate"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDisplayFrameRate"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"framerate\":\"3840x2160px48\",\"success\":true}"));
 }
 
