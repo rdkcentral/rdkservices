@@ -155,7 +155,7 @@ jobs:
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/ds
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmbus
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmmgrs-hal
-          --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system
+          --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system -Wl,-wrap,popen
           -DENABLE_TELEMETRY_LOGGING
           -DUSE_IARMBUS
           -DENABLE_SYSTEM_GET_STORE_DEMO_LINK

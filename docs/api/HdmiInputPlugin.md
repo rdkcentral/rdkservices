@@ -65,10 +65,10 @@ HdmiInput interface methods:
 ## *getHDMIInputDevices*
 
 Returns an array of available HDMI Input ports.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -121,10 +121,10 @@ This method takes no parameters.
 ## *getEdidVersion*
 
 (Version 2) Returns the EDID version.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -173,10 +173,10 @@ No Events.
 ## *getHDMISPD*
 
 (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -225,10 +225,10 @@ No Events.
 ## *getRawHDMISPD*
 
 (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -277,10 +277,10 @@ No Events.
 ## *readEDID*
 
 Returns the current EDID value.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -329,15 +329,13 @@ No Events.
 ## *startHdmiInput*
 
 Activates the specified HDMI Input port as the primary video source.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onInputStatusChanged` | Triggers the event when HDMI Input source is activated and Input status changes to `started` | 
-| `onSignalChanged` | Triggers the event when HDMI Input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal).
 
-Also see: [onInputStatusChanged](#onInputStatusChanged), [onSignalChanged](#onSignalChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onInputStatusChanged](#onInputStatusChanged) | Triggers the event when HDMI Input source is activated and Input status changes to started |
+| [onSignalChanged](#onSignalChanged) | Triggers the event when HDMI Input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal). |
 ### Parameters
 
 | Name | Type | Description |
@@ -383,14 +381,12 @@ Also see: [onInputStatusChanged](#onInputStatusChanged), [onSignalChanged](#onSi
 ## *stopHdmiInput*
 
 Deactivates the HDMI Input port currently selected as the primary video source.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onInputStatusChanged` | Triggers the event when HDMI Input source is deactivated and Input status changes to `stopped`.
 
-Also see: [onInputStatusChanged](#onInputStatusChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onInputStatusChanged](#onInputStatusChanged) | Triggers the event when HDMI Input source is deactivated and Input status changes to `stopped` |
 ### Parameters
 
 This method takes no parameters.
@@ -430,10 +426,10 @@ This method takes no parameters.
 ## *setEdidVersion*
 
 (Version 2) Sets an HDMI EDID version.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -482,10 +478,10 @@ No Events.
 ## *setVideoRectangle*
 
 Sets an HDMI Input video window.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -538,10 +534,10 @@ No Events.
 ## *writeEDID*
 
 Changes a current EDID value.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -590,10 +586,10 @@ No Events.
 ## *getSupportedGameFeatures*
 
 Returns the list of supported game features.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -635,11 +631,11 @@ This method takes no parameters.
 <a name="getHdmiGameFeatureStatus"></a>
 ## *getHdmiGameFeatureStatus*
 
-Returns the Game Feature Status. For example: ALLM
- 
+Returns the Game Feature Status. For example: ALLM.
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 

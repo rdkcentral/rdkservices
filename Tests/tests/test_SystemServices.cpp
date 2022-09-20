@@ -22,8 +22,15 @@
 #include "SystemServices.h"
 
 #include "FactoriesImplementation.h"
+#include "HostMock.h"
+#include "IarmBusMock.h"
 #include "RfcApiMock.h"
 #include "ServiceMock.h"
+#include "SleepModeMock.h"
+#include "WrapsMock.h"
+
+#include "deepSleepMgr.h"
+#include "exception.hpp"
 
 #include <fstream>
 
@@ -36,6 +43,9 @@ protected:
     Core::JSONRPC::Connection connection;
     string response;
     RfcApiImplMock rfcApiImplMock;
+    WrapsImplMock wrapsImplMock;
+    IarmBusImplMock iarmBusImplMock;
+    HostImplMock hostImplMock;
 
     SystemServicesTest()
         : plugin(Core::ProxyType<Plugin::SystemServices>::Create())
@@ -43,11 +53,17 @@ protected:
         , connection(1, 0)
     {
         RfcApi::getInstance().impl = &rfcApiImplMock;
+        Wraps::getInstance().impl = &wrapsImplMock;
+        IarmBus::getInstance().impl = &iarmBusImplMock;
+        device::Host::getInstance().impl = &hostImplMock;
     }
 
     virtual ~SystemServicesTest() override
     {
         RfcApi::getInstance().impl = nullptr;
+        Wraps::getInstance().impl = nullptr;
+        IarmBus::getInstance().impl = nullptr;
+        device::Host::getInstance().impl = nullptr;
     }
 };
 
@@ -163,6 +179,7 @@ TEST_F(SystemServicesTest, AutoReboot)
                 return WDMP_SUCCESS;
             }));
 
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setFirmwareAutoReboot"), _T("{}"), response));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareAutoReboot"), _T("{\"enable\":true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
@@ -177,6 +194,9 @@ TEST_F(SystemServicesTest, RebootDelay)
                 EXPECT_EQ(strcmp(pcParameterName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"), 0);
                 return WDMP_SUCCESS;
             }));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":86401}"), response));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":10}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
@@ -393,4 +413,219 @@ TEST_F(SystemServicesTest, SystemVersions)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSystemVersions"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"stbVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\",\"receiverVersion\":\"000.36.0.0\",\"stbTimestamp\":\"Fri 05 Aug 2022 16:14:54 AP UTC\",\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, MocaStatus)
+{
+    ON_CALL(wrapsImplMock, system(::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T("/etc/init.d/moca_init start")));
+                return 0;
+            }));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("enableMoca"), _T("{}"), response));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableMoca"), _T("{\"value\":true}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_TRUE(Core::File(string(_T("/opt/enablemoca"))).Exists());
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("queryMocaStatus"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"mocaEnabled\":true,\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableMoca"), _T("{\"value\":false}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_FALSE(Core::File(string(_T("/opt/enablemoca"))).Exists());
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("queryMocaStatus"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"mocaEnabled\":false,\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, updateFirmware)
+{
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](const char* command, const char* type) {
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/deviceInitiatedFWDnld.sh 0 4 >> /opt/logs/swupdate.log &")));
+                return nullptr;
+            }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updateFirmware"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, Mode)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"\",\"duration\":0},\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{}}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"unknown\",\"duration\":0}}"), response));
+
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DAEMON_NAME)));
+                EXPECT_EQ(string(methodName), string(_T("DaemonSysModeChange")));
+                return IARM_RESULT_SUCCESS;
+            });
+
+    ON_CALL(wrapsImplMock, system(::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T("rm -f /opt/warehouse_mode_active")));
+                return 0;
+            }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":-1}}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":0},\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, setDeepSleepTimer)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setDeepSleepTimer"), _T("{}"), response));
+
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetDeepSleepTimeOut)));
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setDeepSleepTimer"), _T("{\"seconds\":5}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, setNetworkStandbyMode)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setNetworkStandbyMode"), _T("{}"), response));
+
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetNetworkStandbyMode)));
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setNetworkStandbyMode"), _T("{\"nwStandby\":true}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, getNetworkStandbyMode)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_GetNetworkStandbyMode)));
+                auto param = static_cast<IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t*>(arg);
+                param->bStandbyMode = true;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getNetworkStandbyMode"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"nwStandby\":true,\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, setPreferredStandbyMode)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{}"), response));
+
+    ON_CALL(hostImplMock, setPreferredSleepMode)
+        .WillByDefault(::testing::Return(0));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{\"standbyMode\":\"LIGHT_SLEEP\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    ON_CALL(hostImplMock, setPreferredSleepMode)
+        .WillByDefault(::testing::Invoke(
+            [](const device::SleepMode) -> int {
+                throw device::Exception("test");
+            }));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{\"standbyMode\":\"LIGHT_SLEEP\"}"), response));
+}
+
+TEST_F(SystemServicesTest, getPreferredStandbyMode)
+{
+    device::SleepMode mode;
+    SleepModeMock sleepModeMock;
+    mode.impl = &sleepModeMock;
+    string sleepModeString(_T("DEEP_SLEEP"));
+
+    ON_CALL(hostImplMock, getPreferredSleepMode)
+        .WillByDefault(::testing::Return(mode));
+    ON_CALL(sleepModeMock, toString)
+        .WillByDefault(::testing::ReturnRef(sleepModeString));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPreferredStandbyMode"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"preferredStandbyMode\":\"DEEP_SLEEP\",\"success\":true}"));
+
+    ON_CALL(hostImplMock, getPreferredSleepMode)
+        .WillByDefault(::testing::Invoke(
+            []() -> device::SleepMode {
+                throw device::Exception("test");
+            }));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getPreferredStandbyMode"), _T("{}"), response));
+}
+
+TEST_F(SystemServicesTest, getAvailableStandbyModes)
+{
+    device::SleepMode mode;
+    SleepModeMock sleepModeMock;
+    mode.impl = &sleepModeMock;
+    string sleepModeString(_T("DEEP_SLEEP"));
+
+    ON_CALL(hostImplMock, getAvailableSleepModes)
+        .WillByDefault(::testing::Return(std::vector<device::SleepMode>({ mode })));
+    ON_CALL(sleepModeMock, toString)
+        .WillByDefault(::testing::ReturnRef(sleepModeString));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAvailableStandbyModes"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"supportedStandbyModes\":[\"DEEP_SLEEP\"],\"success\":true}"));
+
+    ON_CALL(hostImplMock, getAvailableSleepModes)
+        .WillByDefault(::testing::Invoke(
+            []() -> device::List<device::SleepMode> {
+                throw device::Exception("test");
+            }));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getAvailableStandbyModes"), _T("{}"), response));
+}
+
+TEST_F(SystemServicesTest, getWakeupReason)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_IR;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_IR\",\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, getLastWakeupKeyCode)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupKeyCode)));
+                auto param = static_cast<IARM_Bus_DeepSleepMgr_WakeupKeyCode_Param_t*>(arg);
+                param->keyCode = 5;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getLastWakeupKeyCode"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupKeyCode\":5,\"success\":true}"));
 }

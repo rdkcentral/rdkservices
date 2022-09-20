@@ -63,10 +63,10 @@ XCast interface methods:
 ## *getApiVersionNumber*
 
 Gets the API version.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -109,10 +109,10 @@ This method takes no parameters.
 ## *getEnabled*
 
 Reports whether xcast is enabled or disabled.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -155,10 +155,10 @@ This method takes no parameters.
 ## *getFriendlyName*
 
 Returns the friendly name set by setFriendlyName API.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -201,10 +201,10 @@ This method takes no parameters.
 ## *getProtocolVersion*
 
 Returns the DIAL protocol version supported by the server.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -247,10 +247,10 @@ This method takes no parameters.
 ## *getStandbyBehavior*
 
 Gets the expected xcast behavior in standby mode.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -302,11 +302,11 @@ The following table provides a client error mapping example:
 | `forbidden` | The user is not allowed to change the state of the application. This is not related to user account authentication of the native application | HTTP 403 Forbidden |  
 | `unavailable` | The target native application is not available on the device | HTTP 404 Not Found |  
 | `invalid` | The request is invalid (bad parameter for example) | HTTP 400 Bad Request |  
-| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |
-  
-### Events 
+| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -359,10 +359,10 @@ The following table provides a client error mapping example:
 ## *registerApplications*
 
 Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -409,10 +409,10 @@ Registers an application. This allows to whitelist the apps which support dial s
 ## *setEnabled*
 
 Enables or disables xcast.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -459,10 +459,10 @@ Enables or disables xcast.
 ## *setFriendlyName*
 
 Sets the friendly name of device. It allows an application to override the default friendly name value with the friendly name passed as an argument.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -509,10 +509,10 @@ Sets the friendly name of device. It allows an application to override the defau
 ## *setStandbyBehavior*
 
 Sets the expected xcast behavior in standby mode. It allows an application to override controls on xcast behavior in standby mode. The default behavior in STANDBY mode is inactive, so client device can not discover the server. When STANDBY behavior is active, client device can discover the server.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 

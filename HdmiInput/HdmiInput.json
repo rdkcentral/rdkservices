@@ -56,7 +56,7 @@
     },
     "methods": {
         "getHDMIInputDevices": {
-            "summary": "Returns an array of available HDMI Input ports.\n \n### Events\n \nNo Events.",
+            "summary": "Returns an array of available HDMI Input ports.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -74,7 +74,7 @@
             }
         },
         "getEdidVersion":{
-            "summary": "(Version 2) Returns the EDID version.\n \n### Events\n \nNo Events.",
+            "summary": "(Version 2) Returns the EDID version.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -105,7 +105,7 @@
             }
         },
         "getHDMISPD": {
-            "summary": "(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.\n \n### Events\n \nNo Events.",
+            "summary": "(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -136,7 +136,7 @@
             }
         },
         "getRawHDMISPD":{
-            "summary": "(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.\n \n### Events\n \nNo Events.",
+            "summary": "(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -167,7 +167,7 @@
             }
         },
         "readEDID":{
-            "summary": "Returns the current EDID value.\n \n### Events\n \nNo Events.",
+            "summary": "Returns the current EDID value.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -198,11 +198,11 @@
             }
         },
         "startHdmiInput": {
-            "summary": "Activates the specified HDMI Input port as the primary video source.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onInputStatusChanged` | Triggers the event when HDMI Input source is activated and Input status changes to `started` | \n| `onSignalChanged` | Triggers the event when HDMI Input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal)",
-            "events": [
-                "onInputStatusChanged",
-                "onSignalChanged"
-            ],
+            "summary": "Activates the specified HDMI Input port as the primary video source.",
+            "events": {
+                "onInputStatusChanged" : "Triggers the event when HDMI Input source is activated and Input status changes to started",
+                "onSignalChanged" : "Triggers the event when HDMI Input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal)."
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -219,10 +219,10 @@
             }
         },
         "stopHdmiInput": {
-            "summary": "Deactivates the HDMI Input port currently selected as the primary video source.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onInputStatusChanged` | Triggers the event when HDMI Input source is deactivated and Input status changes to `stopped`",
-            "events": [
-                "onInputStatusChanged"
-            ],
+            "summary": "Deactivates the HDMI Input port currently selected as the primary video source.",
+            "events": {
+                "onInputStatusChanged" : "Triggers the event when HDMI Input source is deactivated and Input status changes to `stopped`"
+            },
             "result": {
                 "type": "object",
                 "properties": {
@@ -236,7 +236,7 @@
             }            
         },
         "setEdidVersion": {
-            "summary": "(Version 2) Sets an HDMI EDID version.\n \n### Events\n \nNo Events.",
+            "summary": "(Version 2) Sets an HDMI EDID version.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -259,7 +259,7 @@
             }
         },
         "setVideoRectangle": {
-            "summary": "Sets an HDMI Input video window.\n \n### Events\n \nNo Events.",
+            "summary": "Sets an HDMI Input video window.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -295,7 +295,7 @@
             }
         },
         "writeEDID": {
-            "summary": "Changes a current EDID value.\n \n### Events\n \nNo Events.",
+            "summary": "Changes a current EDID value.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -320,7 +320,7 @@
             }
         },
         "getSupportedGameFeatures":{
-            "summary": "Returns the list of supported game features.\n \n### Events\n \nNo Events.",
+            "summary": "Returns the list of supported game features.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -340,7 +340,7 @@
             }
         },
        "getHdmiGameFeatureStatus":{
-            "summary": "Returns the Game Feature Status. For example: ALLM\n \n### Events\n \nNo Events.",
+            "summary": "Returns the Game Feature Status. For example: ALLM",
             "params": {
                 "type":"object",
                 "properties": {

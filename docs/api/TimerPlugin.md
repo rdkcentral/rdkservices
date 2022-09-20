@@ -59,10 +59,10 @@ Timer interface methods:
 ## *cancel*
 
 Stops the specified timer.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -109,10 +109,10 @@ No Events.
 ## *getTimers*
 
 Gets the status of all timers.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -171,10 +171,10 @@ This method takes no parameters.
 ## *getTimerStatus*
 
 Gets the status of the specified timer.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -231,10 +231,10 @@ No Events.
 ## *resume*
 
 Resumes the specified timer.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -281,16 +281,13 @@ No Events.
 ## *startTimer*
 
 Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.
- 
+
 ### Events
- 
-| Event | Description | 
-| :-------- | :-------- | 
-| `timerExpired` | Triggered when a timer expires | 
-| `timerExpiryReminder` | Triggered to remind that, the timer will expire in remindBefore value in seconds |.
 
-Also see: [timerExpired](#timerExpired), [timerExpiryReminder](#timerExpiryReminder)
-
+| Event | Description |
+| :-------- | :-------- |
+| [timerExpired](#timerExpired) | Triggered when a timer expires |
+| [timerExpiryReminder](#timerExpiryReminder) | Triggered to remind that, the timer will expire in remindBefore value in seconds |
 ### Parameters
 
 | Name | Type | Description |
@@ -344,10 +341,10 @@ Also see: [timerExpired](#timerExpired), [timerExpiryReminder](#timerExpiryRemin
 ## *suspend*
 
 Suspends the specified timer.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 

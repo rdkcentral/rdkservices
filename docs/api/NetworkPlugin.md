@@ -71,11 +71,11 @@ Network interface methods:
 <a name="getDefaultInterface"></a>
 ## *getDefaultInterface*
 
-Gets the default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface. 
-  
-### Events 
+Gets the default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -117,11 +117,11 @@ This method takes no parameters.
 <a name="getInterfaces"></a>
 ## *getInterfaces*
 
-Returns a list of interfaces supported by this device including their state. 
-  
-### Events 
+Returns a list of interfaces supported by this device including their state.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -175,11 +175,11 @@ This method takes no parameters.
 <a name="getIPSettings"></a>
 ## *getIPSettings*
 
-Gets the IP setting for the given interface. 
-  
-### Events 
+Gets the IP setting for the given interface.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -245,11 +245,11 @@ Gets the IP setting for the given interface.
 <a name="getNamedEndpoints"></a>
 ## *getNamedEndpoints*
 
-Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`. 
-  
-### Events 
+Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -294,11 +294,11 @@ This method takes no parameters.
 <a name="getQuirks"></a>
 ## *getQuirks*
 
-Get standard string `RDK-20093`. 
-  
-### Events 
+Get standard string `RDK-20093`.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -340,11 +340,11 @@ This method takes no parameters.
 <a name="getStbIp"></a>
 ## *getStbIp*
 
-Gets the IP address of the default interface. 
-  
-### Events 
+Gets the IP address of the default interface.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -386,11 +386,11 @@ This method takes no parameters.
 <a name="getSTBIPFamily"></a>
 ## *getSTBIPFamily*
 
-Gets the IP address of the default interface by address family. 
-  
-### Events 
+Gets the IP address of the default interface by address family.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -438,11 +438,11 @@ Gets the IP address of the default interface by address family.
 <a name="isConnectedToInternet"></a>
 ## *isConnectedToInternet*
 
-Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity. 
-  
-### Events 
+Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -484,11 +484,11 @@ This method takes no parameters.
 <a name="isInterfaceEnabled"></a>
 ## *isInterfaceEnabled*
 
-Whether the specified interface is enabled. 
-  
-### Events 
+Whether the specified interface is enabled.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -536,11 +536,11 @@ Whether the specified interface is enabled.
 <a name="ping"></a>
 ## *ping*
 
-Pings the specified endpoint with the specified number of packets. 
-  
-### Events 
+Pings the specified endpoint with the specified number of packets.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -610,11 +610,11 @@ Pings the specified endpoint with the specified number of packets.
 <a name="pingNamedEndpoint"></a>
 ## *pingNamedEndpoint*
 
-Pings the specified named endpoint with the specified number of packets. Only names returned by `getNamedEndpoints` can be used. The named endpoint is resolved to a specific host or IP address on the device side based on the `endpointName`. 
-  
-### Events 
+Pings the specified named endpoint with the specified number of packets. Only names returned by `getNamedEndpoints` can be used. The named endpoint is resolved to a specific host or IP address on the device side based on the `endpointName`.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -684,11 +684,11 @@ Pings the specified named endpoint with the specified number of packets. Only na
 <a name="setConnectivityTestEndpoints"></a>
 ## *setConnectivityTestEndpoints*
 
-Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5. 
-  
-### Events 
+Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -738,17 +738,15 @@ Sets the default list of endpoints used for a connectivity test. Maximum number 
 ## *setDefaultInterface*
 
 Sets the default interface. The call fails if the interface is not enabled.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onDefaultInterfaceChanged` | Triggered when device's default interface changed.| 
-| `onInterfaceStatusChanged` | Triggered when interface's status changes to enabled/disabled. | 
-| `onConnectionStatusChanged` | Triggered when the device connects to router. | 
-| `onIPAddressStatusChanged` | Triggered when each IP address is lost or acquired.|.
 
-Also see: [onInterfaceStatusChanged](#onInterfaceStatusChanged), [onConnectionStatusChanged](#onConnectionStatusChanged), [onIPAddressStatusChanged](#onIPAddressStatusChanged), [onDefaultInterfaceChanged](#onDefaultInterfaceChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onInterfaceStatusChanged](#onInterfaceStatusChanged) | Triggered when device’s default interface changed. |
+| [onConnectionStatusChanged](#onConnectionStatusChanged) | Triggered when interface’s status changes to enabled/disabled. |
+| [onIPAddressStatusChanged](#onIPAddressStatusChanged) | Triggered when the device connects to router. |
+| [onDefaultInterfaceChanged](#onDefaultInterfaceChanged) | Triggered when each IP address is lost or acquired. |
 ### Parameters
 
 | Name | Type | Description |
@@ -796,14 +794,12 @@ Also see: [onInterfaceStatusChanged](#onInterfaceStatusChanged), [onConnectionSt
 ## *setInterfaceEnabled*
 
 Enables the specified interface.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onInterfaceStatusChanged` | Triggered when interface's status changes to enabled/disabled.|.
 
-Also see: [onInterfaceStatusChanged](#onInterfaceStatusChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onInterfaceStatusChanged](#onInterfaceStatusChanged) | Triggered when interface’s status changes to enabled/disabled. |
 ### Parameters
 
 | Name | Type | Description |
@@ -852,15 +848,13 @@ Also see: [onInterfaceStatusChanged](#onInterfaceStatusChanged)
 <a name="setIPSettings"></a>
 ## *setIPSettings*
 
-Sets the IP settings.All the inputs are mandatory for v1. But for v2, the interface and autconfig params are mandatory input to autoconfig IP settings & other parameters not required. For manual IP, all the input parameters are mandatory except secondaryDNS 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onIPAddressStatusChanged` | Triggered when each IP address is lost or acquired.|.
+Sets the IP settings.All the inputs are mandatory for v1. But for v2, the interface and autconfig params are mandatory input to autoconfig IP settings & other parameters not required. For manual IP, all the input parameters are mandatory except secondaryDNS.
 
-Also see: [onIPAddressStatusChanged](#onIPAddressStatusChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onIPAddressStatusChanged](#onIPAddressStatusChanged) | Triggered when each IP address is lost or acquired. |
 ### Parameters
 
 | Name | Type | Description |
@@ -921,11 +915,11 @@ Also see: [onIPAddressStatusChanged](#onIPAddressStatusChanged)
 <a name="getPublicIP"></a>
 ## *getPublicIP*
 
-It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address. 
-  
-### Events 
+It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -975,11 +969,11 @@ It allows either zero parameter or with only interface and ipv6 parameter to det
 <a name="setStunEndPoint"></a>
 ## *setStunEndPoint*
 
-Set the Stun Endpoint used for getPublicIP. 
-  
-### Events 
+Set the Stun Endpoint used for getPublicIP.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1033,11 +1027,11 @@ Set the Stun Endpoint used for getPublicIP.
 <a name="trace"></a>
 ## *trace*
 
-Traces the specified endpoint with the specified number of packets using `traceroute`. 
-  
-### Events 
+Traces the specified endpoint with the specified number of packets using `traceroute`.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1091,11 +1085,11 @@ Traces the specified endpoint with the specified number of packets using `tracer
 <a name="traceNamedEndpoint"></a>
 ## *traceNamedEndpoint*
 
-Traces the specified named endpoint with the specified number of packets using `traceroute`. 
-  
-### Events 
+Traces the specified named endpoint with the specified number of packets using `traceroute`.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
