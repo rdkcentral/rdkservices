@@ -64,11 +64,11 @@ ControlService interface methods:
 <a name="canFindMyRemote"></a>
 ## *canFindMyRemote*
 
-Checks if the Control Manager can search for the remote. 
- 
+Checks if the Control Manager can search for the remote.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -113,11 +113,11 @@ Checks if the Control Manager can search for the remote.
 <a name="checkRf4ceChipConnectivity"></a>
 ## *checkRf4ceChipConnectivity*
 
-Checks Rf4ce chip connectivity status. 
- 
+Checks Rf4ce chip connectivity status.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -162,11 +162,11 @@ Checks Rf4ce chip connectivity status.
 <a name="endPairingMode"></a>
 ## *endPairingMode*
 
-Leaves pairing mode. 
- 
+Leaves pairing mode.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -214,14 +214,12 @@ Leaves pairing mode.
 ## *findLastUsedRemote*
 
 Searches for the last used remote.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onControl`| Triggered when the last used remote is successfully found |.
 
-Also see: [onControl](#onControl)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onControl](#onControl) | Triggered when the last used remote is successfully found |
 ### Parameters
 
 | Name | Type | Description |
@@ -268,11 +266,11 @@ Also see: [onControl](#onControl)
 <a name="getAllRemoteData"></a>
 ## *getAllRemoteData*
 
-Returns all remote data. 
- 
+Returns all remote data.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -504,11 +502,11 @@ Returns all remote data.
 <a name="getLastKeypressSource"></a>
 ## *getLastKeypressSource*
 
-Returns last key press source data. The data, if any, is returned as part of the `result` object. 
- 
+Returns last key press source data. The data, if any, is returned as part of the `result` object.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -567,11 +565,11 @@ Returns last key press source data. The data, if any, is returned as part of the
 <a name="getLastPairedRemoteData"></a>
 ## *getLastPairedRemoteData*
 
-Returns all remote data for the last paired remote. The data, if any, is returned as part of the `result` object. 
- 
+Returns all remote data for the last paired remote. The data, if any, is returned as part of the `result` object.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -767,11 +765,11 @@ Returns all remote data for the last paired remote. The data, if any, is returne
 <a name="getQuirks"></a>
 ## *getQuirks*
 
-Gets quirks. 
- 
+Gets quirks.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -819,11 +817,11 @@ Gets quirks.
 <a name="getSingleRemoteData"></a>
 ## *getSingleRemoteData*
 
-Returns all remote data for the specified remote. The data, if any, is returned as part of the `result` object. 
- 
+Returns all remote data for the specified remote. The data, if any, is returned as part of the `result` object.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1022,11 +1020,11 @@ Returns all remote data for the specified remote. The data, if any, is returned 
 <a name="getValues"></a>
 ## *getValues*
 
-Returns remote setting values. 
- 
+Returns remote setting values.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1087,11 +1085,11 @@ Returns remote setting values.
 <a name="setValues"></a>
 ## *setValues*
 
-Sets remote setting values. 
- 
+Sets remote setting values.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1151,11 +1149,11 @@ Sets remote setting values.
 <a name="startPairingMode"></a>
 ## *startPairingMode*
 
-Enters pairing mode. 
- 
+Enters pairing mode.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 

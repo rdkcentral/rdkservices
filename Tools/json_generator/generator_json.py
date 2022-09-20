@@ -2105,9 +2105,15 @@ def CreateDocument(schema, path):
             if "description" in props:
                 MdHeader("Description", 3)
                 MdParagraph(props["description"])
-            if "events" in props:
-                events = [props["events"]] if isinstance(props["events"], str) else props["events"]
-                MdParagraph("Also see: " + (", ".join(map(lambda x: link("event." + x), events))))
+            if type == "method" or is_property:
+                MdHeader("Events", 3)
+                if "events" in props:
+                    MdTableHeader(["Event", "Description"])
+                    event_dict = props["events"]
+                    for k,v in event_dict.items():
+                        MdRow([link("event." + k), v])
+                else:
+                    MdParagraph("No Events")
             if is_property:
                 MdHeader("Value", 3)
                 if not "description" in props["params"]:

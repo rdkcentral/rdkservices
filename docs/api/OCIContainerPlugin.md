@@ -62,10 +62,10 @@ OCIContainer interface methods:
 ## *executeCommand*
 
 Executes a command inside a running container. The path to the executable must resolve within the container's namespace.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -116,10 +116,10 @@ Executes a command inside a running container. The path to the executable must r
 ## *getContainerInfo*
 
 Gets information about a running container such as CPU, memory, and GPU usage (GPU not supported on Xi6).
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -207,10 +207,10 @@ Gets information about a running container such as CPU, memory, and GPU usage (G
 ## *getContainerState*
 
 Gets the state of a currently running container.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -261,10 +261,10 @@ Gets the state of a currently running container.
 ## *listContainers*
 
 Lists all running OCI containers Dobby knows about.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -315,10 +315,10 @@ This method takes no parameters.
 ## *pauseContainer*
 
 Pauses a currently running container.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -365,10 +365,10 @@ Pauses a currently running container.
 ## *resumeContainer*
 
 Resumes a previously paused container.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -414,15 +414,13 @@ Resumes a previously paused container.
 <a name="startContainer"></a>
 ## *startContainer*
 
-Starts a new container from an existing OCI bundle. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onContainerStarted` |  Triggers when a new container starts running.|.
+Starts a new container from an existing OCI bundle.
 
-Also see: [onContainerStarted](#onContainerStarted)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onContainerStarted](#onContainerStarted) | Triggers when a new container starts running. |
 ### Parameters
 
 | Name | Type | Description |
@@ -481,14 +479,12 @@ Also see: [onContainerStarted](#onContainerStarted)
 ## *startContainerFromDobbySpec*
 
 Starts a new container from a legacy Dobby JSON specification.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onContainerStarted` |  Triggers when a new container starts running.|.
 
-Also see: [onContainerStarted](#onContainerStarted)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onContainerStarted](#onContainerStarted) | Triggers when a new container starts running. |
 ### Parameters
 
 | Name | Type | Description |
@@ -541,15 +537,13 @@ Also see: [onContainerStarted](#onContainerStarted)
 <a name="stopContainer"></a>
 ## *stopContainer*
 
-Stops a currently running container. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onContainerStopped` | Triggers when the container stops running.|.
+Stops a currently running container.
 
-Also see: [onContainerStopped](#onContainerStopped)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onContainerStopped](#onContainerStopped) | Triggers when the container stops running. |
 ### Parameters
 
 | Name | Type | Description |

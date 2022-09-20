@@ -86,7 +86,7 @@
             }
         },
         "currentVideoMode": {
-            "summary": "Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution. \n \n### Events\n \n No Events.",
+            "summary": "Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution.",
             "params": {
                 "summary": "An empty parameter object",
                 "type": "object",
@@ -117,7 +117,7 @@
             }
         },
         "numberOfInputs" : {
-            "summary": "Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`. \n \n### Events\n \n No Events.",
+            "summary": "Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`.",
             "params": {
                 "summary": "An empty parameter object",
                 "type": "object",
@@ -148,7 +148,7 @@
             }
         },
         "getInputDevices": {
-            "summary": "Returns an array of available HDMI/Composite Input ports.\n \n### Events\n \nNo Events.",
+            "summary": "Returns an array of available HDMI/Composite Input ports.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -176,7 +176,7 @@
             ]
         },
         "getEdidVersion":{
-            "summary": "Returns the EDID version.\n \n### Events\n \nNo Events.",
+            "summary": "Returns the EDID version.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -213,7 +213,7 @@
             ]
         },
         "getSPD": {
-            "summary": "Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.\n \n### Events\n \nNo Events.",
+            "summary": "Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -250,7 +250,7 @@
             ]
         },
         "getRawSPD":{
-            "summary": "Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.\n \n### Events\n \nNo Events.",
+            "summary": "Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -287,7 +287,7 @@
             ]
         },
         "readEDID":{
-            "summary": "Returns the current EDID value.\n \n### Events\n \nNo Events.",
+            "summary": "Returns the current EDID value.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -324,11 +324,11 @@
             ]
         },
         "startInput": {
-            "summary": "Activates the specified HDMI/Composite Input port as the primary video source.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onInputStatusChanged` | Triggers the event when HDMI/Composite Input source is activated and Input status changes to `started` | \n| `onSignalChanged` | Triggers the event when HDMI/Composite Input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal)",
-            "events": [
-                "onInputStatusChanged",
-                "onSignalChanged"
-            ],
+            "summary": "Activates the specified HDMI/Composite Input port as the primary video source.",
+            "events": {
+                "onInputStatusChanged" : "Triggers the event when HDMI/Composite Input source is activated and Input status changes to `started`",
+                "onSignalChanged" : "Triggers the event when HDMI/Composite Input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal)"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -359,10 +359,10 @@
             ]
         },
         "stopInput": {
-            "summary": "Deactivates the HDMI/Composite Input port currently selected as the primary video source.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onInputStatusChanged` | Triggers the event when HDMI/Composite Input source is deactivated and Input status changes to `stopped`",
-            "events": [
-                "onInputStatusChanged"
-            ],
+            "summary": "Deactivates the HDMI/Composite Input port currently selected as the primary video source.",
+            "events": {
+                "onInputStatusChanged" : "Triggers the event when HDMI/Composite Input source is deactivated and Input status changes to `stopped`"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -389,7 +389,7 @@
             ]
         },
         "setEdidVersion": {
-            "summary": "Sets an HDMI EDID version.\n \n### Events\n \nNo Events.",
+            "summary": "Sets an HDMI EDID version.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -422,7 +422,7 @@
             ]
         },
         "setVideoRectangle": {
-            "summary": "Sets an HDMI/Composite Input video window.\n \n### Events\n \nNo Events.",
+            "summary": "Sets an HDMI/Composite Input video window.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -473,7 +473,7 @@
             ]
         },
         "writeEDID": {
-            "summary": "Changes a current EDID value.\n \n### Events\n \nNo Events.",
+            "summary": "Changes a current EDID value.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -502,7 +502,7 @@
             ]
         },
        "getSupportedGameFeatures":{
-            "summary": "Returns the list of supported game features.\n \n### Events\n \nNo Events.",
+            "summary": "Returns the list of supported game features.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -527,7 +527,7 @@
             ]
         },
        "getGameFeatureStatus":{
-            "summary": "Returns the Game Feature Status. For example: ALLM\n \n### Events\n \nNo Events.",
+            "summary": "Returns the Game Feature Status. For example: ALLM.",
             "params": {
                 "type":"object",
                 "properties": {

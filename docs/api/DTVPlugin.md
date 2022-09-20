@@ -60,10 +60,10 @@ DTV interface methods:
 ## *addLnb*
 
 Add a new LNB to the database.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -133,10 +133,10 @@ Add a new LNB to the database.
 ## *addSatellite*
 
 Add a new satellite to the database.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -184,15 +184,13 @@ Add a new satellite to the database.
 ## *startServiceSearch*
 
 Starts a service search.
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-|`searchstatus`|Triggered during the course of a service search.|
- |`serviceupdated`|Triggered when a service is added|.
 
-Also see: [searchstatus](#searchstatus), [serviceupdated](#serviceupdated)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [searchstatus](#searchstatus) |  Triggered during the course of a service search. |
+| [serviceupdated](#serviceupdated) | Triggered when a service is added |
 ### Parameters
 
 | Name | Type | Description |
@@ -280,10 +278,10 @@ Also see: [searchstatus](#searchstatus), [serviceupdated](#serviceupdated)
 ## *finishServiceSearch*
 
 Finishes a service search.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -329,18 +327,16 @@ Finishes a service search.
 ## *startPlaying*
 
 Starts playing the specified service.
-  
+
 ### Events
+
 | Event | Description |
-| :----------- | :----------- |
-|`serviceupdated`|Triggered when info for a service changes|
-|`eventchanged`|Triggered when the EIT 'now' event changes|
-|`videochanged`|Triggered when the video PID or codec are changed|
-|`audiochanged`|Triggered when the audio PID or codec are changed|
-|`subtitleschanged`|Triggered when the subtitle PID or details are changed| .
-
-Also see: [serviceupdated](#serviceupdated), [eventchanged](#eventchanged), [videochanged](#videochanged), [audiochanged](#audiochanged), [subtitleschanged](#subtitleschanged)
-
+| :-------- | :-------- |
+| [serviceupdated](#serviceupdated) | Triggered when info for a service changes |
+| [eventchanged](#eventchanged) | Triggered when the EIT ‘now’ event changes |
+| [videochanged](#videochanged) | Triggered when the video PID or codec are changed |
+| [audiochanged](#audiochanged) | Triggered when the audio PID or codec are changed |
+| [subtitleschanged](#subtitleschanged) | Triggered when the subtitle PID or details are changed |
 ### Parameters
 
 | Name | Type | Description |
@@ -387,10 +383,10 @@ Also see: [serviceupdated](#serviceupdated), [eventchanged](#eventchanged), [vid
 ## *stopPlaying*
 
 Stops playing the specified service.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -460,6 +456,10 @@ Provides access to the number of country configurations available.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -494,6 +494,10 @@ Provides access to the number of country configurations available.
 Provides access to the array containing the name and 3 character ISO country code for all the available country configurations.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -535,6 +539,10 @@ Provides access to the array containing the name and 3 character ISO country cod
 ## *country*
 
 Provides access to the country configuration using the ISO 3-character country code.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -591,6 +599,10 @@ Provides access to the country configuration using the ISO 3-character country c
 Provides access to the array of LNBs defined in the database.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -659,6 +671,10 @@ Provides access to the array of satellites defined in the database.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -704,6 +720,10 @@ Provides access to the total number of services in the service database.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -738,6 +758,10 @@ Provides access to the total number of services in the service database.
 Provides access to the list of services for the given type of tuner, transport (version 2), or all services if neither is given.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -800,6 +824,10 @@ Provides access to the information for the given service as defined by its DVB t
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -857,6 +885,10 @@ Provides access to the information for the given service as defined by its DVB t
 Provides access to the (Version 2) array of components for the given service defined by its URI.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -946,6 +978,10 @@ Provides access to the information for the given transport as defined by its DVB
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -1032,6 +1068,10 @@ Provides access to the information for the given transport as defined by its DVB
 Provides access to the now and next events (EITp/f) for the given service.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -1123,6 +1163,10 @@ Provides access to the events which are scheduled (EITsched) for the given servi
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -1187,6 +1231,10 @@ Provides access to the extended event info for the given service and event ID (v
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -1237,6 +1285,10 @@ Provides access to the information related to the play handle defined by the ind
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -1284,6 +1336,10 @@ Provides access to the information related to the play handle defined by the ind
 Provides access to the strength and quality of the currently tuned signal for the given play handle (version 2).
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 

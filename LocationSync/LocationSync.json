@@ -14,7 +14,10 @@
     },
     "methods": {
         "sync": {
-            "summary": "Synchronizes the location. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `locationchange` | Signals the change of location |",
+            "summary": "Synchronizes the location.",
+            "events": {
+                "locationchange" : "Signals the change of location"
+            },
             "result": {
                 "$ref": "#/common/results/void"
             },

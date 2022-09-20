@@ -82,10 +82,10 @@ WebKitBrowser interface methods:
 ## *bridgeevent*
 
 Sends a legacy `$badger` 
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -126,10 +126,10 @@ Sends a legacy `$badger`
 ## *bridgereply*
 
 A response for legacy `$badger`.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -170,10 +170,10 @@ A response for legacy `$badger`.
 ## *delete*
 
 Removes the contents of a directory recursively from the persistent storage.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -246,6 +246,10 @@ Provides access to the current number of frames-per-second the browser is render
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -282,10 +286,10 @@ Provides access to the headers to send on all requests that the browser makes.
 ### Description
 
 Use this property to send on all requests that the browser makes.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Value
 
@@ -357,10 +361,10 @@ Provides access to the HTTP cookies accept policy.
 ### Description
 
 Use this property to accept HTTP cookie policy.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Value
 
@@ -425,10 +429,10 @@ Provides access to the user preferred languages.
 ### Description
 
 Use this property to return User preferred languages.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Value
 
@@ -492,10 +496,10 @@ Provides access to the local storage availability.
 ### Description
 
 Use this property to return Local storage availability.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Value
 
@@ -554,14 +558,12 @@ Provides access to the running state of the service.
 ### Description
 
 Use this property to return the running state of the service.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `statechange`| Triggered if the state of the service changes.|
 
-Also see: [statechange](#statechange)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [statechange](#statechange) | Triggered if the state of the service changes. |
 ### Value
 
 | Name | Type | Description |
@@ -619,16 +621,14 @@ Provides access to the URL loaded in the browser.
 ### Description
 
 Use this property to load URL in the browser.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `urlchange`| Triggered if the URL changes in the browser | 
- |`loadfinished`| Triggered if the `urlchange` event returns `true` as URL loaded successfully |
- |`loadfailed`| Triggered if the `urlchange` event returns `false` as URL failed to load |
 
-Also see: [urlchange](#urlchange)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [urlchange](#urlchange) | Triggered if the URL changes in the browser |
+| [loadfinished](#loadfinished) | Triggered if the urlchange event returns true as URL loaded successfully |
+| [loadfailed](#loadfailed) | Triggered if the urlchange event returns false as URL failed to load |
 ### Value
 
 | Name | Type | Description |
@@ -692,10 +692,10 @@ Provides access to the `UserAgent` string used by the browser.
 ### Description
 
 Use this property to return `UserAgent` string used by the browser.
- 
-### Events 
 
- No Events. 
+### Events
+
+No Events
 
 ### Value
 
@@ -754,14 +754,12 @@ Provides access to the current browser visibility.
 ### Description
 
 Use this property to return visibilty status of current browser.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `visibilitychange`| Triggered if the browser visibility changes.|
 
-Also see: [visibilitychange](#visibilitychange)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [visibilitychange](#visibilitychange) | Triggered if the urlchange event returns false as URL failed to load |
 ### Value
 
 | Name | Type | Description |

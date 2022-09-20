@@ -56,8 +56,10 @@ Monitor interface methods:
 ## *restartlimits*
 
 Sets new restart limits for a service.
- ### Events 
-No Events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -108,8 +110,10 @@ No Events.
 ## *resetstats*
 
 Resets memory and process statistics for a single service watched by the Monitor.
- ### Events 
-No Events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -228,6 +232,10 @@ Monitor interface properties:
 Provides access to the service statistics.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 

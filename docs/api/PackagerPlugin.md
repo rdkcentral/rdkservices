@@ -55,6 +55,10 @@ Packager interface methods:
 
 Installs a package given by a name, a URL, or a file path.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -107,6 +111,10 @@ Installs a package given by a name, a URL, or a file path.
 ## *synchronize*
 
 Synchronizes the repository manifest with a repository.
+
+### Events
+
+No Events
 
 ### Parameters
 

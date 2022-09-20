@@ -56,6 +56,10 @@ ContinueWatching interface methods:
 
 Deletes the stored tokens for a particular application.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -101,6 +105,10 @@ Deletes the stored tokens for a particular application.
 ## *getApplicationToken*
 
 Retrieves the tokens for a particular application.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -157,6 +165,10 @@ Retrieves the tokens for a particular application.
 ## *setApplicationToken*
 
 Sets the given tokens for an application.
+
+### Events
+
+No Events
 
 ### Parameters
 

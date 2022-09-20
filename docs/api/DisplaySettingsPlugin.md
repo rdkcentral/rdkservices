@@ -131,10 +131,10 @@ DisplaySettings interface methods:
 ## *enableSurroundDecoder*
 
 Enables or disables Surround Decoder capability. The Surround Decoder is an upmixer that takes stereo music content, or surround-encoded two-channel movie content, and creates a high-quality multichannel upmix. If the Surround Decoder is enabled, two-channel signals and 5.1-channel signals are upmixed to 5.1.2.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -183,10 +183,10 @@ Enables or disables Surround Decoder capability. The Surround Decoder is an upmi
 ## *getActiveInput*
 
 Returns `true` if the STB HDMI output is currently connected to the active input of the sink device (determined by `RxSense`).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -235,10 +235,10 @@ Returns `true` if the STB HDMI output is currently connected to the active input
 ## *getAudioDelay*
 
 Returns the audio delay (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -287,10 +287,10 @@ Returns the audio delay (in ms) on the selected audio port. If the `audioPort` a
 ## *getAudioDelayOffset*
 
 Returns the audio delay offset (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -339,10 +339,10 @@ Returns the audio delay offset (in ms) on the selected audio port. If the `audio
 ## *getAudioFormat*
 
 Returns the currently set audio format.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -390,10 +390,10 @@ This method takes no parameters.
 ## *getBassEnhancer*
 
 Returns the current status of the Bass Enhancer settings.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -444,10 +444,10 @@ Returns the current status of the Bass Enhancer settings.
 ## *getConnectedAudioPorts*
 
 Returns connected audio output ports (a subset of the ports supported on the device). For SPDIF supported platforms, SPDIF port is always considered connected. HDMI port may or may not be connected.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -493,10 +493,10 @@ This method takes no parameters.
 ## *getConnectedVideoDisplays*
 
 Returns connected video displays.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -542,10 +542,10 @@ This method takes no parameters.
 ## *getCurrentOutputSettings*
 
 Returns current output settings.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -596,10 +596,10 @@ This method takes no parameters.
 ## *getCurrentResolution*
 
 Returns the current resolution on the selected video display port.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -648,10 +648,10 @@ Returns the current resolution on the selected video display port.
 ## *getDefaultResolution*
 
 Gets the default resolution supported by the HDMI0 video output port.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -694,10 +694,10 @@ This method takes no parameters.
 ## *getDialogEnhancement*
 
 Returns the current Dialog Enhancer level (port HDMI0).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -748,10 +748,10 @@ Returns the current Dialog Enhancer level (port HDMI0).
 ## *getDolbyVolumeMode*
 
 Returns whether Dolby Volume mode is enabled or disabled (audio output port HDMI0).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -794,10 +794,10 @@ This method takes no parameters.
 ## *getDRCMode*
 
 Returns the current Dynamic Range Control mode.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -846,10 +846,10 @@ Returns the current Dynamic Range Control mode.
 ## *getEnableAudioPort*
 
  Returns the current status of the specified input audio port.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -898,10 +898,10 @@ Returns the current Dynamic Range Control mode.
 ## *getGain*
 
 Returns the current gain value.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -950,10 +950,10 @@ Returns the current gain value.
 ## *getGraphicEqualizerMode*
 
 Returns the current Graphic Equalizer Mode setting (port HDMI0).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1004,10 +1004,10 @@ Returns the current Graphic Equalizer Mode setting (port HDMI0).
 ## *getIntelligentEqualizerMode*
 
 Returns the current Intelligent Equalizer Mode setting (port HDMI0).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1058,10 +1058,10 @@ Returns the current Intelligent Equalizer Mode setting (port HDMI0).
 ## *getMISteering*
 
 Returns the current status of Media Intelligence Steering settings.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1110,10 +1110,10 @@ Returns the current status of Media Intelligence Steering settings.
 ## *getMS12AudioCompression*
 
 Returns the current audio compression settings.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1164,10 +1164,10 @@ Returns the current audio compression settings.
 ## *getMS12AudioProfile*
 
 Returns the current MS12 audio profile settings.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1216,10 +1216,10 @@ Returns the current MS12 audio profile settings.
 ## *getMuted*
 
 Returns whether audio is muted on a given port.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1268,10 +1268,10 @@ Returns whether audio is muted on a given port.
 ## *getPreferredColorDepth*
 
 Returns the current color depth on the selected video display port.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1322,10 +1322,10 @@ Returns the current color depth on the selected video display port.
 ## *getSettopAudioCapabilities*
 
 Returns the set-top audio capabilities for the specified audio port.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1377,10 +1377,10 @@ Returns the set-top audio capabilities for the specified audio port.
 ## *getSettopHDRSupport*
 
 Returns an HDR support object (list of standards that the STB supports).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1428,10 +1428,10 @@ This method takes no parameters.
 ## *getSettopMS12Capabilities*
 
 Returns the set-top MS12 audio capabilities for the specified audio port.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1483,10 +1483,10 @@ Returns the set-top MS12 audio capabilities for the specified audio port.
 ## *getSinkAtmosCapability*
 
 Returns the ATMOS capability of the sink (HDMI0).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1529,10 +1529,10 @@ This method takes no parameters.
 ## *getSoundMode*
 
 Returns the sound mode for the incoming video display. If the argument is `Null` or empty (although not recommended), this returns the output mode of all connected ports, whichever is connected, while giving priority to the HDMI port. If the video display is not connected, then it returns `Stereo` as a safe default.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1586,10 +1586,10 @@ For **Auto** mode in DS5, this API has the following extra specification:
 * For HDMI port, this API returns `Stereo` mode, `Dolby Digital 5.1` mode and `Auto` mode; 
 * For SPDIF and HDMI ARC port, this API always returns `Surround` mode, `Stereo` mode, and `PASSTHRU` Mode;  
 * When `AUTO` mode is returned, it includes in parenthesis the best sound mode that the STB can output and the connected sink device can support, in the format of `AUTO` _(`Best Format`)_. For example, if the connected device supports surround, the auto mode string will be `AUTO (Dolby Digital 5.1)`.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1641,10 +1641,10 @@ For **Auto** mode in DS5, this API has the following extra specification:
 ## *getSupportedAudioPorts*
 
 Returns all audio ports supported on the device (all ports that are physically present).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1690,10 +1690,10 @@ This method takes no parameters.
 ## *getSupportedMS12AudioProfiles*
 
 Returns list of platform supported MS12 audio profiles for the specified audio port.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1745,10 +1745,10 @@ Returns list of platform supported MS12 audio profiles for the specified audio p
 ## *getSupportedResolutions*
 
 Returns supported resolutions on the selected video display port (both TV and STB) by its name.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1800,10 +1800,10 @@ Returns supported resolutions on the selected video display port (both TV and ST
 ## *getSupportedSettopResolutions*
 
 Returns supported STB resolutions.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1849,10 +1849,10 @@ This method takes no parameters.
 ## *getSupportedTvResolutions*
 
 Returns supported TV resolutions on the selected video display port.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1904,10 +1904,10 @@ Returns supported TV resolutions on the selected video display port.
 ## *getSupportedVideoDisplays*
 
 Returns all video ports supported on the device (all ports that are physically present).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1953,10 +1953,10 @@ This method takes no parameters.
 ## *getSurroundVirtualizer*
 
 (Version 2) Returns the current surround virtualizer boost settings.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2012,10 +2012,10 @@ Gets HDR capabilities supported by the TV. The following values (OR-ed value) ar
 * 2 - HDRSTANDARD_HLG  
 * 4 - HDRSTANDARD_DolbyVision  
 * 8 - HDRSTANDARD_TechnicolorPrime.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2058,10 +2058,10 @@ This method takes no parameters.
 ## *getTvHDRSupport*
 
 Returns an HDR support object (list of standards that the TV supports).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2109,10 +2109,10 @@ This method takes no parameters.
 ## *getVideoFormat*
 
 Returns the current and supported video formats.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2160,10 +2160,10 @@ This method takes no parameters.
 ## *getVideoPortStatusInStandby*
 
 Returns video port status in standby mode (failure if the port name is missing).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2214,10 +2214,10 @@ Returns video port status in standby mode (failure if the port name is missing).
 ## *getVolumeLevel*
 
 Returns the current volume level.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2266,10 +2266,10 @@ Returns the current volume level.
 ## *getVolumeLeveller*
 
 (Version 2) Returns the current Volume Leveller setting.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2320,10 +2320,10 @@ Returns the current volume level.
 ## *getZoomSetting*
 
 Returns the zoom setting value.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2366,10 +2366,10 @@ This method takes no parameters.
 ## *isConnectedDeviceRepeater*
 
 Indicates whether the device connected to the HDMI0 video output port is an HDCP repeater.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2412,10 +2412,10 @@ This method takes no parameters.
 ## *isSurroundDecoderEnabled*
 
 Returns the current status of Surround Decoder.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2464,10 +2464,10 @@ Returns the current status of Surround Decoder.
 ## *readEDID*
 
 Reads the EDID from the connected HDMI (output) device. Returns a key of `EDID` with a value of the base64 encoded byte array string representing the EDID.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2510,10 +2510,10 @@ This method takes no parameters.
 ## *readHostEDID*
 
 Reads the EDID of the host. Returns a key of `EDID` with a value of the base64 encoded raw byte array string representing the EDID.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2556,10 +2556,10 @@ This method takes no parameters.
 ## *resetBassEnhancer*
 
 Resets the dialog enhancer level to its default bassboost value.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2606,10 +2606,10 @@ Resets the dialog enhancer level to its default bassboost value.
 ## *resetDialogEnhancement*
 
 Resets the dialog enhancer level to its default enhancer level.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2656,10 +2656,10 @@ Resets the dialog enhancer level to its default enhancer level.
 ## *resetSurroundVirtualizer*
 
 Resets the surround virtualizer to its default boost value.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2706,10 +2706,10 @@ Resets the surround virtualizer to its default boost value.
 ## *resetVolumeLeveller*
 
 Resets the Volume Leveller level to default volume value.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2756,10 +2756,10 @@ Resets the Volume Leveller level to default volume value.
 ## *setAudioAtmosOutputMode*
 
 Sets ATMOS audio output mode (on HDMI0).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2806,10 +2806,10 @@ Sets ATMOS audio output mode (on HDMI0).
 ## *setAudioDelay*
 
 Sets the audio delay (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2858,10 +2858,10 @@ Sets the audio delay (in ms) on the selected audio port. If the `audioPort` argu
 ## *setAudioDelayOffset*
 
 Sets the audio delay offset (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2910,10 +2910,10 @@ Sets the audio delay offset (in ms) on the selected audio port. If the `audioPor
 ## *setBassEnhancer*
 
 Sets the Bass Enhancer. Bass Enhancer provides the consumer a single control to apply a fixed bass boost to correct for a lack of bass reproduction in the playback system.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2962,15 +2962,13 @@ Sets the Bass Enhancer. Bass Enhancer provides the consumer a single control to 
 ## *setCurrentResolution*
 
 Sets the current resolution.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `resolutionPreChange`| Triggered when the resolution of the video display is about to change.|
-| `resolutionChanged`| Triggered when the resolution is changed by the user and returns the current resolution.|.
 
-Also see: [resolutionPreChange](#resolutionPreChange), [resolutionChanged](#resolutionChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [resolutionPreChange](#resolutionPreChange) | Triggered when the resolution of the video display is about to change. |
+| [resolutionChanged](#resolutionChanged) | Triggered when the resolution is changed by the user and returns the current resolution. |
 ### Parameters
 
 | Name | Type | Description |
@@ -3022,10 +3020,10 @@ Also see: [resolutionPreChange](#resolutionPreChange), [resolutionChanged](#reso
 ## *setDialogEnhancement*
 
 Sets the Dialog Enhancer level.A dialog enhancer boosts the speech audio separately from other background content, without increasing the loudness.The method fails if no value is set.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3074,10 +3072,10 @@ Sets the Dialog Enhancer level.A dialog enhancer boosts the speech audio separat
 ## *setDolbyVolumeMode*
 
 Enables or disables Dolby Volume mode on audio track (audio output port HDMI0).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3124,10 +3122,10 @@ Enables or disables Dolby Volume mode on audio track (audio output port HDMI0).
 ## *setDRCMode*
 
 Sets the Dynamic Range Control (DRC) setting. DRC is a compression control applied to audio to limit the dynamic range to suit a specific listening situation. For default settings, RF mode is preferred for two-channel outputs (television speaker or headphone) and Line mode for multichannel outputs.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3176,10 +3174,10 @@ Sets the Dynamic Range Control (DRC) setting. DRC is a compression control appli
 ## *setEnableAudioPort*
 
 Enable or disable the specified audio port based on the input audio port name. This feature provides the consumer with a single user control to enable or disable the specified audio port.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3228,10 +3226,10 @@ Enable or disable the specified audio port based on the input audio port name. T
 ## *setForceHDRMode*
 
 Enables or disables the force HDR mode. If enabled, the HDR format that is currently configured on the device is used.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3278,10 +3276,10 @@ Enables or disables the force HDR mode. If enabled, the HDR format that is curre
 ## *setGain*
 
 Adjusts the gain on a specific port.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3330,10 +3328,10 @@ Adjusts the gain on a specific port.
 ## *setGraphicEqualizerMode*
 
 Sets the Graphic Equalizer Mode. The Graphic Equalizer is a multi-band equalizer that allows the end user to customize the sonic qualities of the system.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3382,10 +3380,10 @@ Sets the Graphic Equalizer Mode. The Graphic Equalizer is a multi-band equalizer
 ## *setIntelligentEqualizerMode*
 
 Sets the Intelligent Equalizer Mode (port HDMI0). An Intelligent Equalizer continuously monitors the audio spectrum and adjusts its equalization filter to transform the original audio tone into desired tone.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3434,10 +3432,10 @@ Sets the Intelligent Equalizer Mode (port HDMI0). An Intelligent Equalizer conti
 ## *setMISteering*
 
 Enables or Disables Media Intelligent Steering. Media Intelligence analyzes audio content and steers the Volume Leveler, the Dialogue Enhancer, the Intelligent Equalizer, and the Speaker Virtualizer, based on the type of audio content.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3486,10 +3484,10 @@ Enables or Disables Media Intelligent Steering. Media Intelligence analyzes audi
 ## *setMS12AudioCompression*
 
 Sets the audio dynamic range compression level (port HDMI0).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3538,10 +3536,10 @@ Sets the audio dynamic range compression level (port HDMI0).
 ## *setMS12AudioProfile*
 
 Sets the selected MS12 audio profile.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3590,6 +3588,10 @@ Sets the selected MS12 audio profile.
 ## *setMS12ProfileSettingsOverride*
 
 Overrides individual MS12 audio settings in order to optimize the customer experience (for example, enabling dialog enhancement in sports mode).
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3644,10 +3646,10 @@ Overrides individual MS12 audio settings in order to optimize the customer exper
 ## *setMuted*
 
 Mutes or unmutes audio on a specific port.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3697,6 +3699,10 @@ Mutes or unmutes audio on a specific port.
 
 Sets the current color depth for the videoDisplay.
 .
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3756,11 +3762,11 @@ Possible values:
 | `cvbs` | `on` (disables rgb) |  
 | `macrovision` | not implemented |  
 | `cgms` |  `disabled`, `copyNever`, `copyOnce`, `copyFreely`, or `copyNoMore` |  
-| `port` | `on` or `off` | 
- 
-### Event 
+| `port` | `on` or `off` |.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3809,10 +3815,10 @@ Possible values:
 ## *setSoundMode*
 
 Sets the current sound mode for the corresponding video display. If the `audioPort` argument value is missing or empty all ports are set.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3863,10 +3869,10 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 ## *setSurroundVirtualizer*
 
 (Version 2) Sets the Surround Virtualizer boost. The Speaker/Surround Virtualizer enables a surround sound signal (including one generated by the Surround Decoder) to be rendered over a device with built-in speakers or headphones.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3917,10 +3923,10 @@ Sets the current sound mode for the corresponding video display. If the `audioPo
 ## *setVideoPortStatusInStandby*
 
 Sets the specified video port status to be used in standby mode (failure if the port name is missing).
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -3971,10 +3977,10 @@ Sets the specified video port status to be used in standby mode (failure if the 
 ## *setVolumeLevel*
 
 Adjusts the Volume Level on a specific port.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -4023,10 +4029,10 @@ Adjusts the Volume Level on a specific port.
 ## *setVolumeLeveller*
 
 (Version 2) Sets the Volume Leveller level. Volume Leveller is an advanced volume-control solution that maintains consistent playback levels for content from different sources.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -4077,12 +4083,12 @@ Adjusts the Volume Level on a specific port.
 ## *setZoomSetting*
 
 Sets the current zoom value.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `zoomSettingsUpdated`| Triggered when the zoom setting changes and returns the zoom setting values for all video display types.|.
 
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [zoomSettingUpdated](#zoomSettingUpdated) | Triggered when the zoom setting changes and returns the zoom setting values for all video display types. |
 ### Parameters
 
 | Name | Type | Description |
@@ -4128,10 +4134,10 @@ Sets the current zoom value.
 ## *getColorDepthCapabilities*
 
 Returns supported color depth capabilities.
- 
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 

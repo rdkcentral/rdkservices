@@ -61,11 +61,11 @@ Returns HDCP-related data.
 * `2`: HDCP success  
 * `3`:  HDCP authentication failed after multiple retries  
 * `4`:  HDCP authentication in progress   
-* `5`: HDMI video port is disabled. 
- 
+* `5`: HDMI video port is disabled.
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -122,11 +122,11 @@ This method takes no parameters.
 <a name="getSettopHDCPSupport"></a>
 ## *getSettopHDCPSupport*
 
-Returns which version of HDCP is supported by the STB. 
- 
+Returns which version of HDCP is supported by the STB.
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 

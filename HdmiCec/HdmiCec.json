@@ -51,7 +51,7 @@
     },
     "methods": {
         "getActiveSourceStatus":{
-            "summary": "Gets the active source status of the device.\n  \n### Event \n\n No Events",
+            "summary": "Gets the active source status of the device.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -68,7 +68,7 @@
             }
         },
         "getCECAddresses":{
-            "summary": "Returns the HDMI-CEC addresses that are assigned to the local device.\n  \n### Event \n\n No Events",
+            "summary": "Returns the HDMI-CEC addresses that are assigned to the local device.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -107,7 +107,7 @@
             }
         },
         "getDeviceList":{
-            "summary": "Gets the list of number of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.\n  \n### Event \n\n No Events",
+            "summary": "Gets the list of number of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -151,7 +151,7 @@
             }
         },
         "getEnabled": {
-            "summary": "Returns whether HDMI-CEC is enabled.\n  \n### Event \n\n No Events",
+            "summary": "Returns whether HDMI-CEC is enabled.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -169,10 +169,10 @@
             }
         },
         "sendMessage":{
-            "summary": "Writes HDMI-CEC frame to the driver.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onMessage`|Triggered when a message is sent from an HDMI device|",
-             "events": [
-                    "onMessage"
-            ],
+            "summary": "Writes HDMI-CEC frame to the driver.",
+             "events": {
+                    "onMessage" : "Triggered when a message is sent from an HDMI device"
+             },
             "params": {
                 "type":"object",
                 "properties": {
@@ -189,7 +189,7 @@
             }
         },
         "setEnabled":{
-            "summary": "Enables or disables HDMI-CEC driver.\n  \n### Event \n\n No Events",
+            "summary": "Enables or disables HDMI-CEC driver.",
             "params": {
                 "type":"object",
                 "properties": {
