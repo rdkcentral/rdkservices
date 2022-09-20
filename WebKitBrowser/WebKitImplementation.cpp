@@ -54,6 +54,7 @@ typedef pid_t WKProcessID;
 typedef void (*WKPageIsWebProcessResponsiveFunction)(bool isWebProcessResponsive, void* context);
 WK_EXPORT void WKPageIsWebProcessResponsive(WKPageRef page, void* context, WKPageIsWebProcessResponsiveFunction function);
 WK_EXPORT WKProcessID WKPageGetProcessIdentifier(WKPageRef page);
+WK_EXPORT void WKPreferencesSetPageCacheEnabled(WKPreferencesRef preferences, bool enabled);
 
 #ifdef __cplusplus
 }
@@ -2271,6 +2272,7 @@ static GSourceFuncs _handlerIntervention =
             webkit_settings_set_enable_encrypted_media(preferences, TRUE);
             webkit_settings_set_enable_mediasource(preferences, TRUE);
             webkit_settings_set_enable_media_stream(preferences, TRUE);
+            webkit_settings_set_enable_page_cache(preferences, FALSE);
 
             // Turn on/off WebGL
             webkit_settings_set_enable_webgl(preferences, _config.WebGLEnabled.Value());
@@ -2476,6 +2478,9 @@ static GSourceFuncs _handlerIntervention =
 
             // Turn on fullscreen API.
             WKPreferencesSetFullScreenEnabled(preferences, true);
+
+            // Turn off BackForwardList
+            WKPreferencesSetPageCacheEnabled(preferences, FALSE);
 
             // Turn on/off allowScriptWindowClose
             WKPreferencesSetAllowScriptsToCloseWindow(preferences, _config.AllowWindowClose.Value());
