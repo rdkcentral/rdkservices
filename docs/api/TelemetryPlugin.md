@@ -55,6 +55,10 @@ Telemtry interface methods:
 
 Sets the status of telemetry reporting.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -100,6 +104,10 @@ Sets the status of telemetry reporting.
 ## *logApplicationEvent*
 
 Logs an application 
+
+### Events
+
+No Events
 
 ### Parameters
 

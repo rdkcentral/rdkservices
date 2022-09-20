@@ -65,15 +65,13 @@ TextToSpeech interface methods:
 <a name="cancel"></a>
 ## *cancel*
 
-Cancels the speech. Triggers the `onspeechinterrupted`   
- 
-### Events  
-| Event | Description | 
-| :----------- | :-----------| 
-|`onspeechinterrupted` | Triggered when ongoing speech is cancelled. Event is not triggered: if TTS is not enabled; if ongoing Speech is completed |.
+Cancels the speech. Triggers the `onspeechinterrupted` 
 
-Also see: [onspeechinterrupted](#onspeechinterrupted)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onspeechinterrupted](#onspeechinterrupted) | Triggered when ongoing speech is cancelled. Event is not triggered: if TTS is not enabled; if ongoing Speech is completed |
 ### Parameters
 
 | Name | Type | Description |
@@ -120,16 +118,14 @@ Also see: [onspeechinterrupted](#onspeechinterrupted)
 <a name="enabletts"></a>
 ## *enabletts*
 
-(For Resident App) Enables or disables the TTS conversion processing. Triggered `onttsstatechanged` event when state changes and `onspeechinterrupted` event when disabling TTS while speech is in-progress. 
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-| `onttsstatechanged` | `state` : `true` Triggered when TTS is enabled; `state` : `false` Triggered when TTS is disabled; otherwise `No event` When TTS enable or disable is in-progress | 
-| `onspeechinterrupted` | Triggered when disabling TTS while speech is in-progress.
+(For Resident App) Enables or disables the TTS conversion processing. Triggered `onttsstatechanged` event when state changes and `onspeechinterrupted` event when disabling TTS while speech is in-progress.
 
-Also see: [onttsstatechanged](#onttsstatechanged), [onspeechinterrupted](#onspeechinterrupted)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onttsstatechanged](#onttsstatechanged) | state : true Triggered when TTS is enabled; state : false Triggered when TTS is disabled; otherwise No event When TTS enable or disable is in-progress |
+| [onspeechinterrupted](#onspeechinterrupted) | Triggered when disabling TTS while speech is in-progress. |
 ### Parameters
 
 | Name | Type | Description |
@@ -177,10 +173,10 @@ Also see: [onttsstatechanged](#onttsstatechanged), [onspeechinterrupted](#onspee
 ## *getapiversion*
 
 Gets the API Version.
- 
-### Events 
 
-No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -223,10 +219,10 @@ This method takes no parameters.
 ## *getspeechstate*
 
 Returns the current state of the speech request.
-  
-### Events 
 
-No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -277,10 +273,10 @@ No Events.
 ## *getttsconfiguration*
 
 Gets the current TTS configuration.
-  
-### Events 
- 
-No Events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -335,10 +331,10 @@ This method takes no parameters.
 ## *isspeaking*
 
 Checks if speech is in progress.
-  
-### Event 
 
-No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -389,10 +385,10 @@ No Events.
 ## *isttsenabled*
 
 Returns whether the TTS engine is enabled or disabled. By default the TTS engine is disabled.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -436,11 +432,11 @@ This method takes no parameters.
 <a name="listvoices"></a>
 ## *listvoices*
 
-Lists the available voices for the specified language. For every language there is a set of pre-defined voices.  
-  
-### Events 
+Lists the available voices for the specified language. For every language there is a set of pre-defined voices.
 
-No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -490,15 +486,13 @@ No Events.
 <a name="pause"></a>
 ## *pause*
 
-Pauses the speech. Triggers the `onspeechpause`   
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-|  `onspeechpause` | Triggered when ongoing speech is paused. Event not triggered on following conditions: TTS is not enabled; Speech is already in pause; or Speech is completed | .
+Pauses the speech. Triggers the `onspeechpause` 
 
-Also see: [onspeechpause](#onspeechpause)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onspeechpause](#onspeechpause) | Triggered when ongoing speech is paused. Event not triggered on following conditions: TTS is not enabled; Speech is already in pause; or Speech is completed |
 ### Parameters
 
 | Name | Type | Description |
@@ -545,15 +539,13 @@ Also see: [onspeechpause](#onspeechpause)
 <a name="resume"></a>
 ## *resume*
 
-Resumes the speech. Triggers the `onspeechresume`  
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-| `onspeechresume` | Triggered when speech is resumed and speech output is available. Event not triggered under following conditions: TTS is not enabled; Speech is resumed already; or Speech is completed |.
+Resumes the speech. Triggers the `onspeechresume` 
 
-Also see: [onspeechresume](#onspeechresume)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onspeechresume](#onspeechresume) | Triggered when speech is resumed and speech output is available. Event not triggered under following conditions: TTS is not enabled; Speech is resumed already; or Speech is completed |
 ### Parameters
 
 | Name | Type | Description |
@@ -601,14 +593,12 @@ Also see: [onspeechresume](#onspeechresume)
 ## *setttsconfiguration*
 
 Sets the TTS configuration. Triggers the `onvoicechanged` 
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-|`onvoicechanged`|Triggered only when the voice configuration is changed| .
 
-Also see: [onvoicechanged](#onvoicechanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onvoicechanged](#onvoicechanged) | Triggered only when the voice configuration is changed |
 ### Parameters
 
 | Name | Type | Description |
@@ -679,20 +669,18 @@ Also see: [onvoicechanged](#onvoicechanged)
 <a name="speak"></a>
 ## *speak*
 
-Converts the input text to speech when TTS is enabled. Any ongoing speech is interrupted and the newly requested speech is processed. The clients of the previous speech is sent an `onspeechinterrupted`  Upon success, this API returns an ID, which is used as input to other API methods for controlling the speech (for example, `pause`, `resume`, and `cancel`)
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onwillspeak` | Triggered when speech conversion is about to start | 
-| `onspeechstart` | Triggered when conversion of text to speech is started | 
-| `onspeechcomplete `| Triggered when conversion from text to speech is completed | 
-| `onspeechinterrupted`| Current speech is interrupted either by a next speech request; by calling the `cancel` method; or by disabling TTS, when speech is in-progress | 
-| `onnetworkerror` | Triggered when failed to fetch audio from the endpoint |  
-| `onplaybackerror` | Triggered when an error occurs during playback including pipeline failures; Triggered when `speak` is called during TTS disabled |.
+Converts the input text to speech when TTS is enabled. Any ongoing speech is interrupted and the newly requested speech is processed. The clients of the previous speech is sent an `onspeechinterrupted`  Upon success, this API returns an ID, which is used as input to other API methods for controlling the speech (for example, `pause`, `resume`, and `cancel`).
 
-Also see: [onwillspeak](#onwillspeak), [onspeechstart](#onspeechstart), [onspeechinterrupted](#onspeechinterrupted), [onspeechcomplete](#onspeechcomplete), [onnetworkerror](#onnetworkerror), [onplaybackerror](#onplaybackerror)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onwillspeak](#onwillspeak) | Triggered when speech conversion is about to start |
+| [onspeechstart](#onspeechstart) | Triggered when conversion of text to speech is started |
+| [onspeechinterrupted](#onspeechinterrupted) | Current speech is interrupted either by a next speech request; by calling the cancel method; or by disabling TTS, when speech is in-progress |
+| [onspeechcomplete](#onspeechcomplete) | Triggered when conversion from text to speech is completed |
+| [onnetworkerror](#onnetworkerror) | Triggered when failed to fetch audio from the endpoint |
+| [onplaybackerror](#onplaybackerror) | Triggered when an error occurs during playback including pipeline failures; Triggered when speak is called during TTS disabled |
 ### Parameters
 
 | Name | Type | Description |
@@ -744,10 +732,10 @@ Also see: [onwillspeak](#onwillspeak), [onspeechstart](#onspeechstart), [onspeec
 ## *setACL*
 
 Configures app to speak. Allows the ResidentAPP to configure the particular app and provides access to `speak`  If not configured any then gives access to all apps to speak. Configuration does not retained after reboot.
-  
-### Events 
 
-No Events.
+### Events
+
+No Events
 
 ### Parameters
 

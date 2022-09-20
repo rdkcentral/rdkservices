@@ -18,7 +18,7 @@
     },
     "methods": {
         "isKeystrokeMaskEnabled": {
-            "summary": "Gets logging keystroke mask status (enabled or disabled). \n \n### Events \n\n No Events.",
+            "summary": "Gets logging keystroke mask status (enabled or disabled).",
             "result": {
                 "type": "object",
                 "properties": {
@@ -36,10 +36,10 @@
             }
         },
         "setKeystrokeMaskEnabled": {
-            "summary": "Sets the keystroke logging mask property. If a keystroke mask is successfully changed, then this method triggers an `onKeystrokeMaskEnabledChange` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onKeystrokeMaskEnabledChange`| Triggered if the keystroke mask is changed successfully |",
-            "events": [
-                "onKeystrokeMaskEnabledChange"
-            ],
+            "summary": "Sets the keystroke logging mask property. If a keystroke mask is successfully changed, then this method triggers an `onKeystrokeMaskEnabledChange` event.",
+            "events": {
+                "onKeystrokeMaskEnabledChange" : "Triggered if the keystroke mask is changed successfully"
+            },
             "params": {
                 "type":"object",
                 "properties": {

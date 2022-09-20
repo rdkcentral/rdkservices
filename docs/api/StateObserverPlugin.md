@@ -60,10 +60,10 @@ StateObserver interface methods:
 ## *getApiVersionNumber*
 
 Returns the API version number.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -106,10 +106,10 @@ This method takes no parameters.
 ## *getName*
 
 Returns the plugin name.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -152,10 +152,10 @@ This method takes no parameters.
 ## *getRegisteredPropertyNames*
 
 Returns all properties which have active listeners.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -210,10 +210,10 @@ Returns the values and errors for the specified properties.
 * `com.comcast.ecm_ip` - RDK-03004  
 * `com.comcast.dsg_ca_tunnel` - RDK-03003  
 * `com.comcast.cable_card` - RDK-03001.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -275,10 +275,10 @@ Returns the values and errors for the specified properties.
 ## *registerListeners*
 
 Register a listener on the specified properties for value change notifications. These properties are added to a registered properties list. Internally, this method calls the `getValues` method and hence it returns the current value of those properties.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -340,10 +340,10 @@ Register a listener on the specified properties for value change notifications. 
 ## *setApiVersionNumber*
 
 Sets the API version number.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -390,10 +390,10 @@ Sets the API version number.
 ## *unregisterListeners*
 
 Removes the listeners on the specified properties. The properties are removed from the registered properties list.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 

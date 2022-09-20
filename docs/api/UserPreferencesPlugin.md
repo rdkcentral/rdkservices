@@ -55,6 +55,10 @@ UserPreferences interface methods:
 
 Returns the preferred user interface language.
 
+### Events
+
+No Events
+
 ### Parameters
 
 This method takes no parameters.
@@ -96,6 +100,10 @@ This method takes no parameters.
 ## *setUILanguage*
 
 Sets the preferred user interface language.
+
+### Events
+
+No Events
 
 ### Parameters
 

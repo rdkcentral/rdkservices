@@ -57,10 +57,10 @@ DeviceDiagnostics interface methods:
 ## *getConfiguration*
 
 Gets the values associated with the corresponding property names.
- 
-### Events 
- 
-No events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -120,10 +120,10 @@ No events.
 ## *getMilestones*
 
 Returns the list of milestones.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -169,10 +169,10 @@ This method takes no parameters.
 ## *logMilestone*
 
 Log marker string to rdk milestones log.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -219,10 +219,10 @@ Log marker string to rdk milestones log.
 ## *getAVDecoderStatus*
 
 Gets the most active status of audio/video decoder/pipeline. This API doesn't track individual pipelines. It will aggregate and report the pipeline status, and the pipeline states are prioritized from High to Low (`ACTIVE`, `PAUSED`, and `IDLE`). Therefore, if any of the pipelines is in active state, then `getAVDecoderStatus` will return `ACTIVE`. If none of the pipelines are active but one is in a paused state, then `getAVDecoderStatus` will return `PAUSED`, and if all the pipelines are idle only then, `IDLE` will be returned.
- 
-### Events 
- 
-No events.
+
+### Events
+
+No Events
 
 ### Parameters
 

@@ -76,14 +76,12 @@ Bluetooth interface methods:
 ## *connect*
 
 Initiates the connection with the given Bluetooth device. Triggers `onStatusChanged` 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `BluetoothState: CONNECTION_CHANGE` | Triggers `onStatusChanged` event once it is  connected to the given deviceID. |.
 
-Also see: [onStatuschanged](#onStatuschanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onStatusChanged](#onStatusChanged) | Triggers `onStatusChanged` event once it is  connected to the given deviceID. |
 ### Parameters
 
 | Name | Type | Description |
@@ -132,11 +130,11 @@ Also see: [onStatuschanged](#onStatuschanged)
 <a name="disable"></a>
 ## *disable*
 
-Disables the Bluetooth stack. 
- 
-### Events 
-  
- No Events.
+Disables the Bluetooth stack.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -176,15 +174,13 @@ This method takes no parameters.
 <a name="disconnect"></a>
 ## *disconnect*
 
-Disconnects the given device from this device ID and triggers `onStatusChanged` Event. 
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-| `BluetoothState`: `CONNECTION_CHANGE` |Triggers `onStatusChanged` event once it is disconnected from given deviceID.| .
+Disconnects the given device from this device ID and triggers `onStatusChanged` Event.
 
-Also see: [onStatusChanged](#onStatusChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onStatusChanged](#onStatusChanged) | Triggers `onStatusChanged` event once it is disconnected from given deviceID. |
 ### Parameters
 
 | Name | Type | Description |
@@ -231,11 +227,11 @@ Also see: [onStatusChanged](#onStatusChanged)
 <a name="enable"></a>
 ## *enable*
 
-Enables the Bluetooth stack. 
-  
-### Events 
+Enables the Bluetooth stack.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -275,11 +271,11 @@ This method takes no parameters.
 <a name="getAudioInfo"></a>
 ## *getAudioInfo*
 
-Provides information on the currently playing song/audio from an external source. The returned information from Bluetooth-In device provides information that could be displayed on a TV screen.  
-  
-### Events 
+Provides information on the currently playing song/audio from an external source. The returned information from Bluetooth-In device provides information that could be displayed on a TV screen.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -342,11 +338,11 @@ Provides information on the currently playing song/audio from an external source
 <a name="getConnectedDevices"></a>
 ## *getConnectedDevices*
 
-Returns a list of devices connected to this device.  
-  
-### Events 
+Returns a list of devices connected to this device.
 
-  No Events .
+### Events
+
+No Events
 
 ### Parameters
 
@@ -400,11 +396,11 @@ This method takes no parameters.
 <a name="getDeviceInfo"></a>
 ## *getDeviceInfo*
 
-Returns information for the given device ID. 
-  
-### Events 
+Returns information for the given device ID.
 
-  No Events .
+### Events
+
+No Events
 
 ### Parameters
 
@@ -469,11 +465,11 @@ Returns information for the given device ID.
 <a name="getDiscoveredDevices"></a>
 ## *getDiscoveredDevices*
 
-This method should be called after getting at least one event `onDiscoveredDevice` event and it returns an array of discovered devices. 
-  
-### Events 
+This method should be called after getting at least one event `onDiscoveredDevice` event and it returns an array of discovered devices.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -529,11 +525,11 @@ This method takes no parameters.
 <a name="getName"></a>
 ## *getName*
 
-Returns the name of this device as seen by other Bluetooth devices. 
-  
-### Events 
+Returns the name of this device as seen by other Bluetooth devices.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -575,11 +571,11 @@ This method takes no parameters.
 <a name="getPairedDevices"></a>
 ## *getPairedDevices*
 
-Returns a list of devices that have paired with this device. 
-  
-### Events 
+Returns a list of devices that have paired with this device.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -634,10 +630,10 @@ This method takes no parameters.
 ## *isDiscoverable*
 
 Returns `true`, if this device can be discovered by other Bluetooth devices.
-  
-### Events 
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -680,15 +676,13 @@ This method takes no parameters.
 ## *pair*
 
 Pairs this device with device ID of Bluetooth. Triggers `onStatusChanged` and `onRequestFailed` events.
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-| `BluetoothState`: `PAIRING_CHANGE` | Triggers `onStatusChanged` event when the device gets paired to given device ID. | 
-| `BluetoothState`: `PAIRING_FAILED` | Triggers `onRequestFailed` event, when the device is unable to pair.|.
 
-Also see: [onStatusChanged](#onStatusChanged), [onRequestFailed](#onRequestFailed)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onStatusChanged](#onStatusChanged) | Triggers onStatusChanged event when the device gets paired to given device ID. |
+| [onRequestFailed](#onRequestFailed) | Triggers onRequestFailed event, when the device is unable to pair (BluetoothState: PAIRING_FAILED) |
 ### Parameters
 
 | Name | Type | Description |
@@ -733,11 +727,11 @@ Also see: [onStatusChanged](#onStatusChanged), [onRequestFailed](#onRequestFaile
 <a name="respondToEvent"></a>
 ## *respondToEvent*
 
-Provides the ability to respond the client Bluetooth  For example, this device can respond to a pairing or connection event and indicate the proper response to the requested device, such as the connection request accepted. 
-  
-### Events 
+Provides the ability to respond the client Bluetooth  For example, this device can respond to a pairing or connection event and indicate the proper response to the requested device, such as the connection request accepted.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -787,11 +781,11 @@ Provides the ability to respond the client Bluetooth  For example, this device c
 <a name="sendAudioPlaybackCommand"></a>
 ## *sendAudioPlaybackCommand*
 
-Provides control over the connected source. Requests can have one of the following values: PLAY, PAUSE, RESUME, STOP, SKIP_NEXT, SKIP_PREV, RESTART, MUTE, UNMUTE, VOLUME_UP, VOLUME_DOWN. 
- 
-### Events  
- 
- No Events.
+Provides control over the connected source. Requests can have one of the following values: PLAY, PAUSE, RESUME, STOP, SKIP_NEXT, SKIP_PREV, RESTART, MUTE, UNMUTE, VOLUME_UP, VOLUME_DOWN.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -839,11 +833,11 @@ Provides control over the connected source. Requests can have one of the followi
 <a name="setAudioStream"></a>
 ## *setAudioStream*
 
-Sets the primary or secondary audio-out to the given Bluetooth device. 
-  
-### Events 
+Sets the primary or secondary audio-out to the given Bluetooth device.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -891,11 +885,11 @@ Sets the primary or secondary audio-out to the given Bluetooth device.
 <a name="setDiscoverable"></a>
 ## *setDiscoverable*
 
-When true, this device can be discovered by other Bluetooth devices. When false, this device is not discoverable. 
-  
-### Events 
+When true, this device can be discovered by other Bluetooth devices. When false, this device is not discoverable.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -944,10 +938,10 @@ When true, this device can be discovered by other Bluetooth devices. When false,
 ## *setName*
 
 Sets the name of this device as seen by other Bluetooth devices.
-  
-### Events 
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1004,18 +998,13 @@ Starts scanning for other Bluetooth devices that match the given profile.
 * `AVAILABLE` - Bluetooth stack is initialized, not software disabled, and hardware is running  
 * `NO_BLUETOOTH_HARDWARE` - Bluetooth is supported in RDK software, but no Bluetooth hardware was found.
 * This method sends both `onStatusChanged` and `onDiscoveredDevice` events.
- 
-### Events 
-  
-| Event | Description | 
-| :----------- | :----------- | 
-| `BluetoothState:` `DISCOVERY_STARTED` |Triggered `onStatusChanged`event when device starts scanning the other available Bluetooth devices. | 
-| `BluetoothState:` `DISCOVERY_COMPLETED` | Triggered `onStatusChanged`event when timeout (timeout param) is completed or the `StopScan` method called.| 
-| `DiscoveryType:` `DISCOVERED` |Triggered `onDiscoveredDevice` event when device is in scanning mode and at least one device is discovered | 
-|`DiscoveryType:` `LOST` | Triggered `onDiscoveredDevice` event when the scanned device is lost|.
 
-Also see: [onStatusChanged](#onStatusChanged), [onDiscoveredDevice](#onDiscoveredDevice)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onStatusChanged](#onStatusChanged) | Triggered onStatusChangedevent when device starts scanning the other available Bluetooth devices or when timeout (timeout param) is completed or the StopScan method called. |
+| [onDiscoveredDevice](#onDiscoveredDevice) | Triggered onDiscoveredDevice event when device is in scanning mode and at least one device is discovered or when the scanned device is lost. |
 ### Parameters
 
 | Name | Type | Description |
@@ -1064,15 +1053,13 @@ Also see: [onStatusChanged](#onStatusChanged), [onDiscoveredDevice](#onDiscovere
 <a name="stopScan"></a>
 ## *stopScan*
 
-Stops scanning for Bluetooth devices  if already scan is in-progress and triggers `onStatusChanged`   
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-| `BluetoothState:` `DISCOVERY_COMPLETED` | Triggered `onStatusChanged` event when scan is stopped.| .
+Stops scanning for Bluetooth devices  if already scan is in-progress and triggers `onStatusChanged` 
 
-Also see: [onStatusChanged](#onStatusChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onStatusChanged](#onStatusChanged) | Triggered onStatusChanged event when scan is stopped. |
 ### Parameters
 
 This method takes no parameters.
@@ -1112,14 +1099,12 @@ This method takes no parameters.
 ## *unpair*
 
 Unpairs the given device ID from this device. Triggers `onStatusChanged` 
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-| `BluetoothState: PAIRING_CHANGE` | Triggers `onStatusChanged` event when device is unpaired |.
 
-Also see: [onStatusChanged](#onStatusChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onStatusChanged](#onStatusChanged) | Triggers onStatusChanged event when device is unpaired. |
 ### Parameters
 
 | Name | Type | Description |
@@ -1164,11 +1149,11 @@ Also see: [onStatusChanged](#onStatusChanged)
 <a name="getDeviceVolumeMuteInfo"></a>
 ## *getDeviceVolumeMuteInfo*
 
-Gets the volume information of the given Bluetooth device ID. 
- 
-### Events 
+Gets the volume information of the given Bluetooth device ID.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1224,18 +1209,12 @@ Gets the volume information of the given Bluetooth device ID.
 ## *setDeviceVolumeMuteInfo*
 
 Sets the volume of the connected Bluetooth device ID.  Triggers `onDeviceMediaStatus` 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `MediaAudioControlCommand`: `VOLUME_UP` | Triggers `onDeviceMediaStatus` event once volume of connected given deviceID is increased. | 
-| `MediaAudioControlCommand`: `VOLUME_DOWN` | Triggers `onDeviceMediaStatus` event once volume of connected given deviceID is decreased. | 
-| `MediaAudioControlCommand`: `MUTE` | Triggers `onDeviceMediaStatus` event when connected given deviceID is muted. | 
-| `MediaAudioControlCommand`: `UNMUTE` | Triggers `onDeviceMediaStatus` event when connected given deviceID is unmuted. | 
-| `MediaAudioControlCommand`: `CMD_UNKNOWN` | Triggers `onDeviceMediaStatus` event when unknown key is pressed on connected given deviceID. |.
 
-Also see: [onDeviceMediaStatus](#onDeviceMediaStatus)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onDeviceMediaStatus](#onDeviceMediaStatus) | Triggers onDeviceMediaStatus event once volume of connected given deviceID is increased or decreased or when connected given deviceID is muted or unmuted or when unknown key is pressed on connected given deviceID. |
 ### Parameters
 
 | Name | Type | Description |
@@ -1286,11 +1265,11 @@ Also see: [onDeviceMediaStatus](#onDeviceMediaStatus)
 <a name="getApiVersionNumber"></a>
 ## *getApiVersionNumber*
 
-Provides the current API version number. 
- 
-### Event 
+Provides the current API version number.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
