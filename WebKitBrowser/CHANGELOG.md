@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.1] - 2022-09-14
+### Changed
+- Disabled Page Cache
+
 ## [1.1.0] - 2022-09-01
 ### Added
 - Support for GLib based APIs (wpe-2.28)
