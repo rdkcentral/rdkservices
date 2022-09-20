@@ -57,10 +57,10 @@ CompositeInput interface methods:
 ## *getCompositeInputDevices*
 
 returns a list of composite input devices.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -113,10 +113,10 @@ This method takes no parameters.
 ## *setVideoRectangle*
 
 Sets the composite input video window.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -169,15 +169,13 @@ No Events.
 ## *startCompositeInput*
 
 Activates the specified composite input as the primary video source.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onInputStatusChanged` | Triggers this event when activates composite input source and input status changes to `started` | 
-| `onSignalChanged` | Triggers this event when composite input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal) |.
 
-Also see: [onInputStatusChanged](#onInputStatusChanged), [onSignalChanged](#onSignalChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onInputStatusChanged](#onInputStatusChanged) | Triggers this event when activates composite input source and input status changes to started |
+| [onSignalChanged](#onSignalChanged) | Triggers this event when composite input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal) |
 ### Parameters
 
 | Name | Type | Description |
@@ -223,14 +221,12 @@ Also see: [onInputStatusChanged](#onInputStatusChanged), [onSignalChanged](#onSi
 ## *stopCompositeInput*
 
 Deactivates the current composite input source that is the primary video source.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onInputStatusChanged` | Triggers this event when deactivates composite input source and input status changes to `stopped` |.
 
-Also see: [onInputStatusChanged](#onInputStatusChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onInputStatusChanged](#onInputStatusChanged) | Triggers this event when deactivates composite input source and input status changes to stopped |
 ### Parameters
 
 This method takes no parameters.

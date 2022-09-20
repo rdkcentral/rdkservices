@@ -61,8 +61,11 @@ Joins a messaging room.
 
 Use this method to join a room. If the specified room does not exist, then it will be created.
 
-Also see: [userupdate](#userupdate)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [userupdate](#userupdate) | Notifies about user status updates. |
 ### Parameters
 
 | Name | Type | Description |
@@ -130,8 +133,11 @@ Leaves a messaging room.
 
 Use this method to leave a room. The room ID becomes invalid after this call. If there are no more users, the room will be destroyed and related resources freed.
 
-Also see: [userupdate](#userupdate)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [userupdate](#userupdate) | Notifies about user status updates. |
 ### Parameters
 
 | Name | Type | Description |
@@ -185,8 +191,11 @@ Sends a message to a room.
 
 Use this method to send a message to a room.
 
-Also see: [message](#message)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [message](#message) | Notifies about new messages in a room. |
 ### Parameters
 
 | Name | Type | Description |

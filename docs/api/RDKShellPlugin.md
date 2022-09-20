@@ -125,11 +125,11 @@ RDKShell interface methods:
 <a name="addAnimation"></a>
 ## *addAnimation*
 
-Performs the set of animations. 
- 
+Performs the set of animations.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -201,11 +201,11 @@ Performs the set of animations.
 <a name="addKeyIntercept"></a>
 ## *addKeyIntercept*
 
-Adds a key intercept to the client application specified. The keys are specified by a key code and a set of modifiers. Regardless of the application that has focus, key presses that match the key code and modifiers will be sent to the client application. 
- 
+Adds a key intercept to the client application specified. The keys are specified by a key code and a set of modifiers. Regardless of the application that has focus, key presses that match the key code and modifiers will be sent to the client application.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -260,11 +260,11 @@ Adds a key intercept to the client application specified. The keys are specified
 <a name="addKeyIntercepts"></a>
 ## *addKeyIntercepts*
 
-Adds the list of key intercepts. 
- 
+Adds the list of key intercepts.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -329,11 +329,11 @@ Adds the list of key intercepts.
 <a name="addKeyListener"></a>
 ## *addKeyListener*
 
-Adds a key listener to an application. The keys are bubbled up based on their z-order. 
- 
+Adds a key listener to an application. The keys are bubbled up based on their z-order.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -400,11 +400,11 @@ Adds a key listener to an application. The keys are bubbled up based on their z-
 <a name="addKeyMetadataListener"></a>
 ## *addKeyMetadataListener*
 
-Adds the key metadata listeners. 
- 
+Adds the key metadata listeners.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -452,11 +452,11 @@ Adds the key metadata listeners.
 <a name="createDisplay"></a>
 ## *createDisplay*
 
- Creates a display for the specified client using the configuration parameters. 
- 
+ Creates a display for the specified client using the configuration parameters.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -520,15 +520,13 @@ Adds the key metadata listeners.
 <a name="destroy"></a>
 ## *destroy*
 
-Destroys an application. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `OnDestroyed` | Triggers when a runtime is successfully destroyed |.
+Destroys an application.
 
-Also see: [onDestroyed](#onDestroyed)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onDestroyed](#onDestroyed) | Triggers when a runtime is successfully destroyed |
 ### Parameters
 
 | Name | Type | Description |
@@ -573,11 +571,11 @@ Also see: [onDestroyed](#onDestroyed)
 <a name="enableInactivityReporting"></a>
 ## *enableInactivityReporting*
 
-Enables or disables inactivity reporting and events. 
- 
+Enables or disables inactivity reporting and events.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -623,11 +621,11 @@ Enables or disables inactivity reporting and events.
 <a name="enableKeyRepeats"></a>
 ## *enableKeyRepeats*
 
-Enables or disables key repeats. 
- 
+Enables or disables key repeats.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -673,11 +671,11 @@ Enables or disables key repeats.
 <a name="enableLogsFlushing"></a>
 ## *enableLogsFlushing*
 
-Enables or disables flushing all logs. 
- 
+Enables or disables flushing all logs.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -723,11 +721,11 @@ Enables or disables flushing all logs.
 <a name="enableVirtualDisplay"></a>
 ## *enableVirtualDisplay*
 
-Enables or disables a virtual display for the specified client. 
- 
+Enables or disables a virtual display for the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -777,11 +775,11 @@ Enables or disables a virtual display for the specified client.
 <a name="generateKey"></a>
 ## *generateKey*
 
-Triggers the key events (key press and release). 
- 
+Triggers the key events (key press and release).
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -844,11 +842,11 @@ Triggers the key events (key press and release).
 <a name="getAvailableTypes"></a>
 ## *getAvailableTypes*
 
-Returns the list of application types available on the firmware. 
- 
+Returns the list of application types available on the firmware.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -893,11 +891,11 @@ This method takes no parameters.
 <a name="getBounds"></a>
 ## *getBounds*
 
-Gets the bounds of the specified client. 
- 
+Gets the bounds of the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -956,11 +954,11 @@ Gets the bounds of the specified client.
 <a name="getClients"></a>
 ## *getClients*
 
-Gets a list of clients. 
- 
+Gets a list of clients.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1005,11 +1003,11 @@ This method takes no parameters.
 <a name="getCursorSize"></a>
 ## *getCursorSize*
 
-Returns the currently set cursor size. 
- 
+Returns the currently set cursor size.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1053,11 +1051,11 @@ This method takes no parameters.
 <a name="getHolePunch"></a>
 ## *getHolePunch*
 
-Returns whether video hole punching is enabled or disabled for the specified client. 
- 
+Returns whether video hole punching is enabled or disabled for the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1107,11 +1105,11 @@ Returns whether video hole punching is enabled or disabled for the specified cli
 <a name="getKeyRepeatsEnabled"></a>
 ## *getKeyRepeatsEnabled*
 
-Returns whether key repeating is enabled or disabled. 
- 
+Returns whether key repeating is enabled or disabled.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1153,11 +1151,11 @@ This method takes no parameters.
 <a name="getLastWakeupKey"></a>
 ## *getLastWakeupKey*
 
-Returns the last key press prior to a device wakeup. 
- 
+Returns the last key press prior to a device wakeup.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1206,11 +1204,11 @@ This method takes no parameters.
 <a name="getLogLevel"></a>
 ## *getLogLevel*
 
-Returns the currently set logging level. 
- 
+Returns the currently set logging level.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1252,11 +1250,11 @@ This method takes no parameters.
 <a name="getLogsFlushingEnabled"></a>
 ## *getLogsFlushingEnabled*
 
-Returns whether log flushing is enabled or disabled. 
- 
+Returns whether log flushing is enabled or disabled.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1298,11 +1296,11 @@ This method takes no parameters.
 <a name="getOpacity"></a>
 ## *getOpacity*
 
-Gets the opacity of the specified client. 
- 
+Gets the opacity of the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1350,11 +1348,11 @@ Gets the opacity of the specified client.
 <a name="getScale"></a>
 ## *getScale*
 
-Returns the scale of an application. 
- 
+Returns the scale of an application.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1404,11 +1402,11 @@ Returns the scale of an application.
 <a name="getScreenResolution"></a>
 ## *getScreenResolution*
 
-Gets the screen resolution. 
- 
+Gets the screen resolution.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1452,15 +1450,13 @@ This method takes no parameters.
 <a name="getScreenshot"></a>
 ## *getScreenshot*
 
-Captures a screenshot. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onScreenshotComplete` | Triggers when a screenshot is captured successfully |.
+Captures a screenshot.
 
-Also see: [onScreenshotComplete](#onScreenshotComplete)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onScreenshotComplete](#onScreenshotComplete) | Triggers when a screenshot is captured successfully |
 ### Parameters
 
 This method takes no parameters.
@@ -1500,10 +1496,10 @@ This method takes no parameters.
 ## *getState*
 
 Returns the state of all applications.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1555,11 +1551,11 @@ This method takes no parameters.
 <a name="getSystemMemory"></a>
 ## *getSystemMemory*
 
-Gets the information of System Memory. 
- 
+Gets the information of System Memory.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1605,11 +1601,11 @@ This method takes no parameters.
 <a name="getSystemResourceInfo"></a>
 ## *getSystemResourceInfo*
 
-Returns system resource information about each application. 
- 
+Returns system resource information about each application.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1661,11 +1657,11 @@ This method takes no parameters.
 <a name="getVirtualDisplayEnabled"></a>
 ## *getVirtualDisplayEnabled*
 
-Returns whether virtual display is enabled or disabled for the specified client. 
- 
+Returns whether virtual display is enabled or disabled for the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1716,10 +1712,10 @@ Returns whether virtual display is enabled or disabled for the specified client.
 ## *getVirtualResolution*
 
 Returns the virtual display resolution for the specified client.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1771,11 +1767,11 @@ Returns the virtual display resolution for the specified client.
 <a name="getVisibility"></a>
 ## *getVisibility*
 
-Gets the visibility of the specified client. 
- 
+Gets the visibility of the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1825,11 +1821,11 @@ Gets the visibility of the specified client.
 <a name="getZOrder"></a>
 ## *getZOrder*
 
-Returns an array of clients in Z order, starting with the top most application client first. 
- 
+Returns an array of clients in Z order, starting with the top most application client first.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1874,11 +1870,11 @@ This method takes no parameters.
 <a name="hideAllClients"></a>
 ## *hideAllClients*
 
-Hides/Unhides all the clients. 
- 
+Hides/Unhides all the clients.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1924,11 +1920,11 @@ Hides/Unhides all the clients.
 <a name="hideCursor"></a>
 ## *hideCursor*
 
-Hides the cursor from showing on the display. The cursor is hidden by default. 
- 
+Hides the cursor from showing on the display. The cursor is hidden by default.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1968,11 +1964,11 @@ This method takes no parameters.
 <a name="hideFullScreenImage"></a>
 ## *hideFullScreenImage*
 
-Hides the Full Screen Image. 
- 
+Hides the Full Screen Image.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2012,11 +2008,11 @@ This method takes no parameters.
 <a name="hideSplashLogo"></a>
 ## *hideSplashLogo*
 
-Removes the splash screen. 
- 
+Removes the splash screen.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2057,6 +2053,10 @@ This method takes no parameters.
 ## *ignoreKeyInputs*
 
 Blocks user key inputs.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2102,11 +2102,11 @@ Blocks user key inputs.
 <a name="injectKey"></a>
 ## *injectKey*
 
-Injects the keys. 
- 
+Injects the keys.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2157,11 +2157,11 @@ Injects the keys.
 <a name="kill"></a>
 ## *kill*
 
-Kills the specified client. 
- 
+Kills the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2209,15 +2209,13 @@ Kills the specified client.
 <a name="launch"></a>
 ## *launch*
 
-Launches an application. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onLaunched` | Triggers when the runtime of an application is launched successfully |.
+Launches an application.
 
-Also see: [onLaunched](#onLaunched)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onLaunched](#onLaunched) | Triggers when the runtime of an application is launched successfull |
 ### Parameters
 
 | Name | Type | Description |
@@ -2300,15 +2298,13 @@ Also see: [onLaunched](#onLaunched)
 <a name="launchApplication"></a>
 ## *launchApplication*
 
-Launches an application. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onApplicationLaunched` | Triggers when an application is launched successfully |.
+Launches an application.
 
-Also see: [onApplicationLaunched](#onApplicationLaunched)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onApplicationLaunched](#onApplicationLaunched) | Triggers when an application is launched successfully |
 ### Parameters
 
 | Name | Type | Description |
@@ -2361,11 +2357,11 @@ Also see: [onApplicationLaunched](#onApplicationLaunched)
 <a name="launchResidentApp"></a>
 ## *launchResidentApp*
 
-Launches the Resident application. 
- 
+Launches the Resident application.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2405,11 +2401,11 @@ This method takes no parameters.
 <a name="moveBehind"></a>
 ## *moveBehind*
 
-Moves the specified client behind the specified target client. 
- 
+Moves the specified client behind the specified target client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2457,11 +2453,11 @@ Moves the specified client behind the specified target client.
 <a name="moveToBack"></a>
 ## *moveToBack*
 
-Moves the specified client to the back or bottom of the Z order. 
- 
+Moves the specified client to the back or bottom of the Z order.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2509,11 +2505,11 @@ Moves the specified client to the back or bottom of the Z order.
 <a name="moveToFront"></a>
 ## *moveToFront*
 
-Moves the specified client to the front or top of the Z order. 
- 
+Moves the specified client to the front or top of the Z order.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2561,11 +2557,11 @@ Moves the specified client to the front or top of the Z order.
 <a name="removeAllKeyIntercepts"></a>
 ## *removeAllKeyIntercepts*
 
-Removes all key intercepts. 
- 
+Removes all key intercepts.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2605,11 +2601,11 @@ This method takes no parameters.
 <a name="removeAllKeyListeners"></a>
 ## *removeAllKeyListeners*
 
-Removes all key listeners. 
- 
+Removes all key listeners.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2649,11 +2645,11 @@ This method takes no parameters.
 <a name="removeAnimation"></a>
 ## *removeAnimation*
 
-Removes the current animation for the specified client. 
- 
+Removes the current animation for the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2701,11 +2697,11 @@ Removes the current animation for the specified client.
 <a name="removeKeyIntercept"></a>
 ## *removeKeyIntercept*
 
-Removes a key intercept. 
- 
+Removes a key intercept.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2758,11 +2754,11 @@ Removes a key intercept.
 <a name="removeKeyListener"></a>
 ## *removeKeyListener*
 
-Removes a key listener for an application. 
- 
+Removes a key listener for an application.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2823,11 +2819,11 @@ Removes a key listener for an application.
 <a name="removeKeyMetadataListener"></a>
 ## *removeKeyMetadataListener*
 
-Removes the key metadata listeners. 
- 
+Removes the key metadata listeners.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2875,11 +2871,11 @@ Removes the key metadata listeners.
 <a name="resetInactivityTime"></a>
 ## *resetInactivityTime*
 
-Resets the inactivity notification interval. 
- 
+Resets the inactivity notification interval.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2919,15 +2915,13 @@ This method takes no parameters.
 <a name="resumeApplication"></a>
 ## *resumeApplication*
 
-Resumes an application. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onApplicationResumed` | Triggers when an application resumes from a suspended state |.
+Resumes an application.
 
-Also see: [onApplicationResumed](#onApplicationResumed)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onApplicationResumed](#onApplicationResumed) | Triggers when an application resumes from a suspended state |
 ### Parameters
 
 | Name | Type | Description |
@@ -2972,11 +2966,11 @@ Also see: [onApplicationResumed](#onApplicationResumed)
 <a name="scaleToFit"></a>
 ## *scaleToFit*
 
-Scales the specified client to fit the current bounds. 
- 
+Scales the specified client to fit the current bounds.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3032,11 +3026,11 @@ Scales the specified client to fit the current bounds.
 <a name="setBounds"></a>
 ## *setBounds*
 
-Sets the bounds of the specified client. 
- 
+Sets the bounds of the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3092,11 +3086,11 @@ Sets the bounds of the specified client.
 <a name="setCursorSize"></a>
 ## *setCursorSize*
 
-Sets the cursor size. 
- 
+Sets the cursor size.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3144,11 +3138,11 @@ Sets the cursor size.
 <a name="setFocus"></a>
 ## *setFocus*
 
-Sets focus to the specified client. 
- 
+Sets focus to the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3196,11 +3190,11 @@ Sets focus to the specified client.
 <a name="setHolePunch"></a>
 ## *setHolePunch*
 
-Enables or disables video hole punching for the specified client. 
- 
+Enables or disables video hole punching for the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3250,15 +3244,13 @@ Enables or disables video hole punching for the specified client.
 <a name="setInactivityInterval"></a>
 ## *setInactivityInterval*
 
-Sets the inactivity notification interval. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onUserInactivity` | Triggers only if the device is inactive for the specified time interval |.
+Sets the inactivity notification interval.
 
-Also see: [onUserInactivity](#onUserInactivity)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onUserInactivity](#onUserInactivity) | Triggers only if the device is inactive for the specified time interval |
 ### Parameters
 
 | Name | Type | Description |
@@ -3303,11 +3295,11 @@ Also see: [onUserInactivity](#onUserInactivity)
 <a name="setLogLevel"></a>
 ## *setLogLevel*
 
-Sets the logging level. 
- 
+Sets the logging level.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3353,11 +3345,11 @@ Sets the logging level.
 <a name="setMemoryMonitor"></a>
 ## *setMemoryMonitor*
 
-Enables or disables RAM memory monitoring on the device. Upon enabling, triggers possible events are onDeviceLowRamWarning, onDeviceCriticallyLowRamWarning, onDeviceLowRamWarningCleared, and onDeviceCriticallyLowRamWarningCleared. 
- 
+Enables or disables RAM memory monitoring on the device. Upon enabling, triggers possible events are onDeviceLowRamWarning, onDeviceCriticallyLowRamWarning, onDeviceLowRamWarningCleared, and onDeviceCriticallyLowRamWarningCleared.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3409,11 +3401,11 @@ Enables or disables RAM memory monitoring on the device. Upon enabling, triggers
 <a name="setOpacity"></a>
 ## *setOpacity*
 
-Sets the opacity of the specified client. 
- 
+Sets the opacity of the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3461,11 +3453,11 @@ Sets the opacity of the specified client.
 <a name="setScale"></a>
 ## *setScale*
 
-Scales an application. 
- 
+Scales an application.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3517,11 +3509,11 @@ Scales an application.
 <a name="setScreenResolution"></a>
 ## *setScreenResolution*
 
-Sets the screen resolution. 
- 
+Sets the screen resolution.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3569,11 +3561,11 @@ Sets the screen resolution.
 <a name="setTopmost"></a>
 ## *setTopmost*
 
-Sets whether the specified client appears above all other clients on the display. 
- 
+Sets whether the specified client appears above all other clients on the display.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3623,11 +3615,11 @@ Sets whether the specified client appears above all other clients on the display
 <a name="setVirtualResolution"></a>
 ## *setVirtualResolution*
 
-Sets the virtual resolution for the specified client. 
- 
+Sets the virtual resolution for the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3677,11 +3669,11 @@ Sets the virtual resolution for the specified client.
 <a name="setVisibility"></a>
 ## *setVisibility*
 
-Sets whether the specified client should be visible. 
- 
+Sets whether the specified client should be visible.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3731,11 +3723,11 @@ Sets whether the specified client should be visible.
 <a name="showCursor"></a>
 ## *showCursor*
 
-Shows the cursor on the display using the current cursor size. See `setCursorSize`. The cursor automatically disappears after 5 seconds of inactivity. 
- 
+Shows the cursor on the display using the current cursor size. See `setCursorSize`. The cursor automatically disappears after 5 seconds of inactivity.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3775,11 +3767,11 @@ This method takes no parameters.
 <a name="showFullScreenImage"></a>
 ## *showFullScreenImage*
 
-Shows the Full Screen Image. 
- 
+Shows the Full Screen Image.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3825,11 +3817,11 @@ Shows the Full Screen Image.
 <a name="showSplashLogo"></a>
 ## *showSplashLogo*
 
-Displays the splash screen. 
- 
+Displays the splash screen.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3875,11 +3867,11 @@ Displays the splash screen.
 <a name="showWatermark"></a>
 ## *showWatermark*
 
-Sets whether a watermark shows on the display. 
- 
+Sets whether a watermark shows on the display.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3925,15 +3917,13 @@ Sets whether a watermark shows on the display.
 <a name="suspend"></a>
 ## *suspend*
 
-Suspends an application. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onSuspended` | Triggers when the runtime of an application is suspended |.
+Suspends an application.
 
-Also see: [onSuspended](#onSuspended)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onSuspended](#onSuspended) | Triggers when the runtime of an application is suspended |
 ### Parameters
 
 | Name | Type | Description |
@@ -3978,15 +3968,13 @@ Also see: [onSuspended](#onSuspended)
 <a name="suspendApplication"></a>
 ## *suspendApplication*
 
-Suspends an application. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onApplicationSuspended` | Triggers when an application is suspended |.
+Suspends an application.
 
-Also see: [onApplicationSuspended](#onApplicationSuspended)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onApplicationSuspended](#onApplicationSuspended) | Triggers when an application is suspended |
 ### Parameters
 
 | Name | Type | Description |

@@ -60,11 +60,11 @@ Warehouse interface methods:
 <a name="executeHardwareTest"></a>
 ## *executeHardwareTest*
 
-(Version 2) Starts a hardware test on the device. See `getHardwareTestResults`. 
- 
+(Version 2) Starts a hardware test on the device. See `getHardwareTestResults`.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -104,11 +104,11 @@ This method takes no parameters.
 <a name="getDeviceInfo"></a>
 ## *getDeviceInfo*
 
-Returns STB device information gathered from `/lib/rdk/getDeviceDetails.sh`.(DEPRECATED - Use `getDeviceInfo` from `org.rdk.System` instead.) 
- 
+Returns STB device information gathered from `/lib/rdk/getDeviceDetails.sh`.(DEPRECATED - Use `getDeviceInfo` from `org.rdk.System` instead.).
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -172,11 +172,11 @@ This method takes no parameters.
 <a name="getHardwareTestResults"></a>
 ## *getHardwareTestResults*
 
-(Version 2) Returns the results of the last hardware test. 
- 
+(Version 2) Returns the results of the last hardware test.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -222,11 +222,11 @@ This method takes no parameters.
 <a name="internalReset"></a>
 ## *internalReset*
 
-Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow.sh -s WarehouseService &`). Note that this method checks the `/version.txt` file for the image name and fails to run if the STB image version is marked as production (`PROD`). 
- 
+Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow.sh -s WarehouseService &`). Note that this method checks the `/version.txt` file for the image name and fails to run if the STB image version is marked as production (`PROD`).
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -274,11 +274,11 @@ Invokes the internal reset script, which reboots the Warehouse service (`/reboot
 <a name="isClean"></a>
 ## *isClean*
 
-Checks the locations on the device where customer data may be stored. If there are contents contained in those folders, then the device is not clean. 
- 
+Checks the locations on the device where customer data may be stored. If there are contents contained in those folders, then the device is not clean.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -325,11 +325,11 @@ This method takes no parameters.
 <a name="lightReset"></a>
 ## *lightReset*
 
-Resets the application data. 
- 
+Resets the application data.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -371,15 +371,13 @@ This method takes no parameters.
 <a name="resetDevice"></a>
 ## *resetDevice*
 
-Resets the STB to the warehouse state. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `resetDone` | Triggers when the device reset is finished indicating a successful reset or failure|.
+Resets the STB to the warehouse state.
 
-Also see: [resetDone](#resetDone)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [resetDone](#resetDone) | Triggers when the device reset is finished indicating a successful reset or failure |
 ### Parameters
 
 | Name | Type | Description |
@@ -428,11 +426,11 @@ Also see: [resetDone](#resetDone)
 <a name="setFrontPanelState"></a>
 ## *setFrontPanelState*
 
-Sets the state of the front panel LEDs to indicate the download state of the STB software image. 
- 
+Sets the state of the front panel LEDs to indicate the download state of the STB software image.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 

@@ -67,6 +67,10 @@ FireboltMediaPlayer interface methods:
 
 Initiates a new AAMP player instance suitable for playback of IP feeds. If a player that is identified by the specified ID already exists, then it will be ref-counted.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -115,6 +119,10 @@ Modifies the default AAMP configuration.
 
 For complete list of configuration properties, see:https://wiki.rdkcentral.com/display/RDK/AAMP+UVE+-+API#AAMPUVEAPI-Configuration.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -160,6 +168,10 @@ For complete list of configuration properties, see:https://wiki.rdkcentral.com/d
 ## *load*
 
 Associates a specified URL with a player instance.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -211,6 +223,10 @@ Associates a specified URL with a player instance.
 
 Pauses streaming content that is associated with the specified player instance. The play speed is set to 0.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -256,6 +272,10 @@ Pauses streaming content that is associated with the specified player instance. 
 ## *play*
 
 Begins or resumes streaming content that is associated with the specified player instance. The play speed is set to 1.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -303,6 +323,10 @@ Begins or resumes streaming content that is associated with the specified player
 
 Decreases the ref-count of the player. The player gets destroyed when the ref-count reaches 0.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -348,6 +372,10 @@ Decreases the ref-count of the player. The player gets destroyed when the ref-co
 ## *seek*
 
 Moves the media to a specific position.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -396,6 +424,10 @@ Moves the media to a specific position.
 ## *setDRMConfig*
 
 Modifies the default configuration of the DRM used by AAMP.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -448,6 +480,10 @@ Modifies the default configuration of the DRM used by AAMP.
 ## *stop*
 
 Stops streaming content.
+
+### Events
+
+No Events
 
 ### Parameters
 

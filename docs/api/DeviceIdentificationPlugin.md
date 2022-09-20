@@ -56,6 +56,10 @@ Provides access to the device platform specific information.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |

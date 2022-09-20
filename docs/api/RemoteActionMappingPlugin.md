@@ -62,10 +62,10 @@ RemoteActionMapping interface methods:
 ## *cancelCodeDownload*
 
 Cancels downloading IR and five digit codes from the IRRF database.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -114,10 +114,10 @@ Cancels downloading IR and five digit codes from the IRRF database.
 ## *clearKeyActionMapping*
 
 Clears an action mapping for the specified keys.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -178,10 +178,10 @@ Clears an action mapping for the specified keys.
 ## *getApiVersionNumber*
 
 Returns the API version number.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -224,10 +224,10 @@ This method takes no parameters.
 ## *getFullKeyActionMapping*
 
 Returns the mapping of all action keys.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -298,10 +298,10 @@ Returns the mapping of all action keys.
 ## *getKeymap*
 
 Returns a hard-coded list of key names.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -357,10 +357,10 @@ Returns a hard-coded list of key names.
 ## *getLastUsedDeviceID*
 
 Returns the last used remote information.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -411,10 +411,10 @@ This method takes no parameters.
 ## *getSingleKeyActionMapping*
 
 Returns the mapping for a single action key.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -484,15 +484,12 @@ Returns the mapping for a single action key.
 ## *setFiveDigitCode*
 
 Sets the TV and AVR five digit code.
- 
-Events
- 
-| Event | Description | 
-| :-------- | :-------- | 
-| `onFiveDigitCodeLoad` | Triggered if new five digit codes are loaded successfully |.
 
-Also see: [onFiveDigitCodeLoad](#onFiveDigitCodeLoad)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onFiveDigitCodeLoad](#onFiveDigitCodeLoad) | Triggered if new five digit codes are loaded successfully |
 ### Parameters
 
 | Name | Type | Description |
@@ -544,15 +541,12 @@ Also see: [onFiveDigitCodeLoad](#onFiveDigitCodeLoad)
 ## *setKeyActionMapping*
 
 Sets the mapping of a single action key. This method is unavailable (returns error) if the remote supports 5 digit codes.
- 
-Events
- 
-| Event | Description | 
-| :-------- | :-------- | 
-| `onIRCodeLoad` | Triggered if new IR codes are loaded successfully |.
 
-Also see: [onIRCodeLoad](#onIRCodeLoad)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onIRCodeLoad](#onIRCodeLoad) | Triggered if new IR codes are loaded successfully |
 ### Parameters
 
 | Name | Type | Description |

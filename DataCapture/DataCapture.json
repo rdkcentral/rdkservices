@@ -14,7 +14,7 @@
     },
     "methods": {
         "enableAudioCapture":{
-            "summary": "Enables audio capturing to buffer.  \nReturn Values:  \n* `0` - No error  \n* `1 - 254` - request exceeds the maximum allowed buffer size. The error number represents the maximum buffer length, in seconds, that the set-top device can support.  \n* `255` - set top device cannot accommodate any level of audio buffering. \n \n### Events \n\n No Events.",
+            "summary": "Enables audio capturing to buffer.  \nReturn Values:  \n* `0` - No error  \n* `1 - 254` - request exceeds the maximum allowed buffer size. The error number represents the maximum buffer length, in seconds, that the set-top device can support.  \n* `255` - set top device cannot accommodate any level of audio buffering.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -47,10 +47,10 @@
             }     
         },
         "getAudioClip": {
-            "summary": "Requests the audio driver to capture an audio sample from the specified stream and then delivers the stream sample to a specified URL.  \nSupported streams:  \n* `primary` - The stream going to the analog output and the stream included in the HDMI output. This is the only stream that is valid when the request is made through a voice request.  \n* `secondary` - The stream is captured from a secondary decoder. A potential use case includes initiating a capture from a screen overlay where the user has a choice between primary or secondary audio (or the type of audio output to which the user listens – TV or Bluetooth).\n \nEvents\n \n| Event | Description | \n| :-------- | :-------- | \n| `onAudioClipReady` | Triggered if an audio clip uploaded successfully or not |",
-            "events": [
-                "onAudioClipReady"
-            ],
+            "summary": "Requests the audio driver to capture an audio sample from the specified stream and then delivers the stream sample to a specified URL.  \nSupported streams:  \n* `primary` - The stream going to the analog output and the stream included in the HDMI output. This is the only stream that is valid when the request is made through a voice request.  \n* `secondary` - The stream is captured from a secondary decoder. A potential use case includes initiating a capture from a screen overlay where the user has a choice between primary or secondary audio (or the type of audio output to which the user listens – TV or Bluetooth).",
+            "events": {
+                "onAudioClipReady" : "Triggered if an audio clip uploaded successfully or not"
+            },
             "params": {
                 "type": "object",
                 "properties": {

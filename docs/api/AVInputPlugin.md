@@ -69,6 +69,10 @@ AVInput interface methods:
 
 Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false`. If the content is protected, then it is only presented if the component and composite outputs of the box are disabled.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -112,11 +116,11 @@ Returns `true` if the content coming in the HDMI input is protected; otherwise, 
 <a name="currentVideoMode"></a>
 ## *currentVideoMode*
 
-Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution. 
- 
+Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -163,11 +167,11 @@ Returns a string encoding the video mode being supplied by the device currently 
 <a name="numberOfInputs"></a>
 ## *numberOfInputs*
 
-Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`. 
- 
+Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -215,10 +219,10 @@ Returns an integer that specifies the number of available inputs. For example, a
 ## *getInputDevices*
 
 Returns an array of available HDMI/Composite Input ports.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -281,10 +285,10 @@ No Events.
 ## *getEdidVersion*
 
 Returns the EDID version.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -338,10 +342,10 @@ No Events.
 ## *getSPD*
 
 Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -395,10 +399,10 @@ No Events.
 ## *getRawSPD*
 
 Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -452,10 +456,10 @@ No Events.
 ## *readEDID*
 
 Returns the current EDID value.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -509,15 +513,13 @@ No Events.
 ## *startInput*
 
 Activates the specified HDMI/Composite Input port as the primary video source.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onInputStatusChanged` | Triggers the event when HDMI/Composite Input source is activated and Input status changes to `started` | 
-| `onSignalChanged` | Triggers the event when HDMI/Composite Input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal).
 
-Also see: [onInputStatusChanged](#onInputStatusChanged), [onSignalChanged](#onSignalChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onInputStatusChanged](#onInputStatusChanged) | Triggers the event when HDMI/Composite Input source is activated and Input status changes to `started` |
+| [onSignalChanged](#onSignalChanged) | Triggers the event when HDMI/Composite Input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal) |
 ### Parameters
 
 | Name | Type | Description |
@@ -569,14 +571,12 @@ Also see: [onInputStatusChanged](#onInputStatusChanged), [onSignalChanged](#onSi
 ## *stopInput*
 
 Deactivates the HDMI/Composite Input port currently selected as the primary video source.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onInputStatusChanged` | Triggers the event when HDMI/Composite Input source is deactivated and Input status changes to `stopped`.
 
-Also see: [onInputStatusChanged](#onInputStatusChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onInputStatusChanged](#onInputStatusChanged) | Triggers the event when HDMI/Composite Input source is deactivated and Input status changes to `stopped` |
 ### Parameters
 
 | Name | Type | Description |
@@ -626,10 +626,10 @@ Also see: [onInputStatusChanged](#onInputStatusChanged)
 ## *setEdidVersion*
 
 Sets an HDMI EDID version.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -682,10 +682,10 @@ No Events.
 ## *setVideoRectangle*
 
 Sets an HDMI/Composite Input video window.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -744,10 +744,10 @@ No Events.
 ## *writeEDID*
 
 Changes a current EDID value.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -799,10 +799,10 @@ No Events.
 ## *getSupportedGameFeatures*
 
 Returns the list of supported game features.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -851,11 +851,11 @@ This method takes no parameters.
 <a name="getGameFeatureStatus"></a>
 ## *getGameFeatureStatus*
 
-Returns the Game Feature Status. For example: ALLM
- 
+Returns the Game Feature Status. For example: ALLM.
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
