@@ -2,7 +2,7 @@
 <a name="DataCapture_Plugin"></a>
 # DataCapture Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/DataCapture/CHANGELOG.md)**
 
 A org.rdk.dataCapture plugin for Thunder framework.
 
@@ -87,7 +87,7 @@ Return Values:
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.dataCapture.1.enableAudioCapture",
+    "method": "org.rdk.dataCapture.enableAudioCapture",
     "params": {
         "bufferMaxDuration": 6
     }
@@ -150,7 +150,7 @@ Also see: [onAudioClipReady](#onAudioClipReady)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.dataCapture.1.getAudioClip",
+    "method": "org.rdk.dataCapture.getAudioClip",
     "params": {
         "clipRequest": {
             "stream": "primary",
@@ -208,7 +208,7 @@ Indicates whether an audio clip succeeded or failed to upload.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onAudioClipReady",
+    "method": "client.events.onAudioClipReady",
     "params": {
         "fileName": "acm-songid0",
         "status": true,

@@ -2,7 +2,7 @@
 <a name="MotionDetectionPlugin"></a>
 # MotionDetectionPlugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/MotionDetection/CHANGELOG.md)**
 
 A org.rdk.MotionDetection plugin for Thunder framework.
 
@@ -92,7 +92,7 @@ Enables a motion detector in the mode requested. This enables a single shot  Onc
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.arm",
+    "method": "org.rdk.MotionDetection.arm",
     "params": {
         "index": "FP_MD",
         "mode": "0"
@@ -143,7 +143,7 @@ Disables the specified motion detector.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.disarm",
+    "method": "org.rdk.MotionDetection.disarm",
     "params": {
         "index": "FP_MD"
     }
@@ -194,7 +194,7 @@ Returns the elapsed time since the last motion event occurred for the specified 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.getLastMotionEventElapsedTime",
+    "method": "org.rdk.MotionDetection.getLastMotionEventElapsedTime",
     "params": {
         "index": "FP_MD"
     }
@@ -255,7 +255,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.getMotionDetectors"
+    "method": "org.rdk.MotionDetection.getMotionDetectors"
 }
 ```
 
@@ -318,7 +318,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.getMotionEventsActivePeriod"
+    "method": "org.rdk.MotionDetection.getMotionEventsActivePeriod"
 }
 ```
 
@@ -372,7 +372,7 @@ Returns the no-motion period for the specified motion detector.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.getNoMotionPeriod",
+    "method": "org.rdk.MotionDetection.getNoMotionPeriod",
     "params": {
         "index": "FP_MD"
     }
@@ -424,7 +424,7 @@ Returns the current sensitivity configuration for the specified motion detector.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.getSensitivity",
+    "method": "org.rdk.MotionDetection.getSensitivity",
     "params": {
         "index": "FP_MD"
     }
@@ -476,7 +476,7 @@ Returns whether the specified motion detector is enabled.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.isarmed",
+    "method": "org.rdk.MotionDetection.isarmed",
     "params": {
         "index": "FP_MD"
     }
@@ -533,7 +533,7 @@ Sets the period of time during the day when the motion sensor is active and dete
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.setMotionEventsActivePeriod",
+    "method": "org.rdk.MotionDetection.setMotionEventsActivePeriod",
     "params": {
         "index": "FP_MD",
         "nowTime": 1234,
@@ -591,7 +591,7 @@ Sets the no-motion period, in seconds, for the specified motion detector. When a
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.setNoMotionPeriod",
+    "method": "org.rdk.MotionDetection.setNoMotionPeriod",
     "params": {
         "index": "FP_MD",
         "period": "1800"
@@ -647,7 +647,7 @@ See `getMotionDetectors` to get the supported sensitivity mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.setSensitivity",
+    "method": "org.rdk.MotionDetection.setSensitivity",
     "params": {
         "index": "FP_MD",
         "name": "low"
@@ -699,7 +699,7 @@ Triggered when a motion detector is enabled and either motion or no motion is de
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onMotionEvent",
+    "method": "client.events.onMotionEvent",
     "params": {
         "index": "FP_MD",
         "mode": "0"

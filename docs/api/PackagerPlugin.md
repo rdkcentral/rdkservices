@@ -2,7 +2,7 @@
 <a name="Packager_Plugin"></a>
 # Packager Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/Packager/CHANGELOG.md)**
 
 A Packager plugin for Thunder framework.
 
@@ -84,7 +84,7 @@ Installs a package given by a name, a URL, or a file path.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Packager.1.install",
+    "method": "Packager.install",
     "params": {
         "package": "wpeframework-plugin-netflix",
         "version": "1.0",
@@ -132,7 +132,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Packager.1.synchronize"
+    "method": "Packager.synchronize"
 }
 ```
 

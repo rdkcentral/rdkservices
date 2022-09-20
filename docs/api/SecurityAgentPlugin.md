@@ -2,7 +2,7 @@
 <a name="SecurityAgent_Plugin"></a>
 # SecurityAgent Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/SecurityAgent/CHANGELOG.md)**
 
 A SecurityAgent plugin for Thunder framework.
 
@@ -88,7 +88,7 @@ Creates a signed JsonWeb token. On success, returns Signed JsonWeb token and on 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "SecurityAgent.1.createtoken",
+    "method": "SecurityAgent.createtoken",
     "params": {
         "url": "https://test.comcast.com",
         "user": "Test",
@@ -136,7 +136,7 @@ Validates the token whether it is valid and properly signed.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "SecurityAgent.1.validate",
+    "method": "SecurityAgent.validate",
     "params": {
         "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICAgImpzb25ycGMiOiAiMi4wIiwgCiAgICAiaWQiOiAxMjM0NTY3ODkwLCAKICAgICJtZXRob2QiOiAiQ29udHJvbGxlci4xLmFjdGl2YXRlIiwgCiAgICAicGFyYW1zIjogewogICAgICAgICJjYWxsc2lnbiI6ICJTZWN1cml0eUFnZW50IgogICAgfQp9.lL40nTwRyBvMwiglZhl5_rB8ycY1uhAJRFx9pGATMRQ"
     }

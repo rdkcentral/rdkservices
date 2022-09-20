@@ -2,7 +2,7 @@
 <a name="Wifi_Plugin"></a>
 # Wifi Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/WifiManager/CHANGELOG.md)**
 
 A org.rdk.Wifi plugin for Thunder framework.
 
@@ -99,7 +99,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.cancelWPSPairing"
+    "method": "org.rdk.Wifi.cancelWPSPairing"
 }
 ```
 
@@ -148,7 +148,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.clearSSID"
+    "method": "org.rdk.Wifi.clearSSID"
 }
 ```
 
@@ -202,7 +202,7 @@ Also see: [onWIFIStateChanged](#onWIFIStateChanged), [onError](#onError)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.connect",
+    "method": "org.rdk.Wifi.connect",
     "params": {
         "ssid": "123412341234",
         "passphrase": "password",
@@ -255,7 +255,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.disconnect"
+    "method": "org.rdk.Wifi.disconnect"
 }
 ```
 
@@ -307,7 +307,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.getConnectedSSID"
+    "method": "org.rdk.Wifi.getConnectedSSID"
 }
 ```
 
@@ -367,7 +367,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.getCurrentState"
+    "method": "org.rdk.Wifi.getCurrentState"
 }
 ```
 
@@ -413,7 +413,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.getPairedSSID"
+    "method": "org.rdk.Wifi.getPairedSSID"
 }
 ```
 
@@ -460,7 +460,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.getPairedSSIDInfo"
+    "method": "org.rdk.Wifi.getPairedSSIDInfo"
 }
 ```
 
@@ -522,7 +522,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.getSupportedSecurityModes"
+    "method": "org.rdk.Wifi.getSupportedSecurityModes"
 }
 ```
 
@@ -595,7 +595,7 @@ Also see: [onWIFIStateChanged](#onWIFIStateChanged), [onError](#onError)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.initiateWPSPairing",
+    "method": "org.rdk.Wifi.initiateWPSPairing",
     "params": {
         "method": "PIN",
         "wps_pin": "88888888"
@@ -646,7 +646,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.isPaired"
+    "method": "org.rdk.Wifi.isPaired"
 }
 ```
 
@@ -692,7 +692,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.isSignalThresholdChangeEnabled"
+    "method": "org.rdk.Wifi.isSignalThresholdChangeEnabled"
 }
 ```
 
@@ -743,7 +743,7 @@ Saves the SSID, passphrase, and security mode for future sessions. If an SSID wa
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.saveSSID",
+    "method": "org.rdk.Wifi.saveSSID",
     "params": {
         "ssid": "123412341234",
         "passphrase": "password",
@@ -796,7 +796,7 @@ Enables or disables the Wifi adapter for this device.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.setEnabled",
+    "method": "org.rdk.Wifi.setEnabled",
     "params": {
         "enable": true
     }
@@ -850,7 +850,7 @@ Also see: [onWifiSignalThresholdChanged](#onWifiSignalThresholdChanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.setSignalThresholdChangeEnabled",
+    "method": "org.rdk.Wifi.setSignalThresholdChangeEnabled",
     "params": {
         "enabled": true,
         "interval": 2000
@@ -907,7 +907,7 @@ Also see: [onAvailableSSIDs](#onAvailableSSIDs)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.startScan",
+    "method": "org.rdk.Wifi.startScan",
     "params": {
         "incremental": false,
         "ssid": "...",
@@ -957,7 +957,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.1.stopScan"
+    "method": "org.rdk.Wifi.stopScan"
 }
 ```
 
@@ -1009,7 +1009,7 @@ Triggered when the Wifi state changes. See `getCurrentState` for a list of valid
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onWIFIStateChanged",
+    "method": "client.events.onWIFIStateChanged",
     "params": {
         "state": 2,
         "isLNF": false
@@ -1043,7 +1043,7 @@ Triggered when a recoverable unexpected Wifi error occurs.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onError",
+    "method": "client.events.onError",
     "params": {
         "code": 2
     }
@@ -1064,7 +1064,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onSSIDsChanged"
+    "method": "client.events.onSSIDsChanged"
 }
 ```
 
@@ -1086,7 +1086,7 @@ Triggered at intervals specified in the `setSignalThresholdChangeEnabled` method
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onWifiSignalThresholdChanged",
+    "method": "client.events.onWifiSignalThresholdChanged",
     "params": {
         "signalStrength": "-27.000000",
         "strength": "Excellent"
@@ -1117,7 +1117,7 @@ Triggered when the `scan` method is called and SSIDs are obtained. The event con
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onAvailableSSIDs",
+    "method": "client.events.onAvailableSSIDs",
     "params": {
         "ssids": [
             {

@@ -2,7 +2,7 @@
 <a name="MaintenanceManagerPlugin"></a>
 # MaintenanceManagerPlugin
 
-**Version: 1.0.2**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/MaintenanceManager/CHANGELOG.md)**
 
 A org.rdk.MaintenanceManager plugin for Thunder framework.
 
@@ -93,7 +93,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.getMaintenanceActivityStatus"
+    "method": "org.rdk.MaintenanceManager.getMaintenanceActivityStatus"
 }
 ```
 
@@ -142,7 +142,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.getMaintenanceStartTime"
+    "method": "org.rdk.MaintenanceManager.getMaintenanceStartTime"
 }
 ```
 
@@ -196,7 +196,7 @@ Sets the maintenance mode and software upgrade opt-out mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.setMaintenanceMode",
+    "method": "org.rdk.MaintenanceManager.setMaintenanceMode",
     "params": {
         "maintenanceMode": "BACKGROUND",
         "optOut": "ENFORCE_OPTOUT"
@@ -247,7 +247,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.startMaintenance"
+    "method": "org.rdk.MaintenanceManager.startMaintenance"
 }
 ```
 
@@ -294,7 +294,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.stopMaintenance"
+    "method": "org.rdk.MaintenanceManager.stopMaintenance"
 }
 ```
 
@@ -340,7 +340,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.getMaintenanceMode"
+    "method": "org.rdk.MaintenanceManager.getMaintenanceMode"
 }
 ```
 
@@ -389,7 +389,7 @@ Triggered when the maintenance manager status changes. See `getMaintenanceActivi
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onMaintenanceStatusChange",
+    "method": "client.events.onMaintenanceStatusChange",
     "params": {
         "maintenanceStatus": "MAINTENANCE_STARTED"
     }

@@ -2,7 +2,7 @@
 <a name="DeviceDiagnostics_Plugin"></a>
 # DeviceDiagnostics Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/DeviceDiagnostics/CHANGELOG.md)**
 
 A org.rdk.DeviceDiagnostics plugin for Thunder framework.
 
@@ -89,7 +89,7 @@ No events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DeviceDiagnostics.1.getConfiguration",
+    "method": "org.rdk.DeviceDiagnostics.getConfiguration",
     "params": {
         "names": [
             "Device.X_CISCO_COM_LED.RedPwm"
@@ -146,7 +146,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DeviceDiagnostics.1.getMilestones"
+    "method": "org.rdk.DeviceDiagnostics.getMilestones"
 }
 ```
 
@@ -181,6 +181,13 @@ Log marker string to rdk milestones log.
 | params | object |  |
 | params.marker | string | Milestone marker string |
 
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
 ### Example
 
 #### Request
@@ -189,9 +196,105 @@ Log marker string to rdk milestones log.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DeviceDiagnostics.1.logMilestone",
+    "method": "org.rdk.DeviceDiagnostics.logMilestone",
     "params": {
         "marker": "..."
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="getAVDecoderStatus"></a>
+## *getAVDecoderStatus*
+
+Gets the most active status of audio/video decoder/pipeline. This API doesn't track individual pipelines. It will aggregate and report the pipeline status, and the pipeline states are prioritized from High to Low (`ACTIVE`, `PAUSED`, and `IDLE`). Therefore, if any of the pipelines is in active state, then `getAVDecoderStatus` will return `ACTIVE`. If none of the pipelines are active but one is in a paused state, then `getAVDecoderStatus` will return `PAUSED`, and if all the pipelines are idle only then, `IDLE` will be returned.
+ 
+### Events 
+ 
+No events.
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.AVDecoderStatus | string | The status. If AV decoder status is not supported, the default state will always be IDLE. (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DeviceDiagnostics.getAVDecoderStatus"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "AVDecoderStatus": "ACTIVE",
+        "success": true
+    }
+}
+```
+
+<a name="Notifications"></a>
+# Notifications
+
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
+
+The following events are provided by the org.rdk.DeviceDiagnostics plugin:
+
+DeviceDiagnostics interface events:
+
+| Event | Description |
+| :-------- | :-------- |
+| [onAVDecoderStatusChanged](#onAVDecoderStatusChanged) | Triggered when the most active status of audio/video decoder/pipeline changes |
+
+
+<a name="onAVDecoderStatusChanged"></a>
+## *onAVDecoderStatusChanged*
+
+Triggered when the most active status of audio/video decoder/pipeline changes.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.AVDecoderStatus | string | The status. If AV decoder status is not supported, the default state will always be IDLE. (must be one of the following: *ACTIVE*, *PAUSED*, *IDLE*) |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onAVDecoderStatusChanged",
+    "params": {
+        "AVDecoderStatus": "ACTIVE"
     }
 }
 ```

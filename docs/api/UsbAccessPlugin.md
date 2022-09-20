@@ -2,7 +2,7 @@
 <a name="UsbAccess_Plugin"></a>
 # UsbAccess Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/UsbAccess/CHANGELOG.md)**
 
 A org.rdk.UsbAccess plugin for Thunder framework.
 
@@ -85,7 +85,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.1.clearLink"
+    "method": "org.rdk.UsbAccess.clearLink"
 }
 ```
 
@@ -132,7 +132,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.1.createLink"
+    "method": "org.rdk.UsbAccess.createLink"
 }
 ```
 
@@ -181,7 +181,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.1.getAvailableFirmwareFiles"
+    "method": "org.rdk.UsbAccess.getAvailableFirmwareFiles"
 }
 ```
 
@@ -236,7 +236,7 @@ Gets a list of files and folders from the specified directory or path.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.1.getFileList",
+    "method": "org.rdk.UsbAccess.getFileList",
     "params": {
         "path": "..."
     }
@@ -292,7 +292,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.1.getMounted"
+    "method": "org.rdk.UsbAccess.getMounted"
 }
 ```
 
@@ -343,7 +343,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.1.updateFirmware",
+    "method": "org.rdk.UsbAccess.updateFirmware",
     "params": {
         "fileName": "/tmp/usbmnts/sda/this_is_test.bin"
     }
@@ -394,7 +394,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.1.ArchiveLogs"
+    "method": "org.rdk.UsbAccess.ArchiveLogs"
 }
 ```
 
@@ -443,7 +443,7 @@ UsbAccess interface events:
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onUSBMountChanged",
+    "method": "client.events.onUSBMountChanged",
     "params": {
         "mounted": true,
         "device": "/dev/sda1"
@@ -469,7 +469,7 @@ UsbAccess interface events:
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onArchiveLogs",
+    "method": "client.events.onArchiveLogs",
     "params": {
         "error": "none",
         "success": true

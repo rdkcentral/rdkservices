@@ -41,7 +41,6 @@
 
 #include "UtilsIarm.h"
 #include "UtilsJsonRpc.h"
-#include "UtilsSecurityToken.h"
 #include "UtilscRunScript.h"
 #include "UtilsfileExists.h"
 
@@ -345,19 +344,17 @@ namespace WPEFramework {
             JsonObject joGetParams;
             JsonObject joGetResult;
             std::string callsign = "org.rdk.AuthService.1";
-            std::string token;
             uint8_t i = 0;
-            bool isAuthSerivcePluginActive = false;
             std::string ret_status("invalid");
 
             /* check if plugin active */
-            isAuthSerivcePluginActive = Utils::isPluginActivated("org.rdk.AuthService");
-            if (!isAuthSerivcePluginActive){
+            auto auth = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>("org.rdk.AuthService");
+            if (auth == nullptr){
                 LOGINFO("AuthService plugin is not activated.Retrying.. \n");
                 //if plugin is not activated we need to retry
                 do{
-                    isAuthSerivcePluginActive = Utils::isPluginActivated("org.rdk.AuthService");
-                    if ( !isAuthSerivcePluginActive ){
+                    auth = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>("org.rdk.AuthService");
+                    if (auth == nullptr){
                         sleep(10);
                         i++;
                         LOGINFO("AuthService retries [%d/4] \n",i);
@@ -367,7 +364,7 @@ namespace WPEFramework {
                     }
                 }while( i < MAX_ACTIVATION_RETRIES );
 
-                if ( !isAuthSerivcePluginActive ){
+                if (auth == nullptr){
                     LOGINFO("AuthService plugin is Still not active");
                     return ret_status;
                 }
@@ -375,11 +372,34 @@ namespace WPEFramework {
                     LOGINFO("AuthService plugin is Now active");
                 }
             }
+            if (auth != nullptr){
+                LOGINFO("AuthService is active");
+                auth->Release();
+            }
 
-            Utils::SecurityToken::getSecurityToken(token);
+            string token;
 
+            // TODO: use interfaces and remove token
+            auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+            if (security != nullptr) {
+                string payload = "http://localhost";
+                if (security->CreateToken(
+                        static_cast<uint16_t>(payload.length()),
+                        reinterpret_cast<const uint8_t*>(payload.c_str()),
+                        token)
+                    == Core::ERROR_NONE) {
+                    std::cout << "MaintenanceManager got security token" << std::endl;
+                } else {
+                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                }
+                security->Release();
+            } else {
+                std::cout << "No security agent" << std::endl;
+            }
+
+            string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
-            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "", false, query);
             if (thunder_client != nullptr) {
                 uint32_t status = thunder_client->Invoke<JsonObject, JsonObject>(5000, "getActivationStatus", joGetParams, joGetResult);
                 LOGINFO("Invoke status : %d",status);
@@ -457,19 +477,30 @@ namespace WPEFramework {
             JsonObject joGetParams;
             JsonObject joGetResult;
             std::string callsign = "org.rdk.Network.1";
-            std::string token;
 
-            /* check if plugin active */
-            if (false == Utils::isPluginActivated("org.rdk.Network")) {
-                    LOGINFO("Network plugin is not activated \n");
-                    return false;
+            string token;
+
+            // TODO: use interfaces and remove token
+            auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+            if (security != nullptr) {
+                string payload = "http://localhost";
+                if (security->CreateToken(
+                        static_cast<uint16_t>(payload.length()),
+                        reinterpret_cast<const uint8_t*>(payload.c_str()),
+                        token)
+                    == Core::ERROR_NONE) {
+                    std::cout << "MaintenanceManager got security token" << std::endl;
+                } else {
+                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                }
+                security->Release();
+            } else {
+                std::cout << "No security agent" << std::endl;
             }
-
-            Utils::SecurityToken::getSecurityToken(token);
 
             string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
-            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "", false, query);
             if (thunder_client != nullptr) {
                 uint32_t status = thunder_client->Invoke<JsonObject, JsonObject>(5000, "isConnectedToInternet", joGetParams, joGetResult);
                 if (status > 0) {
@@ -517,21 +548,33 @@ namespace WPEFramework {
             MaintenanceManager::_instance = nullptr;
         }
 
-        const string MaintenanceManager::Initialize(PluginHost::IShell*)
+        const string MaintenanceManager::Initialize(PluginHost::IShell* service)
         {
+            ASSERT(service != nullptr);
+            ASSERT(m_service == nullptr);
+
+            m_service = service;
+            m_service->AddRef();
+
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
 
-        void MaintenanceManager::Deinitialize(PluginHost::IShell*)
+        void MaintenanceManager::Deinitialize(PluginHost::IShell* service)
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             stopMaintenanceTasks();
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+
+            ASSERT(service == m_service);
+
+            m_service->Release();
+            m_service = nullptr;
         }
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
@@ -772,6 +815,8 @@ namespace WPEFramework {
                             /*will be set to false once COMEPLETE/ERROR received for LOGUPLOAD*/
                             LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
                             break;
+                        default:
+                            break;
                     }
                 }
                 else{
@@ -929,7 +974,6 @@ namespace WPEFramework {
         {
             bool result = false;
             string starttime="";
-            unsigned long int start_time=0;
 
             starttime = Utils::cRunScript("/lib/rdk/getMaintenanceStartTime.sh &");
             if (!starttime.empty()){
@@ -1130,11 +1174,8 @@ namespace WPEFramework {
                 JsonObject& response)
                 {
                     bool result = false;
-                    int32_t exec_status=E_NOK;
-                    Maint_notify_status_t notify_status = MAINTENANCE_IDLE;
                     /* check what mode we currently have */
                     string current_mode="";
-                    bool skip_task=false;
 
                     /* only one maintenance at a time */
                     /* Lock so that m_notify_status will not be updated  further */
@@ -1242,7 +1283,7 @@ namespace WPEFramework {
                                     task_incomplete = true;
                                 }
                                 else{
-                                    LOGINFO("Failed to terminate with error %d \n",script_names[i].c_str(),k_ret);
+                                    LOGINFO("Failed to terminate with error %s - %d \n",script_names[i].c_str(),k_ret);
                                 }
                             }
                             else {
@@ -1312,7 +1353,6 @@ namespace WPEFramework {
             struct dirent* ent;
             char* endptr;
             char buf[512];
-            char *ch =0;
 
             while((ent = readdir(dir)) != NULL) {
                 long lpid = strtol(ent->d_name, &endptr, 10);

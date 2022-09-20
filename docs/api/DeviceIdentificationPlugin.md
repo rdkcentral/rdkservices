@@ -2,7 +2,7 @@
 <a name="DeviceIdentification_Plugin"></a>
 # DeviceIdentification Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/DeviceIdentification/CHANGELOG.md)**
 
 A DeviceIdentification plugin for Thunder framework.
 
@@ -73,7 +73,7 @@ Provides access to the device platform specific information.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceIdentification.1.deviceidentification"
+    "method": "DeviceIdentification.deviceidentification"
 }
 ```
 

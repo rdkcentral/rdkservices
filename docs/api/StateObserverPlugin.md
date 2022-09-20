@@ -2,7 +2,7 @@
 <a name="StateObserver_Plugin"></a>
 # StateObserver Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/StateObserver/CHANGELOG.md)**
 
 A com.comcast.StateObserver plugin for Thunder framework.
 
@@ -85,7 +85,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.getApiVersionNumber"
+    "method": "com.comcast.StateObserver.getApiVersionNumber"
 }
 ```
 
@@ -131,7 +131,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.getName"
+    "method": "com.comcast.StateObserver.getName"
 }
 ```
 
@@ -178,7 +178,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.getRegisteredPropertyNames"
+    "method": "com.comcast.StateObserver.getRegisteredPropertyNames"
 }
 ```
 
@@ -243,7 +243,7 @@ Returns the values and errors for the specified properties.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.getValues",
+    "method": "com.comcast.StateObserver.getValues",
     "params": {
         "propertyNames": [
             "com.comcast.channel_map"
@@ -308,7 +308,7 @@ Register a listener on the specified properties for value change notifications. 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.registerListeners",
+    "method": "com.comcast.StateObserver.registerListeners",
     "params": {
         "propertyNames": [
             "com.comcast.channel_map"
@@ -367,7 +367,7 @@ Sets the API version number.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.setApiVersionNumber",
+    "method": "com.comcast.StateObserver.setApiVersionNumber",
     "params": {
         "version": 1
     }
@@ -418,7 +418,7 @@ Removes the listeners on the specified properties. The properties are removed fr
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.unregisterListeners",
+    "method": "com.comcast.StateObserver.unregisterListeners",
     "params": {
         "propertyNames": [
             "com.comcast.channel_map"
@@ -472,7 +472,7 @@ Triggered whenever a device property value changes. A handler function is called
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.propertyChanged",
+    "method": "client.events.propertyChanged",
     "params": {
         "propertyName": "com.comcast.channel_map",
         "value": 2,

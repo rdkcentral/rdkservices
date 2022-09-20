@@ -2,7 +2,7 @@
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2022 RDK Management
+ * Copyright 2020 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,6 @@
  * limitations under the License.
  */
 
-#ifndef STORENOTIFICATIONMOCK_H
-#define STORENOTIFICATIONMOCK_H
+#include "Module.h"
 
-#include <gmock/gmock.h>
-
-#include <interfaces/IStore.h>
-
-class StoreNotificationMock : public WPEFramework::Exchange::IStore::INotification {
-public:
-    virtual ~StoreNotificationMock() = default;
-
-    MOCK_METHOD(void, ValueChanged, (const string&, const string&, const string&), (override));
-    MOCK_METHOD(void, StorageExceeded, (), (override));
-
-    BEGIN_INTERFACE_MAP(StoreNotificationMock)
-    INTERFACE_ENTRY(WPEFramework::Exchange::IStore::INotification)
-    END_INTERFACE_MAP
-};
-
-#endif //STORENOTIFICATIONMOCK_H
+MODULE_NAME_DECLARATION(BUILD_REFERENCE)

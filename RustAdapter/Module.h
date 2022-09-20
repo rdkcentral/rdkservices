@@ -2,7 +2,7 @@
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2022 RDK Management
+ * Copyright 2020 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,13 @@
  * limitations under the License.
  */
 
-#ifndef PERSISTENTSTOREMOCK_H
-#define PERSISTENTSTOREMOCK_H
+#pragma once
 
-#include <gmock/gmock.h>
+#ifndef MODULE_NAME
+#define MODULE_NAME Plugin_RustAdapter
+#endif
 
-#include "PersistentStore.h"
+#include <plugins/plugins.h>
 
-class PersistentStoreMock : public WPEFramework::Plugin::PersistentStore {
-public:
-    virtual ~PersistentStoreMock() = default;
-
-    MOCK_METHOD(void, event_onValueChanged, (const string&, const string&, const string&), (override));
-    MOCK_METHOD(void, event_onStorageExceeded, (), (override));
-    MOCK_METHOD(std::vector<string>, LegacyLocations, (), (const, override));
-};
-
-#endif //PERSISTENTSTOREMOCK_H
+#undef EXTERNAL
+#define EXTERNAL

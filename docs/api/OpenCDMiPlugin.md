@@ -2,7 +2,7 @@
 <a name="OpenCDMi_Plugin"></a>
 # OpenCDMi Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/OpenCDMi/CHANGELOG.md)**
 
 A OCDM plugin for Thunder framework.
 
@@ -86,7 +86,7 @@ Provides access to the supported DRM systems.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "OCDM.1.drms"
+    "method": "OCDM.drms"
 }
 ```
 
@@ -137,7 +137,7 @@ Provides access to the DRM key systems.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "OCDM.1.keysystems@PlayReady"
+    "method": "OCDM.keysystems@PlayReady"
 }
 ```
 

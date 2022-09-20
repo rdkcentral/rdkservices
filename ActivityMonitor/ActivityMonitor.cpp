@@ -407,7 +407,11 @@ namespace WPEFramework
         long long unsigned int MemoryInfo::getTotalCpuUsage()
         {
             FILE *f = fopen("/proc/stat", "r");
-
+            if (f == NULL)
+            {
+                LOGERR("Could not open file /proc/stat in read mode");
+                return 0;
+            }
             std::vector <char> buf;
             buf.resize(1024);
 
@@ -621,7 +625,7 @@ namespace WPEFramework
 
             buf.data()[buf.size() - 1] = 0;
 
-            int pos = 0;
+            unsigned int pos = 0;
             while (pos < buf.size())
             {
                 if (0 == strcmp(buf.data() + pos, CALLSIGN_PARAMETER))
@@ -711,7 +715,7 @@ namespace WPEFramework
                             lastIdx = idx;
                         }
                     }
-                    else if (ppids[idx] == getpid()) // if there is no waylandregistryreceiver.conf, monitoring the children of WPEFramework with "-C <callsign>" parameter
+                    else if (ppids[idx] == static_cast<unsigned int>(getpid())) // if there is no waylandregistryreceiver.conf, monitoring the children of WPEFramework with "-C <callsign>" parameter
                     {
                         if (pid2callSign.find(pids[idx]) == pid2callSign.end())
                         {

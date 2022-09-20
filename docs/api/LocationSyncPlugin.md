@@ -2,7 +2,7 @@
 <a name="Location_Sync_Plugin"></a>
 # Location Sync Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/LocationSync/CHANGELOG.md)**
 
 A LocationSync plugin for Thunder framework.
 
@@ -92,7 +92,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LocationSync.1.sync"
+    "method": "LocationSync.sync"
 }
 ```
 
@@ -144,7 +144,7 @@ Provides access to the location information.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LocationSync.1.location"
+    "method": "LocationSync.location"
 }
 ```
 
@@ -192,7 +192,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.locationchange"
+    "method": "client.events.locationchange"
 }
 ```
 

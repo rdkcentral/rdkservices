@@ -324,8 +324,16 @@ if(PLUGIN_LINEARPLAYBACKCONTROL)
     add_subdirectory(LinearPlaybackControl)
 endif()
 
+if(PLUGIN_RUSTADAPTER)
+    add_subdirectory(RustAdapter)
+endif()
+
 if(RDK_SERVICES_TEST)
     add_subdirectory(Tests)
+endif()
+
+if(PLUGIN_UNIFIEDCASMANAGEMENT)
+    add_subdirectory(UnifiedCASManagement)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)

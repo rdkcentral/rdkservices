@@ -2,7 +2,7 @@
 <a name="FrameRate_Plugin"></a>
 # FrameRate Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/FrameRate/CHANGELOG.md)**
 
 A org.rdk.FrameRate plugin for Thunder framework.
 
@@ -86,7 +86,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.getDisplayFrameRate"
+    "method": "org.rdk.FrameRate.getDisplayFrameRate"
 }
 ```
 
@@ -132,7 +132,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.getFrmMode"
+    "method": "org.rdk.FrameRate.getFrmMode"
 }
 ```
 
@@ -180,7 +180,7 @@ Sets the FPS data collection interval.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.setCollectionFrequency",
+    "method": "org.rdk.FrameRate.setCollectionFrequency",
     "params": {
         "frequency": 1000
     }
@@ -234,7 +234,7 @@ Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayF
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.setDisplayFrameRate",
+    "method": "org.rdk.FrameRate.setDisplayFrameRate",
     "params": {
         "framerate": "3840x2160px48"
     }
@@ -284,7 +284,7 @@ Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayF
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.setFrmMode",
+    "method": "org.rdk.FrameRate.setFrmMode",
     "params": {
         "frmmode": 0
     }
@@ -334,7 +334,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.startFpsCollection"
+    "method": "org.rdk.FrameRate.startFpsCollection"
 }
 ```
 
@@ -381,7 +381,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.stopFpsCollection"
+    "method": "org.rdk.FrameRate.stopFpsCollection"
 }
 ```
 
@@ -428,7 +428,7 @@ Updates Fps values.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.updateFps",
+    "method": "org.rdk.FrameRate.updateFps",
     "params": {
         "newFpsValue": 60
     }
@@ -477,7 +477,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDisplayFrameRateChanging"
+    "method": "client.events.onDisplayFrameRateChanging"
 }
 ```
 
@@ -495,7 +495,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDisplayFrameRateChanged"
+    "method": "client.events.onDisplayFrameRateChanged"
 }
 ```
 
@@ -518,7 +518,7 @@ Triggered at the end of each interval as defined by the `setCollectionFrequency`
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onFpsEvent",
+    "method": "client.events.onFpsEvent",
     "params": {
         "average": 0,
         "min": 0,

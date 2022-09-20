@@ -2,7 +2,7 @@
 <a name="TextToSpeech_Plugin"></a>
 # TextToSpeech Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/TextToSpeech/CHANGELOG.md)**
 
 A org.rdk.TextToSpeech plugin for Thunder framework.
 
@@ -97,7 +97,7 @@ Also see: [onspeechinterrupted](#onspeechinterrupted)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.cancel",
+    "method": "org.rdk.TextToSpeech.cancel",
     "params": {
         "speechid": 1
     }
@@ -153,7 +153,7 @@ Also see: [onttsstatechanged](#onttsstatechanged), [onspeechinterrupted](#onspee
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.enabletts",
+    "method": "org.rdk.TextToSpeech.enabletts",
     "params": {
         "enabletts": true
     }
@@ -202,7 +202,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.getapiversion"
+    "method": "org.rdk.TextToSpeech.getapiversion"
 }
 ```
 
@@ -252,7 +252,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.getspeechstate",
+    "method": "org.rdk.TextToSpeech.getspeechstate",
     "params": {
         "speechid": 1
     }
@@ -308,7 +308,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.getttsconfiguration"
+    "method": "org.rdk.TextToSpeech.getttsconfiguration"
 }
 ```
 
@@ -364,7 +364,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.isspeaking",
+    "method": "org.rdk.TextToSpeech.isspeaking",
     "params": {
         "speechid": 1
     }
@@ -415,7 +415,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.isttsenabled"
+    "method": "org.rdk.TextToSpeech.isttsenabled"
 }
 ```
 
@@ -466,7 +466,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.listvoices",
+    "method": "org.rdk.TextToSpeech.listvoices",
     "params": {
         "language": "en-US"
     }
@@ -522,7 +522,7 @@ Also see: [onspeechpause](#onspeechpause)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.pause",
+    "method": "org.rdk.TextToSpeech.pause",
     "params": {
         "speechid": 1
     }
@@ -577,7 +577,7 @@ Also see: [onspeechresume](#onspeechresume)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.resume",
+    "method": "org.rdk.TextToSpeech.resume",
     "params": {
         "speechid": 1
     }
@@ -643,7 +643,7 @@ Also see: [onvoicechanged](#onvoicechanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.setttsconfiguration",
+    "method": "org.rdk.TextToSpeech.setttsconfiguration",
     "params": {
         "ttsendpoint": "http://url_for_the_text_to_speech_processing_unit",
         "ttsendpointsecured": "https://url_for_the_text_to_speech_processing_unit",
@@ -718,7 +718,7 @@ Also see: [onwillspeak](#onwillspeak), [onspeechstart](#onspeechstart), [onspeec
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.speak",
+    "method": "org.rdk.TextToSpeech.speak",
     "params": {
         "text": "speech_1",
         "callsign": "WebApp"
@@ -774,7 +774,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.setACL",
+    "method": "org.rdk.TextToSpeech.setACL",
     "params": {
         "accesslist": [
             {
@@ -838,7 +838,7 @@ Triggered when a network error occurs while fetching the audio from the endpoint
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onnetworkerror",
+    "method": "client.events.onnetworkerror",
     "params": {
         "speechid": 1
     }
@@ -862,7 +862,7 @@ Triggered when an error occurs during playback including pipeline failures.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onplaybackerror",
+    "method": "client.events.onplaybackerror",
     "params": {
         "speechid": 1
     }
@@ -887,7 +887,7 @@ Triggered when the speech completes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onspeechcomplete",
+    "method": "client.events.onspeechcomplete",
     "params": {
         "speechid": 1,
         "text": "speech_1"
@@ -912,7 +912,7 @@ Triggered when the current speech is interrupted either by a next speech request
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onspeechinterrupted",
+    "method": "client.events.onspeechinterrupted",
     "params": {
         "speechid": 1
     }
@@ -936,7 +936,7 @@ Triggered when the ongoing speech pauses.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onspeechpause",
+    "method": "client.events.onspeechpause",
     "params": {
         "speechid": 1
     }
@@ -960,7 +960,7 @@ Triggered when any paused speech resumes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onspeechresume",
+    "method": "client.events.onspeechresume",
     "params": {
         "speechid": 1
     }
@@ -985,7 +985,7 @@ Triggered when the speech start.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onspeechstart",
+    "method": "client.events.onspeechstart",
     "params": {
         "speechid": 1,
         "text": "speech_1"
@@ -1010,7 +1010,7 @@ Triggered when TTS is enabled or disabled.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onttsstatechanged",
+    "method": "client.events.onttsstatechanged",
     "params": {
         "state": true
     }
@@ -1034,7 +1034,7 @@ Triggered when the configured voice changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onvoicechanged",
+    "method": "client.events.onvoicechanged",
     "params": {
         "voice": "carol"
     }
@@ -1059,7 +1059,7 @@ Triggered when the text to speech conversion is about to start. It provides the 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onwillspeak",
+    "method": "client.events.onwillspeak",
     "params": {
         "speechid": 1,
         "text": "speech_1"

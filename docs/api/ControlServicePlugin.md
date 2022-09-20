@@ -2,7 +2,7 @@
 <a name="ControlService_Plugin"></a>
 # ControlService Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/ControlService/CHANGELOG.md)**
 
 A org.rdk.ControlService plugin for Thunder framework.
 
@@ -92,7 +92,7 @@ Checks if the Control Manager can search for the remote.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.canFindMyRemote",
+    "method": "org.rdk.ControlService.canFindMyRemote",
     "params": {}
 }
 ```
@@ -141,7 +141,7 @@ Checks Rf4ce chip connectivity status.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.checkRf4ceChipConnectivity",
+    "method": "org.rdk.ControlService.checkRf4ceChipConnectivity",
     "params": {}
 }
 ```
@@ -191,7 +191,7 @@ Leaves pairing mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.endPairingMode",
+    "method": "org.rdk.ControlService.endPairingMode",
     "params": {}
 }
 ```
@@ -245,7 +245,7 @@ Also see: [onControl](#onControl)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.findLastUsedRemote",
+    "method": "org.rdk.ControlService.findLastUsedRemote",
     "params": {
         "timeOutPeriod": 20
     }
@@ -389,7 +389,7 @@ Returns all remote data.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.getAllRemoteData",
+    "method": "org.rdk.ControlService.getAllRemoteData",
     "params": {}
 }
 ```
@@ -539,7 +539,7 @@ Returns last key press source data. The data, if any, is returned as part of the
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.getLastKeypressSource",
+    "method": "org.rdk.ControlService.getLastKeypressSource",
     "params": {}
 }
 ```
@@ -670,7 +670,7 @@ Returns all remote data for the last paired remote. The data, if any, is returne
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.getLastPairedRemoteData",
+    "method": "org.rdk.ControlService.getLastPairedRemoteData",
     "params": {}
 }
 ```
@@ -796,7 +796,7 @@ Gets quirks.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.getQuirks",
+    "method": "org.rdk.ControlService.getQuirks",
     "params": {}
 }
 ```
@@ -923,7 +923,7 @@ Returns all remote data for the specified remote. The data, if any, is returned 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.getSingleRemoteData",
+    "method": "org.rdk.ControlService.getSingleRemoteData",
     "params": {
         "remoteId": 1
     }
@@ -1058,7 +1058,7 @@ Returns remote setting values.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.getValues",
+    "method": "org.rdk.ControlService.getValues",
     "params": {}
 }
 ```
@@ -1122,7 +1122,7 @@ Sets remote setting values.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.setValues",
+    "method": "org.rdk.ControlService.setValues",
     "params": {
         "enableASB": false,
         "enableOpenChime": false,
@@ -1181,7 +1181,7 @@ Enters pairing mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.startPairingMode",
+    "method": "org.rdk.ControlService.startPairingMode",
     "params": {
         "pairingMode": 0,
         "restrictPairing": 0
@@ -1241,7 +1241,7 @@ Triggered on control manager events.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onControl",
+    "method": "client.events.onControl",
     "params": {
         "remoteId": 1,
         "eventValue": 0,
@@ -1272,7 +1272,7 @@ Triggered on control manager configuration complete
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onXRConfigurationComplete",
+    "method": "client.events.onXRConfigurationComplete",
     "params": {
         "remoteId": 1,
         "remoteType": "XR11",
@@ -1304,7 +1304,7 @@ Triggered on control manager validation/pairing key press
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onXRPairingStart",
+    "method": "client.events.onXRPairingStart",
     "params": {
         "remoteId": 1,
         "remoteType": "XR11",
@@ -1342,7 +1342,7 @@ Validation status codes:
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onXRValidationComplete",
+    "method": "client.events.onXRValidationComplete",
     "params": {
         "remoteId": 1,
         "remoteType": "XR11",
@@ -1374,7 +1374,7 @@ Triggered on control manager events.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onXRValidationUpdate",
+    "method": "client.events.onXRValidationUpdate",
     "params": {
         "remoteId": 1,
         "remoteType": "XR11",

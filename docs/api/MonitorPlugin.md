@@ -2,7 +2,7 @@
 <a name="Monitor_Plugin"></a>
 # Monitor Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/Monitor/CHANGELOG.md)**
 
 A Monitor plugin for Thunder framework.
 
@@ -83,7 +83,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Monitor.1.restartlimits",
+    "method": "Monitor.restartlimits",
     "params": {
         "callsign": "WebServer",
         "restart": {
@@ -159,7 +159,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Monitor.1.resetstats",
+    "method": "Monitor.resetstats",
     "params": {
         "callsign": "WebServer"
     }
@@ -273,7 +273,7 @@ Provides access to the service statistics.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Monitor.1.status@WebServer"
+    "method": "Monitor.status@WebServer"
 }
 ```
 
@@ -356,7 +356,7 @@ Signals an action taken by the Monitor.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.action",
+    "method": "client.events.action",
     "params": {
         "callsign": "WebServer",
         "action": "Deactivate",

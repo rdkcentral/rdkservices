@@ -2,7 +2,7 @@
 <a name="System_Plugin"></a>
 # System Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -149,7 +149,7 @@ Checks if a key is present in the cache.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.cacheContains",
+    "method": "org.rdk.System.cacheContains",
     "params": {
         "key": "sampleKey"
     }
@@ -196,7 +196,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.clearLastDeepSleepReason"
+    "method": "org.rdk.System.clearLastDeepSleepReason"
 }
 ```
 
@@ -244,7 +244,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.deletePersistentPath",
+    "method": "org.rdk.System.deletePersistentPath",
     "params": {
         "callsign": "HtmlApp",
         "type": "HtmlApp"
@@ -295,7 +295,7 @@ Enables (or disables) Moca support for the platform.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.enableMoca",
+    "method": "org.rdk.System.enableMoca",
     "params": {
         "value": true
     }
@@ -345,7 +345,7 @@ Enables (or disables) XRE Connection Retention option.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.enableXREConnectionRetention",
+    "method": "org.rdk.System.enableXREConnectionRetention",
     "params": {
         "enable": true
     }
@@ -395,7 +395,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.fireFirmwarePendingReboot"
+    "method": "org.rdk.System.fireFirmwarePendingReboot"
 }
 ```
 
@@ -441,7 +441,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getAvailableStandbyModes"
+    "method": "org.rdk.System.getAvailableStandbyModes"
 }
 ```
 
@@ -494,7 +494,7 @@ Gets the value of a key in the cache.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getCachedValue",
+    "method": "org.rdk.System.getCachedValue",
     "params": {
         "key": "sampleKey"
     }
@@ -543,7 +543,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getCoreTemperature"
+    "method": "org.rdk.System.getCoreTemperature"
 }
 ```
 
@@ -600,7 +600,7 @@ Collects device details. Sample keys include:
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getDeviceInfo",
+    "method": "org.rdk.System.getDeviceInfo",
     "params": {
         "params": [
             "estb_mac"
@@ -654,7 +654,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getDownloadedFirmwareInfo"
+    "method": "org.rdk.System.getDownloadedFirmwareInfo"
 }
 ```
 
@@ -703,7 +703,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getFirmwareDownloadPercent"
+    "method": "org.rdk.System.getFirmwareDownloadPercent"
 }
 ```
 
@@ -755,7 +755,7 @@ Also see: [onFirmwareUpdateInfoReceived](#onFirmwareUpdateInfoReceived)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getFirmwareUpdateInfo",
+    "method": "org.rdk.System.getFirmwareUpdateInfo",
     "params": {
         "GUID": "1234abcd"
     }
@@ -804,7 +804,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getFirmwareUpdateState"
+    "method": "org.rdk.System.getFirmwareUpdateState"
 }
 ```
 
@@ -850,7 +850,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getLastDeepSleepReason"
+    "method": "org.rdk.System.getLastDeepSleepReason"
 }
 ```
 
@@ -896,7 +896,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getLastFirmwareFailureReason"
+    "method": "org.rdk.System.getLastFirmwareFailureReason"
 }
 ```
 
@@ -942,7 +942,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getLastWakeupKeyCode"
+    "method": "org.rdk.System.getLastWakeupKeyCode"
 }
 ```
 
@@ -994,7 +994,7 @@ Also see: [onMacAddressesRetreived](#onMacAddressesRetreived)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getMacAddresses",
+    "method": "org.rdk.System.getMacAddresses",
     "params": {
         "GUID": "1234abcd"
     }
@@ -1043,7 +1043,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getMfgSerialNumber"
+    "method": "org.rdk.System.getMfgSerialNumber"
 }
 ```
 
@@ -1092,7 +1092,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getMilestones"
+    "method": "org.rdk.System.getMilestones"
 }
 ```
 
@@ -1142,7 +1142,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getMode"
+    "method": "org.rdk.System.getMode"
 }
 ```
 
@@ -1191,7 +1191,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getNetworkStandbyMode"
+    "method": "org.rdk.System.getNetworkStandbyMode"
 }
 ```
 
@@ -1237,7 +1237,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getOvertempGraceInterval"
+    "method": "org.rdk.System.getOvertempGraceInterval"
 }
 ```
 
@@ -1309,7 +1309,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPlatformConfiguration",
+    "method": "org.rdk.System.getPlatformConfiguration",
     "params": {
         "query": "..."
     }
@@ -1386,7 +1386,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPowerState"
+    "method": "org.rdk.System.getPowerState"
 }
 ```
 
@@ -1432,7 +1432,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPowerStateBeforeReboot"
+    "method": "org.rdk.System.getPowerStateBeforeReboot"
 }
 ```
 
@@ -1478,7 +1478,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPowerStateIsManagedByDevice"
+    "method": "org.rdk.System.getPowerStateIsManagedByDevice"
 }
 ```
 
@@ -1524,7 +1524,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPreferredStandbyMode"
+    "method": "org.rdk.System.getPreferredStandbyMode"
 }
 ```
 
@@ -1574,7 +1574,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPreviousRebootInfo"
+    "method": "org.rdk.System.getPreviousRebootInfo"
 }
 ```
 
@@ -1629,7 +1629,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPreviousRebootInfo2"
+    "method": "org.rdk.System.getPreviousRebootInfo2"
 }
 ```
 
@@ -1681,7 +1681,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPreviousRebootReason"
+    "method": "org.rdk.System.getPreviousRebootReason"
 }
 ```
 
@@ -1732,7 +1732,7 @@ Returns information that is related to RDK Feature Control (RFC) configurations.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getRFCConfig",
+    "method": "org.rdk.System.getRFCConfig",
     "params": {
         "rfcList": [
             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID"
@@ -1785,7 +1785,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getSerialNumber"
+    "method": "org.rdk.System.getSerialNumber"
 }
 ```
 
@@ -1834,7 +1834,7 @@ Queries device state information of various properties.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getStateInfo",
+    "method": "org.rdk.System.getStateInfo",
     "params": {
         "param": "com.comcast.channel_map"
     }
@@ -1883,7 +1883,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getStoreDemoLink"
+    "method": "org.rdk.System.getStoreDemoLink"
 }
 ```
 
@@ -1931,7 +1931,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getSystemVersions"
+    "method": "org.rdk.System.getSystemVersions"
 }
 ```
 
@@ -1982,7 +1982,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getTemperatureThresholds"
+    "method": "org.rdk.System.getTemperatureThresholds"
 }
 ```
 
@@ -2033,7 +2033,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getTerritory"
+    "method": "org.rdk.System.getTerritory"
 }
 ```
 
@@ -2085,7 +2085,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getTimeZones"
+    "method": "org.rdk.System.getTimeZones"
 }
 ```
 
@@ -2139,7 +2139,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getTimeZoneDST"
+    "method": "org.rdk.System.getTimeZoneDST"
 }
 ```
 
@@ -2185,7 +2185,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getWakeupReason"
+    "method": "org.rdk.System.getWakeupReason"
 }
 ```
 
@@ -2235,7 +2235,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getXconfParams"
+    "method": "org.rdk.System.getXconfParams"
 }
 ```
 
@@ -2286,7 +2286,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.hasRebootBeenRequested"
+    "method": "org.rdk.System.hasRebootBeenRequested"
 }
 ```
 
@@ -2334,7 +2334,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.isGzEnabled"
+    "method": "org.rdk.System.isGzEnabled"
 }
 ```
 
@@ -2380,7 +2380,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.isOptOutTelemetry"
+    "method": "org.rdk.System.isOptOutTelemetry"
 }
 ```
 
@@ -2426,7 +2426,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.queryMocaStatus"
+    "method": "org.rdk.System.queryMocaStatus"
 }
 ```
 
@@ -2478,7 +2478,7 @@ Also see: [onRebootRequest](#onRebootRequest)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.reboot",
+    "method": "org.rdk.System.reboot",
     "params": {
         "rebootReason": "FIRMWARE_FAILURE"
     }
@@ -2531,7 +2531,7 @@ Removes the cache key.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.removeCacheKey",
+    "method": "org.rdk.System.removeCacheKey",
     "params": {
         "key": "sampleKey"
     }
@@ -2579,7 +2579,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.requestSystemUptime"
+    "method": "org.rdk.System.requestSystemUptime"
 }
 ```
 
@@ -2626,7 +2626,7 @@ Sets the boot loader pattern mode in MFR.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setBootLoaderPattern",
+    "method": "org.rdk.System.setBootLoaderPattern",
     "params": {
         "pattern": "NORMAL"
     }
@@ -2679,7 +2679,7 @@ Sets the value for a key in the cache.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setCachedValue",
+    "method": "org.rdk.System.setCachedValue",
     "params": {
         "key": "sampleKey",
         "value": 4343.3434
@@ -2730,7 +2730,7 @@ Sets the deep sleep timeout period.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setDeepSleepTimer",
+    "method": "org.rdk.System.setDeepSleepTimer",
     "params": {
         "seconds": 3
     }
@@ -2780,7 +2780,7 @@ Sets the deep sleep timeout period.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setFirmwareAutoReboot",
+    "method": "org.rdk.System.setFirmwareAutoReboot",
     "params": {
         "enable": true
     }
@@ -2830,7 +2830,7 @@ Sets the deep sleep timeout period.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setFirmwareRebootDelay",
+    "method": "org.rdk.System.setFirmwareRebootDelay",
     "params": {
         "delaySeconds": 60
     }
@@ -2882,7 +2882,7 @@ Enables or disables GZ.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setGzEnabled",
+    "method": "org.rdk.System.setGzEnabled",
     "params": {
         "enabled": false
     }
@@ -2940,7 +2940,7 @@ Also see: [onSystemModeChanged](#onSystemModeChanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setMode",
+    "method": "org.rdk.System.setMode",
     "params": {
         "modeInfo": {
             "mode": "NORMAL",
@@ -2993,7 +2993,7 @@ Enables or disables the network standby mode of the device. If network standby i
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setNetworkStandbyMode",
+    "method": "org.rdk.System.setNetworkStandbyMode",
     "params": {
         "nwStandby": false
     }
@@ -3043,7 +3043,7 @@ Sets the telemetry opt-out status.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setOptOutTelemetry",
+    "method": "org.rdk.System.setOptOutTelemetry",
     "params": {
         "Opt-Out": false
     }
@@ -3093,7 +3093,7 @@ Sets the over-temperature grace interval value. Not supported on all devices.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setOvertempGraceInterval",
+    "method": "org.rdk.System.setOvertempGraceInterval",
     "params": {
         "graceInterval": "600"
     }
@@ -3147,7 +3147,7 @@ Also see: [onSystemPowerStateChanged](#onSystemPowerStateChanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setPowerState",
+    "method": "org.rdk.System.setPowerState",
     "params": {
         "powerState": "ON",
         "standbyReason": "APIUnitTest"
@@ -3198,7 +3198,7 @@ Sets and persists the preferred standby mode. See [getAvailableStandbyModes](#ge
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setPreferredStandbyMode",
+    "method": "org.rdk.System.setPreferredStandbyMode",
     "params": {
         "standbyMode": "DEEP_SLEEP"
     }
@@ -3250,7 +3250,7 @@ Sets the temperature threshold values. Not supported on all devices.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setTemperatureThresholds",
+    "method": "org.rdk.System.setTemperatureThresholds",
     "params": {
         "thresholds": {
             "WARN": "100.000000",
@@ -3304,7 +3304,7 @@ Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setTerritory",
+    "method": "org.rdk.System.setTerritory",
     "params": {
         "territory": "USA",
         "region": "US-NY"
@@ -3355,7 +3355,7 @@ Sets the system time zone. See `getTimeZones` to get a list of available timezon
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setTimeZoneDST",
+    "method": "org.rdk.System.setTimeZoneDST",
     "params": {
         "timeZone": "America/New_York"
     }
@@ -3406,7 +3406,7 @@ Sets the wakeup source configuration.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setWakeupSrcConfiguration",
+    "method": "org.rdk.System.setWakeupSrcConfiguration",
     "params": {
         "wakeupSrc": "3",
         "config": "1"
@@ -3454,7 +3454,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.updateFirmware"
+    "method": "org.rdk.System.updateFirmware"
 }
 ```
 
@@ -3501,7 +3501,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.uploadLogs",
+    "method": "org.rdk.System.uploadLogs",
     "params": {
         "url": "https://ssr.ccp.xcal.tv/cgi-bin/rdkb_snmp.cgi"
     }
@@ -3561,7 +3561,7 @@ SystemServices interface events:
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onFirmwarePendingReboot",
+    "method": "client.events.onFirmwarePendingReboot",
     "params": {
         "fireFirmwarePendingReboot": 3,
         "success": true
@@ -3597,7 +3597,7 @@ Update details are:
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onFirmwareUpdateInfoReceived",
+    "method": "client.events.onFirmwareUpdateInfoReceived",
     "params": {
         "status": 0,
         "responseString": "...",
@@ -3635,7 +3635,7 @@ State details are:
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onFirmwareUpdateStateChange",
+    "method": "client.events.onFirmwareUpdateStateChange",
     "params": {
         "firmwareUpdateStateChange": 5
     }
@@ -3667,7 +3667,7 @@ Triggered when the `getMacAddresses` asynchronous method is invoked.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onMacAddressesRetreived",
+    "method": "client.events.onMacAddressesRetreived",
     "params": {
         "ecm_mac": "A8:11:XX:FD:0C:XX",
         "estb_mac": "A8:11:XX:FD:0C:XX",
@@ -3699,7 +3699,7 @@ Triggered when the network standby mode setting changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onNetworkStandbyModeChanged",
+    "method": "client.events.onNetworkStandbyModeChanged",
     "params": {
         "nwStandby": true
     }
@@ -3724,7 +3724,7 @@ Triggered when an application invokes the reboot
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onRebootRequest",
+    "method": "client.events.onRebootRequest",
     "params": {
         "requestedApp": "SystemPlugin",
         "rebootReason": "FIRMWARE_FAILURE"
@@ -3746,7 +3746,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onSystemClockSet"
+    "method": "client.events.onSystemClockSet"
 }
 ```
 
@@ -3767,7 +3767,7 @@ Triggered when the device operating mode changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onSystemModeChanged",
+    "method": "client.events.onSystemModeChanged",
     "params": {
         "mode": "NORMAL"
     }
@@ -3792,7 +3792,7 @@ Triggered when the power manager detects a device power state change.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onSystemPowerStateChanged",
+    "method": "client.events.onSystemPowerStateChanged",
     "params": {
         "powerState": "ON",
         "currentPowerState": "ON"
@@ -3819,7 +3819,7 @@ Triggered when the device temperature changes beyond the `WARN` or `MAX` limits 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onTemperatureThresholdChanged",
+    "method": "client.events.onTemperatureThresholdChanged",
     "params": {
         "thresholdType": "MAX",
         "exceeded": true,

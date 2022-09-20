@@ -2,7 +2,7 @@
 <a name="NetworkPlugin"></a>
 # NetworkPlugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
 
 A org.rdk.Network plugin for Thunder framework.
 
@@ -97,7 +97,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.getDefaultInterface"
+    "method": "org.rdk.Network.getDefaultInterface"
 }
 ```
 
@@ -148,7 +148,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.getInterfaces"
+    "method": "org.rdk.Network.getInterfaces"
 }
 ```
 
@@ -213,7 +213,7 @@ Gets the IP setting for the given interface.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.getIPSettings",
+    "method": "org.rdk.Network.getIPSettings",
     "params": {
         "interface": "WIFI",
         "ipversion": "IPv4"
@@ -272,7 +272,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.getNamedEndpoints"
+    "method": "org.rdk.Network.getNamedEndpoints"
 }
 ```
 
@@ -320,7 +320,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.getQuirks"
+    "method": "org.rdk.Network.getQuirks"
 }
 ```
 
@@ -366,7 +366,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.getStbIp"
+    "method": "org.rdk.Network.getStbIp"
 }
 ```
 
@@ -415,7 +415,7 @@ Gets the IP address of the default interface by address family.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.getSTBIPFamily",
+    "method": "org.rdk.Network.getSTBIPFamily",
     "params": {
         "family": "AF_INET"
     }
@@ -464,7 +464,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.isConnectedToInternet"
+    "method": "org.rdk.Network.isConnectedToInternet"
 }
 ```
 
@@ -513,7 +513,7 @@ Whether the specified interface is enabled.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.isInterfaceEnabled",
+    "method": "org.rdk.Network.isInterfaceEnabled",
     "params": {
         "interface": "WIFI"
     }
@@ -576,7 +576,7 @@ Pings the specified endpoint with the specified number of packets.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.ping",
+    "method": "org.rdk.Network.ping",
     "params": {
         "endpoint": "45.57.221.20",
         "packets": 10,
@@ -650,7 +650,7 @@ Pings the specified named endpoint with the specified number of packets. Only na
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.pingNamedEndpoint",
+    "method": "org.rdk.Network.pingNamedEndpoint",
     "params": {
         "endpointName": "CMTS",
         "packets": 10,
@@ -713,7 +713,7 @@ Sets the default list of endpoints used for a connectivity test. Maximum number 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.setConnectivityTestEndpoints",
+    "method": "org.rdk.Network.setConnectivityTestEndpoints",
     "params": {
         "endpoints": [
             "xfinity.com:8080"
@@ -772,7 +772,7 @@ Also see: [onInterfaceStatusChanged](#onInterfaceStatusChanged), [onConnectionSt
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.setDefaultInterface",
+    "method": "org.rdk.Network.setDefaultInterface",
     "params": {
         "interface": "WIFI",
         "persist": true
@@ -828,7 +828,7 @@ Also see: [onInterfaceStatusChanged](#onInterfaceStatusChanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.setInterfaceEnabled",
+    "method": "org.rdk.Network.setInterfaceEnabled",
     "params": {
         "interface": "WIFI",
         "enabled": true,
@@ -891,7 +891,7 @@ Also see: [onIPAddressStatusChanged](#onIPAddressStatusChanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.setIPSettings",
+    "method": "org.rdk.Network.setIPSettings",
     "params": {
         "interface": "WIFI",
         "ipversion": "IPv4",
@@ -951,7 +951,7 @@ It allows either zero parameter or with only interface and ipv6 parameter to det
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.getPublicIP",
+    "method": "org.rdk.Network.getPublicIP",
     "params": {
         "iface": "WIFI",
         "ipv6": true
@@ -1007,7 +1007,7 @@ Set the Stun Endpoint used for getPublicIP.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.setStunEndPoint",
+    "method": "org.rdk.Network.setStunEndPoint",
     "params": {
         "server": "global.stun.twilio.com",
         "port": 3478,
@@ -1065,7 +1065,7 @@ Traces the specified endpoint with the specified number of packets using `tracer
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.trace",
+    "method": "org.rdk.Network.trace",
     "params": {
         "endpoint": "45.57.221.20",
         "packets": 10
@@ -1123,7 +1123,7 @@ Traces the specified named endpoint with the specified number of packets using `
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.1.traceNamedEndpoint",
+    "method": "org.rdk.Network.traceNamedEndpoint",
     "params": {
         "endpointName": "CMTS",
         "packets": 10
@@ -1181,7 +1181,7 @@ Triggered when an interface becomes enabled or disabled.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onInterfaceStatusChanged",
+    "method": "client.events.onInterfaceStatusChanged",
     "params": {
         "interface": "WIFI",
         "enabled": true
@@ -1207,7 +1207,7 @@ Triggered when a connection is made or lost.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onConnectionStatusChanged",
+    "method": "client.events.onConnectionStatusChanged",
     "params": {
         "interface": "WIFI",
         "status": "CONNECTED"
@@ -1235,7 +1235,7 @@ Triggered when an IP Address is assigned or lost.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onIPAddressStatusChanged",
+    "method": "client.events.onIPAddressStatusChanged",
     "params": {
         "interface": "WIFI",
         "ip6Address": "2001:0xx8:85a3:0000:0000:8x2x:0370:7334",
@@ -1263,7 +1263,7 @@ Triggered when the default interface changes, regardless if it's from a system o
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDefaultInterfaceChanged",
+    "method": "client.events.onDefaultInterfaceChanged",
     "params": {
         "oldInterfaceName": "ETHERNET",
         "newInterfaceName": "WIFI"

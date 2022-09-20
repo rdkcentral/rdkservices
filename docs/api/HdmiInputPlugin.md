@@ -2,7 +2,7 @@
 <a name="HdmiInputPlugin"></a>
 # HdmiInputPlugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
 
 A org.rdk.HdmiInput plugin for Thunder framework.
 
@@ -94,7 +94,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiInput.1.getHDMIInputDevices"
+    "method": "org.rdk.HdmiInput.getHDMIInputDevices"
 }
 ```
 
@@ -149,7 +149,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiInput.1.getEdidVersion",
+    "method": "org.rdk.HdmiInput.getEdidVersion",
     "params": {
         "portId": "0"
     }
@@ -201,7 +201,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiInput.1.getHDMISPD",
+    "method": "org.rdk.HdmiInput.getHDMISPD",
     "params": {
         "portId": "0"
     }
@@ -253,7 +253,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiInput.1.getRawHDMISPD",
+    "method": "org.rdk.HdmiInput.getRawHDMISPD",
     "params": {
         "portId": "0"
     }
@@ -305,7 +305,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiInput.1.readEDID",
+    "method": "org.rdk.HdmiInput.readEDID",
     "params": {
         "deviceId": 0
     }
@@ -360,7 +360,7 @@ Also see: [onInputStatusChanged](#onInputStatusChanged), [onSignalChanged](#onSi
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiInput.1.startHdmiInput",
+    "method": "org.rdk.HdmiInput.startHdmiInput",
     "params": {
         "portId": "0"
     }
@@ -410,7 +410,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiInput.1.stopHdmiInput"
+    "method": "org.rdk.HdmiInput.stopHdmiInput"
 }
 ```
 
@@ -458,7 +458,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiInput.1.setEdidVersion",
+    "method": "org.rdk.HdmiInput.setEdidVersion",
     "params": {
         "portId": "0",
         "edidVersion": "HDMI2.0"
@@ -512,7 +512,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiInput.1.setVideoRectangle",
+    "method": "org.rdk.HdmiInput.setVideoRectangle",
     "params": {
         "x": 0,
         "y": 0,
@@ -566,7 +566,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiInput.1.writeEDID",
+    "method": "org.rdk.HdmiInput.writeEDID",
     "params": {
         "deviceId": 0,
         "message": "EDID"
@@ -615,7 +615,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiInput.1.getSupportedGameFeatures"
+    "method": "org.rdk.HdmiInput.getSupportedGameFeatures"
 }
 ```
 
@@ -665,7 +665,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiInput.1.getHdmiGameFeatureStatus",
+    "method": "org.rdk.HdmiInput.getHdmiGameFeatureStatus",
     "params": {
         "portId": "0",
         "gameFeature": "ALLM"
@@ -725,7 +725,7 @@ Triggered whenever a new HDMI device is connected to an HDMI Input.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDevicesChanged",
+    "method": "client.events.onDevicesChanged",
     "params": {
         "devices": [
             {
@@ -757,7 +757,7 @@ Triggered whenever the status changes for an HDMI Input.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onInputStatusChanged",
+    "method": "client.events.onInputStatusChanged",
     "params": {
         "id": 0,
         "locator": "hdmiin://localhost/deviceid/0",
@@ -785,7 +785,7 @@ Triggered whenever the signal status changes for an HDMI Input.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onSignalChanged",
+    "method": "client.events.onSignalChanged",
     "params": {
         "id": 0,
         "locator": "hdmiin://localhost/deviceid/0",
@@ -817,7 +817,7 @@ Triggered whenever there is an update in HDMI Input video stream info.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.videoStreamInfoUpdate",
+    "method": "client.events.videoStreamInfoUpdate",
     "params": {
         "id": 0,
         "locator": "hdmiin://localhost/deviceid/0",
@@ -849,7 +849,7 @@ Triggered whenever game feature(ALLM) status changes for an HDMI Input.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.hdmiGameFeatureStatusUpdate",
+    "method": "client.events.hdmiGameFeatureStatusUpdate",
     "params": {
         "portId": "0",
         "gameFeature": "ALLM",

@@ -2,7 +2,7 @@
 <a name="Warehouse_Plugin"></a>
 # Warehouse Plugin
 
-**Version: 1.0.0**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/Warehouse/CHANGELOG.md)**
 
 A org.rdk.Warehouse plugin for Thunder framework.
 
@@ -85,7 +85,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.executeHardwareTest"
+    "method": "org.rdk.Warehouse.executeHardwareTest"
 }
 ```
 
@@ -141,7 +141,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.getDeviceInfo"
+    "method": "org.rdk.Warehouse.getDeviceInfo"
 }
 ```
 
@@ -200,7 +200,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.getHardwareTestResults",
+    "method": "org.rdk.Warehouse.getHardwareTestResults",
     "params": {
         "testResults": "Timezone: NA 2021-04-15 10:35:06 Test execution start, remote trigger ver. 0011 2021-04-15 10:35:10 Test result: Audio/Video Decoder:PASSED 2021-04-15 10:35:06 Test result: Dynamic RAM:PASSED 2021-04-15 10:35:06 Test result: Flash Memory:PASSED 2021-04-15 10:35:06 Test result: HDMI Output:PASSED 2021-04-15 10:35:38 Test result: IR Remote Interface:WARNING_IR_Not_Detected 2021-04-15 10:35:06 Test result: Bluetooth:PASSED 2021-04-15 10:35:06 Test result: SD Card:PASSED 2021-04-15 10:35:06 Test result: WAN:PASSED 2021-04-15 10:35:38 Test execution completed:PASSED"
     }
@@ -251,7 +251,7 @@ Invokes the internal reset script, which reboots the Warehouse service (`/reboot
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.internalReset",
+    "method": "org.rdk.Warehouse.internalReset",
     "params": {
         "passPhrase": "FOR TEST PURPOSES ONLY"
     }
@@ -302,7 +302,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.isClean"
+    "method": "org.rdk.Warehouse.isClean"
 }
 ```
 
@@ -351,7 +351,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.lightReset"
+    "method": "org.rdk.Warehouse.lightReset"
 }
 ```
 
@@ -404,7 +404,7 @@ Also see: [resetDone](#resetDone)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.resetDevice",
+    "method": "org.rdk.Warehouse.resetDevice",
     "params": {
         "suppressReboot": true,
         "resetType": "WAREHOUSE"
@@ -457,7 +457,7 @@ Sets the state of the front panel LEDs to indicate the download state of the STB
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.setFrontPanelState",
+    "method": "org.rdk.Warehouse.setFrontPanelState",
     "params": {
         "state": 1
     }
@@ -509,7 +509,7 @@ Notifies subscribers about the status of the warehouse reset operation.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.resetDone",
+    "method": "client.events.resetDone",
     "params": {
         "success": true,
         "error": "..."
