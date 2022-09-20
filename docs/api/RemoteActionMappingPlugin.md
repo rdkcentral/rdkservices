@@ -90,7 +90,7 @@ Cancels downloading IR and five digit codes from the IRRF database.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.cancelCodeDownload",
+    "method": "org.rdk.RemoteActionMapping.cancelCodeDownload",
     "params": {
         "deviceID": 1
     }
@@ -147,7 +147,7 @@ Clears an action mapping for the specified keys.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.clearKeyActionMapping",
+    "method": "org.rdk.RemoteActionMapping.clearKeyActionMapping",
     "params": {
         "deviceID": 1,
         "keymapType": 1,
@@ -203,7 +203,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.getApiVersionNumber"
+    "method": "org.rdk.RemoteActionMapping.getApiVersionNumber"
 }
 ```
 
@@ -261,7 +261,7 @@ Returns the mapping of all action keys.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.getFullKeyActionMapping",
+    "method": "org.rdk.RemoteActionMapping.getFullKeyActionMapping",
     "params": {
         "deviceID": 1,
         "keymapType": 1
@@ -329,7 +329,7 @@ Returns a hard-coded list of key names.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.getKeymap",
+    "method": "org.rdk.RemoteActionMapping.getKeymap",
     "params": {
         "deviceID": 1,
         "keymapType": 1
@@ -386,7 +386,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.getLastUsedDeviceID"
+    "method": "org.rdk.RemoteActionMapping.getLastUsedDeviceID"
 }
 ```
 
@@ -448,7 +448,7 @@ Returns the mapping for a single action key.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.getSingleKeyActionMapping",
+    "method": "org.rdk.RemoteActionMapping.getSingleKeyActionMapping",
     "params": {
         "deviceID": 1,
         "keymapType": 1,
@@ -518,7 +518,7 @@ Also see: [onFiveDigitCodeLoad](#onFiveDigitCodeLoad)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.setFiveDigitCode",
+    "method": "org.rdk.RemoteActionMapping.setFiveDigitCode",
     "params": {
         "deviceID": 1,
         "tvFiveDigitCode": 12345,
@@ -585,7 +585,7 @@ Also see: [onIRCodeLoad](#onIRCodeLoad)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.setKeyActionMapping",
+    "method": "org.rdk.RemoteActionMapping.setKeyActionMapping",
     "params": {
         "deviceID": 1,
         "keymapType": 1,
@@ -652,7 +652,7 @@ Triggered when new five digit codes are loaded.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onFiveDigitCodeLoad",
+    "method": "client.events.onFiveDigitCodeLoad",
     "params": {
         "deviceID": 1,
         "tvLoadStatus": 0,
@@ -683,7 +683,7 @@ Triggered when new IR codes are loaded.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onIRCodeLoad",
+    "method": "client.events.onIRCodeLoad",
     "params": {
         "deviceID": 1,
         "keyNames": [

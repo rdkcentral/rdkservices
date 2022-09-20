@@ -2149,12 +2149,12 @@ def CreateDocument(schema, path):
             MdHeader("Example", 3)
 
             if is_notification:
-                method = "client.events.1." + method
+                method = "client.events." + method
             elif is_property:
-                method = "%s.1.%s%s" % (classname, method, ("@" + props["index"]["example"])
+                method = "%s.%s%s" % (classname, method, ("@" + props["index"]["example"])
                                         if "index" in props and "example" in props["index"] else "")
             else:
-                method = "%s.1.%s" % (classname, method)
+                method = "%s.%s" % (classname, method)
             if "id" in props and "example" in props["id"]:
                 method = props["id"]["example"] + "." + method
             parameters = props["params"] if "params" in props else None

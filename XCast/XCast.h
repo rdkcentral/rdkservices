@@ -19,12 +19,18 @@
 
 #pragma once
 
+#include <iostream>
+#include <mutex>
+
 #include "tptimer.h"
 #include "Module.h"
 #include "RtNotifier.h"
 #include "libIBus.h"
 #include "libIBusDaemon.h"
 #include "pwrMgr.h"
+#include "XCastCommon.h"
+
+using namespace std;
 
 namespace WPEFramework {
 
@@ -58,6 +64,7 @@ private:
     uint32_t setFriendlyName(const JsonObject& parameters, JsonObject& response);
     uint32_t getFriendlyName(const JsonObject& parameters, JsonObject& response);
     uint32_t registerApplications(const JsonObject& parameters, JsonObject& response);
+    uint32_t unregisterApplications(const JsonObject& parameters, JsonObject& response);
     uint32_t getProtocolVersion(const JsonObject& parameters, JsonObject& response);
     //End methods
     
@@ -93,6 +100,9 @@ private:
     static bool m_xcastEnable;
     static IARM_Bus_PWRMgr_PowerState_t m_powerState;
     uint32_t m_apiVersionNumber;
+    bool m_isDynamicRegistrationsRequired;
+    mutex m_appConfigMutex;
+    std::vector<DynamicAppConfig*> m_appConfigCache;
     static string m_friendlyName;
     static bool m_standbyBehavior;
     static bool m_enableStatus;
@@ -103,6 +113,12 @@ private:
     //Internal methods
     void onLocateCastTimer();
     void getUrlFromAppLaunchParams (const char *app_name, const char *payload, const char *query_string, const char *additional_data_url, char *url);
+    bool getEntryFromAppLaunchParamList (const char* appName, DynamicAppConfig& retAppConfig);
+    void dumpDynamicAppConfigCache(string strListName, std::vector<DynamicAppConfig*> appConfigList);
+    bool deleteFromDynamicAppCache(string strAppNames);
+    bool deleteFromDynamicAppCache(vector<string>& appsToDelete);
+    void updateDynamicAppCache(string strApps);
+
     /**
      * Check whether the xdial service is allowed in this device.
      */

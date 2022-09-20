@@ -88,7 +88,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getApiVersionNumber"
+    "method": "org.rdk.Xcast.getApiVersionNumber"
 }
 ```
 
@@ -134,7 +134,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getEnabled"
+    "method": "org.rdk.Xcast.getEnabled"
 }
 ```
 
@@ -180,7 +180,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getFriendlyName"
+    "method": "org.rdk.Xcast.getFriendlyName"
 }
 ```
 
@@ -226,7 +226,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getProtocolVersion"
+    "method": "org.rdk.Xcast.getProtocolVersion"
 }
 ```
 
@@ -272,7 +272,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getStandbyBehavior"
+    "method": "org.rdk.Xcast.getStandbyBehavior"
 }
 ```
 
@@ -333,7 +333,7 @@ The following table provides a client error mapping example:
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.onApplicationStateChanged",
+    "method": "org.rdk.Xcast.onApplicationStateChanged",
     "params": {
         "applicationName": "NetflixApp",
         "state": "running",
@@ -386,7 +386,7 @@ Registers an application. This allows to whitelist the apps which support dial s
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.registerApplications",
+    "method": "org.rdk.Xcast.registerApplications",
     "params": {
         "applications": "NetflixApp"
     }
@@ -436,7 +436,7 @@ Enables or disables xcast.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.setEnabled",
+    "method": "org.rdk.Xcast.setEnabled",
     "params": {
         "enabled": true
     }
@@ -486,7 +486,7 @@ Sets the friendly name of device. It allows an application to override the defau
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.setFriendlyName",
+    "method": "org.rdk.Xcast.setFriendlyName",
     "params": {
         "friendlyname": "xdial"
     }
@@ -536,7 +536,7 @@ Sets the expected xcast behavior in standby mode. It allows an application to ov
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.setStandbyBehavior",
+    "method": "org.rdk.Xcast.setStandbyBehavior",
     "params": {
         "standbybehavior": "active"
     }
@@ -592,7 +592,7 @@ Upon hiding the application, the resident application is responsible for calling
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationHideRequest",
+    "method": "client.events.onApplicationHideRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
@@ -620,7 +620,7 @@ Upon launching the application, the resident application is responsible for call
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationLaunchRequest",
+    "method": "client.events.onApplicationLaunchRequest",
     "params": {
         "applicationName": "NetflixApp",
         "parameters": {
@@ -649,7 +649,7 @@ Upon resuming the application, the resident application is responsible for calli
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationResumeRequest",
+    "method": "client.events.onApplicationResumeRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
@@ -676,7 +676,7 @@ The resident application is responsible for calling the `onApplicationStateChang
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationStateRequest",
+    "method": "client.events.onApplicationStateRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
@@ -703,7 +703,7 @@ Upon stopping the application, the resident application is responsible for calli
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationStopRequest",
+    "method": "client.events.onApplicationStopRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"

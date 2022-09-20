@@ -73,7 +73,7 @@ Provides access to the device platform specific information.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceIdentification.1.deviceidentification"
+    "method": "DeviceIdentification.deviceidentification"
 }
 ```
 
