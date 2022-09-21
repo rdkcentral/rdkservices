@@ -93,6 +93,41 @@ protected:
     }
 };
 
+class SystemServicesEventIarmTest : public SystemServicesEventTest {
+protected:
+    IARM_EventHandler_t systemStateChanged;
+    IARM_EventHandler_t thermMgrEventsHandler;
+
+    SystemServicesEventIarmTest()
+        : SystemServicesEventTest()
+    {
+        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
+                    if ((string(IARM_BUS_SYSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE)) {
+                        systemStateChanged = handler;
+                    }
+                    if ((string(IARM_BUS_PWRMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED)) {
+                        thermMgrEventsHandler = handler;
+                    }
+                    return IARM_RESULT_SUCCESS;
+                }));
+
+        EXPECT_EQ(string(""), plugin->Initialize(&service));
+    }
+
+    virtual ~SystemServicesEventIarmTest() override
+    {
+        plugin->Deinitialize(&service);
+    }
+
+    virtual void SetUp()
+    {
+        ASSERT_TRUE(systemStateChanged != nullptr);
+        ASSERT_TRUE(thermMgrEventsHandler != nullptr);
+    }
+};
+
 TEST_F(SystemServicesTest, RegisterMethods)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("requestSystemUptime")));
@@ -628,4 +663,142 @@ TEST_F(SystemServicesTest, getLastWakeupKeyCode)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getLastWakeupKeyCode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"wakeupKeyCode\":5,\"success\":true}"));
+}
+
+TEST_F(SystemServicesEventIarmTest, onFirmwareUpdateStateChange)
+{
+    Core::Event onFirmwareUpdateStateChange(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onFirmwareUpdateStateChange\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"firmwareUpdateStateChange\":4"
+                                                             "\\}"
+                                                             "\\}")));
+
+                onFirmwareUpdateStateChange.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onFirmwareUpdateStateChange"), _T("org.rdk.System"), message);
+
+    IARM_Bus_SYSMgr_EventData_t sysEventData;
+    sysEventData.data.systemStates.stateId = IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE;
+    sysEventData.data.systemStates.state = IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_DOWNLOAD_COMPLETE;
+    systemStateChanged(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, &sysEventData, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateStateChange.Lock());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateState"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"firmwareUpdateState\":4,\"success\":true}"));
+
+    handler.Unsubscribe(0, _T("onFirmwareUpdateStateChange"), _T("org.rdk.System"), message);
+}
+
+TEST_F(SystemServicesEventIarmTest, onSystemClockSet)
+{
+    Core::Event onSystemClockSet(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onSystemClockSet\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\\}"
+                                                             "\\}")));
+
+                onSystemClockSet.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onSystemClockSet"), _T("org.rdk.System"), message);
+
+    IARM_Bus_SYSMgr_EventData_t sysEventData;
+    sysEventData.data.systemStates.stateId = IARM_BUS_SYSMGR_SYSSTATE_TIME_SOURCE;
+    sysEventData.data.systemStates.state = 666; // I have no idea what it should be but SystemServices needs non-zero
+    systemStateChanged(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, &sysEventData, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onSystemClockSet.Lock());
+
+    handler.Unsubscribe(0, _T("onSystemClockSet"), _T("org.rdk.System"), message);
+}
+
+TEST_F(SystemServicesEventIarmTest, onTemperatureThresholdChanged)
+{
+    Core::Event onTemperatureThresholdChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onTemperatureThresholdChanged\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"thresholdType\":\"WARN\","
+                                                             "\"exceeded\":true,"
+                                                             "\"temperature\":\"100.000000\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                onTemperatureThresholdChanged.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    param.data.therm.newLevel = IARM_BUS_PWRMGR_TEMPERATURE_HIGH;
+    param.data.therm.curLevel = IARM_BUS_PWRMGR_TEMPERATURE_NORMAL;
+    param.data.therm.curTemperature = 100;
+    thermMgrEventsHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onTemperatureThresholdChanged.Lock());
+
+    handler.Unsubscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+}
+
+extern "C" FILE* __real_popen(const char* command, const char* type);
+
+TEST_F(SystemServicesTest, getTimeZones)
+{
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](const char* command, const char* type) -> FILE* {
+                EXPECT_THAT(string(command), ::testing::MatchesRegex("zdump \\/usr\\/share\\/zoneinfo/.+"));
+                return __real_popen(command, type);
+            }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZones"), _T("{}"), response));
+    EXPECT_THAT(response, ::testing::MatchesRegex("\\{\"zoneinfo\":\\{.*\"GMT\":\".+ GMT\".*\\},\"success\":true\\}"));
+}
+
+TEST_F(SystemServicesTest, getLastDeepSleepReason)
+{
+    ofstream file("/opt/standbyReason.txt");
+    file << "thermal_deepsleep_critical_threshold";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getLastDeepSleepReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"reason\":\"thermal_deepsleep_critical_threshold\",\"success\":true}"));
 }
