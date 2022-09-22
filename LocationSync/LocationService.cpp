@@ -591,7 +591,7 @@ namespace Plugin {
 
         // See if we need rescheduling
         if (result != Core::infinite) {
-            _activity.Schedule(Core::Time::Now().Add(result));
+            _activity.Reschedule(Core::Time::Now().Add(result));
         }
     }
 
