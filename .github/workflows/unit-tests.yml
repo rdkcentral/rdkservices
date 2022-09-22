@@ -199,27 +199,19 @@ jobs:
         run: sudo apt update && sudo apt install -y valgrind
 
       - name: Set up files
-        run: |
-          sudo mkdir -p /opt/secure
-          sudo mkdir -p /opt/persistent
-          sudo mkdir -p /opt/secure/reboot
-          sudo mkdir -p /opt/secure/persistent
-          sudo mkdir -p /opt/secure/persistent/System
-          sudo mkdir -p /opt/logs
-          sudo mkdir -p /lib/rdk
-          sudo chmod -R 1777 /opt
-          sudo chmod -R 1777 /lib/rdk
-          sudo touch /opt/logs/rebootInfo.log
-          sudo touch /opt/persistent/previousreboot.info
-          sudo touch /opt/persistent/hardpower.info
-          sudo touch /opt/tmtryoptout
-          sudo touch /opt/fwdnldstatus.txt
-          sudo touch /etc/device.properties
-          sudo touch /etc/authService.conf
-          sudo touch /version.txt
-          sudo chmod 777 /etc/device.properties
-          sudo chmod 777 /etc/authService.conf
-          sudo chmod 777 /version.txt
+        run: >
+          sudo mkdir -p -m 777
+          /opt/persistent
+          /opt/secure /opt/secure/reboot /opt/secure/persistent /opt/secure/persistent/System
+          /opt/logs &&
+          sudo touch
+          /opt/standbyReason.txt /opt/tmtryoptout /opt/fwdnldstatus.txt
+          /etc/device.properties /etc/authService.conf
+          /version.txt &&
+          sudo chmod 777
+          /opt/standbyReason.txt /opt/tmtryoptout /opt/fwdnldstatus.txt
+          /etc/device.properties /etc/authService.conf
+          /version.txt
 
       - name: Run unit tests
         run: >

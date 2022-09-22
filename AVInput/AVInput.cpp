@@ -592,7 +592,7 @@ std::string AVInput::readEDID(int iPort)
         //convert to base64
         uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
 
-        LOGWARN("AVInput::readEDID size:%d edidVec.size:%lu", size, edidVec.size());
+        LOGWARN("AVInput::readEDID size:%d edidVec.size:%zu", size, edidVec.size());
         if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max()) {
             LOGERR("Size too large to use ToString base64 wpe api");
             return edidbase64;
@@ -1055,7 +1055,7 @@ std::string AVInput::getRawSPD(int iPort)
         //convert to base64
         uint16_t size = min(spdVect.size(), (size_t)numeric_limits<uint16_t>::max());
 
-        LOGWARN("AVInput::getSPD size:%d spdVec.size:%lu", size, spdVect.size());
+        LOGWARN("AVInput::getSPD size:%d spdVec.size:%zu", size, spdVect.size());
 
         if(spdVect.size() > (size_t)numeric_limits<uint16_t>::max()) {
             LOGERR("Size too large to use ToString base64 wpe api");
@@ -1088,7 +1088,7 @@ std::string AVInput::getSPD(int iPort)
         //convert to base64
         uint16_t size = min(spdVect.size(), (size_t)numeric_limits<uint16_t>::max());
 
-        LOGWARN("AVInput::getSPD size:%d spdVec.size:%lu", size, spdVect.size());
+        LOGWARN("AVInput::getSPD size:%d spdVec.size:%zu", size, spdVect.size());
 
         if(spdVect.size() > (size_t)numeric_limits<uint16_t>::max()) {
             LOGERR("Size too large to use ToString base64 wpe api");

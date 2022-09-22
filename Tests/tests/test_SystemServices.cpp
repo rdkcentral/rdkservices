@@ -93,7 +93,42 @@ protected:
     }
 };
 
-TEST_F(SystemServicesTest, RegisterMethods)
+class SystemServicesEventIarmTest : public SystemServicesEventTest {
+protected:
+    IARM_EventHandler_t systemStateChanged;
+    IARM_EventHandler_t thermMgrEventsHandler;
+
+    SystemServicesEventIarmTest()
+        : SystemServicesEventTest()
+    {
+        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
+                    if ((string(IARM_BUS_SYSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE)) {
+                        systemStateChanged = handler;
+                    }
+                    if ((string(IARM_BUS_PWRMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED)) {
+                        thermMgrEventsHandler = handler;
+                    }
+                    return IARM_RESULT_SUCCESS;
+                }));
+
+        EXPECT_EQ(string(""), plugin->Initialize(&service));
+    }
+
+    virtual ~SystemServicesEventIarmTest() override
+    {
+        plugin->Deinitialize(&service);
+    }
+
+    virtual void SetUp()
+    {
+        ASSERT_TRUE(systemStateChanged != nullptr);
+        ASSERT_TRUE(thermMgrEventsHandler != nullptr);
+    }
+};
+
+TEST_F(SystemServicesTest, TestedAPIsShouldExist)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("requestSystemUptime")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("fireFirmwarePendingReboot")));
@@ -113,6 +148,33 @@ TEST_F(SystemServicesTest, RegisterMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("isOptOutTelemetry")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setOptOutTelemetry")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getSystemVersions")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("queryMocaStatus")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("enableMoca")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("updateFirmware")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getMode")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setMode")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setDeepSleepTimer")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setNetworkStandbyMode")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getNetworkStandbyMode")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setPreferredStandbyMode")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPreferredStandbyMode")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getAvailableStandbyModes")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getWakeupReason")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getLastWakeupKeyCode")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getTimeZones")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getLastDeepSleepReason")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCoreTemperature")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getTemperatureThresholds")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setTemperatureThresholds")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getOvertempGraceInterval")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setOvertempGraceInterval")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getRFCConfig")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("enableXREConnectionRetention")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPowerState")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setPowerState")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPowerStateIsManagedByDevice")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPowerStateBeforeReboot")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setWakeupSrcConfiguration")));
 }
 
 TEST_F(SystemServicesTest, SystemUptime)
@@ -441,8 +503,9 @@ TEST_F(SystemServicesTest, MocaStatus)
 
 TEST_F(SystemServicesTest, updateFirmware)
 {
-    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke(
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
             [&](const char* command, const char* type) {
                 EXPECT_EQ(string(command), string(_T("/lib/rdk/deviceInitiatedFWDnld.sh 0 4 >> /opt/logs/swupdate.log &")));
                 return nullptr;
@@ -487,8 +550,9 @@ TEST_F(SystemServicesTest, setDeepSleepTimer)
 {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setDeepSleepTimer"), _T("{}"), response));
 
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
-        .WillByDefault(
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
                 EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetDeepSleepTimeOut)));
@@ -503,8 +567,9 @@ TEST_F(SystemServicesTest, setNetworkStandbyMode)
 {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setNetworkStandbyMode"), _T("{}"), response));
 
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
-        .WillByDefault(
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
                 EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetNetworkStandbyMode)));
@@ -533,20 +598,17 @@ TEST_F(SystemServicesTest, getNetworkStandbyMode)
 
 TEST_F(SystemServicesTest, setPreferredStandbyMode)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{}"), response));
-
-    ON_CALL(hostImplMock, setPreferredSleepMode)
-        .WillByDefault(::testing::Return(0));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{\"standbyMode\":\"LIGHT_SLEEP\"}"), response));
-    EXPECT_EQ(response, string("{\"success\":true}"));
-
-    ON_CALL(hostImplMock, setPreferredSleepMode)
-        .WillByDefault(::testing::Invoke(
+    EXPECT_CALL(hostImplMock, setPreferredSleepMode)
+        .Times(2)
+        .WillOnce(::testing::Return(0))
+        .WillOnce(::testing::Invoke(
             [](const device::SleepMode) -> int {
                 throw device::Exception("test");
             }));
 
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{\"standbyMode\":\"LIGHT_SLEEP\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{\"standbyMode\":\"LIGHT_SLEEP\"}"), response));
 }
 
@@ -628,4 +690,346 @@ TEST_F(SystemServicesTest, getLastWakeupKeyCode)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getLastWakeupKeyCode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"wakeupKeyCode\":5,\"success\":true}"));
+}
+
+TEST_F(SystemServicesEventIarmTest, onFirmwareUpdateStateChange)
+{
+    Core::Event onFirmwareUpdateStateChange(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                // TODO: BUG. enum should be used
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onFirmwareUpdateStateChange\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"firmwareUpdateStateChange\":4"
+                                                             "\\}"
+                                                             "\\}")));
+
+                onFirmwareUpdateStateChange.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onFirmwareUpdateStateChange"), _T("org.rdk.System"), message);
+
+    IARM_Bus_SYSMgr_EventData_t sysEventData;
+    sysEventData.data.systemStates.stateId = IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE;
+    sysEventData.data.systemStates.state = IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_DOWNLOAD_COMPLETE;
+    systemStateChanged(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, &sysEventData, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateStateChange.Lock());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateState"), _T("{}"), response));
+    // TODO: BUG. enum should be used
+    EXPECT_EQ(response, string("{\"firmwareUpdateState\":4,\"success\":true}"));
+
+    handler.Unsubscribe(0, _T("onFirmwareUpdateStateChange"), _T("org.rdk.System"), message);
+}
+
+TEST_F(SystemServicesEventIarmTest, onSystemClockSet)
+{
+    Core::Event onSystemClockSet(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onSystemClockSet\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\\}"
+                                                             "\\}")));
+
+                onSystemClockSet.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onSystemClockSet"), _T("org.rdk.System"), message);
+
+    IARM_Bus_SYSMgr_EventData_t sysEventData;
+    sysEventData.data.systemStates.stateId = IARM_BUS_SYSMGR_SYSSTATE_TIME_SOURCE;
+    sysEventData.data.systemStates.state = 666; // I have no idea what it should be but SystemServices needs non-zero
+    systemStateChanged(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, &sysEventData, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onSystemClockSet.Lock());
+
+    handler.Unsubscribe(0, _T("onSystemClockSet"), _T("org.rdk.System"), message);
+}
+
+TEST_F(SystemServicesEventIarmTest, onTemperatureThresholdChanged)
+{
+    Core::Event onTemperatureThresholdChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                // TODO: BUG. number should not be string
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onTemperatureThresholdChanged\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"thresholdType\":\"WARN\","
+                                                             "\"exceeded\":true,"
+                                                             "\"temperature\":\"100.000000\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                onTemperatureThresholdChanged.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    param.data.therm.newLevel = IARM_BUS_PWRMGR_TEMPERATURE_HIGH;
+    param.data.therm.curLevel = IARM_BUS_PWRMGR_TEMPERATURE_NORMAL;
+    param.data.therm.curTemperature = 100;
+    thermMgrEventsHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onTemperatureThresholdChanged.Lock());
+
+    handler.Unsubscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+}
+
+extern "C" FILE* __real_popen(const char* command, const char* type);
+
+TEST_F(SystemServicesTest, getTimeZones)
+{
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](const char* command, const char* type) -> FILE* {
+                EXPECT_THAT(string(command), ::testing::MatchesRegex("zdump \\/usr\\/share\\/zoneinfo/.+"));
+                return __real_popen(command, type);
+            }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZones"), _T("{}"), response));
+    EXPECT_THAT(response, ::testing::MatchesRegex("\\{\"zoneinfo\":\\{.*\"GMT\":\".+ GMT\".*\\},\"success\":true\\}"));
+}
+
+TEST_F(SystemServicesTest, getLastDeepSleepReason)
+{
+    ofstream file("/opt/standbyReason.txt");
+    file << "thermal_deepsleep_critical_threshold";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getLastDeepSleepReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"reason\":\"thermal_deepsleep_critical_threshold\",\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, getCoreTemperature)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_GetThermalState)));
+                auto param = static_cast<IARM_Bus_PWRMgr_GetThermalState_Param_t*>(arg);
+                param->curTemperature = 100;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCoreTemperature"), _T("{}"), response));
+    // TODO: BUG. number should not be string
+    EXPECT_EQ(response, string("{\"temperature\":\"100.000000\",\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, getTemperatureThresholds)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                if (string(methodName) == string(_T(IARM_BUS_PWRMGR_API_GetTemperatureThresholds))) {
+                    auto param = static_cast<IARM_Bus_PWRMgr_GetTempThresholds_Param_t*>(arg);
+                    param->tempHigh = 100;
+                    param->tempCritical = 200;
+                } else if (string(methodName) == string(_T(IARM_BUS_PWRMGR_API_GetThermalState))) {
+                    auto param = static_cast<IARM_Bus_PWRMgr_GetThermalState_Param_t*>(arg);
+                    param->curTemperature = 62;
+                }
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTemperatureThresholds"), _T("{}"), response));
+    // TODO: BUG. number should not be string
+    EXPECT_EQ(response, string("{\"temperatureThresholds\":{\"WARN\":\"100.000000\",\"MAX\":\"200.000000\",\"temperature\":\"62.000000\"},\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, setTemperatureThresholds)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetTemperatureThresholds)));
+                auto param = static_cast<IARM_Bus_PWRMgr_SetTempThresholds_Param_t*>(arg);
+                EXPECT_EQ(param->tempHigh, 99);
+                EXPECT_EQ(param->tempCritical, 199);
+                return IARM_RESULT_SUCCESS;
+            });
+
+    // TODO: BUG. number should not be string
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTemperatureThresholds"), _T("{\"thresholds\":{\"WARN\":\"99.000000\",\"MAX\":\"199.000000\"}}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, getOvertempGraceInterval)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_GetOvertempGraceInterval)));
+                auto param = static_cast<IARM_Bus_PWRMgr_GetOvertempGraceInterval_Param_t*>(arg);
+                param->graceInterval = 600;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getOvertempGraceInterval"), _T("{}"), response));
+    // TODO: BUG. number should not be string
+    EXPECT_EQ(response, string("{\"graceInterval\":\"600\",\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, setOvertempGraceInterval)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetOvertempGraceInterval)));
+                auto param = static_cast<IARM_Bus_PWRMgr_SetOvertempGraceInterval_Param_t*>(arg);
+                EXPECT_EQ(param->graceInterval, 600);
+                return IARM_RESULT_SUCCESS;
+            });
+
+    // TODO: BUG. number should not be string
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setOvertempGraceInterval"), _T("{\"graceInterval\":\"600\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, getRFCConfig)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getRFCConfig"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getRFCConfig"), _T("{\"rfclist\":[]}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getRFCConfig"), _T("{\"rfclist\":[\"#@!\"]}"), response));
+
+    ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                EXPECT_EQ(string(pcCallerID), string("SystemServices"));
+                EXPECT_EQ(string(pcParameterName), string("Device.DeviceInfo.SerialNumber"));
+                strncpy(pstParamData->value, "test", sizeof(pstParamData->value));
+                return WDMP_SUCCESS;
+            }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getRFCConfig"), _T("{\"rfcList\":[\"Device.DeviceInfo.SerialNumber\"]}"), response));
+    EXPECT_EQ(response, string("{\"RFCConfig\":{\"Device.DeviceInfo.SerialNumber\":\"test\"},\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, enableXREConnectionRetention)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableXREConnectionRetention"), _T("{\"enable\":true}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_TRUE(Core::File(string(_T("/tmp/retainConnection"))).Exists());
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableXREConnectionRetention"), _T("{\"enable\":false}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_FALSE(Core::File(string(_T("/tmp/retainConnection"))).Exists());
+}
+
+TEST_F(SystemServicesTest, getPowerState)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_GetPowerState)));
+                auto param = static_cast<IARM_Bus_PWRMgr_GetPowerState_Param_t*>(arg);
+                param->curState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPowerState"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"powerState\":\"STANDBY\",\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, setPowerState)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetPowerState)));
+                auto param = static_cast<IARM_Bus_PWRMgr_SetPowerState_Param_t*>(arg);
+                EXPECT_EQ(param->newState, IARM_BUS_PWRMGR_POWERSTATE_ON);
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPowerState"), _T("{\"powerState\":\"ON\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, getPowerStateIsManagedByDevice)
+{
+    unsetenv("RDK_ACTION_ON_POWER_KEY");
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPowerStateIsManagedByDevice"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"powerStateManagedByDevice\":false,\"success\":true}"));
+    setenv("RDK_ACTION_ON_POWER_KEY", "1", 1);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPowerStateIsManagedByDevice"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"powerStateManagedByDevice\":true,\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, getPowerStateBeforeReboot)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_GetPowerStateBeforeReboot)));
+                auto param = static_cast<IARM_Bus_PWRMgr_GetPowerStateBeforeReboot_Param_t*>(arg);
+                strncpy(param->powerStateBeforeReboot, "DEEP_SLEEP", sizeof(param->powerStateBeforeReboot));
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPowerStateBeforeReboot"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"state\":\"DEEP_SLEEP\",\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, setWakeupSrcConfiguration)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetWakeupSrcConfig)));
+                auto param = static_cast<IARM_Bus_PWRMgr_SetWakeupSrcConfig_Param_t*>(arg);
+                EXPECT_EQ(param->srcType, WAKEUPSRC_WIFI);
+                EXPECT_EQ(param->config, true);
+                return IARM_RESULT_SUCCESS;
+            });
+
+    // TODO: BUG. enum should be used
+    // TODO: BUG. boolean should not be number string
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setWakeupSrcConfiguration"), _T("{\"wakeupSrc\":3,\"config\":\"1\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
 }
