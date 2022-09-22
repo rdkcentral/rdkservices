@@ -379,7 +379,7 @@ namespace WPEFramework
                 //convert to base64
                 uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
 
-                LOGWARN("HdmiInput::readEDID size:%d edidVec.size:%d", size, edidVec.size());
+                LOGWARN("HdmiInput::readEDID size:%ld edidVec.size:%d", size, edidVec.size());
 
                 if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max()) {
                     LOGERR("Size too large to use ToString base64 wpe api");
