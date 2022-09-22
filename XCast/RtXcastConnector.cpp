@@ -425,8 +425,8 @@ bool RtXcastConnector::IsDynamicAppListEnabled()
 bool RtXcastConnector::IsAppEnabled(char* strAppName)
 {
     bool ret = false;
-    char* strfound = NULL;
 #ifdef RFC_ENABLED
+    char* strfound = NULL;
     RFC_ParamData_t param;
     WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("Xcast"), "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.AppList", &param);
     if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
