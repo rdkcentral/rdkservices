@@ -17,6 +17,7 @@
 
 set(PLUGIN_NAME controlSvcTestClient)
 find_package(${NAMESPACE}COM REQUIRED)
+find_package(${NAMESPACE}WebSocket REQUIRED)
 
 add_executable(${PLUGIN_NAME} controlSvcTestClient.cpp)
 
@@ -28,6 +29,7 @@ set_target_properties(${PLUGIN_NAME} PROPERTIES
 target_link_libraries(${PLUGIN_NAME}
     PRIVATE
     ${NAMESPACE}COM::${NAMESPACE}COM
+    ${NAMESPACE}WebSocket::${NAMESPACE}WebSocket
     )
 
 install(TARGETS ${PLUGIN_NAME} DESTINATION bin)
