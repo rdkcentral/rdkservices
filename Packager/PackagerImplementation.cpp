@@ -284,7 +284,7 @@ namespace Plugin {
             string mfilename = self->GetMetadataFile(self->_inProgress.Install->AppName());
             string callsign = self->GetCallsign(mfilename);
             if(!callsign.empty()) {
-                self->DeactivatePlugin(callsign);
+                self->DeactivatePlugin(callsign, self->_inProgress.Install->AppName());
             }
         }
     }
@@ -333,7 +333,48 @@ namespace Plugin {
         return callsign;
     }
 
-    void PackagerImplementation::DeactivatePlugin(const string& callsign)
+    string PackagerImplementation::GetInstallationPath(const string& appname)
+    {
+        char *dnld_loc = opkg_config->cache_dir;
+        string instPath = string(dnld_loc) + "/" + appname;
+        return instPath;
+    }
+
+    uint32_t PackagerImplementation::UpdateConfiguration(const string& callsign, const string& installPath)
+    {
+        uint32_t result = Core::ERROR_GENERAL;
+        ASSERT(callsign.empty() == false);
+        ASSERT(_servicePI != nullptr);
+
+        PluginConfig pluginconfig;
+
+        PluginHost::IShell* shell = _servicePI->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
+        if (shell != nullptr) {
+            if (shell->SystemRootPath(installPath)  == Core::ERROR_NONE) {
+                TRACE(Trace::Information, (_T("[RDM]: SystemRootPath value for %s is %s"), callsign.c_str(), shell->SystemRootPath().c_str()));
+
+		PluginHost::IController* controller = _servicePI->QueryInterfaceByCallsign<PluginHost::IController>(EMPTY_STRING);
+                if (controller != nullptr) {
+                    if (controller->Persist() == Core::ERROR_NONE) {
+                        result = Core::ERROR_NONE;
+			TRACE(Trace::Information, (_T("[RDM]: Updated SystemRootPath for %s is %s and stored it in persistent path"), callsign.c_str(), shell->SystemRootPath().c_str()));
+                    }
+                }
+		else {
+                    TRACE(Trace::Error, (_T("[RDM]: Failed to find Controller interface")));
+		}
+	    }
+        }
+	else {
+            TRACE(Trace::Error, (_T("[RDM]: Failed to find Shell interface")));
+	}
+
+        shell->Release();
+        controller->Release();
+        return result;
+    }
+
+    void PackagerImplementation::DeactivatePlugin(const string& callsign, const string& appName)
     {
         ASSERT(callsign.empty() == false);
         ASSERT(_servicePI != nullptr);
@@ -353,6 +394,11 @@ namespace Plugin {
                 uint32_t result = dlPlugin->Deactivate(PluginHost::IShell::REQUESTED);
                 if (result == Core::ERROR_NONE) {
                     TRACE(Trace::Information, (_T("[RDM]: %s moved to Deactivated state"), callsign.c_str()));
+                    string appInstallPath = GetInstallationPath(appName);
+		    if (UpdateConfiguration(callsign, appInstallPath) != Core::ERROR_NONE)
+		    {
+                        TRACE(Trace::Error, (_T("[RDM]: Failed to update SystemRootPath for %s"), callsign.c_str()));
+		    }
                 }
                 else {
                     TRACE(Trace::Error, (_T("[RDM]: Failed to move %s to Deactivated state"), callsign.c_str()));
