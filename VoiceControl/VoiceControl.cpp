@@ -6,7 +6,7 @@
 #include "UtilsIarm.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 2
+#define API_VERSION_NUMBER_MINOR 3
 #define API_VERSION_NUMBER_PATCH 0
 
 using namespace std;
@@ -50,6 +50,7 @@ namespace WPEFramework {
             Register("voiceSessionTypes",     &VoiceControl::voiceSessionTypes,     this);
             Register("voiceSessionRequest",   &VoiceControl::voiceSessionRequest,   this);
             Register("voiceSessionTerminate", &VoiceControl::voiceSessionTerminate, this);
+            Register("getMaskPii",            &VoiceControl::getMaskPii,            this);
 
             setApiVersionNumber(1);
         }
@@ -62,6 +63,7 @@ namespace WPEFramework {
         const string VoiceControl::Initialize(PluginHost::IShell*  /* service */)
         {
             InitializeIARM();
+            getMaskPii_();
             // On success return empty, to indicate there is no error text.
             return (string());
         }
@@ -197,6 +199,43 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             response["version"] = m_apiVersionNumber;
             returnResponse(true);
+        }
+
+        uint32_t VoiceControl::getMaskPii(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            response["maskPii"] = m_maskPii ? 1 : 0;
+            returnResponse(true);
+        }
+
+        void VoiceControl::getMaskPii_()
+        {
+            bool result = false;
+            m_maskPii = true;
+
+            IARM_Result_t retval;
+            ctrlm_voice_iarm_masp_pii_t call;
+
+            memset((void*)&call, 0, sizeof(call));
+            call.api_revision = CTRLM_VOICE_IARM_BUS_API_REVISION;
+
+            // Make the IARM bus call to controlMgr
+            retval = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_CALL_GET_MASK_PII, (void *)&call, sizeof(call));
+            if (retval != IARM_RESULT_SUCCESS)
+            {
+                LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_GET_PII_MASK - IARM_Bus_Call FAILED, retval: %d.", (int)retval);
+            }
+            else
+            {
+                if (call.result != CTRLM_IARM_CALL_RESULT_SUCCESS)
+                {
+                    LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_GET_PII_MASK - FAILED, result: %d.", (int)call.result);
+                }
+                else
+                {
+                    m_maskPii = (bool)call.mask_pii;
+                }
+            }
         }
 
         uint32_t VoiceControl::voiceStatus(const JsonObject& parameters, JsonObject& response)
@@ -720,16 +759,7 @@ namespace WPEFramework {
 
         void VoiceControl::sendNotify_(const char* eventName, JsonObject parameters)
         {
-            bool value = false;
-            const char* paramKey = NULL;
-
-            paramKey = "maskPii";
-            if (parameters.HasLabel(paramKey))
-            {
-                getBoolParameter(paramKey, value);
-            }
-
-            if(value)
+            if(m_maskPii)
             {
                 sendNotifyMaskParameters(eventName, parameters);
             }

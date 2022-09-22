@@ -16,6 +16,13 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.0] - 2022-09-22
+### Added
+- Updated API version to 1.3.0
+- Added call to get mask pii on initialization
+### Removed
+- Removed maskPii from onSessionEnd and onServerMessage events
+
 ## [1.2.0] - 2022-08-30
 ### Added
 - Updated API version to 1.2.0

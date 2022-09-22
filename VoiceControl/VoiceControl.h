@@ -20,6 +20,7 @@ namespace WPEFramework {
 
             //Begin methods
             uint32_t getApiVersionNumber(const JsonObject& parameters, JsonObject& response);
+            uint32_t getMaskPii(const JsonObject& parameters, JsonObject& response);
             void     sendNotify_(const char* eventName, JsonObject parameters);
 
             uint32_t voiceStatus(const JsonObject& parameters, JsonObject& response);
@@ -63,11 +64,13 @@ namespace WPEFramework {
 
             // Local utility methods
             void setApiVersionNumber(uint32_t apiVersionNumber);
+            void getMaskPii_();
         public:
             static VoiceControl* _instance;
         private:
             uint32_t m_apiVersionNumber;
-            bool m_hasOwnProcess;
+            bool     m_hasOwnProcess;
+            bool     m_maskPii;
         };
 	} // namespace Plugin
 } // namespace WPEFramework

@@ -369,6 +369,24 @@
                     "success"
                 ]
             }
+        },
+        "getMaskPii": {
+            "summary": "Returns the bool maskPii which determines if onSessionEnd and onServerMessage logging should be masked.\n\n### Events\n\n No Events.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "maskPii": {
+                        "$ref": "#/definitions/maskPii"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required":[
+                    "maskPii",
+                    "success"
+                ]
+            }
         }
     },
     "events": {
@@ -401,9 +419,6 @@
             "params":{
                 "type": "object",
                 "properties": {
-                    "maskPii": {
-                        "$ref": "#/definitions/maskPii"
-                    },
                     "msgType": {
                         "summary": "Message type from the server",
                         "type": "string",
@@ -503,9 +518,6 @@
                     },
                     "remoteId": {
                         "$ref": "#/definitions/remoteId"
-                    },
-                    "maskPii": {
-                        "$ref": "#/definitions/maskPii"
                     },
                     "sessionId": {
                         "$ref": "#/definitions/sessionId"
