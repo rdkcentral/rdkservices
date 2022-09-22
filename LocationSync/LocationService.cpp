@@ -314,7 +314,7 @@ namespace Plugin {
 #ifdef __WINDOWS__
 #pragma warning(disable : 4355)
 #endif
-    LocationService::LocationService(Core::IDispatchType<void>* callback)
+    LocationService::LocationService(Core::IDispatch* callback)
         : BaseClass(1, g_Factory, false, Core::NodeId(), Core::NodeId(), 256, 1024)
         , _adminLock()
         , _state(IDLE)
