@@ -300,7 +300,7 @@ namespace Plugin {
     string PackagerImplementation::GetCallsign(const string& mfilename)
     {
         string callsign = "";
-        TRACE(Trace::Information, (_T("[RDM]: Metadata is %s"),mfilename.c_str()));
+        TRACE(Trace::Information, (_T("[Packager]: Metadata is %s"),mfilename.c_str()));
         Core::File file(mfilename);
         if(file.Open()) {
             JsonObject parameters;
@@ -312,23 +312,23 @@ namespace Plugin {
                             callsign = parameters["callsign"].String();
                         }
                         else {
-                            TRACE(Trace::Information, (_T("[RDM]: callsign missing in metadata")));
+                            TRACE(Trace::Information, (_T("[Packager]: callsign missing in metadata")));
                         }
                     }
                     else {
-                        TRACE(Trace::Information, (_T("[RDM]: Package does not contain thunder plugin")));
+                        TRACE(Trace::Information, (_T("[Packager]: Package does not contain thunder plugin")));
                     }
                 }
                 else {
-                    TRACE(Trace::Information, (_T("[RDM]: Metadata type not found")));
+                    TRACE(Trace::Information, (_T("[Packager]: Metadata type not found")));
                 }
             }
             else {
-                TRACE(Trace::Error, (_T("[RDM]: Error in reading the file")));
+                TRACE(Trace::Error, (_T("[Packager]: Error in reading the file")));
             }
         }
         else {
-            TRACE(Trace::Error, (_T("[RDM]: Error in opening the file")));
+            TRACE(Trace::Error, (_T("[Packager]: Error in opening the file")));
         }
         return callsign;
     }
@@ -351,22 +351,22 @@ namespace Plugin {
         PluginHost::IShell* shell = _servicePI->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
         if (shell != nullptr) {
             if (shell->SystemRootPath(installPath)  == Core::ERROR_NONE) {
-                TRACE(Trace::Information, (_T("[RDM]: SystemRootPath value for %s is %s"), callsign.c_str(), shell->SystemRootPath().c_str()));
+                TRACE(Trace::Information, (_T("[Packager]: SystemRootPath value for %s is %s"), callsign.c_str(), shell->SystemRootPath().c_str()));
 
 		PluginHost::IController* controller = _servicePI->QueryInterfaceByCallsign<PluginHost::IController>(EMPTY_STRING);
                 if (controller != nullptr) {
                     if (controller->Persist() == Core::ERROR_NONE) {
                         result = Core::ERROR_NONE;
-			TRACE(Trace::Information, (_T("[RDM]: Updated SystemRootPath for %s is %s and stored it in persistent path"), callsign.c_str(), shell->SystemRootPath().c_str()));
+			TRACE(Trace::Information, (_T("[Packager]: Updated SystemRootPath for %s is %s and stored it in persistent path"), callsign.c_str(), shell->SystemRootPath().c_str()));
                     }
                 }
 		else {
-                    TRACE(Trace::Error, (_T("[RDM]: Failed to find Controller interface")));
+                    TRACE(Trace::Error, (_T("[Packager]: Failed to find Controller interface")));
 		}
 	    }
         }
 	else {
-            TRACE(Trace::Error, (_T("[RDM]: Failed to find Shell interface")));
+            TRACE(Trace::Error, (_T("[Packager]: Failed to find Shell interface")));
 	}
 
         shell->Release();
@@ -378,30 +378,30 @@ namespace Plugin {
     {
         ASSERT(callsign.empty() == false);
         ASSERT(_servicePI != nullptr);
-        TRACE(Trace::Information, (_T("[RDM]: callsign from metadata is %s"), callsign.c_str()));
+        TRACE(Trace::Information, (_T("[Packager]: callsign from metadata is %s"), callsign.c_str()));
         PluginHost::IShell* dlPlugin = _servicePI->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
 
         if (dlPlugin == nullptr) {
-            TRACE(Trace::Error, (_T("[RDM]: Plugin %s is not configured in this setup"), callsign.c_str()));
+            TRACE(Trace::Error, (_T("[Packager]: Plugin %s is not configured in this setup"), callsign.c_str()));
         }
         else {
             PluginHost::IShell::state currentState(dlPlugin->State());
             if (currentState != PluginHost::IShell::UNAVAILABLE) {
-                TRACE(Trace::Information, (_T("[RDM]: Plugin %s is not in Unavailable state. Hence, not deactivating it"),callsign.c_str()));
+                TRACE(Trace::Information, (_T("[Packager]: Plugin %s is not in Unavailable state. Hence, not deactivating it"),callsign.c_str()));
             }
             else {
-                TRACE(Trace::Information, (_T("[RDM]: Plugin %s is in Unavailable state"), callsign.c_str()));
+                TRACE(Trace::Information, (_T("[Packager]: Plugin %s is in Unavailable state"), callsign.c_str()));
                 uint32_t result = dlPlugin->Deactivate(PluginHost::IShell::REQUESTED);
                 if (result == Core::ERROR_NONE) {
-                    TRACE(Trace::Information, (_T("[RDM]: %s moved to Deactivated state"), callsign.c_str()));
+                    TRACE(Trace::Information, (_T("[Packager]: %s moved to Deactivated state"), callsign.c_str()));
                     string appInstallPath = GetInstallationPath(appName);
 		    if (UpdateConfiguration(callsign, appInstallPath) != Core::ERROR_NONE)
 		    {
-                        TRACE(Trace::Error, (_T("[RDM]: Failed to update SystemRootPath for %s"), callsign.c_str()));
+                        TRACE(Trace::Error, (_T("[Packager]: Failed to update SystemRootPath for %s"), callsign.c_str()));
 		    }
                 }
                 else {
-                    TRACE(Trace::Error, (_T("[RDM]: Failed to move %s to Deactivated state"), callsign.c_str()));
+                    TRACE(Trace::Error, (_T("[Packager]: Failed to move %s to Deactivated state"), callsign.c_str()));
                 }
             }
         }
