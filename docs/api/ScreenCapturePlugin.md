@@ -58,15 +58,12 @@ Takes a screenshot and uploads it to the specified URL. A screenshot is uploaded
 or,  
 `curl -F image=@/path/to/screenshot.png http://server/cgi-bin/upload.cgi`  
 For implementation details, see `bool ScreenCapture::uploadDataToUrl(std::vector<unsigned char> &data, const char *url, std::string &error_str)`.
- 
-Events
- 
-| Event | Description | 
-| :-------- | :-------- | 
-| `uploadComplete` | Triggered after uploading a screen capture with status and message |.
 
-Also see: [uploadComplete](#uploadComplete)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [uploadComplete](#uploadComplete) | Triggered after uploading a screen capture with status and message |
 ### Parameters
 
 | Name | Type | Description |
@@ -90,7 +87,7 @@ Also see: [uploadComplete](#uploadComplete)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ScreenCapture.1.uploadScreenCapture",
+    "method": "org.rdk.ScreenCapture.uploadScreenCapture",
     "params": {
         "url": "http://server/cgi-bin/upload.cgi",
         "callGUID": "12345"
@@ -143,7 +140,7 @@ Triggered after uploading a screen capture.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.uploadComplete",
+    "method": "client.events.uploadComplete",
     "params": {
         "status": true,
         "message": "Success",

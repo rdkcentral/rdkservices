@@ -67,6 +67,10 @@ FireboltMediaPlayer interface methods:
 
 Initiates a new AAMP player instance suitable for playback of IP feeds. If a player that is identified by the specified ID already exists, then it will be ref-counted.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -89,7 +93,7 @@ Initiates a new AAMP player instance suitable for playback of IP feeds. If a pla
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FireboltMediaPlayer.1.create",
+    "method": "org.rdk.FireboltMediaPlayer.create",
     "params": {
         "id": "MainPlayer"
     }
@@ -115,6 +119,10 @@ Modifies the default AAMP configuration.
 
 For complete list of configuration properties, see:https://wiki.rdkcentral.com/display/RDK/AAMP+UVE+-+API#AAMPUVEAPI-Configuration.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -137,7 +145,7 @@ For complete list of configuration properties, see:https://wiki.rdkcentral.com/d
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FireboltMediaPlayer.1.initConfig",
+    "method": "org.rdk.FireboltMediaPlayer.initConfig",
     "params": {
         "initialBitrate": 3000000
     }
@@ -160,6 +168,10 @@ For complete list of configuration properties, see:https://wiki.rdkcentral.com/d
 ## *load*
 
 Associates a specified URL with a player instance.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -185,7 +197,7 @@ Associates a specified URL with a player instance.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FireboltMediaPlayer.1.load",
+    "method": "org.rdk.FireboltMediaPlayer.load",
     "params": {
         "id": "MainPlayer",
         "url": "https://cpetestutility.stb.r53.xcal.tv/VideoTestStream/main.m3u8",
@@ -211,6 +223,10 @@ Associates a specified URL with a player instance.
 
 Pauses streaming content that is associated with the specified player instance. The play speed is set to 0.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -233,7 +249,7 @@ Pauses streaming content that is associated with the specified player instance. 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FireboltMediaPlayer.1.pause",
+    "method": "org.rdk.FireboltMediaPlayer.pause",
     "params": {
         "id": "MainPlayer"
     }
@@ -257,6 +273,10 @@ Pauses streaming content that is associated with the specified player instance. 
 
 Begins or resumes streaming content that is associated with the specified player instance. The play speed is set to 1.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -279,7 +299,7 @@ Begins or resumes streaming content that is associated with the specified player
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FireboltMediaPlayer.1.play",
+    "method": "org.rdk.FireboltMediaPlayer.play",
     "params": {
         "id": "MainPlayer"
     }
@@ -303,6 +323,10 @@ Begins or resumes streaming content that is associated with the specified player
 
 Decreases the ref-count of the player. The player gets destroyed when the ref-count reaches 0.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -325,7 +349,7 @@ Decreases the ref-count of the player. The player gets destroyed when the ref-co
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FireboltMediaPlayer.1.release",
+    "method": "org.rdk.FireboltMediaPlayer.release",
     "params": {
         "id": "MainPlayer"
     }
@@ -348,6 +372,10 @@ Decreases the ref-count of the player. The player gets destroyed when the ref-co
 ## *seek*
 
 Moves the media to a specific position.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -372,7 +400,7 @@ Moves the media to a specific position.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FireboltMediaPlayer.1.seek",
+    "method": "org.rdk.FireboltMediaPlayer.seek",
     "params": {
         "id": "MainPlayer",
         "positionSec": 30
@@ -396,6 +424,10 @@ Moves the media to a specific position.
 ## *setDRMConfig*
 
 Modifies the default configuration of the DRM used by AAMP.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -422,7 +454,7 @@ Modifies the default configuration of the DRM used by AAMP.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FireboltMediaPlayer.1.setDRMConfig",
+    "method": "org.rdk.FireboltMediaPlayer.setDRMConfig",
     "params": {
         "id": "MainPlayer",
         "com.microsoft.playready": "http://test.playready.microsoft.com/service/rightsmanager.asmx",
@@ -449,6 +481,10 @@ Modifies the default configuration of the DRM used by AAMP.
 
 Stops streaming content.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -471,7 +507,7 @@ Stops streaming content.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FireboltMediaPlayer.1.stop",
+    "method": "org.rdk.FireboltMediaPlayer.stop",
     "params": {
         "id": "MainPlayer"
     }
@@ -522,7 +558,7 @@ Triggered when the media stream starts.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onMediaStreamEvent",
+    "method": "client.events.onMediaStreamEvent",
     "params": {
         "id": "MainPlayer",
         "parametersJson": {}

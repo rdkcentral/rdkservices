@@ -56,8 +56,10 @@ Monitor interface methods:
 ## *restartlimits*
 
 Sets new restart limits for a service.
- ### Events 
-No Events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -83,7 +85,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Monitor.1.restartlimits",
+    "method": "Monitor.restartlimits",
     "params": {
         "callsign": "WebServer",
         "restart": {
@@ -108,8 +110,10 @@ No Events.
 ## *resetstats*
 
 Resets memory and process statistics for a single service watched by the Monitor.
- ### Events 
-No Events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -159,7 +163,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Monitor.1.resetstats",
+    "method": "Monitor.resetstats",
     "params": {
         "callsign": "WebServer"
     }
@@ -229,6 +233,10 @@ Provides access to the service statistics.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -273,7 +281,7 @@ Provides access to the service statistics.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Monitor.1.status@WebServer"
+    "method": "Monitor.status@WebServer"
 }
 ```
 
@@ -356,7 +364,7 @@ Signals an action taken by the Monitor.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.action",
+    "method": "client.events.action",
     "params": {
         "callsign": "WebServer",
         "action": "Deactivate",

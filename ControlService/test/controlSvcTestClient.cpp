@@ -361,7 +361,7 @@ int main(int argc, char** argv)
     std::cout << "Using callsign: " << SYSSRV_CALLSIGN << std::endl;
 
     if (NULL == remoteObject) {
-        remoteObject = new JSONRPC::Client(_T(SYSSRV_CALLSIGN), _T(""), false, sToken);
+        remoteObject = new JSONRPC::LinkType<Core::JSON::IElement>(_T(SYSSRV_CALLSIGN), _T(""), false, sToken);
         if (NULL == remoteObject) {
             std::cout << "JSONRPC::Client initialization failed" << std::endl;
 
@@ -375,7 +375,7 @@ int main(int argc, char** argv)
                 JsonObject params;
                 params["callsign"] = SYSSRV_CALLSIGN;
                 JsonObject result;
-                ret = controllerClient.Invoke(2000, "activate", params, result);
+                ret = controllerClient.Invoke<JsonObject, JsonObject>(2000, "activate", params, result);
                 result.ToString(strres);
                 std::cout<<"\nstartup result : "<< strres <<"\n";
             }

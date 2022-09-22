@@ -60,10 +60,10 @@ UsbAccess interface methods:
 ## *clearLink*
 
 Clears or removes the symbolic link created by the `createLink` 
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -85,7 +85,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.1.clearLink"
+    "method": "org.rdk.UsbAccess.clearLink"
 }
 ```
 
@@ -105,11 +105,11 @@ This method takes no parameters.
 <a name="createLink"></a>
 ## *createLink*
 
-Creates a symbolic link to the root folder of the USB drive. If called, and a link already exists, then it errors out. Symbolic link has read-only access. Use the name `usbdrive`. 
- 
-### Events 
+Creates a symbolic link to the root folder of the USB drive. If called, and a link already exists, then it errors out. Symbolic link has read-only access. Use the name `usbdrive`.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -132,7 +132,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.1.createLink"
+    "method": "org.rdk.UsbAccess.createLink"
 }
 ```
 
@@ -155,10 +155,10 @@ This method takes no parameters.
 
 (Version 2) Gets a list of firmware files on the device. These files should start with the PMI or model number for that device and end with `.bin`. For example `HSTP11MWR_4.11p5s1_VBN_sdy.bin`.  
 Firmware files are scanned in the root directories. If multiple USB devices are found, then the available firmware files are checked and listed from each device.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -181,7 +181,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.1.getAvailableFirmwareFiles"
+    "method": "org.rdk.UsbAccess.getAvailableFirmwareFiles"
 }
 ```
 
@@ -204,10 +204,10 @@ This method takes no parameters.
 ## *getFileList*
 
 Gets a list of files and folders from the specified directory or path.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -236,7 +236,7 @@ Gets a list of files and folders from the specified directory or path.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.1.getFileList",
+    "method": "org.rdk.UsbAccess.getFileList",
     "params": {
         "path": "..."
     }
@@ -266,10 +266,10 @@ Gets a list of files and folders from the specified directory or path.
 ## *getMounted*
 
 (Version 2) Returns a list of mounted USB devices.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -292,7 +292,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.1.getMounted"
+    "method": "org.rdk.UsbAccess.getMounted"
 }
 ```
 
@@ -315,10 +315,10 @@ This method takes no parameters.
 ## *updateFirmware*
 
 (Version 2) Updates the firmware using the specified file retrieved from the `getAvailableFirmwareFiles` 
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -343,7 +343,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.1.updateFirmware",
+    "method": "org.rdk.UsbAccess.updateFirmware",
     "params": {
         "fileName": "/tmp/usbmnts/sda/this_is_test.bin"
     }
@@ -366,15 +366,13 @@ This method takes no parameters.
 <a name="ArchiveLogs"></a>
 ## *ArchiveLogs*
 
-(Version 2) Compresses and uploads device logs into attached USB drive from /opt/logs with a name comprises of Mac of the device , date and time in a `tgz` format. For example `18310C696834_Logs_10-13-21-04-42PM.tgz` `(<MAC address>_Logs_<unix epoch time>.tgz)`.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onArchiveLogs`| Triggered to archive the device logs and returns the status of the archive |.
+(Version 2) Compresses and uploads device logs into attached USB drive from /opt/logs with a name comprises of Mac of the device , date and time in a `tgz` format. For example `18310C696834_Logs_10-13-21-04-42PM.tgz` `(<MAC address>_Logs_<unix epoch time>.tgz)`.Notifies about new messages in a room.
 
-Also see: [onArchiveLogs](#onArchiveLogs)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onArchiveLogs](#onArchiveLogs) | Triggered to archive the device logs and returns the status of the archive |
 ### Parameters
 
 This method takes no parameters.
@@ -394,7 +392,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.1.ArchiveLogs"
+    "method": "org.rdk.UsbAccess.ArchiveLogs"
 }
 ```
 
@@ -443,7 +441,7 @@ UsbAccess interface events:
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onUSBMountChanged",
+    "method": "client.events.onUSBMountChanged",
     "params": {
         "mounted": true,
         "device": "/dev/sda1"
@@ -469,7 +467,7 @@ UsbAccess interface events:
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onArchiveLogs",
+    "method": "client.events.onArchiveLogs",
     "params": {
         "error": "none",
         "success": true
