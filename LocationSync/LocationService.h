@@ -28,7 +28,7 @@ namespace Plugin {
 
     struct IGeography;
 
-    class EXTERNAL LocationService
+    class LocationService
         : public PluginHost::ISubSystem::ILocation,
           public PluginHost::ISubSystem::IInternet,
           public Web::WebLinkType<Core::SocketStream, Web::Response, Web::Request, Core::ProxyPoolType<Web::Response>&> {
