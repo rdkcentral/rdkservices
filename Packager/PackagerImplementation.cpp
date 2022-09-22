@@ -363,6 +363,7 @@ namespace Plugin {
 		else {
                     TRACE(Trace::Error, (_T("[Packager]: Failed to find Controller interface")));
 		}
+                controller->Release();
 	    }
         }
 	else {
@@ -370,7 +371,6 @@ namespace Plugin {
 	}
 
         shell->Release();
-        controller->Release();
         return result;
     }
 
