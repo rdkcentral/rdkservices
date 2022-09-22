@@ -6210,7 +6210,14 @@ namespace WPEFramework {
                 }
                 if (targetFound || keyClient == "")
                 {
-                    ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey, duration);
+                    if (duration > 0.0)
+                    {
+                        ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey, duration);
+                    }
+                    else
+                    {
+                        ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+                    }
                 }
                 gRdkShellMutex.unlock();
             }
