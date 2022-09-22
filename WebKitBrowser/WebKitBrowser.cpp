@@ -309,6 +309,7 @@ namespace Plugin {
     {
         string message(string("{ \"url\": \"") + URL + string("\", \"loaded\": ") + (loaded ? string("true") : string("false")) + string(" }"));
         TRACE(Trace::Information, (_T("URLChanged: %s"), message.c_str()));
+        _lastURL = URL;
         _service->Notify(message);
         Exchange::JWebBrowser::Event::URLChange(*this, URL, loaded);
     }
@@ -350,6 +351,7 @@ namespace Plugin {
     void WebKitBrowser::Deactivated(RPC::IRemoteConnection* connection)
     {
         if (connection->Id() == _connectionId) {
+            TRACE(Trace::Error, (_T("WebKitBrowser::Deactivated: { \"URL\": %.*s }"), 80, _lastURL.c_str()));
 
             ASSERT(_service != nullptr);
 
