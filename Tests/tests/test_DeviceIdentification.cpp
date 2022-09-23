@@ -2,6 +2,7 @@
 
 #include "DeviceIdentification.h"
 
+#include "COMLinkMock.h"
 #include "ServiceMock.h"
 #include "source/SystemInfo.h"
 
@@ -62,6 +63,7 @@ class DeviceIdentificationInitializedTest : public DeviceIdentificationTest {
 protected:
     Core::Sink<SystemInfo> subSystem;
     ServiceMock service;
+    COMLinkMock comLinkMock;
 
     DeviceIdentificationInitializedTest()
         : DeviceIdentificationTest()
@@ -80,7 +82,7 @@ protected:
                     return result;
                 }));
         ON_CALL(service, COMLink())
-            .WillByDefault(::testing::Return(&service));
+            .WillByDefault(::testing::Return(&comLinkMock));
 
         EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
