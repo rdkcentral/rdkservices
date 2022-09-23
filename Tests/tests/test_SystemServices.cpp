@@ -97,6 +97,7 @@ class SystemServicesEventIarmTest : public SystemServicesEventTest {
 protected:
     IARM_EventHandler_t systemStateChanged;
     IARM_EventHandler_t thermMgrEventsHandler;
+    IARM_EventHandler_t powerEventHandler;
 
     SystemServicesEventIarmTest()
         : SystemServicesEventTest()
@@ -109,6 +110,9 @@ protected:
                     }
                     if ((string(IARM_BUS_PWRMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED)) {
                         thermMgrEventsHandler = handler;
+                    }
+                    if ((string(IARM_BUS_PWRMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_PWRMGR_EVENT_MODECHANGED)) {
+                        powerEventHandler = handler;
                     }
                     return IARM_RESULT_SUCCESS;
                 }));
@@ -125,6 +129,7 @@ protected:
     {
         ASSERT_TRUE(systemStateChanged != nullptr);
         ASSERT_TRUE(thermMgrEventsHandler != nullptr);
+        ASSERT_TRUE(powerEventHandler != nullptr);
     }
 };
 
@@ -1032,4 +1037,171 @@ TEST_F(SystemServicesTest, setWakeupSrcConfiguration)
     // TODO: BUG. boolean should not be number string
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setWakeupSrcConfiguration"), _T("{\"wakeupSrc\":3,\"config\":\"1\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, getStoreDemoLink)
+{
+    Core::File file(string("/opt/persistent/store-mode-video/videoFile.mp4"));
+    if (file.Exists()) {
+        EXPECT_TRUE(file.Destroy());
+    }
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getStoreDemoLink"), _T("{}"), response));
+
+    Core::Directory(file.PathName().c_str()).CreatePath();
+    file.LoadFileInfo();
+    file.Create();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStoreDemoLink"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"fileURL\":\"file:\\/\\/\\/opt\\/persistent\\/store-mode-video\\/videoFile.mp4\",\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, deletePersistentPath)
+{
+    ServiceMock service;
+    ServiceMock amazonService;
+    string amazonPersistentPath(_T("/tmp/amazonPersistentPath"));
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deletePersistentPath"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deletePersistentPath"), _T("{\"callsign\":\"\"}"), response));
+
+    EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const string& name) -> void* {
+                EXPECT_EQ(name, string(_T("Amazon")));
+                return &amazonService;
+            }));
+    ON_CALL(amazonService, PersistentPath())
+        .WillByDefault(::testing::Return(amazonPersistentPath));
+    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/container_setup.sh Amazon")));
+                return 0;
+            }));
+
+    Core::Directory dir(amazonPersistentPath.c_str());
+    EXPECT_TRUE(dir.Destroy(false));
+    ASSERT_TRUE(dir.CreatePath());
+    EXPECT_TRUE(Core::File(amazonPersistentPath).Exists());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deletePersistentPath"), _T("{\"callsign\":\"Amazon\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_FALSE(Core::File(amazonPersistentPath).Exists());
+
+    plugin->Deinitialize(&service);
+}
+
+TEST_F(SystemServicesEventIarmTest, onSystemPowerStateChanged)
+{
+    Core::Event onSystemPowerStateChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onSystemPowerStateChanged\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"powerState\":\"ON\","
+                                                             "\"currentPowerState\":\"DEEP_SLEEP\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                onSystemPowerStateChanged.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onSystemPowerStateChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    param.data.state.curState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
+    param.data.state.newState = IARM_BUS_PWRMGR_POWERSTATE_ON;
+    powerEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onSystemPowerStateChanged.Lock());
+
+    handler.Unsubscribe(0, _T("onSystemPowerStateChanged"), _T("org.rdk.System"), message);
+}
+
+TEST_F(SystemServicesEventIarmTest, onNetworkStandbyModeChanged)
+{
+    Core::Event onNetworkStandbyModeChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onNetworkStandbyModeChanged\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"nwStandby\":true"
+                                                             "\\}"
+                                                             "\\}")));
+
+                onNetworkStandbyModeChanged.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onNetworkStandbyModeChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    param.data.bNetworkStandbyMode = true;
+    powerEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onNetworkStandbyModeChanged.Lock());
+
+    handler.Unsubscribe(0, _T("onNetworkStandbyModeChanged"), _T("org.rdk.System"), message);
+}
+
+TEST_F(SystemServicesEventIarmTest, onRebootRequest)
+{
+    Core::Event onRebootRequest(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onRebootRequest\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"requestedApp\":\"test\","
+                                                             "\"rebootReason\":\"test\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                onRebootRequest.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onRebootRequest"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_RebootParam_t param;
+    strncpy(param.requestor, "test", sizeof(param.requestor));
+    strncpy(param.reboot_reason_other, "test", sizeof(param.reboot_reason_other));
+    powerEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onRebootRequest.Lock());
+
+    handler.Unsubscribe(0, _T("onRebootRequest"), _T("org.rdk.System"), message);
 }
