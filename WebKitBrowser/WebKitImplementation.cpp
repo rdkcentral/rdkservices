@@ -1358,6 +1358,25 @@ static GSourceFuncs _handlerIntervention =
         void RefreshCookieJar()
         {
             #ifdef WEBKIT_GLIB_API
+            WebKitWebContext* context = webkit_web_view_get_context(_view);
+            WebKitCookieManager* manager = webkit_web_context_get_cookie_manager(context);
+            webkit_cookie_manager_get_cookie_jar(manager, NULL, [](GObject* object, GAsyncResult* result, gpointer user_data) {
+                GList* cookies_list = webkit_cookie_manager_get_cookie_jar_finish(WEBKIT_COOKIE_MANAGER(object), result, nullptr);
+
+                std::vector<std::string> cookieVector;
+                cookieVector.reserve(g_list_length(cookies_list));
+                for (GList* it = cookies_list; it != NULL; it = g_list_next(it)) {
+                    SoupCookie* soupCookie = (SoupCookie*)it->data;
+                    gchar *cookieHeader = soup_cookie_to_set_cookie_header(soupCookie);
+                    cookieVector.push_back(cookieHeader);
+                    g_free(cookieHeader);
+                }
+
+                WebKitImplementation& browser = *static_cast< WebKitImplementation*>(user_data);
+                browser._adminLock.Lock();
+                browser._cookieJar.SetCookies(std::move(cookieVector));
+                browser._adminLock.Unlock();
+            }, this);
             #else
             static const auto toSoupCookie = [](WKCookieRef cookie) -> SoupCookie*
             {
@@ -1426,7 +1445,42 @@ static GSourceFuncs _handlerIntervention =
         void SetCookies(const std::vector<std::string>& cookies)
         {
             #ifdef WEBKIT_GLIB_API
-            // TODO
+            GList* cookies_list = nullptr;
+            for (auto& cookie : cookies) {
+                SoupCookie* sc = soup_cookie_parse(cookie.c_str(), nullptr);
+                if (!sc)
+                    continue;
+                const char* domain = soup_cookie_get_domain(sc);
+                if (!domain)
+                    continue;
+
+                // soup_cookie_parse() may prepend '.' to the domain,
+                // check the original cookie string and remove '.' if needed
+                if (domain[0] == '.')
+                {
+                    const char kDomainNeedle[] = "domain=";
+                    const size_t kDomainNeedleLength = sizeof(kDomainNeedle) - 1;
+                    auto it = std::search(
+                        cookie.begin(), cookie.end(), kDomainNeedle, kDomainNeedle + kDomainNeedleLength,
+                        [](const char c1, const char c2) {
+                            return ::tolower(c1) == c2;
+                        });
+                    if (it != cookie.end())
+                        it += kDomainNeedleLength;
+                    if (it != cookie.end() && *it != '.' && *it != ';')
+                    {
+                        char* adjustedDomain = g_strdup(domain + 1);
+                        soup_cookie_set_domain(sc, adjustedDomain);
+                    }
+                }
+                cookies_list = g_list_prepend(cookies_list, sc);
+            }
+
+            WebKitWebContext* context = webkit_web_view_get_context(_view);
+            WebKitCookieManager* manager = webkit_web_context_get_cookie_manager(context);
+            webkit_cookie_manager_set_cookie_jar(manager, g_list_reverse(cookies_list), nullptr, nullptr, nullptr);
+
+            g_list_free_full(cookies_list, reinterpret_cast<GDestroyNotify>(soup_cookie_free));
             #else
             auto toWKCookie = [](SoupCookie* cookie) -> WKCookieRef
             {
@@ -2539,6 +2593,9 @@ static GSourceFuncs _handlerIntervention =
             }
             return true;
         }
+        static void cookieManagerChangedCallback(WebKitCookieManager* manager, WebKitImplementation* browser) {
+            browser->NotifyCookieJarChanged();
+        }
         uint32_t Worker() override
         {
             _context = g_main_context_new();
@@ -2621,19 +2678,26 @@ static GSourceFuncs _handlerIntervention =
             }
 
             if (!webkit_web_context_is_ephemeral(wkContext)) {
-                gchar* cookieDatabasePath;
-                if (_config.CookieStorage.IsSet() == true && _config.CookieStorage.Value().empty() == false) {
-                    cookieDatabasePath = g_build_filename(_config.CookieStorage.Value().c_str(), "cookies.db", nullptr);
-                } else {
-                    cookieDatabasePath = g_build_filename(g_get_user_cache_dir(), "cookies.db", nullptr);
-                }
-
                 auto* cookieManager = webkit_web_context_get_cookie_manager(wkContext);
-                webkit_cookie_manager_set_persistent_storage(cookieManager, cookieDatabasePath, WEBKIT_COOKIE_PERSISTENT_STORAGE_SQLITE);
-                if (_config.CookieAcceptPolicy.IsSet()) {
-                  HTTPCookieAcceptPolicy(_config.CookieAcceptPolicy.Value());
-                } else {
-                  webkit_cookie_manager_set_accept_policy(cookieManager, _httpCookieAcceptPolicy);
+                #if defined(ENABLE_CLOUD_COOKIE_JAR)
+                if (_config.CloudCookieJarEnabled.IsSet() && _config.CloudCookieJarEnabled.Value()) {
+                    g_signal_connect(cookieManager, "changed", reinterpret_cast<GCallback>(cookieManagerChangedCallback), this);
+                } else
+                #endif
+                {
+                    gchar* cookieDatabasePath;
+                    if (_config.CookieStorage.IsSet() == true && _config.CookieStorage.Value().empty() == false) {
+                        cookieDatabasePath = g_build_filename(_config.CookieStorage.Value().c_str(), "cookies.db", nullptr);
+                    } else {
+                        cookieDatabasePath = g_build_filename(g_get_user_cache_dir(), "cookies.db", nullptr);
+                    }
+
+                    webkit_cookie_manager_set_persistent_storage(cookieManager, cookieDatabasePath, WEBKIT_COOKIE_PERSISTENT_STORAGE_SQLITE);
+                    if (_config.CookieAcceptPolicy.IsSet()) {
+                        HTTPCookieAcceptPolicy(_config.CookieAcceptPolicy.Value());
+                    } else {
+                        webkit_cookie_manager_set_accept_policy(cookieManager, _httpCookieAcceptPolicy);
+                    }
                 }
             }
 

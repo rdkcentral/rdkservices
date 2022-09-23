@@ -61,11 +61,11 @@ Returns HDCP-related data.
 * `2`: HDCP success  
 * `3`:  HDCP authentication failed after multiple retries  
 * `4`:  HDCP authentication in progress   
-* `5`: HDMI video port is disabled. 
- 
+* `5`: HDMI video port is disabled.
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -94,7 +94,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdcpProfile.1.getHDCPStatus"
+    "method": "org.rdk.HdcpProfile.getHDCPStatus"
 }
 ```
 
@@ -122,11 +122,11 @@ This method takes no parameters.
 <a name="getSettopHDCPSupport"></a>
 ## *getSettopHDCPSupport*
 
-Returns which version of HDCP is supported by the STB. 
- 
+Returns which version of HDCP is supported by the STB.
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -149,7 +149,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdcpProfile.1.getSettopHDCPSupport"
+    "method": "org.rdk.HdcpProfile.getSettopHDCPSupport"
 }
 ```
 
@@ -205,7 +205,7 @@ Triggered if HDMI was connected or disconnected upon receiving `onHdmiOutputHotP
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDisplayConnectionChanged",
+    "method": "client.events.onDisplayConnectionChanged",
     "params": {
         "HDCPStatus": {
             "isConnected": false,

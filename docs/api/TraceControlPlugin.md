@@ -60,11 +60,11 @@ TraceControl interface methods:
 <a name="set"></a>
 ## *set*
 
-Sets traces. Enables or disables all or select category traces for the specified module. 
-  
-### Events 
+Sets traces. Enables or disables all or select category traces for the specified module.
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -89,7 +89,7 @@ Sets traces. Enables or disables all or select category traces for the specified
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TraceControl.1.set",
+    "method": "TraceControl.set",
     "params": {
         "module": "Plugin_Monitor",
         "category": "Information",
@@ -111,11 +111,11 @@ Sets traces. Enables or disables all or select category traces for the specified
 <a name="status"></a>
 ## *status*
 
-Retrieves the actual trace status information for the specified module and category. If the category or module is not specified then, all the information is returned. If both module and category are not specified then, the result is empty. It retrieves the details about the console status and remote address (port and binding), if these are configured. 
- 
+Retrieves the actual trace status information for the specified module and category. If the category or module is not specified then, all the information is returned. If both module and category are not specified then, the result is empty. It retrieves the details about the console status and remote address (port and binding), if these are configured.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -148,7 +148,7 @@ Retrieves the actual trace status information for the specified module and categ
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TraceControl.1.status",
+    "method": "TraceControl.status",
     "params": {
         "module": "Plugin_Monitor",
         "category": "Information"

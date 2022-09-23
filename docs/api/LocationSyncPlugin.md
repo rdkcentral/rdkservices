@@ -58,13 +58,13 @@ LocationSync interface methods:
 <a name="sync"></a>
 ## *sync*
 
-Synchronizes the location. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `locationchange` | Signals the change of location |.
+Synchronizes the location.
 
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [locationchange](#locationchange) | Signals the change of location |
 ### Parameters
 
 This method takes no parameters.
@@ -92,7 +92,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LocationSync.1.sync"
+    "method": "LocationSync.sync"
 }
 ```
 
@@ -125,6 +125,10 @@ Provides access to the location information.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -144,7 +148,7 @@ Provides access to the location information.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "LocationSync.1.location"
+    "method": "LocationSync.location"
 }
 ```
 
@@ -192,7 +196,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.locationchange"
+    "method": "client.events.locationchange"
 }
 ```
 

@@ -45,7 +45,6 @@ using namespace std;
 using namespace WPEFramework;
 
 bool manualExecution = false;
-static int currentSpeechId = 0;
 
 #define OPT_OPEN           1
 #define OPT_PLAY           2
@@ -152,7 +151,6 @@ int main(int argc, char *argv[]) {
     std::string reqPayload;
 
     int choice;
-    uint32_t ret;
     string stext;
 
     MyStream stream((argc > 1 ? argv[1] : "example.txt"));
@@ -162,8 +160,8 @@ int main(int argc, char *argv[]) {
     if (NULL == remoteObject) {
         cout << endl << "SAP Thunder Plugin call sign is " << TTSSRV_CALLSIGN << endl;
 
-        unsigned char buffer[MAX_STRING_LENGTH] = {0};
         #if 0
+        unsigned char buffer[MAX_STRING_LENGTH] = {0};
         int res = GetSecurityToken(MAX_STRING_LENGTH,buffer); //for platco
                   
         if(res > 0)
@@ -205,7 +203,7 @@ int main(int argc, char *argv[]) {
                        params["sourcetype"] = sourcetype; 
                        stream.getInput(playmode, "Enter PlayMode Type[system,app] ");
                        params["playmode"] = playmode;
-                       ret = remoteObject->Invoke<JsonObject, JsonObject>(2000,
+                       remoteObject->Invoke<JsonObject, JsonObject>(2000,
                                 _T("open"), params, result);
                        if (result["success"].Boolean()) {
                            cout << "open call Success" << endl;
@@ -227,7 +225,7 @@ int main(int argc, char *argv[]) {
                         params["id"] = JsonValue(id);
                         stream.getInput(url,"Enter url");
                         params["url"] = url;
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(2000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(2000,
                                 _T("play"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "play success: " << endl;
@@ -244,7 +242,7 @@ int main(int argc, char *argv[]) {
                         int id;
                         stream.getInput(id, "Enter id");
                         params["id"] = JsonValue(id);
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(2000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(2000,
                                 _T("stop"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "stop success: " << endl;
@@ -262,7 +260,7 @@ int main(int argc, char *argv[]) {
                         int id;
                         stream.getInput(id, "Enter id");
                         params["id"] = JsonValue(id);
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(2000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(2000,
                                 _T("close"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "close success:" <<endl;
@@ -283,7 +281,7 @@ int main(int argc, char *argv[]) {
                         params["id"] = JsonValue(id);
                         stream.getInput(data, "Enter base64 encoded pcm buffer");
                         params["data"] = data;
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(2000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(2000,
                                 _T("playbuffer"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "playbuffer success:" <<endl;
@@ -308,7 +306,7 @@ int main(int argc, char *argv[]) {
                         params["primaryVolume"] = primVol ;
                         stream.getInput(thisVol, "Enter Player Volume[0-100] ");
                         params["playerVolume"] = thisVol;
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(1000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(1000,
                                 _T("setMixerLevels"), params, result);
                         if (result["success"].Boolean()) {
                            cout << "setMixerlevels call Success" << endl;
@@ -326,7 +324,7 @@ int main(int argc, char *argv[]) {
                         std::string url;
                         stream.getInput(id, "Enter id");
                         params["id"] = JsonValue(id);
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(2000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(2000,
                                 _T("pause"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "pause success:" <<endl;
@@ -345,7 +343,7 @@ int main(int argc, char *argv[]) {
                         std::string url;
                         stream.getInput(id, "Enter id");
                         params["id"] = JsonValue(id);
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(2000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(2000,
                                 _T("resume"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "resume success:" <<endl;
@@ -376,7 +374,7 @@ int main(int argc, char *argv[]) {
                         stream.getInput(layout, "Enter pcm layout eg:[interleaved] ");
                         pcmconfig["layout"] = layout;
                         params["pcmconfig"] = pcmconfig;                     
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(2000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(2000,
                                 _T("config"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "config success:" <<endl;
@@ -393,7 +391,7 @@ int main(int argc, char *argv[]) {
                         std::string url;
                         stream.getInput(url,"Enter url");
                         params["url"] = url;
-                        ret = remoteObject->Invoke<JsonObject, JsonObject>(2000,
+                        remoteObject->Invoke<JsonObject, JsonObject>(2000,
                                 _T("getPlayerSessionId"), params, result);
                         if (result["success"].Boolean()) {
                             cout << "getPlayerSessionId success: " << endl;

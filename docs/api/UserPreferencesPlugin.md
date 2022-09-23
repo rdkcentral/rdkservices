@@ -55,6 +55,10 @@ UserPreferences interface methods:
 
 Returns the preferred user interface language.
 
+### Events
+
+No Events
+
 ### Parameters
 
 This method takes no parameters.
@@ -75,7 +79,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserPreferences.1.getUILanguage"
+    "method": "org.rdk.UserPreferences.getUILanguage"
 }
 ```
 
@@ -96,6 +100,10 @@ This method takes no parameters.
 ## *setUILanguage*
 
 Sets the preferred user interface language.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -119,7 +127,7 @@ Sets the preferred user interface language.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserPreferences.1.setUILanguage",
+    "method": "org.rdk.UserPreferences.setUILanguage",
     "params": {
         "ui_language": "US_en"
     }

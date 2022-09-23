@@ -61,10 +61,10 @@ FrameRate interface methods:
 ## *getDisplayFrameRate*
 
 (Version 2) Returns the current display frame rate values.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -86,7 +86,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.getDisplayFrameRate"
+    "method": "org.rdk.FrameRate.getDisplayFrameRate"
 }
 ```
 
@@ -107,10 +107,10 @@ This method takes no parameters.
 ## *getFrmMode*
 
 (Version 2) Returns the current auto framerate mode.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -132,7 +132,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.getFrmMode"
+    "method": "org.rdk.FrameRate.getFrmMode"
 }
 ```
 
@@ -153,10 +153,10 @@ This method takes no parameters.
 ## *setCollectionFrequency*
 
 Sets the FPS data collection interval.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -180,7 +180,7 @@ Sets the FPS data collection interval.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.setCollectionFrequency",
+    "method": "org.rdk.FrameRate.setCollectionFrequency",
     "params": {
         "frequency": 1000
     }
@@ -202,16 +202,14 @@ Sets the FPS data collection interval.
 <a name="setDisplayFrameRate"></a>
 ## *setDisplayFrameRate*
 
-(Version 2) Sets the display framerate values. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onDisplayFrameRateChanging`|Triggered when the framerate changes started.| 
-| `onDisplayFrameRateChanged`|Triggered when the framerate changed.|.
+(Version 2) Sets the display framerate values.
 
-Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayFrameRateChanged](#onDisplayFrameRateChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onDisplayFrameRateChanging](#onDisplayFrameRateChanging) | Triggered when the framerate changes started. |
+| [onDisplayFrameRateChanged](#onDisplayFrameRateChanged) | Triggered when the framerate changed |
 ### Parameters
 
 | Name | Type | Description |
@@ -234,7 +232,7 @@ Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayF
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.setDisplayFrameRate",
+    "method": "org.rdk.FrameRate.setDisplayFrameRate",
     "params": {
         "framerate": "3840x2160px48"
     }
@@ -257,10 +255,10 @@ Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayF
 ## *setFrmMode*
 
 (Version 2) Sets the auto framerate mode.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -284,7 +282,7 @@ Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayF
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.setFrmMode",
+    "method": "org.rdk.FrameRate.setFrmMode",
     "params": {
         "frmmode": 0
     }
@@ -307,14 +305,12 @@ Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayF
 ## *startFpsCollection*
 
 Starts the FPS data collection.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onFpsEvent`|Triggered at the end of each interval as defined by the `setCollectionFrequency` |.
 
-Also see: [onFpsEvent](#onFpsEvent)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onFpsEvent](#onFpsEvent) | Triggered at the end of each interval as defined by the setCollectionFrequency |
 ### Parameters
 
 This method takes no parameters.
@@ -334,7 +330,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.startFpsCollection"
+    "method": "org.rdk.FrameRate.startFpsCollection"
 }
 ```
 
@@ -354,14 +350,12 @@ This method takes no parameters.
 ## *stopFpsCollection*
 
 Stops the FPS data collection.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onFpsEvent`|Triggered once after the `stopFpsCollection` method is invoked.|.
 
-Also see: [onFpsEvent](#onFpsEvent)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onFpsEvent](#onFpsEvent) | Triggered once after the stopFpsCollection method is invoked. |
 ### Parameters
 
 This method takes no parameters.
@@ -381,7 +375,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.stopFpsCollection"
+    "method": "org.rdk.FrameRate.stopFpsCollection"
 }
 ```
 
@@ -401,10 +395,10 @@ This method takes no parameters.
 ## *updateFps*
 
 Updates Fps values.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -428,7 +422,7 @@ Updates Fps values.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.updateFps",
+    "method": "org.rdk.FrameRate.updateFps",
     "params": {
         "newFpsValue": 60
     }
@@ -477,7 +471,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDisplayFrameRateChanging"
+    "method": "client.events.onDisplayFrameRateChanging"
 }
 ```
 
@@ -495,7 +489,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDisplayFrameRateChanged"
+    "method": "client.events.onDisplayFrameRateChanged"
 }
 ```
 
@@ -518,7 +512,7 @@ Triggered at the end of each interval as defined by the `setCollectionFrequency`
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onFpsEvent",
+    "method": "client.events.onFpsEvent",
     "params": {
         "average": 0,
         "min": 0,

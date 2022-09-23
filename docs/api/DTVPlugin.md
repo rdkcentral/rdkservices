@@ -60,10 +60,10 @@ DTV interface methods:
 ## *addLnb*
 
 Add a new LNB to the database.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -99,7 +99,7 @@ Add a new LNB to the database.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.addLnb",
+    "method": "DTV.addLnb",
     "params": {
         "name": "Universal",
         "type": "single",
@@ -133,10 +133,10 @@ Add a new LNB to the database.
 ## *addSatellite*
 
 Add a new satellite to the database.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -161,7 +161,7 @@ Add a new satellite to the database.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.addSatellite",
+    "method": "DTV.addSatellite",
     "params": {
         "name": "Astra 28.2E",
         "longitude": 282,
@@ -184,15 +184,13 @@ Add a new satellite to the database.
 ## *startServiceSearch*
 
 Starts a service search.
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-|`searchstatus`|Triggered during the course of a service search.|
- |`serviceupdated`|Triggered when a service is added|.
 
-Also see: [searchstatus](#searchstatus), [serviceupdated](#serviceupdated)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [searchstatus](#searchstatus) |  Triggered during the course of a service search. |
+| [serviceupdated](#serviceupdated) | Triggered when a service is added |
 ### Parameters
 
 | Name | Type | Description |
@@ -235,7 +233,7 @@ Also see: [searchstatus](#searchstatus), [serviceupdated](#serviceupdated)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.startServiceSearch",
+    "method": "DTV.startServiceSearch",
     "params": {
         "tunertype": "none",
         "searchtype": "frequency",
@@ -280,10 +278,10 @@ Also see: [searchstatus](#searchstatus), [serviceupdated](#serviceupdated)
 ## *finishServiceSearch*
 
 Finishes a service search.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -307,7 +305,7 @@ Finishes a service search.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.finishServiceSearch",
+    "method": "DTV.finishServiceSearch",
     "params": {
         "tunertype": "none",
         "savechanges": true
@@ -329,18 +327,16 @@ Finishes a service search.
 ## *startPlaying*
 
 Starts playing the specified service.
-  
+
 ### Events
+
 | Event | Description |
-| :----------- | :----------- |
-|`serviceupdated`|Triggered when info for a service changes|
-|`eventchanged`|Triggered when the EIT 'now' event changes|
-|`videochanged`|Triggered when the video PID or codec are changed|
-|`audiochanged`|Triggered when the audio PID or codec are changed|
-|`subtitleschanged`|Triggered when the subtitle PID or details are changed| .
-
-Also see: [serviceupdated](#serviceupdated), [eventchanged](#eventchanged), [videochanged](#videochanged), [audiochanged](#audiochanged), [subtitleschanged](#subtitleschanged)
-
+| :-------- | :-------- |
+| [serviceupdated](#serviceupdated) | Triggered when info for a service changes |
+| [eventchanged](#eventchanged) | Triggered when the EIT ‘now’ event changes |
+| [videochanged](#videochanged) | Triggered when the video PID or codec are changed |
+| [audiochanged](#audiochanged) | Triggered when the audio PID or codec are changed |
+| [subtitleschanged](#subtitleschanged) | Triggered when the subtitle PID or details are changed |
 ### Parameters
 
 | Name | Type | Description |
@@ -364,7 +360,7 @@ Also see: [serviceupdated](#serviceupdated), [eventchanged](#eventchanged), [vid
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.startPlaying",
+    "method": "DTV.startPlaying",
     "params": {
         "dvburi": "2.2041.9212",
         "lcn": 0,
@@ -387,10 +383,10 @@ Also see: [serviceupdated](#serviceupdated), [eventchanged](#eventchanged), [vid
 ## *stopPlaying*
 
 Stops playing the specified service.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -412,7 +408,7 @@ Stops playing the specified service.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.stopPlaying",
+    "method": "DTV.stopPlaying",
     "params": 0
 }
 ```
@@ -460,6 +456,10 @@ Provides access to the number of country configurations available.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -474,7 +474,7 @@ Provides access to the number of country configurations available.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.numberOfCountries"
+    "method": "DTV.numberOfCountries"
 }
 ```
 
@@ -495,6 +495,10 @@ Provides access to the array containing the name and 3 character ISO country cod
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -512,7 +516,7 @@ Provides access to the array containing the name and 3 character ISO country cod
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.countryList"
+    "method": "DTV.countryList"
 }
 ```
 
@@ -536,6 +540,10 @@ Provides access to the array containing the name and 3 character ISO country cod
 
 Provides access to the country configuration using the ISO 3-character country code.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -550,7 +558,7 @@ Provides access to the country configuration using the ISO 3-character country c
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.country"
+    "method": "DTV.country"
 }
 ```
 
@@ -570,7 +578,7 @@ Provides access to the country configuration using the ISO 3-character country c
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.country",
+    "method": "DTV.country",
     "params": 6775410
 }
 ```
@@ -591,6 +599,10 @@ Provides access to the country configuration using the ISO 3-character country c
 Provides access to the array of LNBs defined in the database.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -621,7 +633,7 @@ Provides access to the array of LNBs defined in the database.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.lnbList"
+    "method": "DTV.lnbList"
 }
 ```
 
@@ -659,6 +671,10 @@ Provides access to the array of satellites defined in the database.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -677,7 +693,7 @@ Provides access to the array of satellites defined in the database.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.satelliteList"
+    "method": "DTV.satelliteList"
 }
 ```
 
@@ -704,6 +720,10 @@ Provides access to the total number of services in the service database.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -718,7 +738,7 @@ Provides access to the total number of services in the service database.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.numberOfServices"
+    "method": "DTV.numberOfServices"
 }
 ```
 
@@ -738,6 +758,10 @@ Provides access to the total number of services in the service database.
 Provides access to the list of services for the given type of tuner, transport (version 2), or all services if neither is given.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -766,7 +790,7 @@ Provides access to the list of services for the given type of tuner, transport (
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.serviceList@dvbs or 9018.4161"
+    "method": "DTV.serviceList@dvbs or 9018.4161"
 }
 ```
 
@@ -800,6 +824,10 @@ Provides access to the information for the given service as defined by its DVB t
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -826,7 +854,7 @@ Provides access to the information for the given service as defined by its DVB t
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.serviceInfo@9018.4161.1001"
+    "method": "DTV.serviceInfo@9018.4161.1001"
 }
 ```
 
@@ -857,6 +885,10 @@ Provides access to the information for the given service as defined by its DVB t
 Provides access to the (Version 2) array of components for the given service defined by its URI.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -896,7 +928,7 @@ Provides access to the (Version 2) array of components for the given service def
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.serviceComponents@9018.4161.1001"
+    "method": "DTV.serviceComponents@9018.4161.1001"
 }
 ```
 
@@ -946,6 +978,10 @@ Provides access to the information for the given transport as defined by its DVB
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -985,7 +1021,7 @@ Provides access to the information for the given transport as defined by its DVB
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.transportInfo@9018.4161"
+    "method": "DTV.transportInfo@9018.4161"
 }
 ```
 
@@ -1033,6 +1069,10 @@ Provides access to the now and next events (EITp/f) for the given service.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -1073,7 +1113,7 @@ Provides access to the now and next events (EITp/f) for the given service.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.nowNextEvents@9018.4161.1001"
+    "method": "DTV.nowNextEvents@9018.4161.1001"
 }
 ```
 
@@ -1123,6 +1163,10 @@ Provides access to the events which are scheduled (EITsched) for the given servi
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -1151,7 +1195,7 @@ Provides access to the events which are scheduled (EITsched) for the given servi
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.scheduleEvents@9018.4161.1001:12345000,12346000"
+    "method": "DTV.scheduleEvents@9018.4161.1001:12345000,12346000"
 }
 ```
 
@@ -1187,6 +1231,10 @@ Provides access to the extended event info for the given service and event ID (v
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -1208,7 +1256,7 @@ Provides access to the extended event info for the given service and event ID (v
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.extendedEventInfo@9018.4161.1001:3012"
+    "method": "DTV.extendedEventInfo@9018.4161.1001:3012"
 }
 ```
 
@@ -1237,6 +1285,10 @@ Provides access to the information related to the play handle defined by the ind
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -1258,7 +1310,7 @@ Provides access to the information related to the play handle defined by the ind
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.status@0"
+    "method": "DTV.status@0"
 }
 ```
 
@@ -1285,6 +1337,10 @@ Provides access to the strength and quality of the currently tuned signal for th
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -1304,7 +1360,7 @@ Provides access to the strength and quality of the currently tuned signal for th
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.signalInfo@0"
+    "method": "DTV.signalInfo@0"
 }
 ```
 
@@ -1387,7 +1443,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.searchstatus",
+    "method": "client.events.searchstatus",
     "params": {
         "handle": 0,
         "eventtype": "ServiceSearchStatus",
@@ -1453,7 +1509,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.serviceupdated",
+    "method": "client.events.serviceupdated",
     "params": {
         "eventtype": "ServiceSearchStatus",
         "service": {
@@ -1500,7 +1556,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.serviceadded",
+    "method": "client.events.serviceadded",
     "params": {
         "eventtype": "ServiceSearchStatus",
         "service": {
@@ -1547,7 +1603,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.servicedeleted",
+    "method": "client.events.servicedeleted",
     "params": {
         "eventtype": "ServiceSearchStatus",
         "service": {
@@ -1594,7 +1650,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.videochanged",
+    "method": "client.events.videochanged",
     "params": {
         "eventtype": "ServiceSearchStatus",
         "service": {
@@ -1641,7 +1697,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.audiochanged",
+    "method": "client.events.audiochanged",
     "params": {
         "eventtype": "ServiceSearchStatus",
         "service": {
@@ -1688,7 +1744,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.subtitleschanged",
+    "method": "client.events.subtitleschanged",
     "params": {
         "eventtype": "ServiceSearchStatus",
         "service": {
@@ -1747,7 +1803,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.eventchanged",
+    "method": "client.events.eventchanged",
     "params": {
         "eventtype": "ServiceSearchStatus",
         "service": {

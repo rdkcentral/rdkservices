@@ -64,10 +64,10 @@ MotionDetection interface methods:
 ## *arm*
 
 Enables a motion detector in the mode requested. This enables a single shot  Once an event is sent, the device is in the disarmed state. If the application wishes to receive another event, then the application must re-arm.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -92,7 +92,7 @@ Enables a motion detector in the mode requested. This enables a single shot  Onc
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.arm",
+    "method": "org.rdk.MotionDetection.arm",
     "params": {
         "index": "FP_MD",
         "mode": "0"
@@ -116,10 +116,10 @@ Enables a motion detector in the mode requested. This enables a single shot  Onc
 ## *disarm*
 
 Disables the specified motion detector.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -143,7 +143,7 @@ Disables the specified motion detector.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.disarm",
+    "method": "org.rdk.MotionDetection.disarm",
     "params": {
         "index": "FP_MD"
     }
@@ -166,10 +166,10 @@ Disables the specified motion detector.
 ## *getLastMotionEventElapsedTime*
 
 Returns the elapsed time since the last motion event occurred for the specified motion detector.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -194,7 +194,7 @@ Returns the elapsed time since the last motion event occurred for the specified 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.getLastMotionEventElapsedTime",
+    "method": "org.rdk.MotionDetection.getLastMotionEventElapsedTime",
     "params": {
         "index": "FP_MD"
     }
@@ -220,10 +220,10 @@ Returns the elapsed time since the last motion event occurred for the specified 
 Returns the available motion detectors and then lists information for each detector including their supported sensitivity mode.  
   
 **Note:** The `sensitivityMode` property that is returned by this method indicates whether a number or a name controls the sensitivity of a motion detector. If `sensitivityMode` is `1`, then a set of properties (`min`, `max`, and `step`) are returned that define a valid number range to use. If `sensitivityMode` is `2`, then a `sensitivities` property is returned that contains valid names to use.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -255,7 +255,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.getMotionDetectors"
+    "method": "org.rdk.MotionDetection.getMotionDetectors"
 }
 ```
 
@@ -290,10 +290,10 @@ This method takes no parameters.
 ## *getMotionEventsActivePeriod*
 
 Returns the configured times during the day when the motion sensor is active and detecting motion.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -318,7 +318,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.getMotionEventsActivePeriod"
+    "method": "org.rdk.MotionDetection.getMotionEventsActivePeriod"
 }
 ```
 
@@ -344,10 +344,10 @@ This method takes no parameters.
 ## *getNoMotionPeriod*
 
 Returns the no-motion period for the specified motion detector.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -372,7 +372,7 @@ Returns the no-motion period for the specified motion detector.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.getNoMotionPeriod",
+    "method": "org.rdk.MotionDetection.getNoMotionPeriod",
     "params": {
         "index": "FP_MD"
     }
@@ -396,10 +396,10 @@ Returns the no-motion period for the specified motion detector.
 ## *getSensitivity*
 
 Returns the current sensitivity configuration for the specified motion detector. The result is either a `name` property with the sensitivity name or a `value` property with the sensitivity number. See `getMotionDetectors`.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -424,7 +424,7 @@ Returns the current sensitivity configuration for the specified motion detector.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.getSensitivity",
+    "method": "org.rdk.MotionDetection.getSensitivity",
     "params": {
         "index": "FP_MD"
     }
@@ -448,10 +448,10 @@ Returns the current sensitivity configuration for the specified motion detector.
 ## *isarmed*
 
 Returns whether the specified motion detector is enabled.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -476,7 +476,7 @@ Returns whether the specified motion detector is enabled.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.isarmed",
+    "method": "org.rdk.MotionDetection.isarmed",
     "params": {
         "index": "FP_MD"
     }
@@ -501,10 +501,10 @@ Returns whether the specified motion detector is enabled.
 
 Sets the period of time during the day when the motion sensor is active and detecting motion. Any motion notifications outside of this period should be deferred until the start of the active period or cancelled if the notification is no longer valid. If this method is not called, then the active period is considered disabled and the sensor is armed 24 hours per day.  
 **Note:** The start time may be a higher value than the end time (for example, when a configured activation period spans across midnight from 09:00 pm to 01:00 am). Also, Daylight savings time (DST) may apply to the time zone where this feature is being used and the caller should be aware of the 23 hour and 25 hour days which occur during the shift days. For this reason it is advised that the caller reprograms the active period the day before and the day after the shift days to ensure reliable operation. If the caller is reprogramming this value every 24 hours then this should not be an issue.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -533,7 +533,7 @@ Sets the period of time during the day when the motion sensor is active and dete
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.setMotionEventsActivePeriod",
+    "method": "org.rdk.MotionDetection.setMotionEventsActivePeriod",
     "params": {
         "index": "FP_MD",
         "nowTime": 1234,
@@ -563,10 +563,10 @@ Sets the period of time during the day when the motion sensor is active and dete
 ## *setNoMotionPeriod*
 
 Sets the no-motion period, in seconds, for the specified motion detector. When a motion detector is set to detect motion, this is the period of time, in seconds, that MUST elapse with no motion before a motion event is generated. If motion is detected within this period of time, then the time is reset and the countdown begins again. When a motion detector is set to detect no motion, then this is the period of time with no motion detected that MUST elapse before a no-motion event is generated.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -591,7 +591,7 @@ Sets the no-motion period, in seconds, for the specified motion detector. When a
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.setNoMotionPeriod",
+    "method": "org.rdk.MotionDetection.setNoMotionPeriod",
     "params": {
         "index": "FP_MD",
         "period": "1800"
@@ -619,10 +619,10 @@ Sets the sensitivity of the sensor for the specified motion detector. The argume
 * `value`: Used when the `sensitivityMode` is set to `1` requiring a sensitivity number within a valid range.  
   
 See `getMotionDetectors` to get the supported sensitivity mode.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -647,7 +647,7 @@ See `getMotionDetectors` to get the supported sensitivity mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MotionDetection.1.setSensitivity",
+    "method": "org.rdk.MotionDetection.setSensitivity",
     "params": {
         "index": "FP_MD",
         "name": "low"
@@ -699,7 +699,7 @@ Triggered when a motion detector is enabled and either motion or no motion is de
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onMotionEvent",
+    "method": "client.events.onMotionEvent",
     "params": {
         "index": "FP_MD",
         "mode": "0"

@@ -53,7 +53,7 @@
     },
     "methods": {
         "getActiveSourceStatus":{
-            "summary": "Gets the active source status of the device.\n  \n### Event \n\n No Events",
+            "summary": "Gets the active source status of the device.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -70,7 +70,7 @@
             }
         },
         "getDeviceList":{
-            "summary": "Gets the list of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.\n  \n### Events \n\n No Events",
+            "summary": "Gets the list of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -114,7 +114,7 @@
             }
         },
         "getEnabled": {
-            "summary": "Returns HDMI-CEC driver enabled status.\n  \n### Events \n\n No Events",
+            "summary": "Returns HDMI-CEC driver enabled status.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -132,7 +132,7 @@
             }
         },
         "getOSDName":{
-            "summary": "Returns the OSD name set by the application.\n  \n### Events \n\n No Events",
+            "summary": "Returns the OSD name set by the application.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -150,7 +150,7 @@
             }
         },
         "getOTPEnabled":{
-            "summary": "Returns HDMI-CEC OTP option enabled status.\n  \n### Events \n\n No Events",
+            "summary": "Returns HDMI-CEC OTP option enabled status.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -168,7 +168,7 @@
             }
         },
         "getVendorId":{
-            "summary": "Returns the vendor ID set by the application.\n  \n### Events \n\n No Events",
+            "summary": "Returns the vendor ID set by the application.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -186,13 +186,13 @@
             }
         },
         "performOTPAction":{
-            "summary": "Turns on the TV and takes back the input to the device.\n  \n### Events \n\n No Events",
+            "summary": "Turns on the TV and takes back the input to the device.",
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "sendKeyPressEvent": {
-            "summary": "Sends the CEC \\<User Control Pressed\\> message when TV remote key is pressed.\n  \n### Event \n\n No Events",
+            "summary": "Sends the CEC \\<User Control Pressed\\> message when TV remote key is pressed.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -215,13 +215,13 @@
             }
         },
         "sendStandbyMessage": {
-            "summary": "Sends a CEC \\<Standby\\> message to the logical address of the device.\n  \n### Events \n\n No Events",
+            "summary": "Sends a CEC \\<Standby\\> message to the logical address of the device.",
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "setEnabled":{
-            "summary": "Enables or disables HDMI-CEC driver.\n  \n### Events \n\n No Events",
+            "summary": "Enables or disables HDMI-CEC driver.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -238,7 +238,7 @@
             }
         },
         "setOSDName":{
-            "summary": "Sets the OSD name of the application.\n  \n### Events \n\n No Events",
+            "summary": "Sets the OSD name of the application.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -255,7 +255,7 @@
             }
         },
         "setOTPEnabled":{
-            "summary": "Enables or disables HDMI-CEC OTP option.\n  \n### Events \n\n No Events",
+            "summary": "Enables or disables HDMI-CEC OTP option.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -272,7 +272,7 @@
             }
         },
         "setVendorId":{
-            "summary": "Sets the vendor ID of the application.\n  \n### Events \n\n No Events",
+            "summary": "Sets the vendor ID of the application.",
             "params": {
                 "type":"object",
                 "properties": {

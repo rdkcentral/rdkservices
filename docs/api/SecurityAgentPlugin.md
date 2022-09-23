@@ -58,6 +58,10 @@ SecurityAgent interface methods:
 
 Creates a signed JsonWeb token. On success, returns Signed JsonWeb token and on failure, returns error message and error code as mentioned in below Errors table.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -88,7 +92,7 @@ Creates a signed JsonWeb token. On success, returns Signed JsonWeb token and on 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "SecurityAgent.1.createtoken",
+    "method": "SecurityAgent.createtoken",
     "params": {
         "url": "https://test.comcast.com",
         "user": "Test",
@@ -114,6 +118,10 @@ Creates a signed JsonWeb token. On success, returns Signed JsonWeb token and on 
 
 Validates the token whether it is valid and properly signed.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -136,7 +144,7 @@ Validates the token whether it is valid and properly signed.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "SecurityAgent.1.validate",
+    "method": "SecurityAgent.validate",
     "params": {
         "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICAgImpzb25ycGMiOiAiMi4wIiwgCiAgICAiaWQiOiAxMjM0NTY3ODkwLCAKICAgICJtZXRob2QiOiAiQ29udHJvbGxlci4xLmFjdGl2YXRlIiwgCiAgICAicGFyYW1zIjogewogICAgICAgICJjYWxsc2lnbiI6ICJTZWN1cml0eUFnZW50IgogICAgfQp9.lL40nTwRyBvMwiglZhl5_rB8ycY1uhAJRFx9pGATMRQ"
     }

@@ -61,10 +61,10 @@ PersistentStore interface methods:
 ## *deleteKey*
 
 Deletes a key from the specified namespace.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -89,7 +89,7 @@ Deletes a key from the specified namespace.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.deleteKey",
+    "method": "org.rdk.PersistentStore.deleteKey",
     "params": {
         "namespace": "ns1",
         "key": "key1"
@@ -113,10 +113,10 @@ Deletes a key from the specified namespace.
 ## *deleteNamespace*
 
 Deletes the specified namespace.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -140,7 +140,7 @@ Deletes the specified namespace.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.deleteNamespace",
+    "method": "org.rdk.PersistentStore.deleteNamespace",
     "params": {
         "namespace": "ns1"
     }
@@ -163,10 +163,10 @@ Deletes the specified namespace.
 ## *flushCache*
 
 Flushes the database cache by invoking `flush` in SQLite.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -187,7 +187,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.flushCache"
+    "method": "org.rdk.PersistentStore.flushCache"
 }
 ```
 
@@ -207,10 +207,10 @@ This method takes no parameters.
 ## *getKeys*
 
 Returns the keys that are stored in the specified namespace.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -236,7 +236,7 @@ Returns the keys that are stored in the specified namespace.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.getKeys",
+    "method": "org.rdk.PersistentStore.getKeys",
     "params": {
         "namespace": "ns1"
     }
@@ -262,10 +262,10 @@ Returns the keys that are stored in the specified namespace.
 ## *getNamespaces*
 
 Returns the namespaces in the datastore.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -288,7 +288,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.getNamespaces"
+    "method": "org.rdk.PersistentStore.getNamespaces"
 }
 ```
 
@@ -311,10 +311,10 @@ This method takes no parameters.
 ## *getStorageSize*
 
 Returns the size occupied by each namespace. This is a processing-intense operation. The total size of the datastore should not exceed more than 1MB in size. If the storage size is exceeded then, new values are not stored and the `onStorageExceeded` event is sent.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -338,7 +338,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.getStorageSize"
+    "method": "org.rdk.PersistentStore.getStorageSize"
 }
 ```
 
@@ -362,10 +362,10 @@ This method takes no parameters.
 ## *getValue*
 
 Returns the value of a key from the specified namespace.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -391,7 +391,7 @@ Returns the value of a key from the specified namespace.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.getValue",
+    "method": "org.rdk.PersistentStore.getValue",
     "params": {
         "namespace": "ns1",
         "key": "key1"
@@ -416,15 +416,13 @@ Returns the value of a key from the specified namespace.
 ## *setValue*
 
 Sets the value of a key in the the specified namespace.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onStorageExceeded`| Triggered if the storage size has surpassed 1 MB storage size|
-| `onValueChanged` | Triggered whenever any of the values stored are changed using setValue |.
 
-Also see: [onStorageExceeded](#onStorageExceeded), [onValueChanged](#onValueChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onStorageExceeded](#onStorageExceeded) | Triggered if the storage size has surpassed 1 MB storage size |
+| [onValueChanged](#onValueChanged) | Triggered whenever any of the values stored are changed using setValue |
 ### Parameters
 
 | Name | Type | Description |
@@ -449,7 +447,7 @@ Also see: [onStorageExceeded](#onStorageExceeded), [onValueChanged](#onValueChan
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.setValue",
+    "method": "org.rdk.PersistentStore.setValue",
     "params": {
         "namespace": "ns1",
         "key": "key1",
@@ -499,7 +497,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onStorageExceeded"
+    "method": "client.events.onStorageExceeded"
 }
 ```
 
@@ -522,7 +520,7 @@ Triggered whenever any of the values stored are changed using setValue.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onValueChanged",
+    "method": "client.events.onValueChanged",
     "params": {
         "namespace": "ns1",
         "key": "key1",

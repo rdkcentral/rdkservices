@@ -61,8 +61,11 @@ Joins a messaging room.
 
 Use this method to join a room. If the specified room does not exist, then it will be created.
 
-Also see: [userupdate](#userupdate)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [userupdate](#userupdate) | Notifies about user status updates. |
 ### Parameters
 
 | Name | Type | Description |
@@ -97,7 +100,7 @@ Also see: [userupdate](#userupdate)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Messenger.1.join",
+    "method": "Messenger.join",
     "params": {
         "user": "Bob",
         "room": "Lounge",
@@ -130,8 +133,11 @@ Leaves a messaging room.
 
 Use this method to leave a room. The room ID becomes invalid after this call. If there are no more users, the room will be destroyed and related resources freed.
 
-Also see: [userupdate](#userupdate)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [userupdate](#userupdate) | Notifies about user status updates. |
 ### Parameters
 
 | Name | Type | Description |
@@ -159,7 +165,7 @@ Also see: [userupdate](#userupdate)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Messenger.1.leave",
+    "method": "Messenger.leave",
     "params": {
         "roomid": "1e217990dd1cd4f66124"
     }
@@ -185,8 +191,11 @@ Sends a message to a room.
 
 Use this method to send a message to a room.
 
-Also see: [message](#message)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [message](#message) | Notifies about new messages in a room. |
 ### Parameters
 
 | Name | Type | Description |
@@ -215,7 +224,7 @@ Also see: [message](#message)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Messenger.1.send",
+    "method": "Messenger.send",
     "params": {
         "roomid": "1e217990dd1cd4f66124",
         "message": "Hello!"
@@ -272,7 +281,7 @@ Register to this event to be notified about room status updates. Immediately aft
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.roomupdate",
+    "method": "client.events.roomupdate",
     "params": {
         "room": "Lounge",
         "secure": "secure",
@@ -305,7 +314,7 @@ Register to this event to be notified about room status updates. Immediately aft
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "1e217990dd1cd4f66124.client.events.1.userupdate",
+    "method": "1e217990dd1cd4f66124.client.events.userupdate",
     "params": {
         "user": "Bob",
         "action": "joined"
@@ -337,7 +346,7 @@ Register to this event to be notified about new messages in a room.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "1e217990dd1cd4f66124.client.events.1.message",
+    "method": "1e217990dd1cd4f66124.client.events.message",
     "params": {
         "user": "Bob",
         "message": "Hello!"

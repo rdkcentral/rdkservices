@@ -120,12 +120,12 @@ SystemServices interface methods:
 ## *cacheContains*
 
 Checks if a key is present in the cache.
- 
-### Events
- 
- No Events.
 
 > This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -149,7 +149,7 @@ Checks if a key is present in the cache.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.cacheContains",
+    "method": "org.rdk.System.cacheContains",
     "params": {
         "key": "sampleKey"
     }
@@ -172,10 +172,10 @@ Checks if a key is present in the cache.
 ## *clearLastDeepSleepReason*
 
 Clears the last deep sleep reason.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -196,7 +196,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.clearLastDeepSleepReason"
+    "method": "org.rdk.System.clearLastDeepSleepReason"
 }
 ```
 
@@ -216,10 +216,10 @@ This method takes no parameters.
 ## *deletePersistentPath*
 
 (Version 2) Deletes persistent path associated with a callsign.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -244,7 +244,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.deletePersistentPath",
+    "method": "org.rdk.System.deletePersistentPath",
     "params": {
         "callsign": "HtmlApp",
         "type": "HtmlApp"
@@ -268,10 +268,10 @@ This method takes no parameters.
 ## *enableMoca*
 
 Enables (or disables) Moca support for the platform.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -295,7 +295,7 @@ Enables (or disables) Moca support for the platform.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.enableMoca",
+    "method": "org.rdk.System.enableMoca",
     "params": {
         "value": true
     }
@@ -318,10 +318,10 @@ Enables (or disables) Moca support for the platform.
 ## *enableXREConnectionRetention*
 
 Enables (or disables) XRE Connection Retention option.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -345,7 +345,7 @@ Enables (or disables) XRE Connection Retention option.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.enableXREConnectionRetention",
+    "method": "org.rdk.System.enableXREConnectionRetention",
     "params": {
         "enable": true
     }
@@ -368,14 +368,12 @@ Enables (or disables) XRE Connection Retention option.
 ## *fireFirmwarePendingReboot*
 
 (Version 2) Notifies the device about a pending reboot.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onFirmwarePendingReboot` | Triggers when the firmware has a pending reboot |.
 
-Also see: [onFirmwarePendingReboot](#onFirmwarePendingReboot)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onFirmwarePendingReboot](#onFirmwarePendingReboot) | Triggers when the firmware has a pending reboot |
 ### Parameters
 
 This method takes no parameters.
@@ -395,7 +393,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.fireFirmwarePendingReboot"
+    "method": "org.rdk.System.fireFirmwarePendingReboot"
 }
 ```
 
@@ -415,10 +413,10 @@ This method takes no parameters.
 ## *getAvailableStandbyModes*
 
 Queries the available standby modes.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -441,7 +439,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getAvailableStandbyModes"
+    "method": "org.rdk.System.getAvailableStandbyModes"
 }
 ```
 
@@ -464,12 +462,12 @@ This method takes no parameters.
 ## *getCachedValue*
 
 Gets the value of a key in the cache.
- 
-### Events
- 
- No Events.
 
 > This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -494,7 +492,7 @@ Gets the value of a key in the cache.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getCachedValue",
+    "method": "org.rdk.System.getCachedValue",
     "params": {
         "key": "sampleKey"
     }
@@ -518,10 +516,10 @@ Gets the value of a key in the cache.
 ## *getCoreTemperature*
 
 Returns the core temperature of the device. Not supported on all devices.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -543,7 +541,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getCoreTemperature"
+    "method": "org.rdk.System.getCoreTemperature"
 }
 ```
 
@@ -571,10 +569,10 @@ Collects device details. Sample keys include:
 * imageVersion  
 * rf4ce_mac  
 * wifi_mac.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -600,7 +598,7 @@ Collects device details. Sample keys include:
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getDeviceInfo",
+    "method": "org.rdk.System.getDeviceInfo",
     "params": {
         "params": [
             "estb_mac"
@@ -626,10 +624,10 @@ Collects device details. Sample keys include:
 ## *getDownloadedFirmwareInfo*
 
 Returns information about firmware downloads.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -654,7 +652,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getDownloadedFirmwareInfo"
+    "method": "org.rdk.System.getDownloadedFirmwareInfo"
 }
 ```
 
@@ -678,10 +676,10 @@ This method takes no parameters.
 ## *getFirmwareDownloadPercent*
 
 Gets the current download percentage.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -703,7 +701,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getFirmwareDownloadPercent"
+    "method": "org.rdk.System.getFirmwareDownloadPercent"
 }
 ```
 
@@ -724,14 +722,12 @@ This method takes no parameters.
 ## *getFirmwareUpdateInfo*
 
 Checks the firmware update information.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onFirmwareUpdateInfoReceived` | Triggers when the firmware update information is requested |.
 
-Also see: [onFirmwareUpdateInfoReceived](#onFirmwareUpdateInfoReceived)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onFirmwareUpdateInfoReceived](#onFirmwareUpdateInfoReceived) | Triggers when the firmware update information is requested |
 ### Parameters
 
 | Name | Type | Description |
@@ -755,7 +751,7 @@ Also see: [onFirmwareUpdateInfoReceived](#onFirmwareUpdateInfoReceived)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getFirmwareUpdateInfo",
+    "method": "org.rdk.System.getFirmwareUpdateInfo",
     "params": {
         "GUID": "1234abcd"
     }
@@ -779,10 +775,10 @@ Also see: [onFirmwareUpdateInfoReceived](#onFirmwareUpdateInfoReceived)
 ## *getFirmwareUpdateState*
 
 Checks the state of the firmware update.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -804,7 +800,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getFirmwareUpdateState"
+    "method": "org.rdk.System.getFirmwareUpdateState"
 }
 ```
 
@@ -825,10 +821,10 @@ This method takes no parameters.
 ## *getLastDeepSleepReason*
 
 Retrieves the last deep sleep reason.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -850,7 +846,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getLastDeepSleepReason"
+    "method": "org.rdk.System.getLastDeepSleepReason"
 }
 ```
 
@@ -871,10 +867,10 @@ This method takes no parameters.
 ## *getLastFirmwareFailureReason*
 
 (Version 2) Retrieves the last firmware failure reason.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -896,7 +892,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getLastFirmwareFailureReason"
+    "method": "org.rdk.System.getLastFirmwareFailureReason"
 }
 ```
 
@@ -917,10 +913,10 @@ This method takes no parameters.
 ## *getLastWakeupKeyCode*
 
 (Version 2) Returns the last wakeup keycode.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -942,7 +938,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getLastWakeupKeyCode"
+    "method": "org.rdk.System.getLastWakeupKeyCode"
 }
 ```
 
@@ -963,14 +959,12 @@ This method takes no parameters.
 ## *getMacAddresses*
 
 Gets the MAC address of the device.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onMacAddressesRetreived` | Triggers when the MAC addresses are requested |.
 
-Also see: [onMacAddressesRetreived](#onMacAddressesRetreived)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onMacAddressesRetreived](#onMacAddressesRetreived) | Triggers when the MAC addresses are requested |
 ### Parameters
 
 | Name | Type | Description |
@@ -994,7 +988,7 @@ Also see: [onMacAddressesRetreived](#onMacAddressesRetreived)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getMacAddresses",
+    "method": "org.rdk.System.getMacAddresses",
     "params": {
         "GUID": "1234abcd"
     }
@@ -1018,10 +1012,10 @@ Also see: [onMacAddressesRetreived](#onMacAddressesRetreived)
 ## *getMfgSerialNumber*
 
 Gets the Manufacturing Serial Number.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1043,7 +1037,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getMfgSerialNumber"
+    "method": "org.rdk.System.getMfgSerialNumber"
 }
 ```
 
@@ -1064,12 +1058,12 @@ This method takes no parameters.
 ## *getMilestones*
 
 Returns the list of milestones.
- 
-### Events
- 
- No Events.
 
 > This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1092,7 +1086,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getMilestones"
+    "method": "org.rdk.System.getMilestones"
 }
 ```
 
@@ -1115,10 +1109,10 @@ This method takes no parameters.
 ## *getMode*
 
 Returns the currently set mode information.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1142,7 +1136,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getMode"
+    "method": "org.rdk.System.getMode"
 }
 ```
 
@@ -1166,10 +1160,10 @@ This method takes no parameters.
 ## *getNetworkStandbyMode*
 
 Returns the network standby mode of the device. If network standby is `true`, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1191,7 +1185,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getNetworkStandbyMode"
+    "method": "org.rdk.System.getNetworkStandbyMode"
 }
 ```
 
@@ -1212,10 +1206,10 @@ This method takes no parameters.
 ## *getOvertempGraceInterval*
 
 Returns the over-temperature grace interval value. Not supported on all devices.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1237,7 +1231,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getOvertempGraceInterval"
+    "method": "org.rdk.System.getOvertempGraceInterval"
 }
 ```
 
@@ -1258,10 +1252,10 @@ This method takes no parameters.
 ## *getPlatformConfiguration*
 
 (Version 2) Returns the supported features and device/account info.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1309,7 +1303,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPlatformConfiguration",
+    "method": "org.rdk.System.getPlatformConfiguration",
     "params": {
         "query": "..."
     }
@@ -1361,10 +1355,10 @@ This method takes no parameters.
 ## *getPowerState*
 
 Returns the power state of the device.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1386,7 +1380,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPowerState"
+    "method": "org.rdk.System.getPowerState"
 }
 ```
 
@@ -1407,10 +1401,10 @@ This method takes no parameters.
 ## *getPowerStateBeforeReboot*
 
 Returns the power state before reboot.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1432,7 +1426,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPowerStateBeforeReboot"
+    "method": "org.rdk.System.getPowerStateBeforeReboot"
 }
 ```
 
@@ -1453,10 +1447,10 @@ This method takes no parameters.
 ## *getPowerStateIsManagedByDevice*
 
 Checks whether the power state is managed by the device.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1478,7 +1472,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPowerStateIsManagedByDevice"
+    "method": "org.rdk.System.getPowerStateIsManagedByDevice"
 }
 ```
 
@@ -1499,10 +1493,10 @@ This method takes no parameters.
 ## *getPreferredStandbyMode*
 
 Returns the preferred standby mode. This method returns an empty string if the preferred mode has not been set.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1524,7 +1518,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPreferredStandbyMode"
+    "method": "org.rdk.System.getPreferredStandbyMode"
 }
 ```
 
@@ -1545,10 +1539,10 @@ This method takes no parameters.
 ## *getPreviousRebootInfo*
 
 Returns basic information about a reboot.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1574,7 +1568,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPreviousRebootInfo"
+    "method": "org.rdk.System.getPreviousRebootInfo"
 }
 ```
 
@@ -1599,10 +1593,10 @@ This method takes no parameters.
 ## *getPreviousRebootInfo2*
 
 Returns detailed information about a reboot.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1629,7 +1623,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPreviousRebootInfo2"
+    "method": "org.rdk.System.getPreviousRebootInfo2"
 }
 ```
 
@@ -1656,10 +1650,10 @@ This method takes no parameters.
 ## *getPreviousRebootReason*
 
 Returns the last reboot reason.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1681,7 +1675,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getPreviousRebootReason"
+    "method": "org.rdk.System.getPreviousRebootReason"
 }
 ```
 
@@ -1702,10 +1696,10 @@ This method takes no parameters.
 ## *getRFCConfig*
 
 Returns information that is related to RDK Feature Control (RFC) configurations.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1732,7 +1726,7 @@ Returns information that is related to RDK Feature Control (RFC) configurations.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getRFCConfig",
+    "method": "org.rdk.System.getRFCConfig",
     "params": {
         "rfcList": [
             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID"
@@ -1760,10 +1754,10 @@ Returns information that is related to RDK Feature Control (RFC) configurations.
 ## *getSerialNumber*
 
 Returns the device serial number.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1785,7 +1779,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getSerialNumber"
+    "method": "org.rdk.System.getSerialNumber"
 }
 ```
 
@@ -1806,10 +1800,10 @@ This method takes no parameters.
 ## *getStateInfo*
 
 Queries device state information of various properties.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1834,7 +1828,7 @@ Queries device state information of various properties.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getStateInfo",
+    "method": "org.rdk.System.getStateInfo",
     "params": {
         "param": "com.comcast.channel_map"
     }
@@ -1858,10 +1852,10 @@ Queries device state information of various properties.
 ## *getStoreDemoLink*
 
 (Version 2) Returns the store demo video link.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1883,7 +1877,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getStoreDemoLink"
+    "method": "org.rdk.System.getStoreDemoLink"
 }
 ```
 
@@ -1904,10 +1898,10 @@ This method takes no parameters.
 ## *getSystemVersions*
 
 Returns system version details.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1931,7 +1925,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getSystemVersions"
+    "method": "org.rdk.System.getSystemVersions"
 }
 ```
 
@@ -1954,10 +1948,10 @@ This method takes no parameters.
 ## *getTemperatureThresholds*
 
 Returns temperature threshold values. Not supported on all devices.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1982,7 +1976,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getTemperatureThresholds"
+    "method": "org.rdk.System.getTemperatureThresholds"
 }
 ```
 
@@ -2007,10 +2001,10 @@ This method takes no parameters.
 ## *getTerritory*
 
 Gets the configured system territory and region. Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2033,7 +2027,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getTerritory"
+    "method": "org.rdk.System.getTerritory"
 }
 ```
 
@@ -2055,10 +2049,10 @@ This method takes no parameters.
 ## *getTimeZones*
 
 (Version2) Gets the available timezones from the system's time zone database. This method is useful for determining time offsets per zone.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2085,7 +2079,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getTimeZones"
+    "method": "org.rdk.System.getTimeZones"
 }
 ```
 
@@ -2114,10 +2108,10 @@ This method takes no parameters.
 ## *getTimeZoneDST*
 
 Get the configured time zone from the file referenced by `TZ_FILE`. If the time zone is not set, then `null` is returned.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2139,7 +2133,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getTimeZoneDST"
+    "method": "org.rdk.System.getTimeZoneDST"
 }
 ```
 
@@ -2160,10 +2154,10 @@ This method takes no parameters.
 ## *getWakeupReason*
 
 (Version 2) Returns the reason for the device coming out of deep sleep.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2185,7 +2179,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getWakeupReason"
+    "method": "org.rdk.System.getWakeupReason"
 }
 ```
 
@@ -2206,10 +2200,10 @@ This method takes no parameters.
 ## *getXconfParams*
 
 Returns XCONF configuration parameters for the device.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2235,7 +2229,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.getXconfParams"
+    "method": "org.rdk.System.getXconfParams"
 }
 ```
 
@@ -2261,10 +2255,10 @@ This method takes no parameters.
 ## *hasRebootBeenRequested*
 
 Checks whether a reboot has been requested.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2286,7 +2280,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.hasRebootBeenRequested"
+    "method": "org.rdk.System.hasRebootBeenRequested"
 }
 ```
 
@@ -2307,12 +2301,12 @@ This method takes no parameters.
 ## *isGzEnabled*
 
 Checks whether GZ is enabled.
- 
-### Events
- 
- No Events.
 
 > This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2334,7 +2328,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.isGzEnabled"
+    "method": "org.rdk.System.isGzEnabled"
 }
 ```
 
@@ -2355,10 +2349,10 @@ This method takes no parameters.
 ## *isOptOutTelemetry*
 
 Checks the telemetry opt-out status.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2380,7 +2374,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.isOptOutTelemetry"
+    "method": "org.rdk.System.isOptOutTelemetry"
 }
 ```
 
@@ -2401,10 +2395,10 @@ This method takes no parameters.
 ## *queryMocaStatus*
 
 Checks whether MOCA is enabled.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2426,7 +2420,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.queryMocaStatus"
+    "method": "org.rdk.System.queryMocaStatus"
 }
 ```
 
@@ -2447,14 +2441,12 @@ This method takes no parameters.
 ## *reboot*
 
 Requests that the system performs a reboot of the set-top box.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onRebootRequest` | Triggers when a device reboot request is made |.
 
-Also see: [onRebootRequest](#onRebootRequest)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onRebootRequest](#onRebootRequest) | Triggers when a device reboot request is made |
 ### Parameters
 
 | Name | Type | Description |
@@ -2478,7 +2470,7 @@ Also see: [onRebootRequest](#onRebootRequest)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.reboot",
+    "method": "org.rdk.System.reboot",
     "params": {
         "rebootReason": "FIRMWARE_FAILURE"
     }
@@ -2502,12 +2494,12 @@ Also see: [onRebootRequest](#onRebootRequest)
 ## *removeCacheKey*
 
 Removes the cache key.
- 
-### Events
- 
- No Events.
 
 > This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2531,7 +2523,7 @@ Removes the cache key.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.removeCacheKey",
+    "method": "org.rdk.System.removeCacheKey",
     "params": {
         "key": "sampleKey"
     }
@@ -2554,10 +2546,10 @@ Removes the cache key.
 ## *requestSystemUptime*
 
 Returns the device uptime.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2579,7 +2571,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.requestSystemUptime"
+    "method": "org.rdk.System.requestSystemUptime"
 }
 ```
 
@@ -2599,10 +2591,11 @@ This method takes no parameters.
 <a name="setBootLoaderPattern"></a>
 ## *setBootLoaderPattern*
 
-Sets the boot loader pattern mode in MFR. 
+Sets the boot loader pattern mode in MFR.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2626,7 +2619,7 @@ Sets the boot loader pattern mode in MFR.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setBootLoaderPattern",
+    "method": "org.rdk.System.setBootLoaderPattern",
     "params": {
         "pattern": "NORMAL"
     }
@@ -2649,12 +2642,12 @@ Sets the boot loader pattern mode in MFR.
 ## *setCachedValue*
 
 Sets the value for a key in the cache.
- 
-### Events
- 
- No Events.
 
 > This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2679,7 +2672,7 @@ Sets the value for a key in the cache.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setCachedValue",
+    "method": "org.rdk.System.setCachedValue",
     "params": {
         "key": "sampleKey",
         "value": 4343.3434
@@ -2703,10 +2696,10 @@ Sets the value for a key in the cache.
 ## *setDeepSleepTimer*
 
 Sets the deep sleep timeout period.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2730,7 +2723,7 @@ Sets the deep sleep timeout period.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setDeepSleepTimer",
+    "method": "org.rdk.System.setDeepSleepTimer",
     "params": {
         "seconds": 3
     }
@@ -2753,10 +2746,10 @@ Sets the deep sleep timeout period.
 ## *setFirmwareAutoReboot*
 
 (Version 2) Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2780,7 +2773,7 @@ Sets the deep sleep timeout period.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setFirmwareAutoReboot",
+    "method": "org.rdk.System.setFirmwareAutoReboot",
     "params": {
         "enable": true
     }
@@ -2803,10 +2796,10 @@ Sets the deep sleep timeout period.
 ## *setFirmwareRebootDelay*
 
 (Version 2) Delays the firmware reboot.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2830,7 +2823,7 @@ Sets the deep sleep timeout period.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setFirmwareRebootDelay",
+    "method": "org.rdk.System.setFirmwareRebootDelay",
     "params": {
         "delaySeconds": 60
     }
@@ -2853,12 +2846,12 @@ Sets the deep sleep timeout period.
 ## *setGzEnabled*
 
 Enables or disables GZ.
- 
-### Events
- 
- No Events.
 
 > This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2882,7 +2875,7 @@ Enables or disables GZ.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setGzEnabled",
+    "method": "org.rdk.System.setGzEnabled",
     "params": {
         "enabled": false
     }
@@ -2908,14 +2901,12 @@ Sets the mode of the set-top box for a specific duration before returning to nor
 * `NORMAL` - The set-top box is operating in normal mode.  
 * `EAS` - The set-top box is operating in Emergency Alert System (EAS) mode. This mode is set when the device needs to perform certain tasks when entering EAS mode, such as setting the clock display or preventing the user from using the diagnostics menu.  
 * `WAREHOUSE` - The set-top box is operating in warehouse mode.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onSystemModeChanged` | Triggers when the system mode is changed successfully |.
 
-Also see: [onSystemModeChanged](#onSystemModeChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onSystemModeChanged](#onSystemModeChanged) | Triggers when the system mode is changed successfully |
 ### Parameters
 
 | Name | Type | Description |
@@ -2940,7 +2931,7 @@ Also see: [onSystemModeChanged](#onSystemModeChanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setMode",
+    "method": "org.rdk.System.setMode",
     "params": {
         "modeInfo": {
             "mode": "NORMAL",
@@ -2966,10 +2957,10 @@ Also see: [onSystemModeChanged](#onSystemModeChanged)
 ## *setNetworkStandbyMode*
 
 Enables or disables the network standby mode of the device. If network standby is enabled, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2993,7 +2984,7 @@ Enables or disables the network standby mode of the device. If network standby i
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setNetworkStandbyMode",
+    "method": "org.rdk.System.setNetworkStandbyMode",
     "params": {
         "nwStandby": false
     }
@@ -3016,10 +3007,10 @@ Enables or disables the network standby mode of the device. If network standby i
 ## *setOptOutTelemetry*
 
 Sets the telemetry opt-out status.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3043,7 +3034,7 @@ Sets the telemetry opt-out status.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setOptOutTelemetry",
+    "method": "org.rdk.System.setOptOutTelemetry",
     "params": {
         "Opt-Out": false
     }
@@ -3066,10 +3057,10 @@ Sets the telemetry opt-out status.
 ## *setOvertempGraceInterval*
 
 Sets the over-temperature grace interval value. Not supported on all devices.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3093,7 +3084,7 @@ Sets the over-temperature grace interval value. Not supported on all devices.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setOvertempGraceInterval",
+    "method": "org.rdk.System.setOvertempGraceInterval",
     "params": {
         "graceInterval": "600"
     }
@@ -3116,14 +3107,12 @@ Sets the over-temperature grace interval value. Not supported on all devices.
 ## *setPowerState*
 
 Sets the power state of the device.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onSystemPowerStateChanged` | Triggers when the system power state changes |.
 
-Also see: [onSystemPowerStateChanged](#onSystemPowerStateChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onSystemPowerStateChanged](#onSystemPowerStateChanged) | Triggers when the system power state changes |
 ### Parameters
 
 | Name | Type | Description |
@@ -3147,7 +3136,7 @@ Also see: [onSystemPowerStateChanged](#onSystemPowerStateChanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setPowerState",
+    "method": "org.rdk.System.setPowerState",
     "params": {
         "powerState": "ON",
         "standbyReason": "APIUnitTest"
@@ -3171,10 +3160,10 @@ Also see: [onSystemPowerStateChanged](#onSystemPowerStateChanged)
 ## *setPreferredStandbyMode*
 
 Sets and persists the preferred standby mode. See [getAvailableStandbyModes](#getAvailableStandbyModes) for valid modes. Invoking this function does not change the power state of the device. It only sets the user preference for the preferred action when the [setPowerState](#setPowerState) method is invoked with a value of `STANDBY`.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3198,7 +3187,7 @@ Sets and persists the preferred standby mode. See [getAvailableStandbyModes](#ge
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setPreferredStandbyMode",
+    "method": "org.rdk.System.setPreferredStandbyMode",
     "params": {
         "standbyMode": "DEEP_SLEEP"
     }
@@ -3221,10 +3210,10 @@ Sets and persists the preferred standby mode. See [getAvailableStandbyModes](#ge
 ## *setTemperatureThresholds*
 
 Sets the temperature threshold values. Not supported on all devices.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3250,7 +3239,7 @@ Sets the temperature threshold values. Not supported on all devices.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setTemperatureThresholds",
+    "method": "org.rdk.System.setTemperatureThresholds",
     "params": {
         "thresholds": {
             "WARN": "100.000000",
@@ -3276,10 +3265,10 @@ Sets the temperature threshold values. Not supported on all devices.
 ## *setTerritory*
 
 Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3304,7 +3293,7 @@ Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setTerritory",
+    "method": "org.rdk.System.setTerritory",
     "params": {
         "territory": "USA",
         "region": "US-NY"
@@ -3328,10 +3317,10 @@ Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard 
 ## *setTimeZoneDST*
 
 Sets the system time zone. See `getTimeZones` to get a list of available timezones on the system.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3355,7 +3344,7 @@ Sets the system time zone. See `getTimeZones` to get a list of available timezon
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setTimeZoneDST",
+    "method": "org.rdk.System.setTimeZoneDST",
     "params": {
         "timeZone": "America/New_York"
     }
@@ -3378,10 +3367,10 @@ Sets the system time zone. See `getTimeZones` to get a list of available timezon
 ## *setWakeupSrcConfiguration*
 
 Sets the wakeup source configuration.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3406,7 +3395,7 @@ Sets the wakeup source configuration.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.setWakeupSrcConfiguration",
+    "method": "org.rdk.System.setWakeupSrcConfiguration",
     "params": {
         "wakeupSrc": "3",
         "config": "1"
@@ -3430,10 +3419,10 @@ Sets the wakeup source configuration.
 ## *updateFirmware*
 
 Initiates a firmware update. This method has no affect if an update is not available.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3454,7 +3443,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.updateFirmware"
+    "method": "org.rdk.System.updateFirmware"
 }
 ```
 
@@ -3474,10 +3463,10 @@ This method takes no parameters.
 ## *uploadLogs*
 
 (Version 2) Uploads logs to a URL returned by SSR.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3501,7 +3490,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.1.uploadLogs",
+    "method": "org.rdk.System.uploadLogs",
     "params": {
         "url": "https://ssr.ccp.xcal.tv/cgi-bin/rdkb_snmp.cgi"
     }
@@ -3561,7 +3550,7 @@ SystemServices interface events:
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onFirmwarePendingReboot",
+    "method": "client.events.onFirmwarePendingReboot",
     "params": {
         "fireFirmwarePendingReboot": 3,
         "success": true
@@ -3597,7 +3586,7 @@ Update details are:
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onFirmwareUpdateInfoReceived",
+    "method": "client.events.onFirmwareUpdateInfoReceived",
     "params": {
         "status": 0,
         "responseString": "...",
@@ -3635,7 +3624,7 @@ State details are:
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onFirmwareUpdateStateChange",
+    "method": "client.events.onFirmwareUpdateStateChange",
     "params": {
         "firmwareUpdateStateChange": 5
     }
@@ -3667,7 +3656,7 @@ Triggered when the `getMacAddresses` asynchronous method is invoked.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onMacAddressesRetreived",
+    "method": "client.events.onMacAddressesRetreived",
     "params": {
         "ecm_mac": "A8:11:XX:FD:0C:XX",
         "estb_mac": "A8:11:XX:FD:0C:XX",
@@ -3699,7 +3688,7 @@ Triggered when the network standby mode setting changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onNetworkStandbyModeChanged",
+    "method": "client.events.onNetworkStandbyModeChanged",
     "params": {
         "nwStandby": true
     }
@@ -3724,7 +3713,7 @@ Triggered when an application invokes the reboot
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onRebootRequest",
+    "method": "client.events.onRebootRequest",
     "params": {
         "requestedApp": "SystemPlugin",
         "rebootReason": "FIRMWARE_FAILURE"
@@ -3746,7 +3735,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onSystemClockSet"
+    "method": "client.events.onSystemClockSet"
 }
 ```
 
@@ -3767,7 +3756,7 @@ Triggered when the device operating mode changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onSystemModeChanged",
+    "method": "client.events.onSystemModeChanged",
     "params": {
         "mode": "NORMAL"
     }
@@ -3792,7 +3781,7 @@ Triggered when the power manager detects a device power state change.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onSystemPowerStateChanged",
+    "method": "client.events.onSystemPowerStateChanged",
     "params": {
         "powerState": "ON",
         "currentPowerState": "ON"
@@ -3819,7 +3808,7 @@ Triggered when the device temperature changes beyond the `WARN` or `MAX` limits 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onTemperatureThresholdChanged",
+    "method": "client.events.onTemperatureThresholdChanged",
     "params": {
         "thresholdType": "MAX",
         "exceeded": true,
