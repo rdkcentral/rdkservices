@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.3]
+### Fixed
+- Fix for osdName is NA for connected HDMIs.
+ 
 ## [1.0.2]
 ### Fixed
 - Fix for resetting retry count for Physical address query.
