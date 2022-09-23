@@ -56,6 +56,10 @@ ContinueWatching interface methods:
 
 Deletes the stored tokens for a particular application.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -78,7 +82,7 @@ Deletes the stored tokens for a particular application.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ContinueWatching.1.deleteApplicationToken",
+    "method": "org.rdk.ContinueWatching.deleteApplicationToken",
     "params": {
         "applicationName": "netflix"
     }
@@ -101,6 +105,10 @@ Deletes the stored tokens for a particular application.
 ## *getApplicationToken*
 
 Retrieves the tokens for a particular application.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -128,7 +136,7 @@ Retrieves the tokens for a particular application.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ContinueWatching.1.getApplicationToken",
+    "method": "org.rdk.ContinueWatching.getApplicationToken",
     "params": {
         "applicationName": "netflix"
     }
@@ -158,6 +166,10 @@ Retrieves the tokens for a particular application.
 
 Sets the given tokens for an application.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -183,7 +195,7 @@ Sets the given tokens for an application.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ContinueWatching.1.setApplicationToken",
+    "method": "org.rdk.ContinueWatching.setApplicationToken",
     "params": {
         "applicationName": "netflix",
         "application_token": {

@@ -14,8 +14,10 @@
     },
     "methods":{
         "uploadScreenCapture":{
-            "summary": "Takes a screenshot and uploads it to the specified URL. A screenshot is uploaded using raw HTTP POST request as binary image/png data. It's the same as running the following command:  \n`wget -d -q -O - --header='Content-Type: application/octet-stream' --post-file=/path/to/screenshot.png http://server/cgi-bin/upload.cgi`  \nor,  \n`curl -F image=@/path/to/screenshot.png http://server/cgi-bin/upload.cgi`  \nFor implementation details, see `bool ScreenCapture::uploadDataToUrl(std::vector<unsigned char> &data, const char *url, std::string &error_str)`.\n \nEvents\n \n| Event | Description | \n| :-------- | :-------- | \n| `uploadComplete` | Triggered after uploading a screen capture with status and message |",
-            "events": ["uploadComplete"],
+            "summary": "Takes a screenshot and uploads it to the specified URL. A screenshot is uploaded using raw HTTP POST request as binary image/png data. It's the same as running the following command:  \n`wget -d -q -O - --header='Content-Type: application/octet-stream' --post-file=/path/to/screenshot.png http://server/cgi-bin/upload.cgi`  \nor,  \n`curl -F image=@/path/to/screenshot.png http://server/cgi-bin/upload.cgi`  \nFor implementation details, see `bool ScreenCapture::uploadDataToUrl(std::vector<unsigned char> &data, const char *url, std::string &error_str)`.",
+            "events": {
+                "uploadComplete" : "Triggered after uploading a screen capture with status and message"
+            },
             "params": {
                 "type":"object",
                 "properties": {

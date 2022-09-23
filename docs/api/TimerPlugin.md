@@ -59,10 +59,10 @@ Timer interface methods:
 ## *cancel*
 
 Stops the specified timer.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -86,7 +86,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.cancel",
+    "method": "org.rdk.Timer.cancel",
     "params": {
         "timerID": 0
     }
@@ -109,10 +109,10 @@ No Events.
 ## *getTimers*
 
 Gets the status of all timers.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -141,7 +141,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.getTimers"
+    "method": "org.rdk.Timer.getTimers"
 }
 ```
 
@@ -171,10 +171,10 @@ This method takes no parameters.
 ## *getTimerStatus*
 
 Gets the status of the specified timer.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -203,7 +203,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.getTimerStatus",
+    "method": "org.rdk.Timer.getTimerStatus",
     "params": {
         "timerId": 0
     }
@@ -231,10 +231,10 @@ No Events.
 ## *resume*
 
 Resumes the specified timer.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -258,7 +258,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.resume",
+    "method": "org.rdk.Timer.resume",
     "params": {
         "timerID": 0
     }
@@ -281,16 +281,13 @@ No Events.
 ## *startTimer*
 
 Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.
- 
+
 ### Events
- 
-| Event | Description | 
-| :-------- | :-------- | 
-| `timerExpired` | Triggered when a timer expires | 
-| `timerExpiryReminder` | Triggered to remind that, the timer will expire in remindBefore value in seconds |.
 
-Also see: [timerExpired](#timerExpired), [timerExpiryReminder](#timerExpiryReminder)
-
+| Event | Description |
+| :-------- | :-------- |
+| [timerExpired](#timerExpired) | Triggered when a timer expires |
+| [timerExpiryReminder](#timerExpiryReminder) | Triggered to remind that, the timer will expire in remindBefore value in seconds |
 ### Parameters
 
 | Name | Type | Description |
@@ -317,7 +314,7 @@ Also see: [timerExpired](#timerExpired), [timerExpiryReminder](#timerExpiryRemin
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.startTimer",
+    "method": "org.rdk.Timer.startTimer",
     "params": {
         "interval": 1.2,
         "mode": "WAKE",
@@ -344,10 +341,10 @@ Also see: [timerExpired](#timerExpired), [timerExpiryReminder](#timerExpiryRemin
 ## *suspend*
 
 Suspends the specified timer.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -371,7 +368,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.suspend",
+    "method": "org.rdk.Timer.suspend",
     "params": {
         "timerID": 0
     }
@@ -424,7 +421,7 @@ Triggered when a timer expires.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.timerExpired",
+    "method": "client.events.timerExpired",
     "params": {
         "timerId": 0,
         "mode": "WAKE",
@@ -452,7 +449,7 @@ Triggered before a timer actually expires. It is triggered only when a non-zero 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.timerExpiryReminder",
+    "method": "client.events.timerExpiryReminder",
     "params": {
         "timerId": 0,
         "mode": "WAKE",

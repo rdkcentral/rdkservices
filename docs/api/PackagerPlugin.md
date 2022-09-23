@@ -55,6 +55,10 @@ Packager interface methods:
 
 Installs a package given by a name, a URL, or a file path.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -84,7 +88,7 @@ Installs a package given by a name, a URL, or a file path.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Packager.1.install",
+    "method": "Packager.install",
     "params": {
         "package": "wpeframework-plugin-netflix",
         "version": "1.0",
@@ -107,6 +111,10 @@ Installs a package given by a name, a URL, or a file path.
 ## *synchronize*
 
 Synchronizes the repository manifest with a repository.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -132,7 +140,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "Packager.1.synchronize"
+    "method": "Packager.synchronize"
 }
 ```
 

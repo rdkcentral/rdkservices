@@ -31,6 +31,7 @@ using namespace WPEFramework;
 #define LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS  60000  //60 seconds
 #define EVENT_LOOP_ITERATION_IN_100MS     100000
 
+
 static rtObjectRef xdialCastObj = NULL;
 RtXcastConnector * RtXcastConnector::_instance = nullptr;
 
@@ -258,7 +259,6 @@ bool RtXcastConnector::initialize()
     rtError err;
     rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
     err = rtRemoteInit(env);
-    
     if(err != RT_OK){
         LOGINFO("Xcastservice: rtRemoteInit failed : Reason %s", rtStrError(err));
     }
@@ -334,53 +334,6 @@ void RtXcastConnector::updateFriendlyName(string friendlyname)
         LOGINFO(" xdialCastObj is NULL ");
 }
 
-void RtXcastConnector::clearAppLaunchParamList (){
-   for (RegAppLaunchParams regAppLaunchParam : m_appLaunchParamList) {
-       if (NULL != regAppLaunchParam.appName) {
-           free (regAppLaunchParam.appName);
-           regAppLaunchParam.appName = NULL;
-       }
-       if (NULL != regAppLaunchParam.query) {
-           free (regAppLaunchParam.query);
-           regAppLaunchParam.query = NULL;
-       }
-       if (NULL != regAppLaunchParam.payload) {
-           free (regAppLaunchParam.payload);
-           regAppLaunchParam.payload = NULL;
-       }
-    }
-    m_appLaunchParamList.clear();
-}
-
-bool RtXcastConnector::getEntryFromAppLaunchParamList (const char* appName, RegAppLaunchParams* reqParam){
-    bool isEntryFound = false;
-    for (RegAppLaunchParams regAppLaunchParam : m_appLaunchParamList) {
-        if (0 == strcmp (regAppLaunchParam.appName, appName)) {
-            isEntryFound = true;
-            int iNameLen = strlen (regAppLaunchParam.appName);
-            reqParam->appName = (char*) malloc (iNameLen+1);
-            memset (reqParam->appName, '\0', iNameLen+1);
-            strcpy (reqParam->appName, regAppLaunchParam.appName);
-
-            if (regAppLaunchParam.query) {
-                int iQueryLen = strlen (regAppLaunchParam.query);
-                reqParam->query = (char*) malloc (iQueryLen+1);
-                memset (reqParam->query, '\0', iQueryLen+1);
-                strcpy (reqParam->query, regAppLaunchParam.query);
-            }
-
-            if (regAppLaunchParam.payload) {
-                int iPayLoad = strlen (regAppLaunchParam.payload);
-                reqParam->payload = (char*) malloc (iPayLoad+1);
-                memset (reqParam->payload, '\0', iPayLoad+1);
-                strcpy (reqParam->payload, regAppLaunchParam.payload);
-            }
-            break;
-        }
-    }
-    return isEntryFound;
-}
-
 string RtXcastConnector::getProtocolVersion(void)
 {
     LOGINFO("XcastService::getProtocolVersion ");
@@ -398,199 +351,46 @@ string RtXcastConnector::getProtocolVersion(void)
     return strVersion.cString();
 }
 
-void RtXcastConnector::registerApplications(string strApps)
+void RtXcastConnector::registerApplications(std::vector<DynamicAppConfig*>& appConfigList)
 {
     LOGINFO("XcastService::registerApplications");
 
-    cJSON *itrApp = NULL;
+    rtArrayObject *appReqList = new rtArrayObject;
+    for (DynamicAppConfig* pDynamicAppConfig : appConfigList) {
+        //populate the rtParam here
+        rtObjectRef appReq = new rtMapObject;
 
-    cJSON *jNames = NULL;
-    cJSON *itrName = NULL;
+        rtArrayObject *appNameList = new rtArrayObject;
+        appNameList->pushBack (pDynamicAppConfig->appName);
+        appReq.set ("Names", rtValue(appNameList));
 
-    cJSON *jPrefixes = NULL;
-    cJSON *itrPrefix = NULL;
-
-    cJSON *jCors = NULL;
-    cJSON *itrCor = NULL;
-
-    cJSON *jProperties = NULL;
-    cJSON *jAllowStop = NULL;
-
-    cJSON *jLaunchParam = NULL;
-    cJSON *jQuery = NULL;
-    cJSON *jPayload = NULL;
-    if (!strApps.empty()) {
-        cJSON *applications = cJSON_Parse(strApps.c_str());
-        if (!cJSON_IsArray(applications)) {
-            LOGINFO ("applications array passed: %s", strApps.c_str());
-            LOGINFO ("\nInvalid applications array exititng\n");
-            cJSON_Delete(applications);
-            return;
+        if ('\0' != pDynamicAppConfig->prefixes[0]) {
+            rtArrayObject *appPrefixes = new rtArrayObject;
+            appPrefixes->pushBack (pDynamicAppConfig->prefixes);
+            appReq.set ("prefixes", rtValue(appPrefixes));
         }
 
-        /* iterate over ints */
-        LOGINFO("Applications:\n");
-        int iIndex = 0;
-        rtArrayObject *appReqList = new rtArrayObject;
-
-        /*Clear all existing launch param*/
-        clearAppLaunchParamList ();
-
-        cJSON_ArrayForEach(itrApp, applications) {
-            LOGINFO("Application: %d \n", iIndex);
-            if (!cJSON_IsObject(itrApp)) {
-                LOGINFO ("\nInvalid appliaction format at index. Skipping%d\n", iIndex);
-                continue;
-            }
-            rtObjectRef appReq = new rtMapObject;
-            jNames = cJSON_GetObjectItem(itrApp, "names");
-            if (!cJSON_IsArray(jNames)) {
-                LOGINFO ("\nInvalid names format at application index %d. Skipping the application\n", iIndex);
-                continue;
-            }
-            else {
-                rtArrayObject *appNameList = new rtArrayObject;
-                cJSON_ArrayForEach(itrName, jNames) {
-                    if (!cJSON_IsString(itrName)) {
-                        LOGINFO ("\nInvalid name format at application index. Skipping%d\n", iIndex);
-                        continue;
-                    }
-                    LOGINFO("%s, ", itrName->valuestring);
-                    appNameList->pushBack (itrName->valuestring);
-                }
-                appReq.set ("Names", rtValue(appNameList));
-                LOGINFO("\n");
-            }
-
-            jPrefixes = cJSON_GetObjectItem(itrApp, "prefixes");
-            if (!cJSON_IsArray(jPrefixes)) {
-                LOGINFO ("\nInvalid prefixes format at application index %d\n", iIndex);
-            }
-            else {
-                rtArrayObject *appPrefixes = new rtArrayObject;
-                cJSON_ArrayForEach(itrPrefix, jPrefixes) {
-                    if (!cJSON_IsString(itrPrefix)) {
-                        LOGINFO ("\nInvalid prefix format at application index. Skipping%d\n", iIndex);
-                        continue;
-                    }
-                    LOGINFO("%s, ", itrPrefix->valuestring);
-                    appPrefixes->pushBack (itrPrefix->valuestring);
-                }
-                appReq.set ("prefixes", rtValue(appPrefixes));
-                LOGINFO("\n");
-            }
-
-            jCors = cJSON_GetObjectItem(itrApp, "cors");
-            if (!cJSON_IsArray(jCors)) {
-                LOGINFO ("\nInvalid cors format at application index %d. Skipping the application\n", iIndex);
-                continue;
-            }
-            else {
-                rtArrayObject *appCors = new rtArrayObject;
-                cJSON_ArrayForEach(itrCor, jCors) {
-                    if (!cJSON_IsString(itrCor)) {
-                        LOGINFO ("\nInvalid cor format at application index. Skipping%d\n", iIndex);
-                        continue;
-                    }
-                    LOGINFO("%s, ", itrCor->valuestring);
-                    appCors->pushBack (itrCor->valuestring);
-                }
-                appReq.set ("cors", rtValue(appCors));
-                LOGINFO("\n");
-            }
-
-            jProperties = cJSON_GetObjectItem(itrApp, "properties");
-            if (!cJSON_IsObject(jProperties)) {
-                LOGINFO ("\nInvalid property format at application index %d\n", iIndex);
-            }
-            else {
-                rtObjectRef appProp = new rtMapObject;
-                jAllowStop = cJSON_GetObjectItem(jProperties, "allowStop");
-                if (!cJSON_IsBool(jAllowStop)) {
-                    LOGINFO ("\nInvalid allowStop format at application index %d\n", iIndex);
-                }
-                else {
-                    LOGINFO("allowStop: %d", jAllowStop->valueint);
-                    appProp.set("allowStop",jAllowStop->valueint);
-                    LOGINFO("\n");
-                }
-                appReq.set ("properties", rtValue(appProp));
-            }
-
-            jLaunchParam = cJSON_GetObjectItem(itrApp, "launchParameters");
-            if (!cJSON_IsObject(jLaunchParam)) {
-                LOGINFO ("\nInvalid Launch param format at application index %d\n", iIndex);
-            }
-            else {
-                jQuery = cJSON_GetObjectItem(jLaunchParam, "query");
-                if (!cJSON_IsString(jQuery)) {
-                    LOGINFO ("\nInvalid query format at application index %d\n", iIndex);
-                }
-                else {
-                    LOGINFO("query: %s, ", jQuery->valuestring);
-                }
-                jPayload = cJSON_GetObjectItem(jLaunchParam, "payload");
-                if (!cJSON_IsString(jPayload)) {
-                    LOGINFO ("\nInvalid payload format at application index %d\n", iIndex);
-                }
-                else {
-                    LOGINFO("payload: %s", jPayload->valuestring);
-                    LOGINFO("\n");
-                }
-                //Set launchParameters in list for later usage
-                rtObjectRef appNames;
-                int err = appReq.get ("Names", appNames);
-                if(err == RT_OK) {
-                    for(int i = 0 ; i< 25; i ++) {
-                        rtString appName;
-                        err = appNames.get(i,appName);
-                        if(err == RT_OK) {
-                            RegAppLaunchParams reqAppLaunchParams;
-
-                            int iNameLen = strlen (appName.cString());
-                            reqAppLaunchParams.appName = (char*) malloc (iNameLen+1);
-                            memset (reqAppLaunchParams.appName, '\0', iNameLen+1);
-                            strcpy (reqAppLaunchParams.appName, appName.cString());
-                            LOGINFO("reqAppLaunchParams.appName:%s iNameLen:%d appName:%s", reqAppLaunchParams.appName, iNameLen, appName.cString());
-
-                            if (cJSON_IsString(jQuery)) {
-                                int iQueryLen = strlen (jQuery->valuestring);
-                                reqAppLaunchParams.query = (char*) malloc (iQueryLen+1);
-                                memset (reqAppLaunchParams.query, '\0', iQueryLen+1);
-                                strcpy (reqAppLaunchParams.query, jQuery->valuestring);
-                                LOGINFO("reqAppLaunchParams.query:%s iQueryLen:%d jQuery:%s", reqAppLaunchParams.query, iQueryLen, jQuery->valuestring);
-                            }
-
-                            if (cJSON_IsString(jPayload)) {
-                                int iPayLoadLen = strlen (jPayload->valuestring);
-                                reqAppLaunchParams.payload = (char*) malloc (iPayLoadLen+1);
-                                memset (reqAppLaunchParams.payload, '\0', iPayLoadLen+1);
-                                strcpy (reqAppLaunchParams.payload, jPayload->valuestring);
-                                LOGINFO("reqAppLaunchParams.payload:%s iPayLoadLen:%d jPayload:%s", reqAppLaunchParams.payload, iPayLoadLen, jPayload->valuestring);
-                            }
-                            m_appLaunchParamList.push_back (reqAppLaunchParams);
-                        }
-                    }
-                }
-            }
-            iIndex++;
-            appReqList->pushBack(rtValue(appReq));
+        if ('\0' != pDynamicAppConfig->cors[0]) {
+            rtArrayObject *appCors = new rtArrayObject;
+            appCors->pushBack (pDynamicAppConfig->cors);
+            appReq.set ("cors", rtValue(appCors));
         }
-        LOGINFO("\n");
 
-        cJSON_Delete(applications);
+        rtObjectRef appProp = new rtMapObject;
+        appProp.set("allowStop",pDynamicAppConfig->allowStop);
+        appReq.set ("properties", rtValue(appProp));
 
-        if(xdialCastObj != NULL)
-        {
-	        LOGINFO("%s:%d xdialCastObj Not NULL strApps:%s", __FUNCTION__, __LINE__, strApps.c_str());
-            int ret = xdialCastObj.send("onRegisterApplications", appReqList);
-            LOGINFO("XcastService send onRegisterApplications ret:%d",ret);
-        }
-        else
-            LOGINFO(" xdialCastObj is NULL ");
+        appReqList->pushBack(rtValue(appReq));
     }
-}
 
+    if(xdialCastObj != NULL)
+    {
+        int ret = xdialCastObj.send("onRegisterApplications", appReqList);
+        LOGINFO("XcastService send onRegisterApplications ret:%d",ret);
+    }
+    else
+        LOGINFO(" xdialCastObj is NULL ");
+}
 
 RtXcastConnector * RtXcastConnector::getInstance()
 {
@@ -625,8 +425,8 @@ bool RtXcastConnector::IsDynamicAppListEnabled()
 bool RtXcastConnector::IsAppEnabled(char* strAppName)
 {
     bool ret = false;
-    char* strfound = NULL;
 #ifdef RFC_ENABLED
+    char* strfound = NULL;
     RFC_ParamData_t param;
     WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("Xcast"), "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.AppList", &param);
     if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)

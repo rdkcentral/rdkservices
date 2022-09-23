@@ -59,10 +59,10 @@ HdmiCec interface methods:
 ## *getActiveSourceStatus*
 
 Gets the active source status of the device.
-  
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -86,7 +86,7 @@ Gets the active source status of the device.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec.1.getActiveSourceStatus",
+    "method": "org.rdk.HdmiCec.getActiveSourceStatus",
     "params": {
         "status": true
     }
@@ -109,10 +109,10 @@ Gets the active source status of the device.
 ## *getCECAddresses*
 
 Returns the HDMI-CEC addresses that are assigned to the local device.
-  
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -138,7 +138,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec.1.getCECAddresses"
+    "method": "org.rdk.HdmiCec.getCECAddresses"
 }
 ```
 
@@ -165,10 +165,10 @@ This method takes no parameters.
 ## *getDeviceList*
 
 Gets the list of number of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.
-  
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -195,7 +195,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec.1.getDeviceList"
+    "method": "org.rdk.HdmiCec.getDeviceList"
 }
 ```
 
@@ -223,10 +223,10 @@ This method takes no parameters.
 ## *getEnabled*
 
 Returns whether HDMI-CEC is enabled.
-  
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -248,7 +248,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec.1.getEnabled"
+    "method": "org.rdk.HdmiCec.getEnabled"
 }
 ```
 
@@ -269,14 +269,12 @@ This method takes no parameters.
 ## *sendMessage*
 
 Writes HDMI-CEC frame to the driver.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onMessage`|Triggered when a message is sent from an HDMI device|.
 
-Also see: [onMessage](#onMessage)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onMessage](#onMessage) | Triggered when a message is sent from an HDMI device |
 ### Parameters
 
 | Name | Type | Description |
@@ -299,7 +297,7 @@ Also see: [onMessage](#onMessage)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec.1.sendMessage",
+    "method": "org.rdk.HdmiCec.sendMessage",
     "params": {
         "message": "1234567890"
     }
@@ -322,10 +320,10 @@ Also see: [onMessage](#onMessage)
 ## *setEnabled*
 
 Enables or disables HDMI-CEC driver.
-  
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -349,7 +347,7 @@ Enables or disables HDMI-CEC driver.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec.1.setEnabled",
+    "method": "org.rdk.HdmiCec.setEnabled",
     "params": {
         "enabled": false
     }
@@ -406,7 +404,7 @@ Triggered when the address of the host CEC device has changed.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.cecAddressesChanged",
+    "method": "client.events.cecAddressesChanged",
     "params": {
         "CECAddresses": {
             "physicalAddress": [
@@ -434,7 +432,7 @@ Triggered when device active source status changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onActiveSourceStatusUpdated",
+    "method": "client.events.onActiveSourceStatusUpdated",
     "params": {
         "status": true
     }
@@ -458,7 +456,7 @@ Triggered when an HDMI cable is physically connected to the HDMI port on a TV, o
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceAdded",
+    "method": "client.events.onDeviceAdded",
     "params": {
         "logicalAddress": 0
     }
@@ -482,7 +480,7 @@ Triggered when device information changes (vendorID, osdName).
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceInfoUpdated",
+    "method": "client.events.onDeviceInfoUpdated",
     "params": {
         "logicalAddress": 0
     }
@@ -506,7 +504,7 @@ Triggered when HDMI cable is physically removed from the HDMI port on a TV or th
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceRemoved",
+    "method": "client.events.onDeviceRemoved",
     "params": {
         "logicalAddress": 0
     }
@@ -530,7 +528,7 @@ Triggered when a message is sent from an HDMI device.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onMessage",
+    "method": "client.events.onMessage",
     "params": {
         "message": "1234567890"
     }

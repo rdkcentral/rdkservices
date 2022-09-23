@@ -65,15 +65,13 @@ TextToSpeech interface methods:
 <a name="cancel"></a>
 ## *cancel*
 
-Cancels the speech. Triggers the `onspeechinterrupted`   
- 
-### Events  
-| Event | Description | 
-| :----------- | :-----------| 
-|`onspeechinterrupted` | Triggered when ongoing speech is cancelled. Event is not triggered: if TTS is not enabled; if ongoing Speech is completed |.
+Cancels the speech. Triggers the `onspeechinterrupted` 
 
-Also see: [onspeechinterrupted](#onspeechinterrupted)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onspeechinterrupted](#onspeechinterrupted) | Triggered when ongoing speech is cancelled. Event is not triggered: if TTS is not enabled; if ongoing Speech is completed |
 ### Parameters
 
 | Name | Type | Description |
@@ -97,7 +95,7 @@ Also see: [onspeechinterrupted](#onspeechinterrupted)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.cancel",
+    "method": "org.rdk.TextToSpeech.cancel",
     "params": {
         "speechid": 1
     }
@@ -120,16 +118,14 @@ Also see: [onspeechinterrupted](#onspeechinterrupted)
 <a name="enabletts"></a>
 ## *enabletts*
 
-(For Resident App) Enables or disables the TTS conversion processing. Triggered `onttsstatechanged` event when state changes and `onspeechinterrupted` event when disabling TTS while speech is in-progress. 
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-| `onttsstatechanged` | `state` : `true` Triggered when TTS is enabled; `state` : `false` Triggered when TTS is disabled; otherwise `No event` When TTS enable or disable is in-progress | 
-| `onspeechinterrupted` | Triggered when disabling TTS while speech is in-progress.
+(For Resident App) Enables or disables the TTS conversion processing. Triggered `onttsstatechanged` event when state changes and `onspeechinterrupted` event when disabling TTS while speech is in-progress.
 
-Also see: [onttsstatechanged](#onttsstatechanged), [onspeechinterrupted](#onspeechinterrupted)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onttsstatechanged](#onttsstatechanged) | state : true Triggered when TTS is enabled; state : false Triggered when TTS is disabled; otherwise No event When TTS enable or disable is in-progress |
+| [onspeechinterrupted](#onspeechinterrupted) | Triggered when disabling TTS while speech is in-progress. |
 ### Parameters
 
 | Name | Type | Description |
@@ -153,7 +149,7 @@ Also see: [onttsstatechanged](#onttsstatechanged), [onspeechinterrupted](#onspee
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.enabletts",
+    "method": "org.rdk.TextToSpeech.enabletts",
     "params": {
         "enabletts": true
     }
@@ -177,10 +173,10 @@ Also see: [onttsstatechanged](#onttsstatechanged), [onspeechinterrupted](#onspee
 ## *getapiversion*
 
 Gets the API Version.
- 
-### Events 
 
-No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -202,7 +198,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.getapiversion"
+    "method": "org.rdk.TextToSpeech.getapiversion"
 }
 ```
 
@@ -223,10 +219,10 @@ This method takes no parameters.
 ## *getspeechstate*
 
 Returns the current state of the speech request.
-  
-### Events 
 
-No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -252,7 +248,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.getspeechstate",
+    "method": "org.rdk.TextToSpeech.getspeechstate",
     "params": {
         "speechid": 1
     }
@@ -277,10 +273,10 @@ No Events.
 ## *getttsconfiguration*
 
 Gets the current TTS configuration.
-  
-### Events 
- 
-No Events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -308,7 +304,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.getttsconfiguration"
+    "method": "org.rdk.TextToSpeech.getttsconfiguration"
 }
 ```
 
@@ -335,10 +331,10 @@ This method takes no parameters.
 ## *isspeaking*
 
 Checks if speech is in progress.
-  
-### Event 
 
-No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -364,7 +360,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.isspeaking",
+    "method": "org.rdk.TextToSpeech.isspeaking",
     "params": {
         "speechid": 1
     }
@@ -389,10 +385,10 @@ No Events.
 ## *isttsenabled*
 
 Returns whether the TTS engine is enabled or disabled. By default the TTS engine is disabled.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -415,7 +411,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.isttsenabled"
+    "method": "org.rdk.TextToSpeech.isttsenabled"
 }
 ```
 
@@ -436,11 +432,11 @@ This method takes no parameters.
 <a name="listvoices"></a>
 ## *listvoices*
 
-Lists the available voices for the specified language. For every language there is a set of pre-defined voices.  
-  
-### Events 
+Lists the available voices for the specified language. For every language there is a set of pre-defined voices.
 
-No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -466,7 +462,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.listvoices",
+    "method": "org.rdk.TextToSpeech.listvoices",
     "params": {
         "language": "en-US"
     }
@@ -490,15 +486,13 @@ No Events.
 <a name="pause"></a>
 ## *pause*
 
-Pauses the speech. Triggers the `onspeechpause`   
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-|  `onspeechpause` | Triggered when ongoing speech is paused. Event not triggered on following conditions: TTS is not enabled; Speech is already in pause; or Speech is completed | .
+Pauses the speech. Triggers the `onspeechpause` 
 
-Also see: [onspeechpause](#onspeechpause)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onspeechpause](#onspeechpause) | Triggered when ongoing speech is paused. Event not triggered on following conditions: TTS is not enabled; Speech is already in pause; or Speech is completed |
 ### Parameters
 
 | Name | Type | Description |
@@ -522,7 +516,7 @@ Also see: [onspeechpause](#onspeechpause)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.pause",
+    "method": "org.rdk.TextToSpeech.pause",
     "params": {
         "speechid": 1
     }
@@ -545,15 +539,13 @@ Also see: [onspeechpause](#onspeechpause)
 <a name="resume"></a>
 ## *resume*
 
-Resumes the speech. Triggers the `onspeechresume`  
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-| `onspeechresume` | Triggered when speech is resumed and speech output is available. Event not triggered under following conditions: TTS is not enabled; Speech is resumed already; or Speech is completed |.
+Resumes the speech. Triggers the `onspeechresume` 
 
-Also see: [onspeechresume](#onspeechresume)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onspeechresume](#onspeechresume) | Triggered when speech is resumed and speech output is available. Event not triggered under following conditions: TTS is not enabled; Speech is resumed already; or Speech is completed |
 ### Parameters
 
 | Name | Type | Description |
@@ -577,7 +569,7 @@ Also see: [onspeechresume](#onspeechresume)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.resume",
+    "method": "org.rdk.TextToSpeech.resume",
     "params": {
         "speechid": 1
     }
@@ -601,14 +593,12 @@ Also see: [onspeechresume](#onspeechresume)
 ## *setttsconfiguration*
 
 Sets the TTS configuration. Triggers the `onvoicechanged` 
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-|`onvoicechanged`|Triggered only when the voice configuration is changed| .
 
-Also see: [onvoicechanged](#onvoicechanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onvoicechanged](#onvoicechanged) | Triggered only when the voice configuration is changed |
 ### Parameters
 
 | Name | Type | Description |
@@ -643,7 +633,7 @@ Also see: [onvoicechanged](#onvoicechanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.setttsconfiguration",
+    "method": "org.rdk.TextToSpeech.setttsconfiguration",
     "params": {
         "ttsendpoint": "http://url_for_the_text_to_speech_processing_unit",
         "ttsendpointsecured": "https://url_for_the_text_to_speech_processing_unit",
@@ -679,20 +669,18 @@ Also see: [onvoicechanged](#onvoicechanged)
 <a name="speak"></a>
 ## *speak*
 
-Converts the input text to speech when TTS is enabled. Any ongoing speech is interrupted and the newly requested speech is processed. The clients of the previous speech is sent an `onspeechinterrupted`  Upon success, this API returns an ID, which is used as input to other API methods for controlling the speech (for example, `pause`, `resume`, and `cancel`)
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onwillspeak` | Triggered when speech conversion is about to start | 
-| `onspeechstart` | Triggered when conversion of text to speech is started | 
-| `onspeechcomplete `| Triggered when conversion from text to speech is completed | 
-| `onspeechinterrupted`| Current speech is interrupted either by a next speech request; by calling the `cancel` method; or by disabling TTS, when speech is in-progress | 
-| `onnetworkerror` | Triggered when failed to fetch audio from the endpoint |  
-| `onplaybackerror` | Triggered when an error occurs during playback including pipeline failures; Triggered when `speak` is called during TTS disabled |.
+Converts the input text to speech when TTS is enabled. Any ongoing speech is interrupted and the newly requested speech is processed. The clients of the previous speech is sent an `onspeechinterrupted`  Upon success, this API returns an ID, which is used as input to other API methods for controlling the speech (for example, `pause`, `resume`, and `cancel`).
 
-Also see: [onwillspeak](#onwillspeak), [onspeechstart](#onspeechstart), [onspeechinterrupted](#onspeechinterrupted), [onspeechcomplete](#onspeechcomplete), [onnetworkerror](#onnetworkerror), [onplaybackerror](#onplaybackerror)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onwillspeak](#onwillspeak) | Triggered when speech conversion is about to start |
+| [onspeechstart](#onspeechstart) | Triggered when conversion of text to speech is started |
+| [onspeechinterrupted](#onspeechinterrupted) | Current speech is interrupted either by a next speech request; by calling the cancel method; or by disabling TTS, when speech is in-progress |
+| [onspeechcomplete](#onspeechcomplete) | Triggered when conversion from text to speech is completed |
+| [onnetworkerror](#onnetworkerror) | Triggered when failed to fetch audio from the endpoint |
+| [onplaybackerror](#onplaybackerror) | Triggered when an error occurs during playback including pipeline failures; Triggered when speak is called during TTS disabled |
 ### Parameters
 
 | Name | Type | Description |
@@ -718,7 +706,7 @@ Also see: [onwillspeak](#onwillspeak), [onspeechstart](#onspeechstart), [onspeec
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.speak",
+    "method": "org.rdk.TextToSpeech.speak",
     "params": {
         "text": "speech_1",
         "callsign": "WebApp"
@@ -744,10 +732,10 @@ Also see: [onwillspeak](#onwillspeak), [onspeechstart](#onspeechstart), [onspeec
 ## *setACL*
 
 Configures app to speak. Allows the ResidentAPP to configure the particular app and provides access to `speak`  If not configured any then gives access to all apps to speak. Configuration does not retained after reboot.
-  
-### Events 
 
-No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -774,7 +762,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.TextToSpeech.1.setACL",
+    "method": "org.rdk.TextToSpeech.setACL",
     "params": {
         "accesslist": [
             {
@@ -838,7 +826,7 @@ Triggered when a network error occurs while fetching the audio from the endpoint
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onnetworkerror",
+    "method": "client.events.onnetworkerror",
     "params": {
         "speechid": 1
     }
@@ -862,7 +850,7 @@ Triggered when an error occurs during playback including pipeline failures.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onplaybackerror",
+    "method": "client.events.onplaybackerror",
     "params": {
         "speechid": 1
     }
@@ -887,7 +875,7 @@ Triggered when the speech completes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onspeechcomplete",
+    "method": "client.events.onspeechcomplete",
     "params": {
         "speechid": 1,
         "text": "speech_1"
@@ -912,7 +900,7 @@ Triggered when the current speech is interrupted either by a next speech request
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onspeechinterrupted",
+    "method": "client.events.onspeechinterrupted",
     "params": {
         "speechid": 1
     }
@@ -936,7 +924,7 @@ Triggered when the ongoing speech pauses.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onspeechpause",
+    "method": "client.events.onspeechpause",
     "params": {
         "speechid": 1
     }
@@ -960,7 +948,7 @@ Triggered when any paused speech resumes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onspeechresume",
+    "method": "client.events.onspeechresume",
     "params": {
         "speechid": 1
     }
@@ -985,7 +973,7 @@ Triggered when the speech start.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onspeechstart",
+    "method": "client.events.onspeechstart",
     "params": {
         "speechid": 1,
         "text": "speech_1"
@@ -1010,7 +998,7 @@ Triggered when TTS is enabled or disabled.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onttsstatechanged",
+    "method": "client.events.onttsstatechanged",
     "params": {
         "state": true
     }
@@ -1034,7 +1022,7 @@ Triggered when the configured voice changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onvoicechanged",
+    "method": "client.events.onvoicechanged",
     "params": {
         "voice": "carol"
     }
@@ -1059,7 +1047,7 @@ Triggered when the text to speech conversion is about to start. It provides the 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onwillspeak",
+    "method": "client.events.onwillspeak",
     "params": {
         "speechid": 1,
         "text": "speech_1"

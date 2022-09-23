@@ -54,11 +54,11 @@ LoggingPreferences interface methods:
 <a name="isKeystrokeMaskEnabled"></a>
 ## *isKeystrokeMaskEnabled*
 
-Gets logging keystroke mask status (enabled or disabled). 
- 
-### Events 
+Gets logging keystroke mask status (enabled or disabled).
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -80,7 +80,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.LoggingPreferences.1.isKeystrokeMaskEnabled"
+    "method": "org.rdk.LoggingPreferences.isKeystrokeMaskEnabled"
 }
 ```
 
@@ -101,14 +101,12 @@ This method takes no parameters.
 ## *setKeystrokeMaskEnabled*
 
 Sets the keystroke logging mask  If a keystroke mask is successfully changed, then this method triggers an `onKeystrokeMaskEnabledChange` 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onKeystrokeMaskEnabledChange`| Triggered if the keystroke mask is changed successfully |.
 
-Also see: [onKeystrokeMaskEnabledChange](#onKeystrokeMaskEnabledChange)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onKeystrokeMaskEnabledChange](#onKeystrokeMaskEnabledChange) | Triggered if the keystroke mask is changed successfully |
 ### Parameters
 
 | Name | Type | Description |
@@ -131,7 +129,7 @@ Also see: [onKeystrokeMaskEnabledChange](#onKeystrokeMaskEnabledChange)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.LoggingPreferences.1.setKeystrokeMaskEnabled",
+    "method": "org.rdk.LoggingPreferences.setKeystrokeMaskEnabled",
     "params": {
         "keystrokeMaskEnabled": false
     }
@@ -181,7 +179,7 @@ Triggered when the keystroke mask is changed.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onKeystrokeMaskEnabledChange",
+    "method": "client.events.onKeystrokeMaskEnabledChange",
     "params": {
         "keystrokeMaskEnabled": false
     }

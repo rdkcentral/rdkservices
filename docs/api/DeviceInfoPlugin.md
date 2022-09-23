@@ -60,6 +60,10 @@ DeviceInfo interface methods:
 
 Supported resolutions on the selected video display port.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -89,7 +93,7 @@ Supported resolutions on the selected video display port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.supportedresolutions",
+    "method": "DeviceInfo.supportedresolutions",
     "params": {
         "videoDisplay": "HDMI0"
     }
@@ -114,6 +118,10 @@ Supported resolutions on the selected video display port.
 ## *defaultresolution*
 
 Default resolution on the selected video display port.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -143,7 +151,7 @@ Default resolution on the selected video display port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.defaultresolution",
+    "method": "DeviceInfo.defaultresolution",
     "params": {
         "videoDisplay": "HDMI0"
     }
@@ -166,6 +174,10 @@ Default resolution on the selected video display port.
 ## *supportedhdcp*
 
 Supported HDCP version on the selected video display port.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -195,7 +207,7 @@ Supported HDCP version on the selected video display port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.supportedhdcp",
+    "method": "DeviceInfo.supportedhdcp",
     "params": {
         "videoDisplay": "HDMI0"
     }
@@ -218,6 +230,10 @@ Supported HDCP version on the selected video display port.
 ## *audiocapabilities*
 
 Audio capabilities for the specified audio port.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -248,7 +264,7 @@ Audio capabilities for the specified audio port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.audiocapabilities",
+    "method": "DeviceInfo.audiocapabilities",
     "params": {
         "audioPort": "HDMI0"
     }
@@ -273,6 +289,10 @@ Audio capabilities for the specified audio port.
 ## *ms12capabilities*
 
 MS12 audio capabilities for the specified audio port.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -303,7 +323,7 @@ MS12 audio capabilities for the specified audio port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.ms12capabilities",
+    "method": "DeviceInfo.ms12capabilities",
     "params": {
         "audioPort": "HDMI0"
     }
@@ -328,6 +348,10 @@ MS12 audio capabilities for the specified audio port.
 ## *supportedms12audioprofiles*
 
 Supported MS12 audio profiles for the specified audio port.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -358,7 +382,7 @@ Supported MS12 audio profiles for the specified audio port.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.supportedms12audioprofiles",
+    "method": "DeviceInfo.supportedms12audioprofiles",
     "params": {
         "audioPort": "HDMI0"
     }
@@ -410,6 +434,10 @@ Provides access to the system general information.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -438,7 +466,7 @@ Provides access to the system general information.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.systeminfo"
+    "method": "DeviceInfo.systeminfo"
 }
 ```
 
@@ -475,6 +503,10 @@ Provides access to the network interface addresses.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -494,7 +526,7 @@ Provides access to the network interface addresses.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.addresses"
+    "method": "DeviceInfo.addresses"
 }
 ```
 
@@ -523,6 +555,10 @@ Provides access to the socket information.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -538,7 +574,7 @@ Provides access to the socket information.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.socketinfo"
+    "method": "DeviceInfo.socketinfo"
 }
 ```
 
@@ -560,6 +596,10 @@ Provides access to the socket information.
 Provides access to the versions maintained in version.txt.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -585,7 +625,7 @@ Provides access to the versions maintained in version.txt.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.firmwareversion"
+    "method": "DeviceInfo.firmwareversion"
 }
 ```
 
@@ -611,6 +651,10 @@ Provides access to the serial number set by manufacturer.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -632,7 +676,7 @@ Provides access to the serial number set by manufacturer.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.serialnumber"
+    "method": "DeviceInfo.serialnumber"
 }
 ```
 
@@ -655,6 +699,10 @@ Provides access to the device model number or SKU.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -676,7 +724,7 @@ Provides access to the device model number or SKU.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.modelid"
+    "method": "DeviceInfo.modelid"
 }
 ```
 
@@ -699,6 +747,10 @@ Provides access to the device manufacturer.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -720,7 +772,7 @@ Provides access to the device manufacturer.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.make"
+    "method": "DeviceInfo.make"
 }
 ```
 
@@ -743,6 +795,10 @@ Provides access to the friendly device model name.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -764,7 +820,7 @@ Provides access to the friendly device model name.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.modelname"
+    "method": "DeviceInfo.modelname"
 }
 ```
 
@@ -787,6 +843,10 @@ Provides access to the device type.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -808,7 +868,7 @@ Provides access to the device type.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.devicetype"
+    "method": "DeviceInfo.devicetype"
 }
 ```
 
@@ -831,6 +891,10 @@ Provides access to the partner ID or distributor ID for device.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -852,7 +916,7 @@ Provides access to the partner ID or distributor ID for device.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.distributorid"
+    "method": "DeviceInfo.distributorid"
 }
 ```
 
@@ -874,6 +938,10 @@ Provides access to the partner ID or distributor ID for device.
 Provides access to the audio ports supported on the device (all ports that are physically present).
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -897,7 +965,7 @@ Provides access to the audio ports supported on the device (all ports that are p
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.supportedaudioports"
+    "method": "DeviceInfo.supportedaudioports"
 }
 ```
 
@@ -922,6 +990,10 @@ Provides access to the video ports supported on the device (all ports that are p
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -944,7 +1016,7 @@ Provides access to the video ports supported on the device (all ports that are p
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.supportedvideodisplays"
+    "method": "DeviceInfo.supportedvideodisplays"
 }
 ```
 
@@ -969,6 +1041,10 @@ Provides access to the EDID of the host.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -990,7 +1066,7 @@ Provides access to the EDID of the host.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DeviceInfo.1.hostedid"
+    "method": "DeviceInfo.hostedid"
 }
 ```
 

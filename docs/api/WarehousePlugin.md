@@ -60,11 +60,11 @@ Warehouse interface methods:
 <a name="executeHardwareTest"></a>
 ## *executeHardwareTest*
 
-(Version 2) Starts a hardware test on the device. See `getHardwareTestResults`. 
- 
+(Version 2) Starts a hardware test on the device. See `getHardwareTestResults`.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -85,7 +85,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.executeHardwareTest"
+    "method": "org.rdk.Warehouse.executeHardwareTest"
 }
 ```
 
@@ -104,11 +104,11 @@ This method takes no parameters.
 <a name="getDeviceInfo"></a>
 ## *getDeviceInfo*
 
-Returns STB device information gathered from `/lib/rdk/getDeviceDetails.sh`.(DEPRECATED - Use `getDeviceInfo` from `org.rdk.System` instead.) 
- 
+Returns STB device information gathered from `/lib/rdk/getDeviceDetails.sh`.(DEPRECATED - Use `getDeviceInfo` from `org.rdk.System` instead.).
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -141,7 +141,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.getDeviceInfo"
+    "method": "org.rdk.Warehouse.getDeviceInfo"
 }
 ```
 
@@ -172,11 +172,11 @@ This method takes no parameters.
 <a name="getHardwareTestResults"></a>
 ## *getHardwareTestResults*
 
-(Version 2) Returns the results of the last hardware test. 
- 
+(Version 2) Returns the results of the last hardware test.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -200,7 +200,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.getHardwareTestResults",
+    "method": "org.rdk.Warehouse.getHardwareTestResults",
     "params": {
         "testResults": "Timezone: NA 2021-04-15 10:35:06 Test execution start, remote trigger ver. 0011 2021-04-15 10:35:10 Test result: Audio/Video Decoder:PASSED 2021-04-15 10:35:06 Test result: Dynamic RAM:PASSED 2021-04-15 10:35:06 Test result: Flash Memory:PASSED 2021-04-15 10:35:06 Test result: HDMI Output:PASSED 2021-04-15 10:35:38 Test result: IR Remote Interface:WARNING_IR_Not_Detected 2021-04-15 10:35:06 Test result: Bluetooth:PASSED 2021-04-15 10:35:06 Test result: SD Card:PASSED 2021-04-15 10:35:06 Test result: WAN:PASSED 2021-04-15 10:35:38 Test execution completed:PASSED"
     }
@@ -222,11 +222,11 @@ This method takes no parameters.
 <a name="internalReset"></a>
 ## *internalReset*
 
-Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow.sh -s WarehouseService &`). Note that this method checks the `/version.txt` file for the image name and fails to run if the STB image version is marked as production (`PROD`). 
- 
+Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow.sh -s WarehouseService &`). Note that this method checks the `/version.txt` file for the image name and fails to run if the STB image version is marked as production (`PROD`).
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -251,7 +251,7 @@ Invokes the internal reset script, which reboots the Warehouse service (`/reboot
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.internalReset",
+    "method": "org.rdk.Warehouse.internalReset",
     "params": {
         "passPhrase": "FOR TEST PURPOSES ONLY"
     }
@@ -274,11 +274,11 @@ Invokes the internal reset script, which reboots the Warehouse service (`/reboot
 <a name="isClean"></a>
 ## *isClean*
 
-Checks the locations on the device where customer data may be stored. If there are contents contained in those folders, then the device is not clean. 
- 
+Checks the locations on the device where customer data may be stored. If there are contents contained in those folders, then the device is not clean.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -302,7 +302,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.isClean"
+    "method": "org.rdk.Warehouse.isClean"
 }
 ```
 
@@ -325,11 +325,11 @@ This method takes no parameters.
 <a name="lightReset"></a>
 ## *lightReset*
 
-Resets the application data. 
- 
+Resets the application data.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -351,7 +351,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.lightReset"
+    "method": "org.rdk.Warehouse.lightReset"
 }
 ```
 
@@ -371,15 +371,13 @@ This method takes no parameters.
 <a name="resetDevice"></a>
 ## *resetDevice*
 
-Resets the STB to the warehouse state. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `resetDone` | Triggers when the device reset is finished indicating a successful reset or failure|.
+Resets the STB to the warehouse state.
 
-Also see: [resetDone](#resetDone)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [resetDone](#resetDone) | Triggers when the device reset is finished indicating a successful reset or failure |
 ### Parameters
 
 | Name | Type | Description |
@@ -404,7 +402,7 @@ Also see: [resetDone](#resetDone)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.resetDevice",
+    "method": "org.rdk.Warehouse.resetDevice",
     "params": {
         "suppressReboot": true,
         "resetType": "WAREHOUSE"
@@ -428,11 +426,11 @@ Also see: [resetDone](#resetDone)
 <a name="setFrontPanelState"></a>
 ## *setFrontPanelState*
 
-Sets the state of the front panel LEDs to indicate the download state of the STB software image. 
- 
+Sets the state of the front panel LEDs to indicate the download state of the STB software image.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -457,7 +455,7 @@ Sets the state of the front panel LEDs to indicate the download state of the STB
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.setFrontPanelState",
+    "method": "org.rdk.Warehouse.setFrontPanelState",
     "params": {
         "state": 1
     }
@@ -509,7 +507,7 @@ Notifies subscribers about the status of the warehouse reset operation.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.resetDone",
+    "method": "client.events.resetDone",
     "params": {
         "success": true,
         "error": "..."

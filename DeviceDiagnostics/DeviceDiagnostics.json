@@ -33,7 +33,7 @@
     },
     "methods": {
         "getConfiguration": {
-            "summary": "Gets the values associated with the corresponding property names.\n \n### Events \n \nNo events",
+            "summary": "Gets the values associated with the corresponding property names.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -88,7 +88,7 @@
             }
         },
 	"getMilestones": {
-            "summary": "Returns the list of milestones.\n \n### Events\n \n No Events.",
+            "summary": "Returns the list of milestones.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -111,7 +111,7 @@
             }
         },
         "logMilestone": {
-              "summary": "Log marker string to rdk milestones log.\n \n### Events\n \n No Events.",
+              "summary": "Log marker string to rdk milestones log.",
               "params": {
                   "type":"object",
                   "properties": {
@@ -124,12 +124,12 @@
                       "marker"
                   ]
               },
-              "success": {
-                  "$ref": "#/common/success"
+              "result": {
+                  "$ref": "#/common/result"
               }
          },
         "getAVDecoderStatus":{
-            "summary": "Gets the most active status of audio/video decoder/pipeline. This API doesn't track individual pipelines. It will aggregate and report the pipeline status, and the pipeline states are prioritized from High to Low (`ACTIVE`, `PAUSED`, and `IDLE`). Therefore, if any of the pipelines is in active state, then `getAVDecoderStatus` will return `ACTIVE`. If none of the pipelines are active but one is in a paused state, then `getAVDecoderStatus` will return `PAUSED`, and if all the pipelines are idle only then, `IDLE` will be returned.\n \n### Events \n \nNo events.",
+            "summary": "Gets the most active status of audio/video decoder/pipeline. This API doesn't track individual pipelines. It will aggregate and report the pipeline status, and the pipeline states are prioritized from High to Low (`ACTIVE`, `PAUSED`, and `IDLE`). Therefore, if any of the pipelines is in active state, then `getAVDecoderStatus` will return `ACTIVE`. If none of the pipelines are active but one is in a paused state, then `getAVDecoderStatus` will return `PAUSED`, and if all the pipelines are idle only then, `IDLE` will be returned.",
             "result":{
                 "type":"object",
                 "properties": {

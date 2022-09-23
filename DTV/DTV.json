@@ -1107,7 +1107,7 @@
     },
     "methods": {
         "addLnb": {
-            "summary": "Add a new LNB to the database.\n  \n### Events \n\n No Events",
+            "summary": "Add a new LNB to the database.",
             "params": {
                 "$ref": "#/definitions/lnbsettings"
             },
@@ -1118,7 +1118,7 @@
             }
         },
         "addSatellite": {
-            "summary": "Add a new satellite to the database.\n  \n### Events \n\n No Events",
+            "summary": "Add a new satellite to the database.",
             "params": {
                 "$ref": "#/definitions/satellitesettings"
             },
@@ -1129,7 +1129,7 @@
             }
         },
         "startServiceSearch": {
-            "summary": "Starts a service search.\n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n|`searchstatus`|Triggered during the course of a service search.|\n |`serviceupdated`|Triggered when a service is added|",
+            "summary": "Starts a service search.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -1172,13 +1172,13 @@
                 "summary": "true if the search is started, false otherwise",
                 "example": true
             },
-            "events": [
-                "searchstatus",
-                "serviceupdated"
-            ]
+            "events": {
+                "searchstatus" : " Triggered during the course of a service search.",
+                "serviceupdated" : "Triggered when a service is added"
+            }
         },
         "finishServiceSearch": {
-            "summary": "Finishes a service search.\n  \n### Events \n\n No Events",
+            "summary": "Finishes a service search.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -1204,7 +1204,7 @@
             }
         },
         "startPlaying": {
-            "summary": "Starts playing the specified service.\n  \n### Events\n| Event | Description |\n| :----------- | :----------- |\n|`serviceupdated`|Triggered when info for a service changes|\n|`eventchanged`|Triggered when the EIT 'now' event changes|\n|`videochanged`|Triggered when the video PID or codec are changed|\n|`audiochanged`|Triggered when the audio PID or codec are changed|\n|`subtitleschanged`|Triggered when the subtitle PID or details are changed| ",
+            "summary": "Starts playing the specified service.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -1231,16 +1231,16 @@
                 "type": "number",
                 "example": 0
             },
-            "events": [
-                "serviceupdated",
-                "eventchanged",
-                "videochanged",
-                "audiochanged",
-                "subtitleschanged"
-            ]
+            "events": {
+                "serviceupdated" : "Triggered when info for a service changes",
+                "eventchanged" : "Triggered when the EIT ‘now’ event changes",
+                "videochanged" : "Triggered when the video PID or codec are changed",
+                "audiochanged" : "Triggered when the audio PID or codec are changed",
+                "subtitleschanged" : "Triggered when the subtitle PID or details are changed"
+            }
         },
         "stopPlaying": {
-            "summary": "Stops playing the specified service.\n  \n### Events \n\n No Events",
+            "summary": "Stops playing the specified service.",
             "params": {
                 "summary": "The play handle returned by startPlaying",
                 "type": "number",

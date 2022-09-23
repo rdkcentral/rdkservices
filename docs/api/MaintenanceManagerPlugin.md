@@ -64,11 +64,11 @@ Gets the maintenance activity status details.
 * `MAINTENANCE_STARTED` - Maintenance has started either by schedule or on boot  
 * `MAINTENANCE_ERROR` - One or more tasks of the maintenance service has failed  
 * `MAINTENANCE_COMPLETE` - All critical maintenance tasks are completed successfully  
-* `MAINTENANCE_INCOMPLETE` - Maintenance service didn't execute one or more of the tasks. 
- 
+* `MAINTENANCE_INCOMPLETE` - Maintenance service didn't execute one or more of the tasks.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -93,7 +93,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.getMaintenanceActivityStatus"
+    "method": "org.rdk.MaintenanceManager.getMaintenanceActivityStatus"
 }
 ```
 
@@ -116,11 +116,11 @@ This method takes no parameters.
 <a name="getMaintenanceStartTime"></a>
 ## *getMaintenanceStartTime*
 
-Gets the scheduled maintenance start time. 
- 
+Gets the scheduled maintenance start time.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -142,7 +142,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.getMaintenanceStartTime"
+    "method": "org.rdk.MaintenanceManager.getMaintenanceStartTime"
 }
 ```
 
@@ -167,11 +167,11 @@ Sets the maintenance mode and software upgrade opt-out mode.
 * `NONE` - The software upgrade process is unaffected and proceeds with the download and update.  
 * `ENFORCE_OPTPOUT` - The software upgrade process pauses after discovering an update is available and sends a `System` service `onFirmwareUpdateStateChange` event with the `On Hold for opt-out` state. An application must give the user the option of whether or not to accept the update. If the user accepts the update, then the opt-out mode must be set to `BYPASS-OPTOUT`.  
 * `BYPASS_OPTOUT` The software upgrade process proceeds with a download and update, as directed by the application, for this occurrence of the maintenance window (used when the user accepts the software update).  
-* `IGNORE-UPDATE` -  The software upgrade process ignores any non-mandatory firmware updates, and will NOT send any notification. Note that in this mode, the software upgrade process still sets `ENFORCE-OPTOUT` if the update is mandatory. Use the `getFirmwareUpdateInfo` method from the `System` service to determine what software version is available for download and to determine if the update is consider mandatory (using the `rebootImmediately` parameter). 
- 
+* `IGNORE-UPDATE` -  The software upgrade process ignores any non-mandatory firmware updates, and will NOT send any notification. Note that in this mode, the software upgrade process still sets `ENFORCE-OPTOUT` if the update is mandatory. Use the `getFirmwareUpdateInfo` method from the `System` service to determine what software version is available for download and to determine if the update is consider mandatory (using the `rebootImmediately` parameter).
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -196,7 +196,7 @@ Sets the maintenance mode and software upgrade opt-out mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.setMaintenanceMode",
+    "method": "org.rdk.MaintenanceManager.setMaintenanceMode",
     "params": {
         "maintenanceMode": "BACKGROUND",
         "optOut": "ENFORCE_OPTOUT"
@@ -219,15 +219,13 @@ Sets the maintenance mode and software upgrade opt-out mode.
 <a name="startMaintenance"></a>
 ## *startMaintenance*
 
-Starts maintenance activities. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onMaintenanceStatusChange` | Triggers whenever the maintenance status changes |.
+Starts maintenance activities.
 
-Also see: [onMaintenanceStatusChange](#onMaintenanceStatusChange)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onMaintenanceStatusChange](#onMaintenanceStatusChange) | Triggers whenever the maintenance status changes |
 ### Parameters
 
 This method takes no parameters.
@@ -247,7 +245,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.startMaintenance"
+    "method": "org.rdk.MaintenanceManager.startMaintenance"
 }
 ```
 
@@ -266,15 +264,13 @@ This method takes no parameters.
 <a name="stopMaintenance"></a>
 ## *stopMaintenance*
 
-Stops maintenance activities. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onMaintenanceStatusChange` | Triggers whenever the maintenance status changes |.
+Stops maintenance activities.
 
-Also see: [onMaintenanceStatusChange](#onMaintenanceStatusChange)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onMaintenanceStatusChange](#onMaintenanceStatusChange) | Triggers whenever the maintenance status changes |
 ### Parameters
 
 This method takes no parameters.
@@ -294,7 +290,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.stopMaintenance"
+    "method": "org.rdk.MaintenanceManager.stopMaintenance"
 }
 ```
 
@@ -313,11 +309,11 @@ This method takes no parameters.
 <a name="getMaintenanceMode"></a>
 ## *getMaintenanceMode*
 
-Gets the current maintenance mode and software upgrade opt-out mode which are stored in the persistent location. 
- 
+Gets the current maintenance mode and software upgrade opt-out mode which are stored in the persistent location.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -340,7 +336,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.getMaintenanceMode"
+    "method": "org.rdk.MaintenanceManager.getMaintenanceMode"
 }
 ```
 
@@ -389,7 +385,7 @@ Triggered when the maintenance manager status changes. See `getMaintenanceActivi
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onMaintenanceStatusChange",
+    "method": "client.events.onMaintenanceStatusChange",
     "params": {
         "maintenanceStatus": "MAINTENANCE_STARTED"
     }

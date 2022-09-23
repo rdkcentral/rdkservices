@@ -57,15 +57,13 @@ ActivityMonitor interface methods:
 ## *enableMonitoring*
 
 Enables monitoring for the given application PIDs using the given thresholds for memory and CPU usage at frequencies specified by the intervals.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onMemoryThresholdOccured` | Triggered when an application exceeds the given memory threshold | 
- | `onCPUThresholdOccured` | Triggered when an application exceeds the `cpuThresholdPercent` value for a duration longer than the `cpuThresholdSeconds` value |.
 
-Also see: [onCPUThresholdOccurred](#onCPUThresholdOccurred), [onMemoryThresholdOccurred](#onMemoryThresholdOccurred)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onCPUThresholdOccurred](#onCPUThresholdOccurred) | Triggered when an application exceeds the `cpuThresholdPercent` value for a duration longer than the `cpuThresholdSeconds` value |
+| [onMemoryThresholdOccurred](#onMemoryThresholdOccurred) | Triggered when an application exceeds the given memory threshold |
 ### Parameters
 
 | Name | Type | Description |
@@ -95,7 +93,7 @@ Also see: [onCPUThresholdOccurred](#onCPUThresholdOccurred), [onMemoryThresholdO
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ActivityMonitor.1.enableMonitoring",
+    "method": "org.rdk.ActivityMonitor.enableMonitoring",
     "params": {
         "config": [
             {
@@ -127,10 +125,10 @@ Also see: [onCPUThresholdOccurred](#onCPUThresholdOccurred), [onMemoryThresholdO
 ## *disableMonitoring*
 
 Disables monitoring for all applications. Monitoring stops immediately even if the full collection interval has not been reached.
- 
-### Events 
- 
-No events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -153,7 +151,7 @@ No events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ActivityMonitor.1.disableMonitoring",
+    "method": "org.rdk.ActivityMonitor.disableMonitoring",
     "params": {}
 }
 ```
@@ -174,10 +172,10 @@ No events.
 ## *getApplicationMemoryUsage*
 
 Returns memory usage for a specific monitor-enabled application.
- 
-### Events 
- 
-No events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -205,7 +203,7 @@ No events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ActivityMonitor.1.getApplicationMemoryUsage",
+    "method": "org.rdk.ActivityMonitor.getApplicationMemoryUsage",
     "params": {
         "pid": 6763
     }
@@ -233,10 +231,10 @@ No events.
 ## *getAllMemoryUsage*
 
 Returns memory usage for all monitoring-enabled applications.
- 
-### Events 
- 
-No events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -265,7 +263,7 @@ No events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ActivityMonitor.1.getAllMemoryUsage",
+    "method": "org.rdk.ActivityMonitor.getAllMemoryUsage",
     "params": {}
 }
 ```
@@ -324,7 +322,7 @@ Triggered when an application exceeds the given memory threshold.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onMemoryThresholdOccurred",
+    "method": "client.events.onMemoryThresholdOccurred",
     "params": {
         "appPid": 6763,
         "threshold": "exceeded",
@@ -352,7 +350,7 @@ Triggered when an application exceeds the `cpuThresholdPercent` value for a dura
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onCPUThresholdOccurred",
+    "method": "client.events.onCPUThresholdOccurred",
     "params": {
         "appPid": 6763,
         "threshold": "exceeded",

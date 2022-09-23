@@ -46,7 +46,7 @@
     },
     "methods": {
         "getApiVersionNumber":{
-            "summary": "Returns the API version number.\n \n### Events \n\n No Events.",
+            "summary": "Returns the API version number.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -64,7 +64,7 @@
             }
         },
         "getName": {
-            "summary": "Returns the plugin name.\n \n### Events \n\n No Events.",
+            "summary": "Returns the plugin name.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -84,7 +84,7 @@
             }
         },
         "getRegisteredPropertyNames": {
-            "summary": "Returns all properties which have active listeners.\n \n### Events \n\n No Events.",
+            "summary": "Returns all properties which have active listeners.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -107,7 +107,7 @@
             }
         },
         "getValues": {
-            "summary": "Returns the values and errors for the specified properties.  \n**Error Code of Properties**  \n* `com.comcast.channel_map` - RDK-03005  \n* `com.comcast.card.disconnected` - RDK-03007  \n* `com.comcast.cmac` - RDK-03002  \n* `com.comcast.time_source` - RDK-03006  \n* `com.comcast.estb_ip` - RDK-03009  \n* `com.comcast.ecm_ip` - RDK-03004  \n* `com.comcast.dsg_ca_tunnel` - RDK-03003  \n* `com.comcast.cable_card` - RDK-03001.\n \n### Events \n\n No Events.",
+            "summary": "Returns the values and errors for the specified properties.  \n**Error Code of Properties**  \n* `com.comcast.channel_map` - RDK-03005  \n* `com.comcast.card.disconnected` - RDK-03007  \n* `com.comcast.cmac` - RDK-03002  \n* `com.comcast.time_source` - RDK-03006  \n* `com.comcast.estb_ip` - RDK-03009  \n* `com.comcast.ecm_ip` - RDK-03004  \n* `com.comcast.dsg_ca_tunnel` - RDK-03003  \n* `com.comcast.cable_card` - RDK-03001.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -156,7 +156,7 @@
             }
         },
         "registerListeners":{
-            "summary": "Register a listener on the specified properties for value change notifications. These properties are added to a registered properties list. Internally, this method calls the `getValues` method and hence it returns the current value of those properties.\n \n### Events \n\n No Events.",
+            "summary": "Register a listener on the specified properties for value change notifications. These properties are added to a registered properties list. Internally, this method calls the `getValues` method and hence it returns the current value of those properties.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -205,7 +205,7 @@
             }    
         },         
         "setApiVersionNumber": {
-            "summary": "Sets the API version number.\n \n### Events \n\n No Events.",
+            "summary": "Sets the API version number.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -222,7 +222,7 @@
             }
         },
         "unregisterListeners": {
-            "summary": "Removes the listeners on the specified properties. The properties are removed from the registered properties list.\n \n### Events \n\n No Events.",
+            "summary": "Removes the listeners on the specified properties. The properties are removed from the registered properties list.",
             "params": {
                 "type":"object",
                 "properties": {
