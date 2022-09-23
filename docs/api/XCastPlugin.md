@@ -54,6 +54,7 @@ XCast interface methods:
 | [getStandbyBehavior](#getStandbyBehavior) | Gets the expected xcast behavior in standby mode |
 | [onApplicationStateChanged](#onApplicationStateChanged) | Provides notification whenever an application changes state due to user activity, an internal error, or other reasons |
 | [registerApplications](#registerApplications) | Registers an application |
+| [unregisterApplications](#unregisterApplications) | Unregisters an application |
 | [setEnabled](#setEnabled) | Enables or disables xcast |
 | [setFriendlyName](#setFriendlyName) | Sets the friendly name of device |
 | [setStandbyBehavior](#setStandbyBehavior) | Sets the expected xcast behavior in standby mode |
@@ -358,7 +359,7 @@ No Events
 <a name="registerApplications"></a>
 ## *registerApplications*
 
-Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list.
+This API allows application to whitelist the apps, which support dial service with xcast service. Application can register single or multiple apps by passing application list. Calling this api again, with a new set of APP names, will append those APPs to the existing whitelist. Passing an existing whitelisted APP name, with a modified property value, will update the curresponding field in the APP whitelist.
 
 ### Events
 
@@ -378,8 +379,8 @@ No Events
 | result | object |  |
 | result.success | boolean | Whether the request succeeded |
 
-### Example
-
+### Example 1
+Following call will register NetflixApp to the dial dynamic list.
 #### Request
 
 ```json
@@ -388,7 +389,122 @@ No Events
     "id": 42,
     "method": "org.rdk.Xcast.registerApplications",
     "params": {
-        "applications": "NetflixApp"
+        "applications": {
+            "names":["Netflix"],
+            "cors":[".netflix.com"]
+         }
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+### Example 2
+Following call will update the existing NetflixApp properties in the dial dynamic APP list and insert the new application YouTube.
+#### Request
+
+```json
+{
+    "jsonrpc":"2.0",
+    "id":"3",
+    "method": "org.rdk.Xcast.registerApplications",
+    "params":{
+        "applications":[{
+               "names":["Netflix"],
+               "cors":[".netflix.com"],
+               "properties":{"allowStop" :true}
+           },
+           {
+               "names":["YouTube"],
+               "cors":[".youtube.com"],
+               "properties":{"allowStop" :true}
+           }]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="unregisterApplications"></a>
+## *unregisterApplications*
+
+This API will remove the specified APP names from the existing whitelist. This API call will simply ignore the request and return success, if specified apps are not present in the whitelist. Invoking this API, with the empty list, will clear the whitelist and wont allow any of the applications to cast.
+
+### Events
+
+ No Events.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.applications | string | The application name to register |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example 1
+Following call will remove NetflixApp and YouTube from gdial whitelistied applications.
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Xcast.unregisterApplications",
+    "params": {
+        "applications": ["NetflixApp", "YouTube"]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+### Example 2
+Following call will clear the gdial application whitelist. Once this call is invoked, it wont be able to cast any of the aaplications using XCast.
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Xcast.unregisterApplications",
+    "params": {
+        "applications": []
     }
 }
 ```
