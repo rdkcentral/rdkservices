@@ -45,7 +45,7 @@
     },
     "methods": {
         "executeCommand":{
-            "summary": "Executes a command inside a running container. The path to the executable must resolve within the container's namespace.\n \n### Events \n\n No Events.",
+            "summary": "Executes a command inside a running container. The path to the executable must resolve within the container's namespace.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -71,7 +71,7 @@
             }
         },
         "getContainerInfo":{
-            "summary": "Gets information about a running container such as CPU, memory, and GPU usage (GPU not supported on Xi6).\n \n### Events \n\n No Events.",
+            "summary": "Gets information about a running container such as CPU, memory, and GPU usage (GPU not supported on Xi6).",
             "params": {
                 "type": "object",
                 "properties": {
@@ -203,7 +203,7 @@
             }
         },
         "getContainerState":{
-            "summary": "Gets the state of a currently running container.\n \n### Events \n\n No Events.",
+            "summary": "Gets the state of a currently running container.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -245,7 +245,7 @@
             }
         },
         "listContainers":{
-            "summary": "Lists all running OCI containers Dobby knows about.\n \n### Events \n\n No Events.",
+            "summary": "Lists all running OCI containers Dobby knows about.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -281,7 +281,7 @@
             } 
         },
         "pauseContainer":{
-            "summary": "Pauses a currently running container.\n \n### Events \n\n No Events.",
+            "summary": "Pauses a currently running container.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -298,7 +298,7 @@
             }
         },
         "resumeContainer":{
-            "summary": "Resumes a previously paused container.\n \n### Events \n\n No Events.",
+            "summary": "Resumes a previously paused container.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -315,10 +315,10 @@
             }
         },
         "startContainer":{
-            "summary": "Starts a new container from an existing OCI bundle. \n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onContainerStarted` |  Triggers when a new container starts running.|",
-            "events": [
-               "onContainerStarted" 
-            ],
+            "summary": "Starts a new container from an existing OCI bundle.",
+            "events": {
+               "onContainerStarted" : "Triggers when a new container starts running."
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -369,10 +369,10 @@
             }
         },
         "startContainerFromDobbySpec":{
-            "summary": "Starts a new container from a legacy Dobby JSON specification.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onContainerStarted` |  Triggers when a new container starts running.|",
-            "events": [
-               "onContainerStarted" 
-            ],
+            "summary": "Starts a new container from a legacy Dobby JSON specification.",
+            "events": {
+               "onContainerStarted"  : "Triggers when a new container starts running."
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -416,10 +416,10 @@
 
         },
         "stopContainer":{
-            "summary": "Stops a currently running container. \n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onContainerStopped` | Triggers when the container stops running.|",
-            "events": [
-               "onContainerStopped" 
-            ],
+            "summary": "Stops a currently running container.",
+            "events": {
+               "onContainerStopped" : "Triggers when the container stops running."
+            },
             "params": {
                 "type": "object",
                 "properties": {

@@ -2105,9 +2105,15 @@ def CreateDocument(schema, path):
             if "description" in props:
                 MdHeader("Description", 3)
                 MdParagraph(props["description"])
-            if "events" in props:
-                events = [props["events"]] if isinstance(props["events"], str) else props["events"]
-                MdParagraph("Also see: " + (", ".join(map(lambda x: link("event." + x), events))))
+            if type == "method" or is_property:
+                MdHeader("Events", 3)
+                if "events" in props:
+                    MdTableHeader(["Event", "Description"])
+                    event_dict = props["events"]
+                    for k,v in event_dict.items():
+                        MdRow([link("event." + k), v])
+                else:
+                    MdParagraph("No Events")
             if is_property:
                 MdHeader("Value", 3)
                 if not "description" in props["params"]:
@@ -2149,12 +2155,12 @@ def CreateDocument(schema, path):
             MdHeader("Example", 3)
 
             if is_notification:
-                method = "client.events.1." + method
+                method = "client.events." + method
             elif is_property:
-                method = "%s.1.%s%s" % (classname, method, ("@" + props["index"]["example"])
+                method = "%s.%s%s" % (classname, method, ("@" + props["index"]["example"])
                                         if "index" in props and "example" in props["index"] else "")
             else:
-                method = "%s.1.%s" % (classname, method)
+                method = "%s.%s" % (classname, method)
             if "id" in props and "example" in props["id"]:
                 method = props["id"]["example"] + "." + method
             parameters = props["params"] if "params" in props else None

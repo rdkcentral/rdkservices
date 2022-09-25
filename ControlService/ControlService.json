@@ -98,7 +98,7 @@
     },
     "methods":{
         "canFindMyRemote":{
-            "summary": "Checks if the Control Manager can search for the remote. \n \n### Events\n \n No Events.",
+            "summary": "Checks if the Control Manager can search for the remote.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -121,7 +121,7 @@
             }
         },
         "checkRf4ceChipConnectivity":{
-            "summary": "Checks Rf4ce chip connectivity status. \n \n### Events\n \n No Events.",
+            "summary": "Checks Rf4ce chip connectivity status.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -144,7 +144,7 @@
             }
         },
         "endPairingMode":{
-            "summary": "Leaves pairing mode. \n \n### Events\n \n No Events.",
+            "summary": "Leaves pairing mode.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -172,8 +172,10 @@
 
         },
         "findLastUsedRemote":{
-            "summary": "Searches for the last used remote.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onControl`| Triggered when the last used remote is successfully found |",
-            "events": ["onControl"],
+            "summary": "Searches for the last used remote.",
+            "events": {
+            "onControl" : "Triggered when the last used remote is successfully found"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -204,7 +206,7 @@
             }
         },
         "getAllRemoteData":{
-            "summary": "Returns all remote data. \n \n### Events\n \n No Events.",
+            "summary": "Returns all remote data.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -708,7 +710,7 @@
             }
         },
         "getLastKeypressSource":{
-            "summary": "Returns last key press source data. The data, if any, is returned as part of the `result` object. \n \n### Events\n \n No Events.",
+            "summary": "Returns last key press source data. The data, if any, is returned as part of the `result` object.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -769,7 +771,7 @@
             }
         },
         "getLastPairedRemoteData":{
-            "summary": "Returns all remote data for the last paired remote. The data, if any, is returned as part of the `result` object. \n \n### Events\n \n No Events.",
+            "summary": "Returns all remote data for the last paired remote. The data, if any, is returned as part of the `result` object.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -1165,7 +1167,7 @@
             }
         },
         "getQuirks":{
-            "summary": "Gets quirks. \n \n### Events\n \n No Events.",
+            "summary": "Gets quirks.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -1191,7 +1193,7 @@
             }
         },
         "getSingleRemoteData":{
-            "summary": "Returns all remote data for the specified remote. The data, if any, is returned as part of the `result` object. \n \n### Events\n \n No Events.",
+            "summary": "Returns all remote data for the specified remote. The data, if any, is returned as part of the `result` object.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1595,7 +1597,7 @@
             }
         },
         "getValues":{
-            "summary": "Returns remote setting values. \n \n### Events\n \n No Events.",
+            "summary": "Returns remote setting values.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -1648,7 +1650,7 @@
             }
         },
         "setValues":{
-            "summary": "Sets remote setting values. \n \n### Events\n \n No Events.",
+            "summary": "Sets remote setting values.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1694,7 +1696,7 @@
             }
         },
         "startPairingMode":{
-            "summary": "Enters pairing mode. \n \n### Events\n \n No Events.",
+            "summary": "Enters pairing mode.",
             "params": {
                 "type":"object",
                 "properties": {

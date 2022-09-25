@@ -43,17 +43,24 @@
         LOGERR("No argument '%s' or it has incorrect type", name); \
         returnResponse(false); \
     }
+
+/**
+ * DO NOT USE THIS.
+ *
+ * You should be capable of just using "Notify".
+ */
+
 #define sendNotify(event,params) { \
     std::string json; \
     params.ToString(json); \
     LOGINFO("Notify %s %s", event, json.c_str()); \
-    Notify(event,params); \
+    for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Notify(event,params); \
 }
 #define sendNotifyMaskParameters(event,params) { \
     std::string json; \
     params.ToString(json); \
     LOGINFO("Notify %s <***>", event); \
-    Notify(event,params); \
+    for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Notify(event,params); \
 }
 
 /**

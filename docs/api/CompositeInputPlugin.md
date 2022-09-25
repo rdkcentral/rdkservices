@@ -57,10 +57,10 @@ CompositeInput interface methods:
 ## *getCompositeInputDevices*
 
 returns a list of composite input devices.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -86,7 +86,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.CompositeInput.1.getCompositeInputDevices"
+    "method": "org.rdk.CompositeInput.getCompositeInputDevices"
 }
 ```
 
@@ -113,10 +113,10 @@ This method takes no parameters.
 ## *setVideoRectangle*
 
 Sets the composite input video window.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -143,7 +143,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.CompositeInput.1.setVideoRectangle",
+    "method": "org.rdk.CompositeInput.setVideoRectangle",
     "params": {
         "x": 900,
         "y": 500,
@@ -169,15 +169,13 @@ No Events.
 ## *startCompositeInput*
 
 Activates the specified composite input as the primary video source.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onInputStatusChanged` | Triggers this event when activates composite input source and input status changes to `started` | 
-| `onSignalChanged` | Triggers this event when composite input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal) |.
 
-Also see: [onInputStatusChanged](#onInputStatusChanged), [onSignalChanged](#onSignalChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onInputStatusChanged](#onInputStatusChanged) | Triggers this event when activates composite input source and input status changes to started |
+| [onSignalChanged](#onSignalChanged) | Triggers this event when composite input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal) |
 ### Parameters
 
 | Name | Type | Description |
@@ -200,7 +198,7 @@ Also see: [onInputStatusChanged](#onInputStatusChanged), [onSignalChanged](#onSi
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.CompositeInput.1.startCompositeInput",
+    "method": "org.rdk.CompositeInput.startCompositeInput",
     "params": {
         "portId": 0
     }
@@ -223,14 +221,12 @@ Also see: [onInputStatusChanged](#onInputStatusChanged), [onSignalChanged](#onSi
 ## *stopCompositeInput*
 
 Deactivates the current composite input source that is the primary video source.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onInputStatusChanged` | Triggers this event when deactivates composite input source and input status changes to `stopped` |.
 
-Also see: [onInputStatusChanged](#onInputStatusChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onInputStatusChanged](#onInputStatusChanged) | Triggers this event when deactivates composite input source and input status changes to stopped |
 ### Parameters
 
 This method takes no parameters.
@@ -250,7 +246,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.CompositeInput.1.stopCompositeInput"
+    "method": "org.rdk.CompositeInput.stopCompositeInput"
 }
 ```
 
@@ -303,7 +299,7 @@ Triggered when the composite input device changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDevicesChanged",
+    "method": "client.events.onDevicesChanged",
     "params": {
         "devices": [
             {
@@ -335,7 +331,7 @@ Triggered when the status of the composite input changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onInputStatusChanged",
+    "method": "client.events.onInputStatusChanged",
     "params": {
         "id": 0,
         "locator": "cvbsin://localhost/deviceid/0",
@@ -363,7 +359,7 @@ Triggered when the status of the composite input signal changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onSignalChanged",
+    "method": "client.events.onSignalChanged",
     "params": {
         "id": 0,
         "locator": "cvbsin://localhost/deviceid/0",

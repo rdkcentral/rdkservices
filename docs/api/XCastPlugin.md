@@ -64,10 +64,10 @@ XCast interface methods:
 ## *getApiVersionNumber*
 
 Gets the API version.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -89,7 +89,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getApiVersionNumber"
+    "method": "org.rdk.Xcast.getApiVersionNumber"
 }
 ```
 
@@ -110,10 +110,10 @@ This method takes no parameters.
 ## *getEnabled*
 
 Reports whether xcast is enabled or disabled.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -135,7 +135,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getEnabled"
+    "method": "org.rdk.Xcast.getEnabled"
 }
 ```
 
@@ -156,10 +156,10 @@ This method takes no parameters.
 ## *getFriendlyName*
 
 Returns the friendly name set by setFriendlyName API.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -181,7 +181,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getFriendlyName"
+    "method": "org.rdk.Xcast.getFriendlyName"
 }
 ```
 
@@ -202,10 +202,10 @@ This method takes no parameters.
 ## *getProtocolVersion*
 
 Returns the DIAL protocol version supported by the server.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -227,7 +227,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getProtocolVersion"
+    "method": "org.rdk.Xcast.getProtocolVersion"
 }
 ```
 
@@ -248,10 +248,10 @@ This method takes no parameters.
 ## *getStandbyBehavior*
 
 Gets the expected xcast behavior in standby mode.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -273,7 +273,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getStandbyBehavior"
+    "method": "org.rdk.Xcast.getStandbyBehavior"
 }
 ```
 
@@ -303,11 +303,11 @@ The following table provides a client error mapping example:
 | `forbidden` | The user is not allowed to change the state of the application. This is not related to user account authentication of the native application | HTTP 403 Forbidden |  
 | `unavailable` | The target native application is not available on the device | HTTP 404 Not Found |  
 | `invalid` | The request is invalid (bad parameter for example) | HTTP 400 Bad Request |  
-| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |
-  
-### Events 
+| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -334,7 +334,7 @@ The following table provides a client error mapping example:
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.onApplicationStateChanged",
+    "method": "org.rdk.Xcast.onApplicationStateChanged",
     "params": {
         "applicationName": "NetflixApp",
         "state": "running",
@@ -360,10 +360,10 @@ The following table provides a client error mapping example:
 ## *registerApplications*
 
 This API allows application to whitelist the apps, which support dial service with xcast service. Application can register single or multiple apps by passing application list. Calling this api again, with a new set of APP names, will append those APPs to the existing whitelist. Passing an existing whitelisted APP name, with a modified property value, will update the curresponding field in the APP whitelist.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -387,7 +387,7 @@ Following call will register NetflixApp to the dial dynamic list.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.registerApplications",
+    "method": "org.rdk.Xcast.registerApplications",
     "params": {
         "applications": {
             "names":["Netflix"],
@@ -409,22 +409,22 @@ Following call will register NetflixApp to the dial dynamic list.
 }
 ```
 ### Example 2
-Following call will update the existing NetflixApp properties in the dial dynamic APP list and insert the new applications YouTube, YouTubeKids and YouTubeTV.
+Following call will update the existing NetflixApp properties in the dial dynamic APP list and insert the new application YouTube.
 #### Request
 
 ```json
 {
     "jsonrpc":"2.0",
     "id":"3",
-    "method": "org.rdk.Xcast.1.registerApplications",
+    "method": "org.rdk.Xcast.registerApplications",
     "params":{
         "applications":[{
                "names":["Netflix"],
                "cors":[".netflix.com"],
                "properties":{"allowStop" :true}
-           }, 
+           },
            {
-               "names":["YouTube", "YouTubeKids", "YouTubeTV"],
+               "names":["YouTube"],
                "cors":[".youtube.com"],
                "properties":{"allowStop" :true}
            }]
@@ -448,8 +448,8 @@ Following call will update the existing NetflixApp properties in the dial dynami
 ## *unregisterApplications*
 
 This API will remove the specified APP names from the existing whitelist. This API call will simply ignore the request and return success, if specified apps are not present in the whitelist. Invoking this API, with the empty list, will clear the whitelist and wont allow any of the applications to cast.
-  
-### Events 
+
+### Events
 
  No Events.
 
@@ -468,16 +468,16 @@ This API will remove the specified APP names from the existing whitelist. This A
 | result.success | boolean | Whether the request succeeded |
 
 ### Example 1
-Following call will remove NetflixApp and YouTubeKids from gdial whitelistied applications.
+Following call will remove NetflixApp and YouTube from gdial whitelistied applications.
 #### Request
 
 ```json
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.unregisterApplications",
+    "method": "org.rdk.Xcast.unregisterApplications",
     "params": {
-        "applications": ["NetflixApp", "YouTubeKids"]
+        "applications": ["NetflixApp", "YouTube"]
     }
 }
 ```
@@ -494,7 +494,7 @@ Following call will remove NetflixApp and YouTubeKids from gdial whitelistied ap
 }
 ```
 
-### Example 1
+### Example 2
 Following call will clear the gdial application whitelist. Once this call is invoked, it wont be able to cast any of the aaplications using XCast.
 #### Request
 
@@ -502,7 +502,7 @@ Following call will clear the gdial application whitelist. Once this call is inv
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.unregisterApplications",
+    "method": "org.rdk.Xcast.unregisterApplications",
     "params": {
         "applications": []
     }
@@ -525,10 +525,10 @@ Following call will clear the gdial application whitelist. Once this call is inv
 ## *setEnabled*
 
 Enables or disables xcast.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -552,7 +552,7 @@ Enables or disables xcast.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.setEnabled",
+    "method": "org.rdk.Xcast.setEnabled",
     "params": {
         "enabled": true
     }
@@ -575,10 +575,10 @@ Enables or disables xcast.
 ## *setFriendlyName*
 
 Sets the friendly name of device. It allows an application to override the default friendly name value with the friendly name passed as an argument.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -602,7 +602,7 @@ Sets the friendly name of device. It allows an application to override the defau
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.setFriendlyName",
+    "method": "org.rdk.Xcast.setFriendlyName",
     "params": {
         "friendlyname": "xdial"
     }
@@ -625,10 +625,10 @@ Sets the friendly name of device. It allows an application to override the defau
 ## *setStandbyBehavior*
 
 Sets the expected xcast behavior in standby mode. It allows an application to override controls on xcast behavior in standby mode. The default behavior in STANDBY mode is inactive, so client device can not discover the server. When STANDBY behavior is active, client device can discover the server.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -652,7 +652,7 @@ Sets the expected xcast behavior in standby mode. It allows an application to ov
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.setStandbyBehavior",
+    "method": "org.rdk.Xcast.setStandbyBehavior",
     "params": {
         "standbybehavior": "active"
     }
@@ -708,7 +708,7 @@ Upon hiding the application, the resident application is responsible for calling
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationHideRequest",
+    "method": "client.events.onApplicationHideRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
@@ -736,7 +736,7 @@ Upon launching the application, the resident application is responsible for call
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationLaunchRequest",
+    "method": "client.events.onApplicationLaunchRequest",
     "params": {
         "applicationName": "NetflixApp",
         "parameters": {
@@ -765,7 +765,7 @@ Upon resuming the application, the resident application is responsible for calli
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationResumeRequest",
+    "method": "client.events.onApplicationResumeRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
@@ -792,7 +792,7 @@ The resident application is responsible for calling the `onApplicationStateChang
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationStateRequest",
+    "method": "client.events.onApplicationStateRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
@@ -819,7 +819,7 @@ Upon stopping the application, the resident application is responsible for calli
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationStopRequest",
+    "method": "client.events.onApplicationStopRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"

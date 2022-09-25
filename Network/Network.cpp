@@ -61,6 +61,9 @@ using namespace std;
 #define IARM_BUS_NETSRVMGR_API_isAvailable "isAvailable"
 #define IARM_BUS_NETSRVMGR_API_getPublicIP "getPublicIP"
 
+// TODO: remove this
+#define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
+
 typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
     IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_CONTROL_PERSISTENCE,
@@ -160,36 +163,36 @@ namespace WPEFramework
             CreateHandler({2});
 
             // Quirk
-            Register("getQuirks", &Network::getQuirks, this);
+            registerMethod("getQuirks", &Network::getQuirks, this);
 
             // Network_API_Version_1
-            Register("getInterfaces", &Network::getInterfaces, this);
-            Register("isInterfaceEnabled", &Network::isInterfaceEnabled, this);
-            Register("setInterfaceEnabled", &Network::setInterfaceEnabled, this);
-            Register("getDefaultInterface", &Network::getDefaultInterface, this);
-            Register("setDefaultInterface", &Network::setDefaultInterface, this);
+            registerMethod("getInterfaces", &Network::getInterfaces, this);
+            registerMethod("isInterfaceEnabled", &Network::isInterfaceEnabled, this);
+            registerMethod("setInterfaceEnabled", &Network::setInterfaceEnabled, this);
+            registerMethod("getDefaultInterface", &Network::getDefaultInterface, this);
+            registerMethod("setDefaultInterface", &Network::setDefaultInterface, this);
 
-            Register("getStbIp", &Network::getStbIp, this);
+            registerMethod("getStbIp", &Network::getStbIp, this);
 
-            Register("trace", &Network::trace, this);
-            Register("traceNamedEndpoint", &Network::traceNamedEndpoint, this);
+            registerMethod("trace", &Network::trace, this);
+            registerMethod("traceNamedEndpoint", &Network::traceNamedEndpoint, this);
 
-            Register("getNamedEndpoints", &Network::getNamedEndpoints, this);
+            registerMethod("getNamedEndpoints", &Network::getNamedEndpoints, this);
 
-            Register("ping",              &Network::ping, this);
-            Register("pingNamedEndpoint", &Network::pingNamedEndpoint, this);
+            registerMethod("ping",              &Network::ping, this);
+            registerMethod("pingNamedEndpoint", &Network::pingNamedEndpoint, this);
 
             Register("setIPSettings", &Network::setIPSettings, this);
             GetHandler(2)->Register<JsonObject, JsonObject>("setIPSettings", &Network::setIPSettings2, this);
             Register("getIPSettings", &Network::getIPSettings, this);
             GetHandler(2)->Register<JsonObject, JsonObject>("getIPSettings", &Network::getIPSettings2, this);
 
-            Register("getSTBIPFamily", &Network::getSTBIPFamily, this);
-            Register("isConnectedToInternet", &Network::isConnectedToInternet, this);
-            Register("setConnectivityTestEndpoints", &Network::setConnectivityTestEndpoints, this);
+            registerMethod("getSTBIPFamily", &Network::getSTBIPFamily, this);
+            registerMethod("isConnectedToInternet", &Network::isConnectedToInternet, this);
+            registerMethod("setConnectivityTestEndpoints", &Network::setConnectivityTestEndpoints, this);
 
-            Register("getPublicIP", &Network::getPublicIP, this);
-            Register("setStunEndPoint", &Network::setStunEndPoint, this);
+            registerMethod("getPublicIP", &Network::getPublicIP, this);
+            registerMethod("setStunEndPoint", &Network::setStunEndPoint, this);
 
             const char * script1 = R"(grep DEVICE_TYPE /etc/device.properties | cut -d "=" -f2 | tr -d '\n')";
             m_isHybridDevice = Utils::cRunScript(script1).substr();
@@ -1356,7 +1359,6 @@ namespace WPEFramework
             params["enabled"] = enabled;
             m_useInterfacesCache = false;
             sendNotify("onInterfaceStatusChanged", params);
-            GetHandler(2)->Notify("onInterfaceStatusChanged", params);
         }
 
         void Network::onInterfaceConnectionStatusChanged(string interface, bool connected)
@@ -1374,7 +1376,6 @@ namespace WPEFramework
             m_defIpversionCache = "";
             m_defInterfaceCache = "";
             sendNotify("onConnectionStatusChanged", params);
-            GetHandler(2)->Notify("onConnectionStatusChanged", params);
         }
 
         void Network::onInterfaceIPAddressChanged(string interface, string ipv6Addr, string ipv4Addr, bool acquired)
@@ -1408,7 +1409,6 @@ namespace WPEFramework
             }
             params["status"] = string (acquired ? "ACQUIRED" : "LOST");
             sendNotify("onIPAddressStatusChanged", params);
-            GetHandler(2)->Notify("onIPAddressStatusChanged", params);
         }
 
         void Network::onDefaultInterfaceChanged(string oldInterface, string newInterface)
@@ -1425,7 +1425,6 @@ namespace WPEFramework
             m_defIpversionCache = "";
             m_defInterfaceCache = m_netUtils.getInterfaceDescription(newInterface);
             sendNotify("onDefaultInterfaceChanged", params);
-            GetHandler(2)->Notify("onDefaultInterfaceChanged", params);
         }
 
         void Network::eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)

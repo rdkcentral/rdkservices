@@ -60,10 +60,10 @@ StateObserver interface methods:
 ## *getApiVersionNumber*
 
 Returns the API version number.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -85,7 +85,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.getApiVersionNumber"
+    "method": "com.comcast.StateObserver.getApiVersionNumber"
 }
 ```
 
@@ -106,10 +106,10 @@ This method takes no parameters.
 ## *getName*
 
 Returns the plugin name.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -131,7 +131,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.getName"
+    "method": "com.comcast.StateObserver.getName"
 }
 ```
 
@@ -152,10 +152,10 @@ This method takes no parameters.
 ## *getRegisteredPropertyNames*
 
 Returns all properties which have active listeners.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -178,7 +178,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.getRegisteredPropertyNames"
+    "method": "com.comcast.StateObserver.getRegisteredPropertyNames"
 }
 ```
 
@@ -210,10 +210,10 @@ Returns the values and errors for the specified properties.
 * `com.comcast.ecm_ip` - RDK-03004  
 * `com.comcast.dsg_ca_tunnel` - RDK-03003  
 * `com.comcast.cable_card` - RDK-03001.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -243,7 +243,7 @@ Returns the values and errors for the specified properties.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.getValues",
+    "method": "com.comcast.StateObserver.getValues",
     "params": {
         "propertyNames": [
             "com.comcast.channel_map"
@@ -275,10 +275,10 @@ Returns the values and errors for the specified properties.
 ## *registerListeners*
 
 Register a listener on the specified properties for value change notifications. These properties are added to a registered properties list. Internally, this method calls the `getValues` method and hence it returns the current value of those properties.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -308,7 +308,7 @@ Register a listener on the specified properties for value change notifications. 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.registerListeners",
+    "method": "com.comcast.StateObserver.registerListeners",
     "params": {
         "propertyNames": [
             "com.comcast.channel_map"
@@ -340,10 +340,10 @@ Register a listener on the specified properties for value change notifications. 
 ## *setApiVersionNumber*
 
 Sets the API version number.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -367,7 +367,7 @@ Sets the API version number.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.setApiVersionNumber",
+    "method": "com.comcast.StateObserver.setApiVersionNumber",
     "params": {
         "version": 1
     }
@@ -390,10 +390,10 @@ Sets the API version number.
 ## *unregisterListeners*
 
 Removes the listeners on the specified properties. The properties are removed from the registered properties list.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -418,7 +418,7 @@ Removes the listeners on the specified properties. The properties are removed fr
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.unregisterListeners",
+    "method": "com.comcast.StateObserver.unregisterListeners",
     "params": {
         "propertyNames": [
             "com.comcast.channel_map"
@@ -472,7 +472,7 @@ Triggered whenever a device property value changes. A handler function is called
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.propertyChanged",
+    "method": "client.events.propertyChanged",
     "params": {
         "propertyName": "com.comcast.channel_map",
         "value": 2,

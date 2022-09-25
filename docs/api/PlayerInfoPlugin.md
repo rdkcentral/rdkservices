@@ -55,11 +55,11 @@ PlayerInfo interface methods:
 <a name="audiocodecs"></a>
 ## *audiocodecs*
 
-Returns the audio codec supported by the platform. 
- 
-### Events 
- 
-No Events.
+Returns the audio codec supported by the platform.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -80,7 +80,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.audiocodecs"
+    "method": "PlayerInfo.audiocodecs"
 }
 ```
 
@@ -100,10 +100,10 @@ This method takes no parameters.
 ## *videocodecs*
 
 Returns the video codec supported by the platform.
- 
-### Events 
- 
-No Events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -124,7 +124,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.videocodecs"
+    "method": "PlayerInfo.videocodecs"
 }
 ```
 
@@ -165,6 +165,10 @@ Provides access to the player general information.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -183,7 +187,7 @@ Provides access to the player general information.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.playerinfo"
+    "method": "PlayerInfo.playerinfo"
 }
 ```
 
@@ -211,6 +215,10 @@ Provides access to the current configured video output port resolution.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -225,7 +233,7 @@ Provides access to the current configured video output port resolution.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.resolution"
+    "method": "PlayerInfo.resolution"
 }
 ```
 
@@ -246,6 +254,10 @@ Provides access to the check for Loudness Equivalence in the platform.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -260,7 +272,7 @@ Provides access to the check for Loudness Equivalence in the platform.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.isaudioequivalenceenabled"
+    "method": "PlayerInfo.isaudioequivalenceenabled"
 }
 ```
 
@@ -281,6 +293,10 @@ Provides access to the atmos capabilities of Sink.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -295,7 +311,7 @@ Provides access to the atmos capabilities of Sink.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.dolby_atmosmetadata"
+    "method": "PlayerInfo.dolby_atmosmetadata"
 }
 ```
 
@@ -316,6 +332,10 @@ Provides access to the current sound mode.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -330,7 +350,7 @@ Provides access to the current sound mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.dolby_soundmode"
+    "method": "PlayerInfo.dolby_soundmode"
 }
 ```
 
@@ -351,6 +371,10 @@ Provides access to the audio output enablement for Atmos.
 
 > This property is **write-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -365,7 +389,7 @@ Provides access to the audio output enablement for Atmos.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.dolby_enableatmosoutput",
+    "method": "PlayerInfo.dolby_enableatmosoutput",
     "params": false
 }
 ```
@@ -385,6 +409,10 @@ Provides access to the audio output enablement for Atmos.
 
 Provides access to the dolby mode.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -399,7 +427,7 @@ Provides access to the dolby mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.dolby_mode"
+    "method": "PlayerInfo.dolby_mode"
 }
 ```
 
@@ -419,7 +447,7 @@ Provides access to the dolby mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.dolby_mode",
+    "method": "PlayerInfo.dolby_mode",
     "params": "DigitalPcm"
 }
 ```
@@ -466,7 +494,7 @@ Triggered after the audio sound mode changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.dolby_audiomodechanged",
+    "method": "client.events.dolby_audiomodechanged",
     "params": {
         "mode": "Unknown",
         "enable": true
