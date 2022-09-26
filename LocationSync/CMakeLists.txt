@@ -26,6 +26,7 @@ set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
 
 set(PLUGIN_LOCATIONSYNC_AUTOSTART "true" CACHE STRING "Automatically start LocationSync plugin")
 set(PLUGIN_LOCATIONSYNC_URI "location.webplatformforembedded.org" CACHE STRING "URI to request the location information")
+set(PLUGIN_LOCATIONSYNC_STARTUPORDER "" CACHE STRING "To configure startup order of LocationSync plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)

@@ -18,6 +18,8 @@
 set(PLUGIN_NAME HdcpProfile)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_HDCPPROFILE_STARTUPORDER "" CACHE STRING "To configure startup order of HdcpProfile plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
