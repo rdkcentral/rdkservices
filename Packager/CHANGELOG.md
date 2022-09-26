@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.1] - 2022-09-26
+### Added
+- Update SystemRootPath config to set the LD_LIBRARY_PATH dynamically
+
 ## [1.0.0] - 2022-05-11
 ### Added
 - Add CHANGELOG
