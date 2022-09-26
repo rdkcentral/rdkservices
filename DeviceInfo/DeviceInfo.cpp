@@ -139,7 +139,7 @@ namespace Plugin {
             // TODO RB: I guess we should do something here to return other info (e.g. time) as well.
 
             result->ContentType = Web::MIMETypes::MIME_JSON;
-            result->Body(Core::proxy_cast<Web::IBody>(response));
+            result->Body(Core::ProxyType<Web::IBody>(response));
         } else {
             result->ErrorCode = Web::STATUS_BAD_REQUEST;
             result->Message = _T("Unsupported request for the [DeviceInfo] service.");

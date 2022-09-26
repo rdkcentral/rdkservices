@@ -171,7 +171,7 @@ namespace Plugin {
                 }
             }
 
-            result->Body(Core::proxy_cast<Web::IBody>(response));
+            result->Body(Core::ProxyType<Web::IBody>(response));
             result->ContentType = Web::MIME_JSON;
         } else if ((request.Verb == Web::Request::HTTP_PUT) && (index.Next() == true)) {
             if ((index.Current() == _T("on")) || (index.Current() == _T("off"))) {

@@ -258,7 +258,7 @@ namespace Plugin {
 
                     // Oke, there is someone waiting for a response!
                     message->Id = requestId;
-                    _service->Submit(channelId, Core::proxy_cast<Core::JSON::IElement>(message));
+                    _service->Submit(channelId, Core::ProxyType<Core::JSON::IElement>(message));
                 }
             }
         }

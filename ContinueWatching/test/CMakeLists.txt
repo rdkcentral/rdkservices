@@ -16,7 +16,7 @@
 # limitations under the License.
 
 set(PLUGIN_NAME CWTestThunderClient)
-find_package(${NAMESPACE}Protocols REQUIRED)
+find_package(${NAMESPACE}COM REQUIRED)
 
 add_executable(${PLUGIN_NAME} CWTestThunderClient.cpp)
 
@@ -28,7 +28,7 @@ set_target_properties(${PLUGIN_NAME} PROPERTIES
 
 target_link_libraries(${PLUGIN_NAME}
     PRIVATE
-    ${NAMESPACE}Protocols::${NAMESPACE}Protocols
+    ${NAMESPACE}COM::${NAMESPACE}COM
         )
 
 install(TARGETS ${PLUGIN_NAME} DESTINATION bin)
