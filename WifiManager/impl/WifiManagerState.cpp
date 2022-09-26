@@ -40,42 +40,6 @@ namespace {
         }
         return WifiState::FAILED;
     }
-
-    SsidSecurity getSecurityModeValue(std::string str)
-    {
-        if(!str.compare("NET_WIFI_SECURITY_NONE"))
-            return SsidSecurity::NET_WIFI_SECURITY_NONE;
-        else if(!str.compare("NET_WIFI_SECURITY_WEP_64"))
-            return SsidSecurity::NET_WIFI_SECURITY_WEP_64;
-        else if(!str.compare("NET_WIFI_SECURITY_WEP_128"))
-            return SsidSecurity::NET_WIFI_SECURITY_WEP_128;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA_PSK_TKIP"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA_PSK_TKIP;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA_PSK_AES"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA_PSK_AES;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA2_PSK_TKIP"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA2_PSK_TKIP;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA2_PSK_AES"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA2_PSK_AES;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA_ENTERPRISE_TKIP"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA_ENTERPRISE_TKIP;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA_ENTERPRISE_AES"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA_ENTERPRISE_AES;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA2_PSK_AES"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA2_PSK_AES;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA_WPA2_PSK"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA_WPA2_PSK;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA_WPA2_ENTERPRISE"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA_WPA2_ENTERPRISE;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA3_PSK_AES"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA3_PSK_AES;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA3_SAE"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA3_SAE;
-        else
-            return SsidSecurity::NET_WIFI_SECURITY_NOT_SUPPORTED;
-    }
 }
 
 WifiManagerState::WifiManagerState()
