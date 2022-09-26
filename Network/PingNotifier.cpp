@@ -187,7 +187,10 @@ namespace WPEFramework
                     }
                 }
                 fclose(fp);
+            }
 
+            if(!outputFile.empty())
+            {
                 // clear up
                 remove(outputFile.c_str());
             }
