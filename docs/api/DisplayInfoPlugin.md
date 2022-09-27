@@ -58,6 +58,10 @@ DisplayInfo interface methods:
 
 Returns the TV's Extended Display Identification Data (EDID).
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -106,6 +110,10 @@ Returns the TV's Extended Display Identification Data (EDID).
 
 Horizontal size in centimeters.
 
+### Events
+
+No Events
+
 ### Parameters
 
 This method takes no parameters.
@@ -142,6 +150,10 @@ This method takes no parameters.
 ## *heightincentimeters*
 
 Vertical size in centimeters.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -211,6 +223,10 @@ Provides access to the total GPU DRAM memory (in bytes).
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -245,6 +261,10 @@ Provides access to the total GPU DRAM memory (in bytes).
 Provides access to the free GPU DRAM memory (in bytes).
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -281,6 +301,10 @@ Provides access to the current audio passthrough status on HDMI.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -315,6 +339,10 @@ Provides access to the current audio passthrough status on HDMI.
 Provides access to the current HDMI connection status.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -351,6 +379,10 @@ Provides access to the horizontal resolution of the TV.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -385,6 +417,10 @@ Provides access to the horizontal resolution of the TV.
 Provides access to the vertical resolution of the TV.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -421,6 +457,10 @@ Provides access to the vertical Frequency.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -455,6 +495,10 @@ Provides access to the vertical Frequency.
 Provides access to the HDCP protocol used for transmission.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -491,6 +535,10 @@ Provides access to the video output port on the STB used for connecting to the T
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -525,6 +573,10 @@ Provides access to the video output port on the STB used for connecting to the T
 Provides access to the HDR formats supported by the TV.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -561,6 +613,10 @@ Provides access to the HDR formats supported by the STB.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -595,6 +651,10 @@ Provides access to the HDR formats supported by the STB.
 Provides access to the HDR format in use.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -631,6 +691,10 @@ Provides access to the display color space (chroma subsampling format).
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -665,6 +729,10 @@ Provides access to the display color space (chroma subsampling format).
 Provides access to the display frame rate.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -701,6 +769,10 @@ Provides access to the display colour depth.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -735,6 +807,10 @@ Provides access to the display colour depth.
 Provides access to the display quantization range.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -771,6 +847,10 @@ Provides access to the display colorimetry.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -805,6 +885,10 @@ Provides access to the display colorimetry.
 Provides access to the display Electro Optical Transfer Function (EOTF).
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 

@@ -35,7 +35,7 @@
     },
     "methods": {
         "getDisplayFrameRate": {
-            "summary": "(Version 2) Returns the current display frame rate values.\n  \n### Events \n\n No events",
+            "summary": "(Version 2) Returns the current display frame rate values.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -53,7 +53,7 @@
             }
         },
         "getFrmMode": {
-            "summary": "(Version 2) Returns the current auto framerate mode.\n  \n### Events \n\n No events",
+            "summary": "(Version 2) Returns the current auto framerate mode.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -71,7 +71,7 @@
             }
         },
         "setCollectionFrequency": {
-            "summary": "Sets the FPS data collection interval.\n  \n### Events \n\n No events",
+            "summary": "Sets the FPS data collection interval.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -88,11 +88,11 @@
             }
         },
         "setDisplayFrameRate": {
-            "summary": "(Version 2) Sets the display framerate values. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onDisplayFrameRateChanging`|Triggered when the framerate changes started.| \n| `onDisplayFrameRateChanged`|Triggered when the framerate changed.|",
-            "events": [
-                "onDisplayFrameRateChanging",
-                "onDisplayFrameRateChanged"
-            ],
+            "summary": "(Version 2) Sets the display framerate values.",
+            "events": {
+                "onDisplayFrameRateChanging" : "Triggered when the framerate changes started.",
+                "onDisplayFrameRateChanged" : "Triggered when the framerate changed"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -109,7 +109,7 @@
             }
         },
         "setFrmMode":{
-            "summary": "(Version 2) Sets the auto framerate mode.\n  \n### Events \n\n No events",
+            "summary": "(Version 2) Sets the auto framerate mode.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -126,25 +126,25 @@
             }
         },
         "startFpsCollection":{
-            "summary": "Starts the FPS data collection.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onFpsEvent`|Triggered at the end of each interval as defined by the `setCollectionFrequency` method.|",
-            "events": [
-                "onFpsEvent"
-            ],
+            "summary": "Starts the FPS data collection.",
+            "events": {
+                "onFpsEvent" : "Triggered at the end of each interval as defined by the setCollectionFrequency"
+            },
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "stopFpsCollection":{
-            "summary": "Stops the FPS data collection.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onFpsEvent`|Triggered once after the `stopFpsCollection` method is invoked.|",
-            "events": [
-                "onFpsEvent"
-            ],
+            "summary": "Stops the FPS data collection.",
+            "events": {
+                "onFpsEvent" : "Triggered once after the stopFpsCollection method is invoked."
+            },
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "updateFps": {
-            "summary": "Updates Fps values.\n  \n### Events \n\n No events",
+            "summary": "Updates Fps values.",
             "params": {
                 "type":"object",
                 "properties": {

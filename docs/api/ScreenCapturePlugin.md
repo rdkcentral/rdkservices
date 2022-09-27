@@ -58,15 +58,12 @@ Takes a screenshot and uploads it to the specified URL. A screenshot is uploaded
 or,  
 `curl -F image=@/path/to/screenshot.png http://server/cgi-bin/upload.cgi`  
 For implementation details, see `bool ScreenCapture::uploadDataToUrl(std::vector<unsigned char> &data, const char *url, std::string &error_str)`.
- 
-Events
- 
-| Event | Description | 
-| :-------- | :-------- | 
-| `uploadComplete` | Triggered after uploading a screen capture with status and message |.
 
-Also see: [uploadComplete](#uploadComplete)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [uploadComplete](#uploadComplete) | Triggered after uploading a screen capture with status and message |
 ### Parameters
 
 | Name | Type | Description |

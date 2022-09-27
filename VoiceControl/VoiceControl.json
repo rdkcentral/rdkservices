@@ -74,7 +74,7 @@
     },
     "methods": {
         "configureVoice": {
-            "summary": "Configures the RDK's voice stack. NOTE: The URL Scheme determines which API protocol is used. Supported URL schemes include:\n\n| Scheme | Description |\n| :-------- | :-------- |\n| http/https | VREX Legacy HTTP API |\n| ws/wss | VREX XR18 WS API |\n| vrng/vrngs | VREX NextGen WS API |\n| aows/aowss | Audio only over websockets with no protocol layer |\n| sdt | Simple data transfer for direct handling of audio in the protocol layer |\n\n### Events\n\n No Events.",
+            "summary": "Configures the RDK's voice stack. NOTE: The URL Scheme determines which API protocol is used. Supported URL schemes include:\n\n| Scheme | Description |\n| :-------- | :-------- |\n| http/https | VREX Legacy HTTP API |\n| ws/wss | VREX XR18 WS API |\n| vrng/vrngs | VREX NextGen WS API |\n| aows/aowss | Audio only over websockets with no protocol layer |\n| sdt | Simple data transfer for direct handling of audio in the protocol layer |",
             "params": {
                 "type": "object",
                 "properties": {
@@ -138,7 +138,7 @@
             }
         },
         "sendVoiceMessage": {
-            "summary": "Sends a message to the Voice Server. The specification of this message is not in the scope of this document. Example use cases for this API call include sending context or sending ASR blobs to the server.\n\n### Events\n\n No Events",
+            "summary": "Sends a message to the Voice Server. The specification of this message is not in the scope of this document. Example use cases for this API call include sending context or sending ASR blobs to the server.",
             "params":{
                 "type": "object",
                 "properties": {
@@ -172,7 +172,7 @@
             }
         },
         "setVoiceInit": {
-            "summary": "Sets the application metadata in the INIT message that gets sent to the Voice Server. The specification of this blob is not in the scope of this document, but it MUST be a JSON blob.\n\n### Events\n\n No Events.",
+            "summary": "Sets the application metadata in the INIT message that gets sent to the Voice Server. The specification of this blob is not in the scope of this document, but it MUST be a JSON blob.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -192,15 +192,14 @@
             }
         },
         "voiceSessionByText": {
-            "summary": "Sends a voice session with a transcription string to simulate a real voice session for QA. Example use cases for this API call include rack and automation testing.\n\n### Events\n\n| Event | Description |\n| :-------- | :-------- |\n| `onSessionBegin` |Triggers if the voice session begins |\n| `onStreamBegin` |Triggers if a device starts streaming voice data to the RDK|\n| `onServerMessage` |Triggers if a message is received from the Voice Server |\n| `onStreamEnd` |Triggers if streaming audio is stopped from the device |\n| `onSessionEnd` |Triggers if interaction with the server is end|",
-            "events":[
-                "onSessionBegin",
-                "onStreamBegin",
-                "onServerMessage",
-                "onStreamEnd",
-                "onSessionEnd"
-
-            ],
+            "summary": "Sends a voice session with a transcription string to simulate a real voice session for QA. Example use cases for this API call include rack and automation testing.",
+            "events":{
+                "onSessionBegin" : "Triggers if the voice session begins",
+                "onStreamBegin" : "Triggers if a device starts streaming voice data to the RDK",
+                "onServerMessage" : "Triggers if a message is received from the Voice Server",
+                "onStreamEnd" : "Triggers if streaming audio is stopped from the device",
+                "onSessionEnd" : "Triggers if interaction with the server is end"
+            },
             "params":{
                 "type": "object",
                 "properties": {
@@ -222,10 +221,11 @@
             "result": {
                 "$ref": "#/common/result"
             },
-            "deprecated": true
+            "deprecated": true,
+            "referenceUrl": "https://rdkcentral.github.io/rdkservices/#/api/VoiceControlPlugin?id=voicesessionrequest"
         },
         "voiceSessionTypes": {
-            "summary": "Retrieves the types of voice sessions which are supported by the platform.\n\n| Request Type | Description |\n| :-------- | :-------- |\n| ptt_transcription | A text-only session using the urlPtt routing url and the text transcription |\n| mic_transcription | A text-only session using the urlHf routing url and the text transcription |\n| mic_stream_default | An audio based session using the urlHf routing url and the platform's default audio output format |\n| mic_stream_single | An audio based session using the urlHf routing url and the platform's single channel audio input format |\n| mic_stream_multi | An audio based session using the urlHf routing url and the platform's multi-channel audio input format |\n| mic_tap_stream_single | An audio based session using the urlMicTap routing url and the platform's single channel audio input format |\n| mic_tap_stream_multi | An audio based session using the urlMicTap routing url and the platform's multi-channel audio input format |\n| mic_factory_test | An audio based session using the urlHf routing url and the platform's unprocessed multi-channel audio input format |\n\n### Events\n\n No Events.",
+            "summary": "Retrieves the types of voice sessions which are supported by the platform.\n\n| Request Type | Description |\n| :-------- | :-------- |\n| ptt_transcription | A text-only session using the urlPtt routing url and the text transcription |\n| mic_transcription | A text-only session using the urlHf routing url and the text transcription |\n| mic_stream_default | An audio based session using the urlHf routing url and the platform's default audio output format |\n| mic_stream_single | An audio based session using the urlHf routing url and the platform's single channel audio input format |\n| mic_stream_multi | An audio based session using the urlHf routing url and the platform's multi-channel audio input format |\n| mic_tap_stream_single | An audio based session using the urlMicTap routing url and the platform's single channel audio input format |\n| mic_tap_stream_multi | An audio based session using the urlMicTap routing url and the platform's multi-channel audio input format |\n| mic_factory_test | An audio based session using the urlHf routing url and the platform's unprocessed multi-channel audio input format |",
             "result": {
                 "type": "object",
                 "properties": {
@@ -242,15 +242,14 @@
             }
         },
         "voiceSessionRequest": {
-            "summary": "Requests a voice session using the specified request type and optional parameters.\n\n### Events\n\n| Event | Description |\n| :-------- | :-------- |\n| `onSessionBegin` |Triggers if the voice session begins |\n| `onStreamBegin` |Triggers if a device starts streaming voice data to the RDK|\n| `onServerMessage` |Triggers if a message is received from the Voice Server |\n| `onStreamEnd` |Triggers if streaming audio is stopped from the device |\n| `onSessionEnd` |Triggers if interaction with the server is end|",
-            "events":[
-                "onSessionBegin",
-                "onStreamBegin",
-                "onServerMessage",
-                "onStreamEnd",
-                "onSessionEnd"
-
-            ],
+            "summary": "Requests a voice session using the specified request type and optional parameters.",
+            "events":{
+                "onSessionBegin" : "Triggers if the voice session begins",
+                "onStreamBegin" : "Triggers if a device starts streaming voice data to the RDK",
+                "onServerMessage" : "Triggers if a message is received from the Voice Server",
+                "onStreamEnd" : "Triggers if streaming audio is stopped from the device",
+                "onSessionEnd" : "Triggers if interaction with the server is end"
+            },
             "params":{
                 "type": "object",
                 "properties": {
@@ -274,7 +273,7 @@
             }
         },
         "voiceSessionTerminate": {
-            "summary": "Terminates a voice session using the specified session identifier.\n\n### Events\n\n No Events.",
+            "summary": "Terminates a voice session using the specified session identifier.",
             "params":{
                 "type": "object",
                 "properties": {
@@ -293,7 +292,7 @@
             }
         },
         "voiceStatus": {
-            "summary": "Returns the current status of the RDK voice stack. This includes which URLs the stack is currently configured for along with the status for each device type.\n\n### Events\n\n No Events.",
+            "summary": "Returns the current status of the RDK voice stack. This includes which URLs the stack is currently configured for along with the status for each device type.",
             "result": {
                 "type": "object",
                 "properties": {

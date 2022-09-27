@@ -28,7 +28,7 @@
     },
     "methods": {
         "deleteKey":{
-            "summary": "Deletes a key from the specified namespace.\n \n### Events \n\n No Events.",
+            "summary": "Deletes a key from the specified namespace.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -49,7 +49,7 @@
             }
         },
         "deleteNamespace":{
-            "summary": "Deletes the specified namespace.\n \n### Events \n\n No Events.",
+            "summary": "Deletes the specified namespace.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -66,13 +66,13 @@
             }    
         },
         "flushCache":{
-            "summary": "Flushes the database cache by invoking `flush` in SQLite.\n \n### Events \n\n No Events.",
+            "summary": "Flushes the database cache by invoking `flush` in SQLite.",
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "getKeys":{
-            "summary": "Returns the keys that are stored in the specified namespace.\n \n### Events \n\n No Events.",
+            "summary": "Returns the keys that are stored in the specified namespace.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -106,7 +106,7 @@
             }
         },
         "getNamespaces":{
-            "summary": "Returns the namespaces in the datastore.\n \n### Events \n\n No Events.",
+            "summary": "Returns the namespaces in the datastore.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -129,7 +129,7 @@
             }
         },
         "getStorageSize":{
-            "summary": "Returns the size occupied by each namespace. This is a processing-intense operation. The total size of the datastore should not exceed more than 1MB in size. If the storage size is exceeded then, new values are not stored and the `onStorageExceeded` event is sent.\n \n### Events \n\n No Events.",
+            "summary": "Returns the size occupied by each namespace. This is a processing-intense operation. The total size of the datastore should not exceed more than 1MB in size. If the storage size is exceeded then, new values are not stored and the `onStorageExceeded` event is sent.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -159,7 +159,7 @@
             }
         },
         "getValue":{
-            "summary": "Returns the value of a key from the specified namespace.\n \n### Events \n\n No Events.",
+            "summary": "Returns the value of a key from the specified namespace.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -192,11 +192,11 @@
             }
         },
         "setValue": {
-            "summary": "Sets the value of a key in the the specified namespace.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onStorageExceeded`| Triggered if the storage size has surpassed 1 MB storage size|\n| `onValueChanged` | Triggered whenever any of the values stored are changed using setValue |",
-            "events": [
-                "onStorageExceeded",
-                "onValueChanged"
-            ],
+            "summary": "Sets the value of a key in the the specified namespace.",
+            "events": {
+                "onStorageExceeded" : "Triggered if the storage size has surpassed 1 MB storage size",
+                "onValueChanged" : "Triggered whenever any of the values stored are changed using setValue"
+            },
             "params": {
                 "type": "object",
                 "properties": {

@@ -58,11 +58,11 @@ Enables audio capturing to buffer.
 Return Values:  
 * `0` - No error  
 * `1 - 254` - request exceeds the maximum allowed buffer size. The error number represents the maximum buffer length, in seconds, that the set-top device can support.  
-* `255` - set top device cannot accommodate any level of audio buffering. 
- 
-### Events 
+* `255` - set top device cannot accommodate any level of audio buffering.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -114,15 +114,12 @@ Requests the audio driver to capture an audio sample from the specified stream a
 Supported streams:  
 * `primary` - The stream going to the analog output and the stream included in the HDMI output. This is the only stream that is valid when the request is made through a voice request.  
 * `secondary` - The stream is captured from a secondary decoder. A potential use case includes initiating a capture from a screen overlay where the user has a choice between primary or secondary audio (or the type of audio output to which the user listens – TV or Bluetooth).
- 
-Events
- 
-| Event | Description | 
-| :-------- | :-------- | 
-| `onAudioClipReady` | Triggered if an audio clip uploaded successfully or not |.
 
-Also see: [onAudioClipReady](#onAudioClipReady)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onAudioClipReady](#onAudioClipReady) | Triggered if an audio clip uploaded successfully or not |
 ### Parameters
 
 | Name | Type | Description |

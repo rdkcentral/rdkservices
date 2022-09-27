@@ -88,7 +88,7 @@
     },
     "methods": {
         "getActiveRoute": {
-            "summary": "Gets details for the current route from the source to sink devices. This API is used for debugging the route.\n  \n### Event \n\n No Events",
+            "summary": "Gets details for the current route from the source to sink devices. This API is used for debugging the route.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -150,7 +150,7 @@
             }
         },
         "getActiveSource": {
-            "summary": "Gets details for the current active source.\n  \n### Event \n\n No Events",
+            "summary": "Gets details for the current active source.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -200,7 +200,7 @@
             }
         },
         "getAudioDeviceConnectedStatus": {
-            "summary": "Get status of audio device connection.\n  \n### Event \n\n No Events",
+            "summary": "Get status of audio device connection.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -218,7 +218,7 @@
             }
         },
         "getDeviceList":{
-            "summary": "Gets the number of connected source devices and system information for each device. The information includes device type, physical address, CEC version, vendor ID, power status and OSD name.\n  \n### Event \n\n No Events",
+            "summary": "Gets the number of connected source devices and system information for each device. The information includes device type, physical address, CEC version, vendor ID, power status and OSD name.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -284,7 +284,7 @@
             }
         },
         "getEnabled":{
-            "summary": "Returns whether HDMI-CEC is enabled on platform or not.\n  \n### Event \n\n No Events",
+            "summary": "Returns whether HDMI-CEC is enabled on platform or not.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -302,7 +302,7 @@
             }
         },
         "getOSDName":{
-            "summary": "Returns the OSD name used by host device.\n  \n### Event \n\n No Events",
+            "summary": "Returns the OSD name used by host device.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -320,7 +320,7 @@
             }
         },
         "getVendorId":{
-            "summary": "Gets the current vendor ID used by host device.\n  \n### Event \n\n No Events",
+            "summary": "Gets the current vendor ID used by host device.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -338,7 +338,7 @@
             }
         },
         "printDeviceList": {
-            "summary": "This is a helper debug command for developers. It prints the list of connected devices and properties of connected devices like deviceType, VendorID, CEC version, PowerStatus, OSDName, PhysicalAddress etc.\n  \n### Event \n\n No Events",
+            "summary": "This is a helper debug command for developers. It prints the list of connected devices and properties of connected devices like deviceType, VendorID, CEC version, PowerStatus, OSDName, PhysicalAddress etc.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -356,45 +356,45 @@
             }
         },
         "requestActiveSource": {
-            "summary": "Requests the active source in the network.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onActiveSourceChange`|Triggered with the active source device changes.|\n| `onDeviceAdded`|Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device.| \n| `onDeviceInfoUpdated`|Triggered when device information changes (physicalAddress, deviceType, vendorID, osdName, cecVersion, powerStatus).|",
-            "events": [
-                "onActiveSourceChange",
-                "onDeviceAdded",
-                "onDeviceInfoUpdated"
-            ],
+            "summary": "Requests the active source in the network.",
+            "events": {
+                "onActiveSourceChange" : "Triggered with the active source device changes.",
+                "onDeviceAdded" : "Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device.",
+                "onDeviceInfoUpdated" : "Triggered when device information changes (physicalAddress, deviceType, vendorID, osdName, cecVersion, powerStatus)."
+            },
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "requestShortAudioDescriptor": {
-            "summary": "Sends the CEC Request Short Audio Descriptor (SAD) message as an event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `shortAudiodesciptorEvent`|Triggered when SAD is received from the connected audio device.|",
-            "events": [
-                "shortAudiodesciptorEvent"
-            ],
+            "summary": "Sends the CEC Request Short Audio Descriptor (SAD) message as an event.",
+            "events": {
+                "shortAudiodesciptorEvent" : "Triggered when SAD is received from the connected audio device."
+            },
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "sendAudioDevicePowerOnMessage": {
-            "summary": "This message is used to power on the connected audio device. Usually sent by the TV when it comes out of standby and detects audio device connected in the network.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `setSystemAudioModeEvent`|Triggered when CEC \\<Set System Audio Mode\\> message of device is received.|",
-            "events": [
-                "setSystemAudioModeEvent"
-            ],
+            "summary": "This message is used to power on the connected audio device. Usually sent by the TV when it comes out of standby and detects audio device connected in the network.",
+            "events": {
+                "setSystemAudioModeEvent" : "Triggered when CEC <Set System Audio Mode> message of device is received."
+            },
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "sendGetAudioStatusMessage": {
-            "summary": "Sends the CEC \\<Give Audio Status\\> message to request the audio status.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `reportAudioStatusEvent`|Triggered when CEC \\<Report Audio Status\\> message of device is received.|",
-            "events": [
-                "reportAudioStatusEvent"
-            ],
+            "summary": "Sends the CEC \\<Give Audio Status\\> message to request the audio status.",
+            "events": {
+                "reportAudioStatusEvent" : "Triggered when CEC <Report Audio Status> message of device is received."
+            },
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "sendKeyPressEvent": {
-            "summary": "Sends the CEC \\<User Control Pressed\\> message when TV remote key is pressed.\n  \n### Event \n\n No Events",
+            "summary": "Sends the CEC \\<User Control Pressed\\> message when TV remote key is pressed.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -417,13 +417,13 @@
             }
         },
         "sendStandbyMessage": {
-            "summary": "Sends a CEC \\<Standby\\> message to the logical address of the device.\n  \n### Event \n\n No Events",
+            "summary": "Sends a CEC \\<Standby\\> message to the logical address of the device.",
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "setActivePath": {
-            "summary": "Sets the source device to active (`setStreamPath`). The source wakes from standby if it's in the standby state.\n  \n### Event \n\n No Events",
+            "summary": "Sets the source device to active (`setStreamPath`). The source wakes from standby if it's in the standby state.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -442,16 +442,16 @@
             }
         },
         "setActiveSource": {
-            "summary": "Sets the current active source as TV (physical address 0.0.0.0). This call needs to be made when the TV switches to internal tuner or any apps.\n  \n### Event \n\n No Events",
+            "summary": "Sets the current active source as TV (physical address 0.0.0.0). This call needs to be made when the TV switches to internal tuner or any apps.",
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "setEnabled": {
-            "summary": "Enables or disables HDMI-CEC support in the platform.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `reportCecEnabledEvent`|Triggered when the HDMI-CEC is enabled.|",
-            "events": [
-                "reportCecEnabledEvent"
-            ],
+            "summary": "Enables or disables HDMI-CEC support in the platform.",
+            "events": {
+                "reportCecEnabledEvent" : "Triggered when the HDMI-CEC is enabled."
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -468,7 +468,7 @@
             }
         },
         "setMenuLanguage": {
-            "summary": "Updates the internal data structure with the new menu Language and also broadcasts the \\<Set Menu Language\\> CEC message.\n  \n### Event \n\n No Events",
+            "summary": "Updates the internal data structure with the new menu Language and also broadcasts the \\<Set Menu Language\\> CEC message.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -487,7 +487,7 @@
             }
         },
         "setOSDName": {
-            "summary": "Sets the OSD Name used by host device.\n  \n### Event \n\n No Events",
+            "summary": "Sets the OSD Name used by host device.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -504,7 +504,7 @@
             }
         },
         "setRoutingChange":{
-            "summary": "Changes routing while switching between HDMI inputs and TV.\n  \n### Event \n\n No Events",
+            "summary": "Changes routing while switching between HDMI inputs and TV.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -529,11 +529,11 @@
             }
         },
         "setupARCRouting":{
-            "summary": "Enable (or disable) HDMI-CEC Audio Return Channel (ARC) routing. Upon enabling, triggers arcInitiationEvent and upon disabling, triggers arcTerminationEvent.\n| Event | Description | \n| :----------- | :----------- |\n| `arcInitiationEvent` |Triggered when routing though the HDMI ARC port is successfully established. | \n|`arcTerminationEvent` |Triggered when routing though the HDMI ARC port terminates.|",
-            "events": [
-                "arcInitiationEvent",
-                "arcTerminationEvent"
-            ],
+            "summary": "Enable (or disable) HDMI-CEC Audio Return Channel (ARC) routing. Upon enabling, triggers arcInitiationEvent and upon disabling, triggers arcTerminationEvent.",
+            "events": {
+                "arcInitiationEvent" : "Triggered when routing though the HDMI ARC port is successfully established.",
+                "arcTerminationEvent" : "Triggered when routing though the HDMI ARC port terminates."
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -552,7 +552,7 @@
             }
         },
         "setVendorId":{
-            "summary": "Sets a vendor ID used by host device.\n  \n### Event \n\n No Events",
+            "summary": "Sets a vendor ID used by host device.",
             "params": {
                 "type":"object",
                 "properties": {
