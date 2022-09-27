@@ -63,7 +63,7 @@
     },
     "methods":{
         "cancelCodeDownload": {
-            "summary": "Cancels downloading IR and five digit codes from the IRRF database.\n \n### Events \n\n No Events.",
+            "summary": "Cancels downloading IR and five digit codes from the IRRF database.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -92,7 +92,7 @@
             }
         },
         "clearKeyActionMapping":{
-            "summary": "Clears an action mapping for the specified keys.\n \n### Events \n\n No Events.",
+            "summary": "Clears an action mapping for the specified keys.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -133,7 +133,7 @@
             }
         },
        "getApiVersionNumber":{
-            "summary": "Returns the API version number.\n \n### Events \n\n No Events.",
+            "summary": "Returns the API version number.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -153,7 +153,7 @@
             }
        },
         "getFullKeyActionMapping": {
-            "summary": "Returns the mapping of all action keys.\n \n### Events \n\n No Events.",
+            "summary": "Returns the mapping of all action keys.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -214,7 +214,7 @@
             }
         },
         "getKeymap": {
-            "summary": "Returns a hard-coded list of key names.\n \n### Events \n\n No Events.",
+            "summary": "Returns a hard-coded list of key names.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -251,7 +251,7 @@
             }
         },
         "getLastUsedDeviceID":{
-            "summary": "Returns the last used remote information.\n \n### Events \n\n No Events.",
+            "summary": "Returns the last used remote information.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -291,7 +291,7 @@
             }
         },
         "getSingleKeyActionMapping":{
-            "summary": "Returns the mapping for a single action key.\n \n### Events \n\n No Events.",
+            "summary": "Returns the mapping for a single action key.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -353,10 +353,10 @@
             }
         },
         "setFiveDigitCode":{
-            "summary": "Sets the TV and AVR five digit code.\n \nEvents\n \n| Event | Description | \n| :-------- | :-------- | \n| `onFiveDigitCodeLoad` | Triggered if new five digit codes are loaded successfully |",
-            "events": [
-                "onFiveDigitCodeLoad"
-            ],
+            "summary": "Sets the TV and AVR five digit code.",
+            "events": {
+                "onFiveDigitCodeLoad" : "Triggered if new five digit codes are loaded successfully"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -397,10 +397,10 @@
             }
         },
         "setKeyActionMapping": {
-            "summary": "Sets the mapping of a single action key. This method is unavailable (returns error) if the remote supports 5 digit codes.\n \nEvents\n \n| Event | Description | \n| :-------- | :-------- | \n| `onIRCodeLoad` | Triggered if new IR codes are loaded successfully |",
-            "events": [
-                "onIRCodeLoad"
-            ],
+            "summary": "Sets the mapping of a single action key. This method is unavailable (returns error) if the remote supports 5 digit codes.",
+            "events": {
+                "onIRCodeLoad" : "Triggered if new IR codes are loaded successfully"
+            },
             "params": {
                 "type":"object",
                 "properties": {

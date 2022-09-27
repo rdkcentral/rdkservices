@@ -55,11 +55,11 @@ PlayerInfo interface methods:
 <a name="audiocodecs"></a>
 ## *audiocodecs*
 
-Returns the audio codec supported by the platform. 
- 
-### Events 
- 
-No Events.
+Returns the audio codec supported by the platform.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -100,10 +100,10 @@ This method takes no parameters.
 ## *videocodecs*
 
 Returns the video codec supported by the platform.
- 
-### Events 
- 
-No Events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -165,6 +165,10 @@ Provides access to the player general information.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -211,6 +215,10 @@ Provides access to the current configured video output port resolution.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -245,6 +253,10 @@ Provides access to the current configured video output port resolution.
 Provides access to the check for Loudness Equivalence in the platform.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -281,6 +293,10 @@ Provides access to the atmos capabilities of Sink.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -315,6 +331,10 @@ Provides access to the atmos capabilities of Sink.
 Provides access to the current sound mode.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -351,6 +371,10 @@ Provides access to the audio output enablement for Atmos.
 
 > This property is **write-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -384,6 +408,10 @@ Provides access to the audio output enablement for Atmos.
 ## *dolby_mode*
 
 Provides access to the dolby mode.
+
+### Events
+
+No Events
 
 ### Value
 

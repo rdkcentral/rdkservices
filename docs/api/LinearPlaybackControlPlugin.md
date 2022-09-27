@@ -51,6 +51,10 @@ LinearPlaybackControl interface properties:
 
 Provides access to the current channel.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -120,6 +124,10 @@ Provides access to the current channel.
 
 Provides access to the TSB seek position offset, from live position, in seconds.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -188,6 +196,10 @@ Provides access to the TSB seek position offset, from live position, in seconds.
 ## *trickPlay*
 
 Provides access to the trick play speed and direction.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -260,6 +272,10 @@ Provides access to the current TSB status information containing buffer size, se
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -317,6 +333,10 @@ Provides access to the current TSB status information containing buffer size, se
 ## *tracing*
 
 Provides access to the tracing enable/disable flag.
+
+### Events
+
+No Events
 
 ### Value
 

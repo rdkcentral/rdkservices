@@ -59,10 +59,10 @@ HdmiCec interface methods:
 ## *getActiveSourceStatus*
 
 Gets the active source status of the device.
-  
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -109,10 +109,10 @@ Gets the active source status of the device.
 ## *getCECAddresses*
 
 Returns the HDMI-CEC addresses that are assigned to the local device.
-  
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -165,10 +165,10 @@ This method takes no parameters.
 ## *getDeviceList*
 
 Gets the list of number of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.
-  
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -223,10 +223,10 @@ This method takes no parameters.
 ## *getEnabled*
 
 Returns whether HDMI-CEC is enabled.
-  
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -269,14 +269,12 @@ This method takes no parameters.
 ## *sendMessage*
 
 Writes HDMI-CEC frame to the driver.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onMessage`|Triggered when a message is sent from an HDMI device|.
 
-Also see: [onMessage](#onMessage)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onMessage](#onMessage) | Triggered when a message is sent from an HDMI device |
 ### Parameters
 
 | Name | Type | Description |
@@ -322,10 +320,10 @@ Also see: [onMessage](#onMessage)
 ## *setEnabled*
 
 Enables or disables HDMI-CEC driver.
-  
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 

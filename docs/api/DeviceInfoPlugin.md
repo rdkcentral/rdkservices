@@ -60,6 +60,10 @@ DeviceInfo interface methods:
 
 Supported resolutions on the selected video display port.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -115,6 +119,10 @@ Supported resolutions on the selected video display port.
 
 Default resolution on the selected video display port.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -167,6 +175,10 @@ Default resolution on the selected video display port.
 
 Supported HDCP version on the selected video display port.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -218,6 +230,10 @@ Supported HDCP version on the selected video display port.
 ## *audiocapabilities*
 
 Audio capabilities for the specified audio port.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -274,6 +290,10 @@ Audio capabilities for the specified audio port.
 
 MS12 audio capabilities for the specified audio port.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -328,6 +348,10 @@ MS12 audio capabilities for the specified audio port.
 ## *supportedms12audioprofiles*
 
 Supported MS12 audio profiles for the specified audio port.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -410,6 +434,10 @@ Provides access to the system general information.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -475,6 +503,10 @@ Provides access to the network interface addresses.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -523,6 +555,10 @@ Provides access to the socket information.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -560,6 +596,10 @@ Provides access to the socket information.
 Provides access to the versions maintained in version.txt.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -611,6 +651,10 @@ Provides access to the serial number set by manufacturer.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -654,6 +698,10 @@ Provides access to the serial number set by manufacturer.
 Provides access to the device model number or SKU.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -699,6 +747,10 @@ Provides access to the device manufacturer.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -742,6 +794,10 @@ Provides access to the device manufacturer.
 Provides access to the friendly device model name.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -787,6 +843,10 @@ Provides access to the device type.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -831,6 +891,10 @@ Provides access to the partner ID or distributor ID for device.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -874,6 +938,10 @@ Provides access to the partner ID or distributor ID for device.
 Provides access to the audio ports supported on the device (all ports that are physically present).
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -922,6 +990,10 @@ Provides access to the video ports supported on the device (all ports that are p
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -968,6 +1040,10 @@ Provides access to the video ports supported on the device (all ports that are p
 Provides access to the EDID of the host.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 

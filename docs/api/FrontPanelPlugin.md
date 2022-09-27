@@ -67,6 +67,10 @@ FrontPanel interface methods:
 
 Get the brightness of the specified LED or FrontPanel.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -115,6 +119,10 @@ Get the brightness of the specified LED or FrontPanel.
 
 Returns the current clock brightness value.
 
+### Events
+
+No Events
+
 ### Parameters
 
 This method takes no parameters.
@@ -156,6 +164,10 @@ This method takes no parameters.
 ## *getFrontPanelLights*
 
 Returns a list of supported Front Panel LEDs and their properties.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -223,6 +235,10 @@ This method takes no parameters.
 
 Returns the preferences that are saved in the `/opt/fp_service_preferences.json` file.
 
+### Events
+
+No Events
+
 ### Parameters
 
 This method takes no parameters.
@@ -266,6 +282,10 @@ This method takes no parameters.
 Gets the currently set clock mode (12 or 24 hour).  
 **Note:** On Xi6, this method always returns `false` despite having successfully set the clock to 24 hour mode.
 
+### Events
+
+No Events
+
 ### Parameters
 
 This method takes no parameters.
@@ -307,6 +327,10 @@ This method takes no parameters.
 ## *powerLedOff*
 
 Switches the specified LED off.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -354,6 +378,10 @@ Switches the specified LED off.
 
 Switches the specified LED indicator on. The LED must be powered on prior to setting its brightness.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -399,6 +427,10 @@ Switches the specified LED indicator on. The LED must be powered on prior to set
 ## *set24HourClock*
 
 Sets the clock mode to either 12 or 24 hour.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -446,6 +478,10 @@ Sets the clock mode to either 12 or 24 hour.
 
 Sets a blinking pattern for a particular LED indicator.  
 **Note:** This API does not currently work nor does it provide a meaningful error status.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -516,6 +552,10 @@ Sets a blinking pattern for a particular LED indicator.
 
 Sets the brightness of the specified LED indicator. If no indicator is specified, then FrontPanel all indicators are set.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -564,6 +604,10 @@ Sets the brightness of the specified LED indicator. If no indicator is specified
 
 Sets the clock brightness.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -609,6 +653,10 @@ Sets the clock brightness.
 ## *setClockTestPattern*
 
 Allows you to set a test pattern on the STB clock (`88 88`).
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -657,6 +705,10 @@ Allows you to set a test pattern on the STB clock (`88 88`).
 ## *setLED*
 
 Set preferences for the specified Front Panel LED indicator. Data are not validated in this call.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -713,6 +765,10 @@ Set preferences for the specified Front Panel LED indicator. Data are not valida
 ## *setPreferences*
 
 Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_service_preferences.json`. This function neither validates an input nor changes LED states (color, brightness). It's the users responsibility to provide valid and updated data.
+
+### Events
+
+No Events
 
 ### Parameters
 

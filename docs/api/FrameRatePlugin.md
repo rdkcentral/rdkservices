@@ -61,10 +61,10 @@ FrameRate interface methods:
 ## *getDisplayFrameRate*
 
 (Version 2) Returns the current display frame rate values.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -107,10 +107,10 @@ This method takes no parameters.
 ## *getFrmMode*
 
 (Version 2) Returns the current auto framerate mode.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -153,10 +153,10 @@ This method takes no parameters.
 ## *setCollectionFrequency*
 
 Sets the FPS data collection interval.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -202,16 +202,14 @@ Sets the FPS data collection interval.
 <a name="setDisplayFrameRate"></a>
 ## *setDisplayFrameRate*
 
-(Version 2) Sets the display framerate values. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onDisplayFrameRateChanging`|Triggered when the framerate changes started.| 
-| `onDisplayFrameRateChanged`|Triggered when the framerate changed.|.
+(Version 2) Sets the display framerate values.
 
-Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayFrameRateChanged](#onDisplayFrameRateChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onDisplayFrameRateChanging](#onDisplayFrameRateChanging) | Triggered when the framerate changes started. |
+| [onDisplayFrameRateChanged](#onDisplayFrameRateChanged) | Triggered when the framerate changed |
 ### Parameters
 
 | Name | Type | Description |
@@ -257,10 +255,10 @@ Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayF
 ## *setFrmMode*
 
 (Version 2) Sets the auto framerate mode.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -307,14 +305,12 @@ Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayF
 ## *startFpsCollection*
 
 Starts the FPS data collection.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onFpsEvent`|Triggered at the end of each interval as defined by the `setCollectionFrequency` |.
 
-Also see: [onFpsEvent](#onFpsEvent)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onFpsEvent](#onFpsEvent) | Triggered at the end of each interval as defined by the setCollectionFrequency |
 ### Parameters
 
 This method takes no parameters.
@@ -354,14 +350,12 @@ This method takes no parameters.
 ## *stopFpsCollection*
 
 Stops the FPS data collection.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onFpsEvent`|Triggered once after the `stopFpsCollection` method is invoked.|.
 
-Also see: [onFpsEvent](#onFpsEvent)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onFpsEvent](#onFpsEvent) | Triggered once after the stopFpsCollection method is invoked. |
 ### Parameters
 
 This method takes no parameters.
@@ -401,10 +395,10 @@ This method takes no parameters.
 ## *updateFps*
 
 Updates Fps values.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 

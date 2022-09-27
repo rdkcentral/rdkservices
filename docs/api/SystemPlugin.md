@@ -120,12 +120,12 @@ SystemServices interface methods:
 ## *cacheContains*
 
 Checks if a key is present in the cache.
- 
-### Events
- 
- No Events.
 
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api]( https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=getvalue)
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -172,10 +172,10 @@ Checks if a key is present in the cache.
 ## *clearLastDeepSleepReason*
 
 Clears the last deep sleep reason.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -216,10 +216,10 @@ This method takes no parameters.
 ## *deletePersistentPath*
 
 (Version 2) Deletes persistent path associated with a callsign.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -268,10 +268,10 @@ This method takes no parameters.
 ## *enableMoca*
 
 Enables (or disables) Moca support for the platform.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -318,10 +318,10 @@ Enables (or disables) Moca support for the platform.
 ## *enableXREConnectionRetention*
 
 Enables (or disables) XRE Connection Retention option.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -368,14 +368,12 @@ Enables (or disables) XRE Connection Retention option.
 ## *fireFirmwarePendingReboot*
 
 (Version 2) Notifies the device about a pending reboot.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onFirmwarePendingReboot` | Triggers when the firmware has a pending reboot |.
 
-Also see: [onFirmwarePendingReboot](#onFirmwarePendingReboot)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onFirmwarePendingReboot](#onFirmwarePendingReboot) | Triggers when the firmware has a pending reboot |
 ### Parameters
 
 This method takes no parameters.
@@ -415,10 +413,10 @@ This method takes no parameters.
 ## *getAvailableStandbyModes*
 
 Queries the available standby modes.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -464,12 +462,12 @@ This method takes no parameters.
 ## *getCachedValue*
 
 Gets the value of a key in the cache.
- 
-### Events
- 
- No Events.
 
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=getvalue)
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -518,10 +516,10 @@ Gets the value of a key in the cache.
 ## *getCoreTemperature*
 
 Returns the core temperature of the device. Not supported on all devices.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -571,10 +569,10 @@ Collects device details. Sample keys include:
 * imageVersion  
 * rf4ce_mac  
 * wifi_mac.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -626,10 +624,10 @@ Collects device details. Sample keys include:
 ## *getDownloadedFirmwareInfo*
 
 Returns information about firmware downloads.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -678,10 +676,10 @@ This method takes no parameters.
 ## *getFirmwareDownloadPercent*
 
 Gets the current download percentage.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -724,14 +722,12 @@ This method takes no parameters.
 ## *getFirmwareUpdateInfo*
 
 Checks the firmware update information.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onFirmwareUpdateInfoReceived` | Triggers when the firmware update information is requested |.
 
-Also see: [onFirmwareUpdateInfoReceived](#onFirmwareUpdateInfoReceived)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onFirmwareUpdateInfoReceived](#onFirmwareUpdateInfoReceived) | Triggers when the firmware update information is requested |
 ### Parameters
 
 | Name | Type | Description |
@@ -779,10 +775,10 @@ Also see: [onFirmwareUpdateInfoReceived](#onFirmwareUpdateInfoReceived)
 ## *getFirmwareUpdateState*
 
 Checks the state of the firmware update.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -825,10 +821,10 @@ This method takes no parameters.
 ## *getLastDeepSleepReason*
 
 Retrieves the last deep sleep reason.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -871,10 +867,10 @@ This method takes no parameters.
 ## *getLastFirmwareFailureReason*
 
 (Version 2) Retrieves the last firmware failure reason.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -917,10 +913,10 @@ This method takes no parameters.
 ## *getLastWakeupKeyCode*
 
 (Version 2) Returns the last wakeup keycode.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -963,14 +959,12 @@ This method takes no parameters.
 ## *getMacAddresses*
 
 Gets the MAC address of the device.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onMacAddressesRetreived` | Triggers when the MAC addresses are requested |.
 
-Also see: [onMacAddressesRetreived](#onMacAddressesRetreived)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onMacAddressesRetreived](#onMacAddressesRetreived) | Triggers when the MAC addresses are requested |
 ### Parameters
 
 | Name | Type | Description |
@@ -1018,10 +1012,10 @@ Also see: [onMacAddressesRetreived](#onMacAddressesRetreived)
 ## *getMfgSerialNumber*
 
 Gets the Manufacturing Serial Number.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1064,12 +1058,12 @@ This method takes no parameters.
 ## *getMilestones*
 
 Returns the list of milestones.
- 
-### Events
- 
- No Events.
 
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/DeviceDiagnosticsPlugin?id=getmilestones)
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1115,10 +1109,10 @@ This method takes no parameters.
 ## *getMode*
 
 Returns the currently set mode information.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1166,10 +1160,10 @@ This method takes no parameters.
 ## *getNetworkStandbyMode*
 
 Returns the network standby mode of the device. If network standby is `true`, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1212,10 +1206,10 @@ This method takes no parameters.
 ## *getOvertempGraceInterval*
 
 Returns the over-temperature grace interval value. Not supported on all devices.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1258,10 +1252,10 @@ This method takes no parameters.
 ## *getPlatformConfiguration*
 
 (Version 2) Returns the supported features and device/account info.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1361,10 +1355,10 @@ This method takes no parameters.
 ## *getPowerState*
 
 Returns the power state of the device.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1407,10 +1401,10 @@ This method takes no parameters.
 ## *getPowerStateBeforeReboot*
 
 Returns the power state before reboot.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1453,10 +1447,10 @@ This method takes no parameters.
 ## *getPowerStateIsManagedByDevice*
 
 Checks whether the power state is managed by the device.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1499,10 +1493,10 @@ This method takes no parameters.
 ## *getPreferredStandbyMode*
 
 Returns the preferred standby mode. This method returns an empty string if the preferred mode has not been set.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1545,10 +1539,10 @@ This method takes no parameters.
 ## *getPreviousRebootInfo*
 
 Returns basic information about a reboot.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1599,10 +1593,10 @@ This method takes no parameters.
 ## *getPreviousRebootInfo2*
 
 Returns detailed information about a reboot.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1656,10 +1650,10 @@ This method takes no parameters.
 ## *getPreviousRebootReason*
 
 Returns the last reboot reason.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1702,10 +1696,10 @@ This method takes no parameters.
 ## *getRFCConfig*
 
 Returns information that is related to RDK Feature Control (RFC) configurations.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1760,10 +1754,10 @@ Returns information that is related to RDK Feature Control (RFC) configurations.
 ## *getSerialNumber*
 
 Returns the device serial number.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1806,10 +1800,10 @@ This method takes no parameters.
 ## *getStateInfo*
 
 Queries device state information of various properties.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1858,10 +1852,10 @@ Queries device state information of various properties.
 ## *getStoreDemoLink*
 
 (Version 2) Returns the store demo video link.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1904,10 +1898,10 @@ This method takes no parameters.
 ## *getSystemVersions*
 
 Returns system version details.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1954,10 +1948,10 @@ This method takes no parameters.
 ## *getTemperatureThresholds*
 
 Returns temperature threshold values. Not supported on all devices.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2007,10 +2001,10 @@ This method takes no parameters.
 ## *getTerritory*
 
 Gets the configured system territory and region. Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2055,10 +2049,10 @@ This method takes no parameters.
 ## *getTimeZones*
 
 (Version2) Gets the available timezones from the system's time zone database. This method is useful for determining time offsets per zone.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2114,10 +2108,10 @@ This method takes no parameters.
 ## *getTimeZoneDST*
 
 Get the configured time zone from the file referenced by `TZ_FILE`. If the time zone is not set, then `null` is returned.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2160,10 +2154,10 @@ This method takes no parameters.
 ## *getWakeupReason*
 
 (Version 2) Returns the reason for the device coming out of deep sleep.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2206,10 +2200,10 @@ This method takes no parameters.
 ## *getXconfParams*
 
 Returns XCONF configuration parameters for the device.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2261,10 +2255,10 @@ This method takes no parameters.
 ## *hasRebootBeenRequested*
 
 Checks whether a reboot has been requested.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2307,12 +2301,12 @@ This method takes no parameters.
 ## *isGzEnabled*
 
 Checks whether GZ is enabled.
- 
-### Events
- 
- No Events.
 
 > This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2355,10 +2349,10 @@ This method takes no parameters.
 ## *isOptOutTelemetry*
 
 Checks the telemetry opt-out status.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2401,10 +2395,10 @@ This method takes no parameters.
 ## *queryMocaStatus*
 
 Checks whether MOCA is enabled.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2447,14 +2441,12 @@ This method takes no parameters.
 ## *reboot*
 
 Requests that the system performs a reboot of the set-top box.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onRebootRequest` | Triggers when a device reboot request is made |.
 
-Also see: [onRebootRequest](#onRebootRequest)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onRebootRequest](#onRebootRequest) | Triggers when a device reboot request is made |
 ### Parameters
 
 | Name | Type | Description |
@@ -2502,12 +2494,12 @@ Also see: [onRebootRequest](#onRebootRequest)
 ## *removeCacheKey*
 
 Removes the cache key.
- 
-### Events
- 
- No Events.
 
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=deletekey)
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2554,10 +2546,10 @@ Removes the cache key.
 ## *requestSystemUptime*
 
 Returns the device uptime.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2599,10 +2591,11 @@ This method takes no parameters.
 <a name="setBootLoaderPattern"></a>
 ## *setBootLoaderPattern*
 
-Sets the boot loader pattern mode in MFR. 
+Sets the boot loader pattern mode in MFR.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2649,12 +2642,12 @@ Sets the boot loader pattern mode in MFR.
 ## *setCachedValue*
 
 Sets the value for a key in the cache.
- 
-### Events
- 
- No Events.
 
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=setvalue)
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2703,10 +2696,10 @@ Sets the value for a key in the cache.
 ## *setDeepSleepTimer*
 
 Sets the deep sleep timeout period.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2753,10 +2746,10 @@ Sets the deep sleep timeout period.
 ## *setFirmwareAutoReboot*
 
 (Version 2) Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2803,10 +2796,10 @@ Sets the deep sleep timeout period.
 ## *setFirmwareRebootDelay*
 
 (Version 2) Delays the firmware reboot.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2853,12 +2846,12 @@ Sets the deep sleep timeout period.
 ## *setGzEnabled*
 
 Enables or disables GZ.
- 
-### Events
- 
- No Events.
 
 > This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2908,14 +2901,12 @@ Sets the mode of the set-top box for a specific duration before returning to nor
 * `NORMAL` - The set-top box is operating in normal mode.  
 * `EAS` - The set-top box is operating in Emergency Alert System (EAS) mode. This mode is set when the device needs to perform certain tasks when entering EAS mode, such as setting the clock display or preventing the user from using the diagnostics menu.  
 * `WAREHOUSE` - The set-top box is operating in warehouse mode.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onSystemModeChanged` | Triggers when the system mode is changed successfully |.
 
-Also see: [onSystemModeChanged](#onSystemModeChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onSystemModeChanged](#onSystemModeChanged) | Triggers when the system mode is changed successfully |
 ### Parameters
 
 | Name | Type | Description |
@@ -2966,10 +2957,10 @@ Also see: [onSystemModeChanged](#onSystemModeChanged)
 ## *setNetworkStandbyMode*
 
 Enables or disables the network standby mode of the device. If network standby is enabled, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3016,10 +3007,10 @@ Enables or disables the network standby mode of the device. If network standby i
 ## *setOptOutTelemetry*
 
 Sets the telemetry opt-out status.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3066,10 +3057,10 @@ Sets the telemetry opt-out status.
 ## *setOvertempGraceInterval*
 
 Sets the over-temperature grace interval value. Not supported on all devices.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3116,14 +3107,12 @@ Sets the over-temperature grace interval value. Not supported on all devices.
 ## *setPowerState*
 
 Sets the power state of the device.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onSystemPowerStateChanged` | Triggers when the system power state changes |.
 
-Also see: [onSystemPowerStateChanged](#onSystemPowerStateChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onSystemPowerStateChanged](#onSystemPowerStateChanged) | Triggers when the system power state changes |
 ### Parameters
 
 | Name | Type | Description |
@@ -3171,10 +3160,10 @@ Also see: [onSystemPowerStateChanged](#onSystemPowerStateChanged)
 ## *setPreferredStandbyMode*
 
 Sets and persists the preferred standby mode. See [getAvailableStandbyModes](#getAvailableStandbyModes) for valid modes. Invoking this function does not change the power state of the device. It only sets the user preference for the preferred action when the [setPowerState](#setPowerState) method is invoked with a value of `STANDBY`.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3221,10 +3210,10 @@ Sets and persists the preferred standby mode. See [getAvailableStandbyModes](#ge
 ## *setTemperatureThresholds*
 
 Sets the temperature threshold values. Not supported on all devices.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3276,10 +3265,10 @@ Sets the temperature threshold values. Not supported on all devices.
 ## *setTerritory*
 
 Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3328,10 +3317,10 @@ Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard 
 ## *setTimeZoneDST*
 
 Sets the system time zone. See `getTimeZones` to get a list of available timezones on the system.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3378,10 +3367,10 @@ Sets the system time zone. See `getTimeZones` to get a list of available timezon
 ## *setWakeupSrcConfiguration*
 
 Sets the wakeup source configuration.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3430,10 +3419,10 @@ Sets the wakeup source configuration.
 ## *updateFirmware*
 
 Initiates a firmware update. This method has no affect if an update is not available.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3474,10 +3463,10 @@ This method takes no parameters.
 ## *uploadLogs*
 
 (Version 2) Uploads logs to a URL returned by SSR.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
