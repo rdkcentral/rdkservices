@@ -65,10 +65,10 @@ HdmiCec_2 interface methods:
 ## *getActiveSourceStatus*
 
 Gets the active source status of the device.
-  
-### Event 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -115,10 +115,10 @@ Gets the active source status of the device.
 ## *getDeviceList*
 
 Gets the list of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -173,10 +173,10 @@ This method takes no parameters.
 ## *getEnabled*
 
 Returns HDMI-CEC driver enabled status.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -219,10 +219,10 @@ This method takes no parameters.
 ## *getOSDName*
 
 Returns the OSD name set by the application.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -265,10 +265,10 @@ This method takes no parameters.
 ## *getOTPEnabled*
 
 Returns HDMI-CEC OTP option enabled status.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -311,10 +311,10 @@ This method takes no parameters.
 ## *getVendorId*
 
 Returns the vendor ID set by the application.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -357,10 +357,10 @@ This method takes no parameters.
 ## *performOTPAction*
 
 Turns on the TV and takes back the input to the device.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -401,10 +401,10 @@ This method takes no parameters.
 ## *sendStandbyMessage*
 
 Sends a CEC \<Standby\> message to the logical address of the device.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -445,10 +445,10 @@ This method takes no parameters.
 ## *setEnabled*
 
 Enables or disables HDMI-CEC driver.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -495,10 +495,10 @@ Enables or disables HDMI-CEC driver.
 ## *setOSDName*
 
 Sets the OSD name of the application.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -545,10 +545,10 @@ Sets the OSD name of the application.
 ## *setOTPEnabled*
 
 Enables or disables HDMI-CEC OTP option.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -595,10 +595,10 @@ Enables or disables HDMI-CEC OTP option.
 ## *setVendorId*
 
 Sets the vendor ID of the application.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 

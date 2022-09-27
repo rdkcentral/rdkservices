@@ -132,7 +132,7 @@
     },
     "methods": {
         "addAnimation":{
-            "summary": "Performs the set of animations. \n \n### Events\n \n No Events.",
+            "summary": "Performs the set of animations.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -212,7 +212,7 @@
             }
         },
         "addKeyIntercept":{
-            "summary": "Adds a key intercept to the client application specified. The keys are specified by a key code and a set of modifiers. Regardless of the application that has focus, key presses that match the key code and modifiers will be sent to the client application. \n \n### Events\n \n No Events.",
+            "summary": "Adds a key intercept to the client application specified. The keys are specified by a key code and a set of modifiers. Regardless of the application that has focus, key presses that match the key code and modifiers will be sent to the client application.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -242,7 +242,7 @@
             }
         },
         "addKeyIntercepts": {
-            "summary": "Adds the list of key intercepts. \n \n### Events\n \n No Events.",
+            "summary": "Adds the list of key intercepts.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -291,7 +291,7 @@
             }
         },
         "addKeyListener":{
-            "summary": "Adds a key listener to an application. The keys are bubbled up based on their z-order. \n \n### Events\n \n No Events.",
+            "summary": "Adds a key listener to an application. The keys are bubbled up based on their z-order.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -350,7 +350,7 @@
             }
         },
         "addKeyMetadataListener": {
-            "summary": "Adds the key metadata listeners. \n \n### Events\n \n No Events.",
+            "summary": "Adds the key metadata listeners.",
             "params": {
                 "type": "object",
                 "properties":{
@@ -374,7 +374,7 @@
             }
         },
         "createDisplay": {
-            "summary": " Creates a display for the specified client using the configuration parameters. \n \n### Events\n \n No Events.",
+            "summary": " Creates a display for the specified client using the configuration parameters.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -440,8 +440,10 @@
             }
         },
         "destroy":{
-            "summary": "Destroys an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `OnDestroyed` | Triggers when a runtime is successfully destroyed |",
-            "events": ["onDestroyed"],
+            "summary": "Destroys an application.",
+            "events": {
+                "onDestroyed" : "Triggers when a runtime is successfully destroyed"
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -458,7 +460,7 @@
             }
         },
         "enableInactivityReporting":{
-            "summary": "Enables or disables inactivity reporting and events. \n \n### Events\n \n No Events.",
+            "summary": "Enables or disables inactivity reporting and events.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -477,7 +479,7 @@
             }
         },
         "enableKeyRepeats": {
-            "summary": "Enables or disables key repeats. \n \n### Events\n \n No Events.",
+            "summary": "Enables or disables key repeats.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -496,7 +498,7 @@
             }            
         },
         "enableLogsFlushing": {
-            "summary": "Enables or disables flushing all logs. \n \n### Events\n \n No Events.",
+            "summary": "Enables or disables flushing all logs.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -515,7 +517,7 @@
             }            
         },
         "enableVirtualDisplay":{
-            "summary": "Enables or disables a virtual display for the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Enables or disables a virtual display for the specified client.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -543,7 +545,7 @@
             }
         },
         "generateKey": {
-            "summary": "Triggers the key events (key press and release). \n \n### Events\n \n No Events.",
+            "summary": "Triggers the key events (key press and release).",
             "params": {
                 "type":"object",
                 "properties": {
@@ -590,7 +592,7 @@
             }
         },
         "getAvailableTypes": {
-            "summary": "Returns the list of application types available on the firmware. \n \n### Events\n \n No Events.",
+            "summary": "Returns the list of application types available on the firmware.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -613,7 +615,7 @@
             }
         },
         "getBounds": {
-            "summary": "Gets the bounds of the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Gets the bounds of the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -667,7 +669,7 @@
             }    
         },
         "getClients": {
-            "summary": "Gets a list of clients. \n \n### Events\n \n No Events.",
+            "summary": "Gets a list of clients.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -685,7 +687,7 @@
             }
         },
         "getCursorSize": {
-            "summary": "Returns the currently set cursor size. \n \n### Events\n \n No Events.",
+            "summary": "Returns the currently set cursor size.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -707,7 +709,7 @@
             }
         },
         "getHolePunch": {
-            "summary": "Returns whether video hole punching is enabled or disabled for the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Returns whether video hole punching is enabled or disabled for the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -741,7 +743,7 @@
             }
         },
         "getKeyRepeatsEnabled": {
-            "summary": "Returns whether key repeating is enabled or disabled. \n \n### Events\n \n No Events.",
+            "summary": "Returns whether key repeating is enabled or disabled.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -761,7 +763,7 @@
             }
         },
         "getLastWakeupKey": {
-            "summary": "Returns the last key press prior to a device wakeup. \n \n### Events\n \n No Events.",
+            "summary": "Returns the last key press prior to a device wakeup.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -789,7 +791,7 @@
             }   
         },
         "getLogLevel": {
-            "summary": "Returns the currently set logging level. \n \n### Events\n \n No Events.",
+            "summary": "Returns the currently set logging level.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -807,7 +809,7 @@
             }
         },
         "getLogsFlushingEnabled": {
-            "summary": "Returns whether log flushing is enabled or disabled. \n \n### Events\n \n No Events.",
+            "summary": "Returns whether log flushing is enabled or disabled.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -827,7 +829,7 @@
             }
         },
         "getOpacity":{
-            "summary": "Gets the opacity of the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Gets the opacity of the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -856,7 +858,7 @@
             }
         },
         "getScale":{
-            "summary": "Returns the scale of an application. \n \n### Events\n \n No Events.",
+            "summary": "Returns the scale of an application.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -893,7 +895,7 @@
             }
         },
         "getScreenResolution":{
-            "summary": "Gets the screen resolution. \n \n### Events\n \n No Events.",
+            "summary": "Gets the screen resolution.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -915,14 +917,16 @@
             }
         },
         "getScreenshot": {
-            "summary": "Captures a screenshot. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onScreenshotComplete` | Triggers when a screenshot is captured successfully |",
-            "events": ["onScreenshotComplete"],
+            "summary": "Captures a screenshot.",
+            "events": {
+                "onScreenshotComplete" : "Triggers when a screenshot is captured successfully"
+            },
             "result":{
                 "$ref": "#/common/result"
             }
         },
         "getState":{
-            "summary": "Returns the state of all applications.\n \n### Events\n \n No Events.",
+            "summary": "Returns the state of all applications.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -962,7 +966,7 @@
             }
         },
         "getSystemMemory": {
-            "summary": "Gets the information of System Memory. \n \n### Events\n \n No Events.",
+            "summary": "Gets the information of System Memory.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -994,7 +998,7 @@
             }
         },
         "getSystemResourceInfo":{
-            "summary": "Returns system resource information about each application. \n \n### Events\n \n No Events.",
+            "summary": "Returns system resource information about each application.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1036,7 +1040,7 @@
             }
         },
         "getVirtualDisplayEnabled":{
-            "summary": "Returns whether virtual display is enabled or disabled for the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Returns whether virtual display is enabled or disabled for the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1072,7 +1076,7 @@
             }
         },
         "getVirtualResolution": {
-            "summary": "Returns the virtual display resolution for the specified client.\n \n### Events\n \n No Events.",
+            "summary": "Returns the virtual display resolution for the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1110,7 +1114,7 @@
             }
         },
         "getVisibility":{
-            "summary": "Gets the visibility of the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Gets the visibility of the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1146,7 +1150,7 @@
             }
         },
         "getZOrder":{
-            "summary": "Returns an array of clients in Z order, starting with the top most application client first. \n \n### Events\n \n No Events.",
+            "summary": "Returns an array of clients in Z order, starting with the top most application client first.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1182,7 +1186,7 @@
             }
         },
         "hideAllClients": {
-            "summary": "Hides/Unhides all the clients. \n \n### Events\n \n No Events.",
+            "summary": "Hides/Unhides all the clients.",
             "params": {
                 "type": "object",
                 "properties":{
@@ -1198,19 +1202,19 @@
             }
         },
         "hideCursor": {
-            "summary": "Hides the cursor from showing on the display. The cursor is hidden by default. \n \n### Events\n \n No Events.",
+            "summary": "Hides the cursor from showing on the display. The cursor is hidden by default.",
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "hideFullScreenImage":{
-            "summary": "Hides the Full Screen Image. \n \n### Events\n \n No Events.",
+            "summary": "Hides the Full Screen Image.",
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "hideSplashLogo": {
-            "summary": "Removes the splash screen. \n \n### Events\n \n No Events.",
+            "summary": "Removes the splash screen.",
             "result": {
                 "$ref": "#/common/result"
             }
@@ -1235,7 +1239,7 @@
             }
         },
         "injectKey": {
-            "summary": "Injects the keys. \n \n### Events\n \n No Events.",
+            "summary": "Injects the keys.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1256,7 +1260,7 @@
             }
         },
         "kill": {
-            "summary": "Kills the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Kills the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1278,8 +1282,10 @@
             }
         },
         "launch":{
-            "summary": "Launches an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onLaunched` | Triggers when the runtime of an application is launched successfully |",
-            "events": ["onLaunched"],
+            "summary": "Launches an application.",
+            "events": {
+                "onLaunched" : "Triggers when the runtime of an application is launched successfull"
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -1390,8 +1396,10 @@
             }
         },
         "launchApplication": {
-            "summary": "Launches an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onApplicationLaunched` | Triggers when an application is launched successfully |.",
-            "events": ["onApplicationLaunched"],
+            "summary": "Launches an application.",
+            "events": {
+                "onApplicationLaunched" : "Triggers when an application is launched successfully"
+            },
             "params": {
                 "type": "object",
                 "properties":{
@@ -1432,13 +1440,13 @@
             }
         },
         "launchResidentApp": {
-            "summary": "Launches the Resident application. \n \n### Events\n \n No Events.",
+            "summary": "Launches the Resident application.",
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "moveBehind":{
-            "summary": "Moves the specified client behind the specified target client. \n \n### Events\n \n No Events.",
+            "summary": "Moves the specified client behind the specified target client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1461,7 +1469,7 @@
             }
         },
         "moveToBack":{
-            "summary": "Moves the specified client to the back or bottom of the Z order. \n \n### Events\n \n No Events.",
+            "summary": "Moves the specified client to the back or bottom of the Z order.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1483,7 +1491,7 @@
             }
         },
         "moveToFront": {
-            "summary": "Moves the specified client to the front or top of the Z order. \n \n### Events\n \n No Events.",
+            "summary": "Moves the specified client to the front or top of the Z order.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1505,19 +1513,19 @@
             }
         },
         "removeAllKeyIntercepts": {
-            "summary": "Removes all key intercepts. \n \n### Events\n \n No Events.",
+            "summary": "Removes all key intercepts.",
             "result": {
                 "$ref": "#/common/result"
             }            
         },
         "removeAllKeyListeners": {
-            "summary": "Removes all key listeners. \n \n### Events\n \n No Events.",
+            "summary": "Removes all key listeners.",
             "result": {
                 "$ref": "#/common/result"
             }            
         },
         "removeAnimation":{
-            "summary": "Removes the current animation for the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Removes the current animation for the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1539,7 +1547,7 @@
             }
         },
         "removeKeyIntercept": {
-            "summary": "Removes a key intercept. \n \n### Events\n \n No Events.",
+            "summary": "Removes a key intercept.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1564,7 +1572,7 @@
             }
         },
         "removeKeyListener": {
-            "summary": "Removes a key listener for an application. \n \n### Events\n \n No Events.",
+            "summary": "Removes a key listener for an application.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1606,7 +1614,7 @@
             }
         },
         "removeKeyMetadataListener":{
-            "summary": "Removes the key metadata listeners. \n \n### Events\n \n No Events.",
+            "summary": "Removes the key metadata listeners.",
             "params": {
                 "type": "object",
                 "properties":{
@@ -1630,14 +1638,16 @@
             }
         },
         "resetInactivityTime":{
-            "summary": "Resets the inactivity notification interval. \n \n### Events\n \n No Events.",
+            "summary": "Resets the inactivity notification interval.",
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "resumeApplication": {
-            "summary": "Resumes an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onApplicationResumed` | Triggers when an application resumes from a suspended state |.",
-            "events": ["onApplicationResumed"],
+            "summary": "Resumes an application.",
+            "events": {
+                "onApplicationResumed" : "Triggers when an application resumes from a suspended state"
+            },
             "params": {
                 "type": "object",
                 "properties":{
@@ -1653,7 +1663,7 @@
             }
         },
         "scaleToFit": {
-            "summary": "Scales the specified client to fit the current bounds. \n \n### Events\n \n No Events.",
+            "summary": "Scales the specified client to fit the current bounds.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1691,7 +1701,7 @@
             }
         },
         "setBounds": {
-            "summary": "Sets the bounds of the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Sets the bounds of the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1729,7 +1739,7 @@
             }
         },
         "setCursorSize": {
-            "summary": "Sets the cursor size. \n \n### Events\n \n No Events.",
+            "summary": "Sets the cursor size.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1750,7 +1760,7 @@
             }
         },
         "setFocus": {
-            "summary": "Sets focus to the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Sets focus to the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1772,7 +1782,7 @@
             }
         },
         "setHolePunch": {
-            "summary": "Enables or disables video hole punching for the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Enables or disables video hole punching for the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1798,8 +1808,10 @@
             }
         },
         "setInactivityInterval": {
-            "summary": "Sets the inactivity notification interval. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onUserInactivity` | Triggers only if the device is inactive for the specified time interval |.",
-            "events": ["onUserInactivity"],
+            "summary": "Sets the inactivity notification interval.",
+            "events": {
+                "onUserInactivity" : "Triggers only if the device is inactive for the specified time interval"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -1818,7 +1830,7 @@
             }
         },
         "setLogLevel":{
-            "summary": "Sets the logging level. \n \n### Events\n \n No Events.",
+            "summary": "Sets the logging level.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1835,7 +1847,7 @@
             }
         },
         "setMemoryMonitor":{
-            "summary": "Enables or disables RAM memory monitoring on the device. Upon enabling, triggers possible events are onDeviceLowRamWarning, onDeviceCriticallyLowRamWarning, onDeviceLowRamWarningCleared, and onDeviceCriticallyLowRamWarningCleared. \n \n### Events\n \n No Events.",
+            "summary": "Enables or disables RAM memory monitoring on the device. Upon enabling, triggers possible events are onDeviceLowRamWarning, onDeviceCriticallyLowRamWarning, onDeviceLowRamWarningCleared, and onDeviceCriticallyLowRamWarningCleared.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1872,7 +1884,7 @@
             }
         },
         "setOpacity":{
-            "summary": "Sets the opacity of the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Sets the opacity of the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1893,7 +1905,7 @@
             }
         },
         "setScale": {
-            "summary": "Scales an application. \n \n### Events\n \n No Events.",
+            "summary": "Scales an application.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1923,7 +1935,7 @@
             }
         },
         "setScreenResolution": {
-            "summary": "Sets the screen resolution. \n \n### Events\n \n No Events.",
+            "summary": "Sets the screen resolution.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1944,7 +1956,7 @@
             }
         },
         "setTopmost":{
-            "summary": "Sets whether the specified client appears above all other clients on the display. \n \n### Events\n \n No Events.",
+            "summary": "Sets whether the specified client appears above all other clients on the display.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1972,7 +1984,7 @@
             }
         },
         "setVirtualResolution": {
-            "summary": "Sets the virtual resolution for the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Sets the virtual resolution for the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1999,7 +2011,7 @@
             }
         },
         "setVisibility":{
-            "summary": "Sets whether the specified client should be visible. \n \n### Events\n \n No Events.",
+            "summary": "Sets whether the specified client should be visible.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -2025,7 +2037,7 @@
             }
         },
         "setGraphicsFrameRate":{
-            "summary": "Set Graphics Frame Rate.. \n \n### Events\n \n No Events.",
+            "summary": "Set Graphics Frame Rate.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -2044,13 +2056,13 @@
             }
         },
         "showCursor": {
-            "summary": "Shows the cursor on the display using the current cursor size. See `setCursorSize`. The cursor automatically disappears after 5 seconds of inactivity. \n \n### Events\n \n No Events.",
+            "summary": "Shows the cursor on the display using the current cursor size. See `setCursorSize`. The cursor automatically disappears after 5 seconds of inactivity.",
             "result": {
                 "$ref": "#/common/result"
             }
         },
         "showFullScreenImage": {
-            "summary": "Shows the Full Screen Image. \n \n### Events\n \n No Events.",
+            "summary": "Shows the Full Screen Image.",
             "params": {
                 "type": "object",
                 "properties":{
@@ -2066,7 +2078,7 @@
             }
         },
         "showSplashLogo": {
-            "summary": "Displays the splash screen. \n \n### Events\n \n No Events.",
+            "summary": "Displays the splash screen.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -2085,7 +2097,7 @@
             }
         },
         "showWatermark": {
-            "summary": "Sets whether a watermark shows on the display. \n \n### Events\n \n No Events.",
+            "summary": "Sets whether a watermark shows on the display.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -2104,8 +2116,10 @@
             }
         },
         "suspend": {
-            "summary": "Suspends an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onSuspended` | Triggers when the runtime of an application is suspended |",
-            "events": ["onSuspended"],
+            "summary": "Suspends an application.",
+            "events": {
+                "onSuspended" : "Triggers when the runtime of an application is suspended"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -2122,8 +2136,10 @@
             }
         },
         "suspendApplication": {
-            "summary": "Suspends an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onApplicationSuspended` | Triggers when an application is suspended |.",
-            "events": ["onApplicationSuspended"],
+            "summary": "Suspends an application.",
+            "events": {
+                "onApplicationSuspended" : "Triggers when an application is suspended"
+            },
             "params": {
                 "type": "object",
                 "properties":{
@@ -2139,7 +2155,7 @@
             }
         },
         "keyRepeatConfig": {
-            "summary": "Customizes key repeats. \n \n### Events\n \n No Events.",
+            "summary": "Customizes key repeats.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -2171,11 +2187,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setAVBlocked": {
-            "summary": "adds/removes the list of applications with the given callsigns to/from the blacklist.\n \n### Events\n \n No Events.",
+            "summary": "adds/removes the list of applications with the given callsigns to/from the blacklist.",
             "params": {
                 "type": "object",
                 "properties":{
@@ -2200,7 +2216,7 @@
             }
         },
         "getBlockedAVApplications": {
-            "summary": "Gets a list of blacklisted clients. \n \n### Events\n \n No Events.",
+            "summary": "Gets a list of blacklisted clients.",
             "result": {
                 "type": "object",
                 "properties": {

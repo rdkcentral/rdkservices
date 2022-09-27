@@ -130,11 +130,11 @@ RDKShell interface methods:
 <a name="addAnimation"></a>
 ## *addAnimation*
 
-Performs the set of animations. 
- 
+Performs the set of animations.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -206,11 +206,11 @@ Performs the set of animations.
 <a name="addKeyIntercept"></a>
 ## *addKeyIntercept*
 
-Adds a key intercept to the client application specified. The keys are specified by a key code and a set of modifiers. Regardless of the application that has focus, key presses that match the key code and modifiers will be sent to the client application. 
- 
+Adds a key intercept to the client application specified. The keys are specified by a key code and a set of modifiers. Regardless of the application that has focus, key presses that match the key code and modifiers will be sent to the client application.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -265,11 +265,11 @@ Adds a key intercept to the client application specified. The keys are specified
 <a name="addKeyIntercepts"></a>
 ## *addKeyIntercepts*
 
-Adds the list of key intercepts. 
- 
+Adds the list of key intercepts.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -334,11 +334,11 @@ Adds the list of key intercepts.
 <a name="addKeyListener"></a>
 ## *addKeyListener*
 
-Adds a key listener to an application. The keys are bubbled up based on their z-order. 
- 
+Adds a key listener to an application. The keys are bubbled up based on their z-order.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -405,11 +405,11 @@ Adds a key listener to an application. The keys are bubbled up based on their z-
 <a name="addKeyMetadataListener"></a>
 ## *addKeyMetadataListener*
 
-Adds the key metadata listeners. 
- 
+Adds the key metadata listeners.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -457,11 +457,11 @@ Adds the key metadata listeners.
 <a name="createDisplay"></a>
 ## *createDisplay*
 
- Creates a display for the specified client using the configuration parameters. 
- 
+ Creates a display for the specified client using the configuration parameters.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -525,15 +525,13 @@ Adds the key metadata listeners.
 <a name="destroy"></a>
 ## *destroy*
 
-Destroys an application. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `OnDestroyed` | Triggers when a runtime is successfully destroyed |.
+Destroys an application.
 
-Also see: [onDestroyed](#onDestroyed)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onDestroyed](#onDestroyed) | Triggers when a runtime is successfully destroyed |
 ### Parameters
 
 | Name | Type | Description |
@@ -578,11 +576,11 @@ Also see: [onDestroyed](#onDestroyed)
 <a name="enableInactivityReporting"></a>
 ## *enableInactivityReporting*
 
-Enables or disables inactivity reporting and events. 
- 
+Enables or disables inactivity reporting and events.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -628,11 +626,11 @@ Enables or disables inactivity reporting and events.
 <a name="enableKeyRepeats"></a>
 ## *enableKeyRepeats*
 
-Enables or disables key repeats. 
- 
+Enables or disables key repeats.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -678,11 +676,11 @@ Enables or disables key repeats.
 <a name="enableLogsFlushing"></a>
 ## *enableLogsFlushing*
 
-Enables or disables flushing all logs. 
- 
+Enables or disables flushing all logs.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -728,11 +726,11 @@ Enables or disables flushing all logs.
 <a name="enableVirtualDisplay"></a>
 ## *enableVirtualDisplay*
 
-Enables or disables a virtual display for the specified client. 
- 
+Enables or disables a virtual display for the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -782,11 +780,11 @@ Enables or disables a virtual display for the specified client.
 <a name="generateKey"></a>
 ## *generateKey*
 
-Triggers the key events (key press and release). 
- 
+Triggers the key events (key press and release).
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -849,11 +847,11 @@ Triggers the key events (key press and release).
 <a name="getAvailableTypes"></a>
 ## *getAvailableTypes*
 
-Returns the list of application types available on the firmware. 
- 
+Returns the list of application types available on the firmware.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -898,11 +896,11 @@ This method takes no parameters.
 <a name="getBounds"></a>
 ## *getBounds*
 
-Gets the bounds of the specified client. 
- 
+Gets the bounds of the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -961,11 +959,11 @@ Gets the bounds of the specified client.
 <a name="getClients"></a>
 ## *getClients*
 
-Gets a list of clients. 
- 
+Gets a list of clients.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1010,11 +1008,11 @@ This method takes no parameters.
 <a name="getCursorSize"></a>
 ## *getCursorSize*
 
-Returns the currently set cursor size. 
- 
+Returns the currently set cursor size.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1058,11 +1056,11 @@ This method takes no parameters.
 <a name="getHolePunch"></a>
 ## *getHolePunch*
 
-Returns whether video hole punching is enabled or disabled for the specified client. 
- 
+Returns whether video hole punching is enabled or disabled for the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1112,11 +1110,11 @@ Returns whether video hole punching is enabled or disabled for the specified cli
 <a name="getKeyRepeatsEnabled"></a>
 ## *getKeyRepeatsEnabled*
 
-Returns whether key repeating is enabled or disabled. 
- 
+Returns whether key repeating is enabled or disabled.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1158,11 +1156,11 @@ This method takes no parameters.
 <a name="getLastWakeupKey"></a>
 ## *getLastWakeupKey*
 
-Returns the last key press prior to a device wakeup. 
- 
+Returns the last key press prior to a device wakeup.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1211,11 +1209,11 @@ This method takes no parameters.
 <a name="getLogLevel"></a>
 ## *getLogLevel*
 
-Returns the currently set logging level. 
- 
+Returns the currently set logging level.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1257,11 +1255,11 @@ This method takes no parameters.
 <a name="getLogsFlushingEnabled"></a>
 ## *getLogsFlushingEnabled*
 
-Returns whether log flushing is enabled or disabled. 
- 
+Returns whether log flushing is enabled or disabled.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1303,11 +1301,11 @@ This method takes no parameters.
 <a name="getOpacity"></a>
 ## *getOpacity*
 
-Gets the opacity of the specified client. 
- 
+Gets the opacity of the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1355,11 +1353,11 @@ Gets the opacity of the specified client.
 <a name="getScale"></a>
 ## *getScale*
 
-Returns the scale of an application. 
- 
+Returns the scale of an application.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1409,11 +1407,11 @@ Returns the scale of an application.
 <a name="getScreenResolution"></a>
 ## *getScreenResolution*
 
-Gets the screen resolution. 
- 
+Gets the screen resolution.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1457,15 +1455,13 @@ This method takes no parameters.
 <a name="getScreenshot"></a>
 ## *getScreenshot*
 
-Captures a screenshot. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onScreenshotComplete` | Triggers when a screenshot is captured successfully |.
+Captures a screenshot.
 
-Also see: [onScreenshotComplete](#onScreenshotComplete)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onScreenshotComplete](#onScreenshotComplete) | Triggers when a screenshot is captured successfully |
 ### Parameters
 
 This method takes no parameters.
@@ -1505,10 +1501,10 @@ This method takes no parameters.
 ## *getState*
 
 Returns the state of all applications.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1560,11 +1556,11 @@ This method takes no parameters.
 <a name="getSystemMemory"></a>
 ## *getSystemMemory*
 
-Gets the information of System Memory. 
- 
+Gets the information of System Memory.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1610,11 +1606,11 @@ This method takes no parameters.
 <a name="getSystemResourceInfo"></a>
 ## *getSystemResourceInfo*
 
-Returns system resource information about each application. 
- 
+Returns system resource information about each application.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1666,11 +1662,11 @@ This method takes no parameters.
 <a name="getVirtualDisplayEnabled"></a>
 ## *getVirtualDisplayEnabled*
 
-Returns whether virtual display is enabled or disabled for the specified client. 
- 
+Returns whether virtual display is enabled or disabled for the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1721,10 +1717,10 @@ Returns whether virtual display is enabled or disabled for the specified client.
 ## *getVirtualResolution*
 
 Returns the virtual display resolution for the specified client.
- 
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1776,11 +1772,11 @@ Returns the virtual display resolution for the specified client.
 <a name="getVisibility"></a>
 ## *getVisibility*
 
-Gets the visibility of the specified client. 
- 
+Gets the visibility of the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1830,11 +1826,11 @@ Gets the visibility of the specified client.
 <a name="getZOrder"></a>
 ## *getZOrder*
 
-Returns an array of clients in Z order, starting with the top most application client first. 
- 
+Returns an array of clients in Z order, starting with the top most application client first.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1881,6 +1877,10 @@ This method takes no parameters.
 
 Returns the current Graphics Frame Rate.
 
+### Events
+
+No Events
+
 ### Parameters
 
 This method takes no parameters.
@@ -1921,11 +1921,11 @@ This method takes no parameters.
 <a name="hideAllClients"></a>
 ## *hideAllClients*
 
-Hides/Unhides all the clients. 
- 
+Hides/Unhides all the clients.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1971,11 +1971,11 @@ Hides/Unhides all the clients.
 <a name="hideCursor"></a>
 ## *hideCursor*
 
-Hides the cursor from showing on the display. The cursor is hidden by default. 
- 
+Hides the cursor from showing on the display. The cursor is hidden by default.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2015,11 +2015,11 @@ This method takes no parameters.
 <a name="hideFullScreenImage"></a>
 ## *hideFullScreenImage*
 
-Hides the Full Screen Image. 
- 
+Hides the Full Screen Image.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2059,11 +2059,11 @@ This method takes no parameters.
 <a name="hideSplashLogo"></a>
 ## *hideSplashLogo*
 
-Removes the splash screen. 
- 
+Removes the splash screen.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2104,6 +2104,10 @@ This method takes no parameters.
 ## *ignoreKeyInputs*
 
 Blocks user key inputs.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -2149,11 +2153,11 @@ Blocks user key inputs.
 <a name="injectKey"></a>
 ## *injectKey*
 
-Injects the keys. 
- 
+Injects the keys.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2204,11 +2208,11 @@ Injects the keys.
 <a name="kill"></a>
 ## *kill*
 
-Kills the specified client. 
- 
+Kills the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2256,15 +2260,13 @@ Kills the specified client.
 <a name="launch"></a>
 ## *launch*
 
-Launches an application. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onLaunched` | Triggers when the runtime of an application is launched successfully |.
+Launches an application.
 
-Also see: [onLaunched](#onLaunched)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onLaunched](#onLaunched) | Triggers when the runtime of an application is launched successfull |
 ### Parameters
 
 | Name | Type | Description |
@@ -2347,15 +2349,13 @@ Also see: [onLaunched](#onLaunched)
 <a name="launchApplication"></a>
 ## *launchApplication*
 
-Launches an application. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onApplicationLaunched` | Triggers when an application is launched successfully |.
+Launches an application.
 
-Also see: [onApplicationLaunched](#onApplicationLaunched)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onApplicationLaunched](#onApplicationLaunched) | Triggers when an application is launched successfully |
 ### Parameters
 
 | Name | Type | Description |
@@ -2408,11 +2408,11 @@ Also see: [onApplicationLaunched](#onApplicationLaunched)
 <a name="launchResidentApp"></a>
 ## *launchResidentApp*
 
-Launches the Resident application. 
- 
+Launches the Resident application.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2452,11 +2452,11 @@ This method takes no parameters.
 <a name="moveBehind"></a>
 ## *moveBehind*
 
-Moves the specified client behind the specified target client. 
- 
+Moves the specified client behind the specified target client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2504,11 +2504,11 @@ Moves the specified client behind the specified target client.
 <a name="moveToBack"></a>
 ## *moveToBack*
 
-Moves the specified client to the back or bottom of the Z order. 
- 
+Moves the specified client to the back or bottom of the Z order.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2556,11 +2556,11 @@ Moves the specified client to the back or bottom of the Z order.
 <a name="moveToFront"></a>
 ## *moveToFront*
 
-Moves the specified client to the front or top of the Z order. 
- 
+Moves the specified client to the front or top of the Z order.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2608,11 +2608,11 @@ Moves the specified client to the front or top of the Z order.
 <a name="removeAllKeyIntercepts"></a>
 ## *removeAllKeyIntercepts*
 
-Removes all key intercepts. 
- 
+Removes all key intercepts.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2652,11 +2652,11 @@ This method takes no parameters.
 <a name="removeAllKeyListeners"></a>
 ## *removeAllKeyListeners*
 
-Removes all key listeners. 
- 
+Removes all key listeners.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2696,11 +2696,11 @@ This method takes no parameters.
 <a name="removeAnimation"></a>
 ## *removeAnimation*
 
-Removes the current animation for the specified client. 
- 
+Removes the current animation for the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2748,11 +2748,11 @@ Removes the current animation for the specified client.
 <a name="removeKeyIntercept"></a>
 ## *removeKeyIntercept*
 
-Removes a key intercept. 
- 
+Removes a key intercept.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2805,11 +2805,11 @@ Removes a key intercept.
 <a name="removeKeyListener"></a>
 ## *removeKeyListener*
 
-Removes a key listener for an application. 
- 
+Removes a key listener for an application.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2870,11 +2870,11 @@ Removes a key listener for an application.
 <a name="removeKeyMetadataListener"></a>
 ## *removeKeyMetadataListener*
 
-Removes the key metadata listeners. 
- 
+Removes the key metadata listeners.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2922,11 +2922,11 @@ Removes the key metadata listeners.
 <a name="resetInactivityTime"></a>
 ## *resetInactivityTime*
 
-Resets the inactivity notification interval. 
- 
+Resets the inactivity notification interval.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -2966,15 +2966,13 @@ This method takes no parameters.
 <a name="resumeApplication"></a>
 ## *resumeApplication*
 
-Resumes an application. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onApplicationResumed` | Triggers when an application resumes from a suspended state |.
+Resumes an application.
 
-Also see: [onApplicationResumed](#onApplicationResumed)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onApplicationResumed](#onApplicationResumed) | Triggers when an application resumes from a suspended state |
 ### Parameters
 
 | Name | Type | Description |
@@ -3019,11 +3017,11 @@ Also see: [onApplicationResumed](#onApplicationResumed)
 <a name="scaleToFit"></a>
 ## *scaleToFit*
 
-Scales the specified client to fit the current bounds. 
- 
+Scales the specified client to fit the current bounds.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3079,11 +3077,11 @@ Scales the specified client to fit the current bounds.
 <a name="setBounds"></a>
 ## *setBounds*
 
-Sets the bounds of the specified client. 
- 
+Sets the bounds of the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3139,11 +3137,11 @@ Sets the bounds of the specified client.
 <a name="setCursorSize"></a>
 ## *setCursorSize*
 
-Sets the cursor size. 
- 
+Sets the cursor size.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3191,11 +3189,11 @@ Sets the cursor size.
 <a name="setFocus"></a>
 ## *setFocus*
 
-Sets focus to the specified client. 
- 
+Sets focus to the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3243,11 +3241,11 @@ Sets focus to the specified client.
 <a name="setHolePunch"></a>
 ## *setHolePunch*
 
-Enables or disables video hole punching for the specified client. 
- 
+Enables or disables video hole punching for the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3297,15 +3295,13 @@ Enables or disables video hole punching for the specified client.
 <a name="setInactivityInterval"></a>
 ## *setInactivityInterval*
 
-Sets the inactivity notification interval. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onUserInactivity` | Triggers only if the device is inactive for the specified time interval |.
+Sets the inactivity notification interval.
 
-Also see: [onUserInactivity](#onUserInactivity)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onUserInactivity](#onUserInactivity) | Triggers only if the device is inactive for the specified time interval |
 ### Parameters
 
 | Name | Type | Description |
@@ -3350,11 +3346,11 @@ Also see: [onUserInactivity](#onUserInactivity)
 <a name="setLogLevel"></a>
 ## *setLogLevel*
 
-Sets the logging level. 
- 
+Sets the logging level.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3400,11 +3396,11 @@ Sets the logging level.
 <a name="setMemoryMonitor"></a>
 ## *setMemoryMonitor*
 
-Enables or disables RAM memory monitoring on the device. Upon enabling, triggers possible events are onDeviceLowRamWarning, onDeviceCriticallyLowRamWarning, onDeviceLowRamWarningCleared, and onDeviceCriticallyLowRamWarningCleared. 
- 
+Enables or disables RAM memory monitoring on the device. Upon enabling, triggers possible events are onDeviceLowRamWarning, onDeviceCriticallyLowRamWarning, onDeviceLowRamWarningCleared, and onDeviceCriticallyLowRamWarningCleared.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3456,11 +3452,11 @@ Enables or disables RAM memory monitoring on the device. Upon enabling, triggers
 <a name="setOpacity"></a>
 ## *setOpacity*
 
-Sets the opacity of the specified client. 
- 
+Sets the opacity of the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3508,11 +3504,11 @@ Sets the opacity of the specified client.
 <a name="setScale"></a>
 ## *setScale*
 
-Scales an application. 
- 
+Scales an application.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3564,11 +3560,11 @@ Scales an application.
 <a name="setScreenResolution"></a>
 ## *setScreenResolution*
 
-Sets the screen resolution. 
- 
+Sets the screen resolution.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3616,11 +3612,11 @@ Sets the screen resolution.
 <a name="setTopmost"></a>
 ## *setTopmost*
 
-Sets whether the specified client appears above all other clients on the display. 
- 
+Sets whether the specified client appears above all other clients on the display.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3670,11 +3666,11 @@ Sets whether the specified client appears above all other clients on the display
 <a name="setVirtualResolution"></a>
 ## *setVirtualResolution*
 
-Sets the virtual resolution for the specified client. 
- 
+Sets the virtual resolution for the specified client.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3724,11 +3720,11 @@ Sets the virtual resolution for the specified client.
 <a name="setVisibility"></a>
 ## *setVisibility*
 
-Sets whether the specified client should be visible. 
- 
+Sets whether the specified client should be visible.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3778,11 +3774,11 @@ Sets whether the specified client should be visible.
 <a name="setGraphicsFrameRate"></a>
 ## *setGraphicsFrameRate*
 
-Set Graphics Frame Rate.. 
- 
+Set Graphics Frame Rate.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3828,11 +3824,11 @@ Set Graphics Frame Rate..
 <a name="showCursor"></a>
 ## *showCursor*
 
-Shows the cursor on the display using the current cursor size. See `setCursorSize`. The cursor automatically disappears after 5 seconds of inactivity. 
- 
+Shows the cursor on the display using the current cursor size. See `setCursorSize`. The cursor automatically disappears after 5 seconds of inactivity.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3872,11 +3868,11 @@ This method takes no parameters.
 <a name="showFullScreenImage"></a>
 ## *showFullScreenImage*
 
-Shows the Full Screen Image. 
- 
+Shows the Full Screen Image.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3922,11 +3918,11 @@ Shows the Full Screen Image.
 <a name="showSplashLogo"></a>
 ## *showSplashLogo*
 
-Displays the splash screen. 
- 
+Displays the splash screen.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -3972,11 +3968,11 @@ Displays the splash screen.
 <a name="showWatermark"></a>
 ## *showWatermark*
 
-Sets whether a watermark shows on the display. 
- 
+Sets whether a watermark shows on the display.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -4022,15 +4018,13 @@ Sets whether a watermark shows on the display.
 <a name="suspend"></a>
 ## *suspend*
 
-Suspends an application. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onSuspended` | Triggers when the runtime of an application is suspended |.
+Suspends an application.
 
-Also see: [onSuspended](#onSuspended)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onSuspended](#onSuspended) | Triggers when the runtime of an application is suspended |
 ### Parameters
 
 | Name | Type | Description |
@@ -4075,15 +4069,13 @@ Also see: [onSuspended](#onSuspended)
 <a name="suspendApplication"></a>
 ## *suspendApplication*
 
-Suspends an application. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onApplicationSuspended` | Triggers when an application is suspended |.
+Suspends an application.
 
-Also see: [onApplicationSuspended](#onApplicationSuspended)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onApplicationSuspended](#onApplicationSuspended) | Triggers when an application is suspended |
 ### Parameters
 
 | Name | Type | Description |
@@ -4128,11 +4120,11 @@ Also see: [onApplicationSuspended](#onApplicationSuspended)
 <a name="keyRepeatConfig"></a>
 ## *keyRepeatConfig*
 
-Customizes key repeats. 
- 
+Customizes key repeats.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -4148,3 +4140,677 @@ Customizes key repeats.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.keyRepeatConfig",
+    "params": {
+        "input": "default",
+        "enabled": true,
+        "initialDelay": 500,
+        "repeatInterval": 250
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="setAVBlocked"></a>
+## *setAVBlocked*
+
+adds/removes the list of applications with the given callsigns to/from the blacklist.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.callsign | string | The application callsign |
+| params.blocked | boolean | Whether to block (`true`) or unblock (`false`) AV for the callsign |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.setAVBlocked",
+    "params": {
+        "callsign": "searchanddiscovery",
+        "blocked": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="getBlockedAVApplications"></a>
+## *getBlockedAVApplications*
+
+Gets a list of blacklisted clients.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.clients | array | A list of clients |
+| result.clients[#] | string |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.getBlockedAVApplications"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "clients": [
+            "org.rdk.Netflix"
+        ],
+        "success": true
+    }
+}
+```
+
+<a name="Notifications"></a>
+# Notifications
+
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
+
+The following events are provided by the org.rdk.RDKShell plugin:
+
+RDKShell interface events:
+
+| Event | Description |
+| :-------- | :-------- |
+| [onApplicationActivated](#onApplicationActivated) | Triggered when an application is activated |
+| [onApplicationConnected](#onApplicationConnected) | Triggered when a connection to an application succeeds |
+| [onApplicationDisconnected](#onApplicationDisconnected) | Triggered when an attempt to disconnect from an application succeeds |
+| [onApplicationFirstFrame](#onApplicationFirstFrame) | Triggered when the first frame of an application is loaded |
+| [onApplicationLaunched](#onApplicationLaunched) | Triggered when an application launches successfully |
+| [onApplicationResumed](#onApplicationResumed) | Triggered when an application resumes from a suspended state |
+| [onApplicationSuspended](#onApplicationSuspended) | Triggered when an application is suspended |
+| [onApplicationTerminated](#onApplicationTerminated) | Triggered when an application terminates |
+| [onDestroyed](#onDestroyed) | Triggered when a runtime is destroyed |
+| [onDeviceCriticallyLowRamWarning](#onDeviceCriticallyLowRamWarning) | Triggered when the RAM memory on the device exceeds the configured `criticallyLowRam` threshold value |
+| [onDeviceCriticallyLowRamWarningCleared](#onDeviceCriticallyLowRamWarningCleared) | Triggered when the RAM memory on the device no longer exceeds the configured `criticallyLowRam` threshold value |
+| [onDeviceLowRamWarning](#onDeviceLowRamWarning) | Triggered when the RAM memory on the device exceeds the configured `lowRam` threshold value |
+| [onDeviceLowRamWarningCleared](#onDeviceLowRamWarningCleared) | Triggered when the RAM memory on the device no longer exceeds the configured `lowRam` threshold value |
+| [onLaunched](#onLaunched) | Triggered when a runtime is launched |
+| [onSuspended](#onSuspended) | Triggered when a runtime is suspended |
+| [onUserInactivity](#onUserInactivity) | Triggered when a device has been inactive for a period of time |
+| [onWillDestroy](#onWillDestroy) | Triggered when an application is set to be destroyed |
+| [onPluginSuspended](#onPluginSuspended) | Triggered when a plugin is suspended |
+| [onScreenshotComplete](#onScreenshotComplete) | Triggered when a screenshot is captured successfully using `getScreenshot` method |
+| [onBlur](#onBlur) | Triggered when the focused client is blurred |
+| [onFocus](#onFocus) | Triggered when a client is set to focus |
+
+
+<a name="onApplicationActivated"></a>
+## *onApplicationActivated*
+
+Triggered when an application is activated.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onApplicationActivated",
+    "params": {
+        "client": "org.rdk.Netflix"
+    }
+}
+```
+
+<a name="onApplicationConnected"></a>
+## *onApplicationConnected*
+
+Triggered when a connection to an application succeeds.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onApplicationConnected",
+    "params": {
+        "client": "org.rdk.Netflix"
+    }
+}
+```
+
+<a name="onApplicationDisconnected"></a>
+## *onApplicationDisconnected*
+
+Triggered when an attempt to disconnect from an application succeeds.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onApplicationDisconnected",
+    "params": {
+        "client": "org.rdk.Netflix"
+    }
+}
+```
+
+<a name="onApplicationFirstFrame"></a>
+## *onApplicationFirstFrame*
+
+Triggered when the first frame of an application is loaded.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onApplicationFirstFrame",
+    "params": {
+        "client": "org.rdk.Netflix"
+    }
+}
+```
+
+<a name="onApplicationLaunched"></a>
+## *onApplicationLaunched*
+
+Triggered when an application launches successfully.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onApplicationLaunched",
+    "params": {
+        "client": "org.rdk.Netflix"
+    }
+}
+```
+
+<a name="onApplicationResumed"></a>
+## *onApplicationResumed*
+
+Triggered when an application resumes from a suspended state.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onApplicationResumed",
+    "params": {
+        "client": "org.rdk.Netflix"
+    }
+}
+```
+
+<a name="onApplicationSuspended"></a>
+## *onApplicationSuspended*
+
+Triggered when an application is suspended.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onApplicationSuspended",
+    "params": {
+        "client": "org.rdk.Netflix"
+    }
+}
+```
+
+<a name="onApplicationTerminated"></a>
+## *onApplicationTerminated*
+
+Triggered when an application terminates.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onApplicationTerminated",
+    "params": {
+        "client": "org.rdk.Netflix"
+    }
+}
+```
+
+<a name="onDestroyed"></a>
+## *onDestroyed*
+
+Triggered when a runtime is destroyed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onDestroyed",
+    "params": {
+        "client": "org.rdk.Netflix"
+    }
+}
+```
+
+<a name="onDeviceCriticallyLowRamWarning"></a>
+## *onDeviceCriticallyLowRamWarning*
+
+Triggered when the RAM memory on the device exceeds the configured `criticallyLowRam` threshold value. See `setMemoryMonitor`.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.ram | integer | The amount of free memory remaining in Kilobytes |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onDeviceCriticallyLowRamWarning",
+    "params": {
+        "ram": 65536
+    }
+}
+```
+
+<a name="onDeviceCriticallyLowRamWarningCleared"></a>
+## *onDeviceCriticallyLowRamWarningCleared*
+
+Triggered when the RAM memory on the device no longer exceeds the configured `criticallyLowRam` threshold value. See `setMemoryMonitor`.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.ram | integer | The amount of free memory remaining in Kilobytes |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onDeviceCriticallyLowRamWarningCleared",
+    "params": {
+        "ram": 65536
+    }
+}
+```
+
+<a name="onDeviceLowRamWarning"></a>
+## *onDeviceLowRamWarning*
+
+Triggered when the RAM memory on the device exceeds the configured `lowRam` threshold value. See `setMemoryMonitor`.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.ram | integer | The amount of free memory remaining in Kilobytes |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onDeviceLowRamWarning",
+    "params": {
+        "ram": 65536
+    }
+}
+```
+
+<a name="onDeviceLowRamWarningCleared"></a>
+## *onDeviceLowRamWarningCleared*
+
+Triggered when the RAM memory on the device no longer exceeds the configured `lowRam` threshold value. See `setMemoryMonitor`.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.ram | integer | The amount of free memory remaining in Kilobytes |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onDeviceLowRamWarningCleared",
+    "params": {
+        "ram": 65536
+    }
+}
+```
+
+<a name="onLaunched"></a>
+## *onLaunched*
+
+Triggered when a runtime is launched.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+| params.launchType | string | The launch type of an application (must be one of the following: *create*, *active*, *suspend*, *resume*) |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onLaunched",
+    "params": {
+        "client": "org.rdk.Netflix",
+        "launchType": "create"
+    }
+}
+```
+
+<a name="onSuspended"></a>
+## *onSuspended*
+
+Triggered when a runtime is suspended.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onSuspended",
+    "params": {
+        "client": "org.rdk.Netflix"
+    }
+}
+```
+
+<a name="onUserInactivity"></a>
+## *onUserInactivity*
+
+Triggered when a device has been inactive for a period of time. This event is broadcasted at the frequency specified by `setInactivityInterval` if the device is not active. The default frequency is 15 minutes.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.minutes | number | The number of minutes that the device has been inactive |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onUserInactivity",
+    "params": {
+        "minutes": 5
+    }
+}
+```
+
+<a name="onWillDestroy"></a>
+## *onWillDestroy*
+
+Triggered when an application is set to be destroyed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.callsign | string | The application callsign |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onWillDestroy",
+    "params": {
+        "callsign": "Cobalt"
+    }
+}
+```
+
+<a name="onPluginSuspended"></a>
+## *onPluginSuspended*
+
+Triggered when a plugin is suspended.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onPluginSuspended",
+    "params": {
+        "client": "searchanddiscovery"
+    }
+}
+```
+
+<a name="onScreenshotComplete"></a>
+## *onScreenshotComplete*
+
+Triggered when a screenshot is captured successfully using `getScreenshot` 
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.imageData | string | Base64 encoded image data |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onScreenshotComplete",
+    "params": {
+        "imageData": "AAAAAAAAAA"
+    }
+}
+```
+
+<a name="onBlur"></a>
+## *onBlur*
+
+Triggered when the focused client is blurred.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onBlur",
+    "params": {
+        "client": "searchanddiscovery"
+    }
+}
+```
+
+<a name="onFocus"></a>
+## *onFocus*
+
+Triggered when a client is set to focus.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onFocus",
+    "params": {
+        "client": "HtmlApp"
+    }
+}
+```
+

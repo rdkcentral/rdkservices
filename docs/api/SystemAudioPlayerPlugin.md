@@ -69,10 +69,10 @@ SystemAudioPlayer interface methods:
 Closes the system audio player with the specified ID. The `SystemAudioPlayer` plugin destroys the player object. That is, if the player is playing, then it is stopped and closed. All volume mixer level settings are restored. 
 
  Also See: [open](#open).
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -119,10 +119,10 @@ Closes the system audio player with the specified ID. The `SystemAudioPlayer` pl
 ## *config*
 
 Configures playback for a PCM audio source (audio/x-raw) on the specified player. This method must be called before the [play](#play)  There may be more optional configuration parameters added in the future for PCM as well as for other audio types. Supported audio/x-raw configuration parameters can be found at https://gstreamer.freedesktop.org/documentation/rawparse/rawaudioparse.html#src.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -194,11 +194,11 @@ Configures playback for a PCM audio source (audio/x-raw) on the specified player
 <a name="getPlayerSessionId"></a>
 ## *getPlayerSessionId*
 
-Gets the session ID from the provided the URL. The session is the ID returned in open cal. 
- 
-### Events 
+Gets the session ID from the provided the URL. The session is the ID returned in open cal.
 
- No Events .
+### Events
+
+No Events
 
 ### Parameters
 
@@ -247,10 +247,10 @@ Gets the session ID from the provided the URL. The session is the ID returned in
 ## *isspeaking*
 
 Checks if playback is in progress.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -301,10 +301,10 @@ Opens a player instance and assigns it a unique ID. The player ID is used to ref
 **Note**: The `SystemAudioPlayer` plugin can have a maximum of 1 system and 1 application play mode player at a time.  
 
 Also See: [close](#close).
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -357,14 +357,12 @@ Also See: [close](#close).
 ## *pause*
 
 Pauses playback on the specified player. Pause is only supported for HTTP and file source types.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onsapevents:PLAYBACK_PAUSED`| Triggered if the playback paused on the specified player.|.
 
-Also see: [onsapevents](#onsapevents)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onsapevents](#onsapevents) | Triggered if the playback paused on the specified player. |
 ### Parameters
 
 | Name | Type | Description |
@@ -412,15 +410,12 @@ Also see: [onsapevents](#onsapevents)
 Plays audio on the specified player.  
 
 **Note**: If a player is using one play mode and another player tries to play audio using the same play mode, then an error returns indicating that the hardware resource has already been acquired by the session and includes the player ID.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onsapevents:PLAYBACK_STARTED`| Triggered if the playback is started to play on the specified player.|
-| `onsapevents:PLAYBACK_FINISHED`| Triggered if the playback is finished  normally on the specified player.|.
 
-Also see: [onsapevents](#onsapevents)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onsapevents](#onsapevents) | Triggered if the playback is started to play or finished normally on the specified player. |
 ### Parameters
 
 | Name | Type | Description |
@@ -468,14 +463,12 @@ Also see: [onsapevents](#onsapevents)
 ## *playbuffer*
 
 Buffers the audio playback on the specified player.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onsapevents:NEED_DATA`| Triggered if  the buffer needs more data to play|.
 
-Also see: [onsapevents](#onsapevents)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onsapevents](#onsapevents) | Triggered if the buffer needs more data to play. |
 ### Parameters
 
 | Name | Type | Description |
@@ -523,14 +516,12 @@ Also see: [onsapevents](#onsapevents)
 ## *resume*
 
 Resumes playback on the specified player. Resume is only supported for HTTP and file source types.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onsapevents:PLAYBACK_RESUMED`| Triggered if the playback resumed on the specified player.|.
 
-Also see: [onsapevents](#onsapevents)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onsapevents](#onsapevents) | Triggered if the playback resumed on the specified player. |
 ### Parameters
 
 | Name | Type | Description |
@@ -576,10 +567,10 @@ Also see: [onsapevents](#onsapevents)
 ## *setMixerLevels*
 
 Sets the audio level on the specified player. The `SystemAudioPlayer` plugin can control the volume of the content being played back as well as the primary program audio; thus, an application can duck down the volume on the primary program audio when system audio is played and then restore it back when the system audio playback is complete.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -630,10 +621,10 @@ Sets the audio level on the specified player. The `SystemAudioPlayer` plugin can
 ## *setSmartVolControl*
 
 Sets the smart volume audio control on the specified player. The plugin can control the smart volume of the content being played back as well as the primary program audio; thus, an application can duck down the volume on the primary program audio when system audio is played and then restore it back when the system audio playback is complete.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -690,10 +681,10 @@ Sets the smart volume audio control on the specified player. The plugin can cont
 ## *stop*
 
 Stops playback on the specified player.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 

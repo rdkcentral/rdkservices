@@ -58,13 +58,13 @@ LocationSync interface methods:
 <a name="sync"></a>
 ## *sync*
 
-Synchronizes the location. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `locationchange` | Signals the change of location |.
+Synchronizes the location.
 
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [locationchange](#locationchange) | Signals the change of location |
 ### Parameters
 
 This method takes no parameters.
@@ -124,6 +124,10 @@ LocationSync interface properties:
 Provides access to the location information.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
