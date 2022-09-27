@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "CompositeInput API", 
         "class": "CompositeInput",
         "description": "The `CompositeInput` Plugin allows you to control the composite input source on a device"
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "id": {
@@ -21,27 +24,11 @@
             "summary": "`true` if the input source is connected, otherwise `false`",
             "type": "boolean",
             "example": true
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        }
+       }
     },
     "methods": {
         "getCompositeInputDevices" :{
-            "summary": "returns a list of composite input devices.\n \n### Events\n \nNo Events.",
+            "summary": "returns a list of composite input devices.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -69,7 +56,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 }, 
                 "required": [
@@ -79,7 +66,7 @@
             }
         },
         "setVideoRectangle":{
-            "summary": "Sets the composite input video window.\n \n### Events\n \nNo Events.",
+            "summary": "Sets the composite input video window.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -112,16 +99,16 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
 
         },
         "startCompositeInput":{
-            "summary": "Activates the specified composite input as the primary video source.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onInputStatusChanged` | Triggers this event when activates composite input source and input status changes to `started` | \n| `onSignalChanged` | Triggers this event when composite input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal) |",
-            "events": [
-                "onInputStatusChanged",
-                "onSignalChanged"
-            ],
+            "summary": "Activates the specified composite input as the primary video source.",
+            "events": {
+                "onInputStatusChanged" : "Triggers this event when activates composite input source and input status changes to started",
+                "onSignalChanged" : "Triggers this event when composite input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal)"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -136,16 +123,16 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "stopCompositeInput":{
-            "summary": "Deactivates the current composite input source that is the primary video source.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onInputStatusChanged` | Triggers this event when deactivates composite input source and input status changes to `stopped` |",
-            "events": [
-                "onInputStatusChanged"
-            ],
+            "summary": "Deactivates the current composite input source that is the primary video source.",
+            "events": {
+                "onInputStatusChanged" : "Triggers this event when deactivates composite input source and input status changes to stopped"
+            },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }
     },

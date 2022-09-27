@@ -38,7 +38,11 @@
 #include <algorithm>
 
 #include "MaintenanceManager.h"
-#include "utils.h"
+
+#include "UtilsIarm.h"
+#include "UtilsJsonRpc.h"
+#include "UtilscRunScript.h"
+#include "UtilsfileExists.h"
 
 enum eRetval { E_NOK = -1,
     E_OK };
@@ -47,10 +51,6 @@ enum eRetval { E_NOK = -1,
 #include "libIARM.h"
 
 #endif /* USE_IARMBUS || USE_IARM_BUS */
-
-#if defined(HAS_API_SYSTEM) && defined(HAS_API_POWERSTATE)
-#include "powerstate.h"
-#endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
 #include "mfrMgr.h"
@@ -66,6 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 5
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -166,9 +167,24 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
  * @brief WPEFramework class for Maintenance Manager
  */
 namespace WPEFramework {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::MaintenanceManager> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin {
         //Prototypes
-        SERVICE_REGISTRATION(MaintenanceManager,API_VERSION_NUMBER_MAJOR,API_VERSION_NUMBER_MINOR);
+        SERVICE_REGISTRATION(MaintenanceManager, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
         /* Global time variable */
         MaintenanceManager* MaintenanceManager::_instance = nullptr;
 
@@ -274,8 +290,12 @@ namespace WPEFramework {
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
 
+            if ( false == internetConnectStatus ) {
+                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
+                LOGINFO("Maintenance completed as it is offline mode");
+            }
             // Unsolicited part comes here
-            if (UNSOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
+	    else if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
                 for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
                     LOGINFO("waiting to unlock.. [%d/%d]",i,tasks.size());
@@ -293,7 +313,7 @@ namespace WPEFramework {
             }
             /* Here in Solicited, we start with RFC so no
              * need to wait for any DCM events */
-            else if( SOLICITED_MAINTENANCE == g_maintenance_type && internetConnectStatus){
+            else if( SOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
                 cmd = tasks[0];
                 cmd += " &";
@@ -317,10 +337,6 @@ namespace WPEFramework {
             }
             m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
-            if ( false == internetConnectStatus ) {
-                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
-                LOGINFO("Maintenance completed as it is offline mode");
-            }
         }
 
         const string MaintenanceManager::checkActivatedStatus()
@@ -328,19 +344,17 @@ namespace WPEFramework {
             JsonObject joGetParams;
             JsonObject joGetResult;
             std::string callsign = "org.rdk.AuthService.1";
-            std::string token;
             uint8_t i = 0;
-            bool isAuthSerivcePluginActive = false;
             std::string ret_status("invalid");
 
             /* check if plugin active */
-            isAuthSerivcePluginActive = Utils::isPluginActivated("org.rdk.AuthService");
-            if (!isAuthSerivcePluginActive){
+            auto auth = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>("org.rdk.AuthService");
+            if (auth == nullptr){
                 LOGINFO("AuthService plugin is not activated.Retrying.. \n");
                 //if plugin is not activated we need to retry
                 do{
-                    isAuthSerivcePluginActive = Utils::isPluginActivated("org.rdk.AuthService");
-                    if ( !isAuthSerivcePluginActive ){
+                    auth = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>("org.rdk.AuthService");
+                    if (auth == nullptr){
                         sleep(10);
                         i++;
                         LOGINFO("AuthService retries [%d/4] \n",i);
@@ -350,7 +364,7 @@ namespace WPEFramework {
                     }
                 }while( i < MAX_ACTIVATION_RETRIES );
 
-                if ( !isAuthSerivcePluginActive ){
+                if (auth == nullptr){
                     LOGINFO("AuthService plugin is Still not active");
                     return ret_status;
                 }
@@ -358,11 +372,34 @@ namespace WPEFramework {
                     LOGINFO("AuthService plugin is Now active");
                 }
             }
+            if (auth != nullptr){
+                LOGINFO("AuthService is active");
+                auth->Release();
+            }
 
-            Utils::SecurityToken::getSecurityToken(token);
+            string token;
 
+            // TODO: use interfaces and remove token
+            auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+            if (security != nullptr) {
+                string payload = "http://localhost";
+                if (security->CreateToken(
+                        static_cast<uint16_t>(payload.length()),
+                        reinterpret_cast<const uint8_t*>(payload.c_str()),
+                        token)
+                    == Core::ERROR_NONE) {
+                    std::cout << "MaintenanceManager got security token" << std::endl;
+                } else {
+                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                }
+                security->Release();
+            } else {
+                std::cout << "No security agent" << std::endl;
+            }
+
+            string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
-            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "", false, query);
             if (thunder_client != nullptr) {
                 uint32_t status = thunder_client->Invoke<JsonObject, JsonObject>(5000, "getActivationStatus", joGetParams, joGetResult);
                 LOGINFO("Invoke status : %d",status);
@@ -440,19 +477,30 @@ namespace WPEFramework {
             JsonObject joGetParams;
             JsonObject joGetResult;
             std::string callsign = "org.rdk.Network.1";
-            std::string token;
 
-            /* check if plugin active */
-            if (false == Utils::isPluginActivated("org.rdk.Network")) {
-                    LOGINFO("Network plugin is not activated \n");
-                    return false;
+            string token;
+
+            // TODO: use interfaces and remove token
+            auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+            if (security != nullptr) {
+                string payload = "http://localhost";
+                if (security->CreateToken(
+                        static_cast<uint16_t>(payload.length()),
+                        reinterpret_cast<const uint8_t*>(payload.c_str()),
+                        token)
+                    == Core::ERROR_NONE) {
+                    std::cout << "MaintenanceManager got security token" << std::endl;
+                } else {
+                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                }
+                security->Release();
+            } else {
+                std::cout << "No security agent" << std::endl;
             }
-
-            Utils::SecurityToken::getSecurityToken(token);
 
             string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
-            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "");
+            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign.c_str(), "", false, query);
             if (thunder_client != nullptr) {
                 uint32_t status = thunder_client->Invoke<JsonObject, JsonObject>(5000, "isConnectedToInternet", joGetParams, joGetResult);
                 if (status > 0) {
@@ -500,21 +548,33 @@ namespace WPEFramework {
             MaintenanceManager::_instance = nullptr;
         }
 
-        const string MaintenanceManager::Initialize(PluginHost::IShell*)
+        const string MaintenanceManager::Initialize(PluginHost::IShell* service)
         {
+            ASSERT(service != nullptr);
+            ASSERT(m_service == nullptr);
+
+            m_service = service;
+            m_service->AddRef();
+
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
 
-        void MaintenanceManager::Deinitialize(PluginHost::IShell*)
+        void MaintenanceManager::Deinitialize(PluginHost::IShell* service)
         {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             stopMaintenanceTasks();
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+
+            ASSERT(service == m_service);
+
+            m_service->Release();
+            m_service = nullptr;
         }
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
@@ -580,13 +640,6 @@ namespace WPEFramework {
             else {
                 LOGINFO("DBG: Unable to find StartDCM_maintaince.sh \n");
             }
-
-            /* we moved every thing to a thread */
-            /* only when dcm is getting a DCM_SUCCESS/DCM_ERROR we say
-             * Maintenance is started until then we say MAITENANCE_IDLE */
-            if(m_thread.joinable()){
-                     m_thread.join();
-             }
 
             m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
         }
@@ -1149,8 +1202,10 @@ namespace WPEFramework {
                         /* we set this to false */
                         g_is_critical_maintenance="false";
 
+                        /* if there is any active thread, join it before executing the tasks from startMaintenance
+                        * especially when device is in offline mode*/
                         if(m_thread.joinable()){
-                               m_thread.join();
+                            m_thread.join();
                         }
 
                         m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
@@ -1176,7 +1231,12 @@ namespace WPEFramework {
                 JsonObject& response){
 
                 bool result=false;
-                result=stopMaintenanceTasks();
+                if( checkAbortFlag() ) {
+                    result=stopMaintenanceTasks();
+                }
+                else {
+                    LOGINFO("Failed to initiate stopMaintenance, RFC is set as False\n");
+                }
                 returnResponse(result);
         }
 
@@ -1190,9 +1250,6 @@ namespace WPEFramework {
             bool task_status[4]={false};
             bool result=false;
             bool task_incomplete=false;
-
-            /* only based on RFC */
-            if( checkAbortFlag() ){
 
                 /* run only when the maintenance status is MAINTENANCE_STARTED */
                 m_statusMutex.lock();
@@ -1273,11 +1330,7 @@ namespace WPEFramework {
                     m_thread.join();
                 }
 		m_statusMutex.unlock();
-            }
-            else {
-                LOGERR("Failed to initiate stopMaintenance, RFC is set as False \n");
-            }
-            return result;
+                return result;
         }
 
         bool MaintenanceManager::checkAbortFlag(){

@@ -23,7 +23,7 @@
 #include "ccec/FrameListener.hpp"
 #include "ccec/Connection.hpp"
 
-#include "libIBus.h"
+#include "libIARM.h"
 
 #include "ccec/Assert.hpp"
 #include "ccec/Messages.hpp"
@@ -34,13 +34,12 @@
 #undef Assert // this define from Connection.hpp conflicts with WPEFramework
 
 #include "Module.h"
-#include "utils.h"
 
-#include "tptimer.h"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
 
+#include "UtilsBIT.h"
 
 namespace WPEFramework {
 

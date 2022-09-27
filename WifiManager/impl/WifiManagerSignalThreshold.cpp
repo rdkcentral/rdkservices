@@ -18,7 +18,7 @@
 **/
 
 #include "WifiManagerSignalThreshold.h"
-
+#include "../WifiManager.h" // Need access to WifiManager::getInstance so can't use 'WifiManagerInterface.h'
 #include "UtilsJsonRpc.h"
 
 #include <chrono>
@@ -30,9 +30,9 @@ namespace {
     const float signalStrengthThresholdGood = -60.0f;
     const float signalStrengthThresholdFair = -67.0f;
 
-    void getSignalData(WifiManagerInterface &wifiManager, float &signalStrengthOut, std::string &strengthOut) {
+    void getSignalData(float &signalStrengthOut, std::string &strengthOut) {
         JsonObject response;
-        wifiManager.getConnectedSSID(JsonObject(), response);
+        WifiManager::getInstance().getConnectedSSID2(JsonObject(), response);
 
         signalStrengthOut = 0.0f;
         if (response.HasLabel("signalStrength")) {
@@ -58,9 +58,8 @@ namespace {
     }
 }
 
-WifiManagerSignalThreshold::WifiManagerSignalThreshold(WifiManagerInterface &wifiManager):
+WifiManagerSignalThreshold::WifiManagerSignalThreshold():
     changeEnabled(false),
-    wifiManager(wifiManager),
     running(false)
 {
 }
@@ -110,7 +109,7 @@ void WifiManagerSignalThreshold::setSignalThresholdChangeEnabled(bool enabled, i
     JsonObject parameters, response;
     WifiState state;
 
-    uint32_t result = wifiManager.getCurrentState(parameters, response);
+    uint32_t result = WifiManager::getInstance().getCurrentState(parameters, response);
     if (result != 0)
     {
         LOGINFO("wifiManager.getCurrentState result = %d", result);
@@ -152,13 +151,13 @@ void WifiManagerSignalThreshold::loop(int interval)
         std::string strength;
         if (running)
         {
-            getSignalData(wifiManager, signalStrength, strength);
+            getSignalData(signalStrength, strength);
 
 
             if (strength != lastStrength)
             {
                 LOGINFO("Triggering onWifiSignalThresholdChanged notification");
-                wifiManager.onWifiSignalThresholdChanged(signalStrength, strength);
+                WifiManager::getInstance().onWifiSignalThresholdChanged(signalStrength, strength);
                 lastStrength = strength;
             }
         }

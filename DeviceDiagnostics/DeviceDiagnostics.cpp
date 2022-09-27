@@ -28,10 +28,15 @@
 #define DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION  "getConfiguration"
 #define DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS "getAVDecoderStatus"
 #define DEVICE_DIAGNOSTICS_METHOD_GET_MILE_STONES "getMilestones"
+#define DEVICE_DIAGNOSTICS_METHOD_LOG_MILESTONE "logMilestone"
 
 #define DEVICE_DIAGNOSTICS_EVT_ON_AV_DECODER_STATUS_CHANGED "onAVDecoderStatusChanged"
 
 #define MILESTONES_LOG_FILE                     "/opt/logs/rdk_milestones.log"
+
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 
 enum SysSrv_ErrorCode {
     SysSrv_FileNotPresent,
@@ -73,9 +78,23 @@ void populateResponseWithError(int errorCode, JsonObject& response);
 
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::DeviceDiagnostics> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(DeviceDiagnostics, 1, 0);
+        SERVICE_REGISTRATION(DeviceDiagnostics, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         DeviceDiagnostics* DeviceDiagnostics::_instance = nullptr;
 
@@ -103,6 +122,7 @@ namespace WPEFramework
             Register(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION, &DeviceDiagnostics::getConfigurationWrapper, this);
             Register(DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS, &DeviceDiagnostics::getAVDecoderStatus, this);
 	    Register(DEVICE_DIAGNOSTICS_METHOD_GET_MILE_STONES, &DeviceDiagnostics::getMilestones, this);
+            Register(DEVICE_DIAGNOSTICS_METHOD_LOG_MILESTONE, &DeviceDiagnostics::logMilestones, this);
         }
 
         DeviceDiagnostics::~DeviceDiagnostics()
@@ -110,6 +130,7 @@ namespace WPEFramework
             Unregister(DEVICE_DIAGNOSTICS_METHOD_NAME_GET_CONFIGURATION);
             Unregister(DEVICE_DIAGNOSTICS_METHOD_GET_AV_DECODER_STATUS);
 	    Unregister(DEVICE_DIAGNOSTICS_METHOD_GET_MILE_STONES);
+            Unregister(DEVICE_DIAGNOSTICS_METHOD_LOG_MILESTONE);
         }
 
         /* virtual */ const string DeviceDiagnostics::Initialize(PluginHost::IShell* service)
@@ -329,6 +350,24 @@ namespace WPEFramework
             returnResponse(retAPIStatus);
         }
 
+      /**
+       * @brief Logs marker to rdk milestones log file
+       *
+       * @param[in]  parameters   - Must include 'marker'.
+       * @param[out] response     - Success.
+       *
+       * @return                  A code indicating success.
+       */
+       uint32_t DeviceDiagnostics::logMilestones(const JsonObject& parameters, JsonObject& response)
+       {
+           LOGINFOMETHOD();
+           returnIfStringParamNotFound(parameters, "marker");
+           std::string marker = parameters["marker"].String();
+ #ifdef RDK_LOG_MILESTONE
+           logMilestone(marker.c_str());
+ #endif
+           returnResponse(true);
+       }
 
     } // namespace Plugin
 } // namespace WPEFramework

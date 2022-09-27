@@ -1,28 +1,16 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "FireboltMediaPlayerPlugin", 
         "class": "FireboltMediaPlayer", 
         "description": "The `FireboltMediaPlayer` plugin allows you to control an AAMP media player for media stream playback. \n\n**Summary**\n* The service is a wrapper for AAMP IP Video (DASH, HLS, mp4, etc.) playback intended for the RDK community as an alternative to native or UVE-JS integration. \n* The service starts an AAMP dedicated process with the environment variables `AAMP_ENABLE_OPT_OVERRIDE=1` (enables `/opt/aamp.cfg`) and `AAMP_ENABLE_WESTEROS_SINK=1`."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        },
+        
         "id":{
             "summary": "The player ID.",
             "type": "string",
@@ -43,7 +31,7 @@
                 "required": ["id"]
             },
             "result":{
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "initConfig":{
@@ -59,7 +47,7 @@
                 "required": []
             },
             "result":{
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "load":{
@@ -88,7 +76,7 @@
                 ]
             },
             "result":{
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }, 
         "pause":{
@@ -103,7 +91,7 @@
                 "required": ["id"]
             },
             "result":{
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "play":{
@@ -118,7 +106,7 @@
                 "required": ["id"]
             },
             "result":{
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "release":{
@@ -133,7 +121,7 @@
                 "required": ["id"]
             },
             "result":{
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "seek":{
@@ -156,7 +144,7 @@
                 ]
             },
             "result":{
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setDRMConfig":{
@@ -186,7 +174,7 @@
                  "required":[]   
              },
              "result": {
-                 "$ref": "#/definitions/result"
+                 "$ref": "#/common/result"
              } 
          },
         "stop":{
@@ -201,7 +189,7 @@
                 "required": ["id"]
             },
             "result":{
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }  
     },

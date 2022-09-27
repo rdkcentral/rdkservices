@@ -2,60 +2,22 @@
 <a name="XCast_Plugin"></a>
 # XCast Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/XCast/CHANGELOG.md)**
 
 A org.rdk.Xcast plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.Xcast plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -101,10 +63,10 @@ XCast interface methods:
 ## *getApiVersionNumber*
 
 Gets the API version.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -126,7 +88,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getApiVersionNumber"
+    "method": "org.rdk.Xcast.getApiVersionNumber"
 }
 ```
 
@@ -147,10 +109,10 @@ This method takes no parameters.
 ## *getEnabled*
 
 Reports whether xcast is enabled or disabled.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -172,7 +134,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getEnabled"
+    "method": "org.rdk.Xcast.getEnabled"
 }
 ```
 
@@ -193,10 +155,10 @@ This method takes no parameters.
 ## *getFriendlyName*
 
 Returns the friendly name set by setFriendlyName API.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -218,7 +180,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getFriendlyName"
+    "method": "org.rdk.Xcast.getFriendlyName"
 }
 ```
 
@@ -239,10 +201,10 @@ This method takes no parameters.
 ## *getProtocolVersion*
 
 Returns the DIAL protocol version supported by the server.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -264,7 +226,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getProtocolVersion"
+    "method": "org.rdk.Xcast.getProtocolVersion"
 }
 ```
 
@@ -285,10 +247,10 @@ This method takes no parameters.
 ## *getStandbyBehavior*
 
 Gets the expected xcast behavior in standby mode.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -310,7 +272,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getStandbyBehavior"
+    "method": "org.rdk.Xcast.getStandbyBehavior"
 }
 ```
 
@@ -340,11 +302,11 @@ The following table provides a client error mapping example:
 | `forbidden` | The user is not allowed to change the state of the application. This is not related to user account authentication of the native application | HTTP 403 Forbidden |  
 | `unavailable` | The target native application is not available on the device | HTTP 404 Not Found |  
 | `invalid` | The request is invalid (bad parameter for example) | HTTP 400 Bad Request |  
-| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |
-  
-### Events 
+| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -371,7 +333,7 @@ The following table provides a client error mapping example:
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.onApplicationStateChanged",
+    "method": "org.rdk.Xcast.onApplicationStateChanged",
     "params": {
         "applicationName": "NetflixApp",
         "state": "running",
@@ -397,10 +359,10 @@ The following table provides a client error mapping example:
 ## *registerApplications*
 
 Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -424,7 +386,7 @@ Registers an application. This allows to whitelist the apps which support dial s
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.registerApplications",
+    "method": "org.rdk.Xcast.registerApplications",
     "params": {
         "applications": "NetflixApp"
     }
@@ -447,10 +409,10 @@ Registers an application. This allows to whitelist the apps which support dial s
 ## *setEnabled*
 
 Enables or disables xcast.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -474,7 +436,7 @@ Enables or disables xcast.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.setEnabled",
+    "method": "org.rdk.Xcast.setEnabled",
     "params": {
         "enabled": true
     }
@@ -497,10 +459,10 @@ Enables or disables xcast.
 ## *setFriendlyName*
 
 Sets the friendly name of device. It allows an application to override the default friendly name value with the friendly name passed as an argument.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -524,7 +486,7 @@ Sets the friendly name of device. It allows an application to override the defau
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.setFriendlyName",
+    "method": "org.rdk.Xcast.setFriendlyName",
     "params": {
         "friendlyname": "xdial"
     }
@@ -547,10 +509,10 @@ Sets the friendly name of device. It allows an application to override the defau
 ## *setStandbyBehavior*
 
 Sets the expected xcast behavior in standby mode. It allows an application to override controls on xcast behavior in standby mode. The default behavior in STANDBY mode is inactive, so client device can not discover the server. When STANDBY behavior is active, client device can discover the server.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -574,7 +536,7 @@ Sets the expected xcast behavior in standby mode. It allows an application to ov
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.setStandbyBehavior",
+    "method": "org.rdk.Xcast.setStandbyBehavior",
     "params": {
         "standbybehavior": "active"
     }
@@ -630,7 +592,7 @@ Upon hiding the application, the resident application is responsible for calling
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationHideRequest",
+    "method": "client.events.onApplicationHideRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
@@ -658,7 +620,7 @@ Upon launching the application, the resident application is responsible for call
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationLaunchRequest",
+    "method": "client.events.onApplicationLaunchRequest",
     "params": {
         "applicationName": "NetflixApp",
         "parameters": {
@@ -687,7 +649,7 @@ Upon resuming the application, the resident application is responsible for calli
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationResumeRequest",
+    "method": "client.events.onApplicationResumeRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
@@ -714,7 +676,7 @@ The resident application is responsible for calling the `onApplicationStateChang
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationStateRequest",
+    "method": "client.events.onApplicationStateRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
@@ -741,7 +703,7 @@ Upon stopping the application, the resident application is responsible for calli
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationStopRequest",
+    "method": "client.events.onApplicationStopRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"

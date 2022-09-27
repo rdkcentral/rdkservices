@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "TextToSpeech API",
         "class": "TextToSpeech",
         "description": "The `TextToSpeech` plugin provides text-to-speech (TTS) functionality (Voice Guidance & Speech Synthesis) for the client application."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "speechid":{
@@ -47,32 +50,27 @@
             "type": "string",
             "example": "100.000000"
         },
+        "primvolduckpercent" : {
+            "summary": "The TTS Primary Volumeduckpercentage",
+            "type": "number",
+            "example": 25
+        },
         "rate":{
             "summary": "The TTS Rate",
             "type": "number",
             "example": 50
+        },
+        "apikey": {
+            "summary": "x api key(secret key) required for GCD Endpoints",
+            "type": "string",
+            "example": "XXXXXXXXXXXX"
         },
         "text":{
             "summary": "The text input",
             "type": "string",
             "example": "speech_1"
         },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        },
+        
         "callsign": {
             "summary": " Callsign of the application. This is mandatory when setACL is called prior to speak ",
             "type": "string",
@@ -91,10 +89,10 @@
     },
     "methods": {
         "cancel": {
-            "summary": "Cancels the speech. Triggers the `onspeechinterrupted` event.  \n \n### Events  \n| Event | Description | \n| :----------- | :-----------| \n|`onspeechinterrupted` | Triggered when ongoing speech is cancelled. Event is not triggered: if TTS is not enabled; if ongoing Speech is completed |",
-            "events": [
-                "onspeechinterrupted"
-            ],
+            "summary": "Cancels the speech. Triggers the `onspeechinterrupted` event.",
+            "events": {
+                "onspeechinterrupted" : "Triggered when ongoing speech is cancelled. Event is not triggered: if TTS is not enabled; if ongoing Speech is completed"
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -113,7 +111,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -123,11 +121,11 @@
             }
         },
         "enabletts": {
-            "summary": "(For Resident App) Enables or disables the TTS conversion processing. Triggered `onttsstatechanged` event when state changes and `onspeechinterrupted` event when disabling TTS while speech is in-progress. \n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n| `onttsstatechanged` | `state` : `true` Triggered when TTS is enabled; `state` : `false` Triggered when TTS is disabled; otherwise `No event` When TTS enable or disable is in-progress | \n| `onspeechinterrupted` | Triggered when disabling TTS while speech is in-progress",
-            "events": [
-               "onttsstatechanged",
-               "onspeechinterrupted"
-            ],
+            "summary": "(For Resident App) Enables or disables the TTS conversion processing. Triggered `onttsstatechanged` event when state changes and `onspeechinterrupted` event when disabling TTS while speech is in-progress.",
+            "events": {
+               "onttsstatechanged" : "state : true Triggered when TTS is enabled; state : false Triggered when TTS is disabled; otherwise No event When TTS enable or disable is in-progress",
+               "onspeechinterrupted" : "Triggered when disabling TTS while speech is in-progress."
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -148,7 +146,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -158,7 +156,7 @@
             }
         },
         "getapiversion":{
-            "summary": "Gets the API Version.\n \n### Events \n\nNo Events.",
+            "summary": "Gets the API Version.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -168,7 +166,7 @@
                         "example": 1
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -178,7 +176,7 @@
             }
         },
         "getspeechstate":{
-            "summary": "Returns the current state of the speech request.\n  \n### Events \n\nNo Events.",
+            "summary": "Returns the current state of the speech request.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -208,7 +206,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -219,7 +217,7 @@
             }
         },
         "getttsconfiguration": {
-            "summary": "Gets the current TTS configuration.\n  \n### Events \n \nNo Events.",
+            "summary": "Gets the current TTS configuration.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -245,7 +243,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },                    
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -261,7 +259,7 @@
             }
         },
         "isspeaking": {
-            "summary": "Checks if speech is in progress.\n  \n### Event \n\nNo Events.",
+            "summary": "Checks if speech is in progress.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -285,7 +283,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -296,7 +294,7 @@
             }
         },
         "isttsenabled": {
-            "summary": "Returns whether the TTS engine is enabled or disabled. By default the TTS engine is disabled.\n  \n### Events \n\n No Events.",
+            "summary": "Returns whether the TTS engine is enabled or disabled. By default the TTS engine is disabled.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -309,7 +307,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -320,7 +318,7 @@
             }
         },
         "listvoices": {
-            "summary": "Lists the available voices for the specified language. For every language there is a set of pre-defined voices.  \n  \n### Events \n\nNo Events.",
+            "summary": "Lists the available voices for the specified language. For every language there is a set of pre-defined voices.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -344,7 +342,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -355,10 +353,10 @@
             }
         },
         "pause": {
-            "summary": "Pauses the speech. Triggers the `onspeechpause` event.  \n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n|  `onspeechpause` | Triggered when ongoing speech is paused. Event not triggered on following conditions: TTS is not enabled; Speech is already in pause; or Speech is completed | ",
-            "events": [
-                "onspeechpause"
-            ],
+            "summary": "Pauses the speech. Triggers the `onspeechpause` event.",
+            "events": {
+                "onspeechpause" : "Triggered when ongoing speech is paused. Event not triggered on following conditions: TTS is not enabled; Speech is already in pause; or Speech is completed"
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -377,7 +375,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -387,10 +385,10 @@
             }
         },
         "resume": {
-            "summary": "Resumes the speech. Triggers the `onspeechresume` event. \n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n| `onspeechresume` | Triggered when speech is resumed and speech output is available. Event not triggered under following conditions: TTS is not enabled; Speech is resumed already; or Speech is completed |",
-            "events": [
-                "onspeechresume"
-            ],
+            "summary": "Resumes the speech. Triggers the `onspeechresume` event.",
+            "events": {
+                "onspeechresume" : "Triggered when speech is resumed and speech output is available. Event not triggered under following conditions: TTS is not enabled; Speech is resumed already; or Speech is completed"
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -409,7 +407,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -419,10 +417,10 @@
             }
         },
         "setttsconfiguration": {
-            "summary": "Sets the TTS configuration. Triggers the `onvoicechanged` event.\n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n|`onvoicechanged`|Triggered only when the voice configuration is changed| ",
-            "events":[
-                "onvoicechanged"
-            ],
+            "summary": "Sets the TTS configuration. Triggers the `onvoicechanged` event.",
+            "events":{
+                "onvoicechanged" : "Triggered only when the voice configuration is changed"
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -441,12 +439,44 @@
                     "volume": {
                         "$ref": "#/definitions/volume"
                     },
+                    "primvolduckpercent": {
+                         "$ref": "#/definitions/primvolduckpercent"
+                    },
                     "rate":{
                         "$ref": "#/definitions/rate"
+                    },
+                    "fallbacktext":{
+                        "type": "object",
+                        "properties": {
+                            "scenario": {
+                                "summary": "Describes the scenario where fallback text is to be used . At present, only `offline` is supported.",
+                                "type": "string",
+                                "example": "offline"
+                            },
+                            "value": {
+                                "summary": "The Text which is to be spoken when the scenario is met",
+                                "type": "string",
+                                "example": "No Internet connection"
+                            }
+                        },
+                        "required": []
+                    },
+                    "authinfo":{
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "summary": "The type of authentication. At present, only `apikey` is supported.",
+                                "type": "string",
+                                "example": "apikey"
+                            },
+                            "value": {
+                                "$ref": "#/definitions/apikey"
+                            }
+                        },
+                        "required": []
                     }
                 },
-                "required": [
-                ]
+                "required": []
             },
             "result": {
                 "type": "object",
@@ -455,7 +485,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -465,15 +495,15 @@
             }
         },
         "speak": {
-            "summary": "Converts the input text to speech when TTS is enabled. Any ongoing speech is interrupted and the newly requested speech is processed. The clients of the previous speech is sent an `onspeechinterrupted` event. Upon success, this API returns an ID, which is used as input to other API methods for controlling the speech (for example, `pause`, `resume`, and `cancel`)\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onwillspeak` | Triggered when speech conversion is about to start | \n| `onspeechstart` | Triggered when conversion of text to speech is started | \n| `onspeechcomplete `| Triggered when conversion from text to speech is completed | \n| `onspeechinterrupted`| Current speech is interrupted either by a next speech request; by calling the `cancel` method; or by disabling TTS, when speech is in-progress | \n| `onnetworkerror` | Triggered when failed to fetch audio from the endpoint |  \n| `onplaybackerror` | Triggered when an error occurs during playback including pipeline failures; Triggered when `speak` is called during TTS disabled |",
-            "events": [
-                "onwillspeak",
-                "onspeechstart",
-                "onspeechinterrupted",
-                "onspeechcomplete",
-                "onnetworkerror",
-                "onplaybackerror"
-            ],
+            "summary": "Converts the input text to speech when TTS is enabled. Any ongoing speech is interrupted and the newly requested speech is processed. The clients of the previous speech is sent an `onspeechinterrupted` event. Upon success, this API returns an ID, which is used as input to other API methods for controlling the speech (for example, `pause`, `resume`, and `cancel`)",
+            "events": {
+                "onwillspeak" : "Triggered when speech conversion is about to start",
+                "onspeechstart" : "Triggered when conversion of text to speech is started",
+                "onspeechinterrupted" : "Current speech is interrupted either by a next speech request; by calling the cancel method; or by disabling TTS, when speech is in-progress",
+                "onspeechcomplete" : "Triggered when conversion from text to speech is completed",
+                "onnetworkerror" : "Triggered when failed to fetch audio from the endpoint",
+                "onplaybackerror" : "Triggered when an error occurs during playback including pipeline failures; Triggered when speak is called during TTS disabled"
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -498,7 +528,7 @@
                         "$ref": "#/definitions/TTS_Status"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -509,7 +539,7 @@
             }
         },
         "setACL": {
-            "summary":"Configures app to speak. Allows the ResidentAPP to configure the particular app and provides access to `speak` method. If not configured any then gives access to all apps to speak. Configuration does not retained after reboot.\n  \n### Events \n\nNo Events.",
+            "summary":"Configures app to speak. Allows the ResidentAPP to configure the particular app and provides access to `speak` method. If not configured any then gives access to all apps to speak. Configuration does not retained after reboot.",
             "params":{
                 "type": "object",
                 "properties": {
@@ -540,7 +570,7 @@
                 "type": "object",
                 "properties": {
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [

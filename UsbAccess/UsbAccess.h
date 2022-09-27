@@ -26,8 +26,6 @@ namespace Plugin {
         static UsbAccess* _instance;
 
     public /*constants*/:
-        static const short API_VERSION_NUMBER_MAJOR;
-        static const short API_VERSION_NUMBER_MINOR;
         static const string SERVICE_NAME;
         //methods
         static const string METHOD_GET_FILE_LIST;

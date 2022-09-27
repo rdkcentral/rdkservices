@@ -2,60 +2,22 @@
 <a name="Warehouse_Plugin"></a>
 # Warehouse Plugin
 
-**Version: 2.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/Warehouse/CHANGELOG.md)**
 
 A org.rdk.Warehouse plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.Warehouse plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -98,11 +60,11 @@ Warehouse interface methods:
 <a name="executeHardwareTest"></a>
 ## *executeHardwareTest*
 
-(Version 2) Starts a hardware test on the device. See `getHardwareTestResults`. 
- 
+(Version 2) Starts a hardware test on the device. See `getHardwareTestResults`.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -123,7 +85,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.executeHardwareTest"
+    "method": "org.rdk.Warehouse.executeHardwareTest"
 }
 ```
 
@@ -142,11 +104,11 @@ This method takes no parameters.
 <a name="getDeviceInfo"></a>
 ## *getDeviceInfo*
 
-Returns STB device information gathered from `/lib/rdk/getDeviceDetails.sh`.(DEPRECATED - Use `getDeviceInfo` from `org.rdk.System` instead.) 
- 
+Returns STB device information gathered from `/lib/rdk/getDeviceDetails.sh`.(DEPRECATED - Use `getDeviceInfo` from `org.rdk.System` instead.).
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -179,7 +141,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.getDeviceInfo"
+    "method": "org.rdk.Warehouse.getDeviceInfo"
 }
 ```
 
@@ -210,11 +172,11 @@ This method takes no parameters.
 <a name="getHardwareTestResults"></a>
 ## *getHardwareTestResults*
 
-(Version 2) Returns the results of the last hardware test. 
- 
+(Version 2) Returns the results of the last hardware test.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -238,7 +200,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.getHardwareTestResults",
+    "method": "org.rdk.Warehouse.getHardwareTestResults",
     "params": {
         "testResults": "Timezone: NA 2021-04-15 10:35:06 Test execution start, remote trigger ver. 0011 2021-04-15 10:35:10 Test result: Audio/Video Decoder:PASSED 2021-04-15 10:35:06 Test result: Dynamic RAM:PASSED 2021-04-15 10:35:06 Test result: Flash Memory:PASSED 2021-04-15 10:35:06 Test result: HDMI Output:PASSED 2021-04-15 10:35:38 Test result: IR Remote Interface:WARNING_IR_Not_Detected 2021-04-15 10:35:06 Test result: Bluetooth:PASSED 2021-04-15 10:35:06 Test result: SD Card:PASSED 2021-04-15 10:35:06 Test result: WAN:PASSED 2021-04-15 10:35:38 Test execution completed:PASSED"
     }
@@ -260,11 +222,11 @@ This method takes no parameters.
 <a name="internalReset"></a>
 ## *internalReset*
 
-Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow.sh -s WarehouseService &`). Note that this method checks the `/version.txt` file for the image name and fails to run if the STB image version is marked as production (`PROD`). 
- 
+Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow.sh -s WarehouseService &`). Note that this method checks the `/version.txt` file for the image name and fails to run if the STB image version is marked as production (`PROD`).
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -289,7 +251,7 @@ Invokes the internal reset script, which reboots the Warehouse service (`/reboot
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.internalReset",
+    "method": "org.rdk.Warehouse.internalReset",
     "params": {
         "passPhrase": "FOR TEST PURPOSES ONLY"
     }
@@ -312,11 +274,11 @@ Invokes the internal reset script, which reboots the Warehouse service (`/reboot
 <a name="isClean"></a>
 ## *isClean*
 
-Checks the locations on the device where customer data may be stored. If there are contents contained in those folders, then the device is not clean. 
- 
+Checks the locations on the device where customer data may be stored. If there are contents contained in those folders, then the device is not clean.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -340,7 +302,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.isClean"
+    "method": "org.rdk.Warehouse.isClean"
 }
 ```
 
@@ -363,11 +325,11 @@ This method takes no parameters.
 <a name="lightReset"></a>
 ## *lightReset*
 
-Resets the application data. 
- 
+Resets the application data.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -389,7 +351,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.lightReset"
+    "method": "org.rdk.Warehouse.lightReset"
 }
 ```
 
@@ -409,15 +371,13 @@ This method takes no parameters.
 <a name="resetDevice"></a>
 ## *resetDevice*
 
-Resets the STB to the warehouse state. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `resetDone` | Triggers when the device reset is finished indicating a successful reset or failure|.
+Resets the STB to the warehouse state.
 
-Also see: [resetDone](#resetDone)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [resetDone](#resetDone) | Triggers when the device reset is finished indicating a successful reset or failure |
 ### Parameters
 
 | Name | Type | Description |
@@ -442,7 +402,7 @@ Also see: [resetDone](#resetDone)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.resetDevice",
+    "method": "org.rdk.Warehouse.resetDevice",
     "params": {
         "suppressReboot": true,
         "resetType": "WAREHOUSE"
@@ -466,11 +426,11 @@ Also see: [resetDone](#resetDone)
 <a name="setFrontPanelState"></a>
 ## *setFrontPanelState*
 
-Sets the state of the front panel LEDs to indicate the download state of the STB software image. 
- 
+Sets the state of the front panel LEDs to indicate the download state of the STB software image.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -495,7 +455,7 @@ Sets the state of the front panel LEDs to indicate the download state of the STB
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.1.setFrontPanelState",
+    "method": "org.rdk.Warehouse.setFrontPanelState",
     "params": {
         "state": 1
     }
@@ -547,7 +507,7 @@ Notifies subscribers about the status of the warehouse reset operation.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.resetDone",
+    "method": "client.events.resetDone",
     "params": {
         "success": true,
         "error": "..."

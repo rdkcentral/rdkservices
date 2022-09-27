@@ -23,8 +23,6 @@
 #include <vector>
 
 #include "Module.h"
-#include "tptimer.h"
-#include "utils.h"
 
 #if defined(PLATFORM_AMLOGIC)
 #include <interfaces/ICapture.h>

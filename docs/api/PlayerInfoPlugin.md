@@ -2,61 +2,23 @@
 <a name="Player_Info_Plugin"></a>
 # Player Info Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::white_circle:**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/PlayerInfo/CHANGELOG.md)**
 
 A PlayerInfo plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Properties](#Properties)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the PlayerInfo plugin. It includes detailed specification about its configuration, methods and properties provided, as well as notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -93,11 +55,11 @@ PlayerInfo interface methods:
 <a name="audiocodecs"></a>
 ## *audiocodecs*
 
-Returns the audio codec supported by the platform. 
- 
-### Events 
- 
-No Events.
+Returns the audio codec supported by the platform.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -118,7 +80,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.audiocodecs"
+    "method": "PlayerInfo.audiocodecs"
 }
 ```
 
@@ -138,10 +100,10 @@ This method takes no parameters.
 ## *videocodecs*
 
 Returns the video codec supported by the platform.
- 
-### Events 
- 
-No Events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -162,7 +124,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.videocodecs"
+    "method": "PlayerInfo.videocodecs"
 }
 ```
 
@@ -203,6 +165,10 @@ Provides access to the player general information.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -221,7 +187,7 @@ Provides access to the player general information.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.playerinfo"
+    "method": "PlayerInfo.playerinfo"
 }
 ```
 
@@ -249,6 +215,10 @@ Provides access to the current configured video output port resolution.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -263,7 +233,7 @@ Provides access to the current configured video output port resolution.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.resolution"
+    "method": "PlayerInfo.resolution"
 }
 ```
 
@@ -284,6 +254,10 @@ Provides access to the check for Loudness Equivalence in the platform.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -298,7 +272,7 @@ Provides access to the check for Loudness Equivalence in the platform.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.isaudioequivalenceenabled"
+    "method": "PlayerInfo.isaudioequivalenceenabled"
 }
 ```
 
@@ -319,6 +293,10 @@ Provides access to the atmos capabilities of Sink.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -333,7 +311,7 @@ Provides access to the atmos capabilities of Sink.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.dolby_atmosmetadata"
+    "method": "PlayerInfo.dolby_atmosmetadata"
 }
 ```
 
@@ -354,6 +332,10 @@ Provides access to the current sound mode.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -368,7 +350,7 @@ Provides access to the current sound mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.dolby_soundmode"
+    "method": "PlayerInfo.dolby_soundmode"
 }
 ```
 
@@ -389,6 +371,10 @@ Provides access to the audio output enablement for Atmos.
 
 > This property is **write-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -403,7 +389,7 @@ Provides access to the audio output enablement for Atmos.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.dolby_enableatmosoutput",
+    "method": "PlayerInfo.dolby_enableatmosoutput",
     "params": false
 }
 ```
@@ -423,6 +409,10 @@ Provides access to the audio output enablement for Atmos.
 
 Provides access to the dolby mode.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -437,7 +427,7 @@ Provides access to the dolby mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.dolby_mode"
+    "method": "PlayerInfo.dolby_mode"
 }
 ```
 
@@ -457,7 +447,7 @@ Provides access to the dolby mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "PlayerInfo.1.dolby_mode",
+    "method": "PlayerInfo.dolby_mode",
     "params": "DigitalPcm"
 }
 ```
@@ -504,7 +494,7 @@ Triggered after the audio sound mode changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.dolby_audiomodechanged",
+    "method": "client.events.dolby_audiomodechanged",
     "params": {
         "mode": "Unknown",
         "enable": true

@@ -1,12 +1,11 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
     "info": {
       "title": "MaintenanceManagerPlugin",
       "callsign": "org.rdk.MaintenanceManager",
       "locator": "libWPEFrameworkMaintenanceManager.so",
       "status": "production",
-      "description": "The `MaintenanceManager` plugin allows you to control and monitor maintenance activities on set-top devices.",
-      "version": "1.0"
+      "description": "The `MaintenanceManager` plugin allows you to control and monitor maintenance activities on set-top devices."
     },
     "interface": {
       "$ref": "MaintenanceManager.json#"

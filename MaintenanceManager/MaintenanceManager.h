@@ -26,12 +26,9 @@
 
 #include "Module.h"
 #include "tracing/Logging.h"
-#include "utils.h"
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
-#include "libIBus.h"
 #include "irMgr.h"
-#include "libIBusDaemon.h"
 #include "pwrMgr.h"
 #include "maintenanceMGR.h" /* IARM INTERFACE HELPER */
 #endif /* USE_IARMBUS || USE_IARM_BUS */
@@ -140,6 +137,7 @@ namespace WPEFramework {
                 std::thread m_thread;
 
                 std::map<string, bool> m_task_map;
+                PluginHost::IShell* m_service;
 
                 bool isDeviceOnline();
                 void task_execution_thread();

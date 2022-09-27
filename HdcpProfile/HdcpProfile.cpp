@@ -24,6 +24,7 @@
 #include "videoOutputPort.hpp"
 #include "videoOutputPortConfig.hpp"
 #include "dsMgr.h"
+#include "pwrMgr.h"
 #include "manager.hpp"
 #include "host.hpp"
 
@@ -40,11 +41,29 @@
 
 #define HDCP_PROFILE_EVT_ON_DISPLAY_CONNECTION_CHANGED "onDisplayConnectionChanged"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 1
+
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::HdcpProfile> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(HdcpProfile, 1, 0);
+        SERVICE_REGISTRATION(HdcpProfile, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         HdcpProfile* HdcpProfile::_instance = nullptr;
 
@@ -228,6 +247,8 @@ namespace WPEFramework
             LOGWARN("[%s]-HDCPStatus::receiverHDCPVersion: %s", trigger, status["receiverHDCPVersion"].String().c_str());
             LOGWARN("[%s]-HDCPStatus::currentHDCPVersion %s", trigger, status["currentHDCPVersion"].String().c_str());
             LOGWARN("[%s]-HDCPStatus::hdcpReason %s", trigger, status["hdcpReason"].String().c_str());
+            LOGWARN("[%s]-HDCPStatus Response: %s,%s,%s,%s,%s,%s", trigger,  status["isConnected"].Boolean() ? "true" : "false",status["isHDCPEnabled"].Boolean() ? "true" : "false",status["isHDCPCompliant"].Boolean() ? "true" : "false",
+                                              status["supportedHDCPVersion"].String().c_str(), status["receiverHDCPVersion"].String().c_str(), status["currentHDCPVersion"].String().c_str(), status["hdcpReason"].String().c_str());
         }
 
         void HdcpProfile::onHdmiOutputHDCPStatusEvent(int hdcpStatus)
@@ -256,9 +277,11 @@ namespace WPEFramework
             }
             else if (IARM_BUS_DSMGR_EVENT_HDCP_STATUS == eventId)
             {
+                IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+                IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState, (void *)&param, sizeof(param));
                 IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                 int hdcpStatus = eventData->data.hdmi_hdcp.hdcpStatus;
-                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDCP_STATUS  event data:%d \r\n", hdcpStatus);
+                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDCP_STATUS  event data:%d  param.curState: %d \r\n", hdcpStatus,param.curState);
                 HdcpProfile::_instance->onHdmiOutputHDCPStatusEvent(hdcpStatus);
 
             }

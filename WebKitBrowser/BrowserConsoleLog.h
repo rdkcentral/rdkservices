@@ -34,18 +34,18 @@ private:
 
 public:
 #ifdef WEBKIT_GLIB_API
-    BrowserConsoleLog(const string& message, const uint64_t line, const uint64_t column)
+    BrowserConsoleLog(const string& prefix, const string& message, const uint64_t line, const uint64_t column)
     {
-        _text = '[' + Core::NumberType<uint64_t>(line).Text() + ',' + Core::NumberType<uint64_t>(column).Text() + ']' + message;
+        _text = '[' + prefix + "][" + Core::NumberType<uint64_t>(line).Text() + ',' + Core::NumberType<uint64_t>(column).Text() + ']' + message;
         const uint16_t maxStringLength = Trace::TRACINGBUFFERSIZE - 1;
         if (_text.length() > maxStringLength) {
             _text = _text.substr(0, maxStringLength);
         }
     }
 #else
-    BrowserConsoleLog(const WKStringRef message, const uint64_t line, const uint64_t column)
+    BrowserConsoleLog(const string& prefix, const WKStringRef message, const uint64_t line, const uint64_t column)
     { 
-        _text = '[' + Core::NumberType<uint64_t>(line).Text() + ',' + Core::NumberType<uint64_t>(column).Text() + ']' + WebKit::Utils::WKStringToString(message);
+        _text = '[' + prefix + "][" + Core::NumberType<uint64_t>(line).Text() + ',' + Core::NumberType<uint64_t>(column).Text() + ']' + WebKit::Utils::WKStringToString(message);
         const uint16_t maxStringLength = Trace::TRACINGBUFFERSIZE - 1;
         if (_text.length() > maxStringLength) {
             _text = _text.substr(0, maxStringLength);

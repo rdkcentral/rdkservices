@@ -17,6 +17,8 @@ add_library(${MODULE_NAME} SHARED
         impl/TTSManager.cpp
         impl/TTSSpeaker.cpp
         impl/logger.cpp
+        impl/TTSDownloader.cpp
+        impl/TTSURLConstructer.cpp
         )
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
@@ -31,7 +33,9 @@ find_package(Curl)
 
 set(AUDIO_CLIENT_LIB "")
 if (BUILD_AMLOGIC)
-set(AUDIO_CLIENT_LIB "audio_client")
+    set(AUDIO_CLIENT_LIB "audio_client")
+elseif (BUILD_REALTEK)
+    set(AUDIO_CLIENT_LIB "RtkHALMisc") 
 endif()
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${GSTREAMER_INCLUDES})

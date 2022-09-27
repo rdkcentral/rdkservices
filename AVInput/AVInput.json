@@ -1,28 +1,16 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "AVInput API",
         "class": "AVInput", 
         "description": "The `AVInput` API facilitates interactions with the Parker STB HDMI input. The HDMI input is presented by using a `VideoResource` whose url starts with `avin:`. For example: `avin://input1`."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        }
+        
     },
     "methods": {
         "contentProtected": {
@@ -41,7 +29,7 @@
                         "example": true
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -51,7 +39,7 @@
             }
         },
         "currentVideoMode": {
-            "summary": "Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution. \n \n### Events\n \n No Events.",
+            "summary": "Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution.",
             "params": {
                 "summary": "An empty parameter object",
                 "type": "object",
@@ -71,7 +59,7 @@
                         "example": "Success"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -82,7 +70,7 @@
             }
         },
         "numberOfInputs" : {
-            "summary": "Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`. \n \n### Events\n \n No Events.",
+            "summary": "Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`.",
             "params": {
                 "summary": "An empty parameter object",
                 "type": "object",
@@ -102,7 +90,7 @@
                         "example": "Success"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [

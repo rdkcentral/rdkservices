@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "HdmiCec API", 
         "class": "HdmiCec", 
         "description": "The `HdmiCec` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. HdmiCec plugin can be used on an HDMI Source device where the application has complete control on implementing the CEC messages, and Thunder plugin provides the transport mechanism to send and receive the messages to other CEC devices in the network."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "enabled": {
@@ -44,27 +47,11 @@
             "summary": "`true` if device is active source, otherwise `false`",
             "type": "boolean",
             "example": "true"
-         },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        }
+         }
     },
     "methods": {
         "getActiveSourceStatus":{
-            "summary": "Gets the active source status of the device.\n  \n### Event \n\n No Events",
+            "summary": "Gets the active source status of the device.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -77,11 +64,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getCECAddresses":{
-            "summary": "Returns the HDMI-CEC addresses that are assigned to the local device.\n  \n### Event \n\n No Events",
+            "summary": "Returns the HDMI-CEC addresses that are assigned to the local device.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -110,7 +97,7 @@
                         ]
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -120,7 +107,7 @@
             }
         },
         "getDeviceList":{
-            "summary": "Gets the list of number of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.\n  \n### Event \n\n No Events",
+            "summary": "Gets the list of number of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -153,7 +140,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -164,7 +151,7 @@
             }
         },
         "getEnabled": {
-            "summary": "Returns whether HDMI-CEC is enabled.\n  \n### Event \n\n No Events",
+            "summary": "Returns whether HDMI-CEC is enabled.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -172,7 +159,7 @@
                         "$ref": "#/definitions/enabled"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -182,10 +169,10 @@
             }
         },
         "sendMessage":{
-            "summary": "Writes HDMI-CEC frame to the driver.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onMessage`|Triggered when a message is sent from an HDMI device|",
-             "events": [
-                    "onMessage"
-            ],
+            "summary": "Writes HDMI-CEC frame to the driver.",
+             "events": {
+                    "onMessage" : "Triggered when a message is sent from an HDMI device"
+             },
             "params": {
                 "type":"object",
                 "properties": {
@@ -198,11 +185,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setEnabled":{
-            "summary": "Enables or disables HDMI-CEC driver.\n  \n### Event \n\n No Events",
+            "summary": "Enables or disables HDMI-CEC driver.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -215,7 +202,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }
     },

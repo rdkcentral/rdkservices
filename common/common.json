@@ -186,5 +186,21 @@
             "default": null,
             "description": "Always null"
         }
+    },
+    "result": {
+        "type":"object",
+        "properties": {
+            "success": {
+                "$ref": "#/success"
+            }
+        },
+        "required": [
+            "success"
+        ]
+    },
+    "success": {
+        "summary": "Whether the request succeeded",
+        "type": "boolean",
+        "example": "true"
     }
 }

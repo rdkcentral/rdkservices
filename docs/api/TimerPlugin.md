@@ -2,60 +2,22 @@
 <a name="Timer_Plugin"></a>
 # Timer Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/Timer/CHANGELOG.md)**
 
 A org.rdk.Timer plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.Timer plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -97,10 +59,10 @@ Timer interface methods:
 ## *cancel*
 
 Stops the specified timer.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -124,7 +86,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.cancel",
+    "method": "org.rdk.Timer.cancel",
     "params": {
         "timerID": 0
     }
@@ -147,10 +109,10 @@ No Events.
 ## *getTimers*
 
 Gets the status of all timers.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -179,7 +141,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.getTimers"
+    "method": "org.rdk.Timer.getTimers"
 }
 ```
 
@@ -209,10 +171,10 @@ This method takes no parameters.
 ## *getTimerStatus*
 
 Gets the status of the specified timer.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -241,7 +203,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.getTimerStatus",
+    "method": "org.rdk.Timer.getTimerStatus",
     "params": {
         "timerId": 0
     }
@@ -269,10 +231,10 @@ No Events.
 ## *resume*
 
 Resumes the specified timer.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -296,7 +258,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.resume",
+    "method": "org.rdk.Timer.resume",
     "params": {
         "timerID": 0
     }
@@ -319,16 +281,13 @@ No Events.
 ## *startTimer*
 
 Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.
- 
+
 ### Events
- 
-| Event | Description | 
-| :-------- | :-------- | 
-| `timerExpired` | Triggered when a timer expires | 
-| `timerExpiryReminder` | Triggered to remind that, the timer will expire in remindBefore value in seconds |.
 
-Also see: [timerExpired](#timerExpired), [timerExpiryReminder](#timerExpiryReminder)
-
+| Event | Description |
+| :-------- | :-------- |
+| [timerExpired](#timerExpired) | Triggered when a timer expires |
+| [timerExpiryReminder](#timerExpiryReminder) | Triggered to remind that, the timer will expire in remindBefore value in seconds |
 ### Parameters
 
 | Name | Type | Description |
@@ -355,7 +314,7 @@ Also see: [timerExpired](#timerExpired), [timerExpiryReminder](#timerExpiryRemin
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.startTimer",
+    "method": "org.rdk.Timer.startTimer",
     "params": {
         "interval": 1.2,
         "mode": "WAKE",
@@ -382,10 +341,10 @@ Also see: [timerExpired](#timerExpired), [timerExpiryReminder](#timerExpiryRemin
 ## *suspend*
 
 Suspends the specified timer.
- 
+
 ### Events
- 
-No Events.
+
+No Events
 
 ### Parameters
 
@@ -409,7 +368,7 @@ No Events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Timer.1.suspend",
+    "method": "org.rdk.Timer.suspend",
     "params": {
         "timerID": 0
     }
@@ -462,7 +421,7 @@ Triggered when a timer expires.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.timerExpired",
+    "method": "client.events.timerExpired",
     "params": {
         "timerId": 0,
         "mode": "WAKE",
@@ -490,7 +449,7 @@ Triggered before a timer actually expires. It is triggered only when a non-zero 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.timerExpiryReminder",
+    "method": "client.events.timerExpiryReminder",
     "params": {
         "timerId": 0,
         "mode": "WAKE",

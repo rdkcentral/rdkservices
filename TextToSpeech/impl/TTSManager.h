@@ -22,21 +22,26 @@
 
 #include "TTSCommon.h"
 #include "TTSSpeaker.h"
+#include "TTSConfiguration.h"
+#include "TTSDownloader.h"
 
 #include <vector>
 
 namespace TTS {
 
 struct Configuration {
-    Configuration() : volume(0), rate(0) {};
+    Configuration() : volume(0), rate(0), primVolDuck(25) {};
     ~Configuration() {}
 
     std::string ttsEndPoint;
     std::string ttsEndPointSecured;
     std::string language;
     std::string voice;
+    std::string apiKey;
+    FallbackData data;
     double volume;
     uint8_t rate;
+    int8_t primVolDuck;
 };
 
 class TTSEventCallback {
@@ -66,6 +71,7 @@ public:
     // TTS Global APIs
     TTS_Error enableTTS(bool enable);
     bool isTTSEnabled();
+    void initiateDownload();
     TTS_Error listVoices(std::string language, std::vector<std::string> &voices);
     TTS_Error setConfiguration(Configuration &configuration);
     TTS_Error getConfiguration(Configuration &configuration);
@@ -96,6 +102,7 @@ private:
     TTSConfiguration m_defaultConfiguration;
     TTSEventCallback *m_callback;
     TTSSpeaker *m_speaker;
+    TTSDownloader *m_downloader;
 };
 
 } // namespace TTS

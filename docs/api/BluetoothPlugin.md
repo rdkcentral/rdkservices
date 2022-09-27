@@ -2,60 +2,22 @@
 <a name="Bluetooth_Plugin"></a>
 # Bluetooth Plugin
 
-**Version: 2.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/Bluetooth/CHANGELOG.md)**
 
 A org.rdk.Bluetooth plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.Bluetooth plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -114,14 +76,12 @@ Bluetooth interface methods:
 ## *connect*
 
 Initiates the connection with the given Bluetooth device. Triggers `onStatusChanged` 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `BluetoothState: CONNECTION_CHANGE` | Triggers `onStatusChanged` event once it is  connected to the given deviceID. |.
 
-Also see: [onStatuschanged](#onStatuschanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onStatusChanged](#onStatusChanged) | Triggers `onStatusChanged` event once it is  connected to the given deviceID. |
 ### Parameters
 
 | Name | Type | Description |
@@ -146,7 +106,7 @@ Also see: [onStatuschanged](#onStatuschanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.connect",
+    "method": "org.rdk.Bluetooth.connect",
     "params": {
         "deviceID": "61579454946360",
         "deviceType": "TV",
@@ -170,11 +130,11 @@ Also see: [onStatuschanged](#onStatuschanged)
 <a name="disable"></a>
 ## *disable*
 
-Disables the Bluetooth stack. 
- 
-### Events 
-  
- No Events.
+Disables the Bluetooth stack.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -195,7 +155,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.disable"
+    "method": "org.rdk.Bluetooth.disable"
 }
 ```
 
@@ -214,15 +174,13 @@ This method takes no parameters.
 <a name="disconnect"></a>
 ## *disconnect*
 
-Disconnects the given device from this device ID and triggers `onStatusChanged` Event. 
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-| `BluetoothState`: `CONNECTION_CHANGE` |Triggers `onStatusChanged` event once it is disconnected from given deviceID.| .
+Disconnects the given device from this device ID and triggers `onStatusChanged` Event.
 
-Also see: [onStatusChanged](#onStatusChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onStatusChanged](#onStatusChanged) | Triggers `onStatusChanged` event once it is disconnected from given deviceID. |
 ### Parameters
 
 | Name | Type | Description |
@@ -246,7 +204,7 @@ Also see: [onStatusChanged](#onStatusChanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.disconnect",
+    "method": "org.rdk.Bluetooth.disconnect",
     "params": {
         "deviceID": "61579454946360",
         "deviceType": "TV"
@@ -269,11 +227,11 @@ Also see: [onStatusChanged](#onStatusChanged)
 <a name="enable"></a>
 ## *enable*
 
-Enables the Bluetooth stack. 
-  
-### Events 
+Enables the Bluetooth stack.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -294,7 +252,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.enable"
+    "method": "org.rdk.Bluetooth.enable"
 }
 ```
 
@@ -313,11 +271,11 @@ This method takes no parameters.
 <a name="getAudioInfo"></a>
 ## *getAudioInfo*
 
-Provides information on the currently playing song/audio from an external source. The returned information from Bluetooth-In device provides information that could be displayed on a TV screen.  
-  
-### Events 
+Provides information on the currently playing song/audio from an external source. The returned information from Bluetooth-In device provides information that could be displayed on a TV screen.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -349,7 +307,7 @@ Provides information on the currently playing song/audio from an external source
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.getAudioInfo",
+    "method": "org.rdk.Bluetooth.getAudioInfo",
     "params": {
         "deviceID": "61579454946360"
     }
@@ -380,11 +338,11 @@ Provides information on the currently playing song/audio from an external source
 <a name="getConnectedDevices"></a>
 ## *getConnectedDevices*
 
-Returns a list of devices connected to this device.  
-  
-### Events 
+Returns a list of devices connected to this device.
 
-  No Events .
+### Events
+
+No Events
 
 ### Parameters
 
@@ -411,7 +369,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.getConnectedDevices"
+    "method": "org.rdk.Bluetooth.getConnectedDevices"
 }
 ```
 
@@ -438,11 +396,11 @@ This method takes no parameters.
 <a name="getDeviceInfo"></a>
 ## *getDeviceInfo*
 
-Returns information for the given device ID. 
-  
-### Events 
+Returns information for the given device ID.
 
-  No Events .
+### Events
+
+No Events
 
 ### Parameters
 
@@ -475,7 +433,7 @@ Returns information for the given device ID.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.getDeviceInfo",
+    "method": "org.rdk.Bluetooth.getDeviceInfo",
     "params": {
         "deviceID": "61579454946360"
     }
@@ -507,11 +465,11 @@ Returns information for the given device ID.
 <a name="getDiscoveredDevices"></a>
 ## *getDiscoveredDevices*
 
-This method should be called after getting at least one event `onDiscoveredDevice` event and it returns an array of discovered devices. 
-  
-### Events 
+This method should be called after getting at least one event `onDiscoveredDevice` event and it returns an array of discovered devices.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -539,7 +497,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.getDiscoveredDevices"
+    "method": "org.rdk.Bluetooth.getDiscoveredDevices"
 }
 ```
 
@@ -567,11 +525,11 @@ This method takes no parameters.
 <a name="getName"></a>
 ## *getName*
 
-Returns the name of this device as seen by other Bluetooth devices. 
-  
-### Events 
+Returns the name of this device as seen by other Bluetooth devices.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -593,7 +551,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.getName"
+    "method": "org.rdk.Bluetooth.getName"
 }
 ```
 
@@ -613,11 +571,11 @@ This method takes no parameters.
 <a name="getPairedDevices"></a>
 ## *getPairedDevices*
 
-Returns a list of devices that have paired with this device. 
-  
-### Events 
+Returns a list of devices that have paired with this device.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -644,7 +602,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.getPairedDevices"
+    "method": "org.rdk.Bluetooth.getPairedDevices"
 }
 ```
 
@@ -672,10 +630,10 @@ This method takes no parameters.
 ## *isDiscoverable*
 
 Returns `true`, if this device can be discovered by other Bluetooth devices.
-  
-### Events 
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -697,7 +655,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.isDiscoverable"
+    "method": "org.rdk.Bluetooth.isDiscoverable"
 }
 ```
 
@@ -718,15 +676,13 @@ This method takes no parameters.
 ## *pair*
 
 Pairs this device with device ID of Bluetooth. Triggers `onStatusChanged` and `onRequestFailed` events.
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-| `BluetoothState`: `PAIRING_CHANGE` | Triggers `onStatusChanged` event when the device gets paired to given device ID. | 
-| `BluetoothState`: `PAIRING_FAILED` | Triggers `onRequestFailed` event, when the device is unable to pair.|.
 
-Also see: [onStatusChanged](#onStatusChanged), [onRequestFailed](#onRequestFailed)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onStatusChanged](#onStatusChanged) | Triggers onStatusChanged event when the device gets paired to given device ID. |
+| [onRequestFailed](#onRequestFailed) | Triggers onRequestFailed event, when the device is unable to pair (BluetoothState: PAIRING_FAILED) |
 ### Parameters
 
 | Name | Type | Description |
@@ -749,7 +705,7 @@ Also see: [onStatusChanged](#onStatusChanged), [onRequestFailed](#onRequestFaile
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.pair",
+    "method": "org.rdk.Bluetooth.pair",
     "params": {
         "deviceID": "61579454946360"
     }
@@ -771,11 +727,11 @@ Also see: [onStatusChanged](#onStatusChanged), [onRequestFailed](#onRequestFaile
 <a name="respondToEvent"></a>
 ## *respondToEvent*
 
-Provides the ability to respond the client Bluetooth  For example, this device can respond to a pairing or connection event and indicate the proper response to the requested device, such as the connection request accepted. 
-  
-### Events 
+Provides the ability to respond the client Bluetooth  For example, this device can respond to a pairing or connection event and indicate the proper response to the requested device, such as the connection request accepted.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -801,7 +757,7 @@ Provides the ability to respond the client Bluetooth  For example, this device c
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.respondToEvent",
+    "method": "org.rdk.Bluetooth.respondToEvent",
     "params": {
         "deviceID": "61579454946360",
         "eventType": "onPairingRequest",
@@ -825,11 +781,11 @@ Provides the ability to respond the client Bluetooth  For example, this device c
 <a name="sendAudioPlaybackCommand"></a>
 ## *sendAudioPlaybackCommand*
 
-Provides control over the connected source. Requests can have one of the following values: PLAY, PAUSE, RESUME, STOP, SKIP_NEXT, SKIP_PREV, RESTART, MUTE, UNMUTE, VOLUME_UP, VOLUME_DOWN. 
- 
-### Events  
- 
- No Events.
+Provides control over the connected source. Requests can have one of the following values: PLAY, PAUSE, RESUME, STOP, SKIP_NEXT, SKIP_PREV, RESTART, MUTE, UNMUTE, VOLUME_UP, VOLUME_DOWN.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -854,7 +810,7 @@ Provides control over the connected source. Requests can have one of the followi
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.sendAudioPlaybackCommand",
+    "method": "org.rdk.Bluetooth.sendAudioPlaybackCommand",
     "params": {
         "deviceID": "61579454946360",
         "command": "PLAY"
@@ -877,11 +833,11 @@ Provides control over the connected source. Requests can have one of the followi
 <a name="setAudioStream"></a>
 ## *setAudioStream*
 
-Sets the primary or secondary audio-out to the given Bluetooth device. 
-  
-### Events 
+Sets the primary or secondary audio-out to the given Bluetooth device.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -906,7 +862,7 @@ Sets the primary or secondary audio-out to the given Bluetooth device.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.setAudioStream",
+    "method": "org.rdk.Bluetooth.setAudioStream",
     "params": {
         "deviceID": "61579454946360",
         "audioStreamName": "PRIMARY"
@@ -929,11 +885,11 @@ Sets the primary or secondary audio-out to the given Bluetooth device.
 <a name="setDiscoverable"></a>
 ## *setDiscoverable*
 
-When true, this device can be discovered by other Bluetooth devices. When false, this device is not discoverable. 
-  
-### Events 
+When true, this device can be discovered by other Bluetooth devices. When false, this device is not discoverable.
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -958,7 +914,7 @@ When true, this device can be discovered by other Bluetooth devices. When false,
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.setDiscoverable",
+    "method": "org.rdk.Bluetooth.setDiscoverable",
     "params": {
         "timeout": 5,
         "discoverable": true
@@ -982,10 +938,10 @@ When true, this device can be discovered by other Bluetooth devices. When false,
 ## *setName*
 
 Sets the name of this device as seen by other Bluetooth devices.
-  
-### Events 
 
-  No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1009,7 +965,7 @@ Sets the name of this device as seen by other Bluetooth devices.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.setName",
+    "method": "org.rdk.Bluetooth.setName",
     "params": {
         "name": "RDK Bluetooth Device"
     }
@@ -1042,18 +998,13 @@ Starts scanning for other Bluetooth devices that match the given profile.
 * `AVAILABLE` - Bluetooth stack is initialized, not software disabled, and hardware is running  
 * `NO_BLUETOOTH_HARDWARE` - Bluetooth is supported in RDK software, but no Bluetooth hardware was found.
 * This method sends both `onStatusChanged` and `onDiscoveredDevice` events.
- 
-### Events 
-  
-| Event | Description | 
-| :----------- | :----------- | 
-| `BluetoothState:` `DISCOVERY_STARTED` |Triggered `onStatusChanged`event when device starts scanning the other available Bluetooth devices. | 
-| `BluetoothState:` `DISCOVERY_COMPLETED` | Triggered `onStatusChanged`event when timeout (timeout param) is completed or the `StopScan` method called.| 
-| `DiscoveryType:` `DISCOVERED` |Triggered `onDiscoveredDevice` event when device is in scanning mode and at least one device is discovered | 
-|`DiscoveryType:` `LOST` | Triggered `onDiscoveredDevice` event when the scanned device is lost|.
 
-Also see: [onStatusChanged](#onStatusChanged), [onDiscoveredDevice](#onDiscoveredDevice)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onStatusChanged](#onStatusChanged) | Triggered onStatusChangedevent when device starts scanning the other available Bluetooth devices or when timeout (timeout param) is completed or the StopScan method called. |
+| [onDiscoveredDevice](#onDiscoveredDevice) | Triggered onDiscoveredDevice event when device is in scanning mode and at least one device is discovered or when the scanned device is lost. |
 ### Parameters
 
 | Name | Type | Description |
@@ -1078,7 +1029,7 @@ Also see: [onStatusChanged](#onStatusChanged), [onDiscoveredDevice](#onDiscovere
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.startScan",
+    "method": "org.rdk.Bluetooth.startScan",
     "params": {
         "timeout": 5,
         "profile": "SMARTPHONE, HEADSET"
@@ -1102,15 +1053,13 @@ Also see: [onStatusChanged](#onStatusChanged), [onDiscoveredDevice](#onDiscovere
 <a name="stopScan"></a>
 ## *stopScan*
 
-Stops scanning for Bluetooth devices  if already scan is in-progress and triggers `onStatusChanged`   
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-| `BluetoothState:` `DISCOVERY_COMPLETED` | Triggered `onStatusChanged` event when scan is stopped.| .
+Stops scanning for Bluetooth devices  if already scan is in-progress and triggers `onStatusChanged` 
 
-Also see: [onStatusChanged](#onStatusChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onStatusChanged](#onStatusChanged) | Triggered onStatusChanged event when scan is stopped. |
 ### Parameters
 
 This method takes no parameters.
@@ -1130,7 +1079,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.stopScan"
+    "method": "org.rdk.Bluetooth.stopScan"
 }
 ```
 
@@ -1150,14 +1099,12 @@ This method takes no parameters.
 ## *unpair*
 
 Unpairs the given device ID from this device. Triggers `onStatusChanged` 
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-| `BluetoothState: PAIRING_CHANGE` | Triggers `onStatusChanged` event when device is unpaired |.
 
-Also see: [onStatusChanged](#onStatusChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onStatusChanged](#onStatusChanged) | Triggers onStatusChanged event when device is unpaired. |
 ### Parameters
 
 | Name | Type | Description |
@@ -1180,7 +1127,7 @@ Also see: [onStatusChanged](#onStatusChanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.unpair",
+    "method": "org.rdk.Bluetooth.unpair",
     "params": {
         "deviceID": "61579454946360"
     }
@@ -1202,11 +1149,11 @@ Also see: [onStatusChanged](#onStatusChanged)
 <a name="getDeviceVolumeMuteInfo"></a>
 ## *getDeviceVolumeMuteInfo*
 
-Gets the volume information of the given Bluetooth device ID. 
- 
-### Events 
+Gets the volume information of the given Bluetooth device ID.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1221,10 +1168,9 @@ Gets the volume information of the given Bluetooth device ID.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.volumeInfo | array | An array of objects where each object represents a device volume information |
-| result.volumeInfo[#] | object |  |
-| result.volumeInfo[#].volume | string | Volume value is in between 0 and 255 |
-| result.volumeInfo[#].mute | boolean | Mute value of the device is either 0 or 1 |
+| result.volumeInfo | object | An object which represents current device volume and mute information |
+| result.volumeInfo.volume | string | Volume value is in between 0 and 255 |
+| result.volumeInfo.mute | boolean | Mute value of the device is either true or false |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1235,7 +1181,7 @@ Gets the volume information of the given Bluetooth device ID.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.getDeviceVolumeMuteInfo",
+    "method": "org.rdk.Bluetooth.getDeviceVolumeMuteInfo",
     "params": {
         "deviceID": "61579454946360",
         "deviceProfile": "SMARTPHONE"
@@ -1250,12 +1196,10 @@ Gets the volume information of the given Bluetooth device ID.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "volumeInfo": [
-            {
-                "volume": "50",
-                "mute": false
-            }
-        ],
+        "volumeInfo": {
+            "volume": "50",
+            "mute": false
+        },
         "success": true
     }
 }
@@ -1264,12 +1208,13 @@ Gets the volume information of the given Bluetooth device ID.
 <a name="setDeviceVolumeMuteInfo"></a>
 ## *setDeviceVolumeMuteInfo*
 
-Sets the volume of the connected Bluetooth device ID. 
- 
-### Event 
+Sets the volume of the connected Bluetooth device ID.  Triggers `onDeviceMediaStatus` 
 
- No Events.
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onDeviceMediaStatus](#onDeviceMediaStatus) | Triggers onDeviceMediaStatus event once volume of connected given deviceID is increased or decreased or when connected given deviceID is muted or unmuted or when unknown key is pressed on connected given deviceID. |
 ### Parameters
 
 | Name | Type | Description |
@@ -1278,7 +1223,7 @@ Sets the volume of the connected Bluetooth device ID.
 | params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.deviceProfile | string | Profile of the Bluetooth device |
 | params.volume | string | Volume value is in between 0 and 255 |
-| params.mute | boolean | Mute value of the device is either 0 or 1 |
+| params.mute | string | Mute value of the device is either 1 or 0 |
 
 ### Result
 
@@ -1295,12 +1240,12 @@ Sets the volume of the connected Bluetooth device ID.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.setDeviceVolumeMuteInfo",
+    "method": "org.rdk.Bluetooth.setDeviceVolumeMuteInfo",
     "params": {
         "deviceID": "61579454946360",
         "deviceProfile": "SMARTPHONE",
         "volume": "50",
-        "mute": false
+        "mute": "1"
     }
 }
 ```
@@ -1320,11 +1265,11 @@ Sets the volume of the connected Bluetooth device ID.
 <a name="getApiVersionNumber"></a>
 ## *getApiVersionNumber*
 
-Provides the current API version number. 
- 
-### Event 
+Provides the current API version number.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -1346,7 +1291,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Bluetooth.1.getApiVersionNumber"
+    "method": "org.rdk.Bluetooth.getApiVersionNumber"
 }
 ```
 
@@ -1385,6 +1330,7 @@ Bluetooth interface events:
 | [onStatusChanged](#onStatusChanged) | Triggered when the Bluetooth functionality status changes |
 | [onDeviceFound](#onDeviceFound) | Triggered when the new device got discovered |
 | [onDeviceLost](#onDeviceLost) | Triggered when any discovered device lost or out of range |
+| [onDeviceMediaStatus](#onDeviceMediaStatus) | Triggered when any change occurs to Device Media like volume or mute |
 
 
 <a name="onConnectionRequest"></a>
@@ -1409,7 +1355,7 @@ Triggered when a connection is requested by third party device that has already 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onConnectionRequest",
+    "method": "client.events.onConnectionRequest",
     "params": {
         "deviceID": "61579454946360",
         "name": "[TV] UE32J5530",
@@ -1444,7 +1390,7 @@ Triggered during device discovery when a new device is discovered or a discovere
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDiscoveredDevice",
+    "method": "client.events.onDiscoveredDevice",
     "params": {
         "deviceID": "61579454946360",
         "discoveryType": "DISCOVERED",
@@ -1483,7 +1429,7 @@ Triggered when pairing is requested by a third party device that supports A2DP p
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onPairingRequest",
+    "method": "client.events.onPairingRequest",
     "params": {
         "deviceID": "61579454946360",
         "name": "[TV] UE32J5530",
@@ -1517,7 +1463,7 @@ Triggered when playback is interrupted or changed. Note that there is no resume 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onPlaybackChange",
+    "method": "client.events.onPlaybackChange",
     "params": {
         "action": "started",
         "deviceID": "61579454946360",
@@ -1551,7 +1497,7 @@ Triggered whenever the user plays a new track or when the music player selects a
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onPlaybackNewTrack",
+    "method": "client.events.onPlaybackNewTrack",
     "params": {
         "deviceID": "61579454946360",
         "album": "Spacebound Apes",
@@ -1584,7 +1530,7 @@ Triggered in one second intervals as long as the status of the playback is playi
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onPlaybackProgress",
+    "method": "client.events.onPlaybackProgress",
     "params": {
         "deviceID": "61579454946360",
         "position": "217000",
@@ -1615,7 +1561,7 @@ Triggered when playback is requested by third party device that has already been
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onPlaybackRequest",
+    "method": "client.events.onPlaybackRequest",
     "params": {
         "deviceID": "61579454946360",
         "name": "[TV] UE32J5530",
@@ -1651,7 +1597,7 @@ Triggered when the previous request to pair or connect failed. In absence of a f
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onRequestFailed",
+    "method": "client.events.onRequestFailed",
     "params": {
         "newStatus": "DISCOVERY_COMPLETED",
         "deviceID": "61579454946360",
@@ -1693,7 +1639,7 @@ Triggered when the Bluetooth functionality status changes. Supported statuses ar
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onStatusChanged",
+    "method": "client.events.onStatusChanged",
     "params": {
         "newStatus": "DISCOVERY_COMPLETED",
         "deviceID": "61579454946360",
@@ -1728,7 +1674,7 @@ Triggered when the new device got discovered.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceFound",
+    "method": "client.events.onDeviceFound",
     "params": {
         "deviceID": "61579454946360",
         "name": "[TV] UE32J5530",
@@ -1760,13 +1706,52 @@ Triggered when any discovered device lost or out of range.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDeviceLost",
+    "method": "client.events.onDeviceLost",
     "params": {
         "deviceID": "61579454946360",
         "name": "[TV] UE32J5530",
         "deviceType": "TV",
         "rawDeviceType": "0x060104",
         "lastConnectedState": true
+    }
+}
+```
+
+<a name="onDeviceMediaStatus"></a>
+## *onDeviceMediaStatus*
+
+Triggered when any change occurs to Device Media like volume or mute. Supported Audio Media Control commands are:  
+* `MUTE` - BT audio device muted using remote or external BT device.  
+* `UNMUTE` - BT audio device unmuted using remote or external BT device.  
+* `VOLUME_UP` - BT audio device volume increased using remote or external BT device.  
+* `VOLUME_DOWN`- BT audio device volume decreased using remote or external BT device. 
+* `CMD_UNKNOWN`- Unknown Media control other than MUTE, UNMUTE, VOLUME_UP, VOLUME_DOWN was performed on external BT device. .
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
+| params.name | string | Name of the Bluetooth Device |
+| params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
+| params.volume | string | Volume value is in between 0 and 255 |
+| params.mute | boolean | Mute value of the device is either true or false |
+| params.command | string | Command to send to the connected source |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onDeviceMediaStatus",
+    "params": {
+        "deviceID": "61579454946360",
+        "name": "[TV] UE32J5530",
+        "deviceType": "TV",
+        "volume": "50",
+        "mute": false,
+        "command": "PLAY"
     }
 }
 ```

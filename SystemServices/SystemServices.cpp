@@ -17,11 +17,6 @@
 * limitations under the License.
 **/
 
-/**
- * @file SystemServices.cpp
- * @brief Thunder Plugin based Implementation for System service API's.
- * @reference RDK-25849.
- */
 #include <stdlib.h>
 #include <errno.h>
 #include <cstdio>
@@ -39,11 +34,11 @@
 
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
-#include "utils.h"
 #include "uploadlogs.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-#include "libIARM.h"
+#include "libIBusDaemon.h"
+#include "UtilsIarm.h"
 #endif /* USE_IARMBUS || USE_IARM_BUS */
 
 #ifdef ENABLE_THERMAL_PROTECTION
@@ -51,7 +46,8 @@
 #endif /* ENABLE_THERMAL_PROTECTION */
 
 #if defined(HAS_API_SYSTEM) && defined(HAS_API_POWERSTATE)
-#include "powerstate.h"
+#include "libIBus.h"
+#include "pwrMgr.h"
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
 #include "mfrMgr.h"
@@ -60,10 +56,18 @@
 #include "deepSleepMgr.h"
 #endif
 
+#include "UtilsCStr.h"
+#include "UtilsIarm.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsString.h"
+#include "UtilscRunScript.h"
+#include "UtilsfileExists.h"
+
 using namespace std;
 
-#define SYSSRV_MAJOR_VERSION 1
-#define SYSSRV_MINOR_VERSION 0
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 3
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -83,8 +87,6 @@ using namespace std;
 
 #define STORE_DEMO_FILE "/opt/persistent/store-mode-video/videoFile.mp4"
 #define STORE_DEMO_LINK "file:///opt/persistent/store-mode-video/videoFile.mp4"
-
-#define RFC_CALLERID           "SystemServices"
 
 /**
  * @struct firmwareUpdate
@@ -221,6 +223,30 @@ void stringToIarmMode(std::string mode, IARM_Bus_Daemon_SysMode_t& iarmMode)
     }
 }
 
+bool setPowerState(std::string powerState)
+{
+    IARM_Bus_PWRMgr_SetPowerState_Param_t param;
+    if (powerState == "STANDBY") {
+        param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+    } else if (powerState == "ON") {
+        param.newState = IARM_BUS_PWRMGR_POWERSTATE_ON;
+    } else if (powerState == "DEEP_SLEEP") {
+        param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
+    } else if (powerState == "LIGHT_SLEEP") {
+        param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+    } else {
+        return false;
+    }
+
+    IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_SetPowerState,
+        (void*)&param, sizeof(param));
+
+    if (res == IARM_RESULT_SUCCESS)
+        return true;
+    else
+        return false;
+}
+
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
 #define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
@@ -229,6 +255,21 @@ void stringToIarmMode(std::string mode, IARM_Bus_Daemon_SysMode_t& iarmMode)
  * @brief WPEFramework class for SystemServices
  */
 namespace WPEFramework {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::SystemServices> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin {
         //Prototypes
         std::string   SystemServices::m_currentMode = "";
@@ -256,8 +297,7 @@ namespace WPEFramework {
                 IARM_EventId_t eventId, void *data, size_t len);
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
-        SERVICE_REGISTRATION(SystemServices, SYSSRV_MAJOR_VERSION,
-                SYSSRV_MINOR_VERSION);
+        SERVICE_REGISTRATION(SystemServices, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         SystemServices* SystemServices::_instance = nullptr;
         cSettings SystemServices::m_temp_settings(SYSTEM_SERVICE_TEMP_FILE);
@@ -270,6 +310,8 @@ namespace WPEFramework {
               , m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE)
         {
             SystemServices::_instance = this;
+	    //Updating the standard territory
+            m_strStandardTerritoryList =   "ABW AFG AGO AIA ALA ALB AND ARE ARG ARM ASM ATA ATF ATG AUS AUT AZE BDI BEL BEN BES BFA BGD BGR BHR BHS BIH BLM BLR BLZ BMU BOL                BRA BRB BRN BTN BVT BWA CAF CAN CCK CHE CHL CHN CIV CMR COD COG COK COL COM CPV CRI CUB Cuba CUW CXR CYM CYP CZE DEU DJI DMA DNK DOM DZA ECU EGY ERI ESH ESP                EST ETH FIN FJI FLK FRA FRO FSM GAB GBR GEO GGY GHA GIB GIN GLP GMB GNB GNQ GRC GRD GRL GTM GUF GUM GUY HKG HMD HND HRV HTI HUN IDN IMN IND IOT IRL IRN IRQ                 ISL ISR ITA JAM JEY JOR JPN KAZ KEN KGZ KHM KIR KNA KOR KWT LAO LBN LBR LBY LCA LIE LKA LSO LTU LUX LVA MAC MAF MAR MCO MDA MDG MDV MEX MHL MKD MLI MLT MMR                 MNE MNG MNP MOZ MRT MSR MTQ MUS MWI MYS MYT NAM NCL NER NFK NGA NIC NIU NLD NOR NPL NRU NZL OMN PAK PAN PCN PER PHL PLW PNG POL PRI PRK PRT PRY PSE PYF QAT                 REU ROU RUS RWA SAU SDN SEN SGP SGS SHN SJM SLB SLE SLV SMR SOM SPM SRB SSD STP SUR SVK SVN SWE SWZ SXM SYC SYR TCA TCD TGO THA TJK TKL TKM TLS TON TTO TUN                 TUR TUV TWN TZA UGA UKR UMI URY USA UZB VAT VCT VEN VGB VIR VNM VUT WLF WSM YEM ZAF ZMB ZWE";
 
             CreateHandler({ 2 });
 
@@ -397,6 +439,8 @@ namespace WPEFramework {
             registerMethod("setNetworkStandbyMode", &SystemServices::setNetworkStandbyMode, this);
             registerMethod("getNetworkStandbyMode", &SystemServices::getNetworkStandbyMode, this);
             registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
+    	    registerMethod("setTerritory", &SystemServices::setTerritory, this);
+	    registerMethod("getTerritory", &SystemServices::getTerritory, this);
 #ifdef ENABLE_SET_WAKEUP_SRC_CONFIG
             registerMethod("setWakeupSrcConfiguration", &SystemServices::setWakeupSrcConfiguration, this);
 #endif //ENABLE_SET_WAKEUP_SRC_CONFIG
@@ -1770,7 +1814,7 @@ namespace WPEFramework {
             bool status = false;
             JsonArray standbyModes;
             try {
-                const device::List<device::SleepMode> sleepModes =
+                    device::List<device::SleepMode> sleepModes =
                     device::Host::getInstance().getAvailableSleepModes();
                 for (unsigned int i = 0; i < sleepModes.size(); i++) {
                     standbyModes.Add(sleepModes.at(i).toString());
@@ -2080,7 +2124,8 @@ namespace WPEFramework {
          */
         void SystemServices::getMacAddressesAsync(SystemServices *pSs)
         {
-            int i, listLength = 0;
+	    long unsigned int i=0;
+            long unsigned int listLength = 0;
             JsonObject params;
             string macTypeList[] = {"ecm_mac", "estb_mac", "moca_mac",
                 "eth_mac", "wifi_mac", "bluetooth_mac", "rf4ce_mac"};
@@ -2191,6 +2236,7 @@ namespace WPEFramework {
 					} else {
 						//Do nothing//
 					}
+					std::string oldTimeZoneDST = getTimeZoneDSTHelper();
 
 					FILE *f = fopen(TZ_FILE, "w");
 					if (f) {
@@ -2200,6 +2246,8 @@ namespace WPEFramework {
 						fflush(f);
 						fsync(fileno(f));
 						fclose(f);
+						if (SystemServices::_instance)
+							SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone);
 						resp = true;
 					} else {
 						LOGERR("Unable to open %s file.\n", TZ_FILE);
@@ -2214,6 +2262,188 @@ namespace WPEFramework {
 			populateResponseWithError(SysSrv_MissingKeyValues, response);
 		}
 		returnResponse(resp);
+	}
+
+
+	uint32_t SystemServices::setTerritory(const JsonObject& parameters, JsonObject& response)
+	{
+		bool resp = false;
+		if(parameters.HasLabel("territory")){
+			struct stat st = {0};
+			if (stat("/opt/secure/persistent/System", &st) == -1) {
+				int ret = mkdir("/opt/secure/persistent/System", 0700);
+				LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
+			}
+			string regionStr = "";
+			readTerritoryFromFile();//Read existing territory and Region from file
+			string territoryStr = parameters["territory"].String();
+			LOGWARN(" Territory Value : %s ", territoryStr.c_str());
+			try{
+				int index = m_strStandardTerritoryList.find(territoryStr);
+				if((territoryStr.length() == 3) && (index >=0 && index <= 1100) ){
+					if(parameters.HasLabel("region")){
+						regionStr = parameters["region"].String();
+						if(regionStr != ""){
+							if(isRegionValid(regionStr)){
+								resp = writeTerritory(territoryStr,regionStr);
+								LOGWARN(" territory name %s ", territoryStr.c_str());
+								LOGWARN(" region name %s", regionStr.c_str());
+							}else{
+								JsonObject error;
+								error["message"] = "Invalid region";
+								response["error"] = error;
+								LOGWARN("Please enter valid region");
+								returnResponse(resp);
+							}
+						}
+					}else{
+						resp = writeTerritory(territoryStr,regionStr);
+						LOGWARN(" territory name %s ", territoryStr.c_str());
+					}
+				}else{
+					JsonObject error;
+					error["message"] =  "Invalid territory";
+					response["error"] = error;
+					LOGWARN("Please enter valid territory Parameter value.");
+					returnResponse(resp);
+				}
+				if(resp == true){
+					//call event on Territory changed
+					if (SystemServices::_instance)
+						SystemServices::_instance->onTerritoryChanged(m_strTerritory,territoryStr,m_strRegion,regionStr);
+				}
+			}
+			catch(...){
+				LOGWARN(" caught exception...");
+			}
+		}else{
+			JsonObject error;
+			error["message"] =  "Invalid territory name";
+			response["error"] = error;
+			LOGWARN("Please enter valid territory Parameter name.");
+			resp = false;
+		}
+		returnResponse(resp);
+	}
+
+	uint32_t SystemServices::writeTerritory(string territory, string region)
+	{
+		bool resp = false;
+		ofstream outdata(TERRITORYFILE);
+		if(!outdata){
+			LOGWARN(" Territory : Failed to open the file");
+			return resp;
+		}
+		if (territory != ""){
+			outdata << "territory:" + territory+"\n";
+			resp = true;
+		}
+		if (region != ""){
+			outdata << "region:" + region+"\n";
+			resp = true;
+		}
+		outdata.close();
+		return resp;
+	}
+
+	uint32_t SystemServices::getTerritory(const JsonObject& parameters, JsonObject& response)
+	{
+		bool resp = true;
+		m_strTerritory = "";
+		m_strRegion = "";
+		resp = readTerritoryFromFile();
+		response["territory"] = m_strTerritory;
+		response["region"] = m_strRegion;
+		returnResponse(resp);
+	}
+
+	bool SystemServices::readTerritoryFromFile()
+	{
+		bool retValue = true;
+		if(Utils::fileExists(TERRITORYFILE)){
+			ifstream inFile(TERRITORYFILE);
+			string str;
+			getline (inFile, str);
+			if(str.length() > 0){
+				retValue = true;
+				m_strTerritory = str.substr(str.find(":")+1,str.length());
+				getline (inFile, str);
+				if(str.length() > 0){
+					m_strRegion = str.substr(str.find(":")+1,str.length());
+				}
+			}else{
+				LOGERR("Invalid territory file");
+			}
+			inFile.close();
+
+		}else{
+			LOGERR("Territory is not set");
+		}
+		return retValue;
+	}
+
+	bool SystemServices::isStrAlphaUpper(string strVal)
+	{
+		try{
+			long unsigned int i=0;
+			for(i=0; i<= strVal.length()-1; i++)
+			{
+				if((isalpha(strVal[i])== 0) || (isupper(strVal[i])==0))
+				{
+					LOGERR(" -- Invalid Territory ");
+					return false;
+					break;
+				}
+			}
+		}
+		catch(...){
+			LOGERR(" Exception caught");
+			return false;
+		}
+		return true;
+	}
+
+
+	bool SystemServices::isRegionValid(string regionStr)
+	{
+		bool retVal = false;
+		if(regionStr.length() < 7){
+			string strRegion = regionStr.substr(0,regionStr.find("-"));
+			if( strRegion.length() == 2){
+				if (isStrAlphaUpper(strRegion)){
+					strRegion = regionStr.substr(regionStr.find("-")+1,regionStr.length());
+					if(strRegion.length() >= 2){
+						retVal = isStrAlphaUpper(strRegion);
+					}
+				}
+			}
+		}
+		return retVal;
+	}
+
+	void SystemServices::onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion, string newRegion)
+	{
+		JsonObject params;
+		params["oldTerritory"] = oldTerritory;
+		params["newTerritory"] = newTerritory;
+		LOGWARN(" Notifying Territory changed - oldTerritory: %s - newTerritory: %s",oldTerritory.c_str(),newTerritory.c_str());
+		if(newRegion != ""){
+			params["oldRegion"] = oldRegion;
+			params["newRegion"] = newRegion;
+			LOGWARN(" Notifying Region changed - oldRegion: %s - newRegion: %s",oldRegion.c_str(),newRegion.c_str());
+		}
+		//Notify territory changed
+		sendNotify(EVT_ONTERRITORYCHANGED, params);
+	}
+
+	void SystemServices::onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone)
+	{
+		JsonObject params;
+		params["oldTimeZone"] = oldTimeZone;
+		params["newTimeZone"] = newTimeZone;
+		LOGWARN(" Notifying TimeZone changed - oldTimeZone: %s - newTimeZone: %s",oldTimeZone.c_str(),newTimeZone.c_str());
+		//Notify TimeZone changed
+		sendNotify(EVT_ONTIMEZONEDSTCHANGED, params);
 	}
 
         /***
@@ -2321,7 +2551,8 @@ namespace WPEFramework {
                 return false;
             }
 
-            for (int n = 0 ; n < dirs.size(); n++) {
+	    long unsigned int n=0;
+            for (n = 0 ; n < dirs.size(); n++) {
                 std::string name = dirs[n];
 
                 size_t pathEnd = name.find_last_of("/") + 1;
@@ -2523,19 +2754,20 @@ namespace WPEFramework {
             }
 
             smatch match;
-            if (!regex_search(rebootInfo, match, regex("(?:PreviousRebootReason:\\s*)(\\d{2}\\.\\d{2}\\.\\d{4}_\\d{2}:\\d{2}\\.\\d{2})(?:\\s*RebootReason:)([^\\n]*)"))
-                    || match.size() < 3) {
-                LOGERR("%s doesn't have timestamp with reboot reason information", REBOOT_INFO_LOG_FILE);
-                returnResponse(false);
-            }
 
-            string timeStamp = trim(match[1]);
-            string reason = trim(match[2]);
+            string timeStamp = "Unknown";
+            string reason = "Unknown";
             string source = "Unknown";
             string customReason = "Unknown";
             string otherReason = "Unknown";
 
             string temp;
+            if (regex_search(rebootInfo, match, regex("(?:PreviousRebootTime:)([^\\n]+)")) &&  match.size() > 1) temp = trim(match[1]);
+            if (temp.size() > 0) timeStamp = temp;
+
+            if (regex_search(rebootInfo, match, regex("(?:PreviousRebootReason: RebootReason:)([^\\n]+)")) &&  match.size() > 1) temp = trim(match[1]);
+            if (temp.size() > 0) reason = temp;
+
             if (regex_search(rebootInfo, match, regex("(?:PreviousRebootInitiatedBy:)([^\\n]+)")) &&  match.size() > 1) temp = trim(match[1]);
             if (temp.size() > 0) source = temp;
 
@@ -2857,9 +3089,10 @@ namespace WPEFramework {
 
                         WDMP_STATUS wdmpStatus;
                         RFC_ParamData_t rfcParam;
+			char sysServices[] = "SystemServices";
 
                         memset(&rfcParam, 0, sizeof(rfcParam));
-                        wdmpStatus = getRFCParameter(RFC_CALLERID, jsonRFCList[i].String().c_str(), &rfcParam);
+                        wdmpStatus = getRFCParameter(sysServices, jsonRFCList[i].String().c_str(), &rfcParam);
                         if(WDMP_SUCCESS == wdmpStatus || WDMP_ERR_DEFAULT_VALUE == wdmpStatus)
                             cmdResponse = rfcParam.value;
                         else
@@ -3052,7 +3285,23 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool retVal = false;
-            string powerState = CPowerState::instance()->getPowerState();
+            string powerState;
+
+            {
+                std::string currentState = "UNKNOWN";
+                IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState,
+                    (void*)&param, sizeof(param));
+
+                if (res == IARM_RESULT_SUCCESS) {
+                    if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON)
+                        currentState = "ON";
+                    else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
+                        currentState = "STANDBY";
+                }
+                
+                powerState = currentState;
+            }
 
             LOGWARN("getPowerState called, power state : %s\n",
                     powerState.c_str());
@@ -3114,9 +3363,9 @@ namespace WPEFramework {
 					LOGWARN("SystemServices::_instance is NULL.\n");
 				}
 				if (convert("DEEP_SLEEP", sleepMode)) {
-					retVal = CPowerState::instance()->setPowerState(sleepMode);
+					retVal = setPowerState(sleepMode);
 				} else {
-					retVal = CPowerState::instance()->setPowerState(state);
+					retVal = setPowerState(state);
 				}
 				outfile.open(STANDBY_REASON_FILE, ios::out);
 				if (outfile.is_open()) {
@@ -3127,7 +3376,7 @@ namespace WPEFramework {
 					populateResponseWithError(SysSrv_FileAccessFailed, response);
 				}
 			} else {
-				retVal = CPowerState::instance()->setPowerState(state);
+				retVal = setPowerState(state);
 			}
             m_current_state=state; /* save the old state */
 		} else {
@@ -3611,7 +3860,7 @@ namespace WPEFramework {
         {
             int seconds = 600; /* 10 Minutes to Reboot */
 
-            LOGINFO("len = %d\n", len);
+            LOGINFO("len = %lud\n", len);
             /* Only handle state events */
             if (eventId != IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) return;
 
@@ -3993,6 +4242,11 @@ namespace WPEFramework {
             // Everything is OK
             LOGINFO("Successfully deleted persistent path for '%s' (path = '%s')", callsignOrType.c_str(), persistentPath.c_str());
 
+	    //Calling container_setup.sh along with callsign as container bundle also gets deleted from the persistent path
+            std::string command = "/lib/rdk/container_setup.sh " + callsignOrType;
+            system(command.c_str());
+            LOGINFO("Calling %s \n", command.c_str());
+
             result = true;
 
           } while(false);
@@ -4012,7 +4266,7 @@ namespace WPEFramework {
 
           const string query = parameters.HasLabel("query") ? parameters["query"].String() : "";
 
-          response.Load(query);
+          response.Load(m_shellService, query);
 
           return Core::ERROR_NONE;
         }

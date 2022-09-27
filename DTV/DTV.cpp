@@ -19,6 +19,10 @@
 
 #include "DTV.h"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 extern "C"
 {
    // DVB include files
@@ -34,11 +38,25 @@ extern "C"
 
 namespace WPEFramework
 {
+   namespace {
+
+        static Plugin::Metadata<Plugin::DTV> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+   }
+
    namespace Plugin
    {
       using namespace JsonData::DTV;
 
-      SERVICE_REGISTRATION(DTV, 1, 0);
+      SERVICE_REGISTRATION(DTV, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
       //static Core::ProxyPoolType<Web::TextBody> _textBodies(2);
       static Core::ProxyPoolType<Web::JSONBodyType<DTV::Data>> jsonResponseDataFactory(1);
@@ -170,13 +188,18 @@ namespace WPEFramework
       /* encapsulated class Thread  */
       const string DTV::Initialize(PluginHost::IShell *service)
       {
-         string message;
-         Config config;
+         ASSERT(service != nullptr);
+         ASSERT(_dtv == nullptr);
+         ASSERT(_service == nullptr);
+         ASSERT(_connectionId == 0);
 
-         _connectionId = 0;
+         string message;
+
          _service = service;
+         _service->AddRef();
          _skipURL = _service->WebPrefix().length();
 
+         Config config;
          config.FromString(_service->ConfigLine());
 
          _service->Register(&_notification);
@@ -184,6 +207,9 @@ namespace WPEFramework
          _dtv = service->Root<Core::IUnknown>(_connectionId, 2000, _T("DTV"));
          if (_dtv != nullptr)
          {
+
+            RegisterAll();
+
             E_DVB_INIT_SUBS_TTXT subs_ttxt = DVB_INIT_NO_TELETEXT_OR_SUBTITLES;
 
             if (config.SubtitleProcessing && config.TeletextProcessing)
@@ -221,16 +247,16 @@ namespace WPEFramework
             {
                SYSLOG(Logging::Startup, (_T("DTV::Initialize: Failed to init DVBCore")));
                message = _T("DVBCore could not be initialised");
-               _service->Unregister(&_notification);
-               _service = nullptr;
             }
          }
          else
          {
             SYSLOG(Logging::Startup, (_T("DTV::Initialize: Failed to create _dtv")));
             message = _T("DTV plugin could not be initialised");
-            _service->Unregister(&_notification);
-            _service = nullptr;
+         }
+
+         if (message.length() != 0) {
+            Deinitialize(service);
          }
 
          return message;
@@ -245,12 +271,35 @@ namespace WPEFramework
          // start cleaning up..
          _service->Unregister(&_notification);
 
-         _dtv->Release();
-         _dtv = nullptr;
+         if (_dtv != nullptr) {
 
+            UnregisterAll();
+
+            // Stop processing:
+            RPC::IRemoteConnection* connection = service->RemoteConnection(_connectionId);
+
+            VARIABLE_IS_NOT_USED uint32_t result = _dtv->Release();
+            _dtv = nullptr;
+
+            // It should have been the last reference we are releasing,
+            // so it should endup in a DESTRUCTION_SUCCEEDED, if not we
+            // are leaking...
+            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
+
+            // If this was running in a (container) process...
+            if (connection != nullptr) {
+               // Lets trigger the cleanup sequence for
+               // out-of-process code. Which will guard
+               // that unwilling processes, get shot if
+               // not stopped friendly :-)
+               connection->Terminate();
+               connection->Release();
+            }
+         }
+
+         _connectionId = 0;
+         _service->Release();
          _service = nullptr;
-         UnregisterAll();
-
          SYSLOG(Logging::Shutdown, (string(_T("DTV de-initialised"))));
       }
 

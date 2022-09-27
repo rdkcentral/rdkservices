@@ -37,9 +37,14 @@ namespace WPEFramework {
             uint32_t cancelWPSPairing(const JsonObject& parameters, JsonObject& response);
             uint32_t saveSSID (const JsonObject& parameters, JsonObject& response);
             uint32_t clearSSID(const JsonObject& parameters, JsonObject& response);
-            uint32_t getPairedSSID(const JsonObject& parameters, JsonObject& response) const;
-            uint32_t getPairedSSIDInfo(const JsonObject& parameters, JsonObject& response) const;
-            uint32_t isPaired(const JsonObject& parameters, JsonObject& response) const;
+            uint32_t getPairedSSID(const JsonObject& parameters, JsonObject& response);
+            uint32_t getPairedSSIDInfo(const JsonObject& parameters, JsonObject& response);
+            uint32_t isPaired(const JsonObject& parameters, JsonObject& response);
+            void updateWifiWPSCache(bool value);
+
+            std::atomic<bool> m_useCachePairedSSID;
+            std::string m_cachePairedSSID;
+            std::string m_cachePairedBSSID;
         };
     } // namespace Plugin
 } // namespace WPEFramework

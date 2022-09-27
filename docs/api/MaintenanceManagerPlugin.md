@@ -2,60 +2,22 @@
 <a name="MaintenanceManagerPlugin"></a>
 # MaintenanceManagerPlugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/MaintenanceManager/CHANGELOG.md)**
 
 A org.rdk.MaintenanceManager plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.MaintenanceManager plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -102,11 +64,11 @@ Gets the maintenance activity status details.
 * `MAINTENANCE_STARTED` - Maintenance has started either by schedule or on boot  
 * `MAINTENANCE_ERROR` - One or more tasks of the maintenance service has failed  
 * `MAINTENANCE_COMPLETE` - All critical maintenance tasks are completed successfully  
-* `MAINTENANCE_INCOMPLETE` - Maintenance service didn't execute one or more of the tasks. 
- 
+* `MAINTENANCE_INCOMPLETE` - Maintenance service didn't execute one or more of the tasks.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -131,7 +93,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.getMaintenanceActivityStatus"
+    "method": "org.rdk.MaintenanceManager.getMaintenanceActivityStatus"
 }
 ```
 
@@ -154,11 +116,11 @@ This method takes no parameters.
 <a name="getMaintenanceStartTime"></a>
 ## *getMaintenanceStartTime*
 
-Gets the scheduled maintenance start time. 
- 
+Gets the scheduled maintenance start time.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -180,7 +142,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.getMaintenanceStartTime"
+    "method": "org.rdk.MaintenanceManager.getMaintenanceStartTime"
 }
 ```
 
@@ -205,11 +167,11 @@ Sets the maintenance mode and software upgrade opt-out mode.
 * `NONE` - The software upgrade process is unaffected and proceeds with the download and update.  
 * `ENFORCE_OPTPOUT` - The software upgrade process pauses after discovering an update is available and sends a `System` service `onFirmwareUpdateStateChange` event with the `On Hold for opt-out` state. An application must give the user the option of whether or not to accept the update. If the user accepts the update, then the opt-out mode must be set to `BYPASS-OPTOUT`.  
 * `BYPASS_OPTOUT` The software upgrade process proceeds with a download and update, as directed by the application, for this occurrence of the maintenance window (used when the user accepts the software update).  
-* `IGNORE-UPDATE` -  The software upgrade process ignores any non-mandatory firmware updates, and will NOT send any notification. Note that in this mode, the software upgrade process still sets `ENFORCE-OPTOUT` if the update is mandatory. Use the `getFirmwareUpdateInfo` method from the `System` service to determine what software version is available for download and to determine if the update is consider mandatory (using the `rebootImmediately` parameter). 
- 
+* `IGNORE-UPDATE` -  The software upgrade process ignores any non-mandatory firmware updates, and will NOT send any notification. Note that in this mode, the software upgrade process still sets `ENFORCE-OPTOUT` if the update is mandatory. Use the `getFirmwareUpdateInfo` method from the `System` service to determine what software version is available for download and to determine if the update is consider mandatory (using the `rebootImmediately` parameter).
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -234,7 +196,7 @@ Sets the maintenance mode and software upgrade opt-out mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.setMaintenanceMode",
+    "method": "org.rdk.MaintenanceManager.setMaintenanceMode",
     "params": {
         "maintenanceMode": "BACKGROUND",
         "optOut": "ENFORCE_OPTOUT"
@@ -257,15 +219,13 @@ Sets the maintenance mode and software upgrade opt-out mode.
 <a name="startMaintenance"></a>
 ## *startMaintenance*
 
-Starts maintenance activities. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onMaintenanceStatusChange` | Triggers whenever the maintenance status changes |.
+Starts maintenance activities.
 
-Also see: [onMaintenanceStatusChange](#onMaintenanceStatusChange)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onMaintenanceStatusChange](#onMaintenanceStatusChange) | Triggers whenever the maintenance status changes |
 ### Parameters
 
 This method takes no parameters.
@@ -285,7 +245,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.startMaintenance"
+    "method": "org.rdk.MaintenanceManager.startMaintenance"
 }
 ```
 
@@ -304,15 +264,13 @@ This method takes no parameters.
 <a name="stopMaintenance"></a>
 ## *stopMaintenance*
 
-Stops maintenance activities. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onMaintenanceStatusChange` | Triggers whenever the maintenance status changes |.
+Stops maintenance activities.
 
-Also see: [onMaintenanceStatusChange](#onMaintenanceStatusChange)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onMaintenanceStatusChange](#onMaintenanceStatusChange) | Triggers whenever the maintenance status changes |
 ### Parameters
 
 This method takes no parameters.
@@ -332,7 +290,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.stopMaintenance"
+    "method": "org.rdk.MaintenanceManager.stopMaintenance"
 }
 ```
 
@@ -351,11 +309,11 @@ This method takes no parameters.
 <a name="getMaintenanceMode"></a>
 ## *getMaintenanceMode*
 
-Gets the current maintenance mode and software upgrade opt-out mode which are stored in the persistent location. 
- 
+Gets the current maintenance mode and software upgrade opt-out mode which are stored in the persistent location.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -378,7 +336,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.MaintenanceManager.1.getMaintenanceMode"
+    "method": "org.rdk.MaintenanceManager.getMaintenanceMode"
 }
 ```
 
@@ -427,7 +385,7 @@ Triggered when the maintenance manager status changes. See `getMaintenanceActivi
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onMaintenanceStatusChange",
+    "method": "client.events.onMaintenanceStatusChange",
     "params": {
         "maintenanceStatus": "MAINTENANCE_STARTED"
     }
