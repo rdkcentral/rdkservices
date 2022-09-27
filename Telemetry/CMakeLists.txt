@@ -18,6 +18,7 @@
 set(PLUGIN_NAME Telemetry)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_TELEMETRY_STARTUPORDER "" CACHE STRING "To configure startup order of Telemetry plugin")
 set(PLUGIN_T2_PERSISTENT_FOLDER /opt/.t2reportprofiles/ CACHE STRING "Path to t2 persistent folder")
 set(PLUGIN_DEFAULT_PROFILES_FILE /etc/t2profiles/default.json CACHE STRING "Path to default t2 profile")
 

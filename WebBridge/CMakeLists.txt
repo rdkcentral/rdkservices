@@ -18,6 +18,8 @@
 set(PLUGIN_NAME WebBridge)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_WEBBRIDGE_STARTUPORDER "" CACHE STRING "To configure startup order of WebBridge plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
