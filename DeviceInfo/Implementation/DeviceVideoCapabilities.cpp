@@ -30,12 +30,14 @@ namespace Plugin {
     {
         uint32_t result = Core::ERROR_NONE;
 
-        std::list<string> list;
+        std::vector<string> supportedDisplayPorts;
 
         try {
             const auto& vPorts = device::Host::getInstance().getVideoOutputPorts();
             for (size_t i = 0; i < vPorts.size(); i++) {
-                list.emplace_back(vPorts.at(i).getName());
+                device::VideoOutputPort &vPort = vPorts.at(i);
+                string videoDisplay = vPort.getName();
+                vectorSet(supportedDisplayPorts, videoDisplay);
             }
         } catch (const device::Exception& e) {
             TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
@@ -48,6 +50,7 @@ namespace Plugin {
         }
 
         if (result == Core::ERROR_NONE) {
+            std::list<sting> list (supportedDisplayPorts.begin(),supportedDisplayPorts.end());
             supportedVideoDisplays = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(list));
         }
 
