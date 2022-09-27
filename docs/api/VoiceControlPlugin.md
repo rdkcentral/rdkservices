@@ -258,7 +258,7 @@ No Events
 
 Sends a voice session with a transcription string to simulate a real voice session for QA. Example use cases for this API call include rack and automation testing.
 
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/VoiceControlPlugin?id=voicesessionrequest)
 
 ### Events
 
