@@ -58,6 +58,10 @@ SecurityAgent interface methods:
 
 Creates a signed JsonWeb token. On success, returns Signed JsonWeb token and on failure, returns error message and error code as mentioned in below Errors table.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -113,6 +117,10 @@ Creates a signed JsonWeb token. On success, returns Signed JsonWeb token and on 
 ## *validate*
 
 Validates the token whether it is valid and properly signed.
+
+### Events
+
+No Events
 
 ### Parameters
 

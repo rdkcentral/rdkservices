@@ -68,6 +68,10 @@ Provides access to the supported DRM systems.
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -113,6 +117,10 @@ Provides access to the supported DRM systems.
 Provides access to the DRM key systems.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 

@@ -68,7 +68,7 @@
     },
     "methods": {
         "cancel":{
-            "summary": "Stops the specified timer.\n \n### Events\n \nNo Events.",
+            "summary": "Stops the specified timer.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -82,7 +82,7 @@
             }
         },
         "getTimers":{
-            "summary": "Gets the status of all timers.\n \n### Events\n \nNo Events.",
+            "summary": "Gets the status of all timers.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -132,7 +132,7 @@
             }
         },
         "getTimerStatus": {
-            "summary": "Gets the status of the specified timer.\n \n### Events\n \nNo Events.",
+            "summary": "Gets the status of the specified timer.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -177,7 +177,7 @@
             }           
         },
         "resume":{
-            "summary": "Resumes the specified timer.\n \n### Events\n \nNo Events.",
+            "summary": "Resumes the specified timer.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -191,11 +191,11 @@
             }
         },
         "startTimer": {
-            "summary": "Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.\n \n### Events\n \n| Event | Description | \n| :-------- | :-------- | \n| `timerExpired` | Triggered when a timer expires | \n| `timerExpiryReminder` | Triggered to remind that, the timer will expire in remindBefore value in seconds |",
-            "events": [
-                "timerExpired",
-                "timerExpiryReminder"
-            ],
+            "summary": "Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.",
+            "events": {
+                "timerExpired" : "Triggered when a timer expires",
+                "timerExpiryReminder" : "Triggered to remind that, the timer will expire in remindBefore value in seconds"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -235,7 +235,7 @@
             }
         },
         "suspend":{
-            "summary": "Suspends the specified timer.\n \n### Events\n \nNo Events.",
+            "summary": "Suspends the specified timer.",
             "params": {
                 "type":"object",
                 "properties": {

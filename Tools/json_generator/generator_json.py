@@ -2099,15 +2099,25 @@ def CreateDocument(schema, path):
                     writeonly = True
                     MdParagraph("> This property is **write-only**.")
             if "deprecated" in props:
-                MdParagraph("> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.")
+                if "referenceUrl" in props:
+                    referenceUrl = props["referenceUrl"]
+                    MdParagraph("> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [{}]({})".format("Refer this link for the new api",referenceUrl))
+                else:
+                    MdParagraph("> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.")
             elif "obsolete" in props:
                 MdParagraph("> This API is **obsolete**. It is no longer recommended for use in new implementations.")
             if "description" in props:
                 MdHeader("Description", 3)
                 MdParagraph(props["description"])
-            if "events" in props:
-                events = [props["events"]] if isinstance(props["events"], str) else props["events"]
-                MdParagraph("Also see: " + (", ".join(map(lambda x: link("event." + x), events))))
+            if type == "method" or is_property:
+                MdHeader("Events", 3)
+                if "events" in props:
+                    MdTableHeader(["Event", "Description"])
+                    event_dict = props["events"]
+                    for k,v in event_dict.items():
+                        MdRow([link("event." + k), v])
+                else:
+                    MdParagraph("No Events")
             if is_property:
                 MdHeader("Value", 3)
                 if not "description" in props["params"]:
