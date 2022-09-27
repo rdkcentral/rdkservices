@@ -456,6 +456,7 @@ bool XCast::deleteFromDynamicAppCache(string strAppNames)
             {lock_guard<mutex> lck(m_appConfigMutex);
                 m_appConfigCache.clear();
             }
+            ret = true;
         } else {
             //Remove specified appl list from dynamic app cache
             ret = deleteFromDynamicAppCache (appsToDelete);

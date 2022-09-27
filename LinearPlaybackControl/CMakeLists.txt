@@ -19,6 +19,7 @@ set(PLUGIN_NAME LinearPlaybackControl)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_LINEAR_PLAYBACK_CONTROL_AUTOSTART true CACHE STRING true)
+set(PLUGIN_LINEARPLAYBACKCTL_STARTUPORDER "" CACHE STRING "To configure startup order of LinearPlaybackControl plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
