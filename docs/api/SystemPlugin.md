@@ -121,7 +121,7 @@ SystemServices interface methods:
 
 Checks if a key is present in the cache.
 
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api]( https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=getvalue)
 
 ### Events
 
@@ -463,7 +463,7 @@ This method takes no parameters.
 
 Gets the value of a key in the cache.
 
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=getvalue)
 
 ### Events
 
@@ -1059,7 +1059,7 @@ This method takes no parameters.
 
 Returns the list of milestones.
 
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/DeviceDiagnosticsPlugin?id=getmilestones)
 
 ### Events
 
@@ -2495,7 +2495,7 @@ Requests that the system performs a reboot of the set-top box.
 
 Removes the cache key.
 
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=deletekey)
 
 ### Events
 
@@ -2643,7 +2643,7 @@ No Events
 
 Sets the value for a key in the cache.
 
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=setvalue)
 
 ### Events
 
