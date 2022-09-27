@@ -19,13 +19,10 @@ set(PLUGIN_NAME ScreenCapture)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
-find_package(IARMBus)
 
 add_library(${MODULE_NAME} SHARED
         ScreenCapture.cpp
         Module.cpp
-        ../helpers/tptimer.cpp
-        ../helpers/utils.cpp
 )
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -41,9 +38,9 @@ add_definitions (-DHAS_FRAMEBUFFER_API_HEADER)
 find_library(VNC_FRAMEBUFFER_LIBRARIES NAMES vncframebuffer)
 endif()
 
-target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${IARMBUS_INCLUDE_DIRS} )
+target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${NAMESPACE}SecurityUtil -lpng -lcurl trower-base64 ${VNC_FRAMEBUFFER_LIBRARIES})
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lpng -lcurl trower-base64 ${VNC_FRAMEBUFFER_LIBRARIES})
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

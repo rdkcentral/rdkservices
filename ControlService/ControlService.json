@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "ControlService API", 
         "class": "ControlService", 
         "description": "The `ControlService` plugin provides the ability to manage the remote controls of a STB."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "params":{
@@ -91,27 +94,11 @@
             "summary": "The third digit for pairing",
             "type": "integer",
             "example": 5
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods":{
         "canFindMyRemote":{
-            "summary": "Checks if the Control Manager can search for the remote. \n \n### Events\n \n No Events.",
+            "summary": "Checks if the Control Manager can search for the remote.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -124,7 +111,7 @@
                         "example": "true"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -134,7 +121,7 @@
             }
         },
         "checkRf4ceChipConnectivity":{
-            "summary": "Checks Rf4ce chip connectivity status. \n \n### Events\n \n No Events.",
+            "summary": "Checks Rf4ce chip connectivity status.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -147,7 +134,7 @@
                         "example": 1
                     },
                     "success": {
-                        "$ref": "#definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -157,7 +144,7 @@
             }
         },
         "endPairingMode":{
-            "summary": "Leaves pairing mode. \n \n### Events\n \n No Events.",
+            "summary": "Leaves pairing mode.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -173,7 +160,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -185,8 +172,10 @@
 
         },
         "findLastUsedRemote":{
-            "summary": "Searches for the last used remote.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onControl`| Triggered when the last used remote is successfully found |",
-            "events": ["onControl"],
+            "summary": "Searches for the last used remote.",
+            "events": {
+            "onControl" : "Triggered when the last used remote is successfully found"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -207,7 +196,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -217,7 +206,7 @@
             }
         },
         "getAllRemoteData":{
-            "summary": "Returns all remote data. \n \n### Events\n \n No Events.",
+            "summary": "Returns all remote data.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -693,7 +682,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -721,7 +710,7 @@
             }
         },
         "getLastKeypressSource":{
-            "summary": "Returns last key press source data. The data, if any, is returned as part of the `result` object. \n \n### Events\n \n No Events.",
+            "summary": "Returns last key press source data. The data, if any, is returned as part of the `result` object.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -765,7 +754,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -782,7 +771,7 @@
             }
         },
         "getLastPairedRemoteData":{
-            "summary": "Returns all remote data for the last paired remote. The data, if any, is returned as part of the `result` object. \n \n### Events\n \n No Events.",
+            "summary": "Returns all remote data for the last paired remote. The data, if any, is returned as part of the `result` object.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -1168,7 +1157,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -1178,7 +1167,7 @@
             }
         },
         "getQuirks":{
-            "summary": "Gets quirks. \n \n### Events\n \n No Events.",
+            "summary": "Gets quirks.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -1194,7 +1183,7 @@
                         }
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -1204,7 +1193,7 @@
             }
         },
         "getSingleRemoteData":{
-            "summary": "Returns all remote data for the specified remote. The data, if any, is returned as part of the `result` object. \n \n### Events\n \n No Events.",
+            "summary": "Returns all remote data for the specified remote. The data, if any, is returned as part of the `result` object.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1598,7 +1587,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -1608,7 +1597,7 @@
             }
         },
         "getValues":{
-            "summary": "Returns remote setting values. \n \n### Events\n \n No Events.",
+            "summary": "Returns remote setting values.",
             "params": {
                 "$ref": "#/definitions/params"
             },
@@ -1643,7 +1632,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -1661,7 +1650,7 @@
             }
         },
         "setValues":{
-            "summary": "Sets remote setting values. \n \n### Events\n \n No Events.",
+            "summary": "Sets remote setting values.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1697,7 +1686,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -1707,7 +1696,7 @@
             }
         },
         "startPairingMode":{
-            "summary": "Enters pairing mode. \n \n### Events\n \n No Events.",
+            "summary": "Enters pairing mode.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1734,7 +1723,7 @@
                         "$ref": "#/definitions/status_code"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[

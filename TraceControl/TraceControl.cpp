@@ -20,7 +20,25 @@
 #include "TraceControl.h"
 #include "TraceOutput.h"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework {
+
+namespace {
+
+    static Plugin::Metadata<Plugin::TraceControl> metadata(
+        // Version (Major, Minor, Patch)
+        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+        // Preconditions
+        {},
+        // Terminations
+        {},
+        // Controls
+        {}
+    );
+}
 
 ENUM_CONVERSION_BEGIN(Plugin::TraceControl::state)
 
@@ -32,7 +50,7 @@ ENUM_CONVERSION_BEGIN(Plugin::TraceControl::state)
 
 namespace Plugin {
 
-    SERVICE_REGISTRATION(TraceControl, 1, 0);
+    SERVICE_REGISTRATION(TraceControl, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     // Declare the local trace iterator exposing the remote interface.
     /* static */ TraceControl::Observer::Source::LocalIterator TraceControl::Observer::Source::_localIterator;

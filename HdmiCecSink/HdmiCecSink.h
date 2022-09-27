@@ -23,7 +23,7 @@
 #include "ccec/FrameListener.hpp"
 #include "ccec/Connection.hpp"
 
-#include "libIBus.h"
+#include "libIARM.h"
 #include "ccec/Assert.hpp"
 #include "ccec/Messages.hpp"
 #include "ccec/MessageDecoder.hpp"
@@ -32,12 +32,13 @@
 #undef Assert // this define from Connection.hpp conflicts with WPEFramework
 
 #include "Module.h"
-#include "utils.h"
 #include "tptimer.h"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
 #include <chrono>
+
+#include "UtilsLogging.h"
 
 namespace WPEFramework {
 
@@ -615,6 +616,7 @@ private:
             std::mutex m_enableMutex;
             /* Send Key event related */
             bool m_sendKeyEventThreadExit;
+            bool m_sendKeyEventThreadRun;
             std::thread m_sendKeyEventThread;
             std::mutex m_sendKeyEventMutex;
             std::queue<SendKeyInfo> m_SendKeyQueue;
@@ -677,6 +679,7 @@ private:
             void Send_Request_Arc_Termination_Message();
             void Send_Report_Arc_Terminated_Message();
             void arcStartStopTimerFunction();
+            void getHdmiArcPortID();
         };
 	} // namespace Plugin
 } // namespace WPEFramework

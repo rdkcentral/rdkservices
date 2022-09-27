@@ -20,16 +20,21 @@
 #include "Network.h"
 #include <net/if.h>
 #include <arpa/inet.h>
-#include "utils.h"
-#include "libIBus.h"
+
+#include "UtilsIarm.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsString.h"
+#include "UtilscRunScript.h"
+#include "UtilsgetRFCConfig.h"
 
 using namespace std;
 
 #define DEFAULT_PING_PACKETS 15
 #define CIDR_NETMASK_IP_LEN 32
 
-const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MAJOR = 2;
-const short WPEFramework::Plugin::Network::API_VERSION_NUMBER_MINOR = 0;
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 1
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
@@ -125,9 +130,24 @@ typedef struct
 
 namespace WPEFramework
 {
+    
+    namespace {
+
+        static Plugin::Metadata<Plugin::Network> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Network, Network::API_VERSION_NUMBER_MAJOR, Network::API_VERSION_NUMBER_MINOR);
+        SERVICE_REGISTRATION(Network, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
         Network* Network::_instance = nullptr;
 
         Network::Network()
@@ -1403,6 +1423,8 @@ namespace WPEFramework
             m_useIpv4EthCache = false;
             m_useIpv6EthCache = false;
             m_defIpversionCache = "";
+            m_defaultInterface = ""; /* REFPLTV-1319 : Resetting when there is switch in interface, to get new value in getDefaultInterface() */
+            m_gatewayInterface = "";
             m_defInterfaceCache = m_netUtils.getInterfaceDescription(newInterface);
             sendNotify("onDefaultInterfaceChanged", params);
             GetHandler(2)->Notify("onDefaultInterfaceChanged", params);

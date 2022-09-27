@@ -44,35 +44,29 @@ namespace WPEFramework
                  public PluginHost::JSONRPC
       {
          private:
-            // Disallow copying as we only want a single instance of the DVB stack
-            DTV(const DTV&) = delete;
-            DTV& operator=(const DTV&) = delete;
 
             class Notification: public RPC::IRemoteConnection::INotification
             {
-               private:
-                  Notification();
-                  Notification(const Notification&);
-                  Notification& operator=(const Notification&);
-
                public:
+                  Notification() = delete;
+                  Notification(const Notification&) = delete;
+                  Notification& operator=(const Notification&) = delete;
+
                   explicit Notification(DTV *parent) : _parent(*parent)
                   {
                       ASSERT(parent != nullptr);
                   }
 
-                  ~Notification()
-                  {
-                  }
+                  ~Notification() override = default;
 
                   BEGIN_INTERFACE_MAP (Notification)
                      INTERFACE_ENTRY (RPC::IRemoteConnection::INotification)
                   END_INTERFACE_MAP
 
-                  virtual void Activated(RPC::IRemoteConnection*)
+                  void Activated(RPC::IRemoteConnection*) override
                   {
                   }
-                  virtual void Deactivated(RPC::IRemoteConnection *connection)
+                  void Deactivated(RPC::IRemoteConnection *connection) override
                   {
                      _parent.Deactivated(connection);
                   }
@@ -83,10 +77,6 @@ namespace WPEFramework
 
          class Config : public Core::JSON::Container
          {
-            private:
-               Config(const Config&);
-               Config& operator=(const Config&);
-
             public:
                Config() : Core::JSON::Container(),
                   SubtitleProcessing(false),
@@ -96,9 +86,7 @@ namespace WPEFramework
                    Add(_T("teletextprocessing"), &TeletextProcessing);
                }
 
-               ~Config()
-               {
-               }
+               ~Config() override = default;
 
             public:
                Core::JSON::Boolean SubtitleProcessing;
@@ -108,11 +96,10 @@ namespace WPEFramework
          public:
             class Data: public Core::JSON::Container
             {
-               private:
+               public:
                   Data(const Data&) = delete;
                   Data& operator=(const Data&) = delete;
 
-               public:
                   Data() : Core::JSON::Container(), NumberOfCountries(0), NumberOfServices(0)
                   {
                      Add(_T("numberOfCountries"), &NumberOfCountries);
@@ -122,9 +109,7 @@ namespace WPEFramework
                      Add(_T("serviceList"), &ServiceList);
                   }
 
-                  ~Data()
-                  {
-                  }
+                  ~Data() override = default;
 
                public:
                   Core::JSON::DecUInt8 NumberOfCountries;
@@ -135,15 +120,16 @@ namespace WPEFramework
             };
 
          public:
+
+            DTV(const DTV&) = delete;
+            DTV& operator=(const DTV&) = delete;
+
             DTV() : _skipURL(0), _service(nullptr), _connectionId(0), _dtv(nullptr), _notification(this)
             {
                DTV::instance(this);
-               RegisterAll();
             }
 
-            virtual ~DTV()
-            {
-            }
+            ~DTV() override = default;
 
             static DTV* instance(DTV *dtv = nullptr)
             {
@@ -167,14 +153,14 @@ namespace WPEFramework
          public:
             //  IPlugin methods
             // -------------------------------------------------------------------------------------------------------
-            virtual const string Initialize(PluginHost::IShell* service);
-            virtual void Deinitialize(PluginHost::IShell *service);
-            virtual string Information() const;
+            const string Initialize(PluginHost::IShell* service) override;
+            void Deinitialize(PluginHost::IShell *service) override;
+            string Information() const override;
 
             //  IWeb methods
             // -------------------------------------------------------------------------------------------------------
-            virtual void Inbound(Web::Request &request);
-            virtual Core::ProxyType<Web::Response> Process(const Web::Request &request);
+            void Inbound(Web::Request &request) override;
+            Core::ProxyType<Web::Response> Process(const Web::Request &request) override;
 
          private:
             void Deactivated(RPC::IRemoteConnection *connection);

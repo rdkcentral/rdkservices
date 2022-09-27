@@ -1,12 +1,11 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
     "info": {
       "title": "HdcpProfile Plugin",
       "callsign": "org.rdk.HdcpProfile",
       "locator": "libWPEFrameworkHdcpProfile.so",
       "status": "production",
-      "description": "The HdcpProfile plugin provides an interface for HDCP-related data and events.",
-      "version": "1.0"
+      "description": "The HdcpProfile plugin provides an interface for HDCP-related data and events."
     },
     "interface": {
       "$ref": "HdcpProfile.json#"

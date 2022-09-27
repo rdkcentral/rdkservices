@@ -19,10 +19,13 @@
 
 #include "Telemetry.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsTelemetry.h"
+
+#include "rfcapi.h"
 
 // Methods
-#define TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS"setReportProfileStatus"
+#define TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS "setReportProfileStatus"
 #define TELEMETRY_METHOD_LOG_APPLICATION_EVENT "logApplicationEvent"
 
 #define RFC_CALLERID "Telemetry"
@@ -31,11 +34,30 @@
 #define T2_PERSISTENT_FOLDER "/opt/.t2reportprofiles/"
 #define DEFAULT_PROFILES_FILE "/etc/t2profiles/default.json"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework
 {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::Telemetry> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Telemetry, 1, 0);
+        SERVICE_REGISTRATION(Telemetry, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         Telemetry* Telemetry::_instance = nullptr;
 
@@ -57,9 +79,11 @@ namespace WPEFramework
 
         const string Telemetry::Initialize(PluginHost::IShell* service )
         {
-
+            JsonObject config;
+            config.FromString(service->ConfigLine());
+            std::string t2PersistentFolder = config.HasLabel("t2PersistentFolder") ? config["t2PersistentFolder"].String() : T2_PERSISTENT_FOLDER;
             bool isEMpty = true;
-            DIR *d = opendir(T2_PERSISTENT_FOLDER);
+            DIR *d = opendir(t2PersistentFolder.c_str());
             if (NULL != d)
             {
                 struct dirent *de;
@@ -79,7 +103,8 @@ namespace WPEFramework
             if (isEMpty)
             {
                 Core::File file;
-                file = DEFAULT_PROFILES_FILE;
+                std::string defaultProfilesFile = config.HasLabel("defaultProfilesFile") ? config["defaultProfilesFile"].String() : DEFAULT_PROFILES_FILE;
+                file = defaultProfilesFile.c_str();
                 file.Open();
                 if (file.IsOpen())
                 {
@@ -94,7 +119,7 @@ namespace WPEFramework
 
                             std::stringstream ss;
                             // Escaping quotes
-                            for (int n = 0; n < rs; n++)
+                            for (uint32_t n = 0; n < rs; n++)
                             {
                                 char ch = defaultProfile.data()[n];
                                 if ('\"' == ch)
@@ -102,7 +127,7 @@ namespace WPEFramework
                                 ss << ch;
                             }
 
-                            WDMP_STATUS wdmpStatus = setRFCParameter(RFC_CALLERID, RFC_REPORT_PROFILES, ss.str().c_str(), WDMP_STRING);
+                            WDMP_STATUS wdmpStatus = setRFCParameter((char *)RFC_CALLERID, RFC_REPORT_PROFILES, ss.str().c_str(), WDMP_STRING);
                             if (WDMP_SUCCESS != wdmpStatus)
                             {
                                 LOGERR("Failed to set Device.X_RDKCENTRAL-COM_T2.ReportProfiles: %d", wdmpStatus);
@@ -110,20 +135,19 @@ namespace WPEFramework
                         }
                         else
                         {
-                            LOGERR("Got wrong number of bytes, %d instead of %d", rs, file.Size());
+                            LOGERR("Got wrong number of bytes, %d instead of %d", rs, (int)file.Size());
                         }
                     }
                     else
                     {
-                        LOGERR("%s is 0 size", DEFAULT_PROFILES_FILE);
+                        LOGERR("%s is 0 size", defaultProfilesFile.c_str());
                     }
                 }
                 else
                 {
-                    LOGERR("Failed to open %s", DEFAULT_PROFILES_FILE);
+                    LOGERR("Failed to open %s", defaultProfilesFile.c_str());
                 }
             }
-
             return "";
         }
 
@@ -147,7 +171,7 @@ namespace WPEFramework
                     returnResponse(false);
                 }
 
-                WDMP_STATUS wdmpStatus = setRFCParameter(RFC_CALLERID, RFC_REPORT_DEFAULT_PROFILE_ENABLE, status == "COMPLETE" ? "true" : "false", WDMP_BOOLEAN);
+                WDMP_STATUS wdmpStatus = setRFCParameter((char *)RFC_CALLERID, RFC_REPORT_DEFAULT_PROFILE_ENABLE, status == "COMPLETE" ? "true" : "false", WDMP_BOOLEAN);
                 if (WDMP_SUCCESS != wdmpStatus)
                 {
                     LOGERR("Failed to set %s: %d", RFC_REPORT_DEFAULT_PROFILE_ENABLE, wdmpStatus);
@@ -181,7 +205,6 @@ namespace WPEFramework
                 getStringParameter("eventValue", eventValue);
 
                 LOGINFO("eventName:%s, eventValue:%s", eventName.c_str(), eventValue.c_str());
-
                 Utils::Telemetry::sendMessage((char *)eventName.c_str(), (char *)eventValue.c_str());
             }
             else

@@ -2,60 +2,22 @@
 <a name="FrameRate_Plugin"></a>
 # FrameRate Plugin
 
-**Version: 2.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/FrameRate/CHANGELOG.md)**
 
 A org.rdk.FrameRate plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.FrameRate plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -99,10 +61,10 @@ FrameRate interface methods:
 ## *getDisplayFrameRate*
 
 (Version 2) Returns the current display frame rate values.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -124,7 +86,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.getDisplayFrameRate"
+    "method": "org.rdk.FrameRate.getDisplayFrameRate"
 }
 ```
 
@@ -145,10 +107,10 @@ This method takes no parameters.
 ## *getFrmMode*
 
 (Version 2) Returns the current auto framerate mode.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -170,7 +132,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.getFrmMode"
+    "method": "org.rdk.FrameRate.getFrmMode"
 }
 ```
 
@@ -191,10 +153,10 @@ This method takes no parameters.
 ## *setCollectionFrequency*
 
 Sets the FPS data collection interval.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -218,7 +180,7 @@ Sets the FPS data collection interval.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.setCollectionFrequency",
+    "method": "org.rdk.FrameRate.setCollectionFrequency",
     "params": {
         "frequency": 1000
     }
@@ -240,16 +202,14 @@ Sets the FPS data collection interval.
 <a name="setDisplayFrameRate"></a>
 ## *setDisplayFrameRate*
 
-(Version 2) Sets the display framerate values. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onDisplayFrameRateChanging`|Triggered when the framerate changes started.| 
-| `onDisplayFrameRateChanged`|Triggered when the framerate changed.|.
+(Version 2) Sets the display framerate values.
 
-Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayFrameRateChanged](#onDisplayFrameRateChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onDisplayFrameRateChanging](#onDisplayFrameRateChanging) | Triggered when the framerate changes started. |
+| [onDisplayFrameRateChanged](#onDisplayFrameRateChanged) | Triggered when the framerate changed |
 ### Parameters
 
 | Name | Type | Description |
@@ -272,7 +232,7 @@ Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayF
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.setDisplayFrameRate",
+    "method": "org.rdk.FrameRate.setDisplayFrameRate",
     "params": {
         "framerate": "3840x2160px48"
     }
@@ -295,10 +255,10 @@ Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayF
 ## *setFrmMode*
 
 (Version 2) Sets the auto framerate mode.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -322,7 +282,7 @@ Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayF
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.setFrmMode",
+    "method": "org.rdk.FrameRate.setFrmMode",
     "params": {
         "frmmode": 0
     }
@@ -345,14 +305,12 @@ Also see: [onDisplayFrameRateChanging](#onDisplayFrameRateChanging), [onDisplayF
 ## *startFpsCollection*
 
 Starts the FPS data collection.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onFpsEvent`|Triggered at the end of each interval as defined by the `setCollectionFrequency` |.
 
-Also see: [onFpsEvent](#onFpsEvent)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onFpsEvent](#onFpsEvent) | Triggered at the end of each interval as defined by the setCollectionFrequency |
 ### Parameters
 
 This method takes no parameters.
@@ -372,7 +330,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.startFpsCollection"
+    "method": "org.rdk.FrameRate.startFpsCollection"
 }
 ```
 
@@ -392,14 +350,12 @@ This method takes no parameters.
 ## *stopFpsCollection*
 
 Stops the FPS data collection.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onFpsEvent`|Triggered once after the `stopFpsCollection` method is invoked.|.
 
-Also see: [onFpsEvent](#onFpsEvent)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onFpsEvent](#onFpsEvent) | Triggered once after the stopFpsCollection method is invoked. |
 ### Parameters
 
 This method takes no parameters.
@@ -419,7 +375,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.stopFpsCollection"
+    "method": "org.rdk.FrameRate.stopFpsCollection"
 }
 ```
 
@@ -439,10 +395,10 @@ This method takes no parameters.
 ## *updateFps*
 
 Updates Fps values.
-  
-### Events 
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -466,7 +422,7 @@ Updates Fps values.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrameRate.1.updateFps",
+    "method": "org.rdk.FrameRate.updateFps",
     "params": {
         "newFpsValue": 60
     }
@@ -515,7 +471,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDisplayFrameRateChanging"
+    "method": "client.events.onDisplayFrameRateChanging"
 }
 ```
 
@@ -533,7 +489,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDisplayFrameRateChanged"
+    "method": "client.events.onDisplayFrameRateChanged"
 }
 ```
 
@@ -556,7 +512,7 @@ Triggered at the end of each interval as defined by the `setCollectionFrequency`
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onFpsEvent",
+    "method": "client.events.onFpsEvent",
     "params": {
         "average": 0,
         "min": 0,

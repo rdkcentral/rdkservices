@@ -2,61 +2,23 @@
 <a name="WebKitBrowser_Plugin"></a>
 # WebKitBrowser Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.1.1](https://github.com/rdkcentral/rdkservices/blob/main/WebKitBrowser/CHANGELOG.md)**
 
 A WebKitBrowser plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Properties](#Properties)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the WebKitBrowser plugin. It includes detailed specification about its configuration, methods and properties provided, as well as notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -120,10 +82,10 @@ WebKitBrowser interface methods:
 ## *bridgeevent*
 
 Sends a legacy `$badger` 
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -145,7 +107,7 @@ Sends a legacy `$badger`
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.bridgeevent",
+    "method": "WebKitBrowser.bridgeevent",
     "params": "..."
 }
 ```
@@ -164,10 +126,10 @@ Sends a legacy `$badger`
 ## *bridgereply*
 
 A response for legacy `$badger`.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -189,7 +151,7 @@ A response for legacy `$badger`.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.bridgereply",
+    "method": "WebKitBrowser.bridgereply",
     "params": "..."
 }
 ```
@@ -208,10 +170,10 @@ A response for legacy `$badger`.
 ## *delete*
 
 Removes the contents of a directory recursively from the persistent storage.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -240,7 +202,7 @@ Removes the contents of a directory recursively from the persistent storage.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.delete",
+    "method": "WebKitBrowser.delete",
     "params": {
         "path": ".cache/wpe/disk-cache"
     }
@@ -284,6 +246,10 @@ Provides access to the current number of frames-per-second the browser is render
 
 > This property is **read-only**.
 
+### Events
+
+No Events
+
 ### Value
 
 | Name | Type | Description |
@@ -298,7 +264,7 @@ Provides access to the current number of frames-per-second the browser is render
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.fps"
+    "method": "WebKitBrowser.fps"
 }
 ```
 
@@ -320,10 +286,10 @@ Provides access to the headers to send on all requests that the browser makes.
 ### Description
 
 Use this property to send on all requests that the browser makes.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Value
 
@@ -342,7 +308,7 @@ Use this property to send on all requests that the browser makes.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.headers"
+    "method": "WebKitBrowser.headers"
 }
 ```
 
@@ -367,7 +333,7 @@ Use this property to send on all requests that the browser makes.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.headers",
+    "method": "WebKitBrowser.headers",
     "params": [
         {
             "name": "X-Forwarded-For",
@@ -395,10 +361,10 @@ Provides access to the HTTP cookies accept policy.
 ### Description
 
 Use this property to accept HTTP cookie policy.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Value
 
@@ -420,7 +386,7 @@ Use this property to accept HTTP cookie policy.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.httpcookieacceptpolicy"
+    "method": "WebKitBrowser.httpcookieacceptpolicy"
 }
 ```
 
@@ -440,7 +406,7 @@ Use this property to accept HTTP cookie policy.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.httpcookieacceptpolicy",
+    "method": "WebKitBrowser.httpcookieacceptpolicy",
     "params": "always"
 }
 ```
@@ -463,10 +429,10 @@ Provides access to the user preferred languages.
 ### Description
 
 Use this property to return User preferred languages.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Value
 
@@ -483,7 +449,7 @@ Use this property to return User preferred languages.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.languages"
+    "method": "WebKitBrowser.languages"
 }
 ```
 
@@ -505,7 +471,7 @@ Use this property to return User preferred languages.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.languages",
+    "method": "WebKitBrowser.languages",
     "params": [
         "en-US"
     ]
@@ -530,10 +496,10 @@ Provides access to the local storage availability.
 ### Description
 
 Use this property to return Local storage availability.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Value
 
@@ -549,7 +515,7 @@ Use this property to return Local storage availability.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.localstorageenabled"
+    "method": "WebKitBrowser.localstorageenabled"
 }
 ```
 
@@ -569,7 +535,7 @@ Use this property to return Local storage availability.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.localstorageenabled",
+    "method": "WebKitBrowser.localstorageenabled",
     "params": false
 }
 ```
@@ -592,14 +558,12 @@ Provides access to the running state of the service.
 ### Description
 
 Use this property to return the running state of the service.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `statechange`| Triggered if the state of the service changes.|
 
-Also see: [statechange](#statechange)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [statechange](#statechange) | Triggered if the state of the service changes. |
 ### Value
 
 | Name | Type | Description |
@@ -614,7 +578,7 @@ Also see: [statechange](#statechange)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.state"
+    "method": "WebKitBrowser.state"
 }
 ```
 
@@ -634,7 +598,7 @@ Also see: [statechange](#statechange)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.state",
+    "method": "WebKitBrowser.state",
     "params": "resumed"
 }
 ```
@@ -657,16 +621,14 @@ Provides access to the URL loaded in the browser.
 ### Description
 
 Use this property to load URL in the browser.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `urlchange`| Triggered if the URL changes in the browser | 
- |`loadfinished`| Triggered if the `urlchange` event returns `true` as URL loaded successfully |
- |`loadfailed`| Triggered if the `urlchange` event returns `false` as URL failed to load |
 
-Also see: [urlchange](#urlchange)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [urlchange](#urlchange) | Triggered if the URL changes in the browser |
+| [loadfinished](#loadfinished) | Triggered if the urlchange event returns true as URL loaded successfully |
+| [loadfailed](#loadfailed) | Triggered if the urlchange event returns false as URL failed to load |
 ### Value
 
 | Name | Type | Description |
@@ -687,7 +649,7 @@ Also see: [urlchange](#urlchange)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.url"
+    "method": "WebKitBrowser.url"
 }
 ```
 
@@ -707,7 +669,7 @@ Also see: [urlchange](#urlchange)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.url",
+    "method": "WebKitBrowser.url",
     "params": "https://www.google.com"
 }
 ```
@@ -730,10 +692,10 @@ Provides access to the `UserAgent` string used by the browser.
 ### Description
 
 Use this property to return `UserAgent` string used by the browser.
- 
-### Events 
 
- No Events. 
+### Events
+
+No Events
 
 ### Value
 
@@ -749,7 +711,7 @@ Use this property to return `UserAgent` string used by the browser.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.useragent"
+    "method": "WebKitBrowser.useragent"
 }
 ```
 
@@ -769,7 +731,7 @@ Use this property to return `UserAgent` string used by the browser.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.useragent",
+    "method": "WebKitBrowser.useragent",
     "params": "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 (KHTML, like Gecko) Version/8.0 Safari/601.1 WP"
 }
 ```
@@ -792,14 +754,12 @@ Provides access to the current browser visibility.
 ### Description
 
 Use this property to return visibilty status of current browser.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `visibilitychange`| Triggered if the browser visibility changes.|
 
-Also see: [visibilitychange](#visibilitychange)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [visibilitychange](#visibilitychange) | Triggered if the urlchange event returns false as URL failed to load |
 ### Value
 
 | Name | Type | Description |
@@ -820,7 +780,7 @@ Also see: [visibilitychange](#visibilitychange)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.visibility"
+    "method": "WebKitBrowser.visibility"
 }
 ```
 
@@ -840,7 +800,7 @@ Also see: [visibilitychange](#visibilitychange)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "WebKitBrowser.1.visibility",
+    "method": "WebKitBrowser.visibility",
     "params": "visible"
 }
 ```
@@ -891,7 +851,7 @@ A Base64 encoded JSON message from legacy `$badger` bridge.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.bridgequery",
+    "method": "client.events.bridgequery",
     "params": "..."
 }
 ```
@@ -913,7 +873,7 @@ Triggered when the browser fails to load a page.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.loadfailed",
+    "method": "client.events.loadfailed",
     "params": {
         "url": "https://example.com"
     }
@@ -938,7 +898,7 @@ Triggered when the initial HTML document has been completely loaded and parsed.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.loadfinished",
+    "method": "client.events.loadfinished",
     "params": {
         "url": "https://example.com",
         "httpstatus": 200
@@ -960,7 +920,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.pageclosure"
+    "method": "client.events.pageclosure"
 }
 ```
 
@@ -981,7 +941,7 @@ Triggered when the state of the service changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.statechange",
+    "method": "client.events.statechange",
     "params": {
         "suspended": false
     }
@@ -1006,7 +966,7 @@ Triggered when the URL changes in the browser.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.urlchange",
+    "method": "client.events.urlchange",
     "params": {
         "url": "https://example.com",
         "loaded": false
@@ -1031,7 +991,7 @@ Triggered when the browser visibility changes.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.visibilitychange",
+    "method": "client.events.visibilitychange",
     "params": {
         "hidden": false
     }

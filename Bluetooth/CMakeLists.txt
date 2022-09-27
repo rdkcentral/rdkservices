@@ -23,7 +23,6 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 add_library(${MODULE_NAME} SHARED
         Bluetooth.cpp
         Module.cpp
-        ../helpers/utils.cpp
 )
 
 set_target_properties(${MODULE_NAME} PROPERTIES

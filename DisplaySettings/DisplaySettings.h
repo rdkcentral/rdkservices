@@ -22,11 +22,9 @@
 #include <mutex>
 #include <condition_variable>
 #include "Module.h"
-#include "utils.h"
 #include "dsTypes.h"
 #include "tptimer.h"
-#include "libIBus.h"
-#include "libIBusDaemon.h"
+#include "libIARM.h"
 #include "irMgr.h"
 #include "pwrMgr.h"
 
@@ -210,9 +208,9 @@ namespace WPEFramework {
             bool checkPortName(std::string& name) const;
             IARM_Bus_PWRMgr_PowerState_t getSystemPowerState();
 
-	    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getHdmiCecSinkPlugin();
-	    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > m_client;
-	    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getSystemPlugin();
+	    void getHdmiCecSinkPlugin();
+	    WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* m_client;
+	    std::vector<std::string> m_clientRegisteredEventNames;
 	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
 	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
 	    bool requestShortAudioDescriptor();
@@ -222,6 +220,7 @@ namespace WPEFramework {
 	    bool getHdmiCecSinkAudioDeviceConnectedStatus();
 	    static void  cecArcRoutingThread();
 	    void onTimer();
+	    void stopCecTimeAndUnsubscribeEvent();
             void checkAudioDeviceDetectionTimer();
 
 	    TpTimer m_timer;
@@ -255,7 +254,9 @@ namespace WPEFramework {
             };
 
             int m_hdmiInAudioDevicePowerState;
-            int m_currentArcRoutingState; 
+            int m_currentArcRoutingState;
+
+            PluginHost::IShell* m_service;
 
         public:
             static DisplaySettings* _instance;

@@ -28,8 +28,6 @@ find_package(IARMBus)
 add_library(${MODULE_NAME} SHARED
         RDKShell.cpp
         Module.cpp
-        ../helpers/tptimer.cpp
-        ../helpers/utils.cpp
 )
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -48,7 +46,7 @@ target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${IARMBUS_INCLUDE_D
 set(RDKSHELL_INCLUDES $ENV{RDKSHELL_INCLUDES})
 separate_arguments(RDKSHELL_INCLUDES)
 include_directories(BEFORE ${RDKSHELL_INCLUDES})
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${NAMESPACE}SecurityUtil -lrdkshell ${PLUGIN_RDKSHELL_EXTRA_LIBRARIES} trower-base64)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lrdkshell ${PLUGIN_RDKSHELL_EXTRA_LIBRARIES} trower-base64)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

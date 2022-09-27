@@ -23,14 +23,19 @@
 #include <fstream>
 
 #include <regex.h>
+#include <time.h>
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-#include "libIBus.h"
+#include "UtilsIarm.h"
 #include "sysMgr.h"
 #include "pwrMgr.h"
 #endif
 
-#include "utils.h"
+#include "UtilsCStr.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsString.h"
+#include "UtilscRunScript.h"
+#include "UtilsfileExists.h"
 
 #include "frontpanel.h"
 
@@ -74,12 +79,63 @@
 #define FRONT_PANEL_FAILED 3
 #define FRONT_PANEL_INTERVAL 5000
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 1
+
+namespace Utils {
+std::string formatIARMResult(IARM_Result_t result)
+{
+    switch (result) {
+    case IARM_RESULT_SUCCESS:       return std::string("IARM_RESULT_SUCCESS [success]");
+    case IARM_RESULT_INVALID_PARAM: return std::string("IARM_RESULT_INVALID_PARAM [invalid input parameter]");
+    case IARM_RESULT_INVALID_STATE: return std::string("IARM_RESULT_INVALID_STATE [invalid state encountered]");
+    case IARM_RESULT_IPCCORE_FAIL:  return std::string("IARM_RESULT_IPCORE_FAIL [underlying IPC failure]");
+    case IARM_RESULT_OOM:           return std::string("IARM_RESULT_OOM [out of memory]");
+    default:
+        std::ostringstream tmp;
+        tmp << result << " [unknown IARM_Result_t]";
+        return tmp.str();
+    }
+}
+bool isFileExistsAndOlderThen(const char* pFileName, long age = -1)
+{
+    struct stat fileStat;
+    int res = stat(pFileName, &fileStat);
+    if (0 != res)
+        return false;
+
+    if (-1 == age)
+        return true;
+
+    time_t currentTime = time(nullptr);
+
+    time_t modifiedSecondsAgo = difftime(currentTime, fileStat.st_mtime);
+
+    return modifiedSecondsAgo > age;
+}
+}
 
 namespace WPEFramework
 {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::Warehouse> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Warehouse, 2, 0);
+        SERVICE_REGISTRATION(Warehouse, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
         Warehouse* Warehouse::_instance = nullptr;
         Warehouse::Warehouse()
         : PluginHost::JSONRPC()
@@ -130,7 +186,7 @@ namespace WPEFramework
 
         void Warehouse::InitializeIARM()
         {
-            if (Utils::IARM::init()) {
+        if (Utils::IARM::init()) {
                IARM_Result_t res;
                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_WAREHOUSEOPS_STATUSCHANGED, dsWareHouseOpnStatusChanged) );
             }
@@ -964,5 +1020,6 @@ namespace WPEFramework
             }
         }
 
+     
     } // namespace Plugin
 } // namespace WPEFramework

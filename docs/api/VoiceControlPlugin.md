@@ -2,60 +2,22 @@
 <a name="VoiceControl_Plugin"></a>
 # VoiceControl Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/VoiceControl/CHANGELOG.md)**
 
 A org.rdk.VoiceControl plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.VoiceControl plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -89,20 +51,28 @@ VoiceControl interface methods:
 | [sendVoiceMessage](#sendVoiceMessage) | Sends a message to the Voice Server |
 | [setVoiceInit](#setVoiceInit) | Sets the application metadata in the INIT message that gets sent to the Voice Server |
 | [voiceSessionByText](#voiceSessionByText) | Sends a voice session with a transcription string to simulate a real voice session for QA |
+| [voiceSessionTypes](#voiceSessionTypes) | Retrieves the types of voice sessions which are supported by the platform |
+| [voiceSessionRequest](#voiceSessionRequest) | Requests a voice session using the specified request type and optional parameters |
+| [voiceSessionTerminate](#voiceSessionTerminate) | Terminates a voice session using the specified session identifier |
 | [voiceStatus](#voiceStatus) | Returns the current status of the RDK voice stack |
 
 
 <a name="configureVoice"></a>
 ## *configureVoice*
 
-Configures the RDK's voice stack. NOTE: The URL Scheme determines which VREX API protocol is used. Supported URL schemes include:  
-* http/https - VREX Legacy HTTP API  
-* ws/wss - VREX XR18 WS API  
-* vrng/vrngs - VREX NextGen WS API.
+Configures the RDK's voice stack. NOTE: The URL Scheme determines which API protocol is used. Supported URL schemes include:
+
+| Scheme | Description |
+| :-------- | :-------- |
+| http/https | VREX Legacy HTTP API |
+| ws/wss | VREX XR18 WS API |
+| vrng/vrngs | VREX NextGen WS API |
+| aows/aowss | Audio only over websockets with no protocol layer |
+| sdt | Simple data transfer for direct handling of audio in the protocol layer |.
 
 ### Events
 
- No Events.
+No Events
 
 ### Parameters
 
@@ -112,6 +82,7 @@ Configures the RDK's voice stack. NOTE: The URL Scheme determines which VREX API
 | params?.urlAll | string | <sup>*(optional)*</sup> Specifies the URL for all devices instead of individually specifying the URL for each device |
 | params?.urlPtt | string | <sup>*(optional)*</sup> The PTT URL |
 | params?.urlHf | string | <sup>*(optional)*</sup> The HF (ff and mic) URL |
+| params?.urlMicTap | string | <sup>*(optional)*</sup> The microphone tap URL |
 | params?.enable | boolean | <sup>*(optional)*</sup> Enables or disables all of the voice devices instead of individually enabling or disabling each device |
 | params?.prv | boolean | <sup>*(optional)*</sup> The Press & Release Voice feature. `true` for enable, `false` for disable |
 | params?.wwFeedback | boolean | <sup>*(optional)*</sup> The Wake Word Feedback feature (typically an audible beep). `true` for enable, `false` for disable |
@@ -137,11 +108,12 @@ Configures the RDK's voice stack. NOTE: The URL Scheme determines which VREX API
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.VoiceControl.1.configureVoice",
+    "method": "org.rdk.VoiceControl.configureVoice",
     "params": {
         "urlAll": "ws://voiceserver.com/voice/ptt",
         "urlPtt": "vrng://vrex-next-gen-api.vrexcore.net/vrex/speech/websocket",
         "urlHf": "ws://voiceserver.com/voice/hf",
+        "urlMicTap": "ws://voiceserver.com/voice/mictap",
         "enable": true,
         "prv": true,
         "wwFeedback": false,
@@ -177,7 +149,7 @@ Sends a message to the Voice Server. The specification of this message is not in
 
 ### Events
 
- No Events.
+No Events
 
 ### Parameters
 
@@ -204,7 +176,7 @@ Sends a message to the Voice Server. The specification of this message is not in
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.VoiceControl.1.sendVoiceMessage",
+    "method": "org.rdk.VoiceControl.sendVoiceMessage",
     "params": {
         "msgType": "ars",
         "trx": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf",
@@ -233,7 +205,7 @@ Sets the application metadata in the INIT message that gets sent to the Voice Se
 
 ### Events
 
- No Events.
+No Events
 
 ### Parameters
 
@@ -259,7 +231,7 @@ Sets the application metadata in the INIT message that gets sent to the Voice Se
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.VoiceControl.1.setVoiceInit",
+    "method": "org.rdk.VoiceControl.setVoiceInit",
     "params": {
         "capabilities": [
             "PRV"
@@ -286,18 +258,17 @@ Sets the application metadata in the INIT message that gets sent to the Voice Se
 
 Sends a voice session with a transcription string to simulate a real voice session for QA. Example use cases for this API call include rack and automation testing.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/VoiceControlPlugin?id=voicesessionrequest)
+
 ### Events
 
 | Event | Description |
 | :-------- | :-------- |
-| `onSessionBegin` |Triggers if the voice session begins |
-| `onStreamBegin` |Triggers if a device starts streaming voice data to the RDK|
-| `onServerMessage` |Triggers if a message is received from the Voice Server |
-| `onStreamEnd` |Triggers if streaming audio is stopped from the device |
-| `onSessionEnd` |Triggers if interaction with the server is end|.
-
-Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [onServerMessage](#onServerMessage), [onStreamEnd](#onStreamEnd), [onSessionEnd](#onSessionEnd)
-
+| [onSessionBegin](#onSessionBegin) | Triggers if the voice session begins |
+| [onStreamBegin](#onStreamBegin) | Triggers if a device starts streaming voice data to the RDK |
+| [onServerMessage](#onServerMessage) | Triggers if a message is received from the Voice Server |
+| [onStreamEnd](#onStreamEnd) | Triggers if streaming audio is stopped from the device |
+| [onSessionEnd](#onSessionEnd) | Triggers if interaction with the server is end |
 ### Parameters
 
 | Name | Type | Description |
@@ -321,10 +292,177 @@ Also see: [onSessionBegin](#onSessionBegin), [onStreamBegin](#onStreamBegin), [o
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.VoiceControl.1.voiceSessionByText",
+    "method": "org.rdk.VoiceControl.voiceSessionByText",
     "params": {
         "transcription": "Watch Comedy Central",
         "type": "PTT"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="voiceSessionTypes"></a>
+## *voiceSessionTypes*
+
+Retrieves the types of voice sessions which are supported by the platform.
+
+| Request Type | Description |
+| :-------- | :-------- |
+| ptt_transcription | A text-only session using the urlPtt routing url and the text transcription |
+| mic_transcription | A text-only session using the urlHf routing url and the text transcription |
+| mic_stream_default | An audio based session using the urlHf routing url and the platform's default audio output format |
+| mic_stream_single | An audio based session using the urlHf routing url and the platform's single channel audio input format |
+| mic_stream_multi | An audio based session using the urlHf routing url and the platform's multi-channel audio input format |
+| mic_tap_stream_single | An audio based session using the urlMicTap routing url and the platform's single channel audio input format |
+| mic_tap_stream_multi | An audio based session using the urlMicTap routing url and the platform's multi-channel audio input format |
+| mic_factory_test | An audio based session using the urlHf routing url and the platform's unprocessed multi-channel audio input format |.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.types | array | <sup>*(optional)*</sup> If successful, an array of strings indicating the voice session request types which are valid |
+| result?.types[#] | string | <sup>*(optional)*</sup>  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.VoiceControl.voiceSessionTypes"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "types": [
+            "ptt_transcription"
+        ],
+        "success": true
+    }
+}
+```
+
+<a name="voiceSessionRequest"></a>
+## *voiceSessionRequest*
+
+Requests a voice session using the specified request type and optional parameters.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onSessionBegin](#onSessionBegin) | Triggers if the voice session begins |
+| [onStreamBegin](#onStreamBegin) | Triggers if a device starts streaming voice data to the RDK |
+| [onServerMessage](#onServerMessage) | Triggers if a message is received from the Voice Server |
+| [onStreamEnd](#onStreamEnd) | Triggers if streaming audio is stopped from the device |
+| [onSessionEnd](#onSessionEnd) | Triggers if interaction with the server is end |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.transcription | string | <sup>*(optional)*</sup> The transcription text to be sent to the voice server for request types "ptt_transcription" and "mic_transcription" |
+| params.type | string | The request type to initiate the voice session (see [voiceSessionTypes](#voiceSessionTypes) API for list of request types) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.VoiceControl.voiceSessionRequest",
+    "params": {
+        "transcription": "Watch Comedy Central",
+        "type": "ptt_transcription"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="voiceSessionTerminate"></a>
+## *voiceSessionTerminate*
+
+Terminates a voice session using the specified session identifier.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.sessionId | string | The session identifier of the session from the [onSessionBegin](#onSessionBegin) event |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.VoiceControl.voiceSessionTerminate",
+    "params": {
+        "sessionId": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
     }
 }
 ```
@@ -348,7 +486,7 @@ Returns the current status of the RDK voice stack. This includes which URLs the 
 
 ### Events
 
- No Events.
+No Events
 
 ### Parameters
 
@@ -381,7 +519,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.VoiceControl.1.voiceStatus"
+    "method": "org.rdk.VoiceControl.voiceStatus"
 }
 ```
 
@@ -451,7 +589,7 @@ Triggered when a keyword verification result is received.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onKeywordVerification",
+    "method": "client.events.onKeywordVerification",
     "params": {
         "remoteId": 1,
         "sessionId": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf",
@@ -480,7 +618,7 @@ Triggered when a message is received from the Voice Server. The `params` value i
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onServerMessage",
+    "method": "client.events.onServerMessage",
     "params": {
         "msgType": "ars",
         "trx": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf",
@@ -510,7 +648,7 @@ Triggered when a voice session begins.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onSessionBegin",
+    "method": "client.events.onSessionBegin",
     "params": {
         "remoteId": 1,
         "sessionId": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf",
@@ -555,7 +693,7 @@ Triggered when the interaction with the server has concluded.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onSessionEnd",
+    "method": "client.events.onSessionEnd",
     "params": {
         "serverStats": {
             "dnsTime": 1.0,
@@ -603,7 +741,7 @@ Triggered when a device starts streaming voice data to the RDK. This event is op
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onStreamBegin",
+    "method": "client.events.onStreamBegin",
     "params": {
         "remoteId": 1,
         "sessionId": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
@@ -630,7 +768,7 @@ Triggered when the device has stopped streaming audio.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onStreamEnd",
+    "method": "client.events.onStreamEnd",
     "params": {
         "remoteId": 1,
         "sessionId": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf",

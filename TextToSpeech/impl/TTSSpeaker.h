@@ -32,9 +32,12 @@
 #include <condition_variable>
 
 #include "TTSCommon.h"
+#include "TTSConfiguration.h"
 
 #if defined(PLATFORM_AMLOGIC)
 #include "audio_if.h"
+#elif defined(PLATFORM_REALTEK)
+#include "RtkHALMisc.h" 
 #endif
 // --- //
 
@@ -49,48 +52,7 @@ namespace TTS {
 #define LOCALHOST_ENDPOINT "http://localhost:50050/"
 
 // --- //
-
-class TTSConfiguration {
-public:
-    TTSConfiguration();
-    ~TTSConfiguration();
-
-    bool setEndPoint(const std::string endpoint);
-    bool setSecureEndPoint(const std::string endpoint);
-    bool setLanguage(const std::string language);
-    bool setVoice(const std::string voice);
-    bool setEnabled(const bool dnabled);
-    bool setVolume(const double volume);
-    bool setRate(const uint8_t rate);
-    void setPreemptiveSpeak(const bool preemptive);
-
-    const std::string &endPoint() { return m_ttsEndPoint; }
-    const std::string &secureEndPoint() { return m_ttsEndPointSecured; }
-    const std::string &language() { return m_language; }
-    const double &volume() { return m_volume; }
-    const uint8_t &rate() { return m_rate; }
-    const bool enabled() { return m_enabled; }
-    bool isPreemptive() { return m_preemptiveSpeaking; }
-    bool loadFromConfigStore();
-    bool updateConfigStore();
-    const std::string voice();
-
-    bool updateWith(TTSConfiguration &config);
-    bool isValid();
-
-    static std::map<std::string, std::string> m_others;
-
-private:
-    std::string m_ttsEndPoint;
-    std::string m_ttsEndPointSecured;
-    std::string m_language;
-    std::string m_voice;
-    double m_volume;
-    uint8_t m_rate;
-    bool m_preemptiveSpeaking;
-    bool m_enabled;
-};
-
+  
 class TTSSpeakerClient {
 public:
     virtual TTSConfiguration* configuration() = 0;
@@ -107,13 +69,14 @@ public:
 
 struct SpeechData {
     public:
-        SpeechData() : client(NULL), secure(false), id(0), text() {}
-        SpeechData(TTSSpeakerClient *c, uint32_t i, std::string t, bool s=false) : client(c), secure(s), id(i), text(t) {}
+        SpeechData() : client(NULL), secure(false), id(0), text(), primVolDuck(25) {}
+        SpeechData(TTSSpeakerClient *c, uint32_t i, std::string t, bool s=false,int8_t vol=25) : client(c), secure(s), id(i), text(t), primVolDuck(vol) {}
         SpeechData(const SpeechData &n) {
             client = n.client;
             id = n.id;
             text = n.text;
             secure = n.secure;
+            primVolDuck = n.primVolDuck;
         }
         ~SpeechData() {}
 
@@ -121,6 +84,7 @@ struct SpeechData {
         bool secure;
         uint32_t id;
         std::string text;
+        int8_t primVolDuck;
 };
 
 class TTSSpeaker {
@@ -131,7 +95,7 @@ public:
     void ensurePipeline(bool flag=true);
 
     // Speak Functions
-    int speak(TTSSpeakerClient* client, uint32_t id, std::string text, bool secure); // Formalize data to speak API
+    int speak(TTSSpeakerClient* client, uint32_t id, std::string text, bool secure,int8_t primVolDuck); // Formalize data to speak API
     bool isSpeaking(uint32_t id);
     SpeechState getSpeechState(uint32_t id);
     bool cancelSpeech(uint32_t id=0);
@@ -178,12 +142,12 @@ private:
     bool        m_pcmAudioEnabled;
 #if defined(PLATFORM_AMLOGIC)
     audio_hw_device_t *m_audio_dev;
-    enum MixGain {
-	MIXGAIN_PRIM,
-	MIXGAIN_SYS, //direct-mode=false
-	MIXGAIN_TTS //tts=mode=true
-    };
 #endif
+    enum MixGain {
+        MIXGAIN_PRIM,
+        MIXGAIN_SYS, //direct-mode=false
+        MIXGAIN_TTS //tts=mode=true
+    };
     bool        m_ensurePipeline;
     std::thread *m_gstThread;
     guint       m_busWatch;
@@ -192,9 +156,9 @@ private:
     const uint8_t     m_maxPipelineConstructionFailures;
 
 #if defined(PLATFORM_AMLOGIC)
-    bool setMixGain(MixGain gain, int val);
     bool loadInitAudioDev();
 #endif
+    void setMixGain(MixGain gain, int val);
     static void GStreamerThreadFunc(void *ctx);
     void createPipeline();
     void resetPipeline();
@@ -203,11 +167,6 @@ private:
     // GStreamer Helper functions
     bool needsPipelineUpdate();
     std::string constructURL(TTSConfiguration &config, SpeechData &d);
-    bool isSilentPunctuation(const char c);
-    void replaceSuccesivePunctuation(std::string& subject);
-    void replaceIfIsolated(std::string& subject, const std::string& search, const std::string& replace);
-    void curlSanitize(std::string &url);
-    void sanitizeString(std::string &input, std::string &sanitizedString);
     void speakText(TTSConfiguration config, SpeechData &data);
     bool waitForStatus(GstState expected_state, uint32_t timeout_ms);
     void waitForAudioToFinishTimeout(float timeout_s);

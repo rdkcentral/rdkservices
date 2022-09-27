@@ -129,27 +129,11 @@
                     "observable",
                     "restart"
                 ]
-            },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        }
+            }
     },
     "methods": {
         "restartlimits": {
-            "summary": "Sets new restart limits for a service.\n ### Events \nNo Events.",
+            "summary": "Sets new restart limits for a service.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -172,7 +156,7 @@
             }
         },
         "resetstats": {
-            "summary": "Resets memory and process statistics for a single service watched by the Monitor.\n ### Events \nNo Events.",
+            "summary": "Resets memory and process statistics for a single service watched by the Monitor.",
             "params": {
                 "type": "object",
                 "properties": {

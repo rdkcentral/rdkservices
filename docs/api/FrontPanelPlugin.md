@@ -2,59 +2,21 @@
 <a name="FrontPanel_Plugin"></a>
 # FrontPanel Plugin
 
-**Version: 2.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/FrontPanel/CHANGELOG.md)**
 
 A org.rdk.FrontPanel plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.FrontPanel plugin. It includes detailed specification about its configuration and methods provided.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -105,6 +67,10 @@ FrontPanel interface methods:
 
 Get the brightness of the specified LED or FrontPanel.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -128,7 +94,7 @@ Get the brightness of the specified LED or FrontPanel.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.getBrightness",
+    "method": "org.rdk.FrontPanel.getBrightness",
     "params": {
         "index": "power_led"
     }
@@ -153,6 +119,10 @@ Get the brightness of the specified LED or FrontPanel.
 
 Returns the current clock brightness value.
 
+### Events
+
+No Events
+
 ### Parameters
 
 This method takes no parameters.
@@ -173,7 +143,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.getClockBrightness"
+    "method": "org.rdk.FrontPanel.getClockBrightness"
 }
 ```
 
@@ -194,6 +164,10 @@ This method takes no parameters.
 ## *getFrontPanelLights*
 
 Returns a list of supported Front Panel LEDs and their properties.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -225,7 +199,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.getFrontPanelLights"
+    "method": "org.rdk.FrontPanel.getFrontPanelLights"
 }
 ```
 
@@ -261,6 +235,10 @@ This method takes no parameters.
 
 Returns the preferences that are saved in the `/opt/fp_service_preferences.json` file.
 
+### Events
+
+No Events
+
 ### Parameters
 
 This method takes no parameters.
@@ -281,7 +259,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.getPreferences"
+    "method": "org.rdk.FrontPanel.getPreferences"
 }
 ```
 
@@ -304,6 +282,10 @@ This method takes no parameters.
 Gets the currently set clock mode (12 or 24 hour).  
 **Note:** On Xi6, this method always returns `false` despite having successfully set the clock to 24 hour mode.
 
+### Events
+
+No Events
+
 ### Parameters
 
 This method takes no parameters.
@@ -324,7 +306,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.is24HourClock"
+    "method": "org.rdk.FrontPanel.is24HourClock"
 }
 ```
 
@@ -345,6 +327,10 @@ This method takes no parameters.
 ## *powerLedOff*
 
 Switches the specified LED off.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -368,7 +354,7 @@ Switches the specified LED off.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.powerLedOff",
+    "method": "org.rdk.FrontPanel.powerLedOff",
     "params": {
         "index": "power_led"
     }
@@ -392,6 +378,10 @@ Switches the specified LED off.
 
 Switches the specified LED indicator on. The LED must be powered on prior to setting its brightness.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -414,7 +404,7 @@ Switches the specified LED indicator on. The LED must be powered on prior to set
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.powerLedOn",
+    "method": "org.rdk.FrontPanel.powerLedOn",
     "params": {
         "index": "power_led"
     }
@@ -438,6 +428,10 @@ Switches the specified LED indicator on. The LED must be powered on prior to set
 
 Sets the clock mode to either 12 or 24 hour.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -460,7 +454,7 @@ Sets the clock mode to either 12 or 24 hour.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.set24HourClock",
+    "method": "org.rdk.FrontPanel.set24HourClock",
     "params": {
         "is24Hour": false
     }
@@ -484,6 +478,10 @@ Sets the clock mode to either 12 or 24 hour.
 
 Sets a blinking pattern for a particular LED indicator.  
 **Note:** This API does not currently work nor does it provide a meaningful error status.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -517,7 +515,7 @@ Sets a blinking pattern for a particular LED indicator.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.setBlink",
+    "method": "org.rdk.FrontPanel.setBlink",
     "params": {
         "blinkInfo": {
             "ledIndicator": "power_led",
@@ -554,6 +552,10 @@ Sets a blinking pattern for a particular LED indicator.
 
 Sets the brightness of the specified LED indicator. If no indicator is specified, then FrontPanel all indicators are set.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -577,7 +579,7 @@ Sets the brightness of the specified LED indicator. If no indicator is specified
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.setBrightness",
+    "method": "org.rdk.FrontPanel.setBrightness",
     "params": {
         "brightness": 50,
         "index": "power_led"
@@ -602,6 +604,10 @@ Sets the brightness of the specified LED indicator. If no indicator is specified
 
 Sets the clock brightness.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -624,7 +630,7 @@ Sets the clock brightness.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.setClockBrightness",
+    "method": "org.rdk.FrontPanel.setClockBrightness",
     "params": {
         "brightness": 50
     }
@@ -647,6 +653,10 @@ Sets the clock brightness.
 ## *setClockTestPattern*
 
 Allows you to set a test pattern on the STB clock (`88 88`).
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -671,7 +681,7 @@ Allows you to set a test pattern on the STB clock (`88 88`).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.setClockTestPattern",
+    "method": "org.rdk.FrontPanel.setClockTestPattern",
     "params": {
         "show": true,
         "timeInterval": 4
@@ -695,6 +705,10 @@ Allows you to set a test pattern on the STB clock (`88 88`).
 ## *setLED*
 
 Set preferences for the specified Front Panel LED indicator. Data are not validated in this call.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -723,7 +737,7 @@ Set preferences for the specified Front Panel LED indicator. Data are not valida
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.setLED",
+    "method": "org.rdk.FrontPanel.setLED",
     "params": {
         "ledIndicator": "power_led",
         "brightness": 50,
@@ -752,6 +766,10 @@ Set preferences for the specified Front Panel LED indicator. Data are not valida
 
 Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_service_preferences.json`. This function neither validates an input nor changes LED states (color, brightness). It's the users responsibility to provide valid and updated data.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -774,7 +792,7 @@ Sets preferences for Front Panel LED indicators which are saved to `/opt/fp_serv
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.FrontPanel.1.setPreferences",
+    "method": "org.rdk.FrontPanel.setPreferences",
     "params": {
         "preferences": {}
     }

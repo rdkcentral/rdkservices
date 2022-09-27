@@ -1,12 +1,11 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
     "info": {
         "title": "OpenCDMi Plugin",
         "callsign": "OCDM",
         "locator": "libWPEFrameworkOCDM.so",
         "status": "production",
-        "description": "The `OpenCDMi` plugin allows you view Open Content Decryption Module (OCDM) properties",
-        "version": "1.0"
+        "description": "The `OpenCDMi` plugin allows you view Open Content Decryption Module (OCDM) properties"
     },
     "configuration": {
         "summary": "Configuration for the OpenCDMi plugin",

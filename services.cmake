@@ -282,7 +282,7 @@ if(BUILD_ENABLE_ERM)
 	add_definitions(-DENABLE_ERM)
 endif()
 
-
+add_definitions(-DRDK_LOG_MILESTONE)
 
 
 

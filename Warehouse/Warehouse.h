@@ -22,7 +22,8 @@
 #include <thread>
 
 #include "Module.h"
-#include "utils.h"
+#include "UtilsThreadRAII.h"
+#include "libIARM.h"
 
 namespace WPEFramework {
 

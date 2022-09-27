@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
       "title": "OCIContainer API",
       "class": "OCIContainer",
       "description": "The `OCIContainer` plugin allows for control of OCI containers using the Dobby hypervisor"
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "containerId": {
@@ -38,27 +41,11 @@
             "summary":"Name of the Container.",
             "type":"string",
             "example":"com.bskyb.epgui"
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods": {
         "executeCommand":{
-            "summary": "Executes a command inside a running container. The path to the executable must resolve within the container's namespace.\n \n### Events \n\n No Events.",
+            "summary": "Executes a command inside a running container. The path to the executable must resolve within the container's namespace.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -80,11 +67,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getContainerInfo":{
-            "summary": "Gets information about a running container such as CPU, memory, and GPU usage (GPU not supported on Xi6).\n \n### Events \n\n No Events.",
+            "summary": "Gets information about a running container such as CPU, memory, and GPU usage (GPU not supported on Xi6).",
             "params": {
                 "type": "object",
                 "properties": {
@@ -206,7 +193,7 @@
                         ]
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -216,7 +203,7 @@
             }
         },
         "getContainerState":{
-            "summary": "Gets the state of a currently running container.\n \n### Events \n\n No Events.",
+            "summary": "Gets the state of a currently running container.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -247,7 +234,7 @@
                         "example": "Running"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -258,7 +245,7 @@
             }
         },
         "listContainers":{
-            "summary": "Lists all running OCI containers Dobby knows about.\n \n### Events \n\n No Events.",
+            "summary": "Lists all running OCI containers Dobby knows about.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -284,7 +271,7 @@
                         }
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -294,7 +281,7 @@
             } 
         },
         "pauseContainer":{
-            "summary": "Pauses a currently running container.\n \n### Events \n\n No Events.",
+            "summary": "Pauses a currently running container.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -307,11 +294,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "resumeContainer":{
-            "summary": "Resumes a previously paused container.\n \n### Events \n\n No Events.",
+            "summary": "Resumes a previously paused container.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -324,14 +311,14 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "startContainer":{
-            "summary": "Starts a new container from an existing OCI bundle. \n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onContainerStarted` |  Triggers when a new container starts running.|",
-            "events": [
-               "onContainerStarted" 
-            ],
+            "summary": "Starts a new container from an existing OCI bundle.",
+            "events": {
+               "onContainerStarted" : "Triggers when a new container starts running."
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -372,7 +359,7 @@
                         "$ref": "#/definitions/Descriptor"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -382,10 +369,10 @@
             }
         },
         "startContainerFromDobbySpec":{
-            "summary": "Starts a new container from a legacy Dobby JSON specification.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onContainerStarted` |  Triggers when a new container starts running.|",
-            "events": [
-               "onContainerStarted" 
-            ],
+            "summary": "Starts a new container from a legacy Dobby JSON specification.",
+            "events": {
+               "onContainerStarted"  : "Triggers when a new container starts running."
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -418,7 +405,7 @@
                         "$ref": "#/definitions/Descriptor"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -429,10 +416,10 @@
 
         },
         "stopContainer":{
-            "summary": "Stops a currently running container. \n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onContainerStopped` | Triggers when the container stops running.|",
-            "events": [
-               "onContainerStopped" 
-            ],
+            "summary": "Stops a currently running container.",
+            "events": {
+               "onContainerStopped" : "Triggers when the container stops running."
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -451,7 +438,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }
     },

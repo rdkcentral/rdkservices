@@ -2,60 +2,22 @@
 <a name="AVInput_Plugin"></a>
 # AVInput Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
 
 A org.rdk.AVInput plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.AVInput plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -95,6 +57,10 @@ AVInput interface methods:
 
 Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false`. If the content is protected, then it is only presented if the component and composite outputs of the box are disabled.
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -117,7 +83,7 @@ Returns `true` if the content coming in the HDMI input is protected; otherwise, 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.contentProtected",
+    "method": "org.rdk.AVInput.contentProtected",
     "params": {}
 }
 ```
@@ -138,11 +104,11 @@ Returns `true` if the content coming in the HDMI input is protected; otherwise, 
 <a name="currentVideoMode"></a>
 ## *currentVideoMode*
 
-Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution. 
- 
+Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -167,7 +133,7 @@ Returns a string encoding the video mode being supplied by the device currently 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.currentVideoMode",
+    "method": "org.rdk.AVInput.currentVideoMode",
     "params": {}
 }
 ```
@@ -189,11 +155,11 @@ Returns a string encoding the video mode being supplied by the device currently 
 <a name="numberOfInputs"></a>
 ## *numberOfInputs*
 
-Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`. 
- 
+Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -218,7 +184,7 @@ Returns an integer that specifies the number of available inputs. For example, a
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.numberOfInputs",
+    "method": "org.rdk.AVInput.numberOfInputs",
     "params": {}
 }
 ```
@@ -269,7 +235,7 @@ Triggered when an active device is connected to an AVInput port.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onAVInputActive",
+    "method": "client.events.onAVInputActive",
     "params": {
         "url": "avin://input0"
     }
@@ -293,7 +259,7 @@ Triggered when an active device is disconnected from an AVInput port or when the
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onAVInputInActive",
+    "method": "client.events.onAVInputInActive",
     "params": {
         "url": "avin://input0"
     }

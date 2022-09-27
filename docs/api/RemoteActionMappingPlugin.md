@@ -2,60 +2,22 @@
 <a name="RemoteActionMapping_Plugin"></a>
 # RemoteActionMapping Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/RemoteActionMapping/CHANGELOG.md)**
 
 A org.rdk.RemoteActionMapping plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.RemoteActionMapping plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -100,10 +62,10 @@ RemoteActionMapping interface methods:
 ## *cancelCodeDownload*
 
 Cancels downloading IR and five digit codes from the IRRF database.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -128,7 +90,7 @@ Cancels downloading IR and five digit codes from the IRRF database.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.cancelCodeDownload",
+    "method": "org.rdk.RemoteActionMapping.cancelCodeDownload",
     "params": {
         "deviceID": 1
     }
@@ -152,10 +114,10 @@ Cancels downloading IR and five digit codes from the IRRF database.
 ## *clearKeyActionMapping*
 
 Clears an action mapping for the specified keys.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -185,7 +147,7 @@ Clears an action mapping for the specified keys.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.clearKeyActionMapping",
+    "method": "org.rdk.RemoteActionMapping.clearKeyActionMapping",
     "params": {
         "deviceID": 1,
         "keymapType": 1,
@@ -216,10 +178,10 @@ Clears an action mapping for the specified keys.
 ## *getApiVersionNumber*
 
 Returns the API version number.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -241,7 +203,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.getApiVersionNumber"
+    "method": "org.rdk.RemoteActionMapping.getApiVersionNumber"
 }
 ```
 
@@ -262,10 +224,10 @@ This method takes no parameters.
 ## *getFullKeyActionMapping*
 
 Returns the mapping of all action keys.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -299,7 +261,7 @@ Returns the mapping of all action keys.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.getFullKeyActionMapping",
+    "method": "org.rdk.RemoteActionMapping.getFullKeyActionMapping",
     "params": {
         "deviceID": 1,
         "keymapType": 1
@@ -336,10 +298,10 @@ Returns the mapping of all action keys.
 ## *getKeymap*
 
 Returns a hard-coded list of key names.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -367,7 +329,7 @@ Returns a hard-coded list of key names.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.getKeymap",
+    "method": "org.rdk.RemoteActionMapping.getKeymap",
     "params": {
         "deviceID": 1,
         "keymapType": 1
@@ -395,10 +357,10 @@ Returns a hard-coded list of key names.
 ## *getLastUsedDeviceID*
 
 Returns the last used remote information.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -424,7 +386,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.getLastUsedDeviceID"
+    "method": "org.rdk.RemoteActionMapping.getLastUsedDeviceID"
 }
 ```
 
@@ -449,10 +411,10 @@ This method takes no parameters.
 ## *getSingleKeyActionMapping*
 
 Returns the mapping for a single action key.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -486,7 +448,7 @@ Returns the mapping for a single action key.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.getSingleKeyActionMapping",
+    "method": "org.rdk.RemoteActionMapping.getSingleKeyActionMapping",
     "params": {
         "deviceID": 1,
         "keymapType": 1,
@@ -522,15 +484,12 @@ Returns the mapping for a single action key.
 ## *setFiveDigitCode*
 
 Sets the TV and AVR five digit code.
- 
-Events
- 
-| Event | Description | 
-| :-------- | :-------- | 
-| `onFiveDigitCodeLoad` | Triggered if new five digit codes are loaded successfully |.
 
-Also see: [onFiveDigitCodeLoad](#onFiveDigitCodeLoad)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onFiveDigitCodeLoad](#onFiveDigitCodeLoad) | Triggered if new five digit codes are loaded successfully |
 ### Parameters
 
 | Name | Type | Description |
@@ -556,7 +515,7 @@ Also see: [onFiveDigitCodeLoad](#onFiveDigitCodeLoad)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.setFiveDigitCode",
+    "method": "org.rdk.RemoteActionMapping.setFiveDigitCode",
     "params": {
         "deviceID": 1,
         "tvFiveDigitCode": 12345,
@@ -582,15 +541,12 @@ Also see: [onFiveDigitCodeLoad](#onFiveDigitCodeLoad)
 ## *setKeyActionMapping*
 
 Sets the mapping of a single action key. This method is unavailable (returns error) if the remote supports 5 digit codes.
- 
-Events
- 
-| Event | Description | 
-| :-------- | :-------- | 
-| `onIRCodeLoad` | Triggered if new IR codes are loaded successfully |.
 
-Also see: [onIRCodeLoad](#onIRCodeLoad)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onIRCodeLoad](#onIRCodeLoad) | Triggered if new IR codes are loaded successfully |
 ### Parameters
 
 | Name | Type | Description |
@@ -623,7 +579,7 @@ Also see: [onIRCodeLoad](#onIRCodeLoad)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.RemoteActionMapping.1.setKeyActionMapping",
+    "method": "org.rdk.RemoteActionMapping.setKeyActionMapping",
     "params": {
         "deviceID": 1,
         "keymapType": 1,
@@ -690,7 +646,7 @@ Triggered when new five digit codes are loaded.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onFiveDigitCodeLoad",
+    "method": "client.events.onFiveDigitCodeLoad",
     "params": {
         "deviceID": 1,
         "tvLoadStatus": 0,
@@ -721,7 +677,7 @@ Triggered when new IR codes are loaded.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onIRCodeLoad",
+    "method": "client.events.onIRCodeLoad",
     "params": {
         "deviceID": 1,
         "keyNames": [

@@ -1,28 +1,16 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "Telemetry API",
         "class": "Telemtry",
         "description": "The `Telemetry` plugin allows you to persist event data for monitoring applications."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        }
+ 
     },
     "methods": {
         "setReportProfileStatus": {
@@ -45,7 +33,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"        
+                "$ref": "#/common/result"        
             }
         },
         "logApplicationEvent": {
@@ -70,7 +58,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"        
+                "$ref": "#/common/result"        
             }
         }
     }

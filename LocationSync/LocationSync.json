@@ -1,5 +1,5 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "LocationSync API",
@@ -10,26 +10,14 @@
         "$ref": "../common/common.json"
     },
     "definitions": {
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        }
+ 
     },
     "methods": {
         "sync": {
-            "summary": "Synchronizes the location. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `locationchange` | Signals the change of location |",
+            "summary": "Synchronizes the location.",
+            "events": {
+                "locationchange" : "Signals the change of location"
+            },
             "result": {
                 "$ref": "#/common/results/void"
             },

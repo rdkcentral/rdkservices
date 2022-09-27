@@ -2,60 +2,22 @@
 <a name="StateObserver_Plugin"></a>
 # StateObserver Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/StateObserver/CHANGELOG.md)**
 
 A com.comcast.StateObserver plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the com.comcast.StateObserver plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -98,10 +60,10 @@ StateObserver interface methods:
 ## *getApiVersionNumber*
 
 Returns the API version number.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -123,7 +85,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.getApiVersionNumber"
+    "method": "com.comcast.StateObserver.getApiVersionNumber"
 }
 ```
 
@@ -144,10 +106,10 @@ This method takes no parameters.
 ## *getName*
 
 Returns the plugin name.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -169,7 +131,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.getName"
+    "method": "com.comcast.StateObserver.getName"
 }
 ```
 
@@ -190,10 +152,10 @@ This method takes no parameters.
 ## *getRegisteredPropertyNames*
 
 Returns all properties which have active listeners.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -216,7 +178,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.getRegisteredPropertyNames"
+    "method": "com.comcast.StateObserver.getRegisteredPropertyNames"
 }
 ```
 
@@ -248,10 +210,10 @@ Returns the values and errors for the specified properties.
 * `com.comcast.ecm_ip` - RDK-03004  
 * `com.comcast.dsg_ca_tunnel` - RDK-03003  
 * `com.comcast.cable_card` - RDK-03001.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -281,7 +243,7 @@ Returns the values and errors for the specified properties.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.getValues",
+    "method": "com.comcast.StateObserver.getValues",
     "params": {
         "propertyNames": [
             "com.comcast.channel_map"
@@ -313,10 +275,10 @@ Returns the values and errors for the specified properties.
 ## *registerListeners*
 
 Register a listener on the specified properties for value change notifications. These properties are added to a registered properties list. Internally, this method calls the `getValues` method and hence it returns the current value of those properties.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -346,7 +308,7 @@ Register a listener on the specified properties for value change notifications. 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.registerListeners",
+    "method": "com.comcast.StateObserver.registerListeners",
     "params": {
         "propertyNames": [
             "com.comcast.channel_map"
@@ -378,10 +340,10 @@ Register a listener on the specified properties for value change notifications. 
 ## *setApiVersionNumber*
 
 Sets the API version number.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -405,7 +367,7 @@ Sets the API version number.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.setApiVersionNumber",
+    "method": "com.comcast.StateObserver.setApiVersionNumber",
     "params": {
         "version": 1
     }
@@ -428,10 +390,10 @@ Sets the API version number.
 ## *unregisterListeners*
 
 Removes the listeners on the specified properties. The properties are removed from the registered properties list.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -456,7 +418,7 @@ Removes the listeners on the specified properties. The properties are removed fr
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "com.comcast.StateObserver.1.unregisterListeners",
+    "method": "com.comcast.StateObserver.unregisterListeners",
     "params": {
         "propertyNames": [
             "com.comcast.channel_map"
@@ -510,7 +472,7 @@ Triggered whenever a device property value changes. A handler function is called
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.propertyChanged",
+    "method": "client.events.propertyChanged",
     "params": {
         "propertyName": "com.comcast.channel_map",
         "value": 2,
