@@ -147,7 +147,7 @@ static int32_t HdmiArcPortID = -1;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 namespace WPEFramework
 {
@@ -2352,7 +2352,7 @@ namespace WPEFramework
 
 				case CECDeviceParams::REQUEST_OSD_NAME :	
 				{
-					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GiveOSDName()), 200);
+					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GiveOSDName()), 500);
 				}
 					break;
 
