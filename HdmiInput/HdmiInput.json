@@ -74,7 +74,7 @@
             }
         },
         "getEdidVersion":{
-            "summary": "(Version 2) Returns the EDID version.",
+            "summary": "Returns the EDID version.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -105,7 +105,7 @@
             }
         },
         "getHDMISPD": {
-            "summary": "(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.",
+            "summary": "Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -136,7 +136,7 @@
             }
         },
         "getRawHDMISPD":{
-            "summary": "(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.",
+            "summary": "Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -236,7 +236,7 @@
             }            
         },
         "setEdidVersion": {
-            "summary": "(Version 2) Sets an HDMI EDID version.",
+            "summary": "Sets an HDMI EDID version.",
             "params": {
                 "type":"object",
                 "properties": {

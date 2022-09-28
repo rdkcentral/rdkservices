@@ -35,7 +35,7 @@
     },
     "methods": {
         "getDisplayFrameRate": {
-            "summary": "(Version 2) Returns the current display frame rate values.",
+            "summary": "Returns the current display frame rate values.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -53,7 +53,7 @@
             }
         },
         "getFrmMode": {
-            "summary": "(Version 2) Returns the current auto framerate mode.",
+            "summary": "Returns the current auto framerate mode.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -88,7 +88,7 @@
             }
         },
         "setDisplayFrameRate": {
-            "summary": "(Version 2) Sets the display framerate values.",
+            "summary": "Sets the display framerate values.",
             "events": {
                 "onDisplayFrameRateChanging" : "Triggered when the framerate changes started.",
                 "onDisplayFrameRateChanged" : "Triggered when the framerate changed"
@@ -109,7 +109,7 @@
             }
         },
         "setFrmMode":{
-            "summary": "(Version 2) Sets the auto framerate mode.",
+            "summary": "Sets the auto framerate mode.",
             "params": {
                 "type":"object",
                 "properties": {
