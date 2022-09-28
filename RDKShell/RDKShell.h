@@ -333,6 +333,7 @@ namespace WPEFramework {
 
         private:
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getPackagerPlugin();
+            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getLISAPlugin();
             static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> > getOCIContainerPlugin();
 
         private/*classes */:
