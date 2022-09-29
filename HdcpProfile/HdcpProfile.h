@@ -49,6 +49,9 @@ namespace WPEFramework {
             void InitializeIARM();
             void DeinitializeIARM();
 
+            void RegisterAll();
+            void UnregisterAll();
+
             //Begin methods
             uint32_t getHDCPStatusWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getSettopHDCPSupportWrapper(const JsonObject& parameters, JsonObject& response);
@@ -64,7 +67,7 @@ namespace WPEFramework {
         public:
             HdcpProfile();
             virtual ~HdcpProfile();
-            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
+            virtual const string Initialize(PluginHost::IShell* shell) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override { return {}; }
 

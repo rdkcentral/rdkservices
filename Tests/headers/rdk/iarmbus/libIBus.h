@@ -1,6 +1,7 @@
 #pragma once
 
 #include "libIARM.h"
+#include "cstddef"
 #define IARM_BUS_DAEMON_NAME    "Daemon"
 
 typedef IARM_Result_t (*IARM_BusCall_t) (void *arg);
