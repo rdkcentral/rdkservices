@@ -21,19 +21,17 @@
 
 #include "UtilsJsonRpc.h"
 
-#ifdef PLATFORM_BROADCOM
+#ifdef  USE_BROADCOM_SCREENCAPTURE
 #include <nexus_config.h>
 #include <nxclient.h>
 #endif
 
 #include <png.h>
 #include <curl/curl.h>
-#include <base64.h>
 
-#ifdef HAS_FRAMEBUFFER_API_HEADER
+#ifdef USE_FRAMEBUFFER_SCREENCAPTURE
 extern "C" {
 #include "framebuffer-api.h"
-#include "framebuffer-serverapi.h"
 }
 #endif
 
@@ -70,13 +68,14 @@ namespace WPEFramework
 
         ScreenCapture::ScreenCapture()
             : PluginHost::JSONRPC()
-#if defined(PLATFORM_AMLOGIC)
+        , getScreenshotF(NULL)
+#if defined( USE_AMLOGIC_SCREENCAPTURE)
         , m_RDKShellRef(nullptr)
         , m_captureRef(nullptr)
         , m_screenCaptureStore(this)
 #endif
         {
-            #ifdef PLATFORM_BROADCOM
+            #ifdef  USE_BROADCOM_SCREENCAPTURE
             inNexus = false;
             #endif
 
@@ -89,50 +88,100 @@ namespace WPEFramework
 
         /* virtual */ const string ScreenCapture::Initialize(PluginHost::IShell* service)
         {
-#if defined(PLATFORM_AMLOGIC)
-            m_RDKShellRef = service->QueryInterfaceByCallsign<PluginHost::IPlugin>("org.rdk.RDKShell");
+            JsonObject config;
+            config.FromString(service->ConfigLine());
+            std::string preferredPlatform = config.HasLabel("preferredPlatform") ? config["preferredPlatform"].String() : "";
 
-            if(nullptr != m_RDKShellRef)
+            if(!preferredPlatform.empty())
             {
-                m_captureRef = m_RDKShellRef->QueryInterface<Exchange::ICapture>();
-                if (nullptr == m_captureRef)
-                {
-                    LOGERR("Can't get Exchange::ICapture interface");
-                    m_RDKShellRef->Release();
-                    m_RDKShellRef = nullptr;
-                }
+#ifdef  USE_BROADCOM_SCREENCAPTURE
+                if(preferredPlatform == "Broadcom")
+                    getScreenshotF = getScreenshotNexus;
+#endif
+
+#ifdef USE_INTEL_SCREENCAPTURE
+                if(preferredPlatform == "Intel")
+                    getScreenshotF = getScreenshotIntel;
+#endif
+
+#ifdef USE_FRAMEBUFFER_SCREENCAPTURE
+                if(preferredPlatform == "Framebuffer")
+                    getScreenshotF = getScreenshotRealtek;
+#endif
+            }
+
+            if(NULL == getScreenshotF)
+            {
+#ifdef  USE_BROADCOM_SCREENCAPTURE
+                getScreenshotF = getScreenshotNexus;
+#endif
+
+#ifdef USE_INTEL_SCREENCAPTURE
+                getScreenshotF = getScreenshotIntel;
+#endif
+
+#ifdef USE_FRAMEBUFFER_SCREENCAPTURE
+                getScreenshotF = getScreenshotRealtek;
+#endif
+            }
+            
+            if(NULL != getScreenshotF)
+            {    
+                screenShotDispatcher = new WPEFramework::Core::TimerType<ScreenShotJob>(64 * 1024, "ScreenCaptureDispatcher");
             }
             else
+#if defined( USE_AMLOGIC_SCREENCAPTURE)
             {
-                LOGERR("Can't get RDKShell interface");
+                m_RDKShellRef = service->QueryInterfaceByCallsign<PluginHost::IPlugin>("org.rdk.RDKShell");
+
+                if(nullptr != m_RDKShellRef)
+                {
+                    m_captureRef = m_RDKShellRef->QueryInterface<Exchange::ICapture>();
+                    if (nullptr == m_captureRef)
+                    {
+                        LOGERR("Can't get Exchange::ICapture interface");
+                        m_RDKShellRef->Release();
+                        m_RDKShellRef = nullptr;
+                    }
+                }
+                else
+                {
+                    LOGERR("Can't get RDKShell interface");
+                }
             }
 #else
-            screenShotDispatcher = new WPEFramework::Core::TimerType<ScreenShotJob>(64 * 1024, "ScreenCaptureDispatcher");
+            {
+                LOGERR("No way to get screen capture");
+            }
 #endif
+
             return { };
         }
 
         void ScreenCapture::Deinitialize(PluginHost::IShell* /* service */)
         {
 
-#if defined(PLATFORM_AMLOGIC)
-            if (nullptr != m_RDKShellRef)
+#if defined( USE_AMLOGIC_SCREENCAPTURE)
+            if(NULL == getScreenshotF)
             {
-                m_RDKShellRef->Release();
-                m_RDKShellRef = nullptr;
-            }
-
-            if (nullptr != m_captureRef)
-            {
-                m_captureRef->Release();
-                m_captureRef = nullptr;
+                if (nullptr != m_RDKShellRef)
+                {
+                    m_RDKShellRef->Release();
+                    m_RDKShellRef = nullptr;
+                }
+    
+                if (nullptr != m_captureRef)
+                {
+                    m_captureRef->Release();
+                    m_captureRef = nullptr;
+                }
             }
 #else
             delete screenShotDispatcher;
 #endif
         }
 
-#if defined(PLATFORM_AMLOGIC)
+#if defined( USE_AMLOGIC_SCREENCAPTURE)
         void ScreenCapture::onScreenCaptureData(const unsigned char* buffer, const unsigned int width, const unsigned int height)
         {
             // flip the image
@@ -178,23 +227,32 @@ namespace WPEFramework
             if(parameters.HasLabel("callGUID"))
               callGUID = parameters["callGUID"].String();
               
-#if defined(PLATFORM_AMLOGIC)
 
-            if (!m_captureRef)
+            if(NULL != getScreenshotF)
             {
-                LOGERR("No access to Exchange::ICapture");
-                returnResponse(false);
+                screenShotDispatcher->Schedule( Core::Time::Now().Add(0), ScreenShotJob( this) );
             }
+            else
+#if defined( USE_AMLOGIC_SCREENCAPTURE)
+            {
+                if (!m_captureRef)
+                {
+                    LOGERR("No access to Exchange::ICapture");
+                    returnResponse(false);
+                }
 
-            m_captureRef->Capture(m_screenCaptureStore);
+                m_captureRef->Capture(m_screenCaptureStore);
+            }
 #else
-            screenShotDispatcher->Schedule( Core::Time::Now().Add(0), ScreenShotJob( this) );
+            {
+                LOGERR("No way to get screen capture");
+            }
 #endif
 
             returnResponse(true);
         }
 
-#if defined(PLATFORM_AMLOGIC)
+#if defined( USE_AMLOGIC_SCREENCAPTURE)
         bool ScreenCaptureStore::R8_G8_B8_A8(const unsigned char* buffer, const unsigned int width, const unsigned int height)
         {
             m_screenCapture->onScreenCaptureData(buffer, width, height);
@@ -219,19 +277,22 @@ namespace WPEFramework
         bool ScreenCapture::getScreenShot()
         {
             std::vector<unsigned char> png_data;
-            bool got_screenshot = false;
+            //bool got_screenshot = false;
 
-            #ifdef PLATFORM_BROADCOM
+            /*
+            #ifdef  USE_BROADCOM_SCREENCAPTURE
             got_screenshot = getScreenshotNexus(png_data);
             #endif
 
-            #ifdef PLATFORM_INTEL
+            #ifdef USE_INTEL_SCREENCAPTURE
             got_screenshot = getScreenshotIntel(png_data);
             #endif
 
-            #ifdef HAS_FRAMEBUFFER_API_HEADER
+            #ifdef USE_FRAMEBUFFER_SCREENCAPTURE
             got_screenshot = getScreenshotRealtek(png_data);
-            #endif
+            #endif*/
+
+            bool got_screenshot = getScreenshotF(png_data);
 
             return doUploadScreenCapture(png_data, got_screenshot);
         }
@@ -242,7 +303,7 @@ namespace WPEFramework
             {
                 std::string error_str;
 
-                LOGWARN("uploading %d of png data to '%s'", png_data.size(), url.c_str() );
+                LOGWARN("uploading %u of png data to '%s'", (uint32_t)png_data.size(), url.c_str() );
 
                 if(uploadDataToUrl(png_data, url.c_str(), error_str))
                 {
@@ -282,7 +343,7 @@ namespace WPEFramework
             }
         }
 
-#ifdef PLATFORM_INTEL
+#ifdef USE_INTEL_SCREENCAPTURE
         bool ScreenCapture::getScreenshotIntel(std::vector<unsigned char> &png_out_data)
         {
             int i;
@@ -340,7 +401,7 @@ namespace WPEFramework
         }
 #endif
 
-#ifdef PLATFORM_BROADCOM
+#ifdef  USE_BROADCOM_SCREENCAPTURE
         bool ScreenCapture::joinNexus()
         {
             if(inNexus) return true;
@@ -457,7 +518,7 @@ namespace WPEFramework
         }
 #endif
 
-#ifdef HAS_FRAMEBUFFER_API_HEADER
+#ifdef USE_FRAMEBUFFER_SCREENCAPTURE
         static vnc_bool_t FakeVNCServerFramebufferUpdateReady(void* ctx) {
             LOGWARN("FakeVNCServerFramebufferUpdateReady called");
             return vnc_true;
@@ -478,7 +539,6 @@ namespace WPEFramework
         bool ScreenCapture::getScreenshotRealtek(std::vector<unsigned char> &png_out_data)
         {
             ErrCode err;
-            vnc_bool_t result;
             vnc_uint8_t* buffer; 
             VncServerFramebufferAPI api;
 
@@ -587,7 +647,7 @@ namespace WPEFramework
                 return false;
             }
 
-            LOGWARN("uploading png data of size %u to '%s'", data.size(), url);
+            LOGWARN("uploading png data of size %u to '%s'", (uint32_t)data.size(), url);
 
             //init curl
             curl_global_init(CURL_GLOBAL_ALL);
