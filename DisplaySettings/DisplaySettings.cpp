@@ -79,7 +79,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 13
+#define API_VERSION_NUMBER_PATCH 14
 
 static bool isCecArcRoutingThreadEnabled = false;
 static bool isCecEnabled = false;
@@ -4167,7 +4167,7 @@ namespace WPEFramework {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
 
                     aPort.getSupportedARCTypes(&types);
-                    if((aPort.isConnected()) && (m_hdmiCecAudioDeviceDetected)) {
+                    if((aPort.isConnected()) && (m_hdmiCecAudioDeviceDetected || m_hdmiInAudioDeviceConnected)) {
                         LOGINFO("DisplaySettings::setEnableAudioPort Configuring User set Audio mode before starting ARC/eARC Playback...\n");
                         if(aPort.getStereoAuto() == true) {
                             if(types & dsAUDIOARCSUPPORT_eARC) {
