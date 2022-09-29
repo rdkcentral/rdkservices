@@ -51,7 +51,7 @@
 #define HDMICEC2_METHOD_PERFORM_OTP_ACTION "performOTPAction"
 #define HDMICEC2_METHOD_SEND_STANDBY_MESSAGE "sendStandbyMessage"
 #define HDMICEC2_METHOD_GET_ACTIVE_SOURCE_STATUS "getActiveSourceStatus"
-
+#define HDMICEC2_METHOD_SEND_KEY_PRESS         "sendKeyPressEvent"
 #define HDMICEC_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define HDMICEC_EVENT_ON_HDMI_HOT_PLUG "onHdmiHotPlug"
 #define HDMICEC_EVENT_ON_STANDBY_MSG_RECEIVED "standbyMessageReceived"
@@ -61,7 +61,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 enum {
 	HDMICEC2_EVENT_DEVICE_ADDED=0,
@@ -400,7 +400,10 @@ namespace WPEFramework
            Register(HDMICEC2_METHOD_PERFORM_OTP_ACTION, &HdmiCec_2::performOTPActionWrapper, this);
            Register(HDMICEC2_METHOD_SEND_STANDBY_MESSAGE, &HdmiCec_2::sendStandbyMessageWrapper, this);
            Register(HDMICEC2_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec_2::getActiveSourceStatus, this);
+           Register(HDMICEC2_METHOD_SEND_KEY_PRESS,&HdmiCec_2::sendRemoteKeyPressWrapper,this);
            Register("getDeviceList", &HdmiCec_2::getDeviceList, this);
+           m_sendKeyEventThreadExit = false;
+		   m_sendKeyEventThread = std::thread(threadSendKeyEvent);
 
        }
 
@@ -425,7 +428,6 @@ namespace WPEFramework
 
                logicalAddressDeviceType = "None";
                logicalAddress = 0xFF;
-
 
                char c;
                IARM_Result_t retVal = IARM_RESULT_SUCCESS;
@@ -517,16 +519,127 @@ namespace WPEFramework
            HdmiCec_2::_instance->sendActiveSourceEvent();
            HdmiCec_2::_instance = nullptr;
            smConnection = NULL;
+	       m_sendKeyEventThreadExit = true;
+           std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
+           m_sendKeyEventThreadRun = true;
+           m_sendKeyCV.notify_one();
+		   try
+	    {
+            if (m_sendKeyEventThread.joinable())
+                m_sendKeyEventThread.join();
+	    }
+	    catch(const std::system_error& e)
+	    {
+		    LOGERR("system_error exception in thread join %s", e.what());
+	    }
+	    catch(const std::exception& e)
+	    {
+		    LOGERR("exception in thread join %s", e.what());
+	    } 
            DeinitializeIARM();
        }
+       
+	    void HdmiCec_2::sendKeyPressEvent(const int logicalAddress, int keyCode)
+		{
+			if(!(_instance->smConnection))
+                 return;
+		    LOGINFO(" sendKeyPressEvent logicalAddress 0x%x keycode 0x%x\n",logicalAddress,keyCode);
+			switch(keyCode)
+                   {
+                case VOLUME_UP:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_VOLUME_UP)),100);
+			   break;
+		       case VOLUME_DOWN:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_VOLUME_DOWN)), 100);
+               break;
+		       case MUTE:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_MUTE)), 100);
+			   break;
+		       case UP:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_UP)), 100);
+			   break;
+		       case DOWN:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_DOWN)), 100);
+			   break;
+		       case LEFT:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_LEFT)), 100);
+			   break;
+		       case RIGHT:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_RIGHT)), 100);
+			   break;
+		       case SELECT:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_SELECT)), 100);
+			   break;
+		       case HOME:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_HOME)), 100);
+			   break;
+		       case BACK:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_BACK)), 100);
+			   break;
+		       case NUMBER_0:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_0)), 100);
+			   break;
+		       case NUMBER_1:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_1)), 100);
+			   break;
+		       case NUMBER_2:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_2)), 100);
+			   break;
+		       case NUMBER_3:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_3)), 100);
+			   break;
+		       case NUMBER_4:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_4)), 100);
+			   break;
+		       case NUMBER_5:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_5)), 100);
+			   break;
+		       case NUMBER_6:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_6)), 100);
+			   break;
+		       case NUMBER_7:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_7)), 100);
+			   break;
+		       case NUMBER_8:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_8)), 100);
+			   break;
+		       case NUMBER_9:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_9)), 100);
+			   break;
 
+                   }
+		}
+		void HdmiCec_2::sendKeyReleaseEvent(const int logicalAddress)
+		 {
+	            LOGINFO(" sendKeyReleaseEvent logicalAddress 0x%x \n",logicalAddress);
+                    if(!(_instance->smConnection))
+                        return;
+		 _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlReleased()), 100);
+
+		 }
        void HdmiCec_2::SendStandbyMsgEvent(const int logicalAddress)
        {
            JsonObject params;
            params["logicalAddress"] = JsonValue(logicalAddress);
            sendNotify(HDMICEC_EVENT_ON_STANDBY_MSG_RECEIVED, params);
        }
- 
+	   uint32_t HdmiCec_2::sendRemoteKeyPressWrapper(const JsonObject& parameters, JsonObject& response)
+		{
+            returnIfParamNotFound(parameters, "logicalAddress");
+			returnIfParamNotFound(parameters, "keyCode");
+			string logicalAddress = parameters["logicalAddress"].String();
+			string keyCode = parameters["keyCode"].String();
+			SendKeyInfo keyInfo;
+			keyInfo.logicalAddr = stoi(logicalAddress);
+			keyInfo.keyCode     = stoi(keyCode);
+			std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
+			m_SendKeyQueue.push(keyInfo);
+            m_sendKeyEventThreadRun = true;
+			m_sendKeyCV.notify_one();
+			LOGINFO("Post send key press event to queue size:%d \n",m_SendKeyQueue.size());
+			returnResponse(true);
+		}
+	    
        uint32_t HdmiCec_2::sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response)
        {
 	   if(sendStandbyMessage())
@@ -898,6 +1011,7 @@ namespace WPEFramework
             Core::File file;
             file = CEC_SETTING_ENABLED_FILE;
 
+            if( file.Open())
             if( file.Open())
             {
                 JsonObject parameters;
@@ -1522,7 +1636,44 @@ namespace WPEFramework
 		}
 		pthread_mutex_unlock(&(_instance->m_lock));
 	}
+	void HdmiCec_2::threadSendKeyEvent()
+        {
+            int i;
+            if(!HdmiCec_2::_instance)
+                return;
 
+	    SendKeyInfo keyInfo = {-1,-1};
+
+            while(!_instance->m_sendKeyEventThreadExit)
+            {
+                keyInfo.logicalAddr = -1;
+                keyInfo.keyCode = -1;
+                {
+                    // Wait for a message to be added to the queue
+                    std::unique_lock<std::mutex> lk(_instance->m_sendKeyEventMutex);
+                    _instance->m_sendKeyCV.wait(lk, []{return (_instance->m_sendKeyEventThreadRun == true);});
+                }
+
+                if (_instance->m_sendKeyEventThreadExit == true)
+                {
+                    LOGINFO(" threadSendKeyEvent Exiting");
+                    _instance->m_sendKeyEventThreadRun = false;
+                    break;
+                }
+
+                if (_instance->m_SendKeyQueue.empty()) {
+                    _instance->m_sendKeyEventThreadRun = false;
+                    continue;
+                }
+
+                    keyInfo = _instance->m_SendKeyQueue.front();
+                    _instance->m_SendKeyQueue.pop();
+
+                LOGINFO("sendRemoteKeyThread : logical addr:0x%x keyCode: 0x%x  queue size :%d \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
+			    _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
+			    _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
+            }
+        }
 	void HdmiCec_2::threadUpdateCheck()
 	{
 		if(!HdmiCec_2::_instance)
