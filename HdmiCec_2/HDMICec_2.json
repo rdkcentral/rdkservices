@@ -192,7 +192,7 @@
             }
         },
         "sendKeyPressEvent": {
-            "summary": "Sends the CEC \\<User Control Pressed\\> message when TV remote key is pressed.\n  \n### Event \n\n No Events",
+            "summary": "Sends the CEC \\<User Control Pressed\\> and \\<User Control Release\\> message when TV remote key is pressed.\n  \n### Event \n\n No Events",
             "params": {
                 "type":"object",
                 "properties": {
