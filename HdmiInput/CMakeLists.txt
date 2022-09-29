@@ -21,17 +21,25 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(PLUGIN_HDMIINPUT_STARTUPORDER "" CACHE STRING "To configure startup order of HdmiInput plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(${NAMESPACE}Protocols REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         HdmiInput.cpp
-        Module.cpp)
+        Module.cpp
+        )
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
-list(APPEND CMAKE_MODULE_PATH
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
+
+target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
+
+target_link_libraries(${MODULE_NAME}
+        PRIVATE
+        ${NAMESPACE}Protocols::${NAMESPACE}Protocols
+        )
 
 find_package(DS)
 find_package(IARMBus)
@@ -39,6 +47,8 @@ find_package(IARMBus)
 target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
 target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
+
+set_source_files_properties(HdmiInput.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 target_link_libraries(${MODULE_NAME} PUBLIC ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${DS_LIBRARIES} )
 
