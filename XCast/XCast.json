@@ -171,12 +171,31 @@
             }
         },
         "registerApplications": {
-            "summary": "Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list.",
+            "summary": "Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list. so that app list will be appended to the existing XCast white list",
             "params": {
                 "type":"object",
                 "properties": {
                     "applications": {
                         "summary": "The application name to register",
+                        "type": "string",
+                        "example": "NetflixApp"
+                    }
+                },
+                "required": [
+                    "applications"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "unregisterApplications": {
+            "summary": "Unregisters an application. This API allows to remove the specified applist from the XCast whitelist. To dynamically delete the specific app list, same API should be called with the app list to remove. so that mentioned app list will be removed from the XCast whitelist. Calling this API with empty list will clear the Xcast Whitelist",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "applications": {
+                        "summary": "The application name to unregister",
                         "type": "string",
                         "example": "NetflixApp"
                     }
