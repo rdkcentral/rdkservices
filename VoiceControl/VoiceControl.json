@@ -226,7 +226,8 @@
             "result": {
                 "$ref": "#/common/result"
             },
-            "deprecated": true
+            "deprecated": true,
+            "referenceUrl": "https://rdkcentral.github.io/rdkservices/#/api/VoiceControlPlugin?id=voicesessionrequest"
         },
         "voiceSessionTypes": {
             "summary": "Retrieves the types of voice sessions which are supported by the platform.\n\n| Request Type | Description |\n| :-------- | :-------- |\n| ptt_transcription | A text-only session using the urlPtt routing url and the text transcription |\n| mic_transcription | A text-only session using the urlHf routing url and the text transcription |\n| mic_stream_default | An audio based session using the urlHf routing url and the platform's default audio output format |\n| mic_stream_single | An audio based session using the urlHf routing url and the platform's single channel audio input format |\n| mic_stream_multi | An audio based session using the urlHf routing url and the platform's multi-channel audio input format |\n| mic_tap_stream_single | An audio based session using the urlMicTap routing url and the platform's single channel audio input format |\n| mic_tap_stream_multi | An audio based session using the urlMicTap routing url and the platform's multi-channel audio input format |\n| mic_factory_test | An audio based session using the urlHf routing url and the platform's unprocessed multi-channel audio input format |",

@@ -2099,7 +2099,11 @@ def CreateDocument(schema, path):
                     writeonly = True
                     MdParagraph("> This property is **write-only**.")
             if "deprecated" in props:
-                MdParagraph("> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.")
+                if "referenceUrl" in props:
+                    referenceUrl = props["referenceUrl"]
+                    MdParagraph("> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [{}]({})".format("Refer this link for the new api",referenceUrl))
+                else:
+                    MdParagraph("> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.")
             elif "obsolete" in props:
                 MdParagraph("> This API is **obsolete**. It is no longer recommended for use in new implementations.")
             if "description" in props:
