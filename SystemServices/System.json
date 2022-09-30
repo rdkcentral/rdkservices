@@ -285,6 +285,7 @@
     "methods": {
         "cacheContains": {
             "deprecated" : true,
+            "referenceUrl" : " https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=getvalue",
             "summary": "Checks if a key is present in the cache.",
             "params": {
                 "type": "object",
@@ -403,6 +404,7 @@
         },
         "getCachedValue":{
             "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=getvalue",
             "summary": "Gets the value of a key in the cache.",
             "params": {
                 "type": "object",
@@ -705,6 +707,7 @@
         },
         "getMilestones": {
 	        "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/DeviceDiagnosticsPlugin?id=getmilestones",
             "summary": "Returns the list of milestones.",
             "result": {
                 "type": "object",
@@ -1464,6 +1467,7 @@
         },
         "removeCacheKey":{
             "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=deletekey",
             "summary": "Removes the cache key.",
             "params": {
                 "type":"object",
@@ -1519,6 +1523,7 @@
         },
         "setCachedValue": {
             "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=setvalue",
             "summary": "Sets the value for a key in the cache.",
             "params": {
                 "type":"object",
