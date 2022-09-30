@@ -4163,6 +4163,7 @@ namespace WPEFramework {
 
                     gRdkShellMutex.lock();
                     result = CompositorController::launchApplication(client, uri, mimeType, topmost, focus);
+		    RdkShell::CompositorController::addListener(client, mEventListener);
                     gRdkShellMutex.unlock();
 
                     if (!result)
