@@ -196,6 +196,7 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define SYSTEM_SERVICE_CALLSIGN "org.rdk.System"
 #define RESIDENTAPP_CALLSIGN "ResidentApp"
 #define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
+#define LISA_CALLSIGN "LISA"
 
 #define RECONNECTION_TIME_IN_MILLISECONDS 10000
 
@@ -1507,13 +1508,6 @@ namespace WPEFramework {
             string query = "token=" + sThunderSecurityToken;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
             return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("Packager.1", "", false, query);
-        }
-
-        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getLISAPlugin()
-        {
-            string query = "token=" + sThunderSecurityToken;
-            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(gThunderAccessValue)));
-            return make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("LISA.1", "", false, query);
         }
 
         std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> RDKShell::getOCIContainerPlugin()
@@ -4093,8 +4087,6 @@ namespace WPEFramework {
                     LOGINFO("Starting DAC app");
                     string bundlePath;
 
-                    auto lisaPlugin = getLISAPlugin();
-                    if (lisaPlugin)
                     {
                       // find the bundle location
                       JsonObject infoParams;
@@ -4121,7 +4113,8 @@ namespace WPEFramework {
                       infoParams.Set("version", version.c_str());
                       infoParams.Set("type", dactype.c_str());
                       LOGINFO("Querying LISA about dac app: %s %s %s", dactype.c_str(), id.c_str(), version.c_str());
-                      uint32_t status = lisaPlugin->Invoke<JsonObject, JsonObject>(1000, "getStorageDetails", infoParams, infoResult);
+                      uint32_t status = JSONRPCDirectLink(mCurrentService, LISA_CALLSIGN).Invoke<JsonObject, JsonObject>(
+                          RDKSHELL_THUNDER_TIMEOUT, "getStorageDetails", infoParams, infoResult);
                       if (status == 0)
                       {
                         if (infoResult.HasLabel("apps") && infoResult["apps"].Object().HasLabel("path"))
