@@ -49,10 +49,10 @@ SystemServices interface methods:
 | :-------- | :-------- |
 | [cacheContains](#cacheContains) | Checks if a key is present in the cache |
 | [clearLastDeepSleepReason](#clearLastDeepSleepReason) | Clears the last deep sleep reason |
-| [deletePersistentPath](#deletePersistentPath) | (Version 2) Deletes persistent path associated with a callsign |
+| [deletePersistentPath](#deletePersistentPath) | Deletes persistent path associated with a callsign |
 | [enableMoca](#enableMoca) | Enables (or disables) Moca support for the platform |
 | [enableXREConnectionRetention](#enableXREConnectionRetention) | Enables (or disables) XRE Connection Retention option |
-| [fireFirmwarePendingReboot](#fireFirmwarePendingReboot) | (Version 2) Notifies the device about a pending reboot |
+| [fireFirmwarePendingReboot](#fireFirmwarePendingReboot) | Notifies the device about a pending reboot |
 | [getAvailableStandbyModes](#getAvailableStandbyModes) | Queries the available standby modes |
 | [getCachedValue](#getCachedValue) | Gets the value of a key in the cache |
 | [getCoreTemperature](#getCoreTemperature) | Returns the core temperature of the device |
@@ -62,15 +62,15 @@ SystemServices interface methods:
 | [getFirmwareUpdateInfo](#getFirmwareUpdateInfo) | Checks the firmware update information |
 | [getFirmwareUpdateState](#getFirmwareUpdateState) | Checks the state of the firmware update |
 | [getLastDeepSleepReason](#getLastDeepSleepReason) | Retrieves the last deep sleep reason |
-| [getLastFirmwareFailureReason](#getLastFirmwareFailureReason) | (Version 2) Retrieves the last firmware failure reason |
-| [getLastWakeupKeyCode](#getLastWakeupKeyCode) | (Version 2) Returns the last wakeup keycode |
+| [getLastFirmwareFailureReason](#getLastFirmwareFailureReason) | Retrieves the last firmware failure reason |
+| [getLastWakeupKeyCode](#getLastWakeupKeyCode) | Returns the last wakeup keycode |
 | [getMacAddresses](#getMacAddresses) | Gets the MAC address of the device |
 | [getMfgSerialNumber](#getMfgSerialNumber) | Gets the Manufacturing Serial Number |
 | [getMilestones](#getMilestones) | Returns the list of milestones |
 | [getMode](#getMode) | Returns the currently set mode information |
 | [getNetworkStandbyMode](#getNetworkStandbyMode) | Returns the network standby mode of the device |
 | [getOvertempGraceInterval](#getOvertempGraceInterval) | Returns the over-temperature grace interval value |
-| [getPlatformConfiguration](#getPlatformConfiguration) | (Version 2) Returns the supported features and device/account info |
+| [getPlatformConfiguration](#getPlatformConfiguration) | Returns the supported features and device/account info |
 | [getPowerState](#getPowerState) | Returns the power state of the device |
 | [getPowerStateBeforeReboot](#getPowerStateBeforeReboot) | Returns the power state before reboot |
 | [getPowerStateIsManagedByDevice](#getPowerStateIsManagedByDevice) | Checks whether the power state is managed by the device |
@@ -81,13 +81,13 @@ SystemServices interface methods:
 | [getRFCConfig](#getRFCConfig) | Returns information that is related to RDK Feature Control (RFC) configurations |
 | [getSerialNumber](#getSerialNumber) | Returns the device serial number |
 | [getStateInfo](#getStateInfo) | Queries device state information of various properties |
-| [getStoreDemoLink](#getStoreDemoLink) | (Version 2) Returns the store demo video link |
+| [getStoreDemoLink](#getStoreDemoLink) | Returns the store demo video link |
 | [getSystemVersions](#getSystemVersions) | Returns system version details |
 | [getTemperatureThresholds](#getTemperatureThresholds) | Returns temperature threshold values |
 | [getTerritory](#getTerritory) | Gets the configured system territory and region |
 | [getTimeZones](#getTimeZones) | (Version2) Gets the available timezones from the system's time zone database |
 | [getTimeZoneDST](#getTimeZoneDST) | Get the configured time zone from the file referenced by `TZ_FILE` |
-| [getWakeupReason](#getWakeupReason) | (Version 2) Returns the reason for the device coming out of deep sleep |
+| [getWakeupReason](#getWakeupReason) | Returns the reason for the device coming out of deep sleep |
 | [getXconfParams](#getXconfParams) | Returns XCONF configuration parameters for the device |
 | [hasRebootBeenRequested](#hasRebootBeenRequested) | Checks whether a reboot has been requested |
 | [isGzEnabled](#isGzEnabled) | Checks whether GZ is enabled |
@@ -99,8 +99,8 @@ SystemServices interface methods:
 | [setBootLoaderPattern](#setBootLoaderPattern) | Sets the boot loader pattern mode in MFR |
 | [setCachedValue](#setCachedValue) | Sets the value for a key in the cache |
 | [setDeepSleepTimer](#setDeepSleepTimer) | Sets the deep sleep timeout period |
-| [setFirmwareAutoReboot](#setFirmwareAutoReboot) | (Version 2) Enables or disables the AutoReboot Feature |
-| [setFirmwareRebootDelay](#setFirmwareRebootDelay) | (Version 2) Delays the firmware reboot |
+| [setFirmwareAutoReboot](#setFirmwareAutoReboot) | Enables or disables the AutoReboot Feature |
+| [setFirmwareRebootDelay](#setFirmwareRebootDelay) | Delays the firmware reboot |
 | [setGzEnabled](#setGzEnabled) | Enables or disables GZ |
 | [setMode](#setMode) | Sets the mode of the set-top box for a specific duration before returning to normal mode |
 | [setNetworkStandbyMode](#setNetworkStandbyMode) | Enables or disables the network standby mode of the device |
@@ -113,7 +113,7 @@ SystemServices interface methods:
 | [setTimeZoneDST](#setTimeZoneDST) | Sets the system time zone |
 | [setWakeupSrcConfiguration](#setWakeupSrcConfiguration) | Sets the wakeup source configuration |
 | [updateFirmware](#updateFirmware) | Initiates a firmware update |
-| [uploadLogs](#uploadLogs) | (Version 2) Uploads logs to a URL returned by SSR |
+| [uploadLogs](#uploadLogs) | Uploads logs to a URL returned by SSR |
 
 
 <a name="cacheContains"></a>
@@ -215,7 +215,7 @@ This method takes no parameters.
 <a name="deletePersistentPath"></a>
 ## *deletePersistentPath*
 
-(Version 2) Deletes persistent path associated with a callsign.
+Deletes persistent path associated with a callsign.
 
 ### Events
 
@@ -367,7 +367,7 @@ No Events
 <a name="fireFirmwarePendingReboot"></a>
 ## *fireFirmwarePendingReboot*
 
-(Version 2) Notifies the device about a pending reboot.
+Notifies the device about a pending reboot.
 
 ### Events
 
@@ -866,7 +866,7 @@ This method takes no parameters.
 <a name="getLastFirmwareFailureReason"></a>
 ## *getLastFirmwareFailureReason*
 
-(Version 2) Retrieves the last firmware failure reason.
+Retrieves the last firmware failure reason.
 
 ### Events
 
@@ -912,7 +912,7 @@ This method takes no parameters.
 <a name="getLastWakeupKeyCode"></a>
 ## *getLastWakeupKeyCode*
 
-(Version 2) Returns the last wakeup keycode.
+Returns the last wakeup keycode.
 
 ### Events
 
@@ -1251,7 +1251,7 @@ This method takes no parameters.
 <a name="getPlatformConfiguration"></a>
 ## *getPlatformConfiguration*
 
-(Version 2) Returns the supported features and device/account info.
+Returns the supported features and device/account info.
 
 ### Events
 
@@ -1851,7 +1851,7 @@ No Events
 <a name="getStoreDemoLink"></a>
 ## *getStoreDemoLink*
 
-(Version 2) Returns the store demo video link.
+Returns the store demo video link.
 
 ### Events
 
@@ -2153,7 +2153,7 @@ This method takes no parameters.
 <a name="getWakeupReason"></a>
 ## *getWakeupReason*
 
-(Version 2) Returns the reason for the device coming out of deep sleep.
+Returns the reason for the device coming out of deep sleep.
 
 ### Events
 
@@ -2745,7 +2745,7 @@ No Events
 <a name="setFirmwareAutoReboot"></a>
 ## *setFirmwareAutoReboot*
 
-(Version 2) Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.
+Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.
 
 ### Events
 
@@ -2795,7 +2795,7 @@ No Events
 <a name="setFirmwareRebootDelay"></a>
 ## *setFirmwareRebootDelay*
 
-(Version 2) Delays the firmware reboot.
+Delays the firmware reboot.
 
 ### Events
 
@@ -3462,7 +3462,7 @@ This method takes no parameters.
 <a name="uploadLogs"></a>
 ## *uploadLogs*
 
-(Version 2) Uploads logs to a URL returned by SSR.
+Uploads logs to a URL returned by SSR.
 
 ### Events
 
@@ -3520,7 +3520,7 @@ SystemServices interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onFirmwarePendingReboot](#onFirmwarePendingReboot) | (Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked |
+| [onFirmwarePendingReboot](#onFirmwarePendingReboot) | Triggered when the `fireFirmwarePendingReboot` method is invoked |
 | [onFirmwareUpdateInfoReceived](#onFirmwareUpdateInfoReceived) | Triggered when the `getFirmwareUpdateInfo` asynchronous method is invoked |
 | [onFirmwareUpdateStateChange](#onFirmwareUpdateStateChange) | Triggered when the state of a firmware update changes |
 | [onMacAddressesRetreived](#onMacAddressesRetreived) | Triggered when the `getMacAddresses` asynchronous method is invoked |
@@ -3535,7 +3535,7 @@ SystemServices interface events:
 <a name="onFirmwarePendingReboot"></a>
 ## *onFirmwarePendingReboot*
 
-(Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked.
+Triggered when the `fireFirmwarePendingReboot` method is invoked.
 
 ### Parameters
 
