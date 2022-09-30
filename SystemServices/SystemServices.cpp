@@ -251,7 +251,8 @@ bool setPowerState(std::string powerState)
 
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
-#define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
+// TODO: remove this
+#define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
 /**
  * @brief WPEFramework class for SystemServices
@@ -316,32 +317,6 @@ namespace WPEFramework {
             m_strStandardTerritoryList =   "ABW AFG AGO AIA ALA ALB AND ARE ARG ARM ASM ATA ATF ATG AUS AUT AZE BDI BEL BEN BES BFA BGD BGR BHR BHS BIH BLM BLR BLZ BMU BOL                BRA BRB BRN BTN BVT BWA CAF CAN CCK CHE CHL CHN CIV CMR COD COG COK COL COM CPV CRI CUB Cuba CUW CXR CYM CYP CZE DEU DJI DMA DNK DOM DZA ECU EGY ERI ESH ESP                EST ETH FIN FJI FLK FRA FRO FSM GAB GBR GEO GGY GHA GIB GIN GLP GMB GNB GNQ GRC GRD GRL GTM GUF GUM GUY HKG HMD HND HRV HTI HUN IDN IMN IND IOT IRL IRN IRQ                 ISL ISR ITA JAM JEY JOR JPN KAZ KEN KGZ KHM KIR KNA KOR KWT LAO LBN LBR LBY LCA LIE LKA LSO LTU LUX LVA MAC MAF MAR MCO MDA MDG MDV MEX MHL MKD MLI MLT MMR                 MNE MNG MNP MOZ MRT MSR MTQ MUS MWI MYS MYT NAM NCL NER NFK NGA NIC NIU NLD NOR NPL NRU NZL OMN PAK PAN PCN PER PHL PLW PNG POL PRI PRK PRT PRY PSE PYF QAT                 REU ROU RUS RWA SAU SDN SEN SGP SGS SHN SJM SLB SLE SLV SMR SOM SPM SRB SSD STP SUR SVK SVN SWE SWZ SXM SYC SYR TCA TCD TGO THA TJK TKL TKM TLS TON TTO TUN                 TUR TUV TWN TZA UGA UKR UMI URY USA UZB VAT VCT VEN VGB VIR VNM VUT WLF WSM YEM ZAF ZMB ZWE";
 
             CreateHandler({ 2 });
-
-            //Initialise timer with interval and callback function.
-            m_operatingModeTimer.setInterval(updateDuration, MODE_TIMER_UPDATE_INTERVAL);
-
-            //first boot? then set to NORMAL mode
-            if (!m_temp_settings.contains("mode") && m_currentMode == "") {
-                JsonObject mode,param,response;
-                param["duration"] = -1;
-                param["mode"] = MODE_NORMAL;
-                mode["modeInfo"] = param;
-
-                LOGINFO("first boot so setting mode to '%s' ('%s' does not contain(\"mode\"))\n",
-                        (param["mode"].String()).c_str(), SYSTEM_SERVICE_TEMP_FILE);
-
-                setMode(mode, response);
-            } else if (m_currentMode.empty()) {
-                JsonObject mode,param,response;
-                param["duration"] = m_temp_settings.getValue("mode_duration");
-                param["mode"] = m_temp_settings.getValue("mode");
-                mode["modeInfo"] = param;
-
-                LOGINFO("receiver restarted so setting mode:%s duration:%d\n",
-                        (param["mode"].String()).c_str(), (int)param["duration"].Number());
-
-                setMode(mode, response);
-            }
 
             SystemServices::m_FwUpdateState_LatestEvent=FirmwareUpdateStateUninitialized;
 
@@ -450,25 +425,27 @@ namespace WPEFramework {
 #endif //ENABLE_SET_WAKEUP_SRC_CONFIG
 
             // version 2 APIs
-            GetHandler(2)->Register<JsonObject, JsonObject>(_T("getTimeZones"), &SystemServices::getTimeZones, this);
+            registerMethod(_T("getTimeZones"), &SystemServices::getTimeZones, this);
 #ifdef ENABLE_DEEP_SLEEP
-            GetHandler(2)->Register<JsonObject, JsonObject>(_T("getWakeupReason"),&SystemServices::getWakeupReason, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>(_T("getLastWakeupKeyCode"), &SystemServices::getLastWakeupKeyCode, this);
+            registerMethod(_T("getWakeupReason"), &SystemServices::getWakeupReason, this);
+            registerMethod(_T("getLastWakeupKeyCode"), &SystemServices::getLastWakeupKeyCode, this);
 #endif
-            GetHandler(2)->Register<JsonObject, JsonObject>("uploadLogs", &SystemServices::uploadLogs, this);
+            registerMethod("uploadLogs", &SystemServices::uploadLogs, this);
 
             registerMethod("getPowerStateBeforeReboot", &SystemServices::getPowerStateBeforeReboot,
                     this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("getLastFirmwareFailureReason", &SystemServices::getLastFirmwareFailureReason, this);
+            registerMethod("getLastFirmwareFailureReason", &SystemServices::getLastFirmwareFailureReason, this);
             registerMethod("setOptOutTelemetry", &SystemServices::setOptOutTelemetry, this);
             registerMethod("isOptOutTelemetry", &SystemServices::isOptOutTelemetry, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("fireFirmwarePendingReboot", &SystemServices::fireFirmwarePendingReboot, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("setFirmwareRebootDelay", &SystemServices::setFirmwareRebootDelay, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("setFirmwareAutoReboot", &SystemServices::setFirmwareAutoReboot, this);
+            registerMethod("fireFirmwarePendingReboot", &SystemServices::fireFirmwarePendingReboot, this);
+            registerMethod("setFirmwareRebootDelay", &SystemServices::setFirmwareRebootDelay, this);
+            registerMethod("setFirmwareAutoReboot", &SystemServices::setFirmwareAutoReboot, this);
 #ifdef ENABLE_SYSTEM_GET_STORE_DEMO_LINK
-            GetHandler(2)->Register<JsonObject, JsonObject>("getStoreDemoLink", &SystemServices::getStoreDemoLink, this);
+            registerMethod("getStoreDemoLink", &SystemServices::getStoreDemoLink, this);
 #endif
-            GetHandler(2)->Register<JsonObject, JsonObject>("deletePersistentPath", &SystemServices::deletePersistentPath, this);
+            registerMethod("deletePersistentPath", &SystemServices::deletePersistentPath, this);
+            Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
+                &SystemServices::getPlatformConfiguration, this);
             GetHandler(2)->Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
                 &SystemServices::getPlatformConfiguration, this);
 
@@ -495,6 +472,33 @@ namespace WPEFramework {
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
             m_shellService = service;
             m_shellService->AddRef();
+
+            //Initialise timer with interval and callback function.
+            m_operatingModeTimer.setInterval(updateDuration, MODE_TIMER_UPDATE_INTERVAL);
+
+            //first boot? then set to NORMAL mode
+            if (!m_temp_settings.contains("mode") && m_currentMode == "") {
+                JsonObject mode,param,response;
+                param["duration"] = -1;
+                param["mode"] = MODE_NORMAL;
+                mode["modeInfo"] = param;
+
+                LOGINFO("first boot so setting mode to '%s' ('%s' does not contain(\"mode\"))\n",
+                        (param["mode"].String()).c_str(), SYSTEM_SERVICE_TEMP_FILE);
+
+                setMode(mode, response);
+            } else if (m_currentMode.empty()) {
+                JsonObject mode,param,response;
+                param["duration"] = m_temp_settings.getValue("mode_duration");
+                param["mode"] = m_temp_settings.getValue("mode");
+                mode["modeInfo"] = param;
+
+                LOGINFO("receiver restarted so setting mode:%s duration:%d\n",
+                        (param["mode"].String()).c_str(), (int)param["duration"].Number());
+
+                setMode(mode, response);
+            }
+
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
@@ -559,7 +563,6 @@ namespace WPEFramework {
             response["sampleAPI"] = "Success";
             /* Kept for debug purpose/future reference. */
             sendNotify(EVT_ONSYSTEMSAMPLEEVENT, parameters);
-            GetHandler(2)->Notify(EVT_ONSYSTEMSAMPLEEVENT, parameters);
             returnResponse(true);
         }
 #endif /* DEBUG */
@@ -751,7 +754,6 @@ namespace WPEFramework {
             params["fireFirmwarePendingReboot"] = seconds;
             LOGINFO("Notifying onFirmwarePendingReboot received \n");
             sendNotify(EVT_ONFWPENDINGREBOOT, params);
-            GetHandler(2)->Notify(EVT_ONFWPENDINGREBOOT, params);
         }
 
         /***
@@ -769,7 +771,6 @@ namespace WPEFramework {
             params["currentPowerState"] = currentPowerState;
             LOGWARN("power state changed from '%s' to '%s'", currentPowerState.c_str(), powerState.c_str());
             sendNotify(EVT_ONSYSTEMPOWERSTATECHANGED, params);
-            GetHandler(2)->Notify(EVT_ONSYSTEMPOWERSTATECHANGED, params);
         }
 
         void SystemServices::onPwrMgrReboot(string requestedApp, string rebootReason)
@@ -779,7 +780,6 @@ namespace WPEFramework {
             params["rebootReason"] = rebootReason;
 
             sendNotify(EVT_ONREBOOTREQUEST, params);
-            GetHandler(2)->Notify(EVT_ONREBOOTREQUEST, params);
         }
 
         void SystemServices::onNetorkModeChanged(bool bNetworkStandbyMode)
@@ -789,7 +789,6 @@ namespace WPEFramework {
             JsonObject params;
             params["nwStandby"] = bNetworkStandbyMode;
             sendNotify(EVT_ONNETWORKSTANDBYMODECHANGED , params);
-            GetHandler(2)->Notify(EVT_ONNETWORKSTANDBYMODECHANGED , params);
         }
 
         /**
@@ -1137,7 +1136,6 @@ namespace WPEFramework {
             params["mode"] = mode;
             LOGINFO("mode changed to '%s'\n", mode.c_str());
             sendNotify(EVT_ONSYSTEMMODECHANGED, params);
-            GetHandler(2)->Notify(EVT_ONSYSTEMMODECHANGED, params);
         }
 
         /***
@@ -1417,7 +1415,6 @@ namespace WPEFramework {
             params.ToString(jsonLog);
             LOGWARN("result: %s\n", jsonLog.c_str());
             sendNotify(EVT_ONFIRMWAREUPDATEINFORECEIVED, params);
-            GetHandler(2)->Notify(EVT_ONFIRMWAREUPDATEINFORECEIVED, params);
         }
 
         /***
@@ -2122,7 +2119,6 @@ namespace WPEFramework {
             params["firmwareUpdateStateChange"] = (int)firmwareUpdateState;
             LOGINFO("New firmwareUpdateState = %d\n", (int)firmwareUpdateState);
             sendNotify(EVT_ONFIRMWAREUPDATESTATECHANGED, params);
-            GetHandler(2)->Notify(EVT_ONFIRMWAREUPDATESTATECHANGED, params);
         }
 
         /***
@@ -2133,7 +2129,6 @@ namespace WPEFramework {
         {
             JsonObject params;
             sendNotify(EVT_ON_SYSTEM_CLOCK_SET, params);
-            GetHandler(2)->Notify(EVT_ON_SYSTEM_CLOCK_SET, params);
         }
 
         /***
@@ -2229,7 +2224,6 @@ namespace WPEFramework {
             LOGWARN("thresholdType = %s exceed = %d temperature = %f\n",
                     thresholdType.c_str(), exceed, temperature);
             sendNotify(EVT_ONTEMPERATURETHRESHOLDCHANGED, params);
-            GetHandler(2)->Notify(EVT_ONTEMPERATURETHRESHOLDCHANGED, params);
         }
 
         /***
@@ -4040,7 +4034,6 @@ namespace WPEFramework {
             params["rebootReason"] = reason;
             LOGINFO("Notifying onRebootRequest\n");
             sendNotify(EVT_ONREBOOTREQUEST, params);
-            GetHandler(2)->Notify(EVT_ONREBOOTREQUEST, params);
         }
 
         /***
