@@ -385,7 +385,7 @@ namespace WPEFramework
                 //convert to base64
                 uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
 
-                LOGWARN("HdmiInput::readEDID size:%u edidVec.size:%lu", size, edidVec.size());
+                LOGWARN("HdmiInput::readEDID size:%u edidVec.size:%d", size, (int)edidVec.size());
 
                 if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max()) {
                     LOGERR("Size too large to use ToString base64 wpe api");
@@ -698,7 +698,7 @@ namespace WPEFramework
                 device::HdmiInput::getInstance().getSupportedGameFeatures (supportedFeatures);
                 for (size_t i = 0; i < supportedFeatures.size(); i++)
                 {
-                    LOGINFO("Supported Game Feature [%lu]:  %s\n",i,supportedFeatures.at(i).c_str());
+                    LOGINFO("Supported Game Feature [%d]:  %s\n",(int)i,supportedFeatures.at(i).c_str());
                 }
             }
             catch (const device::Exception& err)
@@ -825,7 +825,7 @@ namespace WPEFramework
                 //convert to base64
                 uint16_t size = min(spdVect.size(), (size_t)numeric_limits<uint16_t>::max());
 
-                LOGWARN("HdmiInput::getHDMISPD size:%u spdVec.size:%lu", size, spdVect.size());
+                LOGWARN("HdmiInput::getHDMISPD size:%u spdVec.size:%d", size, (int)spdVect.size());
 
                 if(spdVect.size() > (size_t)numeric_limits<uint16_t>::max()) {
                     LOGERR("Size too large to use ToString base64 wpe api");
@@ -861,7 +861,7 @@ namespace WPEFramework
                 //convert to base64
                 uint16_t size = min(spdVect.size(), (size_t)numeric_limits<uint16_t>::max());
 
-                LOGWARN("HdmiInput::getHDMISPD size:%u spdVec.size:%lu", size, spdVect.size());
+                LOGWARN("HdmiInput::getHDMISPD size:%u spdVec.size:%d", size, (int)spdVect.size());
 
                 if(spdVect.size() > (size_t)numeric_limits<uint16_t>::max()) {
                     LOGERR("Size too large to use ToString base64 wpe api");
