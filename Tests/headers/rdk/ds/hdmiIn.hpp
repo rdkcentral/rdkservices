@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "dsTypes.h"
 
 namespace device {
 
@@ -13,12 +14,14 @@ public:
     virtual std::string getCurrentVideoMode() const = 0;
     virtual void selectPort (int8_t Port) const = 0;
     virtual void scaleVideo (int32_t x, int32_t y, int32_t width, int32_t height) const = 0;
+
     virtual void getEDIDBytesInfo (int iHdmiPort, std::vector<uint8_t> &edid) const = 0;
     virtual void getHDMISPDInfo (int iHdmiPort, std::vector<uint8_t> &data) const = 0;
     virtual void setEdidVersion (int iHdmiPort, int iEdidVersion) const = 0;
     virtual void getEdidVersion (int iHdmiPort, int *iEdidVersion) const = 0;
     virtual void getHdmiALLMStatus (int iHdmiPort, bool *allmStatus) const = 0;
     virtual void getSupportedGameFeatures (std::vector<std::string> &featureList) const = 0;
+
 };
 
 class HdmiInput {
@@ -67,6 +70,7 @@ public:
     {
         return impl->getEdidVersion(iHdmiPort,iEdidVersion);
     }
+
     void getHdmiALLMStatus (int iHdmiPort, bool *allmStatus) const
     {
         return impl->getHdmiALLMStatus(iHdmiPort, allmStatus);
