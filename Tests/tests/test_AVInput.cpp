@@ -3,154 +3,156 @@
 #include "AVInput.h"
 
 #include "FactoriesImplementation.h"
+
 #include "HdmiInputMock.h"
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
+
 #include "dsMgr.h"
 
 using namespace WPEFramework;
 
-namespace {
-const string iarmName = _T("Thunder_Plugins");
-}
-
-class AVInputTestFixture : public ::testing::Test {
+class AVInputTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::AVInput> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
-    IarmBusImplMock iarmBusImplMock;
-    HdmiInputImplMock hdmiInputImplMock;
-    IARM_EventHandler_t dsHdmiEventHandler;
     string response;
-    ServiceMock service;
-    Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
 
-    AVInputTestFixture()
+    AVInputTest()
         : plugin(Core::ProxyType<Plugin::AVInput>::Create())
         , handler(*(plugin))
         , connection(1, 0)
     {
-        PluginHost::IFactories::Assign(&factoriesImplementation);
     }
-    virtual ~AVInputTestFixture()
-    {
-        PluginHost::IFactories::Assign(nullptr);
-    }
+    virtual ~AVInputTest() = default;
+};
 
-    virtual void SetUp()
+class AVInputDsTest : public AVInputTest {
+protected:
+    HdmiInputImplMock hdmiInputImplMock;
+
+    AVInputDsTest()
+        : AVInputTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
         device::HdmiInput::getInstance().impl = &hdmiInputImplMock;
     }
-
-    virtual void TearDown()
+    virtual ~AVInputDsTest() override
     {
-        IarmBus::getInstance().impl = nullptr;
         device::HdmiInput::getInstance().impl = nullptr;
     }
 };
 
-TEST_F(AVInputTestFixture, RegisteredMethods)
+class AVInputInitializedTest : public AVInputTest {
+protected:
+    IarmBusImplMock iarmBusImplMock;
+    IARM_EventHandler_t dsHdmiEventHandler;
+
+    AVInputInitializedTest()
+        : AVInputTest()
+    {
+        IarmBus::getInstance().impl = &iarmBusImplMock;
+
+        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
+                    if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG)) {
+                        EXPECT_TRUE(handler != nullptr);
+                        dsHdmiEventHandler = handler;
+                    }
+                    return IARM_RESULT_SUCCESS;
+                }));
+
+        EXPECT_EQ(string(""), plugin->Initialize(nullptr));
+    }
+    virtual ~AVInputInitializedTest() override
+    {
+        plugin->Deinitialize(nullptr);
+
+        IarmBus::getInstance().impl = nullptr;
+    }
+};
+
+class AVInputInitializedEventTest : public AVInputInitializedTest {
+protected:
+    ServiceMock service;
+    Core::JSONRPC::Message message;
+    FactoriesImplementation factoriesImplementation;
+    PluginHost::IDispatcher* dispatcher;
+
+    AVInputInitializedEventTest()
+        : AVInputInitializedTest()
+    {
+        PluginHost::IFactories::Assign(&factoriesImplementation);
+
+        dispatcher = static_cast<PluginHost::IDispatcher*>(
+            plugin->QueryInterface(PluginHost::IDispatcher::ID));
+        dispatcher->Activate(&service);
+    }
+
+    virtual ~AVInputInitializedEventTest() override
+    {
+        dispatcher->Deactivate();
+        dispatcher->Release();
+
+        PluginHost::IFactories::Assign(nullptr);
+    }
+};
+
+class AVInputInitializedEventDsTest : public AVInputInitializedEventTest {
+protected:
+    HdmiInputImplMock hdmiInputImplMock;
+
+    AVInputInitializedEventDsTest()
+        : AVInputInitializedEventTest()
+    {
+        device::HdmiInput::getInstance().impl = &hdmiInputImplMock;
+    }
+
+    virtual ~AVInputInitializedEventDsTest() override
+    {
+        device::HdmiInput::getInstance().impl = nullptr;
+    }
+};
+
+TEST_F(AVInputTest, RegisteredMethods)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("numberOfInputs")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("currentVideoMode")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("contentProtected")));
 }
 
-TEST_F(AVInputTestFixture, Plugin)
+TEST_F(AVInputTest, contentProtected)
 {
-    // IARM expectations
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("contentProtected"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"isContentProtected\":true,\"success\":true}"));
+}
 
-    // called by AVInput::InitializeIARM, AVInput::DeinitializeIARM
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
-        .Times(3)
-        .WillOnce(::testing::Invoke(
-            [](const char* memberName, int* isRegistered) {
-                if (iarmName == string(memberName)) {
-                    *isRegistered = 0;
-                    return IARM_RESULT_SUCCESS;
-                }
-                return IARM_RESULT_INVALID_PARAM;
-            }))
-        .WillOnce(::testing::Invoke(
-            [](const char* memberName, int* isRegistered) {
-                if (iarmName == string(memberName)) {
-                    *isRegistered = 1;
-                    return IARM_RESULT_SUCCESS;
-                }
-                return IARM_RESULT_INVALID_PARAM;
-            }))
-        .WillOnce(::testing::Invoke(
-            [](const char* memberName, int* isRegistered) {
-                if (iarmName == string(memberName)) {
-                    *isRegistered = 1;
-                    return IARM_RESULT_SUCCESS;
-                }
-                return IARM_RESULT_INVALID_PARAM;
-            }));
+TEST_F(AVInputDsTest, numberOfInputs)
+{
+    ON_CALL(hdmiInputImplMock, getNumberOfInputs())
+        .WillByDefault(::testing::Return(1));
 
-    // called by AVInput::InitializeIARM
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Init(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [](const char* name) {
-                if (iarmName == string(name)) {
-                    return IARM_RESULT_SUCCESS;
-                }
-                return IARM_RESULT_INVALID_PARAM;
-            }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("numberOfInputs"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"numberOfInputs\":1,\"success\":true}"));
+}
 
-    // called by AVInput::InitializeIARM
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Connect())
-        .Times(1)
-        .WillOnce(::testing::Return(IARM_RESULT_SUCCESS));
+TEST_F(AVInputDsTest, currentVideoMode)
+{
+    ON_CALL(hdmiInputImplMock, getCurrentVideoMode())
+        .WillByDefault(::testing::Return(string("unknown")));
 
-    // called by AVInput::InitializeIARM
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
-                if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG)) {
-                    dsHdmiEventHandler = handler;
-                    return IARM_RESULT_SUCCESS;
-                }
-                return IARM_RESULT_INVALID_PARAM;
-            }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("currentVideoMode"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"currentVideoMode\":\"unknown\",\"success\":true}"));
+}
 
-    // called by AVInput::DeinitializeIARM
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_UnRegisterEventHandler(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&](const char* ownerName, IARM_EventId_t eventId) {
-                if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG)) {
-                    dsHdmiEventHandler = nullptr;
-                    return IARM_RESULT_SUCCESS;
-                }
-                return IARM_RESULT_INVALID_PARAM;
-            }));
-
-    // HdmiInput expectations
-
-    // called by AVInput::numberOfInputs, dsHdmiEventHandler
-    EXPECT_CALL(hdmiInputImplMock, getNumberOfInputs())
-        .Times(2)
-        .WillRepeatedly(::testing::Return(1));
-
-    // called by dsHdmiEventHandler
-    EXPECT_CALL(hdmiInputImplMock, isPortConnected(::testing::_))
-        .Times(1)
-        .WillRepeatedly(::testing::Return(true));
-
-    // called by AVInput::currentVideoMode
-    EXPECT_CALL(hdmiInputImplMock, getCurrentVideoMode())
-        .Times(1)
-        .WillRepeatedly(::testing::Return(string("unknown")));
-
-    // IShell expectations
-
-    // called by AVInput::event_onAVInputActive
+TEST_F(AVInputInitializedEventDsTest, onAVInputActive)
+{
+    ASSERT_TRUE(dsHdmiEventHandler != nullptr);
+    ON_CALL(hdmiInputImplMock, getNumberOfInputs())
+        .WillByDefault(::testing::Return(1));
+    ON_CALL(hdmiInputImplMock, isPortConnected(::testing::_))
+        .WillByDefault(::testing::Return(true));
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -166,43 +168,9 @@ TEST_F(AVInputTestFixture, Plugin)
                 return Core::ERROR_NONE;
             }));
 
-    // Initialize
-
-    EXPECT_EQ(string(""), plugin->Initialize(nullptr));
-
-    // JSON-RPC methods
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("numberOfInputs"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"numberOfInputs\":1,\"success\":true}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("currentVideoMode"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"currentVideoMode\":\"unknown\",\"success\":true}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("contentProtected"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"isContentProtected\":true,\"success\":true}"));
-
-    // JSON-RPC events
-
-    auto dispatcher = static_cast<PluginHost::IDispatcher*>(
-        plugin->QueryInterface(PluginHost::IDispatcher::ID));
-    EXPECT_TRUE(dispatcher != nullptr);
-
-    dispatcher->Activate(&service);
-
-    EXPECT_TRUE(dsHdmiEventHandler != nullptr);
-
     handler.Subscribe(0, _T("onAVInputActive"), _T("org.rdk.AVInput"), message);
 
-    dsHdmiEventHandler(
-        IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, nullptr, 0);
+    dsHdmiEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, nullptr, 0);
 
     handler.Unsubscribe(0, _T("onAVInputActive"), _T("org.rdk.AVInput"), message);
-
-    dispatcher->Deactivate();
-
-    dispatcher->Release();
-
-    // Deinitialize
-
-    plugin->Deinitialize(nullptr);
 }

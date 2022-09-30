@@ -43,6 +43,9 @@ const WPEFramework::Plugin::UsbAccess::ArchiveLogsErrorMap WPEFramework::Plugin:
         {WritingError, "Writing Error"}
 };
 
+// TODO: remove this
+#define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
+
 namespace WPEFramework {
 
 namespace {
@@ -137,18 +140,14 @@ namespace Plugin {
     {
         UsbAccess::_instance = this;
 
-        Register(_T("getFileList"), &UsbAccess::getFileListWrapper, this);
-        Register(_T("createLink"), &UsbAccess::createLinkWrapper, this);
-        Register(_T("clearLink"), &UsbAccess::clearLinkWrapper, this);
-
         CreateHandler({2});
-        GetHandler(2)->Register<JsonObject, JsonObject>(_T("getFileList"), &UsbAccess::getFileListWrapper, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>(_T("createLink"), &UsbAccess::createLinkWrapper, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>(_T("clearLink"), &UsbAccess::clearLinkWrapper, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>(_T("getAvailableFirmwareFiles"), &UsbAccess::getAvailableFirmwareFilesWrapper, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>(_T("getMounted"), &UsbAccess::getMountedWrapper, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>(_T("updateFirmware"), &UsbAccess::updateFirmware, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>(_T("ArchiveLogs"), &UsbAccess::archiveLogs, this);
+        registerMethod(_T("getFileList"), &UsbAccess::getFileListWrapper, this);
+        registerMethod(_T("createLink"), &UsbAccess::createLinkWrapper, this);
+        registerMethod(_T("clearLink"), &UsbAccess::clearLinkWrapper, this);
+        registerMethod(_T("getAvailableFirmwareFiles"), &UsbAccess::getAvailableFirmwareFilesWrapper, this);
+        registerMethod(_T("getMounted"), &UsbAccess::getMountedWrapper, this);
+        registerMethod(_T("updateFirmware"), &UsbAccess::updateFirmware, this);
+        registerMethod(_T("ArchiveLogs"), &UsbAccess::archiveLogs, this);
     }
 
     UsbAccess::~UsbAccess()
@@ -157,18 +156,6 @@ namespace Plugin {
 
         if (archiveLogsThread.joinable())
             archiveLogsThread.join();
-
-        Unregister(_T("getFileList"));
-        Unregister(_T("createLink"));
-        Unregister(_T("clearLink"));
-
-        GetHandler(2)->Unregister(_T("getFileList"));
-        GetHandler(2)->Unregister(_T("createLink"));
-        GetHandler(2)->Unregister(_T("clearLink"));
-        GetHandler(2)->Unregister(_T("getAvailableFirmwareFiles"));
-        GetHandler(2)->Unregister(_T("getMounted"));
-        GetHandler(2)->Unregister(_T("updateFirmware"));
-        GetHandler(2)->Unregister(_T("ArchiveLogs"));
     }
 
     const string UsbAccess::Initialize(PluginHost::IShell * /* service */)
@@ -389,8 +376,6 @@ namespace Plugin {
         params["error"] = it->second;
         params["success"] = (error == None);
         sendNotify(EVT_ON_ARCHIVE_LOGS.c_str(), params);
-
-        GetHandler(2)->Notify(EVT_ON_ARCHIVE_LOGS.c_str(), params);
     }
 
     // iarm
@@ -453,8 +438,6 @@ namespace Plugin {
         params["mounted"] = mounted;
         params["device"] = device;
         sendNotify(EVT_ON_USB_MOUNT_CHANGED.c_str(), params);
-
-        GetHandler(2)->Notify(EVT_ON_USB_MOUNT_CHANGED.c_str(), params);
     }
 
     // internal methods
