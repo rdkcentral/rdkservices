@@ -302,7 +302,7 @@ namespace WPEFramework {
 		    LOGINFO("===================UNSOLICITED_MAINTENANCE==================");
 		    start_task=0;
 	    }
-	    else if {
+	    else if( SOLICITED_MAINTENANCE == g_maintenance_type){
 		    LOGINFO("=============SOLICITED_MAINTENANCE===============");
 		    start_task=1;
 	    }
