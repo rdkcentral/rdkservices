@@ -172,9 +172,8 @@ namespace WPEFramework
             int portId = 0;
             try {
                 portId = stoi(sPortId);
-            }catch (...) {
-		    LOGWARN("Invalid Arguments");
-		    response["message"] = "Invalid Arguments";
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
 		    returnResponse(false);
             }
             bool success = true;
@@ -252,9 +251,8 @@ namespace WPEFramework
                            h = std::stoi(parameters["h"].String());
                        }
 		}
-                catch (...) {
-		    LOGWARN("Invalid Arguments");
-		    response["message"] = "Invalid Arguments";
+                catch (const std::exception& err) {
+		    LOGWARN("Invalid paramater X: %s,Y: %s, W: %s, H:%s ", parameters["x"].String().c_str(),parameters["y"].String().c_str(),parameters["w"].String().c_str(),parameters["h"].String().c_str());
 		    returnResponse(false);
                 }
 
@@ -326,9 +324,8 @@ namespace WPEFramework
             int portId = 0;
             try {
                 portId = stoi(sPortId);
-            }catch (...) {
-		    LOGWARN("Invalid Arguments");
-		    response["message"] = "Invalid Arguments";
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
 		    returnResponse(false);
             }
 
@@ -729,9 +726,8 @@ namespace WPEFramework
             returnIfParamNotFound(parameters, "gameFeature");
             try {
                 portId = stoi(sPortId);
-            }catch (...) {
-		    LOGWARN("Invalid Arguments");
-		    response["message"] = "Invalid Arguments";
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
 		    returnResponse(false);
             }
 
@@ -775,9 +771,8 @@ namespace WPEFramework
             int portId = 0;
             try {
                 portId = stoi(sPortId);
-            }catch (...) {
-		    LOGWARN("Invalid Arguments");
-		    response["message"] = "Invalid Arguments";
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
 		    returnResponse(false);
             }
 
@@ -800,9 +795,8 @@ namespace WPEFramework
             int portId = 0;
             try {
                 portId = stoi(sPortId);
-            }catch (...) {
-		    LOGWARN("Invalid Arguments");
-		    response["message"] = "Invalid Arguments";
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
 		    returnResponse(false);
             }
 
@@ -906,9 +900,8 @@ namespace WPEFramework
             string sVersion = parameters["edidVersion"].String();
             try {
                 portId = stoi(sPortId);
-            }catch (...) {
-		    LOGWARN("Invalid Arguments");
-		    response["message"] = "Invalid Arguments";
+            }catch (const std::exception& err) {
+                    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
 		    returnResponse(false);
             }
 
@@ -957,9 +950,8 @@ namespace WPEFramework
             returnIfParamNotFound(parameters, "portId");
             try {
                 portId = stoi(sPortId);
-            }catch (...) {
-		    LOGWARN("Invalid Arguments");
-		    response["message"] = "Invalid Arguments";
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
 		    returnResponse(false);
             }
 
