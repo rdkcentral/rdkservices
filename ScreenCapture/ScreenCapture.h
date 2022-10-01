@@ -51,7 +51,7 @@ namespace WPEFramework {
 
         class ScreenCapture;
 
-#if defined( USE_AMLOGIC_SCREENCAPTURE)
+#if defined(USE_AMLOGIC_SCREENCAPTURE)
         struct ScreenCaptureStore: public Exchange::ICapture::IStore {
             ScreenCaptureStore(WPEFramework::Plugin::ScreenCapture* sc) : m_screenCapture(sc) {}
             ScreenCaptureStore(const ScreenCaptureStore& copy) : m_screenCapture(copy.m_screenCapture) { }
@@ -109,19 +109,19 @@ namespace WPEFramework {
             //End methods
 
             #ifdef  USE_BROADCOM_SCREENCAPTURE
-            static bool getScreenshotNexus(std::vector<unsigned char> &png_data);
-            static bool joinNexus();
+            bool getScreenshotNexus(std::vector<unsigned char> &png_data);
+            bool joinNexus();
             #endif
 
             #ifdef PLATFORM_INTEL
-            static bool getScreenshotIntel(std::vector<unsigned char> &png_data);
+            bool getScreenshotIntel(std::vector<unsigned char> &png_data);
             #endif
 
             #ifdef USE_FRAMEBUFFER_SCREENCAPTURE
-            static bool getScreenshotRealtek(std::vector<unsigned char> &png_data);
+            bool getScreenshotRealtek(std::vector<unsigned char> &png_data);
             #endif
 
-            static bool saveToPng(unsigned char *bytes, int w, int h, std::vector<unsigned char> &png_out_data);
+            bool saveToPng(unsigned char *bytes, int w, int h, std::vector<unsigned char> &png_out_data);
             bool uploadDataToUrl(const std::vector<unsigned char> &data, const char *url, std::string &error_str);
             bool getScreenShot();
             bool doUploadScreenCapture(const std::vector<unsigned char> &png_data, bool got_screenshot);
@@ -138,26 +138,24 @@ namespace WPEFramework {
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             END_INTERFACE_MAP
 
-#if defined( USE_AMLOGIC_SCREENCAPTURE)
+#if defined(USE_AMLOGIC_SCREENCAPTURE)
             void onScreenCaptureData(const unsigned char* buffer, const unsigned int width, const unsigned int height);
 #endif
         private:
             std::mutex m_callMutex;
 
-#if defined( USE_AMLOGIC_SCREENCAPTURE)
+#if defined(USE_AMLOGIC_SCREENCAPTURE)
             PluginHost::IPlugin *m_RDKShellRef;
             Exchange::ICapture *m_captureRef;
             ScreenCaptureStore m_screenCaptureStore;
 #else
             WPEFramework::Core::TimerType<ScreenShotJob> *screenShotDispatcher;
 #endif
-            bool (*getScreenshotF)(std::vector<unsigned char> &png_out_data);
-
             std::string url;
             std::string callGUID;
 
             #ifdef  USE_BROADCOM_SCREENCAPTURE
-            static bool inNexus;
+            bool inNexus;
             #endif
 
             friend class ScreenShotJob;
