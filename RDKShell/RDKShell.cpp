@@ -187,7 +187,6 @@ bool sFactoryModeBlockResidentApp = false;
 bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
 bool needsScreenshot = false;
-bool gAvailablePluginsPopulated = false;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -255,6 +254,20 @@ namespace WPEFramework {
         namespace {
             // rdk Shell should use inter faces
 
+            uint32_t cloneService(PluginHost::IShell* shell, const string& basecallsign, const string& newcallsign)
+            {
+                uint32_t result;
+                auto interface = shell->QueryInterfaceByCallsign<PluginHost::IController>("");
+                if (interface == nullptr) {
+                    result = Core::ERROR_UNAVAILABLE;
+                    std::cout << "no IController" << std::endl;
+                } else {
+                    result = interface->Clone(basecallsign, newcallsign);
+                    std::cout << "IController clone status " << result << std::endl;
+                    interface->Release();
+                }
+                return result;
+            }
             uint32_t getValue(PluginHost::IShell* shell, const string& ns, const string& key, string& value)
             {
                 uint32_t result;
@@ -519,7 +532,6 @@ namespace WPEFramework {
             JsonObject params;
         };
 
-	Core::JSON::ArrayType<PluginHost::MetaData::Service> gAvailablePluginData;
         std::map<std::string, PluginData> gActivePluginsData;
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
         std::vector<RDKShellStartupConfig> gStartupConfigs;
@@ -3378,7 +3390,6 @@ namespace WPEFramework {
                 //check to see if plugin already exists
                 bool newPluginFound = false;
                 bool originalPluginFound = false;
-                uint32_t pluginsFound = 0;
                 for (std::map<std::string, PluginData>::iterator pluginDataEntry = gActivePluginsData.begin(); pluginDataEntry != gActivePluginsData.end(); pluginDataEntry++)
                 {
                     std::string pluginName = pluginDataEntry->first;
@@ -3392,42 +3403,17 @@ namespace WPEFramework {
                       originalPluginFound = true;
                     }
                 }
-                auto thunderController = std::unique_ptr<JSONRPCDirectLink>(new JSONRPCDirectLink(mCurrentService));
-                //auto thunderController = getThunderControllerClient();
-                if ((false == newPluginFound) && (false == originalPluginFound))
-                {
-                    if(gAvailablePluginsPopulated == false)
-                    {
-                        uint32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", gAvailablePluginData);
-                        std::cout << "status status: " << status << std::endl;
-                        if (status > 0)
-                        {
-                            std::cout << "trying status one more time...\n";
-                            status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", gAvailablePluginData);
-                            std::cout << "status status: " << status << std::endl;
-                        }
-                        gAvailablePluginsPopulated = true;
+                if ((false == newPluginFound) && (false == originalPluginFound)) {
+                    PluginHost::IShell::state state;
+                    if (getServiceState(mCurrentService, callsign, state) == Core::ERROR_NONE) {
+                        newPluginFound = true;
                     }
-                    for (uint16_t i = 0; i < gAvailablePluginData.Length(); i++)
-                    {
-                         PluginHost::MetaData::Service service = gAvailablePluginData[i];
-                         std::string pluginName = service.Callsign.Value();
-                         pluginName.erase(std::remove(pluginName.begin(),pluginName.end(),'\"'),pluginName.end());
-                         if (!pluginName.empty() && pluginName == callsign)
-                         {
-                             newPluginFound = true;
-                             break;
-                         }
-                         else if (!pluginName.empty() && pluginName == type)
-                         {
-                             originalPluginFound = true;
-                         }
+                    if (getServiceState(mCurrentService, type, state) == Core::ERROR_NONE) {
+                        originalPluginFound = true;
                     }
-                    pluginsFound = gAvailablePluginData.Length();
                 }
 		if (!newPluginFound && !originalPluginFound)
                 {
-                    std::cout << "number of types found: " << pluginsFound << std::endl;
                     response["message"] = "failed to launch application.  type not found";
                     gLaunchMutex.lock();
                     gLaunchCount = 0;
@@ -3441,28 +3427,16 @@ namespace WPEFramework {
                 else if (!newPluginFound)
                 {
                     std::cout << "attempting to clone type: " << type << " into " << callsign << std::endl;
-                    JsonObject joParams;
-                    joParams.Set("callsign", type);
-                    joParams.Set("newcallsign",callsign.c_str());
-                    JsonObject joResult;
-                    // setting wait Time to 2 seconds
-                    uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams, joResult, true);
+                    uint32_t status = cloneService(mCurrentService, type, callsign);
 
                     std::cout << "clone status: " << status << std::endl;
                     if (status > 0)
                     {
                         std::cout << "trying status one more time...\n";
-                        JsonObject joParams2;
-                        joParams2.Set("callsign", type);
-                        joParams2.Set("newcallsign",callsign.c_str());
-                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams2, joResult, true);
+                        status = cloneService(mCurrentService, type, callsign);
                         std::cout << "clone status: " << status << std::endl;
                     }
 
-                    string strParams;
-                    string strResult;
-                    joParams.ToString(strParams);
-                    joResult.ToString(strResult);
                     launchType = RDKShellLaunchType::CREATE;
                     {
                         bool lockAcquired = false;
