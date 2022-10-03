@@ -58,7 +58,7 @@
             }
         },
         "getAvailableFirmwareFiles": {
-            "summary": "(Version 2) Gets a list of firmware files on the device. These files should start with the PMI or model number for that device and end with `.bin`. For example `HSTP11MWR_4.11p5s1_VBN_sdy.bin`.  \nFirmware files are scanned in the root directories. If multiple USB devices are found, then the available firmware files are checked and listed from each device.",
+            "summary": "Gets a list of firmware files on the device. These files should start with the PMI or model number for that device and end with `.bin`. For example `HSTP11MWR_4.11p5s1_VBN_sdy.bin`.  \nFirmware files are scanned in the root directories. If multiple USB devices are found, then the available firmware files are checked and listed from each device.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -136,7 +136,7 @@
             }
         },
         "getMounted": {
-            "summary": "(Version 2) Returns a list of mounted USB devices.",
+            "summary": "Returns a list of mounted USB devices.",
                 "result": {
                 "type": "object",
                 "properties": {
@@ -159,7 +159,7 @@
             }
         },
         "updateFirmware": {
-            "summary": "(Version 2) Updates the firmware using the specified file retrieved from the `getAvailableFirmwareFiles` method.",
+            "summary": "Updates the firmware using the specified file retrieved from the `getAvailableFirmwareFiles` method.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -191,7 +191,7 @@
             }
         },
         "ArchiveLogs":{
-            "summary":"(Version 2) Compresses and uploads device logs into attached USB drive from /opt/logs with a name comprises of Mac of the device , date and time in a `tgz` format. For example `18310C696834_Logs_10-13-21-04-42PM.tgz` `(<MAC address>_Logs_<unix epoch time>.tgz)`.Notifies about new messages in a room.",
+            "summary":"Compresses and uploads device logs into attached USB drive from /opt/logs with a name comprises of Mac of the device , date and time in a `tgz` format. For example `18310C696834_Logs_10-13-21-04-42PM.tgz` `(<MAC address>_Logs_<unix epoch time>.tgz)`.Notifies about new messages in a room.",
             "events":{
                 "onArchiveLogs" : "Triggered to archive the device logs and returns the status of the archive"
             },
@@ -210,7 +210,7 @@
     },
     "events": {
         "onUSBMountChanged": {
-            "summary": "(Version 2) Triggered when a USB drive is mounted or unmounted",
+            "summary": "Triggered when a USB drive is mounted or unmounted",
             "params": {
                 "type":"object",
                 "properties": {
@@ -232,7 +232,7 @@
             }
         },
         "onArchiveLogs":{
-            "summary": "(Version 2) Triggered to archive the device logs and returns the status of the archive.",
+            "summary": "Triggered to archive the device logs and returns the status of the archive.",
             "params": {
                 "type":"object",
                 "properties": {

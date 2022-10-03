@@ -48,13 +48,13 @@ HdmiInput interface methods:
 | Method | Description |
 | :-------- | :-------- |
 | [getHDMIInputDevices](#getHDMIInputDevices) | Returns an array of available HDMI Input ports |
-| [getEdidVersion](#getEdidVersion) | (Version 2) Returns the EDID version |
-| [getHDMISPD](#getHDMISPD) | (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device |
-| [getRawHDMISPD](#getRawHDMISPD) | (Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits |
+| [getEdidVersion](#getEdidVersion) | Returns the EDID version |
+| [getHDMISPD](#getHDMISPD) | Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device |
+| [getRawHDMISPD](#getRawHDMISPD) | Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits |
 | [readEDID](#readEDID) | Returns the current EDID value |
 | [startHdmiInput](#startHdmiInput) | Activates the specified HDMI Input port as the primary video source |
 | [stopHdmiInput](#stopHdmiInput) | Deactivates the HDMI Input port currently selected as the primary video source |
-| [setEdidVersion](#setEdidVersion) | (Version 2) Sets an HDMI EDID version |
+| [setEdidVersion](#setEdidVersion) | Sets an HDMI EDID version |
 | [setVideoRectangle](#setVideoRectangle) | Sets an HDMI Input video window |
 | [writeEDID](#writeEDID) | Changes a current EDID value |
 | [getSupportedGameFeatures](#getSupportedGameFeatures) | Returns the list of supported game features |
@@ -120,7 +120,7 @@ This method takes no parameters.
 <a name="getEdidVersion"></a>
 ## *getEdidVersion*
 
-(Version 2) Returns the EDID version.
+Returns the EDID version.
 
 ### Events
 
@@ -172,7 +172,7 @@ No Events
 <a name="getHDMISPD"></a>
 ## *getHDMISPD*
 
-(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.
+Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.
 
 ### Events
 
@@ -224,7 +224,7 @@ No Events
 <a name="getRawHDMISPD"></a>
 ## *getRawHDMISPD*
 
-(Version 2) Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.
+Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.
 
 ### Events
 
@@ -425,7 +425,7 @@ This method takes no parameters.
 <a name="setEdidVersion"></a>
 ## *setEdidVersion*
 
-(Version 2) Sets an HDMI EDID version.
+Sets an HDMI EDID version.
 
 ### Events
 
