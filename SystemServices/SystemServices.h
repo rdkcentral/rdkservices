@@ -133,6 +133,7 @@ namespace WPEFramework {
 
                 std::string m_powerStateBeforeReboot;
                 bool m_powerStateBeforeRebootValid;
+                bool m_isPwrMgr2RFCEnabled;
 		std::string m_strTerritory;
                 std::string m_strRegion;
 
