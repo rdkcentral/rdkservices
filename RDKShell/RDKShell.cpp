@@ -4112,7 +4112,7 @@ namespace WPEFramework {
                     }
 
                     string runtimeDir = getenv("XDG_RUNTIME_DIR");
-                    string display = runtimeDir + "/" + uri;
+                    string display = runtimeDir + "/" + (gRdkShellSurfaceModeEnabled ? RDKSHELL_SURFACECLIENT_DISPLAYNAME : uri);
 
                     // Set mime type
                     if (!setMimeType(client, mimeType))
