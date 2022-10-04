@@ -87,10 +87,10 @@ namespace Plugin {
             , _alwaysUpdateFirst(false)
             , _volatileCache(false)
             , _opkgInitialized(false)
+            , _servicePI(nullptr)
             , _worker(this)
             , _isUpgrade(false)
             , _isSyncing(false)
-            , _servicePI(nullptr)
         {
         }
 

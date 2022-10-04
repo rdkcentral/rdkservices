@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 3
+#define API_VERSION_NUMBER_PATCH 4
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -3327,7 +3327,6 @@ namespace WPEFramework {
 	{
 		bool retVal = false;
 		string sleepMode;
-        int32_t uploadStatus = E_NOK;
 		ofstream outfile;
 		JsonObject paramIn, paramOut;
 		if (parameters.HasLabel("powerState")) {
@@ -3343,7 +3342,7 @@ namespace WPEFramework {
 
                     /* only if transition from ON -> LIGHT_SLEEP
                      * perform logupload when state change to Standby */
-                    uploadStatus = UploadLogs::LogUploadBeforeDeepSleep();
+                    int32_t uploadStatus = UploadLogs::LogUploadBeforeDeepSleep();
                     if ( E_NOK == uploadStatus ){
                         LOGERR("SystemServices Logupload Disabled \n");
                     }
@@ -3860,7 +3859,7 @@ namespace WPEFramework {
         {
             int seconds = 600; /* 10 Minutes to Reboot */
 
-            LOGINFO("len = %lud\n", len);
+            LOGINFO("len = %zu\n", len);
             /* Only handle state events */
             if (eventId != IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) return;
 

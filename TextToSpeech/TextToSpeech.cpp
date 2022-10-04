@@ -21,7 +21,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 5
 #define API_VERSION_NUMBER 1
 
 namespace WPEFramework {
@@ -108,9 +108,9 @@ namespace Plugin {
 
     TextToSpeech::TextToSpeech()
             : PluginHost::JSONRPC()
-            , m_AclCalled(false)
-            , _apiVersionNumber(API_VERSION_NUMBER)
             , _notification(this)
+            , _apiVersionNumber(API_VERSION_NUMBER)
+            , m_AclCalled(false)
     {
     }
 
