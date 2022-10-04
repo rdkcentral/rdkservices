@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.3] - 2022-10-04
+### Fixed
+- Fixed warnings that are treated as errors with "-Wall -Werror"
+
 ## [1.3.2] - 2022-09-16
 ### Fixed
 - Leak
