@@ -47,11 +47,11 @@ FrameRate interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getDisplayFrameRate](#getDisplayFrameRate) | (Version 2) Returns the current display frame rate values |
-| [getFrmMode](#getFrmMode) | (Version 2) Returns the current auto framerate mode |
+| [getDisplayFrameRate](#getDisplayFrameRate) | Returns the current display frame rate values |
+| [getFrmMode](#getFrmMode) | Returns the current auto framerate mode |
 | [setCollectionFrequency](#setCollectionFrequency) | Sets the FPS data collection interval |
-| [setDisplayFrameRate](#setDisplayFrameRate) | (Version 2) Sets the display framerate values |
-| [setFrmMode](#setFrmMode) | (Version 2) Sets the auto framerate mode |
+| [setDisplayFrameRate](#setDisplayFrameRate) | Sets the display framerate values |
+| [setFrmMode](#setFrmMode) | Sets the auto framerate mode |
 | [startFpsCollection](#startFpsCollection) | Starts the FPS data collection |
 | [stopFpsCollection](#stopFpsCollection) | Stops the FPS data collection |
 | [updateFps](#updateFps) | Updates Fps values |
@@ -60,7 +60,7 @@ FrameRate interface methods:
 <a name="getDisplayFrameRate"></a>
 ## *getDisplayFrameRate*
 
-(Version 2) Returns the current display frame rate values.
+Returns the current display frame rate values.
 
 ### Events
 
@@ -106,7 +106,7 @@ This method takes no parameters.
 <a name="getFrmMode"></a>
 ## *getFrmMode*
 
-(Version 2) Returns the current auto framerate mode.
+Returns the current auto framerate mode.
 
 ### Events
 
@@ -202,7 +202,7 @@ No Events
 <a name="setDisplayFrameRate"></a>
 ## *setDisplayFrameRate*
 
-(Version 2) Sets the display framerate values.
+Sets the display framerate values.
 
 ### Events
 
@@ -254,7 +254,7 @@ No Events
 <a name="setFrmMode"></a>
 ## *setFrmMode*
 
-(Version 2) Sets the auto framerate mode.
+Sets the auto framerate mode.
 
 ### Events
 
