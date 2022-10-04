@@ -267,7 +267,7 @@
             }
         },
         "getSupportedSecurityModes":{
-            "summary": "(Version 2) Returns the Wifi security modes that the device supports.",
+            "summary": "Returns the Wifi security modes that the device supports.",
             "result": {
                 "type": "object",
                 "properties": {

@@ -18,7 +18,7 @@
     },
     "methods":{
         "executeHardwareTest": {
-            "summary": "(Version 2) Starts a hardware test on the device. See `getHardwareTestResults`.",
+            "summary": "Starts a hardware test on the device. See `getHardwareTestResults`.",
             "result": {
                 "$ref": "#/common/result"
             }
@@ -107,7 +107,7 @@
             }
         },
         "getHardwareTestResults": {
-            "summary": "(Version 2) Returns the results of the last hardware test.",
+            "summary": "Returns the results of the last hardware test.",
             "params": {
                 "type":"object",
                 "properties": {
