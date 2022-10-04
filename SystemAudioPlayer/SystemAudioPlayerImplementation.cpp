@@ -345,7 +345,7 @@ namespace Plugin {
         int holdTimeMs = -1;
         int duckPercent = -1;
         bool smartVolumeEnable = false;
-        AudioPlayer *player;
+        AudioPlayer *player = nullptr;
         int playerId;
         getNumberParameter("id", playerId);
         getBoolParameter("enable",smartVolumeEnable);
@@ -413,8 +413,6 @@ namespace Plugin {
     uint32_t SystemAudioPlayerImplementation::IsPlaying(const string &input, string &output)
     {
         CONVERT_PARAMETERS_TOJSON();
-        int id;
-        getNumberParameter("id", id);
         _adminLock.Lock();
 
         _adminLock.Unlock();

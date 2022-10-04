@@ -54,7 +54,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 using namespace std;
 
@@ -359,7 +359,7 @@ namespace WPEFramework
                     }
                 }
             }
-            catch (const std::exception e)  {
+            catch (const std::exception& e)  {
                 LOGWARN("HdmiInputService::getHDMIInputDevices Failed");
             }
 
@@ -837,7 +837,7 @@ namespace WPEFramework
                 }
 
                 LOGINFO("------------getHDMISPD: ");
-                for (int itr =0; itr < spdVect.size(); itr++) {
+                for (unsigned int itr =0; itr < spdVect.size(); itr++) {
                   LOGINFO("%02X ", spdVect[itr]);
                 }
                 Core::ToString((uint8_t*)&spdVect[0], size, false, spdbase64);
@@ -873,7 +873,7 @@ namespace WPEFramework
                 }
 
                 LOGINFO("------------getHDMISPD: ");
-                for (int itr =0; itr < spdVect.size(); itr++) {
+                for (unsigned int itr =0; itr < spdVect.size(); itr++) {
                   LOGINFO("%02X ", spdVect[itr]);
                 }
                if (spdVect.size() > 0) {
@@ -985,7 +985,7 @@ namespace WPEFramework
             try
             {
                 device::HdmiInput::getInstance().getEdidVersion (iPort, &edidVersion);
-                LOGWARN("HdmiInput::getEdidVersion EDID Version:%d", &edidVersion);
+                LOGWARN("HdmiInput::getEdidVersion EDID Version:%d", edidVersion);
             }
             catch (const device::Exception& err)
             {
