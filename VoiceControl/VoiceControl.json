@@ -10,6 +10,11 @@
         "$ref": "../common/common.json"
     },
     "definitions": {
+        "maskPii": {
+            "summary": "Indicated is PII should be masked (1 - mask PII, 0 display PII",
+            "type": "boolean",
+            "example": true
+        },
         "capabilities": {
             "summary": "A list of capabilities",
             "type": "array",
@@ -296,6 +301,9 @@
             "result": {
                 "type": "object",
                 "properties": {
+                    "maskPii": {
+                        "$ref": "#/definitions/maskPii"
+                    },
                     "capabilities": {
                         "$ref": "#/definitions/capabilities"
                     },
