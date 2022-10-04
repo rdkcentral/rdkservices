@@ -2,7 +2,7 @@
 <a name="VoiceControl_Plugin"></a>
 # VoiceControl Plugin
 
-**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/VoiceControl/CHANGELOG.md)**
+**Version: [1.2.0](https://github.com/rdkcentral/rdkservices/blob/main/VoiceControl/CHANGELOG.md)**
 
 A org.rdk.VoiceControl plugin for Thunder framework.
 
@@ -386,6 +386,7 @@ Requests a voice session using the specified request type and optional parameter
 | [onServerMessage](#onServerMessage) | Triggers if a message is received from the Voice Server |
 | [onStreamEnd](#onStreamEnd) | Triggers if streaming audio is stopped from the device |
 | [onSessionEnd](#onSessionEnd) | Triggers if interaction with the server is end |
+
 ### Parameters
 
 | Name | Type | Description |
@@ -509,6 +510,7 @@ This method takes no parameters.
 | result.ff.status | string | The status of the device |
 | result.mic | object | The status information for the MIC device type |
 | result.mic.status | string | The status of the device |
+| result.maskPii | boolean | Indicated is PII should be masked |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example

@@ -49,11 +49,11 @@ UsbAccess interface methods:
 | :-------- | :-------- |
 | [clearLink](#clearLink) | Clears or removes the symbolic link created by the `createLink` method |
 | [createLink](#createLink) | Creates a symbolic link to the root folder of the USB drive |
-| [getAvailableFirmwareFiles](#getAvailableFirmwareFiles) | (Version 2) Gets a list of firmware files on the device |
+| [getAvailableFirmwareFiles](#getAvailableFirmwareFiles) | Gets a list of firmware files on the device |
 | [getFileList](#getFileList) | Gets a list of files and folders from the specified directory or path |
-| [getMounted](#getMounted) | (Version 2) Returns a list of mounted USB devices |
-| [updateFirmware](#updateFirmware) | (Version 2) Updates the firmware using the specified file retrieved from the `getAvailableFirmwareFiles` method |
-| [ArchiveLogs](#ArchiveLogs) | (Version 2) Compresses and uploads device logs into attached USB drive from /opt/logs with a name comprises of Mac of the device , date and time in a `tgz` format |
+| [getMounted](#getMounted) | Returns a list of mounted USB devices |
+| [updateFirmware](#updateFirmware) | Updates the firmware using the specified file retrieved from the `getAvailableFirmwareFiles` method |
+| [ArchiveLogs](#ArchiveLogs) | Compresses and uploads device logs into attached USB drive from /opt/logs with a name comprises of Mac of the device , date and time in a `tgz` format |
 
 
 <a name="clearLink"></a>
@@ -153,7 +153,7 @@ This method takes no parameters.
 <a name="getAvailableFirmwareFiles"></a>
 ## *getAvailableFirmwareFiles*
 
-(Version 2) Gets a list of firmware files on the device. These files should start with the PMI or model number for that device and end with `.bin`. For example `HSTP11MWR_4.11p5s1_VBN_sdy.bin`.  
+Gets a list of firmware files on the device. These files should start with the PMI or model number for that device and end with `.bin`. For example `HSTP11MWR_4.11p5s1_VBN_sdy.bin`.  
 Firmware files are scanned in the root directories. If multiple USB devices are found, then the available firmware files are checked and listed from each device.
 
 ### Events
@@ -265,7 +265,7 @@ No Events
 <a name="getMounted"></a>
 ## *getMounted*
 
-(Version 2) Returns a list of mounted USB devices.
+Returns a list of mounted USB devices.
 
 ### Events
 
@@ -314,7 +314,7 @@ This method takes no parameters.
 <a name="updateFirmware"></a>
 ## *updateFirmware*
 
-(Version 2) Updates the firmware using the specified file retrieved from the `getAvailableFirmwareFiles` 
+Updates the firmware using the specified file retrieved from the `getAvailableFirmwareFiles` 
 
 ### Events
 
@@ -366,7 +366,7 @@ No Events
 <a name="ArchiveLogs"></a>
 ## *ArchiveLogs*
 
-(Version 2) Compresses and uploads device logs into attached USB drive from /opt/logs with a name comprises of Mac of the device , date and time in a `tgz` format. For example `18310C696834_Logs_10-13-21-04-42PM.tgz` `(<MAC address>_Logs_<unix epoch time>.tgz)`.Notifies about new messages in a room.
+Compresses and uploads device logs into attached USB drive from /opt/logs with a name comprises of Mac of the device , date and time in a `tgz` format. For example `18310C696834_Logs_10-13-21-04-42PM.tgz` `(<MAC address>_Logs_<unix epoch time>.tgz)`.Notifies about new messages in a room.
 
 ### Events
 
@@ -419,14 +419,14 @@ UsbAccess interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onUSBMountChanged](#onUSBMountChanged) | (Version 2) Triggered when a USB drive is mounted or unmounted |
-| [onArchiveLogs](#onArchiveLogs) | (Version 2) Triggered to archive the device logs and returns the status of the archive |
+| [onUSBMountChanged](#onUSBMountChanged) | Triggered when a USB drive is mounted or unmounted |
+| [onArchiveLogs](#onArchiveLogs) | Triggered to archive the device logs and returns the status of the archive |
 
 
 <a name="onUSBMountChanged"></a>
 ## *onUSBMountChanged*
 
-(Version 2) Triggered when a USB drive is mounted or unmounted.
+Triggered when a USB drive is mounted or unmounted.
 
 ### Parameters
 
@@ -452,7 +452,7 @@ UsbAccess interface events:
 <a name="onArchiveLogs"></a>
 ## *onArchiveLogs*
 
-(Version 2) Triggered to archive the device logs and returns the status of the archive.
+Triggered to archive the device logs and returns the status of the archive.
 
 ### Parameters
 
