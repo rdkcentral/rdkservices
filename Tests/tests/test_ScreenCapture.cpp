@@ -8,52 +8,74 @@
 
 using namespace WPEFramework;
 
-class ScreenCaptureFixture : public ::testing::Test {
+class ScreenCaptureTest : public ::testing::Test {
 protected:
-    
+    Core::ProxyType<Plugin::ScreenCapture> plugin;
+    Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
-    FrameBufferApiImplMock frameBufferApiImplMock;
-
     string response;
+
+    ScreenCaptureTest()
+        : plugin(Core::ProxyType<Plugin::ScreenCapture>::Create())
+        , handler(*(plugin))
+        , connection(1, 0)
+    {
+    }
+    virtual ~ScreenCaptureTest() = default;
+};
+
+class ScreenCaptureEventTest : public ScreenCaptureTest {
+protected:
     ServiceMock service;
     Core::JSONRPC::Message message;
     FactoriesImplementation factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
-    ScreenCaptureFixture()
-        : connection(1, 0)
+    ScreenCaptureEventTest()
+        : ScreenCaptureTest()
     {
+        EXPECT_EQ(string(""), plugin->Initialize(nullptr));
+
         PluginHost::IFactories::Assign(&factoriesImplementation);
 
+        dispatcher = static_cast<PluginHost::IDispatcher*>(
+            plugin->QueryInterface(PluginHost::IDispatcher::ID));
+        dispatcher->Activate(&service);
     }
-    virtual ~ScreenCaptureFixture()
+    virtual ~ScreenCaptureEventTest() override
     {
+        dispatcher->Deactivate();
+        dispatcher->Release();
+
         PluginHost::IFactories::Assign(nullptr);
-    }
 
-    virtual void SetUp()
-    {
-    	FrameBufferApi::getInstance().impl = &frameBufferApiImplMock;
-    }
-
-    virtual void TearDown()
-    {
-    	FrameBufferApi::getInstance().impl = nullptr;
+        plugin->Deinitialize(nullptr);
     }
 };
 
-TEST_F(ScreenCaptureFixture, RegisteredMethods)
-{
-    Core::ProxyType<Plugin::ScreenCapture> plugin(Core::ProxyType<Plugin::ScreenCapture>::Create());
-    Core::JSONRPC::Handler* handler(&((Core::JSONRPC::Handler&)(*(plugin))));
+class ScreenCaptureFrameBufferTest : public ScreenCaptureEventTest {
+protected:
+    FrameBufferApiImplMock frameBufferApiImplMock;
 
-    EXPECT_EQ(Core::ERROR_NONE, handler->Exists(_T("uploadScreenCapture")));
+    ScreenCaptureFrameBufferTest()
+        : ScreenCaptureEventTest()
+    {
+        FrameBufferApi::getInstance().impl = &frameBufferApiImplMock;
+    }
+    virtual ~ScreenCaptureFrameBufferTest() override
+    {
+        FrameBufferApi::getInstance().impl = nullptr;
+    }
+};
+
+TEST_F(ScreenCaptureTest, RegisteredMethods)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadScreenCapture")));
 }
 
-TEST_F(ScreenCaptureFixture, FrameBufferUpload)
+TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
 {
     FBContext fbcontext;
-    //VncServerFramebufferAPI *api = nullptr;
     PixelFormat pixelFormat = {32, 24, 0, 1, 255, 255, 255, 16, 8, 0};
     vnc_uint8_t* frameBuffer = (vnc_uint8_t*) malloc(5120 * 720);
     
@@ -71,7 +93,6 @@ TEST_F(ScreenCaptureFixture, FrameBufferUpload)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](FBContext* fbctx, VncServerFramebufferAPI* server, void* serverctx) {
-                //api = server;
                 if (nullptr != server)
                 {
                     server->framebufferUpdateReady(&fbcontext);
@@ -82,33 +103,21 @@ TEST_F(ScreenCaptureFixture, FrameBufferUpload)
                 return ErrNone;
             }));
 
-    EXPECT_CALL(frameBufferApiImplMock, fbGetPixelFormat(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&](FBContext* fbctx) {
-                return &pixelFormat;
-            }));
+    ON_CALL(frameBufferApiImplMock, fbGetPixelFormat(::testing::_))
+        .WillByDefault(
+            ::testing::Return(&pixelFormat));
 
-    EXPECT_CALL(frameBufferApiImplMock, fbGetWidth(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [](FBContext* fbctx) {
-                return 1280;
-            }));
+    ON_CALL(frameBufferApiImplMock, fbGetWidth(::testing::_))
+        .WillByDefault(
+            ::testing::Return(1280));
 
-    EXPECT_CALL(frameBufferApiImplMock, fbGetHeight(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [](FBContext* fbctx) {
-                return 720;
-            }));
+    ON_CALL(frameBufferApiImplMock, fbGetHeight(::testing::_))
+        .WillByDefault(
+            ::testing::Return(720));
 
-    EXPECT_CALL(frameBufferApiImplMock, fbGetStride(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [](FBContext* fbctx) {
-                return 5120;
-            }));
+    ON_CALL(frameBufferApiImplMock, fbGetStride(::testing::_))
+        .WillByDefault(
+            ::testing::Return(5120));
 
     EXPECT_CALL(frameBufferApiImplMock, fbGetFramebuffer(::testing::_))
         .Times(1)
@@ -142,28 +151,14 @@ TEST_F(ScreenCaptureFixture, FrameBufferUpload)
                 return Core::ERROR_NONE;
             }));
 
+    handler.Subscribe(0, _T("uploadComplete"), _T("org.rdk.ScreenCapture"), message);
 
-    Core::ProxyType<Plugin::ScreenCapture> plugin(Core::ProxyType<Plugin::ScreenCapture>::Create());
-    Core::JSONRPC::Handler* handler(&((Core::JSONRPC::Handler&)(*(plugin))));
-    
-    dispatcher = static_cast<PluginHost::IDispatcher*>(
-        plugin->QueryInterface(PluginHost::IDispatcher::ID));
-    dispatcher->Activate(&service);
-
-    // Initialize
-    EXPECT_EQ(string(""), plugin->Initialize(&service));
-    
-    handler->Subscribe(0, _T("uploadComplete"), _T("org.rdk.ScreenCapture"), message);
-
-    EXPECT_EQ(Core::ERROR_NONE, handler->Invoke(connection, _T("uploadScreenCapture"), _T("{\"url\":\"http://non-existent-host.com\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadScreenCapture"), _T("{\"url\":\"http://non-existent-host.com\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
     
-    //uploadComplete.SetEvent();
     EXPECT_EQ(Core::ERROR_NONE, uploadComplete.Lock());
 
-    handler->Unsubscribe(0, _T("uploadComplete"), _T("org.rdk.ScreenCapture"), message);
+    handler.Unsubscribe(0, _T("uploadComplete"), _T("org.rdk.ScreenCapture"), message);
 
-    // Deinitialize
-    plugin->Deinitialize(nullptr);
     free(frameBuffer);
 }
