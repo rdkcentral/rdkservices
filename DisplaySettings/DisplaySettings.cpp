@@ -277,6 +277,7 @@ namespace WPEFramework {
 	    m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
 	    m_cecArcRoutingThreadRun = false;
 	    isCecArcRoutingThreadEnabled = true;
+            m_arcInitiationEvent = false;
         }
 
         DisplaySettings::~DisplaySettings()
@@ -4124,14 +4125,16 @@ namespace WPEFramework {
                             if(types & dsAUDIOARCSUPPORT_eARC) {
                                 aPort.setStereoAuto(true,true);
                             }
-                            else if (types & dsAUDIOARCSUPPORT_ARC && (m_arcAudioEnabled != pEnable)) {
+                            else if (types & dsAUDIOARCSUPPORT_ARC && ((m_arcAudioEnabled != pEnable) || ( m_arcInitiationEvent == true))) {
                                 if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
                                     LOGERR("DisplaySettings::setEnableAudioPort (ARC-Auto): requestShortAudioDescriptor failed !!!\n");;
                                 }
                                 else {
                                     LOGINFO("DisplaySettings::setEnableAudioPort (ARC-Auto): requestShortAudioDescriptor successful\n");
                                 }
+                            
                             }
+                            m_arcInitiationEvent = false;
                         }
                         else{
                             device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
@@ -4564,6 +4567,7 @@ namespace WPEFramework {
 			        LOGINFO("onARCInitiationEventHandler: Enable ARC\n");
                                 aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
                                 m_arcAudioEnabled = true;
+                                m_arcInitiationEvent = true;
 			    }
                         }
                         else {
