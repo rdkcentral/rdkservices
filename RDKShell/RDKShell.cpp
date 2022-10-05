@@ -599,41 +599,41 @@ namespace WPEFramework {
        
         static void updateSurfaceClientIdentifiers( void)
         {
-          uint32_t status = 0;
-          auto thunderController = RDKShell::getThunderControllerClient();
-          WPEFramework::Core::JSON::String configString;
-          Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
-          status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
-          if(status > 0)
-	  {
-            std::cout<<"pluginfo status falied"<<std::endl;
-	  }
-	  else
-          {
-           for (uint16_t i = 0; i < availablePluginResult.Length(); i++)
-           {
-            PluginHost::MetaData::Service service = availablePluginResult[i];
-	    std::string configLine;
-	    service.Configuration.ToString(configLine);
-	    JsonObject serviceConfig = JsonObject(configLine.c_str());
-	    if (serviceConfig.HasLabel("clientidentifier"))
-	    { 
-	     JsonObject configSet;
-             std::string method = "configuration@";
-             std::string pluginName = service.Callsign.Value();
-             method=method.append(pluginName);
-             status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
-             configSet.FromString(configString.Value());
-             configSet["clientidentifier"] = RDKSHELL_SURFACECLIENT_DISPLAYNAME;
-             status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
-             if(status > 0)
-             {
-                std::cout<<"clientidentifier config set failed"<<std::endl;
-	     }
+            uint32_t status = 0;
+            auto thunderController = RDKShell::getThunderControllerClient();
+            WPEFramework::Core::JSON::String configString;
+            Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
+            status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
+            if(status > 0)
+            {
+                std::cout<<"pluginfo status falied"<<std::endl;
             }
-	   }
-	  }
-       }
+            else
+            {
+                for (uint16_t i = 0; i < availablePluginResult.Length(); i++)
+                {
+                    PluginHost::MetaData::Service service = availablePluginResult[i];
+                    std::string configLine;
+                    service.Configuration.ToString(configLine);
+                    JsonObject serviceConfig = JsonObject(configLine.c_str());
+                    if (serviceConfig.HasLabel("clientidentifier"))
+                    {
+                        JsonObject configSet;
+                        std::string method = "configuration@";
+                        std::string pluginName = service.Callsign.Value();
+                        method=method.append(pluginName);
+                        status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
+                        configSet.FromString(configString.Value());
+                        configSet["clientidentifier"] = RDKSHELL_SURFACECLIENT_DISPLAYNAME;
+                        status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
+                        if(status > 0)
+                        {
+                            std::cout<<"clientidentifier config set failed"<<std::endl;
+                        }
+                    }
+                }
+            }
+        }
 
         std::string toLower(const std::string& clientName)
         {
@@ -6240,48 +6240,66 @@ namespace WPEFramework {
         bool RDKShell::generateKey(const string& client, const JsonArray& keyInputs)
         {
             bool ret = false;
-            for (int i=0; i<keyInputs.Length(); i++) {
+            for (int i=0; i<keyInputs.Length(); i++)
+            {
                 const JsonObject& keyInputInfo = keyInputs[i].Object();
                 uint32_t keyCode, flags=0;
                 std::string virtualKey("");
                 if (keyInputInfo.HasLabel("key"))
                 {
-                  virtualKey = keyInputInfo["key"].String();
+                    virtualKey = keyInputInfo["key"].String();
                 }
                 else if (keyInputInfo.HasLabel("keyCode"))
                 {
-                  keyCode = keyInputInfo["keyCode"].Number();
-                  const JsonArray modifiers = keyInputInfo.HasLabel("modifiers") ? keyInputInfo["modifiers"].Array() : JsonArray();
-                  for (int k=0; k<modifiers.Length(); k++) {
-                    flags |= getKeyFlag(modifiers[k].String());
-                  }
+                    keyCode = keyInputInfo["keyCode"].Number();
+                    const JsonArray modifiers = keyInputInfo.HasLabel("modifiers") ? keyInputInfo["modifiers"].Array() : JsonArray();
+                    for (int k=0; k<modifiers.Length(); k++)
+                    {
+                        flags |= getKeyFlag(modifiers[k].String());
+                    }
                 }
                 else
                 {
-                  continue;
+                    continue;
                 }
+
                 const uint32_t delay = keyInputInfo["delay"].Number();
                 sleep(delay);
+
                 std::string keyClient = keyInputInfo.HasLabel("client")? keyInputInfo["client"].String(): client;
                 if (keyClient.empty())
                 {
-                  keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
+                    keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
                 }
+
+                double duration = 0.0;
+                if (keyInputInfo.HasLabel("duration"))
+                {
+                    duration = keyInputInfo["duration"].Double();
+                }
+
                 lockRdkShellMutex();
-		bool targetFound = false;
+		        bool targetFound = false;
                 if (keyClient != "")
                 {
-                  std::vector<std::string> clientList;
-                  CompositorController::getClients(clientList);
-                  transform(keyClient.begin(), keyClient.end(), keyClient.begin(), ::tolower);
-                  if (std::find(clientList.begin(), clientList.end(), keyClient) != clientList.end())
-                  {
-                    targetFound = true;
-                  }
+                    std::vector<std::string> clientList;
+                    CompositorController::getClients(clientList);
+                    transform(keyClient.begin(), keyClient.end(), keyClient.begin(), ::tolower);
+                    if (std::find(clientList.begin(), clientList.end(), keyClient) != clientList.end())
+                    {
+                        targetFound = true;
+                    }
                 }
                 if (targetFound || keyClient == "")
                 {
-                  ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+                    if (duration > 0.0)
+                    {
+                        ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey, duration);
+                    }
+                    else
+                    {
+                        ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+                    }
                 }
                 gRdkShellMutex.unlock();
             }
