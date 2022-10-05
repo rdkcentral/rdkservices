@@ -200,6 +200,7 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define SYSTEM_SERVICE_CALLSIGN "org.rdk.System"
 #define RESIDENTAPP_CALLSIGN "ResidentApp"
 #define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
+#define LISA_CALLSIGN "LISA"
 
 #define RECONNECTION_TIME_IN_MILLISECONDS 10000
 
@@ -4066,42 +4067,90 @@ namespace WPEFramework {
             if (result)
             {
                 const string client = parameters["client"].String();
-                const string uri = parameters["uri"].String();
+                string uri = parameters["uri"].String();
                 const string mimeType = parameters["mimeType"].String();
 
                 if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_DAC_NATIVE)
                 {
                     // Starting a DAC app. Get the info from Packager
                     LOGINFO("Starting DAC app");
+                    string bundlePath;
 
-                    auto packagerPlugin = getPackagerPlugin();
-                    if (!packagerPlugin)
                     {
-                        response["message"] = "Packager initialisation failed";
-                        returnResponse(false);
+                      // find the bundle location
+                      JsonObject infoParams;
+                      JsonObject infoResult;
+
+                      string id = uri;
+                      string version = "1.0";
+                      string dactype = "dac";
+                      // uri can optionally contain version and dactype
+                      // like: id;version;dactype
+                      auto delimiterPos = uri.find(";");
+                      if (delimiterPos != string::npos)
+                      {
+                        id = uri.substr(0, delimiterPos);
+                        version = uri.substr(delimiterPos + 1);
+                        uri = id;
+                        delimiterPos = version.find(";");
+                        if (delimiterPos != string::npos) {
+                          dactype = version.substr(delimiterPos + 1);
+                          version = version.substr(0, delimiterPos);
+                        }
+                      }
+                      infoParams.Set("id", id.c_str());
+                      infoParams.Set("version", version.c_str());
+                      infoParams.Set("type", dactype.c_str());
+                      LOGINFO("Querying LISA about dac app: %s %s %s", dactype.c_str(), id.c_str(), version.c_str());
+                      uint32_t status = JSONRPCDirectLink(mCurrentService, LISA_CALLSIGN).Invoke<JsonObject, JsonObject>(
+                          RDKSHELL_THUNDER_TIMEOUT, "getStorageDetails", infoParams, infoResult);
+                      if (status == 0)
+                      {
+                        if (infoResult.HasLabel("apps") && infoResult["apps"].Object().HasLabel("path"))
+                        {
+                          bundlePath = infoResult["apps"].Object()["path"].String();
+                        }
+                        if (bundlePath.empty())
+                        {
+                          LOGINFO("LISA reports app is not installed");
+                        }
+                      }
+                      else
+                      {
+                        LOGINFO("LISA not active");
+                      }
                     }
 
-                    // See if the app is actually installed
-                    JsonObject installParams;
-                    JsonObject installResult;
-
-                    installParams.Set("pkgId", uri.c_str());
-                    packagerPlugin->Invoke<JsonObject, JsonObject>(1000, "isInstalled", installParams, installResult);
-
-                    if (!installResult.Get("available").Boolean())
+                    if (bundlePath.empty())
                     {
-                        response["message"] = "Packager reports app is not installed";
-                        returnResponse(false);
+                      auto packagerPlugin = getPackagerPlugin();
+                      if (!packagerPlugin)
+                      {
+                          response["message"] = "Packager initialisation failed";
+                          returnResponse(false);
+                      }
+                      // See if the app is actually installed
+                      JsonObject installParams;
+                      JsonObject installResult;
+
+                      installParams.Set("pkgId", uri.c_str());
+                      packagerPlugin->Invoke<JsonObject, JsonObject>(1000, "isInstalled", installParams, installResult);
+
+                      if (!installResult.Get("available").Boolean())
+                      {
+                          response["message"] = "Packager reports app is not installed";
+                          returnResponse(false);
+                      }
+
+                      // App is installed, find the bundle location
+                      JsonObject infoParams;
+                      JsonObject infoResult;
+
+                      infoParams.Set("pkgId", uri.c_str());
+                      packagerPlugin->Invoke<JsonObject, JsonObject>(1000, "getPackageInfo", infoParams, infoResult);
+
+                      bundlePath = infoResult["bundlePath"].String();
                     }
-
-                    // App is installed, find the bundle location
-                    JsonObject infoParams;
-                    JsonObject infoResult;
-
-                    infoParams.Set("pkgId", uri.c_str());
-                    packagerPlugin->Invoke<JsonObject, JsonObject>(1000, "getPackageInfo", infoParams, infoResult);
-
-                    string bundlePath = infoResult["bundlePath"].String();
 
                     // We know where the app lives and are ready to start it,
                     // create a display with rdkshell
