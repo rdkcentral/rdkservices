@@ -5594,7 +5594,6 @@ namespace WPEFramework {
         uint32_t RDKShell::keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            bool result = true;
 
             if (parameters.HasLabel("input"))
             {
