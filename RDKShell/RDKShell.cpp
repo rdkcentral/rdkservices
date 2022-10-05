@@ -254,20 +254,6 @@ namespace WPEFramework {
         namespace {
             // rdk Shell should use inter faces
 
-            uint32_t cloneService(PluginHost::IShell* shell, const string& basecallsign, const string& newcallsign)
-            {
-                uint32_t result;
-                auto interface = shell->QueryInterfaceByCallsign<PluginHost::IController>("");
-                if (interface == nullptr) {
-                    result = Core::ERROR_UNAVAILABLE;
-                    std::cout << "no IController" << std::endl;
-                } else {
-                    result = interface->Clone(basecallsign, newcallsign);
-                    std::cout << "IController clone status " << result << std::endl;
-                    interface->Release();
-                }
-                return result;
-            }
             uint32_t getValue(PluginHost::IShell* shell, const string& ns, const string& key, string& value)
             {
                 uint32_t result;
@@ -336,34 +322,6 @@ namespace WPEFramework {
                     result = Core::ERROR_NONE;
                     state = interface->State();
                     std::cout << "IShell state " << state << " for " << callsign << std::endl;
-                    interface->Release();
-                }
-                return result;
-            }
-            uint32_t activate(PluginHost::IShell* shell, const string& callsign)
-            {
-                uint32_t result;
-                auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
-                if (interface == nullptr) {
-                    result = Core::ERROR_UNAVAILABLE;
-                    std::cout << "no IShell for " << callsign << std::endl;
-                } else {
-                    result = interface->Activate(PluginHost::IShell::reason::REQUESTED);
-                    std::cout << "IShell activate status " << result << " for " << callsign << std::endl;
-                    interface->Release();
-                }
-                return result;
-            }
-            uint32_t deactivate(PluginHost::IShell* shell, const string& callsign)
-            {
-                uint32_t result;
-                auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
-                if (interface == nullptr) {
-                    result = Core::ERROR_UNAVAILABLE;
-                    std::cout << "no IShell for " << callsign << std::endl;
-                } else {
-                    result = interface->Deactivate(PluginHost::IShell::reason::REQUESTED);
-                    std::cout << "IShell deactivate status " << result << " for " << callsign << std::endl;
                     interface->Release();
                 }
                 return result;
@@ -646,7 +604,11 @@ namespace WPEFramework {
                 }
 		else if (requestName.compare("deactivateresidentapp") == 0)
                 {
-                    auto deactivateStatus = deactivate(mCurrentService, "ResidentApp");
+                    auto thunderController = std::unique_ptr<JSONRPCDirectLink>(new JSONRPCDirectLink(mCurrentService));
+                    JsonObject deactivateParams;
+                    deactivateParams.Set("callsign", "ResidentApp");
+                    JsonObject deactivateResult;
+                    int32_t deactivateStatus = thunderController->Invoke(0, "deactivate", deactivateParams, deactivateResult);
                     std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
                 }
                 else
@@ -1789,7 +1751,11 @@ namespace WPEFramework {
                     std::cout << "callsign will be " << callsign << std::endl;
                     if (callsign.compare("org.rdk.RDKShell.1") != 0)
                     {
-                        activate(mShell.mCurrentService, callsign);
+                        //get callsign
+                        JsonObject activateParams;
+                        activateParams.Set("callsign",callsign.c_str());
+                        JsonObject activateResult;
+                        int32_t activateStatus = thunderController->Invoke(3500, "activate", activateParams, activateResult);
                     }
                     else
                     {
@@ -3405,6 +3371,8 @@ namespace WPEFramework {
                       originalPluginFound = true;
                     }
                 }
+                auto thunderController = std::unique_ptr<JSONRPCDirectLink>(new JSONRPCDirectLink(mCurrentService));
+                //auto thunderController = getThunderControllerClient();
                 if ((false == newPluginFound) && (false == originalPluginFound)) {
                     PluginHost::IShell::state state;
                     if (getServiceState(mCurrentService, callsign, state) == Core::ERROR_NONE) {
@@ -3429,13 +3397,21 @@ namespace WPEFramework {
                 else if (!newPluginFound)
                 {
                     std::cout << "attempting to clone type: " << type << " into " << callsign << std::endl;
-                    uint32_t status = cloneService(mCurrentService, type, callsign);
+                    JsonObject joParams;
+                    joParams.Set("callsign", type);
+                    joParams.Set("newcallsign",callsign.c_str());
+                    JsonObject joResult;
+                    // setting wait Time to 2 seconds
+                    uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams, joResult, true);
 
                     std::cout << "clone status: " << status << std::endl;
                     if (status > 0)
                     {
                         std::cout << "trying status one more time...\n";
-                        status = cloneService(mCurrentService, type, callsign);
+                        JsonObject joParams2;
+                        joParams2.Set("callsign", type);
+                        joParams2.Set("newcallsign",callsign.c_str());
+                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "clone", joParams2, joResult, true);
                         std::cout << "clone status: " << status << std::endl;
                     }
 
@@ -3474,6 +3450,7 @@ namespace WPEFramework {
                 string configString;
 
                 uint32_t status = 0;
+                Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
                 status = getConfig(mCurrentService, callsign, configString);
 
                 std::cout << "config status: " << status << std::endl;
@@ -3669,13 +3646,17 @@ namespace WPEFramework {
                             state == PluginHost::IShell::state::PRECONDITION)
                         {
                             launchType = RDKShellLaunchType::ACTIVATE;
-                            status = activate(mCurrentService, callsign);
+                            JsonObject activateParams;
+                            activateParams.Set("callsign",callsign.c_str());
+                            status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
 
                             std::cout << "activate 1 status: " << status << std::endl;
                             if (status > 0)
                             {
                                 std::cout << "trying status one more time...\n";
-                                status = activate(mCurrentService, callsign);
+                                JsonObject activateParams2;
+                                activateParams2.Set("callsign",callsign.c_str());
+                                status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams2, joResult);
                                 std::cout << "activate 1 status: " << status << std::endl;
                             }
                         }
@@ -3683,25 +3664,33 @@ namespace WPEFramework {
                     else
                     {
                         launchType = RDKShellLaunchType::ACTIVATE;
-                        status = activate(mCurrentService, callsign);
+                        JsonObject activateParams;
+                        activateParams.Set("callsign",callsign.c_str());
+                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
                         std::cout << "activate 2 status: " << status << std::endl;
                         if (status > 0)
                         {
                             std::cout << "trying status one more time...\n";
-                            status = activate(mCurrentService, callsign);
+                            JsonObject activateParams2;
+                            activateParams2.Set("callsign",callsign.c_str());
+                            status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams2, joResult);
                             std::cout << "activate 2 status: " << status << std::endl;
                         }
                     }
                 }
                 else
                 {
-                    status = activate(mCurrentService, callsign);
+                    JsonObject activateParams;
+                    activateParams.Set("callsign",callsign.c_str());
+                    status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, joResult);
 
                     std::cout << "activate 3 status: " << status << std::endl;
                     if (status > 0)
                     {
                         std::cout << "trying status one more time...\n";
-                        status = activate(mCurrentService, callsign);
+                        JsonObject activateParams2;
+                        activateParams2.Set("callsign",callsign.c_str());
+                        status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams2, joResult);
                         std::cout << "activate 3 status: " << status << std::endl;
                     }
                 }
@@ -4059,8 +4048,12 @@ namespace WPEFramework {
                     returnResponse(false);
                 }
                 std::cout << "destroying " << callsign << std::endl;
+                JsonObject joParams;
+                joParams.Set("callsign",callsign.c_str());
+                JsonObject joResult;
+                auto thunderController = getThunderControllerClient();
                 gDestroyMutex.lock();
-                uint32_t status = deactivate(mCurrentService, callsign);
+                uint32_t status = thunderController->Invoke(RDKSHELL_THUNDER_TIMEOUT, "deactivate", joParams, joResult);
                 gDestroyMutex.unlock();
                 if (status > 0)
                 {
@@ -4906,6 +4899,7 @@ namespace WPEFramework {
             std::cout << "stopHdmiStatus status: " << stopHdmiStatus << std::endl;
 
             sForceResidentAppLaunch = true;
+            auto thunderController = getThunderControllerClient();
             string configString;
 
             int32_t status = 0;
@@ -4936,13 +4930,16 @@ namespace WPEFramework {
 
             bool ret = true;
             std::string callsign("ResidentApp");
-            status = activate(mCurrentService, callsign);
+            JsonObject activateParams;
+            activateParams.Set("callsign",callsign.c_str());
+            JsonObject activateResult;
+            status = thunderController->Invoke(3500, "activate", activateParams, activateResult);
 
             std::cout << "activate resident app status: " << status << std::endl;
             if (status > 0)
             {
                 std::cout << "trying status one more time...\n";
-                status = activate(mCurrentService, callsign);
+                status = thunderController->Invoke(3500, "activate", activateParams, activateResult);
                 std::cout << "activate resident app status: " << status << std::endl;
                 if (status > 0)
                 {
