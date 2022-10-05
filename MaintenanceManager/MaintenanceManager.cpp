@@ -73,6 +73,7 @@ using namespace std;
 #define PROC_DIR "/proc"
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define TR181_STOP_MAINTENANCE  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StopMaintenance.Enable"
+#define TR181_RDKVFWUPGRADER  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKFirmwareUpgrader.Enable"
 
 string notifyStatusToString(Maint_notify_status_t &status)
 {
@@ -590,6 +591,20 @@ namespace WPEFramework {
                 maintenanceManagerOnBootup();
             }
         }
+	void MaintenanceManager::sendIARMmode(const char *eventname,int *mode, int size)
+	{
+            IARM_Result_t ret_code = IARM_RESULT_SUCCESS;
+	    if (eventname != NULL && (mode != NULL)) {
+	        ret_code = IARM_Bus_BroadcastEvent(eventname, (IARM_EventId_t) 0, (void *)mode, size);
+	        if (ret_code == IARM_RESULT_SUCCESS) {
+                    LOGINFO("IARM_Bus_BroadcastEvent:%s is success and value=%d\n", eventname, *mode);
+	        }else{
+                    LOGINFO("IARM_Bus_BroadcastEvent:%s is fail and value=%d\n", eventname, *mode);
+	        }
+	    }else{
+                LOGINFO("sendIARM parameter is NULL\n");
+	    }
+	}
 
         void MaintenanceManager::maintenanceManagerOnBootup() {
             /* on boot up we set these things */
@@ -1099,6 +1114,9 @@ namespace WPEFramework {
             string old_mode = g_currentMode;
             string bg_flag = "false";
             string new_optout_state = "";
+	    bool rdkvfwrfc=false;
+	    // 1 = Foreground and 0 = background
+	    int mode = 1;
 
             /* Label should have maintenance mode and softwareOptout field */
             if ( parameters.HasLabel("maintenanceMode") && parameters.HasLabel("optOut") ){
@@ -1107,9 +1125,11 @@ namespace WPEFramework {
 
                 std::lock_guard<std::mutex> guard(m_callMutex);
 
+		rdkvfwrfc = checkRdkvFWFlag();
                 /* check if maintenance is on progress or not */
                 /* if in progress restrict the same */
-                if ( MAINTENANCE_STARTED != m_notify_status ){
+		/* This feature is only applicable when firmware download rfc is true */
+                if ( (rdkvfwrfc == true) || (MAINTENANCE_STARTED != m_notify_status) ){
 
                     LOGINFO("SetMaintenanceMode new_mode = %s\n",new_mode.c_str());
 
@@ -1134,6 +1154,12 @@ namespace WPEFramework {
                     LOGERR("Maintenance is in Progress, Mode change not allowed");
                     result =true;
                 }
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+		    /* Sending IARM Event to application for mode change */
+		    (new_mode != BACKGROUND_MODE) ? mode = 1 : mode = 0;
+                    LOGINFO("setMaintenanceMode rfc is true and mode:%d\n", mode);
+		    sendIARMmode("RdkvFWupgrader",&mode, sizeof(mode));
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
                 /* OptOut changes here */
                 new_optout_state = parameters["optOut"].String();
@@ -1343,6 +1369,19 @@ namespace WPEFramework {
                 }
             }
             LOGINFO(" StopMaintenance.Enable = %s , call value %d ", (ret == true)?"true":"false", wdmpStatus);
+            return ret;
+        }
+        bool MaintenanceManager::checkRdkvFWFlag(){
+            bool ret=false;
+            RFC_ParamData_t param;
+            WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("MaintenanceManager"),TR181_RDKVFWUPGRADER, &param);
+            if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE){
+                if(0 == (strncasecmp(param.value,"true",4))){
+                    ret=true;
+                }
+            }
+	    LOGINFO("rdkvfw rfc status=%s", param.value);
+            LOGINFO(" RdkvFW.Enable = %s , call value %d ", (ret == true)?"true":"false", wdmpStatus);
             return ret;
         }
 
