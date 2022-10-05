@@ -238,7 +238,7 @@ namespace WPEFramework
              LOGINFO("Command: GetCECVersion sending CECVersion response \n");
              try
              { 
-                 conn.sendTo(header.from, MessageEncoder().encode(CECVersion(Version::V_1_4)));
+                 conn.sendToAsync(header.from, MessageEncoder().encode(CECVersion(Version::V_1_4)));
              } 
              catch(...)
              {
@@ -269,7 +269,7 @@ namespace WPEFramework
              LOGINFO("Command: GiveOSDName sending SetOSDName : %s\n",osdName.toString().c_str());
              try
              { 
-                 conn.sendTo(header.from, MessageEncoder().encode(SetOSDName(osdName)));
+                 conn.sendToAsync(header.from, MessageEncoder().encode(SetOSDName(osdName)));
              } 
              catch(...)
              {
@@ -284,7 +284,7 @@ namespace WPEFramework
                  try
                  { 
                      LOGINFO(" sending ReportPhysicalAddress response physical_addr :%s logicalAddress :%x \n",physical_addr.toString().c_str(), logicalAddress.toInt());
-                     conn.sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt())),500);
+                     conn.sendToAsync(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt())));
                  } 
                  catch(...)
                  {
@@ -298,7 +298,7 @@ namespace WPEFramework
              try
              {
                  LOGINFO("Command: GiveDeviceVendorID sending VendorID response :%s\n",appVendorId.toString().c_str());
-                 conn.sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)));
+                 conn.sendToAsync(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)));
              }
              catch(...)
              {
