@@ -150,6 +150,7 @@ namespace WPEFramework {
                 bool getActivatedStatus(bool &skipFirmwareCheck);
                 const string checkActivatedStatus(void);
                 pid_t getTaskPID(const char*);
+		bool checkRdkvFWFlag();
 
                 string getLastRebootReason();
                 void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
@@ -203,6 +204,7 @@ namespace WPEFramework {
                 uint32_t startMaintenance(const JsonObject& parameters, JsonObject& response);
                 uint32_t stopMaintenance(const JsonObject& parameters, JsonObject& response);
                 uint32_t getMaintenanceMode(const JsonObject& parameters, JsonObject& response);
+		void sendIARMmode(const char *eventname,int *mode, int size);
         }; /* end of MaintenanceManager service class */
     } /* end of plugin */
 } /* end of wpeframework */
