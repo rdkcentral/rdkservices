@@ -308,7 +308,7 @@ namespace WPEFramework {
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
 
-	    for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
+	    /*for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
 		    cmd = tasks[i];
 		    cmd += " &";
 		    cmd += "\0";
@@ -323,7 +323,27 @@ namespace WPEFramework {
 			    LOGINFO("Unlocked task [%d/%d]",i,tasks.size());
 		    }
                     LOGINFO("for loop");
-	    }
+	    }*/
+	    
+            cmd = tasks[0];
+            cmd += " &";
+            cmd += "\0";
+            m_task_map[tasks[0]] = true;
+            LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
+            system(cmd.c_str());
+            cmd="";
+            for( i = 1; i < tasks.size() && !m_abort_flag; i++){
+                LOGINFO("Waiting to unlock.. [%d/%d]",i,tasks.size());
+                task_thread.wait(lck);
+                cmd = tasks[i];
+                cmd += " &";
+                cmd += "\0";
+                m_task_map[tasks[i]]=true;
+                if ( !m_abort_flag ){
+                    LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
+                    system(cmd.c_str());
+                }
+            }
 
             m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
