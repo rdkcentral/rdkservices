@@ -32,6 +32,7 @@
 #include <interfaces/IFocus.h>
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
+#include <interfaces/IStore.h>
 #include <rdkshell/logger.h>
 #include <plugins/System.h>
 #include <rdkshell/eastereggs.h>
@@ -186,7 +187,6 @@ bool sFactoryModeBlockResidentApp = false;
 bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
 bool needsScreenshot = false;
-bool gAvailablePluginsPopulated = false;
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -252,6 +252,82 @@ namespace WPEFramework {
 
     namespace Plugin {
 
+        namespace {
+            // rdk Shell should use inter faces
+
+            uint32_t getValue(PluginHost::IShell* shell, const string& ns, const string& key, string& value)
+            {
+                uint32_t result;
+                auto interface = shell->QueryInterfaceByCallsign<Exchange::IStore>(PERSISTENT_STORE_CALLSIGN);
+                if (interface == nullptr) {
+                    result = Core::ERROR_UNAVAILABLE;
+                    std::cout << "no IStore" << std::endl;
+                } else {
+                    result = interface->GetValue(ns, key, value);
+                    std::cout << "IStore status " << result << " for get " << key << std::endl;
+                    interface->Release();
+                }
+                return result;
+            }
+            uint32_t setValue(PluginHost::IShell* shell, const string& ns, const string& key, const string& value)
+            {
+                uint32_t result;
+                auto interface = shell->QueryInterfaceByCallsign<Exchange::IStore>(PERSISTENT_STORE_CALLSIGN);
+                if (interface == nullptr) {
+                    result = Core::ERROR_UNAVAILABLE;
+                    std::cout << "no IStore" << std::endl;
+                } else {
+                    result = interface->SetValue(ns, key, value);
+                    std::cout << "IStore status " << result << " for set " << key << std::endl;
+                    interface->Release();
+                }
+                return result;
+            }
+            uint32_t getConfig(PluginHost::IShell* shell, const string& callsign, string& config)
+            {
+                uint32_t result;
+                auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
+                if (interface == nullptr) {
+                    result = Core::ERROR_UNAVAILABLE;
+                    std::cout << "no IShell for " << callsign << std::endl;
+                } else {
+                    result = Core::ERROR_NONE;
+                    config = interface->ConfigLine();
+                    std::cout << "IShell config " << config << " for " << callsign << std::endl;
+                    interface->Release();
+                }
+                return result;
+            }
+            uint32_t setConfig(PluginHost::IShell* shell, const string& callsign, const string& config)
+            {
+                uint32_t result;
+                auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
+                if (interface == nullptr) {
+                    result = Core::ERROR_UNAVAILABLE;
+                    std::cout << "no IShell for " << callsign << std::endl;
+                } else {
+                    result = interface->ConfigLine(config);
+                    std::cout << "IShell config status " << result << " for " << callsign << std::endl;
+                    interface->Release();
+                }
+                return result;
+            }
+            uint32_t getServiceState(PluginHost::IShell* shell, const string& callsign, PluginHost::IShell::state& state)
+            {
+                uint32_t result;
+                auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
+                if (interface == nullptr) {
+                    result = Core::ERROR_UNAVAILABLE;
+                    std::cout << "no IShell for " << callsign << std::endl;
+                } else {
+                    result = Core::ERROR_NONE;
+                    state = interface->State();
+                    std::cout << "IShell state " << state << " for " << callsign << std::endl;
+                    interface->Release();
+                }
+                return result;
+            }
+        }
 
         struct JSONRPCDirectLink
         {
@@ -415,7 +491,6 @@ namespace WPEFramework {
             JsonObject params;
         };
 
-	Core::JSON::ArrayType<PluginHost::MetaData::Service> gAvailablePluginData;
         std::map<std::string, PluginData> gActivePluginsData;
         std::map<std::string, PluginStateChangeData*> gPluginsEventListener;
         std::vector<RDKShellStartupConfig> gStartupConfigs;
@@ -598,11 +673,11 @@ namespace WPEFramework {
             return exist;
         }
        
-        static void updateSurfaceClientIdentifiers( void)
+        static void updateSurfaceClientIdentifiers(PluginHost::IShell* shell)
         {
           uint32_t status = 0;
           auto thunderController = RDKShell::getThunderControllerClient();
-          WPEFramework::Core::JSON::String configString;
+          string configString;
           Core::JSON::ArrayType<PluginHost::MetaData::Service> availablePluginResult;
           status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", availablePluginResult);
           if(status > 0)
@@ -620,13 +695,15 @@ namespace WPEFramework {
 	    if (serviceConfig.HasLabel("clientidentifier"))
 	    { 
 	     JsonObject configSet;
-             std::string method = "configuration@";
              std::string pluginName = service.Callsign.Value();
-             method=method.append(pluginName);
-             status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
-             configSet.FromString(configString.Value());
+             status = getConfig(shell, pluginName, configString);
+             configSet.FromString(configString);
              configSet["clientidentifier"] = RDKSHELL_SURFACECLIENT_DISPLAYNAME;
-             status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
+             string configSetAsString;
+             configSet.ToString(configSetAsString);
+             Core::JSON::String configSetAsJsonString;
+             configSetAsJsonString.FromString(configSetAsString);
+             status = setConfig(shell, pluginName, configSetAsJsonString.Value());
              if(status > 0)
              {
                 std::cout<<"clientidentifier config set failed"<<std::endl;
@@ -1188,23 +1265,10 @@ namespace WPEFramework {
                   {
                       if (!sPersistentStoreFirstActivated)
                       {
-                          Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-                          auto thunderController = getThunderControllerClient();
-                          thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", joResult);
-                          JsonArray stateArray;
-                          for (uint16_t i = 0; i < joResult.Length(); i++)
-                          {
-                              PluginHost::MetaData::Service service = joResult[i];
-                              std::string callsign;
-                              service.Callsign.ToString(callsign);
-                              if (callsign.find(PERSISTENT_STORE_CALLSIGN) != std::string::npos)
-                              {
-                                if (service.JSONState == PluginHost::MetaData::Service::state::ACTIVATED)
-                                {
-                                  sPersistentStoreFirstActivated = true;
-                                }
-                                break;
-                              } 
+                          PluginHost::IShell::state state;
+                          getServiceState(mCurrentService, PERSISTENT_STORE_CALLSIGN, state);
+                          if (state == PluginHost::IShell::state::ACTIVATED) {
+                              sPersistentStoreFirstActivated = true;
                           }
                       }
                       sPersistentStorePreLaunchChecked = true;
@@ -1310,7 +1374,7 @@ namespace WPEFramework {
             char* rdkshelltype = getenv("RDKSHELL_COMPOSITOR_TYPE");
             if((rdkshelltype != NULL) && (strcmp(rdkshelltype , "surface") == 0))
             {
-	      updateSurfaceClientIdentifiers();       
+	      updateSurfaceClientIdentifiers(mCurrentService);
 	    } 
             return "";
         }
@@ -3302,7 +3366,6 @@ namespace WPEFramework {
                 //check to see if plugin already exists
                 bool newPluginFound = false;
                 bool originalPluginFound = false;
-                uint32_t pluginsFound = 0;
                 for (std::map<std::string, PluginData>::iterator pluginDataEntry = gActivePluginsData.begin(); pluginDataEntry != gActivePluginsData.end(); pluginDataEntry++)
                 {
                     std::string pluginName = pluginDataEntry->first;
@@ -3318,40 +3381,17 @@ namespace WPEFramework {
                 }
                 auto thunderController = std::unique_ptr<JSONRPCDirectLink>(new JSONRPCDirectLink(mCurrentService));
                 //auto thunderController = getThunderControllerClient();
-                if ((false == newPluginFound) && (false == originalPluginFound))
-                {
-                    if(gAvailablePluginsPopulated == false)
-                    {
-                        uint32_t status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", gAvailablePluginData);
-                        std::cout << "status status: " << status << std::endl;
-                        if (status > 0)
-                        {
-                            std::cout << "trying status one more time...\n";
-                            status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, "status", gAvailablePluginData);
-                            std::cout << "status status: " << status << std::endl;
-                        }
-                        gAvailablePluginsPopulated = true;
+                if ((false == newPluginFound) && (false == originalPluginFound)) {
+                    PluginHost::IShell::state state;
+                    if (getServiceState(mCurrentService, callsign, state) == Core::ERROR_NONE) {
+                        newPluginFound = true;
                     }
-                    for (uint16_t i = 0; i < gAvailablePluginData.Length(); i++)
-                    {
-                         PluginHost::MetaData::Service service = gAvailablePluginData[i];
-                         std::string pluginName = service.Callsign.Value();
-                         pluginName.erase(std::remove(pluginName.begin(),pluginName.end(),'\"'),pluginName.end());
-                         if (!pluginName.empty() && pluginName == callsign)
-                         {
-                             newPluginFound = true;
-                             break;
-                         }
-                         else if (!pluginName.empty() && pluginName == type)
-                         {
-                             originalPluginFound = true;
-                         }
+                    if (getServiceState(mCurrentService, type, state) == Core::ERROR_NONE) {
+                        originalPluginFound = true;
                     }
-                    pluginsFound = gAvailablePluginData.Length();
                 }
 		if (!newPluginFound && !originalPluginFound)
                 {
-                    std::cout << "number of types found: " << pluginsFound << std::endl;
                     response["message"] = "failed to launch application.  type not found";
                     gLaunchMutex.lock();
                     gLaunchCount = 0;
@@ -3383,10 +3423,6 @@ namespace WPEFramework {
                         std::cout << "clone status: " << status << std::endl;
                     }
 
-                    string strParams;
-                    string strResult;
-                    joParams.ToString(strParams);
-                    joResult.ToString(strResult);
                     launchType = RDKShellLaunchType::CREATE;
                     {
                         bool lockAcquired = false;
@@ -3419,23 +3455,22 @@ namespace WPEFramework {
                     }
                 }
 
-                WPEFramework::Core::JSON::String configString;
+                string configString;
 
                 uint32_t status = 0;
-                string method = "configuration@" + callsign;
                 Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-                status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
+                status = getConfig(mCurrentService, callsign, configString);
 
                 std::cout << "config status: " << status << std::endl;
                 if (status > 0)
                 {
                     std::cout << "trying status one more time...\n";
-                    status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
+                    status = getConfig(mCurrentService, callsign, configString);
                     std::cout << "config status: " << status << std::endl;
                 }
 
                 JsonObject configSet;
-                configSet.FromString(configString.Value());
+                configSet.FromString(configString);
 
                 if (!configuration.empty())
                 {
@@ -3584,37 +3619,39 @@ namespace WPEFramework {
 #endif
                 }
 
-                status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
+                string configSetAsString;
+                configSet.ToString(configSetAsString);
+                Core::JSON::String configSetAsJsonString;
+                configSetAsJsonString.FromString(configSetAsString);
+                status = setConfig(mCurrentService, callsign, configSetAsJsonString.Value());
 
                 std::cout << "set status: " << status << std::endl;
                 if (status > 0)
                 {
                     std::cout << "trying status one more time...\n";
-                    status = thunderController->Set<JsonObject>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configSet);
+                    status = setConfig(mCurrentService, callsign, configSetAsJsonString.Value());
                     std::cout << "set status: " << status << std::endl;
                 }
 
                 if (launchType == RDKShellLaunchType::UNKNOWN)
                 {
                     status = 0;
-                    string statusMethod = "status@"+callsign;
-                    Core::JSON::ArrayType<PluginHost::MetaData::Service> serviceResults;
-                    status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(RDKSHELL_THUNDER_TIMEOUT, statusMethod.c_str(),serviceResults);
+                    PluginHost::IShell::state state;
+                    status = getServiceState(mCurrentService, callsign, state);
 
                     std::cout << "get status: " << status << std::endl;
                     if (status > 0)
                     {
                         std::cout << "trying status one more time...\n";
-                        status = thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service> >(RDKSHELL_THUNDER_TIMEOUT, statusMethod.c_str(),serviceResults);
+                        status = getServiceState(mCurrentService, callsign, state);
                         std::cout << "get status: " << status << std::endl;
                     }
 
-                    if (status == 0 && serviceResults.Length() > 0)
+                    if (status == 0)
                     {
-                        PluginHost::MetaData::Service service = serviceResults[0];
-                        if (service.JSONState == PluginHost::MetaData::Service::state::DEACTIVATED ||
-                            service.JSONState == PluginHost::MetaData::Service::state::DEACTIVATION ||
-                            service.JSONState == PluginHost::MetaData::Service::state::PRECONDITION)
+                        if (state == PluginHost::IShell::state::DEACTIVATED ||
+                            state == PluginHost::IShell::state::DEACTIVATION ||
+                            state == PluginHost::IShell::state::PRECONDITION)
                         {
                             launchType = RDKShellLaunchType::ACTIVATE;
                             JsonObject activateParams;
@@ -4707,14 +4744,10 @@ namespace WPEFramework {
                 bool startup = parameters["startup"].Boolean();
                 if (startup)
                 {
-                    JsonObject joAgingParams;
-                    JsonObject joAgingResult;
-                    joAgingParams.Set("namespace","FactoryTest");
-                    joAgingParams.Set("key","AgingState");
-                    std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
+                    std::string valueString;
 
                     std::cout << "attempting to check aging flag \n";
-                    uint32_t status = getThunderControllerClient()->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+                    uint32_t status = getValue(mCurrentService, "FactoryTest", "AgingState", valueString);
                     std::cout << "get status: " << status << std::endl;
 
                     if (status > 0)
@@ -4724,14 +4757,6 @@ namespace WPEFramework {
                         returnResponse(false);
                     }
 
-                    if (!joAgingResult.HasLabel("value"))
-                    {
-                        response["message"] = " aging value not found";
-                        sFactoryAppLaunchStatus = NOTLAUNCHED;
-                        returnResponse(false);
-                    }
-
-                    const std::string valueString = joAgingResult["value"].String();
                     if (valueString != "true")
                     {
                         std::cout << "aging value is " << valueString << std::endl;
@@ -4747,15 +4772,8 @@ namespace WPEFramework {
             {
                 if (parameters.HasLabel("resetagingtime"))
                 {
-                    JsonObject joAgingSetValueParams;
-                    JsonObject joAgingSetValueResult;
-                    joAgingSetValueParams.Set("namespace","FactoryTest");
-                    joAgingSetValueParams.Set("key","AgingTotalTime");
-                    joAgingSetValueParams.Set("value","0");
-                    std::string agingSetInvoke = "org.rdk.PersistentStore.1.setValue";
-
                     std::cout << "attempting to set aging total time to 0 \n";
-                    uint32_t agingTotalTimeSetStatus = getThunderControllerClient()->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, agingSetInvoke.c_str(), joAgingSetValueParams, joAgingSetValueResult);
+                    uint32_t agingTotalTimeSetStatus = setValue(mCurrentService, "FactoryTest", "AgingTotalTime", "0");
                     std::cout << "aging total time set status: " <<  agingTotalTimeSetStatus << std::endl;
                 }
 
@@ -4786,26 +4804,13 @@ namespace WPEFramework {
                     returnResponse(false);
                 }
                 addFactoryModeEasterEggs();
-                JsonObject joFactoryModeParams;
-                JsonObject joFactoryModeResult;
-                joFactoryModeParams.Set("namespace","FactoryTest");
-                joFactoryModeParams.Set("key","FactoryMode");
-                joFactoryModeParams.Set("value","true");
-                std::string factoryModeSetInvoke = "org.rdk.PersistentStore.1.setValue";
 
                 std::cout << "attempting to set factory mode flag \n";
-                uint32_t setStatus = getThunderControllerClient()->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
+                uint32_t setStatus = setValue(mCurrentService, "FactoryTest", "FactoryMode", "true");
                 std::cout << "set status: " << setStatus << std::endl;
 
-                JsonObject joFactoryExitParams;
-                JsonObject joFactoryExitResult;
-                joFactoryExitParams.Set("namespace","FactoryTest");
-                joFactoryExitParams.Set("key","AllowExit");
-                joFactoryExitParams.Set("value","true");
-                std::string factoryExitSetInvoke = "org.rdk.PersistentStore.1.setValue";
-
                 std::cout << "attempting to set factory allow exit flag \n";
-                uint32_t setExitStatus = getThunderControllerClient()->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, factoryExitSetInvoke.c_str(), joFactoryExitParams, joFactoryExitResult);
+                uint32_t setExitStatus = setValue(mCurrentService, "FactoryTest", "AllowExit", "true");
                 std::cout << "set status: " << setExitStatus << std::endl;
 
                 sFactoryAppLaunchStatus = COMPLETED;
@@ -4838,15 +4843,10 @@ namespace WPEFramework {
                 returnResponse(true);
             }
 
-            JsonObject joToFacParams;
-            JsonObject joToFacResult;
-            joToFacParams.Set("namespace","FactoryTest");
-            joToFacParams.Set("key","ToFacFlag");
-            std::string toFacGetInvoke = "org.rdk.PersistentStore.1.getValue";
+            std::string valueString;
 
             std::cout << "attempting to check flag \n";
-            auto thunderController = getThunderControllerClient();
-            uint32_t status = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, toFacGetInvoke.c_str(), joToFacParams, joToFacResult);
+            uint32_t status = getValue(mCurrentService, "FactoryTest", "ToFacFlag", valueString);
             std::cout << "get status: " << status << std::endl;
 
             if (status > 0)
@@ -4855,13 +4855,6 @@ namespace WPEFramework {
                 returnResponse(false);
             }
 
-            if (!joToFacResult.HasLabel("value"))
-            {
-                response["message"] = " toFac value not found";
-                returnResponse(false);
-            }
-
-            const std::string valueString = joToFacResult["value"].String();
             if (valueString != "M" && valueString != "m")
             {
                 std::cout << "toFac value is " << valueString << std::endl;
@@ -4892,19 +4885,14 @@ namespace WPEFramework {
             }
             else
             {
-                JsonObject joAgingParams;
-                JsonObject joAgingResult;
-                joAgingParams.Set("namespace","FactoryTest");
-                joAgingParams.Set("key","AgingState");
-                std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
+                std::string valueString;
 
                 std::cout << "attempting to check aging flag \n";
-                uint32_t agingStatus = getThunderControllerClient()->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+                uint32_t agingStatus = getValue(mCurrentService, "FactoryTest", "AgingState", valueString);
                 std::cout << "aging get status: " << agingStatus << std::endl;
 
-                if (agingStatus == 0 && joAgingResult.HasLabel("value"))
+                if (agingStatus == 0)
                 {
-                    const std::string valueString = joAgingResult["value"].String();
                     std::cout << "aging value is " << valueString << std::endl;
                     if (valueString == "true")
                     {
@@ -4918,19 +4906,12 @@ namespace WPEFramework {
                     std::cout << "aging value is not set\n";
                 }
 
-                JsonObject joExitParams;
-                JsonObject joExitResult;
-                joExitParams.Set("namespace","FactoryTest");
-                joExitParams.Set("key","AllowExit");
-                std::string factoryExitGetInvoke = "org.rdk.PersistentStore.1.getValue";
-
                 std::cout << "attempting to check factory exit flag\n";
-                uint32_t factoryExitStatus = getThunderControllerClient()->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, factoryExitGetInvoke.c_str(), joExitParams, joExitResult);
+                uint32_t factoryExitStatus = getValue(mCurrentService, "FactoryTest", "AllowExit", valueString);
                 std::cout << "factory exit get status: " << factoryExitStatus << std::endl;
 
-                if (factoryExitStatus == 0 && joExitResult.HasLabel("value"))
+                if (factoryExitStatus == 0)
                 {
-                    const std::string valueString = joExitResult["value"].String();
                     std::cout << "exit value is " << valueString << std::endl;
                     if (valueString == "false")
                     {
@@ -4974,25 +4955,23 @@ namespace WPEFramework {
 
             sForceResidentAppLaunch = true;
             auto thunderController = getThunderControllerClient();
-            WPEFramework::Core::JSON::String configString;
+            string configString;
 
             int32_t status = 0;
-            string method = "configuration@ResidentApp";
-            Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-            status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
+            status = getConfig(mCurrentService, "ResidentApp", configString);
 
             std::cout << "config resident app status: " << status << std::endl;
             std::string updatedUrl;
             if (status > 0)
             {
                 std::cout << "trying resident app config status one more time...\n";
-                status = thunderController->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), configString);
+                status = getConfig(mCurrentService, "ResidentApp", configString);
                 std::cout << "trying resident app config status: " << status << std::endl;
             }
             else
             {
                 JsonObject configSet;
-                configSet.FromString(configString.Value());
+                configSet.FromString(configString);
                 updatedUrl = configSet["url"].String();
                 if (updatedUrl.find("?") != string::npos)
                 {
@@ -5045,15 +5024,8 @@ namespace WPEFramework {
                 }
             }
 
-            JsonObject joFactoryModeParams;
-            JsonObject joFactoryModeResult;
-            joFactoryModeParams.Set("namespace","FactoryTest");
-            joFactoryModeParams.Set("key","FactoryMode");
-            joFactoryModeParams.Set("value","false");
-            std::string factoryModeSetInvoke = "org.rdk.PersistentStore.1.setValue";
-
             std::cout << "attempting to set factory mode flag \n";
-            uint32_t setStatus = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, factoryModeSetInvoke.c_str(), joFactoryModeParams, joFactoryModeResult);
+            uint32_t setStatus = setValue(mCurrentService, "FactoryTest", "FactoryMode", "false");
             std::cout << "set status: " << setStatus << std::endl;
             sForceResidentAppLaunch = false;
             returnResponse(ret);
@@ -5120,14 +5092,10 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool ret = true;
-            JsonObject joAgingParams;
-            JsonObject joAgingResult;
-            joAgingParams.Set("namespace","FactoryTest");
-            joAgingParams.Set("key","AgingState");
-            std::string agingGetInvoke = "org.rdk.PersistentStore.1.getValue";
+            std::string valueString;
 
             std::cout << "attempting to check aging state flag \n";
-            uint32_t status = getThunderControllerClient()->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, agingGetInvoke.c_str(), joAgingParams, joAgingResult);
+            uint32_t status = getValue(mCurrentService, "FactoryTest", "AgingState", valueString);
             std::cout << "get status: " << status << std::endl;
 
             if (status > 0)
@@ -5136,13 +5104,6 @@ namespace WPEFramework {
                 returnResponse(false);
             }
 
-            if (!joAgingResult.HasLabel("value"))
-            {
-                response["message"] = " aging value not found";
-                returnResponse(false);
-            }
-
-            const std::string valueString = joAgingResult["value"].String();
             if (valueString != "true")
             {
                 std::cout << "aging value is " << valueString << std::endl;
@@ -5150,11 +5111,8 @@ namespace WPEFramework {
                 returnResponse(false);
             }
 
-
-            joAgingParams.Set("value","false");
-            std::string agingSetInvoke = "org.rdk.PersistentStore.1.setValue";
             std::cout << "attempting to set check aging state flag to false\n";
-            status = getThunderControllerClient()->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, agingSetInvoke.c_str(), joAgingParams, joAgingResult);
+            status = setValue(mCurrentService, "FactoryTest", "AgingState", "false");
             std::cout << "set status: " << status << std::endl;
 
             JsonObject request, res;
@@ -5594,7 +5552,6 @@ namespace WPEFramework {
         uint32_t RDKShell::keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            bool result = true;
 
             if (parameters.HasLabel("input"))
             {
@@ -5793,18 +5750,14 @@ namespace WPEFramework {
 
             if (sPersistentStoreFirstActivated)
             {
-                JsonObject joAgingParams;
-                JsonObject joAgingResult;
-                joAgingParams.Set("namespace","FactoryTest");
-                joAgingParams.Set("key","AgingState");
+                std::string valueString;
 
                 std::cout << "attempting to check aging state \n";
-                uint32_t status = JSONRPCDirectLink(mCurrentService, PERSISTENT_STORE_CALLSIGN).Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "getValue", joAgingParams, joAgingResult);
+                uint32_t status = getValue(mCurrentService, "FactoryTest", "AgingState", valueString);
                 std::cout << "get status for aging state: " << status << std::endl;
 
-                if ((status == 0) && (joAgingResult.HasLabel("value")))
+                if ((status == 0))
                 {
-                  const std::string valueString = joAgingResult["value"].String();
                   std::cout << "aging result: " << valueString << std::endl;
                   if (valueString == "true")
                   {
@@ -5813,18 +5766,12 @@ namespace WPEFramework {
                   }
                 }
 
-                JsonObject joFactoryModeParams;
-                JsonObject joFactoryModeResult;
-                joFactoryModeParams.Set("namespace","FactoryTest");
-                joFactoryModeParams.Set("key","FactoryMode");
-
                 std::cout << "attempting to check factory mode \n";
-                status = JSONRPCDirectLink(mCurrentService, PERSISTENT_STORE_CALLSIGN).Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "getValue", joFactoryModeParams, joFactoryModeResult);
+                status = getValue(mCurrentService, "FactoryTest", "FactoryMode", valueString);
                 std::cout << "get status for factory mode: " << status << std::endl;
 
-                if ((status == 0) && (joFactoryModeResult.HasLabel("value")))
+                if ((status == 0))
                 {
-                  const std::string valueString = joFactoryModeResult["value"].String();
                   std::cout << "factory mode " << valueString << std::endl;
                   if (valueString == "true")
                   {
