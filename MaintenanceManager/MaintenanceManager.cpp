@@ -283,15 +283,18 @@ namespace WPEFramework {
                     SET_STATUS(g_task_status,DIFD_COMPLETE);
 
                     /* Add tasks */
+                    tasks.push_back("/lib/rdk/StartDCM_maintaince.sh");
                     tasks.push_back("/lib/rdk/RFCbase.sh");
                     tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
                 }else{
+                    tasks.push_back("/lib/rdk/StartDCM_maintaince.sh");
                     tasks.push_back("/lib/rdk/RFCbase.sh");
                     tasks.push_back("/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log");
                     tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
                 }
             }
 #else
+            tasks.push_back("/lib/rdk/StartDCM_maintaince.sh");
             tasks.push_back("/lib/rdk/RFCbase.sh");
             tasks.push_back("/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log");
             tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
