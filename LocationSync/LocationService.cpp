@@ -20,7 +20,6 @@
 #include "LocationService.h"
 
 namespace WPEFramework {
-
 namespace Plugin {
 
     struct IGeography {
@@ -30,8 +29,8 @@ namespace Plugin {
         virtual string City() const = 0;
         virtual string Region() const = 0;
         virtual string TimeZone() const = 0;
-        virtual string Latitude() const = 0;
-        virtual string Longitude() const = 0;
+        virtual int32_t Latitude() const = 0;
+        virtual int32_t Longitude() const = 0;
         virtual string IP() const = 0;
         virtual void FromString(const string&) = 0;
     };
@@ -44,9 +43,9 @@ namespace Plugin {
     //  "region":"GE",
     //  "regionName":"Gelderland",
     //  "city":"Wijchen",
-    //  "lat":"51.798",
-    //  "lon":"5.726",
     //  "zip":"6605",
+    //  "lat":51.798,
+    //  "lon":5.726,
     //  "timezone":"Europe/Amsterdam",
     //  "isp":"T-Mobile Thuis BV",
     //  "org":"T-Mobile Thuis BV",
@@ -66,17 +65,17 @@ namespace Plugin {
                 , City()
                 , Region()
                 , TimeZone()
-                , Latitude()
-                , Longitude()
                 , IP()
+                , Latitude(51.832547)
+                , Longitude(5.674899)
             {
                 Add(_T("country"), &Country);
                 Add(_T("city"), &City);
                 Add(_T("regionName"), &Region);
                 Add(_T("timezone"), &TimeZone);
-                Add(_T("latitude"), &Latitude);
-                Add(_T("longitude"), &Longitude);
                 Add(_T("query"), &IP);
+                Add(_T("lat"), &Latitude);
+                Add(_T("lon"), &Longitude);
             }
             ~Data() override = default;
 
@@ -85,9 +84,9 @@ namespace Plugin {
             Core::JSON::String City;
             Core::JSON::String Region;
             Core::JSON::String TimeZone;
-            Core::JSON::String Latitude;
-            Core::JSON::String Longitude;
             Core::JSON::String IP;
+            Core::JSON::Double Latitude;
+            Core::JSON::Double Longitude;
         };
 
     public:
@@ -114,13 +113,13 @@ namespace Plugin {
         {
             return (_data.TimeZone.Value());
         }
-        string Latitude() const override
+        int32_t Latitude() const override
         {
-            return (_data.Latitude.Value());
+            return (static_cast<int32_t>(_data.Latitude.Value() * 1000000));
         }
-        string Longitude() const override
+        int32_t Longitude() const override
         {
-            return (_data.Longitude.Value());
+            return (static_cast<int32_t>(_data.Longitude.Value() * 1000000));
         }
         string IP() const override
         {
@@ -167,27 +166,41 @@ namespace Plugin {
                     , City()
                     , Region()
                     , TimeZone()
-                    , Latitude()
-                    , Longitude()
                     , _LL()
                 {
                     Add(_T("country"), &Country);
                     Add(_T("city"), &City);
                     Add(_T("region"), &Region);
                     Add(_T("tz"), &TimeZone);
-                    Add(_T("lat"), &Latitude);
-                    Add(_T("lon"), &Longitude);
                     Add(_T("ll"), &_LL);
                 }
                 ~Geography() override = default;
 
           public:
+                int32_t Latitude() const {
+                    int32_t result = 51832547;
+                    Core::JSON::ArrayType<Core::JSON::Double>::ConstIterator index = _LL.Elements();
+
+                    if (index.Next() == true) {
+                        result = static_cast<int32_t>(index.Current() * 1000000);
+                    }
+
+                    return (result);
+                }
+                int32_t Longitude() const {
+                    int32_t result = 5674899;
+                    Core::JSON::ArrayType<Core::JSON::Double>::ConstIterator index = _LL.Elements();
+
+                    if ( (index.Next() == true) && (index.Next() == true) ) {
+                        result = static_cast<int32_t>(index.Current() * 1000000);
+                    }
+
+                    return (result);
+                }
                 Core::JSON::String Country;
                 Core::JSON::String City;
                 Core::JSON::String Region;
                 Core::JSON::String TimeZone;
-                Core::JSON::String Latitude;
-                Core::JSON::String Longitude;
 
             private:
                 Core::JSON::ArrayType<Core::JSON::Double> _LL;
@@ -239,13 +252,13 @@ namespace Plugin {
         {
             return (_data.Geo.TimeZone.Value());
         }
-        string Latitude() const override
+        int32_t Latitude() const override
         {
-            return (_data.Geo.Latitude.Value());
+            return (_data.Geo.Latitude());
         }
-        string Longitude() const
+        int32_t Longitude() const override
         {
-            return (_data.Geo.Longitude.Value());
+            return (_data.Geo.Longitude());
         }
         string IP() const override
         {
@@ -254,10 +267,10 @@ namespace Plugin {
         void FromString(const string& data) override {
             TRACE(Trace::Information, (_T("Metrological: Received a response: [%s]!"), data.c_str()));
 
-            _data.IElement::FromString(data);
+                _data.IElement::FromString(data);
 
-            string parsed;
-            _data.IElement::ToString(parsed);
+ string parsed;
+		_data.IElement::ToString(parsed);
             TRACE(Trace::Information, (_T("Metrological: reverted response: [%s]!"), parsed.c_str()));
         }
 
@@ -311,11 +324,9 @@ namespace Plugin {
         return (index < (sizeof(g_domainFactory) / sizeof(DomainConstructor)) ? &(g_domainFactory[index]) : nullptr);
     }
 
-#ifdef __WINDOWS__
-#pragma warning(disable : 4355)
-#endif
+PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
     LocationService::LocationService(Core::IDispatch* callback)
-        : BaseClass(1, g_Factory, false, Core::NodeId(), Core::NodeId(), 256, 1024)
+        : BaseClass(1, g_Factory, false, Core::NodeId(), Core::NodeId(), 256, (1024 * 2))
         , _adminLock()
         , _state(IDLE)
         , _remoteId()
@@ -327,14 +338,14 @@ namespace Plugin {
         , _country()
         , _region()
         , _city()
+        , _latitude()
+        , _longitude()
         , _activity(*this)
         , _infoCarrier()
         , _request(Core::ProxyType<Web::Request>::Create())
     {
     }
-#ifdef __WINDOWS__
-#pragma warning(default : 4355)
-#endif
+POP_WARNING()
 
     LocationService::~LocationService() /* override */
     {
@@ -457,6 +468,8 @@ namespace Plugin {
             _country = _infoCarrier->Country();
             _region = _infoCarrier->Region();
             _city = _infoCarrier->City();
+            _latitude = _infoCarrier->Latitude();
+            _longitude = _infoCarrier->Longitude();
 
             if (_state == IPV6_INPROGRESS) {
 
