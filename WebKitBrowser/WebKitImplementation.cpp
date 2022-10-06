@@ -537,6 +537,7 @@ static GSourceFuncs _handlerIntervention =
                 , SpatialNavigation()
                 , CookieAcceptPolicy()
                 , EnvironmentVariables()
+                , ContentFilter()
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -600,6 +601,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("spatialnavigation"), &SpatialNavigation);
                 Add(_T("cookieacceptpolicy"), &CookieAcceptPolicy);
                 Add(_T("environmentvariables"), &EnvironmentVariables);
+                Add(_T("contentfilter"), &ContentFilter);
             }
             ~Config()
             {
@@ -668,6 +670,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::Boolean SpatialNavigation;
             Core::JSON::EnumType<HTTPCookieAcceptPolicyType> CookieAcceptPolicy;
             Core::JSON::ArrayType<EnvironmentVariable> EnvironmentVariables;
+            Core::JSON::String ContentFilter;
         };
 
         class HangDetector
@@ -2782,6 +2785,7 @@ static GSourceFuncs _handlerIntervention =
                 reinterpret_cast<GCallback>(wpeNotifyWPEFrameworkMessageReceivedCallback), this);
             webkit_user_content_manager_register_script_message_handler(userContentManager, "wpeNotifyWPEFramework");
 
+            SetupUserContentFilter();
             TryLoadingUserScripts();
 
             if (_config.Transparent.Value() == true) {
@@ -2959,6 +2963,7 @@ static GSourceFuncs _handlerIntervention =
             WKPageConfigurationSetPageGroup(pageConfiguration, pageGroup);
             WKPageConfigurationSetUserContentController(pageConfiguration, _userContentController);
 
+            SetupUserContentFilter();
             TryLoadingUserScripts();
 
             _cookieManager = WKContextGetCookieManager(wkContext);
@@ -3128,6 +3133,37 @@ static GSourceFuncs _handlerIntervention =
                     loadScript(fullScriptPath);
                 }
             }
+        }
+
+        void SetupUserContentFilter()
+        {
+#ifdef WEBKIT_GLIB_API
+            if (!_config.ContentFilter.Value().empty()) {
+                // User content filter is compiled into binary-like file and put inside filter storage path.
+                // The file is used to share the data between WebKit processes.
+                // Filter storage path is the same for all browser instances: <cache_dir>/content_filters
+                // Individual filter is put inside storage path as a file named ContentFilterList-<identifier>
+                // where <identifier> is taken from webkit_user_content_filter_store_save() param
+                // (_service->Callsign().c_str() in this case).
+                // Each browser instance will have its own, single filter file, e.g.:
+                //   <cache_dir>/content_filters/ContentFilterList-HtmlApp-0
+                gchar* filtersPath = g_build_filename(g_get_user_cache_dir(), "content_filters", nullptr);
+                WebKitUserContentFilterStore* store = webkit_user_content_filter_store_new(filtersPath);
+                g_free(filtersPath);
+                GBytes* data = g_bytes_new(_config.ContentFilter.Value().c_str(), _config.ContentFilter.Value().size());
+
+                webkit_user_content_filter_store_save(store, _service->Callsign().c_str(), data, nullptr, [](GObject* obj, GAsyncResult* result, gpointer data) {
+                    WebKitImplementation* webkit_impl = static_cast<WebKitImplementation*>(data);
+                    WebKitUserContentFilter* filter = webkit_user_content_filter_store_save_finish(WEBKIT_USER_CONTENT_FILTER_STORE(obj), result, nullptr);
+                    auto* userContentManager = webkit_web_view_get_user_content_manager(webkit_impl->_view);
+                    webkit_user_content_manager_add_filter(userContentManager, filter);
+                }, this);
+
+                g_bytes_unref(data);
+            }
+#else
+        // GLIB only supported
+#endif
         }
 
         void CheckWebProcess()
