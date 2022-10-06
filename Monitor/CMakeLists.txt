@@ -21,8 +21,11 @@ cmake_minimum_required(VERSION 3.3)
 
 find_package(WPEFramework)
 
-set(PLUGIN_NAME Monitor)
+project_version(1.0.0)
+
 set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
+
+message("Setup ${MODULE_NAME} v${PROJECT_VERSION}")
 
 set(PLUGIN_MONITOR_AUTOSTART "true" CACHE STRING "Automatically start Monitor plugin")
 # Plugins built from this repository that can be autmatically enabled or enabled manually when built externally
@@ -32,7 +35,6 @@ set(PLUGIN_MONITOR_WEBKITBROWSER_APPS "${PLUGIN_WEBKITBROWSER_APPS}" CACHE BOOL 
 set(PLUGIN_MONITOR_WEBKITBROWSER_RESIDENT_APP "${PLUGIN_WEBKITBROWSER_RESIDENT_APP}" CACHE BOOL "Enable monitor for the WebKitBrowser Resident App plugin")
 set(PLUGIN_MONITOR_WEBKITBROWSER_UX "${PLUGIN_WEBKITBROWSER_UX}" CACHE BOOL "Enable monitor for the WebKitBrowser UX plugin")
 set(PLUGIN_MONITOR_WEBKITBROWSER_YOUTUBE "${PLUGIN_WEBKITBROWSER_YOUTUBE}" CACHE BOOL "Enable monitor for the WebKitBrowser Youtube plugin")
-set(PLUGIN_MONITOR_SYSTEMAUDIOPLAYER "${PLUGIN_SYSTEMAUDIOPLAYER}" CACHE BOOL "Enable monitor for the SystemAudioPlayer plugin")
 
 # Plugins built from outside of this repository have to be enabled manually
 set(PLUGIN_MONITOR_AMAZON OFF CACHE BOOL "Enable monitor for the Amazon plugin")
@@ -89,4 +91,4 @@ target_link_libraries(${MODULE_NAME}
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
-write_config(${PROJECT_NAME})
+write_config()
