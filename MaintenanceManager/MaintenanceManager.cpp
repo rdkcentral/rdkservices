@@ -238,7 +238,6 @@ namespace WPEFramework {
 
         void MaintenanceManager::task_execution_thread(){
             uint8_t i=0;
-            uint8_t start_task;
             string cmd="";
             bool internetConnectStatus=false;
 
@@ -269,11 +268,22 @@ namespace WPEFramework {
             if ( false == internetConnectStatus ) {
                     MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                     LOGINFO("Maintenance completed as it is offline mode");
+                    m_abort_flag=false;
+                    LOGINFO("Worker Thread Completed");
 	    }
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
+		
+            if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
+                LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
+                tasks.push_back("/lib/rdk/StartDCM_maintaince.sh");
+            }
+            else if( SOLICITED_MAINTENANCE == g_maintenance_type){
+                LOGINFO("=============SOLICITED_MAINTENANCE===============");
+            }
+		
 #if defined(SUPPRESS_MAINTENANCE)
             /* decide which all tasks are needed based on the activation status */
             if (activationStatus){
@@ -283,34 +293,22 @@ namespace WPEFramework {
                     SET_STATUS(g_task_status,DIFD_COMPLETE);
 
                     /* Add tasks */
-                    tasks.push_back("/lib/rdk/StartDCM_maintaince.sh");
                     tasks.push_back("/lib/rdk/RFCbase.sh");
                     tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
                 }else{
-                    tasks.push_back("/lib/rdk/StartDCM_maintaince.sh");
                     tasks.push_back("/lib/rdk/RFCbase.sh");
                     tasks.push_back("/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log");
                     tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
                 }
             }
 #else
-            tasks.push_back("/lib/rdk/StartDCM_maintaince.sh");
             tasks.push_back("/lib/rdk/RFCbase.sh");
             tasks.push_back("/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log");
             tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
 
-	    if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
-		    LOGINFO("===================UNSOLICITED_MAINTENANCE==================");
-		    start_task=0;
-	    }
-	    else if( SOLICITED_MAINTENANCE == g_maintenance_type){
-		    LOGINFO("=============SOLICITED_MAINTENANCE===============");
-		    start_task=1;
-	    }
-
-	    for( i = start_task; i < tasks.size() && !m_abort_flag; i++) {
+	    for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
 		    cmd = tasks[i];
 		    cmd += " &";
 		    cmd += "\0";
@@ -322,7 +320,9 @@ namespace WPEFramework {
 
 			    LOGINFO("Waiting to unlock.. [%d/%d]",i,tasks.size());
 			    task_thread.wait(lck);
+			    LOGINFO("Unlocked task [%d/%d]",i,tasks.size());
 		    }
+                    LOGINFO("for loop");
 	    }
 
             m_abort_flag=false;
