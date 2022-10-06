@@ -282,6 +282,7 @@ public:
                 case IConnectionProperties::HDCPProtectionType::HDCP_1X : hdcpversion = dsHDCP_VERSION_1X; break;
                 case IConnectionProperties::HDCPProtectionType::HDCP_2X: hdcpversion = dsHDCP_VERSION_2X; break;
                 case IConnectionProperties::HDCPProtectionType::HDCP_AUTO: hdcpversion = dsHDCP_VERSION_MAX; break;
+                default:    break;
             }
             try
             {
@@ -385,7 +386,7 @@ public:
         if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
             LOGERR("Size too large to use ToString base64 wpe api");
         int i = 0;
-        for (i; i < length && i < size; i++)
+        for (; i < length && i < size; i++)
         {
             data[i] = edidVec[i];
         }

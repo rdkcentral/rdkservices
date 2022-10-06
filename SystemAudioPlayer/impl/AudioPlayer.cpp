@@ -450,7 +450,7 @@ gboolean AudioPlayer::PushDataAppSrc()
 
         while(length != 0)
         {               
-            int lenToSend = length;
+            unsigned int lenToSend = length;
         
             if(lenToSend > maxBytes)
             {

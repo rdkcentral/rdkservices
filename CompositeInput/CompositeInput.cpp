@@ -29,7 +29,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 #define COMPOSITE_HOT_PLUG_EVENT_CONNECTED 1
 #define COMPOSITE_HOT_PLUG_EVENT_DISCONNECTED 0
@@ -263,7 +263,7 @@ namespace WPEFramework
                     }
                 }
             }
-            catch (const std::exception e)  {
+            catch (const std::exception& e)  {
                 LOGWARN("CompositeInputService::getCompositeInputDevices Failed");
             }
 

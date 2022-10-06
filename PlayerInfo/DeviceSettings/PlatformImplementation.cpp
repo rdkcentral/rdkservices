@@ -100,7 +100,7 @@ private:
         static inline FeatureList GstRegistryGetElementForMediaType(GList* elementsFactories, MediaTypes&& mediaTypes) {
             FeatureList candidates{gst_element_factory_list_filter(elementsFactories, mediaTypes.get(), GST_PAD_SINK, false)};
 
-            return std::move(candidates);
+            return (candidates);
         }
 
     };
