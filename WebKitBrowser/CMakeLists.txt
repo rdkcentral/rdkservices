@@ -20,16 +20,13 @@ project(WebKitBrowser)
 cmake_minimum_required(VERSION 3.3)
 
 find_package(WPEFramework)
+project_version(1.0.0)
 
-set(PLUGIN_NAME WebKitBrowser)
 set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
 
 message("Setup ${MODULE_NAME} v${PROJECT_VERSION}")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-
-# Library installation section
-string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
 
 if(BUILD_REFERENCE)
     add_definitions(-DBUILD_REFERENCE=${BUILD_REFERENCE})
@@ -64,8 +61,8 @@ set(PLUGIN_WEBKITBROWSER_MSEBUFFERS "audio:2m,video:15m,text:1m" CACHE STRING "M
 set(PLUGIN_WEBKITBROWSER_DISKCACHE "0" CACHE STRING "Disk Cache")
 set(PLUGIN_WEBKITBROWSER_XHRCACHE "true" CACHE STRING "XHR Cache")
 set(PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY "Extension" CACHE STRING "Directory to store extension libraries")
-set(PLUGIN_WEBKITBROWSER_LOCALSTORAGE "" CACHE STRING "HTML5 local storage path")
-set(PLUGIN_WEBKITBROWSER_COOKIESTORAGE "" CACHE STRING "Browser cookie storage path")
+set(PLUGIN_WEBKITBROWSER_LOCALSTORAGE "%persistentpath%" CACHE STRING "HTML5 local storage path")
+set(PLUGIN_WEBKITBROWSER_COOKIESTORAGE "%persistentpath%" CACHE STRING "Browser cookie storage path")
 set(PLUGIN_WEBKITBROWSER_WINDOWCLOSE "false" CACHE STRING "Allow window close")
 set(PLUGIN_WEBKITBROWSER_WEBGL "true" CACHE STRING "Enable WebGL")
 set(PLUGIN_WEBKITBROWSER_RESOLUTION "720p" CACHE STRING "Browser resolution")
@@ -78,13 +75,10 @@ set(PLUGIN_WEBKITBROWSER_PTSOFFSET "0" CACHE STRING "Set ptsoffset for webkit")
 
 set(PLUGIN_YOUTUBE_AUTOSTART "false" CACHE STRING "Automatically start Youtube plugin")
 set(PLUGIN_YOUTUBE_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
-set(PLUGIN_YOUTUBE_STARTURL "https://www.youtube.com/tv" CACHE STRING "Initial URL for YouTube plugin")
-set(PLUGIN_YOUTUBE_STARTURL_QUERYSTRING "" CACHE STRING "Initial URL Query String for YouTube plugin")
 set(PLUGIN_YOUTUBE_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string YouTube")
 set(PLUGIN_YOUTUBE_WEBINSPECTOR_ADDRESS "0.0.0.0:9999" CACHE STRING "IP:Port for WebInspector of YouTube")
 set(PLUGIN_YOUTUBE_LOCALSTORAGE_ENABLE "true" CACHE STRING "Enable LocalStorage of YouTube App")
 set(PLUGIN_YOUTUBE_MSEBUFFERS "${PLUGIN_WEBKITBROWSER_MSEBUFFERS}" CACHE STRING "MSE Buffers for WebKit")
-set(PLUGIN_YOUTUBE_WEBGL "false" CACHE STRING "Enable WebGL")
 set(PLUGIN_YOUTUBE_RESOLUTION "720p" CACHE STRING "YouTube resolution")
 
 set(PLUGIN_UX_AUTOSTART "false" CACHE STRING "Automatically start UX plugin")
@@ -140,6 +134,7 @@ set(PLUGIN_AMAZON_MODE "Local" CACHE STRING "Controls if the plugin should run i
 set(PLUGIN_AMAZON_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string for Amazon App")
 set(PLUGIN_AMAZON_WEBINSPECTOR_ADDRESS "0.0.0.0:9999" CACHE STRING "IP:Port for WebInspector of Amazon")
 set(PLUGIN_AMAZON_LOCALSTORAGE_ENABLE "true" CACHE STRING "Enable LocalStorage of Amazon")
+set(PLUGIN_WEBKITBROWSER_DISKCACHEDIR "%persistentpath%DiskCache" CACHE STRING "Disk Cache directory in persistent path")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
@@ -243,46 +238,46 @@ else()
     set(PLUGIN_YOUTUBE_WIDTH ${PLUGIN_WEBKITBROWSER_WIDTH})
 endif()
 
-write_config( ${PLUGIN_NAME} )
+write_config()
 
 # youtube configuration
 if(PLUGIN_WEBKITBROWSER_YOUTUBE)
-    write_config( YouTube )
+    write_config( PLUGINS YouTube )
 endif()
 
 # amazon configuration
 if(PLUGIN_AMAZON_HYBRID)
-    write_config( Amazon )
+    write_config( PLUGINS Amazon )
 endif()
 
 # Applications instance configuration
 if(PLUGIN_WEBKITBROWSER_APPS)
-    write_config( Apps )
+    write_config( PLUGINS Apps )
 endif()
 
 # UX configuration
 if(PLUGIN_WEBKITBROWSER_UX)
-    write_config( UX )
-endif()
-
-# Search&Discovery configuration
-if(PLUGIN_WEBKITBROWSER_SEARCH_AND_DISCOVERY_APP)
-    write_config( SearchAndDiscoveryApp )
-endif()
-
-# Html App configuration
-if(PLUGIN_WEBKITBROWSER_HTML_APP)
-    write_config( HtmlApp )
-endif()
-
-# Lightning App configuration
-if(PLUGIN_WEBKITBROWSER_LIGHTNING_APP)
-    write_config( LightningApp )
+    write_config( PLUGINS UX )
 endif()
 
 # Resident App configuration
 if(PLUGIN_WEBKITBROWSER_RESIDENT_APP)
-    write_config( ResidentApp )
+    write_config( PLUGINS ResidentApp )
+endif()
+
+# Search&Discovery configuration
+if(PLUGIN_WEBKITBROWSER_SEARCH_AND_DISCOVERY_APP)
+    write_config( PLUGINS SearchAndDiscoveryApp )
+endif()
+
+# Html App configuration
+if(PLUGIN_WEBKITBROWSER_HTML_APP)
+    write_config( PLUGINS HtmlApp )
+endif()
+
+# Lightning App configuration
+if(PLUGIN_WEBKITBROWSER_LIGHTNING_APP)
+    write_config( PLUGINS LightningApp )
 endif()
 
 if(PLUGINS_CREATE_IPKG_TARGETS)

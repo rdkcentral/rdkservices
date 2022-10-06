@@ -16,15 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #pragma once
 
-#ifndef MODULE_NAME
-#define MODULE_NAME Plugin_WebKitBrowserInjectedBundle
-#endif
+#include <wpe/webkit-web-extension.h>
 
-#include <com/com.h>
-#include <core/core.h>
-#include <tracing/tracing.h>
+namespace WPEFramework {
+namespace JavaScript {
+namespace FireboltOSEndpoint {
 
-#undef EXTERNAL
-#define EXTERNAL EXTERNAL_EXPORT
+void InjectJS(WebKitScriptWorld*, WebKitFrame*);
+
+}  // FireboltOSEndpoint
+}  // JavaScript
+}  // WPEFramework

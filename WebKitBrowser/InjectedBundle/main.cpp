@@ -96,15 +96,19 @@ public:
     }
 
 public:
-    void Initialize(WKBundleRef bundle, const void* userData = nullptr)
+    void Initialize(WKBundleRef)
     {
         // We have something to report back, do so...
         uint32_t result = _comClient->Open(RPC::CommunicationTimeOut);
         if (result != Core::ERROR_NONE) {
             TRACE(Trace::Error, (_T("Could not open connection to node %s. Error: %s"), _comClient->Source().RemoteId().c_str(), Core::NumberType<uint32_t>(result).Text().c_str()));
         } else {
-            // Due to the LXC container support all ID's get mapped. For the TraceBuffer, use the host given ID.
+// Due to the LXC container support all ID's get mapped. For the TraceBuffer, use the host given ID.
+#ifdef __CORE_MESSAGING__
+            Core::Messaging::MessageUnit::Instance().Open(_comClient->ConnectionId());
+#else
             Trace::TraceUnit::Instance().Open(_comClient->ConnectionId());
+#endif
         }
         _whiteListedOriginDomainPairs = WhiteListedOriginDomainsList::RequestFromWPEFramework();
     }
@@ -322,7 +326,7 @@ static WKBundlePageUIClientV4 s_pageUIClient = {
         uint32_t columnNumber, WKStringRef url, const void* clientInfo) {
         auto prepareMessage = [&]() {
             string messageString = WebKit::Utils::WKStringToString(message);
-            const uint16_t maxStringLength = Trace::TRACINGBUFFERSIZE - 1;
+            const uint16_t maxStringLength = Core::Messaging::MessageUnit::DataSize - 1;
             if (messageString.length() > maxStringLength) {
                 messageString = messageString.substr(0, maxStringLength);
             }

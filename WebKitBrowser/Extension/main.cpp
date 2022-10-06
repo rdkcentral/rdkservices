@@ -37,12 +37,20 @@
 #include "SecurityAgent.h"
 #endif
 
+#if defined(ENABLE_IIDENTIFIER)
+#include "IIdentifier.h"
+#endif
+
 #if defined(ENABLE_BADGER_BRIDGE)
 #include "BridgeObject.h"
 #endif
 
 #if defined(ENABLE_AAMP_JSBINDINGS)
 #include "AAMPJSBindings.h"
+#endif
+
+#if defined(ENABLE_FIREBOLTOS_ENDPOINT)
+#include "FireboltOSEndpoint.h"
 #endif
 
 using namespace WPEFramework;
@@ -82,8 +90,12 @@ public:
         if (result != Core::ERROR_NONE) {
             TRACE(Trace::Error, (_T("Could not open connection to node %s. Error: %s"), _comClient->Source().RemoteId(), Core::NumberType<uint32_t>(result).Text()));
         } else {
-            // Due to the LXC container support all ID's get mapped. For the TraceBuffer, use the host given ID.
+// Due to the LXC container support all ID's get mapped. For the TraceBuffer, use the host given ID.
+#ifdef __CORE_MESSAGING__
+            Core::Messaging::MessageUnit::Instance().Open(_comClient->ConnectionId());
+#else
             Trace::TraceUnit::Instance().Open(_comClient->ConnectionId());
+#endif
         }
 
         _extension = WEBKIT_WEB_EXTENSION(g_object_ref(extension));
@@ -94,14 +106,11 @@ public:
 
         g_variant_get((GVariant*) userData, "(&sm&sb)", &uid, &whitelist, &_logToSystemConsoleEnabled);
 
-        if (_logToSystemConsoleEnabled && Core::SystemInfo::GetEnvironment(string(_T("CLIENT_IDENTIFIER")), _consoleLogPrefix))
-          _consoleLogPrefix = _consoleLogPrefix.substr(0, _consoleLogPrefix.find(','));
-
         g_signal_connect(
           webkit_script_world_get_default(),
           "window-object-cleared",
           G_CALLBACK(windowObjectClearedCallback),
-          nullptr);
+          this);
 
         g_signal_connect(
           extension,
@@ -131,13 +140,17 @@ public:
     }
 
 private:
-    static void windowObjectClearedCallback(WebKitScriptWorld* world, WebKitWebPage* page, WebKitFrame* frame)
+    static void windowObjectClearedCallback(WebKitScriptWorld* world, WebKitWebPage* page VARIABLE_IS_NOT_USED, WebKitFrame* frame, VARIABLE_IS_NOT_USED PluginHost* host)
     {
         JavaScript::Milestone::InjectJS(world, frame);
         JavaScript::NotifyWPEFramework::InjectJS(world, frame);
 
 #ifdef  ENABLE_SECURITY_AGENT
         JavaScript::SecurityAgent::InjectJS(world, frame);
+#endif
+
+#ifdef  ENABLE_IIDENTIFIER
+        JavaScript::IIdentifier::InjectJS(world, frame, host->_comClient);
 #endif
 
 #ifdef  ENABLE_BADGER_BRIDGE
@@ -148,14 +161,17 @@ private:
         JavaScript::AAMP::LoadJSBindings(world, frame);
 #endif
 
+#ifdef  ENABLE_FIREBOLTOS_ENDPOINT
+        JavaScript::FireboltOSEndpoint::InjectJS(world, frame);
+#endif
     }
     static void pageCreatedCallback(VARIABLE_IS_NOT_USED WebKitWebExtension* webExtension,
                                     WebKitWebPage* page,
-                                    PluginHost* host)
+                                    VARIABLE_IS_NOT_USED PluginHost* host)
     {
         if (host->_logToSystemConsoleEnabled) {
             g_signal_connect(page, "console-message-sent",
-                G_CALLBACK(consoleMessageSentCallback), host);
+                G_CALLBACK(consoleMessageSentCallback), nullptr);
         }
         g_signal_connect(page, "user-message-received",
                 G_CALLBACK(userMessageReceivedCallback), nullptr);
@@ -167,12 +183,12 @@ private:
                 G_CALLBACK(didStartProvisionalLoadForFrame), nullptr);
 #endif
     }
-    static void consoleMessageSentCallback(VARIABLE_IS_NOT_USED WebKitWebPage* page, WebKitConsoleMessage* message, PluginHost* host)
+    static void consoleMessageSentCallback(VARIABLE_IS_NOT_USED WebKitWebPage* page, WebKitConsoleMessage* message)
     {
         string messageString = Core::ToString(webkit_console_message_get_text(message));
         uint64_t line = static_cast<uint64_t>(webkit_console_message_get_line(message));
 
-        TRACE_GLOBAL(BrowserConsoleLog, (host->_consoleLogPrefix, messageString, line, 0));
+        TRACE_GLOBAL(BrowserConsoleLog, (messageString, line, 0));
     }
     static gboolean userMessageReceivedCallback(WebKitWebPage* page, WebKitUserMessage* message)
     {
@@ -182,7 +198,7 @@ private:
         }
 #if defined(ENABLE_BADGER_BRIDGE)
         else if ((g_strcmp0(name, Tags::BridgeObjectReply) == 0)
-              || (g_strcmp0(name, Tags::BridgeObjectEvent) == 0)) {
+                || (g_strcmp0(name, Tags::BridgeObjectEvent) == 0)) {
             JavaScript::BridgeObject::HandleMessageToPage(page, name, message);
         }
 #endif
@@ -207,7 +223,6 @@ private:
     Core::ProxyType<RPC::InvokeServerType<2, 0, 4> > _engine;
     Core::ProxyType<RPC::CommunicatorClient> _comClient;
 
-    string _consoleLogPrefix;
     gboolean _logToSystemConsoleEnabled;
     WebKitWebExtension* _extension;
 } _wpeFrameworkClient;

@@ -21,72 +21,97 @@
 #include "Messenger.h"
 #include "cryptalgo/Hash.h"
 
-#define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
-
 namespace WPEFramework {
-
-namespace {
-
-    static Plugin::Metadata<Plugin::Messenger> metadata(
-        // Version (Major, Minor, Patch)
-        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
-        // Preconditions
-        {},
-        // Terminations
-        {},
-        // Controls
-        {}
-    );
-}
 
 namespace Plugin {
 
-    SERVICE_REGISTRATION(Messenger, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
+    namespace {
+
+        static Metadata<Messenger> metadata(
+            // Version
+            1, 0, 0,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
 
     // IPlugin methods
 
     /* virtual */ const string Messenger::Initialize(PluginHost::IShell* service)
     {
+        string message;
+
         ASSERT(service != nullptr);
         ASSERT(_service == nullptr);
         ASSERT(_roomAdmin == nullptr);
         ASSERT(_roomIds.empty() == true);
         ASSERT(_rooms.empty() == true);
         ASSERT(_roomACL.empty() == true);
+        ASSERT(_connectionId == 0);
 
         _service = service;
         _service->AddRef();
+        _service->Register(&_notification);
 
         _roomAdmin = service->Root<Exchange::IRoomAdministrator>(_connectionId, 2000, _T("RoomMaintainer"));
-        ASSERT(_roomAdmin != nullptr);
+        if(_roomAdmin == nullptr) {
+            message = _T("RoomMaintainer couldnt be instantiated");
+        }
+        else {
+            RegisterAll();
+            _roomAdmin->Register(this);
+        }
 
-        _roomAdmin->Register(this);
-
-        return { };
+        if(message.length() != 0) {
+            Deinitialize(service);
+        }
+        return message;
     }
 
     /* virtual */ void Messenger::Deinitialize(PluginHost::IShell* service)
     {
         ASSERT(service == _service);
 
-        // Exit all the rooms (if any) that were joined by this client
-        for (auto& room : _roomIds) {
-            room.second->Release();
+        _service->Unregister(&_notification);
+
+        if(_roomAdmin != nullptr) {
+            // Exit all the rooms (if any) that were joined by this client
+            for (auto& room : _roomIds) {
+                room.second->Release();
+            }
+
+            _roomIds.clear();
+            _roomAdmin->Unregister(this);
+            _rooms.clear();
+            UnregisterAll();
+
+            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+            VARIABLE_IS_NOT_USED uint32_t result = _roomAdmin->Release();
+            _roomAdmin = nullptr;
+            // It should have been the last reference we are releasing,
+            // so it should end up in a DESCRUCTION_SUCCEEDED, if not we
+            // are leaking...
+            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
+
+            // If this was running in a (container) proccess...
+            if (connection != nullptr) {
+
+                // Lets trigger the cleanup sequence for
+                // out-of-process code. Which will guard
+                // that unwilling processes, get shot if
+                // not stopped friendly :~)
+                connection->Terminate();
+                connection->Release();
+            }
+
         }
-
-        _roomIds.clear();
-
-        _roomAdmin->Unregister(this);
-        _rooms.clear();
-
-        _roomAdmin->Release();
-        _roomAdmin = nullptr;
-
         _service->Release();
         _service = nullptr;
-
+        _connectionId = 0;
         _roomACL.clear();
     }
 
@@ -205,6 +230,17 @@ namespace Plugin {
         return roomId;
     }
 
+    void Messenger::Deactivated(RPC::IRemoteConnection* connection)
+    {
+        if (connection->Id() == _connectionId) {
+
+            ASSERT(_service != nullptr);
+
+            Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service,
+                PluginHost::IShell::DEACTIVATED,
+                PluginHost::IShell::FAILURE));
+        }
+    }
 } // namespace Plugin
 
 } // WPEFramework

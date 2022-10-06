@@ -19,29 +19,22 @@
  
 #include "Monitor.h"
 
-#define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
-
 namespace WPEFramework {
-
-namespace {
-
-    static Plugin::Metadata<Plugin::Monitor> metadata(
-        // Version (Major, Minor, Patch)
-        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
-        // Preconditions
-        {},
-        // Terminations
-        {},
-        // Controls
-        {}
-    );
-}
-
 namespace Plugin {
 
-    SERVICE_REGISTRATION(Monitor, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
+    namespace {
+
+        static Metadata<Monitor> metadata(
+            // Version
+            1, 0, 0,
+            // Preconditions
+            { subsystem::TIME },
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
 
     static Core::ProxyPoolType<Web::JSONBodyType<Core::JSON::ArrayType<Monitor::Data>>> jsonBodyDataFactory(2);
     static Core::ProxyPoolType<Web::JSONBodyType<Monitor::Data>> jsonBodyParamFactory(2);
