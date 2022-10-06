@@ -20,7 +20,7 @@
 #include "../Module.h"
 #include <interfaces/IDisplayInfo.h>
 
-#include "bcm_host.h"
+#include <bcm_host.h>
 #include <fstream>
 
 namespace WPEFramework {
