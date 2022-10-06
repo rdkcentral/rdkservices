@@ -158,23 +158,6 @@ namespace WPEFramework {
 
     namespace Plugin {
 
-        namespace {
-            uint32_t activate(PluginHost::IShell* shell, const string& callsign)
-            {
-                uint32_t result;
-                auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
-                if (interface == nullptr) {
-                    result = Core::ERROR_UNAVAILABLE;
-                    std::cout << "no IShell for " << callsign << std::endl;
-                } else {
-                    result = interface->Activate(PluginHost::IShell::reason::REQUESTED);
-                    std::cout << "IShell activate status " << result << " for " << callsign << std::endl;
-                    interface->Release();
-                }
-                return result;
-            }
-        }
-
         SERVICE_REGISTRATION(DisplaySettings, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         DisplaySettings* DisplaySettings::_instance = nullptr;
@@ -4909,7 +4892,19 @@ namespace WPEFramework {
                 /*HDMICECSINK_CALLSIGN plugin activation moved to onTimer.
                  *To decouple from displyasettings init. Since its time taking*/
 
-                activate(m_service, HDMICECSINK_CALLSIGN);
+                auto controller = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>("Controller");
+                if (controller != nullptr) {
+                    auto message = (Core::ProxyType<Core::JSONRPC::Message>(PluginHost::IFactories::Instance().JSONRPC()));
+                    message->JSONRPC = Core::JSONRPC::Message::DefaultVersion;
+                    message->Id = 0;
+                    message->Designator = "Controller.1.activate";
+                    message->Parameters = "{\"callsign\":\"org.rdk.HdmiCecSink\"}";
+                    auto resp = controller->Invoke("", ~0, *message);
+                    if (resp->Error.IsSet()) {
+                        std::cout << "Call failed: " << message->Designator.Value() << " error: " << resp->Error.Text.Value() << "\n";
+                    }
+                    controller->Release();
+                }
 
                 LOGWARN ("DisplaySettings::onTimer after activatePlugin HDMICECSINK_CALLSIGN line:%d", __LINE__);
                 sleep(HDMICECSINK_PLUGIN_ACTIVATION_TIME);
