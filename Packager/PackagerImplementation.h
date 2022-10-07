@@ -96,6 +96,24 @@ namespace Plugin {
 
         ~PackagerImplementation() override;
 
+        class PluginConfig : public Core::JSON::Container {
+        public:
+            PluginConfig(const PluginConfig&) = delete;
+            PluginConfig& operator=(const PluginConfig&) = delete;
+
+            PluginConfig()
+                : SystemRootPath()
+            {
+                Add(_T("systemrootpath"), &SystemRootPath);
+            }
+
+            Core::JSON::String SystemRootPath;
+
+            ~PluginConfig() override
+            {
+            }
+        };
+
         BEGIN_INTERFACE_MAP(PackagerImplementation)
             INTERFACE_ENTRY(Exchange::IPackager)
         END_INTERFACE_MAP
@@ -294,7 +312,9 @@ namespace Plugin {
 #endif
         string GetMetadataFile(const string& appName);
         string GetCallsign(const string& mfilename);
-        void DeactivatePlugin(const string& callsign);
+        string GetInstallationPath(const string& appName);
+        void DeactivatePlugin(const string& callsign, const string& appName);
+	uint32_t UpdateConfiguration(const string& callsign, const string& appName);
         void NotifyStateChange();
         void NotifyRepoSynced(uint32_t status);
         void BlockingInstallUntilCompletionNoLock();
