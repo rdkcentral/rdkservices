@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.7] - 2022-10-07
+### Fixed
+- Fixed race condition in MM while checking for network connectivity"
+
 ## [1.0.6] - 2022-10-04
 ### Fixed
 - Fixed warnings that are treated as errors with "-Wall -Werror"
