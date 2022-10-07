@@ -170,3 +170,52 @@ TEST(JSONTest, OBJECT)
     EXPECT_EQ(_T("{}"), object[_T("key")].String());
     EXPECT_EQ(false, object[_T("key")].Boolean());
 }
+
+TEST(JSONTest, solidus_JsonObject_FromString)
+{
+    const string example = _T("{\"url\":\"http://example.com\"}");
+    const string exampleEscaped = _T("{\"url\":\"http:\\/\\/example.com\"}");
+    JsonObject jsonObject;
+    jsonObject.FromString(example);
+    EXPECT_EQ(string(_T("http://example.com")), jsonObject[_T("url")].String());
+    string cString;
+    jsonObject.ToString(cString);
+    EXPECT_EQ(exampleEscaped, cString);
+}
+
+TEST(JSONTest, solidus_JsonObject_FromString_Escaped)
+{
+    const string example = _T("{\"url\":\"http://example.com\"}");
+    const string exampleEscaped = _T("{\"url\":\"http:\\/\\/example.com\"}");
+    JsonObject jsonObject;
+    jsonObject.FromString(exampleEscaped);
+    EXPECT_EQ(string(_T("http://example.com")), jsonObject[_T("url")].String());
+    string cString;
+    jsonObject.ToString(cString);
+    EXPECT_EQ(exampleEscaped, cString);
+}
+
+TEST(JSONTest, solidus_JSON_String_FromString)
+{
+    const string example = _T("http://example.com");
+    const string exampleEscapedQuoted = _T("\"http:\\/\\/example.com\"");
+    Core::JSON::String jsonString;
+    jsonString.FromString(example);
+    EXPECT_EQ(example, jsonString.Value());
+    string cString;
+    jsonString.ToString(cString);
+    EXPECT_EQ(exampleEscapedQuoted, cString);
+}
+
+TEST(JSONTest, solidus_JSON_String_FromString_Escaped)
+{
+    const string example = _T("http://example.com");
+    const string exampleEscaped = _T("http:\\/\\/example.com");
+    const string exampleEscapedQuoted = _T("\"http:\\/\\/example.com\"");
+    Core::JSON::String jsonString;
+    jsonString.FromString(exampleEscaped);
+    EXPECT_EQ(example, jsonString.Value());
+    string cString;
+    jsonString.ToString(cString);
+    EXPECT_EQ(exampleEscapedQuoted, cString);
+}

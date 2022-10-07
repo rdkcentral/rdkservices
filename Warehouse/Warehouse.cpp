@@ -84,7 +84,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 namespace Utils {
 std::string formatIARMResult(IARM_Result_t result)
@@ -258,7 +258,7 @@ namespace WPEFramework
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         static void WareHouseResetIARM(Warehouse *wh, bool suppressReboot, const string& resetType)
         {
-            IARM_Result_t err;
+            IARM_Result_t err = IARM_RESULT_IPCCORE_FAIL;
             bool isWareHouse = false;
             if (resetType.compare("COLD") == 0)
             {
@@ -833,11 +833,11 @@ namespace WPEFramework
 
             WDMP_STATUS wdmpStatus;
 
-            wdmpStatus = setRFCParameter(WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_ENABLE_RFC_PARAM, "true", WDMP_BOOLEAN);
+            wdmpStatus = setRFCParameter((char *)WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_ENABLE_RFC_PARAM, "true", WDMP_BOOLEAN);
             result = (wdmpStatus == WDMP_SUCCESS);
             if (result)
             {
-                wdmpStatus = setRFCParameter(WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_EXECUTE_RFC_PARAM, "1", WDMP_INT);
+                wdmpStatus = setRFCParameter((char *)WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_EXECUTE_RFC_PARAM, "1", WDMP_INT);
                 result = (wdmpStatus == WDMP_SUCCESS);
             }
             if (!result)
@@ -853,12 +853,12 @@ namespace WPEFramework
             WDMP_STATUS wdmpStatus;
             RFC_ParamData_t param = {0};
 
-            wdmpStatus = getRFCParameter(WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_RESULTS_RFC_PARAM, &param);
+            wdmpStatus = getRFCParameter((char *)WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_RESULTS_RFC_PARAM, &param);
             result = (wdmpStatus == WDMP_SUCCESS);
             if (result)
             {
                 testResults = param.value;
-                wdmpStatus = setRFCParameter(WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_ENABLE_RFC_PARAM, "false", WDMP_BOOLEAN);
+                wdmpStatus = setRFCParameter((char *)WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_ENABLE_RFC_PARAM, "false", WDMP_BOOLEAN);
                 result = (wdmpStatus == WDMP_SUCCESS);
             }
             if (!result)

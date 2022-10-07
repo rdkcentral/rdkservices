@@ -43,7 +43,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 namespace WPEFramework
 {
@@ -130,7 +130,7 @@ namespace WPEFramework
                 device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort(strVideoPort.c_str());
                 hdcpProtocol = (dsHdcpProtocolVersion_t)vPort.getHDCPProtocol();
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("DS exception caught from %s\r\n", __FUNCTION__);
             }
@@ -183,7 +183,7 @@ namespace WPEFramework
                     isHDCPEnabled = false;
                 }
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("DS exception caught from %s\r\n", __FUNCTION__);
             }
@@ -247,7 +247,7 @@ namespace WPEFramework
             LOGWARN("[%s]-HDCPStatus::receiverHDCPVersion: %s", trigger, status["receiverHDCPVersion"].String().c_str());
             LOGWARN("[%s]-HDCPStatus::currentHDCPVersion %s", trigger, status["currentHDCPVersion"].String().c_str());
             LOGWARN("[%s]-HDCPStatus::hdcpReason %s", trigger, status["hdcpReason"].String().c_str());
-            LOGWARN("[%s]-HDCPStatus Response: %s,%s,%s,%s,%s,%s", trigger,  status["isConnected"].Boolean() ? "true" : "false",status["isHDCPEnabled"].Boolean() ? "true" : "false",status["isHDCPCompliant"].Boolean() ? "true" : "false",
+            LOGWARN("[%s]-HDCPStatus Response: %s,%s,%s,%s,%s,%s,%s", trigger,  status["isConnected"].Boolean() ? "true" : "false",status["isHDCPEnabled"].Boolean() ? "true" : "false",status["isHDCPCompliant"].Boolean() ? "true" : "false",
                                               status["supportedHDCPVersion"].String().c_str(), status["receiverHDCPVersion"].String().c_str(), status["currentHDCPVersion"].String().c_str(), status["hdcpReason"].String().c_str());
         }
 
