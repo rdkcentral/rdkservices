@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.9] - 2022-11-11
+### Fixed
+- Fixed race condition in MM while checking for network connectivity"
+
 ## [1.0.8] - 2022-11-08
 ### Fixed
 - Use interfaces instead of JSON-RPC
