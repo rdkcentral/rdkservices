@@ -270,6 +270,7 @@ namespace WPEFramework {
                     LOGINFO("Maintenance completed as it is offline mode");
                     m_abort_flag=false;
                     LOGINFO("Worker Thread Completed");
+		    return;
 	    }
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
@@ -308,7 +309,7 @@ namespace WPEFramework {
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
 
-	    /*for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
+	    for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
 		    cmd = tasks[i];
 		    cmd += " &";
 		    cmd += "\0";
@@ -322,29 +323,8 @@ namespace WPEFramework {
 			    task_thread.wait(lck);
 			    LOGINFO("Unlocked task [%d/%d]",i,tasks.size());
 		    }
-                    LOGINFO("for loop");
-	    }*/
+	    }
 	    
-            cmd = tasks[0];
-            cmd += " &";
-            cmd += "\0";
-            m_task_map[tasks[0]] = true;
-            LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
-            system(cmd.c_str());
-            cmd="";
-            for( i = 1; i < tasks.size() && !m_abort_flag; i++){
-                LOGINFO("Waiting to unlock.. [%d/%d]",i,tasks.size());
-                task_thread.wait(lck);
-                cmd = tasks[i];
-                cmd += " &";
-                cmd += "\0";
-                m_task_map[tasks[i]]=true;
-                if ( !m_abort_flag ){
-                    LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
-                    system(cmd.c_str());
-                }
-            }
-
             m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
         }
@@ -721,6 +701,7 @@ namespace WPEFramework {
                             else {
                                 SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
+                                task_thread.notify_one();
                                 m_task_map[task_names_foreground[3].c_str()]=false;
                             }
 
@@ -771,6 +752,7 @@ namespace WPEFramework {
                             }
                             else {
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
+                                task_thread.notify_one();
                                 LOGINFO("Error encountered in LOGUPLOAD script task \n");
                                 m_task_map[task_names_foreground[3].c_str()]=false;
                             }
