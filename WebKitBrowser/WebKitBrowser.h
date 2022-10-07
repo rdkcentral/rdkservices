@@ -41,9 +41,6 @@ namespace Plugin {
 
     class WebKitBrowser : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
     private:
-        WebKitBrowser(const WebKitBrowser&) = delete;
-        WebKitBrowser& operator=(const WebKitBrowser&) = delete;
-
         class Notification : public RPC::IRemoteConnection::INotification,
                              public PluginHost::IStateControl::INotification,
                              public Exchange::IWebBrowser::INotification {
@@ -58,9 +55,7 @@ namespace Plugin {
             {
                 ASSERT(parent != nullptr);
             }
-            ~Notification() override
-            {
-            }
+            ~Notification() override = default;
 
         public:
             void LoadFinished(const string& URL, int32_t code) override
@@ -130,10 +125,7 @@ namespace Plugin {
                 Add(_T("hidden"), &Hidden);
                 Add(_T("path"), &Path);
             }
-            ~Data()
-            {
-            }
-
+            ~Data() = default;
         public:
             Core::JSON::String URL;
             Core::JSON::DecUInt32 FPS;
@@ -143,6 +135,8 @@ namespace Plugin {
         };
 
     public:
+        WebKitBrowser(const WebKitBrowser&) = delete;
+        WebKitBrowser& operator=(const WebKitBrowser&) = delete;
         WebKitBrowser()
             : _skipURL(0)
             , _connectionId(0)
@@ -155,9 +149,7 @@ namespace Plugin {
         {
         }
 
-        ~WebKitBrowser() override
-        {
-        }
+        ~WebKitBrowser() override = default;
 
         inline static bool EnvironmentOverride(const bool configFlag)
         {

@@ -23,8 +23,10 @@ find_package(securityagent QUIET)
 find_package(WPEWebKit REQUIRED)
 
 option(PLUGIN_SECURITYAGENT "Enable the Security Agent Features interface in javascript." OFF)
+option(PLUGIN_WEBKITBROWSER_IIDENTIFIER "Enable IIDENTIFIER interface JS bindings." OFF)
 option(PLUGIN_WEBKITBROWSER_AAMP_JSBINDINGS "Enable AAMP JS bindings." OFF)
 option(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE "Enable $badger support." OFF)
+option(PLUGIN_WEBKITBROWSER_FIREBOLTOS_ENDPOINT "Enable injection of __firebolt.endpoint." ON)
 
 add_library(${MODULE_NAME} SHARED
     main.cpp
@@ -41,6 +43,11 @@ if(securityagent_FOUND)
     target_link_libraries(${MODULE_NAME} PRIVATE securityagent::securityagent)
 endif()
 
+if(PLUGIN_WEBKITBROWSER_IIDENTIFIER)
+    target_sources(${MODULE_NAME} PRIVATE IIdentifier.cpp)
+    target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_IIDENTIFIER)
+endif()
+
 if(PLUGIN_WEBKITBROWSER_AAMP_JSBINDINGS)
     find_package(AampJSBindings REQUIRED)
     target_sources(${MODULE_NAME} PRIVATE AAMPJSBindings.cpp)
@@ -53,6 +60,11 @@ if(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE)
     target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_BADGER_BRIDGE)
 endif()
 
+if(PLUGIN_WEBKITBROWSER_FIREBOLTOS_ENDPOINT)
+    target_sources(${MODULE_NAME} PRIVATE FireboltOSEndpoint.cpp)
+    target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_FIREBOLTOS_ENDPOINT)
+endif()
+
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
@@ -60,6 +72,7 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 target_link_libraries(${MODULE_NAME}
     PRIVATE
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}Core::${NAMESPACE}Core
         WPEWebKit::WPEWebKit)
 
 target_compile_definitions(${MODULE_NAME} PRIVATE WEBKIT_GLIB_API)

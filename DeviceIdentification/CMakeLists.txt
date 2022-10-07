@@ -18,9 +18,11 @@
 project(DeviceIdentification)
 
 cmake_minimum_required(VERSION 3.3)
+
 find_package(WPEFramework)
 
-set(PLUGIN_NAME ${PROJECT_NAME})
+project_version(1.0.0)
+
 set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -67,11 +69,11 @@ elseif (NEXUS_FOUND)
                 ${DEVICEIDENTIFICATION_IMPLEMENTATION_PATH}/Nexus.cpp)
     else()
         include(GetExternalCode)
-        set(DEVICEIDENTIFICATION_IMPLEMENTATION_VERSION "master" CACHE STRING "DeviceIdentification implementation version")
+        set(DEVICEIDENTIFICATION_IMPLEMENTATION_VERSION "master" CACHE STRING "DeviceIdentification implementation version: commit_id_or_tag_or_branch_name")
         set(DEVICEIDENTIFICATION_IMPLEMENTATION_REPOSITORY "https://code.rdkcentral.com/r/soc/broadcom/components/rdkcentral/thundernanoservices/DeviceIdentification" CACHE STRING "DeviceIdentification implementation repository")
         GetExternalCode(
             GIT_REPOSITORY ${DEVICEIDENTIFICATION_IMPLEMENTATION_REPOSITORY}
-            GIT_TAG ${DEVICEIDENTIFICATION_IMPLEMENTATION_VERSION}
+            GIT_VERSION ${DEVICEIDENTIFICATION_IMPLEMENTATION_VERSION}
             SOURCE_DIR "Implementation/Nexus"
         )
         target_sources(${MODULE_NAME}
@@ -118,4 +120,4 @@ target_include_directories(${MODULE_NAME}
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
-write_config(${PLUGIN_NAME})
+write_config()

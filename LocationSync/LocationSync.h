@@ -20,14 +20,15 @@
 #ifndef LOCATIONSYNC_LOCATIONSYNC_H
 #define LOCATIONSYNC_LOCATIONSYNC_H
 
+#include "Module.h"
 #include "LocationService.h"
 #include <interfaces/json/JsonData_LocationSync.h>
-#include "Module.h"
+#include <interfaces/ITimeZone.h>
 
 namespace WPEFramework {
 namespace Plugin {
 
-    class LocationSync : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
+    class LocationSync : public PluginHost::IPlugin, public Exchange::ITimeZone, public PluginHost::IWeb, public PluginHost::JSONRPC {
     public:
         class Data : public Core::JSON::Container {
         public:
@@ -69,9 +70,7 @@ namespace Plugin {
             Notification& operator=(const Notification&) = delete;
 
         public:
-#ifdef __WINDOWS__
-#pragma warning(disable : 4355)
-#endif
+PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
             explicit Notification(LocationSync* parent)
                 : _parent(*parent)
                 , _source()
@@ -81,9 +80,7 @@ namespace Plugin {
             {
                 ASSERT(parent != nullptr);
             }
-#ifdef __WINDOWS__
-#pragma warning(default : 4355)
-#endif
+POP_WARNING()
             ~Notification()
             {
                 _locator->Release();
@@ -151,10 +148,12 @@ namespace Plugin {
                 : Interval(30)
                 , Retries(8)
                 , Source()
+                , TimeZone()
             {
                 Add(_T("interval"), &Interval);
                 Add(_T("retries"), &Retries);
                 Add(_T("source"), &Source);
+                Add(_T("timezone"), &TimeZone);
             }
             ~Config()
             {
@@ -164,21 +163,22 @@ namespace Plugin {
             Core::JSON::DecUInt16 Interval;
             Core::JSON::DecUInt8 Retries;
             Core::JSON::String Source;
+            Core::JSON::String TimeZone;
         };
 
-    private:
+    public:
         LocationSync(const LocationSync&) = delete;
         LocationSync& operator=(const LocationSync&) = delete;
 
-    public:
         LocationSync();
-        ~LocationSync() override;
+        ~LocationSync() override = default;
 
         // Build QueryInterface implementation, specifying all possible interfaces to be returned.
         BEGIN_INTERFACE_MAP(LocationSync)
-        INTERFACE_ENTRY(PluginHost::IPlugin)
-        INTERFACE_ENTRY(PluginHost::IWeb)
-        INTERFACE_ENTRY(PluginHost::IDispatcher)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IWeb)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            INTERFACE_ENTRY(Exchange::ITimeZone)
         END_INTERFACE_MAP
 
     public:
@@ -193,7 +193,16 @@ namespace Plugin {
         void Inbound(Web::Request& request) override;
         Core::ProxyType<Web::Response> Process(const Web::Request& request) override;
 
+        //   ITimeZone methods
+        // -------------------------------------------------------------------------------------------------------
+        uint32_t Register(ITimeZone::INotification* sink) override ;
+        uint32_t Unregister(ITimeZone::INotification* sink) override;
+        uint32_t TimeZone(string& timeZone ) const override;
+        uint32_t TimeZone(const string& timeZone) override;
+
     private:
+        string CurrentTimeZone() const;
+        void TimeZoneChanged(const string& timezone) const;
         void RegisterAll();
         void UnregisterAll();
         uint32_t endpoint_sync();
@@ -203,10 +212,15 @@ namespace Plugin {
         void SyncedLocation();
 
     private:
+        using TimeZoneObservers = std::list<Exchange::ITimeZone::INotification*>;        
+
         uint16_t _skipURL;
         string _source;
         Core::Sink<Notification> _sink;
         PluginHost::IShell* _service;
+        string _timezoneoverride;
+        mutable Core::CriticalSection _adminLock;
+        TimeZoneObservers _timezoneoberservers;
     };
 
 } // namespace Plugin
