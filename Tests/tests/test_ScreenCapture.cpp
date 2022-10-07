@@ -78,6 +78,7 @@ TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
     FBContext fbcontext;
     PixelFormat pixelFormat = {32, 24, 0, 1, 255, 255, 255, 16, 8, 0};
     vnc_uint8_t* frameBuffer = (vnc_uint8_t*) malloc(5120 * 720);
+    memset(frameBuffer, 0xff, 5120 * 720);
     
     Core::Event uploadComplete(false, true);
     
@@ -140,25 +141,52 @@ TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
                 string text;
                 EXPECT_TRUE(json->ToString(text));
 
-                EXPECT_EQ(text, string(_T("{"
-                                          "\"jsonrpc\":\"2.0\","
-                                          "\"method\":\"org.rdk.ScreenCapture.uploadComplete\","
-                                          "\"params\":"
-                                          "{\"status\":false,\"message\":\"Upload Failed: 6:'Couldn't resolve host name'\",\"call_guid\":\"\"}"
-                                          "}")));
+                EXPECT_EQ(text, string(_T(
+                	"{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.ScreenCapture.uploadComplete\",\"params\":{\"status\":true,\"message\":\"Success\",\"call_guid\":\"\"}}"
+                )));
+
                 uploadComplete.SetEvent();
 
                 return Core::ERROR_NONE;
             }));
 
+    
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    ASSERT_TRUE(sockfd != -1);
+    sockaddr_in sockaddr;
+    sockaddr.sin_family = AF_INET;
+    sockaddr.sin_addr.s_addr = INADDR_ANY;
+    sockaddr.sin_port = htons(11111);
+    ASSERT_FALSE(bind(sockfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) < 0);
+    ASSERT_FALSE(listen(sockfd, 10) < 0);
+
+    std::thread thread = std::thread([&]() {
+        auto addrlen = sizeof(sockaddr);
+        const int connection = accept(sockfd, (struct sockaddr*)&sockaddr, (socklen_t*)&addrlen);
+        ASSERT_FALSE(connection < 0);
+        char buffer[2048] = { 0 };
+        ASSERT_TRUE(read(connection, buffer, 2048) > 0);
+
+        std::string reqHeader(buffer);
+        EXPECT_TRUE(std::string::npos != reqHeader.find("Content-Type: image/png"));
+
+        std::string response = _T("HTTP/1.0 200 OK\r\n\r\n");                                
+        send(connection, response.c_str(), response.size(), 0);
+
+        close(connection);
+    });
+
     handler.Subscribe(0, _T("uploadComplete"), _T("org.rdk.ScreenCapture"), message);
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadScreenCapture"), _T("{\"url\":\"http://non-existent-host.com\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadScreenCapture"), _T("{\"url\":\"http://127.0.0.1:11111\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    
+
     EXPECT_EQ(Core::ERROR_NONE, uploadComplete.Lock());
 
     handler.Unsubscribe(0, _T("uploadComplete"), _T("org.rdk.ScreenCapture"), message);
 
     free(frameBuffer);
+
+    thread.join();
+    close(sockfd);
 }
