@@ -1397,7 +1397,8 @@ namespace WPEFramework {
                     if (tvFiveDigitCode > 0)
                     {
                         memset((void*)codestr, 0, sizeof(codestr));
-                        snprintf(codestr, 6, "%05u", tvFiveDigitCode);
+                        volatile int codestr_sz = sizeof(codestr);
+                        snprintf(codestr, codestr_sz, "%05u", tvFiveDigitCode);
                         memcpy((void*)&ribRequest.data[1], (const void*)codestr, 6);
                         flags |= XRC_RIB_TARGET_STATUS_FLAGS_TV_CODE_PRESENT_BIT;
                         // Clear the Not Programmed and/or IRRF Database bits, if they were set.
@@ -1409,7 +1410,8 @@ namespace WPEFramework {
                     if (avrFiveDigitCode > 0)
                     {
                         memset((void*)codestr, 0, sizeof(codestr));
-                        snprintf(codestr, 6, "%05u", avrFiveDigitCode);
+                        volatile int codestr_sz = sizeof(codestr);
+                        snprintf(codestr, codestr_sz, "%05u", avrFiveDigitCode);
                         memcpy((void*)&ribRequest.data[7], (const void*)codestr, 6);
                         flags |= XRC_RIB_TARGET_STATUS_FLAGS_AVR_CODE_PRESENT_BIT;
                         // Clear the Not Programmed and/or IRRF Database bits, if they were set.
