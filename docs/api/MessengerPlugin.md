@@ -1,32 +1,70 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="Messenger_Plugin"></a>
+<a name="head.Messenger_Plugin"></a>
 # Messenger Plugin
 
 **Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/Messenger/CHANGELOG.md)**
 
-A Messenger plugin for Thunder framework.
+**Status: :black_circle::white_circle::white_circle:**
+
+Messenger plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
-- [Description](#Description)
-- [Configuration](#Configuration)
-- [Methods](#Methods)
-- [Notifications](#Notifications)
+- [Introduction](#head.Introduction)
+- [Description](#head.Description)
+- [Configuration](#head.Configuration)
+- [Methods](#head.Methods)
+- [Notifications](#head.Notifications)
 
-<a name="Abbreviation,_Acronyms_and_Terms"></a>
-# Abbreviation, Acronyms and Terms
+<a name="head.Introduction"></a>
+# Introduction
 
-[[Refer to this link](userguide/aat.md)]
+<a name="head.Scope"></a>
+## Scope
 
-<a name="Description"></a>
+This document describes purpose and functionality of the Messenger plugin. It includes detailed specification of its configuration, methods provided and notifications sent.
+
+<a name="head.Case_Sensitivity"></a>
+## Case Sensitivity
+
+All identifiers on the interface described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
+
+<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+## Acronyms, Abbreviations and Terms
+
+The table below provides and overview of acronyms used in this document and their definitions.
+
+| Acronym | Description |
+| :-------- | :-------- |
+| <a name="acronym.API">API</a> | Application Programming Interface |
+| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+
+The table below provides and overview of terms and abbreviations used in this document and their definitions.
+
+| Term | Description |
+| :-------- | :-------- |
+| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+
+<a name="head.References"></a>
+## References
+
+| Ref ID | Description |
+| :-------- | :-------- |
+| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="ref.Thunder">[Thunder](https://github.com/rdkcentral/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+
+<a name="head.Description"></a>
 # Description
 
-The `Messenger` plugin allows exchanging text messages between users gathered in virtual rooms. The rooms are dynamically created and destroyed based on user attendance. Upon joining a room, the client receives a unique token (room ID) to be used for sending and receiving the messages.
+The Messenger allows exchanging text messages between users gathered in virtual rooms. The rooms are dynamically created and destroyed based on user attendance. Upon joining a room the client receives a unique token (room ID) to be used for sending and receiving the messages.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
-<a name="Configuration"></a>
+<a name="head.Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -36,9 +74,9 @@ The table below lists configuration options of the plugin.
 | callsign | string | Plugin instance name (default: *Messenger*) |
 | classname | string | Class name: *Messenger* |
 | locator | string | Library name: *libWPEFrameworkMessenger.so* |
-| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
+| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
 
-<a name="Methods"></a>
+<a name="head.Methods"></a>
 # Methods
 
 The following methods are provided by the Messenger plugin:
@@ -47,13 +85,12 @@ Messenger interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [join](#join) | Joins a messaging room |
-| [leave](#leave) | Leaves a messaging room |
-| [send](#send) | Sends a message to a room |
+| [join](#method.join) | Joins a messaging room |
+| [leave](#method.leave) | Leaves a messaging room |
+| [send](#method.send) | Sends a message to a room |
 
-
-<a name="join"></a>
-## *join*
+<a name="method.join"></a>
+## *join <sup>method</sup>*
 
 Joins a messaging room.
 
@@ -61,7 +98,7 @@ Joins a messaging room.
 
 Use this method to join a room. If the specified room does not exist, then it will be created.
 
-Also see: [userupdate](#userupdate)
+Also see: [userupdate](#event.userupdate)
 
 ### Parameters
 
@@ -70,9 +107,6 @@ Also see: [userupdate](#userupdate)
 | params | object |  |
 | params.user | string | User name to join the room under (must not be empty) |
 | params.room | string | Name of the room to join (must not be empty) |
-| params?.secure | string | <sup>*(optional)*</sup> Room security (must be one of the following: *insecure*, *secure*) |
-| params?.acl | array | <sup>*(optional)*</sup> Access-control list for secure room |
-| params?.acl[#] | string | <sup>*(optional)*</sup> URL origin with possible wildcards |
 
 ### Result
 
@@ -87,7 +121,6 @@ Also see: [userupdate](#userupdate)
 | :-------- | :-------- | :-------- |
 | 5 | ```ERROR_ILLEGAL_STATE``` | User name is already taken (i.e. the user has already joined the room) |
 | 30 | ```ERROR_BAD_REQUEST``` | User name or room name was invalid |
-| 24 | ```ERROR_PRIVILEGED_REQUEST``` | Room security errors |
 
 ### Example
 
@@ -96,33 +129,27 @@ Also see: [userupdate](#userupdate)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "method": "Messenger.1.join",
     "params": {
         "user": "Bob",
-        "room": "Lounge",
-        "secure": "secure",
-        "acl": [
-            "https://*.github.io"
-        ]
+        "room": "Lounge"
     }
 }
 ```
-
 #### Response
 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "result": {
         "roomid": "1e217990dd1cd4f66124"
     }
 }
 ```
-
-<a name="leave"></a>
-## *leave*
+<a name="method.leave"></a>
+## *leave <sup>method</sup>*
 
 Leaves a messaging room.
 
@@ -130,7 +157,7 @@ Leaves a messaging room.
 
 Use this method to leave a room. The room ID becomes invalid after this call. If there are no more users, the room will be destroyed and related resources freed.
 
-Also see: [userupdate](#userupdate)
+Also see: [userupdate](#event.userupdate)
 
 ### Parameters
 
@@ -158,26 +185,24 @@ Also see: [userupdate](#userupdate)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "method": "Messenger.1.leave",
     "params": {
         "roomid": "1e217990dd1cd4f66124"
     }
 }
 ```
-
 #### Response
 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "result": null
 }
 ```
-
-<a name="send"></a>
-## *send*
+<a name="method.send"></a>
+## *send <sup>method</sup>*
 
 Sends a message to a room.
 
@@ -185,7 +210,7 @@ Sends a message to a room.
 
 Use this method to send a message to a room.
 
-Also see: [message](#message)
+Also see: [message](#event.message)
 
 ### Parameters
 
@@ -214,7 +239,7 @@ Also see: [message](#message)
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "method": "Messenger.1.send",
     "params": {
         "roomid": "1e217990dd1cd4f66124",
@@ -222,21 +247,19 @@ Also see: [message](#message)
     }
 }
 ```
-
 #### Response
 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "result": null
 }
 ```
-
-<a name="Notifications"></a>
+<a name="head.Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the plugin, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
 
 The following events are provided by the Messenger plugin:
 
@@ -244,13 +267,12 @@ Messenger interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [roomupdate](#roomupdate) | Notifies about room status updates |
-| [userupdate](#userupdate) | Notifies about user status updates |
-| [message](#message) | Notifies about new messages in a room |
+| [roomupdate](#event.roomupdate) | Notifies about room status updates |
+| [userupdate](#event.userupdate) | Notifies about user status updates |
+| [message](#event.message) | Notifies about new messages in a room |
 
-
-<a name="roomupdate"></a>
-## *roomupdate*
+<a name="event.roomupdate"></a>
+## *roomupdate <sup>event</sup>*
 
 Notifies about room status updates.
 
@@ -264,7 +286,6 @@ Register to this event to be notified about room status updates. Immediately aft
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.room | string | Name of the room this notification relates to |
-| params?.secure | string | <sup>*(optional)*</sup> Room security (must be one of the following: *insecure*, *secure*) |
 | params.action | string | Specifies the room status change, e.g. created or destroyed (must be one of the following: *created*, *destroyed*) |
 
 ### Example
@@ -275,14 +296,12 @@ Register to this event to be notified about room status updates. Immediately aft
     "method": "client.events.1.roomupdate",
     "params": {
         "room": "Lounge",
-        "secure": "secure",
         "action": "created"
     }
 }
 ```
-
-<a name="userupdate"></a>
-## *userupdate*
+<a name="event.userupdate"></a>
+## *userupdate <sup>event</sup>*
 
 Notifies about user status updates.
 
@@ -298,7 +317,7 @@ Register to this event to be notified about room status updates. Immediately aft
 | params.user | string | Name of the user that has this notification relates to |
 | params.action | string | Specifies the user status change, e.g. join or leave a room (must be one of the following: *joined*, *left*) |
 
-> The *room ID* argument shall be passed within the designator, e.g. *1e217990dd1cd4f66124.client.events.1*.
+> The *room ID* shall be passed within the designator, e.g. *1e217990dd1cd4f66124.client.events.1*.
 
 ### Example
 
@@ -312,9 +331,8 @@ Register to this event to be notified about room status updates. Immediately aft
     }
 }
 ```
-
-<a name="message"></a>
-## *message*
+<a name="event.message"></a>
+## *message <sup>event</sup>*
 
 Notifies about new messages in a room.
 
@@ -330,7 +348,7 @@ Register to this event to be notified about new messages in a room.
 | params.user | string | Name of the user that has sent the message |
 | params.message | string | Content of the message |
 
-> The *room ID* argument shall be passed within the designator, e.g. *1e217990dd1cd4f66124.client.events.1*.
+> The *room ID* shall be passed within the designator, e.g. *1e217990dd1cd4f66124.client.events.1*.
 
 ### Example
 
@@ -344,4 +362,3 @@ Register to this event to be notified about new messages in a room.
     }
 }
 ```
-
