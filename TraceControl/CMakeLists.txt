@@ -15,8 +15,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME TraceControl)
-set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+project(TraceControl)
+
+cmake_minimum_required(VERSION 3.3)
+
+find_package(WPEFramework)
+
+project_version(1.0.0)
+
+set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
+
+message("Setup ${MODULE_NAME} v${PROJECT_VERSION}")
+
+set(PLUGIN_TRACECONTROL_AUTOSTART "true" CACHE STRING "Automatically start TraceControl plugin")
+set(PLUGIN_TRACECONTROL_REMOTE "false" CACHE STRING "Remote binding details enabled")
+set(PLUGIN_TRACECONTROL_PORT "0" CACHE STRING "PORT address")
+set(PLUGIN_TRACECONTROL_BINDING "0.0.0.0" CACHE STRING "Binding IP Address")
+set(PLUGIN_TRACECONTROL_MAX_EXPORTCONNECTIONS 5 CACHE STRING "Maximum allowed export connections")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
@@ -40,4 +55,4 @@ target_link_libraries(${MODULE_NAME}
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
-write_config(${PLUGIN_NAME})
+write_config()
