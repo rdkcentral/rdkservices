@@ -1,33 +1,71 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="Monitor_Plugin"></a>
+<a name="head.Monitor_Plugin"></a>
 # Monitor Plugin
 
-**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/Monitor/CHANGELOG.md)**
+**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/Monitor/CHANGELOG.md)**
 
-A Monitor plugin for Thunder framework.
+**Status: :black_circle::black_circle::black_circle:**
+
+Monitor plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
-- [Description](#Description)
-- [Configuration](#Configuration)
-- [Methods](#Methods)
-- [Properties](#Properties)
-- [Notifications](#Notifications)
+- [Introduction](#head.Introduction)
+- [Description](#head.Description)
+- [Configuration](#head.Configuration)
+- [Methods](#head.Methods)
+- [Properties](#head.Properties)
+- [Notifications](#head.Notifications)
 
-<a name="Abbreviation,_Acronyms_and_Terms"></a>
-# Abbreviation, Acronyms and Terms
+<a name="head.Introduction"></a>
+# Introduction
 
-[[Refer to this link](userguide/aat.md)]
+<a name="head.Scope"></a>
+## Scope
 
-<a name="Description"></a>
+This document describes purpose and functionality of the Monitor plugin. It includes detailed specification of its configuration, methods and properties provided, as well as notifications sent.
+
+<a name="head.Case_Sensitivity"></a>
+## Case Sensitivity
+
+All identifiers on the interface described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
+
+<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
+## Acronyms, Abbreviations and Terms
+
+The table below provides and overview of acronyms used in this document and their definitions.
+
+| Acronym | Description |
+| :-------- | :-------- |
+| <a name="acronym.API">API</a> | Application Programming Interface |
+| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
+| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
+| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
+
+The table below provides and overview of terms and abbreviations used in this document and their definitions.
+
+| Term | Description |
+| :-------- | :-------- |
+| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
+
+<a name="head.References"></a>
+## References
+
+| Ref ID | Description |
+| :-------- | :-------- |
+| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
+| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
+| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
+| <a name="ref.Thunder">[Thunder](https://github.com/rdkcentral/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+
+<a name="head.Description"></a>
 # Description
 
-The `Monitor` plugin provides a watchdog-like functionality for framework processes.
+The Monitor plugin provides a watchdog-like functionality for framework processes.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
-<a name="Configuration"></a>
+<a name="head.Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -37,9 +75,9 @@ The table below lists configuration options of the plugin.
 | callsign | string | Plugin instance name (default: *Monitor*) |
 | classname | string | Class name: *Monitor* |
 | locator | string | Library name: *libWPEFrameworkMonitor.so* |
-| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
+| autostart | boolean | Determines if the plugin is to be started automatically along with the framework |
 
-<a name="Methods"></a>
+<a name="head.Methods"></a>
 # Methods
 
 The following methods are provided by the Monitor plugin:
@@ -48,26 +86,23 @@ Monitor interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [restartlimits](#restartlimits) | Sets new restart limits for a service |
-| [resetstats](#resetstats) | Resets memory and process statistics for a single service watched by the Monitor |
+| [restartlimits](#method.restartlimits) | Sets new restart limits for a service |
+| [resetstats](#method.resetstats) | Resets memory and process statistics for a single service watched by the Monitor |
 
-
-<a name="restartlimits"></a>
-## *restartlimits*
+<a name="method.restartlimits"></a>
+## *restartlimits <sup>method</sup>*
 
 Sets new restart limits for a service.
- ### Events 
-No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.callsign | string | The callsign of a service for which measurement snapshots are reset |
+| params.callsign | string | The callsign of a service to reset measurements snapshot of |
 | params.restart | object |  |
-| params.restart.limit | number | Maximum number of restarts to be attempted. If the limit parameter is not passed in request then, the default value is 0 |
-| params.restart.window | number | Time period (in seconds) within which failures must happen for the limit to be considered crossed. If the window parameter is not passed in request then, the default value is 0 |
+| params.restart.limit | number | Maximum number or restarts to be attempted |
+| params.restart.window | number | Time period (in seconds) within which failures must happen for the limit to be considered crossed |
 
 ### Result
 
@@ -82,7 +117,7 @@ No Events.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "method": "Monitor.1.restartlimits",
     "params": {
         "callsign": "WebServer",
@@ -93,30 +128,26 @@ No Events.
     }
 }
 ```
-
 #### Response
 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "result": null
 }
 ```
-
-<a name="resetstats"></a>
-## *resetstats*
+<a name="method.resetstats"></a>
+## *resetstats <sup>method</sup>*
 
 Resets memory and process statistics for a single service watched by the Monitor.
- ### Events 
-No Events.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.callsign | string | The callsign of a service for which statistics are reset |
+| params.callsign | string | The callsign of a service to reset statistics of |
 
 ### Result
 
@@ -147,9 +178,9 @@ No Events.
 | result.measurements.operational | boolean | Whether the service is up and running |
 | result.measurements.count | number | Number of measurements |
 | result.observable | string | A callsign of the watched service |
-| result.restart | object | Restart limits for failures applying to the service |
-| result.restart.limit | number | Maximum number of restarts to be attempted. If the limit parameter is not passed in request then, the default value is 0 |
-| result.restart.window | number | Time period (in seconds) within which failures must happen for the limit to be considered crossed. If the window parameter is not passed in request then, the default value is 0 |
+| result.restart | object | Restart limits for memory/operational failures applying to the service |
+| result.restart.limit | number | Maximum number or restarts to be attempted |
+| result.restart.window | number | Time period (in seconds) within which failures must happen for the limit to be considered crossed |
 
 ### Example
 
@@ -158,20 +189,19 @@ No Events.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "method": "Monitor.1.resetstats",
     "params": {
         "callsign": "WebServer"
     }
 }
 ```
-
 #### Response
 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "result": {
         "measurements": {
             "resident": {
@@ -209,8 +239,7 @@ No Events.
     }
 }
 ```
-
-<a name="Properties"></a>
+<a name="head.Properties"></a>
 # Properties
 
 The following properties are provided by the Monitor plugin:
@@ -219,11 +248,10 @@ Monitor interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [status](#status) <sup>RO</sup> | Service statistics |
+| [status](#property.status) <sup>RO</sup> | Service statistics |
 
-
-<a name="status"></a>
-## *status*
+<a name="property.status"></a>
+## *status <sup>property</sup>*
 
 Provides access to the service statistics.
 
@@ -259,11 +287,11 @@ Provides access to the service statistics.
 | (property)[#].measurements.operational | boolean | Whether the service is up and running |
 | (property)[#].measurements.count | number | Number of measurements |
 | (property)[#].observable | string | A callsign of the watched service |
-| (property)[#].restart | object | Restart limits for failures applying to the service |
-| (property)[#].restart.limit | number | Maximum number of restarts to be attempted. If the limit parameter is not passed in request then, the default value is 0 |
-| (property)[#].restart.window | number | Time period (in seconds) within which failures must happen for the limit to be considered crossed. If the window parameter is not passed in request then, the default value is 0 |
+| (property)[#].restart | object | Restart limits for memory/operational failures applying to the service |
+| (property)[#].restart.limit | number | Maximum number or restarts to be attempted |
+| (property)[#].restart.window | number | Time period (in seconds) within which failures must happen for the limit to be considered crossed |
 
-> The *callsign* argument shall be passed as the index to the property, e.g. *Monitor.1.status@WebServer*. If omitted then, all the observed objects are returned on read. Invalid callsign results are in empty result.
+> The *callsign* shall be passed as the index to the property, e.g. *Monitor.1.status@WebServer*. If omitted then all observed objects will be returned on read.
 
 ### Example
 
@@ -272,17 +300,16 @@ Provides access to the service statistics.
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "method": "Monitor.1.status@WebServer"
 }
 ```
-
 #### Get Response
 
 ```json
 {
     "jsonrpc": "2.0",
-    "id": 42,
+    "id": 1234567890,
     "result": [
         {
             "measurements": {
@@ -322,11 +349,10 @@ Provides access to the service statistics.
     ]
 }
 ```
-
-<a name="Notifications"></a>
+<a name="head.Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers.Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
 
 The following events are provided by the Monitor plugin:
 
@@ -334,11 +360,10 @@ Monitor interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [action](#action) | Signals an action taken by the Monitor |
+| [action](#event.action) | Signals an action taken by the Monitor |
 
-
-<a name="action"></a>
-## *action*
+<a name="event.action"></a>
+## *action <sup>event</sup>*
 
 Signals an action taken by the Monitor.
 
@@ -348,7 +373,7 @@ Signals an action taken by the Monitor.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.callsign | string | Callsign of the service the Monitor acted upon |
-| params.action | string | The action executed by the Monitor on a service (must be one of the following: *Activate*, *Deactivate*, *StoppedRestarting*) |
+| params.action | string | The action executed by the Monitor on a service. One of: "Activate", "Deactivate", "StoppedRestarting" |
 | params.reason | string | A message describing the reason the action was taken |
 
 ### Example
@@ -364,4 +389,3 @@ Signals an action taken by the Monitor.
     }
 }
 ```
-

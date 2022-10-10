@@ -95,7 +95,7 @@ namespace Plugin {
 
                 return (*this);
             }
-
+ 
         public:
             void Measure(Exchange::IMemory* memInterface)
             {
@@ -657,9 +657,7 @@ namespace Plugin {
             MonitorObjects(const MonitorObjects&) = delete;
             MonitorObjects& operator=(const MonitorObjects&) = delete;
 
-#ifdef __WINDOWS__
-#pragma warning(disable : 4355)
-#endif
+PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
             MonitorObjects(Monitor* parent)
                 : _adminLock()
                 , _monitor()
@@ -668,9 +666,7 @@ namespace Plugin {
                 , _parent(*parent)
             {
             }
-#ifdef __WINDOWS__
-#pragma warning(default : 4355)
-#endif
+POP_WARNING()
             virtual ~MonitorObjects()
             {
                 ASSERT(_monitor.size() == 0);
@@ -752,68 +748,62 @@ namespace Plugin {
                 _service->Release();
                 _service = nullptr;
             }
-            virtual void StateChange(PluginHost::IShell* service)
+            void Activated (const string& callsign, PluginHost::IShell* service) override
             {
                 _adminLock.Lock();
 
-                std::map<string, MonitorObject>::iterator index(_monitor.find(service->Callsign()));
+                std::map<string, MonitorObject>::iterator index(_monitor.find(callsign));
+                
 
                 if (index != _monitor.end()) {
 
-                    // Only act on Activated or Deactivated...
-                    PluginHost::IShell::state currentState(service->State());
+                    index->second.Active(true);
 
-                    if (currentState == PluginHost::IShell::ACTIVATED) {
-                        bool is_active = index->second.IsActive();
-                        index->second.Active(true);
-                        if (is_active == false && std::count_if(_monitor.begin(), _monitor.end(), [](const std::pair<string, MonitorObject>& v) {
-                                return v.second.IsActive();
-                            }) == 1) {
+                    if (_job.Submit() == true) {
+                        TRACE(Trace::Information, (_T("Starting to probe as active observee appeared.")));
+                    }
 
-                            // A monitor which previously was stopped restarting is being activated.
-                            // Moreover it's the only only which now becomes active. This means probing
-                            // has to be activated as well since it was stopped at point the last observee
-                            // turned inactive
-                            _job.Schedule(Core::Time::Now());
+                    // Get the MetaData interface
+                    Exchange::IMemory* memory = service->QueryInterface<Exchange::IMemory>();
 
-                            TRACE(Trace::Information, (_T("Starting to probe as active observee appeared.")));
-                        }
+                    if (memory != nullptr) {
+                        index->second.Set(memory);
+                        memory->Release();
+                    }
+                }
 
-                        // Get the MetaData interface
-                        Exchange::IMemory* memory = service->QueryInterface<Exchange::IMemory>();
+                _adminLock.Unlock();
+            }
+            void Deactivated (const string& callsign, PluginHost::IShell* service) override
+            {
+                _adminLock.Lock();
 
-                        if (memory != nullptr) {
-                            index->second.Set(memory);
-                            memory->Release();
-                        }
-                    } else if (currentState == PluginHost::IShell::DEACTIVATION) {
-                        index->second.Set(nullptr);
-                    } else if ((currentState == PluginHost::IShell::DEACTIVATED)) {
-                        index->second.Active(false);
-                        if ((index->second.HasRestartAllowed() == true) && ((service->Reason() == PluginHost::IShell::MEMORY_EXCEEDED) || (service->Reason() == PluginHost::IShell::FAILURE))) {
-                            if (index->second.RegisterRestart(service->Reason()) == false) {
-                                TRACE(Trace::Fatal, (_T("Giving up restarting of %s: Failed more than %d times within %d seconds."), service->Callsign().c_str(), index->second.RestartLimit(), index->second.RestartWindow()));
-                                const string message("{\"callsign\": \"" + service->Callsign() + "\", \"action\": \"Restart\", \"reason\":\"" + (std::to_string(index->second.RestartLimit())).c_str() + " Attempts Failed within the restart window\"}");
-                                _service->Notify(message);
-                                _parent.event_action(service->Callsign(), "StoppedRestaring", std::to_string(index->second.RestartLimit()) + " attempts failed within the restart window");
-                            } else {
-                                const string message("{\"callsign\": \"" + service->Callsign() + "\", \"action\": \"Activate\", \"reason\": \"Automatic\" }");
-                                _service->Notify(message);
-                                _parent.event_action(service->Callsign(), "Activate", "Automatic");
-                                TRACE(Trace::Error, (_T("Restarting %s again because we detected it misbehaved."), service->Callsign().c_str()));
+                std::map<string, MonitorObject>::iterator index(_monitor.find(callsign));
 
-                                Core::IWorkerPool::Instance().Schedule(
-                                    Core::Time::Now(),
-                                    PluginHost::IShell::Job::Create(
-                                        service,
-                                        PluginHost::IShell::ACTIVATED,
-                                        PluginHost::IShell::AUTOMATIC));
-                            }
+                if (index != _monitor.end()) {
+
+                    index->second.Set(nullptr);
+                    index->second.Active(false);
+                    if ((index->second.HasRestartAllowed() == true) && ((service->Reason() == PluginHost::IShell::MEMORY_EXCEEDED) || (service->Reason() == PluginHost::IShell::FAILURE))) {
+                        if (index->second.RegisterRestart(service->Reason()) == false) {
+                            TRACE(Trace::Fatal, (_T("Giving up restarting of %s: Failed more than %d times within %d seconds."), callsign.c_str(), index->second.RestartLimit(), index->second.RestartWindow()));
+                            const string message("{\"callsign\": \"" + callsign + "\", \"action\": \"Restart\", \"reason\":\"" + (std::to_string(index->second.RestartLimit())).c_str() + " Attempts Failed within the restart window\"}");
+                            _service->Notify(message);
+                            _parent.event_action(callsign, "StoppedRestaring", std::to_string(index->second.RestartLimit()) + " attempts failed within the restart window");
+                        } else {
+                            const string message("{\"callsign\": \"" + callsign + "\", \"action\": \"Activate\", \"reason\": \"Automatic\" }");
+                            _service->Notify(message);
+                            _parent.event_action(callsign, "Activate", "Automatic");
+                            TRACE(Trace::Error, (_T("Restarting %s again because we detected it misbehaved."), callsign.c_str()));
+                            Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(service, PluginHost::IShell::ACTIVATED, PluginHost::IShell::AUTOMATIC));
                         }
                     }
                 }
 
                 _adminLock.Unlock();
+            }
+            void Unavailable(const string&, PluginHost::IShell*) override
+            {
             }
             void Snapshot(Core::JSON::ArrayType<Monitor::Data>& snapshot)
             {
@@ -962,7 +952,7 @@ namespace Plugin {
                                 Core::EnumerateType<PluginHost::IShell::reason> why(((value & MonitorObject::EXCEEDED_MEMORY) != 0) ? PluginHost::IShell::MEMORY_EXCEEDED : PluginHost::IShell::FAILURE);
 
                                 const string message("{\"callsign\": \"" + plugin->Callsign() + "\", \"action\": \"Deactivate\", \"reason\": \"" + why.Data() + "\" }");
-                                SYSLOG(Trace::Fatal, (_T("FORCED Shutdown: %s by reason: %s."), plugin->Callsign().c_str(), why.Data()));
+                                SYSLOG(Logging::Fatal, (_T("FORCED Shutdown: %s by reason: %s."), plugin->Callsign().c_str(), why.Data()));
 
                                 _service->Notify(message);
 
@@ -1013,18 +1003,14 @@ namespace Plugin {
         };
 
     public:
-#ifdef __WINDOWS__
-#pragma warning(disable : 4355)
-#endif
+PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
         Monitor()
             : _skipURL(0)
             , _monitor(Core::Service<MonitorObjects>::Create<MonitorObjects>(this))
         {
             RegisterAll();
         }
-#ifdef __WINDOWS__
-#pragma warning(default : 4355)
-#endif
+POP_WARNING()
         virtual ~Monitor()
         {
             UnregisterAll();
