@@ -19,9 +19,11 @@
  
 #include "LocationSync.h"
 
+#include <interfaces/json/JTimeZone.h>
+
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 namespace WPEFramework {
 namespace Plugin {
@@ -31,39 +33,41 @@ namespace Plugin {
     static Core::ProxyPoolType<Web::Response> responseFactory(4);
     static Core::ProxyPoolType<Web::JSONBodyType<LocationSync::Data>> jsonResponseFactory(4);
 
-#ifdef __WINDOWS__
-#pragma warning(disable : 4355)
-#endif
+PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
     LocationSync::LocationSync()
         : _skipURL(0)
         , _source()
         , _sink(this)
         , _service(nullptr)
+        , _timezoneoverride()
+        , _adminLock()
+        , _timezoneoberservers()
     {
-        RegisterAll();
     }
-#ifdef __WINDOWS__
-#pragma warning(default : 4355)
-#endif
-
-    LocationSync::~LocationSync() /* override */
-    {
-        UnregisterAll();
-    }
+POP_WARNING()
 
     const string LocationSync::Initialize(PluginHost::IShell* service) /* override */
     {
         string result;
         Config config;
         config.FromString(service->ConfigLine());
-        string version = service->Version();
+
+        if( ( config.TimeZone.IsSet() == true ) && ( config.TimeZone.Value().empty() == false ) ) {
+            Core::SystemInfo::Instance().SetTimeZone(config.TimeZone.Value());
+            _timezoneoverride = config.TimeZone.Value();
+        }
 
         if (LocationService::IsSupported(config.Source.Value()) == Core::ERROR_NONE) {
             _skipURL = static_cast<uint16_t>(service->WebPrefix().length());
             _source = config.Source.Value();
             _service = service;
-
+            _service->AddRef();
+            
             _sink.Initialize(config.Source.Value(), config.Interval.Value(), config.Retries.Value());
+
+            RegisterAll();
+            Exchange::JTimeZone::Register(*this, this);
+
         } else {
             result = _T("URL for retrieving location is incorrect !!!");
         }
@@ -76,7 +80,28 @@ namespace Plugin {
     {
         ASSERT(_service == service);
 
+        UnregisterAll();
+        Exchange::JTimeZone::Unregister(*this);
+
         _sink.Deinitialize();
+
+        Config config;
+        config.FromString(service->ConfigLine());
+
+        PluginHost::IController* controller = nullptr;
+        if( ( _timezoneoverride != config.TimeZone.Value() ) && 
+            ( ( controller = service->QueryInterfaceByCallsign<PluginHost::IController>(_T("")) ) != nullptr ) 
+          ) {
+            config.TimeZone = _timezoneoverride;
+            string newconfig;
+            config.ToString(newconfig);
+            service->ConfigLine(newconfig);
+            controller->Persist();
+            controller->Release();
+        }
+
+        _service->Release();
+        _service = nullptr;
     }
 
     string LocationSync::Information() const /* override */
@@ -114,7 +139,7 @@ namespace Plugin {
 
             if ((internet != nullptr) && (location != nullptr)) {
                 response->PublicIp = internet->PublicIPAddress();
-                response->TimeZone = location->TimeZone();
+                response->TimeZone = CurrentTimeZone();
                 response->Region = location->Region();
                 response->Country = location->Country();
                 response->City = location->City();
@@ -145,6 +170,69 @@ namespace Plugin {
         return result;
     }
 
+    uint32_t LocationSync::Register(Exchange::ITimeZone::INotification* sink) {
+        _adminLock.Lock();
+        TimeZoneObservers::iterator index = std::find(_timezoneoberservers.begin(), _timezoneoberservers.end(), sink);
+        ASSERT (index == _timezoneoberservers.end());
+        if (index == _timezoneoberservers.end()) {
+            sink->AddRef();
+            _timezoneoberservers.emplace_back(sink);
+        }
+        _adminLock.Unlock();
+        return Core::ERROR_NONE;
+    }
+
+    uint32_t LocationSync::Unregister(Exchange::ITimeZone::INotification* sink) {
+        _adminLock.Lock();
+        TimeZoneObservers::iterator index = std::find(_timezoneoberservers.begin(), _timezoneoberservers.end(), sink);
+        ASSERT (index != _timezoneoberservers.end());
+        if (index != _timezoneoberservers.end()) {
+            sink->Release();
+            _timezoneoberservers.erase(index);
+        }
+        _adminLock.Unlock();
+        return Core::ERROR_NONE;
+    }
+
+    uint32_t LocationSync::TimeZone(string& timeZone /* @out */) const {
+        timeZone = CurrentTimeZone();
+        return Core::ERROR_NONE;
+    }
+
+    uint32_t LocationSync::TimeZone(const string& timeZone) {
+        _adminLock.Lock();
+        _timezoneoverride = timeZone;
+        _adminLock.Unlock();
+        Core::SystemInfo::Instance().SetTimeZone(_timezoneoverride);
+        TimeZoneChanged(timeZone);
+        return Core::ERROR_NONE;
+    }
+
+    string LocationSync::CurrentTimeZone() const {
+        string timezone;
+        _adminLock.Lock();
+        if( _timezoneoverride.empty() == true ) {
+            _adminLock.Unlock();
+            PluginHost::ISubSystem* subSystem = _service->SubSystems();
+            ASSERT(subSystem != nullptr);
+            const PluginHost::ISubSystem::ILocation* location(subSystem->Get<PluginHost::ISubSystem::ILocation>());
+            timezone = location->TimeZone();
+        } else {
+            timezone = _timezoneoverride;
+            _adminLock.Unlock();
+        }
+        return timezone;
+    }
+
+    void LocationSync::TimeZoneChanged(const string& timezone) const {
+        _adminLock.Lock();
+        for (auto observer : _timezoneoberservers) {
+            observer->TimeZoneChanged(timezone);
+        }
+        _adminLock.Unlock();
+        Exchange::JTimeZone::Event::TimeZoneChanged(const_cast<PluginHost::JSONRPC&>(static_cast<const PluginHost::JSONRPC&>(*this)), timezone);
+    }
+
     void LocationSync::SyncedLocation()
     {
         PluginHost::ISubSystem* subSystem = _service->SubSystems();
@@ -158,7 +246,15 @@ namespace Plugin {
             subSystem->Release();
 
             if ((_sink.Location() != nullptr) && (_sink.Location()->TimeZone().empty() == false)) {
-                Core::SystemInfo::SetEnvironment(_T("TZ"), _sink.Location()->TimeZone());
+                _adminLock.Lock();
+                if( _timezoneoverride.empty() == true ) {
+                    _adminLock.Unlock();
+                    Core::SystemInfo::Instance().SetTimeZone(_sink.Location()->TimeZone());
+                    TimeZoneChanged(_sink.Location()->TimeZone());
+                } else {
+                    _adminLock.Unlock();
+                }
+                SYSLOG(Logging::Startup, (_T("Local time %s."),Core::Time::Now().ToRFC1123(true).c_str()));
                 event_locationchange();
             }
         }

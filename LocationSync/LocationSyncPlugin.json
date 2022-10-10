@@ -28,12 +28,18 @@
                         "type": "string",
                         "size": 16,
                         "description": "URI of the Location Server (default:\"location.webplatformforembedded.org\")."
-                    }
+		    },
+		     "timezone": {
+                     "type": "string",
+                     "size": 16,
+                     "description": "with this the timezone can be overridden, otherwise taken from location (note can als be overriden with JSONRPC call)."
+		    }
                 }
             }
         }
     },
-    "interface": {
-        "$ref": "LocationSync.json#"
-    }
+    "interface": [
+      { "$cppref": "{cppinterfacedir}/ITimeZone.h" },
+      { "$ref": "{interfacedir}/LocationSync.json#" }
+    ]
 }
