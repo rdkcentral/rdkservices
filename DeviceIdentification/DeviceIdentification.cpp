@@ -23,23 +23,24 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 namespace WPEFramework {
-namespace {
-    static Plugin::Metadata<Plugin::DeviceIdentification> metadata(
-        // Version (Major, Minor, Patch)
-        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
-        // Preconditions
-        {},
-        // Terminations
-        {},
-        // Controls
-        {}
-    );
-}
-
 namespace Plugin {
+
+    namespace {
+
+        static Metadata<DeviceIdentification> metadata(
+            // Version
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {  subsystem::PLATFORM },
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
 
     SERVICE_REGISTRATION(DeviceIdentification, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
@@ -52,7 +53,7 @@ namespace Plugin {
 
         _service = service;
         _service->AddRef();
-
+         
          string message;
 
         // Register the Process::Notification stuff. The Remote process might die before we get a
@@ -106,21 +107,21 @@ namespace Plugin {
 
             UnregisterAll();
 
-            // Stop processing:
+               // Stop processing:
             RPC::IRemoteConnection* connection = service->RemoteConnection(_connectionId);
 
             VARIABLE_IS_NOT_USED uint32_t result = _identifier->Release();
             _identifier = nullptr;
 
-            // It should have been the last reference we are releasing,
+            // It should have been the last reference we are releasing, 
             // so it should endup in a DESTRUCTION_SUCCEEDED, if not we
             // are leaking...
             ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
             // If this was running in a (container) process...
             if (connection != nullptr) {
-                // Lets trigger the cleanup sequence for
-                // out-of-process code. Which will guard
+                // Lets trigger the cleanup sequence for 
+                // out-of-process code. Which will guard 
                 // that unwilling processes, get shot if
                 // not stopped friendly :-)
                 connection->Terminate();

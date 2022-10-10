@@ -18,7 +18,6 @@
  */
  
 #include "../../Module.h"
-#include <interfaces/IDeviceIdentification.h>
 
 #include <fstream>
 
