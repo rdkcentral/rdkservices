@@ -109,10 +109,10 @@ TEST_F(AVInputTestFixture, Plugin)
 
     // called by AVInput::InitializeIARM
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+        .Times(8)
+        .WillRepeatedly(::testing::Invoke(
             [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
-                if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG)) {
+                if (string(IARM_BUS_DSMGR_NAME) == string(ownerName)) {
                     dsHdmiEventHandler = handler;
                     return IARM_RESULT_SUCCESS;
                 }
@@ -121,10 +121,10 @@ TEST_F(AVInputTestFixture, Plugin)
 
     // called by AVInput::DeinitializeIARM
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_UnRegisterEventHandler(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+        .Times(8)
+        .WillRepeatedly(::testing::Invoke(
             [&](const char* ownerName, IARM_EventId_t eventId) {
-                if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG)) {
+                if (string(IARM_BUS_DSMGR_NAME) == string(ownerName)) {
                     dsHdmiEventHandler = nullptr;
                     return IARM_RESULT_SUCCESS;
                 }
@@ -135,13 +135,8 @@ TEST_F(AVInputTestFixture, Plugin)
 
     // called by AVInput::numberOfInputs, dsHdmiEventHandler
     EXPECT_CALL(hdmiInputImplMock, getNumberOfInputs())
-        .Times(2)
-        .WillRepeatedly(::testing::Return(1));
-
-    // called by dsHdmiEventHandler
-    EXPECT_CALL(hdmiInputImplMock, isPortConnected(::testing::_))
         .Times(1)
-        .WillRepeatedly(::testing::Return(true));
+        .WillRepeatedly(::testing::Return(1));
 
     // called by AVInput::currentVideoMode
     EXPECT_CALL(hdmiInputImplMock, getCurrentVideoMode())
@@ -149,22 +144,6 @@ TEST_F(AVInputTestFixture, Plugin)
         .WillRepeatedly(::testing::Return(string("unknown")));
 
     // IShell expectations
-
-    // called by AVInput::event_onAVInputActive
-    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
-                string text;
-                EXPECT_TRUE(json->ToString(text));
-                EXPECT_EQ(text, string(_T("{"
-                                          "\"jsonrpc\":\"2.0\","
-                                          "\"method\":\"org.rdk.AVInput.onAVInputActive\","
-                                          "\"params\":{\"url\":\"avin:\\/\\/input0\"}"
-                                          "}")));
-
-                return Core::ERROR_NONE;
-            }));
 
     // Initialize
 
