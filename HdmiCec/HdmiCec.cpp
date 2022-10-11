@@ -57,7 +57,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 enum {
 	HDMICEC_EVENT_DEVICE_ADDED=0,
@@ -66,7 +66,7 @@ enum {
         HDMICEC_EVENT_ACTIVE_SOURCE_STATUS_UPDATED,
 };
 
-static char *eventString[] = {
+static const char *eventString[] = {
 	"onDeviceAdded",
 	"onDeviceRemoved",
 	"onDeviceInfoUpdated",
@@ -130,7 +130,6 @@ namespace WPEFramework
        }
        void HdmiCec::process (const CECVersion &msg, const Header &header)
        {
-	     bool updateStatus;
 	     printHeader(header);
              LOGINFO("Command: CECVersion Version : %s \n",msg.version.toString().c_str());
 
@@ -140,7 +139,6 @@ namespace WPEFramework
        void HdmiCec::process (const SetOSDName &msg, const Header &header)
        {
              printHeader(header);
-	     bool updateStatus ;
              LOGINFO("Command: SetOSDName OSDName : %s\n",msg.osdName.toString().c_str());
 
 	     bool isOSDNameUpdated = HdmiCec::_instance->deviceList[header.from.toInt()].update(msg.osdName);
@@ -150,8 +148,6 @@ namespace WPEFramework
        void HdmiCec::process (const ReportPhysicalAddress &msg, const Header &header)
        {
              printHeader(header);
-	     bool updateDeviceTypeStatus;
-	     bool updatePAStatus;
              LOGINFO("Command: ReportPhysicalAddress\n");
 
 	     if(!HdmiCec::_instance)
@@ -160,7 +156,6 @@ namespace WPEFramework
        }
        void HdmiCec::process (const DeviceVendorID &msg, const Header &header)
        {
-	     bool updateStatus ;
 	     printHeader(header);
              LOGINFO("Command: DeviceVendorID VendorID : %s\n",msg.vendorId.toString().c_str());
 
@@ -170,7 +165,6 @@ namespace WPEFramework
        }
        void HdmiCec::process (const ReportPowerStatus &msg, const Header &header)
        {
-	   uint32_t  oldPowerStatus,newPowerStatus;
 	   printHeader(header);
 	   LOGINFO("Command: ReportPowerStatus Power Status from:%s status : %s \n",header.from.toString().c_str(),msg.status.toString().c_str());
 	   HdmiCec::_instance->addDevice(header.from.toInt());
@@ -178,7 +172,7 @@ namespace WPEFramework
 //=========================================== HdmiCec =========================================
 
         HdmiCec::HdmiCec()
-        : PluginHost::JSONRPC(),smConnection(nullptr),cecEnableStatus(false)
+        : PluginHost::JSONRPC(),cecEnableStatus(false),smConnection(nullptr)
         {
             HdmiCec::_instance = this;
             InitializeIARM();
@@ -333,7 +327,7 @@ namespace WPEFramework
                         cecAddressesChanged(LOGICAL_ADDR_CHANGED);
                     }
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from cecStatusUpdated");
                 }
@@ -469,7 +463,7 @@ namespace WPEFramework
                 {
                     LibCCEC::getInstance().init();
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from CECEnable");
                 }
@@ -591,7 +585,7 @@ namespace WPEFramework
                         cecAddressesChanged(PHYSICAL_ADDR_CHANGED);
                     }
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("DS exception caught from getPhysicalAddress");
             }
@@ -617,7 +611,7 @@ namespace WPEFramework
                     cecAddressesChanged(LOGICAL_ADDR_CHANGED);
                 }
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("CEC exception caught from getLogicalAddress ");
             }

@@ -37,7 +37,7 @@ target_include_directories(${MODULE_NAME} PRIVATE ${CEC_INCLUDE_DIRS})
 target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
 
 target_link_libraries(${MODULE_NAME} PUBLIC ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${CEC_LIBRARIES} ${DS_LIBRARIES} )
-
+target_compile_options(${MODULE_NAME} PRIVATE -Wno-error=deprecated)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
