@@ -14,7 +14,12 @@ public:
     virtual const std::string& getName() const = 0;
     virtual const VideoResolution& getDefaultResolution() const = 0;
     virtual int getHDCPProtocol() = 0;
+    virtual int getHDCPReceiverProtocol() = 0;
+    virtual int getHDCPCurrentProtocol() = 0;
+    virtual int getHDCPStatus() = 0;
     virtual AudioOutputPort &getAudioOutputPort() const = 0;
+    virtual bool isDisplayConnected() = 0;
+    virtual bool isContentProtected() = 0;
 };
 
 class VideoOutputPort {
@@ -41,10 +46,36 @@ public:
         return impl->getHDCPProtocol();
     }
 
+    int getHDCPReceiverProtocol()
+    {
+        return impl->getHDCPReceiverProtocol();
+    }
+
+    int getHDCPCurrentProtocol ()
+    {
+        return impl->getHDCPCurrentProtocol();
+    }
+
+    int getHDCPStatus()
+    {
+        return impl->getHDCPStatus();
+    }
+
     AudioOutputPort &getAudioOutputPort()
     {
         return impl->getAudioOutputPort();
     }
+
+    bool isDisplayConnected()
+    {
+        return impl->isDisplayConnected();
+    }
+
+    bool isContentProtected()
+    {
+        return impl->isContentProtected();
+    }
+
 };
 
 }
