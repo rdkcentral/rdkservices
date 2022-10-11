@@ -16,7 +16,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.2]
+## [1.0.2] - 2022-10-11
 ### Fixed
 - Fixed the Null pointer checks that were causing the crash.
 
