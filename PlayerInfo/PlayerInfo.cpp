@@ -21,7 +21,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 namespace WPEFramework {
 
@@ -144,7 +144,9 @@ namespace Plugin {
         _service->Release();
         _service = nullptr;
         _player = nullptr;
+        
         _connectionId = 0;
+
     }
 
     /* virtual */ string PlayerInfo::Information() const
