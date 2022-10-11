@@ -773,7 +773,7 @@ static GSourceFuncs _handlerIntervention =
             , _dataPath()
             , _service(nullptr)
             , _headers()
-            , _localStorageEnabled(false)  
+            , _localStorageEnabled(false)
             , _httpStatusCode(-1)
 #ifdef WEBKIT_GLIB_API
             , _view(nullptr)
@@ -2536,6 +2536,15 @@ static GSourceFuncs _handlerIntervention =
                 browser->OnLoadFinished(Core::ToString(webkit_web_view_get_uri(webView)));
             }
         }
+        static void loadFailedCallback(WebKitWebView*, WebKitLoadEvent loadEvent, const gchar* failingURI, GError* error, WebKitImplementation* browser)
+        {
+            string message(string("{ \"url\": \"") + failingURI + string("\", \"Error message\": \"") + error->message + string("\", \"loadEvent\":") + Core::NumberType<uint32_t>(loadEvent).Text() + string(" }"));
+            SYSLOG(Trace::Information, (_T("LoadFailed: %s"), message.c_str()));
+            if (g_error_matches(error, WEBKIT_NETWORK_ERROR, WEBKIT_NETWORK_ERROR_CANCELLED)
+                || (loadEvent == WEBKIT_LOAD_FINISHED))
+                return;
+            browser->OnLoadFailed();
+        }
         static void webProcessTerminatedCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitWebProcessTerminationReason reason)
         {
             switch (reason) {
@@ -2802,6 +2811,7 @@ static GSourceFuncs _handlerIntervention =
             g_signal_connect(_view, "show-notification", reinterpret_cast<GCallback>(showNotificationCallback), this);
             g_signal_connect(_view, "user-message-received", reinterpret_cast<GCallback>(userMessageReceivedCallback), this);
             g_signal_connect(_view, "notify::is-web-process-responsive", reinterpret_cast<GCallback>(isWebProcessResponsiveCallback), this);
+            g_signal_connect(_view, "load-failed", reinterpret_cast<GCallback>(loadFailedCallback), this);
 
             _configurationCompleted.SetState(true);
 
@@ -3497,7 +3507,13 @@ static GSourceFuncs _handlerIntervention =
     /* static */ void didFailNavigation(WKPageRef page, WKNavigationRef, WKErrorRef error, WKTypeRef, const void *clientInfo)
     {
         const int WebKitNetworkErrorCancelled = 302;
+        int errorcode = WKErrorGetErrorCode(error);
         auto errorDomain = WKErrorCopyDomain(error);
+
+        string url = GetPageActiveURL(page);
+        string message(string("{ \"url\": \"") + url + string("\", \"Error code\":") + Core::NumberType<uint32_t>(errorcode).Text() + string(" }"));
+        SYSLOG(Trace::Information, (_T("LoadFailed: %s"), message.c_str()));
+
         bool isCanceled =
             errorDomain &&
             WKStringIsEqualToUTF8CString(errorDomain, "WebKitNetworkError") &&
