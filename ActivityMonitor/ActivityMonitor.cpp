@@ -408,6 +408,12 @@ namespace WPEFramework
         {
             FILE *f = fopen("/proc/stat", "r");
 
+            if (f == NULL)
+            {
+                LOGERR("Could not open file /proc/stat in read mode");
+                return 0;
+            }
+
             std::vector <char> buf;
             buf.resize(1024);
 

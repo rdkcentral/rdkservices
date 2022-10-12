@@ -18,6 +18,8 @@
 set(PLUGIN_NAME FireboltMediaPlayer)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_FIREBOLTMEDIAPLAYER_STARTUPORDER "" CACHE STRING "To configure startup order of FireboltMediaPlayer plugin")
+
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)

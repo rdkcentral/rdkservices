@@ -1,6 +1,8 @@
 set(PLUGIN_NAME OCIContainer)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_OCICONTAINER_STARTUPORDER "" CACHE STRING "To configure startup order of OCIContainer plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(jsoncpp REQUIRED)
 find_package(Dobby REQUIRED CONFIG)

@@ -18,6 +18,8 @@
 set(PLUGIN_NAME Warehouse)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_WAREHOUSE_STARTUPORDER "" CACHE STRING "To configure startup order of Warehouse plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED

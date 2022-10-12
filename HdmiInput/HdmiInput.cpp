@@ -88,7 +88,7 @@ namespace WPEFramework
         {
             HdmiInput::_instance = this;
 
-            InitializeIARM();
+            //InitializeIARM();
 
             CreateHandler({2});
 
@@ -110,6 +110,14 @@ namespace WPEFramework
         HdmiInput::~HdmiInput()
         {
         }
+	    
+	const string HdmiInput::Initialize(PluginHost::IShell * /* service */)
+	{
+  	    HdmiInput::_instance = this;
+	    InitializeIARM();
+
+	    return (string());
+	}
 
         void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)
         {
@@ -164,11 +172,10 @@ namespace WPEFramework
             int portId = 0;
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
             }
-
             bool success = true;
             try
             {
@@ -244,9 +251,8 @@ namespace WPEFramework
                            h = std::stoi(parameters["h"].String());
                        }
 		}
-                catch (...) {
-		    LOGWARN("Invalid Arguments");
-		    response["message"] = "Invalid Arguments";
+                catch (const std::exception& err) {
+		    LOGWARN("Invalid paramater X: %s,Y: %s, W: %s, H:%s ", parameters["x"].String().c_str(),parameters["y"].String().c_str(),parameters["w"].String().c_str(),parameters["h"].String().c_str());
 		    returnResponse(false);
                 }
 
@@ -318,9 +324,9 @@ namespace WPEFramework
             int portId = 0;
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
             }
 
             string edid = readEDID (portId);
@@ -379,7 +385,7 @@ namespace WPEFramework
                 //convert to base64
                 uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
 
-                LOGWARN("HdmiInput::readEDID size:%d edidVec.size:%d", size, edidVec.size());
+                LOGWARN("HdmiInput::readEDID size:%u edidVec.size:%d", size, (int)edidVec.size());
 
                 if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max()) {
                     LOGERR("Size too large to use ToString base64 wpe api");
@@ -692,7 +698,7 @@ namespace WPEFramework
                 device::HdmiInput::getInstance().getSupportedGameFeatures (supportedFeatures);
                 for (size_t i = 0; i < supportedFeatures.size(); i++)
                 {
-                    LOGINFO("Supported Game Feature [%d]:  %s\n",i,supportedFeatures.at(i).c_str());
+                    LOGINFO("Supported Game Feature [%d]:  %s\n",(int)i,supportedFeatures.at(i).c_str());
                 }
             }
             catch (const device::Exception& err)
@@ -720,9 +726,9 @@ namespace WPEFramework
             returnIfParamNotFound(parameters, "gameFeature");
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
             }
 
 	    if (strcmp (sGameFeature.c_str(), "ALLM") == 0)
@@ -765,9 +771,9 @@ namespace WPEFramework
             int portId = 0;
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
             }
 
             string spdInfo = getRawHDMISPD (portId);
@@ -789,9 +795,9 @@ namespace WPEFramework
             int portId = 0;
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
             }
 
             string spdInfo = getHDMISPD (portId);
@@ -819,7 +825,7 @@ namespace WPEFramework
                 //convert to base64
                 uint16_t size = min(spdVect.size(), (size_t)numeric_limits<uint16_t>::max());
 
-                LOGWARN("HdmiInput::getHDMISPD size:%d spdVec.size:%d", size, spdVect.size());
+                LOGWARN("HdmiInput::getHDMISPD size:%u spdVec.size:%d", size, (int)spdVect.size());
 
                 if(spdVect.size() > (size_t)numeric_limits<uint16_t>::max()) {
                     LOGERR("Size too large to use ToString base64 wpe api");
@@ -855,7 +861,7 @@ namespace WPEFramework
                 //convert to base64
                 uint16_t size = min(spdVect.size(), (size_t)numeric_limits<uint16_t>::max());
 
-                LOGWARN("HdmiInput::getHDMISPD size:%d spdVec.size:%d", size, spdVect.size());
+                LOGWARN("HdmiInput::getHDMISPD size:%u spdVec.size:%d", size, (int)spdVect.size());
 
                 if(spdVect.size() > (size_t)numeric_limits<uint16_t>::max()) {
                     LOGERR("Size too large to use ToString base64 wpe api");
@@ -894,9 +900,9 @@ namespace WPEFramework
             string sVersion = parameters["edidVersion"].String();
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
+            }catch (const std::exception& err) {
+                    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
             }
 
             int edidVer = -1;
@@ -944,9 +950,9 @@ namespace WPEFramework
             returnIfParamNotFound(parameters, "portId");
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
             }
 
             int edidVer = getEdidVersion (portId);
