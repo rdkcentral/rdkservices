@@ -21,6 +21,8 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Protocols REQUIRED)
 
+set(PLUGIN_AVINPUT_STARTUPORDER "" CACHE STRING "To configure startup order of AVInput plugin")
+
 add_library(${MODULE_NAME} SHARED
         AVInput.cpp
         Module.cpp

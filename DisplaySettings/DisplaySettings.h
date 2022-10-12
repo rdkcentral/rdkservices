@@ -232,6 +232,7 @@ namespace WPEFramework {
 	    std::condition_variable arcRoutingCV;
 	    bool m_hdmiInAudioDeviceConnected;
         bool m_arcAudioEnabled;
+            bool m_arcPendingSADRequest;   
 	    bool m_hdmiCecAudioDeviceDetected;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
