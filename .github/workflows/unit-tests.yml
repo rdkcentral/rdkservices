@@ -238,6 +238,7 @@ jobs:
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_NETWORK=ON
           -DPLUGIN_WIFIMANAGER=ON
+          -DPLUGIN_TRACECONTROL=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
