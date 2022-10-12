@@ -54,6 +54,10 @@
               "description": "Short summary of what the procedure does.",
               "type": "string"
             },
+            "referenceUrl":{
+              "description": "Provides the alternate api for the deprecated api",
+              "type": "string"
+            },
             "description": {
               "description": "Longer description of what the procedure does.",
               "type": "string"
