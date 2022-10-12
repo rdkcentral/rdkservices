@@ -20,6 +20,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_DTV_AUTOSTART "true" CACHE STRING "Automatically start DTV plugin")
 set(PLUGIN_DTV_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
+set(PLUGIN_DTV_STARTUPORDER "" CACHE STRING "To configure startup order of DTV plugin")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 

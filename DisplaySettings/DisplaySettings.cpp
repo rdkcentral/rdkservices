@@ -81,6 +81,7 @@ using namespace std;
 static bool isCecArcRoutingThreadEnabled = false;
 static bool isCecEnabled = false;
 static int  hdmiArcPortId = -1;
+std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> gHdmiCecConnection;
 #ifdef USE_IARM
 namespace
 {
@@ -168,7 +169,6 @@ namespace WPEFramework {
         {
             LOGINFO("ctor");
             DisplaySettings::_instance = this;
-            m_client = nullptr;
 
             CreateHandler({ 2 });
 
@@ -277,6 +277,7 @@ namespace WPEFramework {
 	    m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
 	    m_cecArcRoutingThreadRun = false;
 	    isCecArcRoutingThreadEnabled = true;
+            m_arcPendingSADRequest = false;
         }
 
         DisplaySettings::~DisplaySettings()
@@ -3859,7 +3860,7 @@ namespace WPEFramework {
                 hdmiCecSink->Release();
 
                 getHdmiCecSinkPlugin();
-                if (!m_client) {
+                if (!gHdmiCecConnection) {
                     LOGERR("HdmiCecSink Initialisation failed\n");
                 }
                 else {
@@ -3873,7 +3874,7 @@ namespace WPEFramework {
                     }
 
                     LOGINFO("ARC Routing - %d \n", arcEnable);
-                    m_client->Invoke<JsonObject, JsonObject>(2000, "setupARCRouting", param, hdmiCecSinkResult);
+                    gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "setupARCRouting", param, hdmiCecSinkResult);
                     if (!hdmiCecSinkResult["success"].Boolean()) {
 			success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
@@ -3898,14 +3899,14 @@ namespace WPEFramework {
                 hdmiCecSink->Release();
 
                 getHdmiCecSinkPlugin();
-                if (!m_client) {
+                if (!gHdmiCecConnection) {
                     LOGERR("HdmiCecSink Initialisation failed\n");
                 }
                 else {
                     JsonObject hdmiCecSinkResult;
                     JsonObject param;
 
-                    m_client->Invoke<JsonObject, JsonObject>(2000, "getEnabled", param, hdmiCecSinkResult);
+                    gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "getEnabled", param, hdmiCecSinkResult);
 
 		    cecEnable = hdmiCecSinkResult["enabled"].Boolean();
 		    LOGINFO("get-cecEnabled [%d]\n",cecEnable);
@@ -3931,14 +3932,14 @@ namespace WPEFramework {
                 hdmiCecSink->Release();
 
                 getHdmiCecSinkPlugin();
-                if (!m_client) {
+                if (!gHdmiCecConnection) {
                     LOGERR("HdmiCecSink Initialisation failed\n");
                 }
                 else {
                     JsonObject hdmiCecSinkResult;
                     JsonObject param;
 
-                    m_client->Invoke<JsonObject, JsonObject>(2000, "getAudioDeviceConnectedStatus", param, hdmiCecSinkResult);
+                    gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "getAudioDeviceConnectedStatus", param, hdmiCecSinkResult);
 
                     hdmiAudioDeviceDetected = hdmiCecSinkResult["connected"].Boolean();
                     LOGINFO("getAudioDeviceConnectedStatus [%d]\n",hdmiAudioDeviceDetected);
@@ -3964,7 +3965,7 @@ namespace WPEFramework {
                 hdmiCecSink->Release();
 
                 getHdmiCecSinkPlugin();
-                if (!m_client) {
+                if (!gHdmiCecConnection) {
                     LOGERR("HdmiCecSink Initialisation failed\n");
                 }
                 else {
@@ -3972,7 +3973,7 @@ namespace WPEFramework {
                     JsonObject param;
 
                     LOGINFO("Send Audio Device Power On !!!\n");
-                    m_client->Invoke<JsonObject, JsonObject>(2000, "sendAudioDevicePowerOnMessage", param, hdmiCecSinkResult);
+                    gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "sendAudioDevicePowerOnMessage", param, hdmiCecSinkResult);
                     if (!hdmiCecSinkResult["success"].Boolean()) {
                         success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
@@ -3997,7 +3998,7 @@ namespace WPEFramework {
                 hdmiCecSink->Release();
 
                 getHdmiCecSinkPlugin();
-                if (!m_client) {
+                if (!gHdmiCecConnection) {
                     LOGERR("HdmiCecSink plugin not accessible\n");
                 }
                 else {
@@ -4005,7 +4006,7 @@ namespace WPEFramework {
                     JsonObject param;
 
                     LOGINFO("Requesting Short Audio Descriptor \n");
-                    m_client->Invoke<JsonObject, JsonObject>(2000, "requestShortAudioDescriptor", param, hdmiCecSinkResult);
+                    gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "requestShortAudioDescriptor", param, hdmiCecSinkResult);
                     if (!hdmiCecSinkResult["success"].Boolean()) {
                         success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
@@ -4030,7 +4031,7 @@ namespace WPEFramework {
                 hdmiCecSink->Release();
 
                 getHdmiCecSinkPlugin();
-                if (!m_client) {
+                if (!gHdmiCecConnection) {
                     LOGERR("HdmiCecSink plugin not accessible\n");
                 }
                 else {
@@ -4038,7 +4039,7 @@ namespace WPEFramework {
                     JsonObject param;
 
                     LOGINFO("Requesting Audio Device power Status \n");
-                    m_client->Invoke<JsonObject, JsonObject>(2000, "requestAudioDevicePowerStatus", param, hdmiCecSinkResult);
+                    gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "requestAudioDevicePowerStatus", param, hdmiCecSinkResult);
                     if (!hdmiCecSinkResult["success"].Boolean()) {
                         success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
@@ -4106,20 +4107,21 @@ namespace WPEFramework {
                             if(types & dsAUDIOARCSUPPORT_eARC) {
                                 aPort.setStereoAuto(true,true);
                             }
-                            else if (types & dsAUDIOARCSUPPORT_ARC && (m_arcAudioEnabled != pEnable)) {
+                            else if (types & dsAUDIOARCSUPPORT_ARC && ((m_arcAudioEnabled != pEnable) || ( m_arcPendingSADRequest == true))) {
                                 if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
                                     LOGERR("DisplaySettings::setEnableAudioPort (ARC-Auto): requestShortAudioDescriptor failed !!!\n");;
                                 }
                                 else {
                                     LOGINFO("DisplaySettings::setEnableAudioPort (ARC-Auto): requestShortAudioDescriptor successful\n");
                                 }
+                            
                             }
                         }
                         else{
                             device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
                             mode = aPort.getStereoMode(); //get Last User set stereo mode and set
                             if((mode == device::AudioStereoMode::kPassThru) && (types & dsAUDIOARCSUPPORT_ARC)
-                                              && (m_arcAudioEnabled != pEnable)){
+                                              && ((m_arcAudioEnabled != pEnable) || ( m_arcPendingSADRequest == true))){
                                 if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
                                     LOGERR("DisplaySettings::setEnableAudioPort (ARC-Passthru): requestShortAudioDescriptor failed !!!\n");;
                                 }
@@ -4129,6 +4131,7 @@ namespace WPEFramework {
                             }
                             aPort.setStereoMode(mode.toString(), true);
                         }
+                        m_arcPendingSADRequest = false;
                     }
 
                     if(types & dsAUDIOARCSUPPORT_eARC) {
@@ -4242,7 +4245,7 @@ namespace WPEFramework {
         // Thunder plugins communication
         void DisplaySettings::getHdmiCecSinkPlugin()
         {
-            if(m_client == nullptr)
+            if(gHdmiCecConnection == nullptr)
             {
                 string token;
 
@@ -4266,8 +4269,8 @@ namespace WPEFramework {
 
                 string query = "token=" + token;
                 Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-                m_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(HDMICECSINK_CALLSIGN_VER), (_T(HDMICECSINK_CALLSIGN_VER)), false, query);
-                LOGINFO("DisplaySettings getHdmiCecSinkPlugin init m_client\n");
+                gHdmiCecConnection = make_shared<WPEFramework::JSONRPC::LinkType<Core::JSON::IElement> > (_T(HDMICECSINK_CALLSIGN_VER), (_T(HDMICECSINK_CALLSIGN_VER)), false, query);
+                LOGINFO("DisplaySettings getHdmiCecSinkPlugin init gHdmiCecConnection\n");
             }
         }
 
@@ -4455,9 +4458,9 @@ namespace WPEFramework {
             uint32_t err = Core::ERROR_NONE;
             LOGINFO("Attempting to subscribe for event: %s\n", eventName);
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
-            if (nullptr == m_client) {
+            if (nullptr == gHdmiCecConnection) {
                 getHdmiCecSinkPlugin();
-                if (nullptr == m_client) {
+                if (nullptr == gHdmiCecConnection) {
                     LOGERR("JSONRPC: %s: client initialization failed", HDMICECSINK_CALLSIGN_VER);
                     err = Core::ERROR_UNAVAILABLE;
                 } 
@@ -4466,31 +4469,31 @@ namespace WPEFramework {
 	    if(err == Core::ERROR_NONE) {
                 /* Register handlers for Event reception. */
                 if(strcmp(eventName, HDMICECSINK_ARC_INITIATION_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =gHdmiCecConnection->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onARCInitiationEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_ARC_TERMINATION_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =gHdmiCecConnection->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onARCTerminationEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =gHdmiCecConnection->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onShortAudioDescriptorEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =gHdmiCecConnection->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onSystemAudioModeEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =gHdmiCecConnection->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onAudioDeviceConnectedStatusEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_CEC_ENABLED_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =gHdmiCecConnection->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onCecEnabledEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_AUDIO_DEVICE_POWER_STATUS_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =gHdmiCecConnection->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onAudioDevicePowerStatusEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
 		} else {
@@ -4546,6 +4549,7 @@ namespace WPEFramework {
 			        LOGINFO("onARCInitiationEventHandler: Enable ARC\n");
                                 aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
                                 m_arcAudioEnabled = true;
+                                m_arcPendingSADRequest = true;
 			    }
                         }
                         else {
@@ -4860,15 +4864,15 @@ namespace WPEFramework {
                 if ( m_AudioDeviceDetectTimer.isActive()) {
                     m_AudioDeviceDetectTimer.stop();
                 }
-                if (nullptr != m_client) {
+                if (nullptr != gHdmiCecConnection) {
                     for (std::string eventName : m_clientRegisteredEventNames) {
-                        m_client->Unsubscribe(1000, _T(eventName));
+                        gHdmiCecConnection->Unsubscribe(1000, _T(eventName));
                         LOGINFO ("Unsubscribing event %s\n", eventName.c_str());
                     }
                     m_clientRegisteredEventNames.clear();
 
-                    LOGINFO ("deleting m_client \n");
-                    delete m_client; m_client = nullptr;
+                    LOGINFO ("deleting gHdmiCecConnection \n");
+                    gHdmiCecConnection.reset();
                 }
             }
         }

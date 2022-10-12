@@ -18,6 +18,8 @@
 set(PLUGIN_NAME CompositeInput)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_COMPOSITEINPUT_STARTUPORDER "" CACHE STRING "To configure startup order of CompositeInput plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
