@@ -244,6 +244,7 @@ jobs:
           -DRDK_SERVICES_TEST=ON
           -DPLUGIN_HDMIINPUT=ON
           -DPLUGIN_HDCPPROFILE=ON
+          -DPLUGIN_TRACECONTROL=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build rdkservices
