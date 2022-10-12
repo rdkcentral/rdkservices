@@ -66,6 +66,7 @@ include_directories(../LocationSync
         ../Network
 	../WifiManager
         ../Warehouse
+        ../TraceControl
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -89,6 +90,7 @@ link_directories(../LocationSync
         ../Network
 	../WifiManager
         ../Warehouse
+        ../TraceControl
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -117,6 +119,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}Network
         ${NAMESPACE}WifiManager
         ${NAMESPACE}Warehouse
+        ${NAMESPACE}TraceControl
         )
 
 target_include_directories(${PROJECT_NAME}
