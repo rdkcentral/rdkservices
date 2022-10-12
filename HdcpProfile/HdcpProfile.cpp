@@ -70,17 +70,20 @@ namespace WPEFramework
         HdcpProfile::HdcpProfile()
         : PluginHost::JSONRPC()
         {
-            HdcpProfile::_instance = this;
-
-            InitializeIARM();
-            device::Manager::Initialize();
-
-            Register(HDCP_PROFILE_METHOD_GET_HDCP_STATUS, &HdcpProfile::getHDCPStatusWrapper, this);
-            Register(HDCP_PROFILE_METHOD_GET_SETTOP_HDCP_SUPPORT, &HdcpProfile::getSettopHDCPSupportWrapper, this);
+            RegisterAll();
         }
 
         HdcpProfile::~HdcpProfile()
         {
+            UnregisterAll();
+        }
+
+        const string HdcpProfile::Initialize(PluginHost::IShell * /* service */)
+        {
+            HdcpProfile::_instance = this;
+            InitializeIARM();
+            device::Manager::Initialize();
+            return (string());
         }
 
         void HdcpProfile::Deinitialize(PluginHost::IShell* /* service */)
@@ -110,6 +113,17 @@ namespace WPEFramework
             }
         }
 
+        void HdcpProfile::RegisterAll()
+        {
+            Register<JsonObject, JsonObject>(_T(HDCP_PROFILE_METHOD_GET_HDCP_STATUS), &HdcpProfile::getHDCPStatusWrapper, this);
+            Register<JsonObject, JsonObject>(_T(HDCP_PROFILE_METHOD_GET_SETTOP_HDCP_SUPPORT), &HdcpProfile::getSettopHDCPSupportWrapper, this);
+        }
+
+        void HdcpProfile::UnregisterAll()
+        {
+            Unregister(_T(HDCP_PROFILE_METHOD_GET_HDCP_STATUS));
+            Unregister(_T(HDCP_PROFILE_METHOD_GET_SETTOP_HDCP_SUPPORT));
+        }
         uint32_t HdcpProfile::getHDCPStatusWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -249,7 +263,7 @@ namespace WPEFramework
             LOGWARN("[%s]-HDCPStatus::hdcpReason %s", trigger, status["hdcpReason"].String().c_str());
             LOGWARN("[%s]-HDCPStatus Response: %s,%s,%s,%s,%s,%s,%s", trigger,  status["isConnected"].Boolean() ? "true" : "false",status["isHDCPEnabled"].Boolean() ? "true" : "false",status["isHDCPCompliant"].Boolean() ? "true" : "false",
                                               status["supportedHDCPVersion"].String().c_str(), status["receiverHDCPVersion"].String().c_str(), status["currentHDCPVersion"].String().c_str(), status["hdcpReason"].String().c_str());
-        }
+       }
 
         void HdcpProfile::onHdmiOutputHDCPStatusEvent(int hdcpStatus)
         {
