@@ -273,7 +273,7 @@ namespace WPEFramework {
             {
                 uint32_t result = Core::ERROR_ASYNC_FAILED;
                 Core::Event event(false, true);
-                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Job>::Create([&]() {
+                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]() {
                     auto interface = shell->QueryInterfaceByCallsign<PluginHost::IController>("");
                     if (interface == nullptr) {
                         result = Core::ERROR_UNAVAILABLE;
@@ -284,7 +284,7 @@ namespace WPEFramework {
                         interface->Release();
                     }
                     event.SetEvent();
-                }));
+                })));
                 event.Lock();
                 return result;
             }
@@ -364,7 +364,7 @@ namespace WPEFramework {
             {
                 uint32_t result = Core::ERROR_ASYNC_FAILED;
                 Core::Event event(false, true);
-                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Job>::Create([&]() {
+                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]() {
                     auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
                     if (interface == nullptr) {
                         result = Core::ERROR_UNAVAILABLE;
@@ -375,7 +375,7 @@ namespace WPEFramework {
                         interface->Release();
                     }
                     event.SetEvent();
-                }));
+                })));
                 event.Lock();
                 return result;
             }
@@ -383,7 +383,7 @@ namespace WPEFramework {
             {
                 uint32_t result = Core::ERROR_ASYNC_FAILED;
                 Core::Event event(false, true);
-                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Job>::Create([&]() {
+                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]() {
                     auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
                     if (interface == nullptr) {
                         result = Core::ERROR_UNAVAILABLE;
@@ -394,7 +394,7 @@ namespace WPEFramework {
                         interface->Release();
                     }
                     event.SetEvent();
-                }));
+                })));
                 event.Lock();
                 return result;
             }
