@@ -209,7 +209,6 @@ namespace WPEFramework {
             IARM_Bus_PWRMgr_PowerState_t getSystemPowerState();
 
 	    void getHdmiCecSinkPlugin();
-	    WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* m_client;
 	    std::vector<std::string> m_clientRegisteredEventNames;
 	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
 	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
@@ -233,6 +232,7 @@ namespace WPEFramework {
 	    std::condition_variable arcRoutingCV;
 	    bool m_hdmiInAudioDeviceConnected;
         bool m_arcAudioEnabled;
+            bool m_arcPendingSADRequest;   
 	    bool m_hdmiCecAudioDeviceDetected;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }

@@ -73,6 +73,7 @@ using namespace std;
 #define PROC_DIR "/proc"
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define TR181_STOP_MAINTENANCE  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StopMaintenance.Enable"
+#define TR181_RDKVFWUPGRADER  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKFirmwareUpgrader.Enable"
 
 string notifyStatusToString(Maint_notify_status_t &status)
 {
@@ -1099,25 +1100,33 @@ namespace WPEFramework {
             string old_mode = g_currentMode;
             string bg_flag = "false";
             string new_optout_state = "";
+	    bool rdkvfwrfc=false;
+	    // 1 = Foreground and 0 = background
+	    int mode = 1;
 
+            rdkvfwrfc = readRFC(TR181_RDKVFWUPGRADER);
+            /* check if maintenance is on progress or not */
+            /* if in progress and firmware rfc is false then restrict the same */
+            if ( (rdkvfwrfc == false) && (MAINTENANCE_STARTED == m_notify_status) ){
+                LOGERR("Maintenance is in Progress, Mode change not allowed");
+                returnResponse(true);
+	    }
             /* Label should have maintenance mode and softwareOptout field */
             if ( parameters.HasLabel("maintenanceMode") && parameters.HasLabel("optOut") ){
 
                 new_mode = parameters["maintenanceMode"].String();
 
+                if ( BACKGROUND_MODE != new_mode && FOREGROUND_MODE != new_mode )  {
+                    LOGERR("value of new mode is incorrect, therefore \
+                            current mode '%s' not changed.\n", old_mode.c_str());
+                        returnResponse(false);
+                }
+
                 std::lock_guard<std::mutex> guard(m_callMutex);
 
-                /* check if maintenance is on progress or not */
-                /* if in progress restrict the same */
-                if ( MAINTENANCE_STARTED != m_notify_status ){
 
                     LOGINFO("SetMaintenanceMode new_mode = %s\n",new_mode.c_str());
 
-                    if ( BACKGROUND_MODE != new_mode && FOREGROUND_MODE != new_mode )  {
-                        LOGERR("value of new mode is incorrect, therefore \
-                                current mode '%s' not changed.\n", old_mode.c_str());
-                        returnResponse(false);
-                    }
                     /* remove any older one */
                     m_setting.remove("background_flag");
                     if ( BACKGROUND_MODE == new_mode ) {
@@ -1129,11 +1138,18 @@ namespace WPEFramework {
                     }
                     g_currentMode = new_mode;
                     m_setting.setValue("background_flag", bg_flag);
-                }
-                else{
-                    LOGERR("Maintenance is in Progress, Mode change not allowed");
-                    result =true;
-                }
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+		    /* Sending IARM Event to application for mode change */
+		    (new_mode != BACKGROUND_MODE) ? mode = 1 : mode = 0;
+                    LOGINFO("setMaintenanceMode rfc is true and mode:%d\n", mode);
+                    IARM_Result_t ret_code = IARM_RESULT_SUCCESS;
+	            ret_code = IARM_Bus_BroadcastEvent("RdkvFWupgrader", (IARM_EventId_t) 0, (void *)&mode, sizeof(mode));
+	            if (ret_code == IARM_RESULT_SUCCESS) {
+                        LOGINFO("IARM_Bus_BroadcastEvent is success and value=%d\n", mode);
+	            }else{
+                        LOGINFO("IARM_Bus_BroadcastEvent is fail and value=%d\n", mode);
+	            }
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
                 /* OptOut changes here */
                 new_optout_state = parameters["optOut"].String();
@@ -1229,7 +1245,7 @@ namespace WPEFramework {
                 JsonObject& response){
 
                 bool result=false;
-                if( checkAbortFlag() ) {
+                if( readRFC(TR181_STOP_MAINTENANCE) ) {
                     result=stopMaintenanceTasks();
                 }
                 else {
@@ -1331,18 +1347,24 @@ namespace WPEFramework {
                 return result;
         }
 
-        bool MaintenanceManager::checkAbortFlag(){
+        bool MaintenanceManager::readRFC(const char *rfc){
             bool ret=false;
             RFC_ParamData_t param;
-            WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("MaintenanceManager"),TR181_STOP_MAINTENANCE, &param);
+	    if (rfc == NULL) {
+                return ret;
+	    }
+            WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("MaintenanceManager"),rfc, &param);
             if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE){
+	        LOGINFO("rfc read success");
                 if( param.type == WDMP_BOOLEAN ){
+	            LOGINFO("rfc type is boolean");
                     if(strncasecmp(param.value,"true",4) == 0 ){
+	                LOGINFO("rfc value=%s", param.value);
                         ret=true;
                     }
                 }
             }
-            LOGINFO(" StopMaintenance.Enable = %s , call value %d ", (ret == true)?"true":"false", wdmpStatus);
+            LOGINFO(" %s = %s , call value %d ", rfc, (ret == true)?"true":"false", wdmpStatus);
             return ret;
         }
 

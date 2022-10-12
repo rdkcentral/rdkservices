@@ -19,6 +19,7 @@ set(PLUGIN_NAME Messenger)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_MESSENGER_AUTOSTART "true" CACHE STRING "Automatically start Messenger plugin")
+set(PLUGIN_MESSENGER_STARTUPORDER "" CACHE STRING "Automatically start Messenger plugin")
 set(PLUGIN_MESSENGER_MODE "Off" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 
 # deprecated/legacy flags support
