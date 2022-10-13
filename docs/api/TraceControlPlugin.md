@@ -59,7 +59,7 @@ The table below provides and overview of terms and abbreviations used in this do
 <a name="head.Description"></a>
 # Description
 
-The Trace Control plugin provides ability to disable/enable trace output an set its verbosity level.
+The `Trace Control` plugin provides ability to disable/enable trace output and set its verbosity level.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
@@ -80,7 +80,7 @@ The table below lists configuration options of the plugin.
 | configuration?.abbreviated | boolean | <sup>*(optional)*</sup> Enable abbreviated logging |
 | configuration?.remotes | object | <sup>*(optional)*</sup>  |
 | configuration?.remotes?.port | number | <sup>*(optional)*</sup> Port |
-| configuration?.remotes?.bindig | bindig | <sup>*(optional)*</sup> Binding |
+| configuration?.remotes?.binding | binding | <sup>*(optional)*</sup> Binding |
 
 <a name="head.Methods"></a>
 # Methods

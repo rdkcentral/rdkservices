@@ -66,8 +66,8 @@ namespace Plugin {
                 , Region()
                 , TimeZone()
                 , IP()
-                , Latitude(51.832547)
-                , Longitude(5.674899)
+                , Latitude(39.952583)
+                , Longitude(-75.165222)
             {
                 Add(_T("country"), &Country);
                 Add(_T("city"), &City);
