@@ -11,7 +11,7 @@
 #include "ServiceMock.h"
 #include "dsMgr.h"
 #include "dsDisplay.h"
-
+#include "pwrMgr.h"
 using namespace WPEFramework;
 
 class HDCPProfileTest : public ::testing::Test {
@@ -381,6 +381,16 @@ TEST_F(HDCPProfileEventIarmTest, onHdmiOutputHDCPStatusEvent)
 
                 return Core::ERROR_NONE;
             }));
+
+      ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                if (strcmp(methodName, IARM_BUS_PWRMGR_API_GetPowerState) == 0) {
+                    auto* param = static_cast<IARM_Bus_PWRMgr_GetPowerState_Param_t*>(arg);
+                    param->curState = IARM_BUS_PWRMGR_POWERSTATE_ON; 
+                }
+                return IARM_RESULT_SUCCESS;
+            });
 
     handler.Subscribe(0, _T("onDisplayConnectionChanged"), _T("client.events"), message);
 
