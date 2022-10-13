@@ -11,8 +11,8 @@ on:
 env:
   BUILD_TYPE: Debug
 
-  # Refs for stable2
-  THUNDER_REF: "R2-v1.11"
+  # Refs for 22Q4_sprint
+  THUNDER_REF: "R2-v1.12"
   INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
 
 jobs:
@@ -162,6 +162,7 @@ jobs:
           -DENABLE_DEEP_SLEEP
           -DENABLE_SET_WAKEUP_SRC_CONFIG
           -DENABLE_THERMAL_PROTECTION
+          -DUSE_FRAMEBUFFER_SCREENCAPTURE
           -DHAS_API_SYSTEM
           -DHAS_API_POWERSTATE
           -DENABLE_DEVICE_MANUFACTURER_INFO"
@@ -180,6 +181,7 @@ jobs:
           -DPLUGIN_FRAMERATE=ON
           -DPLUGIN_AVINPUT=ON
           -DPLUGIN_TELEMETRY=ON
+          -DPLUGIN_SCREENCAPTURE=ON
           -DPLUGIN_USBACCESS=ON
           -DPLUGIN_LOGGINGPREFERENCES=ON
           -DPLUGIN_USERPREFERENCES=ON
@@ -187,6 +189,8 @@ jobs:
           -DPLUGIN_DEVICEINFO=ON
           -DPLUGIN_SYSTEMSERVICES=ON
           -DRDK_SERVICES_TEST=ON
+          -DPLUGIN_HDMIINPUT=ON
+          -DPLUGIN_HDCPPROFILE=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build rdkservices

@@ -18,6 +18,8 @@
 set(PLUGIN_NAME ActivityMonitor)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_ACTIVITYMONITOR_STARTUPORDER "" CACHE STRING "To configure startup order of ActivityMonitor plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED

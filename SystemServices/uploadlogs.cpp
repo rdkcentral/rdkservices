@@ -57,11 +57,6 @@ namespace
         return ret;
     }
 
-    size_t ssrRead(char *data, size_t size, size_t nitems, void *userdata)
-    {
-        return ((std::stringstream *)userdata)->readsome(data, size * nitems);
-    }
-
     size_t ssrWrite(char *data, size_t size, size_t nitems, void *userdata)
     {
         size_t len = size * nitems;
@@ -76,25 +71,21 @@ namespace
         CURL *curl;
         CURLcode res = CURLE_UPLOAD_FAILED;
         long http_code = 0;
-        std::stringstream read;
         string data = "filename=" + filename;
-        read << data;
         std::stringstream write;
 
         curl = curl_easy_init();
         if (curl)
         {
-            curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+//            curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
             curl_easy_setopt(curl, CURLOPT_URL, C_STR(ssrUrl));
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
             curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
-            curl_easy_setopt(curl, CURLOPT_READFUNCTION, ssrRead);
-            curl_easy_setopt(curl, CURLOPT_READDATA, (void *)&read);
-            curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)data.size());
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ssrWrite);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&write);
 
-            LOGINFO("curl request to: %s", C_STR(ssrUrl));
+            LOGINFO("curl request to: %s with data: %s", C_STR(ssrUrl), data.c_str());
             res = curl_easy_perform(curl);
             if (res != CURLE_OK)
                 LOGERR("curl_easy_perform() failed: %s", curl_easy_strerror(res));
