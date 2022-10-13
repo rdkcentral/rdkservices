@@ -11,8 +11,8 @@ on:
 env:
   BUILD_TYPE: Debug
 
-  # Refs for stable2
-  THUNDER_REF: "R2-v1.11"
+  # Refs for 22Q4_sprint
+  THUNDER_REF: "R2-v1.12"
   INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
 
 jobs:
