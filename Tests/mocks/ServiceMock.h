@@ -68,6 +68,8 @@ public:
     MOCK_METHOD(uint8_t, Minor, (), (const, override));
     MOCK_METHOD(uint8_t, Patch, (), (const, override));
     MOCK_METHOD(uint32_t, ConfigLine, (const string& config), (override));
+    MOCK_METHOD(string, SystemRootPath, (), (const, override));
+    MOCK_METHOD(uint32_t, SystemRootPath, (const string& systemRootPath), (override));
 };
 
 #endif //SERVICEMOCK_H
