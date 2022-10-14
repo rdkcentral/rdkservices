@@ -238,10 +238,10 @@ TEST_F(HdmiInputDsTest, getHDMISPD)
     ON_CALL(hdmiInputImplMock, getHDMISPDInfo(::testing::_,::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](int iport, std::vector<uint8_t>& edidVec2) {
-                edidVec2 = {'0','1','2','n', 'p', '0'};
+                edidVec2 = {'0','1','2','n', 'p', '1','2','3','4','5','6','7',0,'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o',0,'q','r'};
             })); 
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("getHDMISPD"), _T("{\"portId\":0}"), response));
-    EXPECT_EQ(response, string("{\"HDMISPD\":\"Packet Type:30,Version:49,Length:50,vendor name:0n,product des:,source info:00\",\"success\":true}"));
+    EXPECT_EQ(response, string("{\"HDMISPD\":\"Packet Type:30,Version:49,Length:50,vendor name:1234567,product des:abcdefghijklmno,source info:71\",\"success\":true}"));
 }
 TEST_F(HdmiInputDsTest, getHDMISPDInvalid)
 {
