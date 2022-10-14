@@ -66,7 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 7
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -213,6 +213,7 @@ namespace WPEFramework {
         cSettings MaintenanceManager::m_setting(MAINTENANCE_MGR_RECORD_FILE);
 
         string task_names_foreground[]={
+            "/lib/rdk/StartDCM_maintaince.sh",
             "/lib/rdk/RFCbase.sh",
             "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
             "/lib/rdk/Start_uploadSTBLogs.sh"
@@ -249,10 +250,10 @@ namespace WPEFramework {
             Register("getMaintenanceMode", &MaintenanceManager::getMaintenanceMode,this);
 
 
-            MaintenanceManager::m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=false;
             MaintenanceManager::m_task_map[task_names_foreground[0].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[1].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[2].c_str()]=false;
+            MaintenanceManager::m_task_map[task_names_foreground[3].c_str()]=false;
 
 
          }
@@ -285,9 +286,25 @@ namespace WPEFramework {
 #else
             internetConnectStatus = isDeviceOnline();
 #endif
+
+            if ( false == internetConnectStatus ) {
+                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
+                LOGINFO("Maintenance is exiting as device is not connected to internet.");
+                return;
+            }
+
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
+
+            if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
+                LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
+                tasks.push_back("/lib/rdk/StartDCM_maintaince.sh");
+            }
+            else if( SOLICITED_MAINTENANCE == g_maintenance_type){
+                LOGINFO("=============SOLICITED_MAINTENANCE===============");
+            }
+
 #if defined(SUPPRESS_MAINTENANCE)
             /* decide which all tasks are needed based on the activation status */
             if (activationStatus){
@@ -312,52 +329,22 @@ namespace WPEFramework {
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
 
-            if ( false == internetConnectStatus ) {
-                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
-                LOGINFO("Maintenance completed as it is offline mode");
-            }
-            // Unsolicited part comes here
-	    else if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
-                LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-                for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
-                    LOGINFO("waiting to unlock.. [%d/%d]",i,tasks.size());
-                    task_thread.wait(lck);
-                    cmd = tasks[i];
-                    cmd += " &";
-                    cmd += "\0";
-                    m_task_map[tasks[i]] = true;
-
-                    if ( !m_abort_flag ){
-                        LOGINFO("Starting Script (USM) :  %s \n", cmd.c_str());
-                        system(cmd.c_str());
-                    }
-                }
-            }
-            /* Here in Solicited, we start with RFC so no
-             * need to wait for any DCM events */
-            else if( SOLICITED_MAINTENANCE == g_maintenance_type){
-                LOGINFO("=============SOLICITED_MAINTENANCE===============");
-                cmd = tasks[0];
+            for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
+                cmd = tasks[i];
                 cmd += " &";
                 cmd += "\0";
-                m_task_map[tasks[0]] = true;
-                LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
-                system(cmd.c_str());
-                cmd="";
-                for( i = 1; i < tasks.size() && !m_abort_flag; i++){
-                    LOGINFO("Waiting to unlock.. [%d/%d]",i,tasks.size());
+                m_task_map[tasks[i]] = true;
+
+                if ( !m_abort_flag ){
+                    LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
+                    system(cmd.c_str());
+
+                    LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
                     task_thread.wait(lck);
-                    cmd = tasks[i];
-                    cmd += " &";
-                    cmd += "\0";
-                    m_task_map[tasks[i]]=true;
-                    if ( !m_abort_flag ){
-                        LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
-                        system(cmd.c_str());
-                    }
                 }
             }
-            m_abort_flag=false;
+
+	    m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
         }
 
@@ -644,23 +631,6 @@ namespace WPEFramework {
             /* we post just to tell that we are in idle at this moment */
             MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
 
-            int32_t exec_status=E_NOK;
-
-            /* we call dcmscript to get the new start time */
-            if (Utils::fileExists("/lib/rdk/StartDCM_maintaince.sh")) {
-                exec_status = system("/lib/rdk/StartDCM_maintaince.sh &");
-                if ( E_OK == exec_status ){
-                    LOGINFO("DBG:Succesfully executed StartDCM_maintaince.sh \n");
-                    m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=true;
-                }
-                else {
-                    LOGINFO("DBG:Failed to execute StartDCM_maintaince.sh !! \n");
-                }
-            }
-            else {
-                LOGINFO("DBG: Unable to find StartDCM_maintaince.sh \n");
-            }
-
             m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
         }
 
@@ -681,10 +651,10 @@ namespace WPEFramework {
             IARM_Maint_module_status_t module_status;
             time_t successfulTime;
             string str_successfulTime="";
-            auto task_status_DCM=m_task_map.find("/lib/rdk/StartDCM_maintaince.sh");
-            auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
-            auto task_status_FWDLD=m_task_map.find(task_names_foreground[1].c_str());
-            auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[2].c_str());
+            auto task_status_DCM=m_task_map.find(task_names_foreground[0].c_str());
+            auto task_status_RFC=m_task_map.find(task_names_foreground[1].c_str());
+            auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
+            auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[3].c_str());
 
             IARM_Bus_MaintMGR_EventId_t event = (IARM_Bus_MaintMGR_EventId_t)eventId;
             LOGINFO("Maintenance Event-ID = %d \n",event);
@@ -713,7 +683,7 @@ namespace WPEFramework {
                                  SET_STATUS(g_task_status,RFC_SUCCESS);
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
                                  task_thread.notify_one();
-                                 m_task_map[task_names_foreground[0].c_str()]=false;
+                                 m_task_map[task_names_foreground[1].c_str()]=false;
                             }
                             break;
                         case MAINT_DCM_COMPLETE :
@@ -725,7 +695,7 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,DCM_SUCCESS);
                                 SET_STATUS(g_task_status,DCM_COMPLETE);
                                 task_thread.notify_one();
-                                m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=false;
+                                m_task_map[task_names_foreground[0].c_str()]=false;
                             }
                             break;
                         case MAINT_FWDOWNLOAD_COMPLETE :
@@ -737,7 +707,7 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,DIFD_SUCCESS);
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
                                 task_thread.notify_one();
-                                m_task_map[task_names_foreground[1].c_str()]=false;
+                                m_task_map[task_names_foreground[2].c_str()]=false;
                             }
                             break;
                        case MAINT_LOGUPLOAD_COMPLETE :
@@ -748,7 +718,8 @@ namespace WPEFramework {
                             else {
                                 SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
-                                m_task_map[task_names_foreground[2].c_str()]=false;
+                                task_thread.notify_one();
+                                m_task_map[task_names_foreground[3].c_str()]=false;
                             }
 
                             break;
@@ -764,7 +735,7 @@ namespace WPEFramework {
                             /* we say FW update task complete */
                             SET_STATUS(g_task_status,DIFD_COMPLETE);
                             task_thread.notify_one();
-                            m_task_map[task_names_foreground[1].c_str()]=false;
+                            m_task_map[task_names_foreground[2].c_str()]=false;
                             LOGINFO("FW Download task aborted \n");
                             break;
                         case MAINT_DCM_ERROR:
@@ -775,7 +746,7 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,DCM_COMPLETE);
                                 task_thread.notify_one();
                                 LOGINFO("Error encountered in DCM script task \n");
-                                m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=false;
+                                m_task_map[task_names_foreground[0].c_str()]=false;
                             }
                             break;
                         case MAINT_RFC_ERROR:
@@ -787,7 +758,7 @@ namespace WPEFramework {
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
                                  task_thread.notify_one();
                                  LOGINFO("Error encountered in RFC script task \n");
-                                 m_task_map[task_names_foreground[0].c_str()]=false;
+                                 m_task_map[task_names_foreground[1].c_str()]=false;
                             }
 
                             break;
@@ -798,8 +769,9 @@ namespace WPEFramework {
                             }
                             else {
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
+                                task_thread.notify_one();
                                 LOGINFO("Error encountered in LOGUPLOAD script task \n");
-                                m_task_map[task_names_foreground[2].c_str()]=false;
+                                m_task_map[task_names_foreground[3].c_str()]=false;
                             }
 
                             break;
@@ -812,26 +784,26 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
                                 task_thread.notify_one();
                                 LOGINFO("Error encountered in SWUPDATE script task \n");
-                                m_task_map[task_names_foreground[1].c_str()]=false;
+                                m_task_map[task_names_foreground[2].c_str()]=false;
                             }
                             break;
                        case MAINT_DCM_INPROGRESS:
-                            m_task_map["/lib/rdk/StartDCM_maintaince.sh"]=true;
+                            m_task_map[task_names_foreground[0].c_str()]=true;
                             /*will be set to false once COMEPLETE/ERROR received for DCM*/
                             LOGINFO(" DCM already IN PROGRESS -> setting m_task_map of DCM to true \n");
                             break;
                        case MAINT_RFC_INPROGRESS:
-                            m_task_map[task_names_foreground[0].c_str()]=true;
+                            m_task_map[task_names_foreground[1].c_str()]=true;
                             /*will be set to false once COMEPLETE/ERROR received for RFC*/
                             LOGINFO(" RFC already IN PROGRESS -> setting m_task_map of RFC to true \n");
                             break;
                        case MAINT_FWDOWNLOAD_INPROGRESS:
-                            m_task_map[task_names_foreground[1].c_str()]=true;
+                            m_task_map[task_names_foreground[2].c_str()]=true;
                             /*will be set to false once COMEPLETE/ERROR received for FWDOWNLOAD*/
                             LOGINFO(" FWDOWNLOAD already IN PROGRESS -> setting m_task_map of FWDOWNLOAD to true \n");
                             break;
                        case MAINT_LOGUPLOAD_INPROGRESS:
-                            m_task_map[task_names_foreground[2].c_str()]=true;
+                            m_task_map[task_names_foreground[3].c_str()]=true;
                             /*will be set to false once COMEPLETE/ERROR received for LOGUPLOAD*/
                             LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
                             break;
@@ -1291,10 +1263,10 @@ namespace WPEFramework {
                     // Set the condition flag m_abort_flag to true
                     m_abort_flag = true;
 
-                    auto task_status_DCM=m_task_map.find("/lib/rdk/StartDCM_maintaince.sh");
-                    auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
-                    auto task_status_FWDLD=m_task_map.find(task_names_foreground[1].c_str());
-                    auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[2].c_str());
+                    auto task_status_DCM=m_task_map.find(task_names_foreground[0].c_str());
+                    auto task_status_RFC=m_task_map.find(task_names_foreground[1].c_str());
+                    auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
+                    auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[3].c_str());
 
                     task_status[0] = task_status_DCM->second;
                     task_status[1] = task_status_RFC->second;
