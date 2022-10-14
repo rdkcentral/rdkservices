@@ -267,7 +267,7 @@ namespace WPEFramework {
 
             if ( false == internetConnectStatus ) {
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
-                LOGINFO("Maintenance completed as it is offline mode");
+                LOGINFO("Maintenance is exiting as device is not connected to internet.");
                 return;
             }
 
