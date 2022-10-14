@@ -55,7 +55,9 @@ public:
 
         VARIABLE_IS_NOT_USED NEXUS_Error rc = NxClient_Join(NULL);
         ASSERT(!rc);
+#if defined(DISPLAYINFO_BCM_VERSION_MAJOR) && (DISPLAYINFO_BCM_VERSION_MAJOR > 16)
         NxClient_UnregisterAcknowledgeStandby(NxClient_RegisterAcknowledgeStandby());
+#endif
         NEXUS_Platform_GetConfiguration(&_platformConfig);
 
         UpdateTotalGpuRam(_totalGpuRam);
@@ -418,16 +420,19 @@ private:
             type = HDR_10PLUS;
             break;
         }
-#else
+            default:
+                break;
+            }
+#elif defined(DISPLAYINFO_BCM_VERSION_MAJOR) && (DISPLAYINFO_BCM_VERSION_MAJOR > 16)
         switch  (displaySettings.hdmiPreferences.drmInfoFrame.eotf) {
         case NEXUS_VideoEotf_eHdr10: {
             type = HDR_10;
             break;
         }
-#endif
         default:
             break;
         }
+#endif
 
         // Read display width and height
         NEXUS_DisplayCapabilities capabilities;

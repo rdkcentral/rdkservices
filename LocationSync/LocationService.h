@@ -102,6 +102,14 @@ namespace Plugin {
         {
             return (_city);
         }
+        int32_t Latitude() const override
+        {
+            return (_latitude);
+        }
+        int32_t Longitude() const override
+        {
+            return (_longitude);
+        }
 
     private:
         // Notification of a Partial Request received, time to attach a body..
@@ -128,6 +136,8 @@ namespace Plugin {
         string _country;
         string _region;
         string _city;
+        int32_t _latitude;
+        int32_t _longitude;
         Core::WorkerPool::JobType<LocationService&> _activity;
         Core::ProxyType<IGeography> _infoCarrier;
         Core::ProxyType<Web::Request> _request;

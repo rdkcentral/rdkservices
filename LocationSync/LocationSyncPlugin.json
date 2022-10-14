@@ -22,18 +22,24 @@
                     "retries": {
                         "type": "number",
                         "size": 8,
-                        "description": "Maximum number of request reties to the Location Server (default:20)."
+                        "description": "Maximum number of request reties to the Location Server (default:60)."
                     },
                     "source": {
                         "type": "string",
                         "size": 16,
                         "description": "URI of the Location Server (default:\"location.webplatformforembedded.org\")."
-                    }
+		    },
+		     "timezone": {
+                     "type": "string",
+                     "size": 16,
+                     "description": "with this the timezone can be overridden, otherwise taken from location (note can als be overriden with JSONRPC call)."
+		    }
                 }
             }
         }
     },
-    "interface": {
-        "$ref": "LocationSync.json#"
-    }
+    "interface": [
+      { "$cppref": "{cppinterfacedir}/ITimeZone.h" },
+      { "$ref": "{interfacedir}/LocationSync.json#" }
+    ]
 }
