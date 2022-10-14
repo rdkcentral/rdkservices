@@ -49,116 +49,104 @@ namespace Plugin {
     /* virtual */ const string PlayerInfo::Initialize(PluginHost::IShell* service)
     {
         ASSERT(service != nullptr);
-        ASSERT(_player == nullptr);
         ASSERT(_service == nullptr);
+        ASSERT(_connectionId == 0);
+        ASSERT(_player == nullptr);
 
         string message;
         Config config;
         config.FromString(service->ConfigLine());
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
 
-        _connectionId = 0;
         _service = service;
-        _service->Register(&_rcnotification);
+        _service->AddRef();
+        // Register the Process::Notification stuff. The Remote process might die before we get a
+        // change to "register" the sink for these events !!! So do it ahead of instantiation.
+        _service->Register(&_notification);
+
         _player = service->Root<Exchange::IPlayerProperties>(_connectionId, 2000, _T("PlayerInfoImplementation"));
-
         if (_player != nullptr) {
-            Exchange::JPlayerProperties::Register(*this, _player);
-            if ( (_player->AudioCodecs(_audioCodecs) != Core::ERROR_NONE)  || (_audioCodecs == nullptr) ) {
-                if (_audioCodecs != nullptr) {
-                    _audioCodecs->Release();
-                    _audioCodecs = nullptr;
-                }
-                _player->Release();
-                _player = nullptr;
-            }
-            else if ((_player->VideoCodecs(_videoCodecs) != Core::ERROR_NONE) || (_videoCodecs == nullptr) ) {
-                if (_videoCodecs != nullptr) {
 
-                    _videoCodecs->Release();
-                    _videoCodecs = nullptr;
+            if ((_player->AudioCodecs(_audioCodecs) == Core::ERROR_NONE) && (_audioCodecs != nullptr)) {
+
+                if ((_player->VideoCodecs(_videoCodecs) == Core::ERROR_NONE) && (_videoCodecs != nullptr)) {
+                    Exchange::JPlayerProperties::Register(*this, _player);
+                    // The code execution should proceed regardless of the _dolbyOut
+                    // value, as it is not a essential.
+                    // The relevant JSONRPC endpoints will return ERROR_UNAVAILABLE,
+                    // if it hasn't been initialized.
+#if DOLBY_SUPPORT
+                    _dolbyOut = _player->QueryInterface<Exchange::Dolby::IOutput>();
+                    if(_dolbyOut == nullptr){
+                        SYSLOG(Logging::Startup, (_T("Dolby output switching service is unavailable.")));
+                    } else {
+                        _dolbyNotification.Initialize(_dolbyOut);
+                        Exchange::Dolby::JOutput::Register(*this, _dolbyOut);
+                    }
+#endif
+                } else {
+                    message = _T("PlayerInfo Video Codecs not be Loaded.");
                 }
-                _audioCodecs->Release();
-                _audioCodecs = nullptr;
-                _player->Release();
-                _player = nullptr;
             } else {
-
-                // The code execution should proceed regardless of the _dolbyOut
-                // value, as it is not a essential.
-                // The relevant JSONRPC endpoints will return ERROR_UNAVAILABLE,
-                // if it hasn't been initialized.
-                _dolbyOut = _player->QueryInterface<Exchange::Dolby::IOutput>();
-                if(_dolbyOut == nullptr){
-                    SYSLOG(Logging::Startup, (_T("Dolby output switching service is unavailable.")));
-                }
-                else
-                {
-                    _notification.Initialize(_dolbyOut);
-                    Exchange::Dolby::JOutput::Register(*this, _dolbyOut);
-                }
-
+                message = _T("PlayerInfo Audio Codecs not be Loaded.");
             }
         }
-
-        if (_player == nullptr) {
+        else {
             message = _T("PlayerInfo could not be instantiated.");
+        }
+
+        if(message.length() != 0){
+            Deinitialize(service);
         }
         return message;
     }
 
-    void PlayerInfo::Deactivated(RPC::IRemoteConnection* connection)
+    /* virtual */ void PlayerInfo::Deinitialize(PluginHost::IShell* service VARIABLE_IS_NOT_USED)
     {
-        if (connection->Id() == _connectionId) {
-            ASSERT(_service != nullptr);
-            // This can potentially be called on a socket thread, so the deactivation (wich in turn kills this object) must be done
-            // on a seperate thread. Also make sure this call-stack can be unwound before we are totally destructed.
-            Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service, PluginHost::IShell::DEACTIVATED, PluginHost::IShell::FAILURE));
-        }
-    }
-
-    /* virtual */ void PlayerInfo::Deinitialize(PluginHost::IShell* service)
-    {
-        ASSERT(_player != nullptr);
-        ASSERT(_audioCodecs != nullptr);
-        ASSERT(_videoCodecs != nullptr);
         ASSERT(service == _service);
 
-        _service->Unregister(&_rcnotification);
+        _service->Unregister(&_notification);
 
-        if (_dolbyOut != nullptr)
-        {
-             _notification.Deinitialize();
-            Exchange::Dolby::JOutput::Unregister(*this);
+        if (_player != nullptr) {
+            if(_audioCodecs != nullptr && _videoCodecs != nullptr) {
+                Exchange::JPlayerProperties::Unregister(*this);
+            }
+            if (_audioCodecs != nullptr) {
+                _audioCodecs->Release();
+                _audioCodecs = nullptr;
+            }
+            if (_videoCodecs != nullptr) {
+                _videoCodecs->Release();
+                _videoCodecs = nullptr;
+            }
+            #if DOLBY_SUPPORT
+                if (_dolbyOut != nullptr) {
+                    _dolbyNotification.Deinitialize();
+                    Exchange::Dolby::JOutput::Unregister(*this);
+                    _dolbyOut->Release();
+                    _dolbyOut = nullptr;
+                }
+            #endif
 
-            _dolbyOut->Release();
-            _dolbyOut = nullptr;
-
-        }
-
-        _audioCodecs->Release();
-        _audioCodecs = nullptr;
-        _videoCodecs->Release();
-        _videoCodecs = nullptr;
-
-        Exchange::JPlayerProperties::Unregister(*this);
-        auto const result = _player->Release();
-
-        if (result != Core::ERROR_DESTRUCTION_SUCCEEDED) {
             RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+            VARIABLE_IS_NOT_USED uint32_t result = _player->Release();
+            _player = nullptr;
+            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
-            // The process can disappear in the meantime...
+            // The connection can disappear in the meantime...
             if (connection != nullptr) {
-
                 // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
                 connection->Terminate();
                 connection->Release();
             }
         }
 
-        _connectionId = 0;
+        _service->Release();
         _service = nullptr;
         _player = nullptr;
+        
+        _connectionId = 0;
+
     }
 
     /* virtual */ string PlayerInfo::Information() const
@@ -193,7 +181,7 @@ namespace Plugin {
 
             Info(*response);
             result->ContentType = Web::MIMETypes::MIME_JSON;
-            result->Body(Core::proxy_cast<Web::IBody>(response));
+            result->Body(Core::ProxyType<Web::IBody>(response));
         } else {
             result->ErrorCode = Web::STATUS_BAD_REQUEST;
             result->Message = _T("Unsupported request for the [PlayerInfo] service.");
@@ -207,17 +195,26 @@ namespace Plugin {
         Core::JSON::EnumType<JsonData::PlayerInfo::CodecsData::AudiocodecsType> audioCodec;
         _audioCodecs->Reset(0);
         Exchange::IPlayerProperties::AudioCodec audio;
-        while(_audioCodecs->Next(audio)) {
+        while(_audioCodecs->Next(audio) == true) {
             playerInfo.Audio.Add(audioCodec = static_cast<JsonData::PlayerInfo::CodecsData::AudiocodecsType>(audio));
         }
 
         Core::JSON::EnumType<JsonData::PlayerInfo::CodecsData::VideocodecsType> videoCodec;
         Exchange::IPlayerProperties::VideoCodec video;
         _videoCodecs->Reset(0);
-        while(_videoCodecs->Next(video)) {
+         while(_videoCodecs->Next(video) == true) {
             playerInfo.Video.Add(videoCodec = static_cast<JsonData::PlayerInfo::CodecsData::VideocodecsType>(video));
         }
     }
 
+    void PlayerInfo::Deactivated(RPC::IRemoteConnection* connection)
+    {
+        // This can potentially be called on a socket thread, so the deactivation (wich in turn kills this object) must be done
+        // on a seperate thread. Also make sure this call-stack can be unwound before we are totally destructed.
+        if (_connectionId == connection->Id()) {
+            ASSERT(_service != nullptr);
+            Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service, PluginHost::IShell::DEACTIVATED, PluginHost::IShell::FAILURE));
+        }
+    }
 } // namespace Plugin
 } // namespace WPEFramework
