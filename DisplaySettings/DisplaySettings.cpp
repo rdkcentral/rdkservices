@@ -50,6 +50,7 @@
 #include "UtilsJsonRpc.h"
 #include "UtilsString.h"
 #include "UtilsisValidInt.h"
+#include "dsRpc.h"
 
 using namespace std;
 
