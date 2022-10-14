@@ -24,10 +24,6 @@
 #include "libIBus.h"
 #include "UtilsJsonRpc.h"
 
-#define BUFFER_SIZE 512
-#define Command1 "wpa_cli status"
-#define Command2 "wpa_cli signal_poll"
-
 using namespace WPEFramework::Plugin;
 using namespace std;
 
@@ -44,49 +40,12 @@ namespace {
         }
         return WifiState::FAILED;
     }
-
-    SsidSecurity getSecurityModeValue(std::string str)
-    {
-        if(!str.compare("NET_WIFI_SECURITY_NONE"))
-            return SsidSecurity::NET_WIFI_SECURITY_NONE;
-        else if(!str.compare("NET_WIFI_SECURITY_WEP_64"))
-            return SsidSecurity::NET_WIFI_SECURITY_WEP_64;
-        else if(!str.compare("NET_WIFI_SECURITY_WEP_128"))
-            return SsidSecurity::NET_WIFI_SECURITY_WEP_128;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA_PSK_TKIP"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA_PSK_TKIP;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA_PSK_AES"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA_PSK_AES;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA2_PSK_TKIP"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA2_PSK_TKIP;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA2_PSK_AES"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA2_PSK_AES;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA_ENTERPRISE_TKIP"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA_ENTERPRISE_TKIP;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA_ENTERPRISE_AES"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA_ENTERPRISE_AES;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA2_PSK_AES"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA2_PSK_AES;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA_WPA2_PSK"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA_WPA2_PSK;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA_WPA2_ENTERPRISE"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA_WPA2_ENTERPRISE;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA3_PSK_AES"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA3_PSK_AES;
-        else if(!str.compare("NET_WIFI_SECURITY_WPA3_SAE"))
-            return SsidSecurity::NET_WIFI_SECURITY_WPA3_SAE;
-        else
-            return SsidSecurity::NET_WIFI_SECURITY_NOT_SUPPORTED;
-    }
 }
 
 WifiManagerState::WifiManagerState()
 {
     m_useWifiStateCache = false;
     m_wifiStateCache = WifiState::FAILED;
-    m_useWifiConnectedCache = false;
     m_ConnectedSSIDCache = "";
     m_ConnectedBSSIDCache = "";
     m_ConnectedSecurityModeCache = 0;
@@ -101,11 +60,6 @@ void WifiManagerState::setWifiStateCache(bool value,WifiState Cstate)
 {
     m_useWifiStateCache = value;
     m_wifiStateCache = Cstate;
-}
-
-void WifiManagerState::resetWifiStateConnectedCache(bool value)
-{
-    m_useWifiConnectedCache = value;
 }
 
 uint32_t WifiManagerState::getCurrentState(const JsonObject &parameters, JsonObject &response)
@@ -127,160 +81,28 @@ uint32_t WifiManagerState::getCurrentState(const JsonObject &parameters, JsonObj
     returnResponse(retVal == IARM_RESULT_SUCCESS);
 }
 
-std::map<std::string, std::string> WifiManagerState::retrieveValues(const char *command, char *output_buffer, size_t output_buffer_size)
+uint32_t WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonObject &response) const
 {
-    std::string key, value;
-    std::map<std::string, std::string> MyMap;
+    IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+    IARM_Bus_WiFiSrvMgr_Param_t param;
 
-    FILE *fp = popen(command, "r");
-    if (!fp)
+    memset(&param, 0, sizeof(param));
+
+    retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getConnectedSSID, (void *)&param, sizeof(param));
+
+    if(retVal == IARM_RESULT_SUCCESS)
     {
-        LOGERR("Failed in getting output from command %s \n",command);
-    }
-    while(fgets(output_buffer, output_buffer_size, fp) != NULL)
-    {
-        std::istringstream mystream(output_buffer);
-        if(std::getline(std::getline(mystream, key, '=') >> std::ws, value))
-            MyMap[key] = value;
-    }
-    pclose(fp);
-
-    return MyMap;
-}
-
-bool WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonObject &response)
-{
-    WiFiConnectedSSIDInfo_t param;
-    char buff[BUFFER_SIZE] = {'\0'};
-    int phyrate, noise, rssi,freq;
-    bool result = false;
-    std::string security_mode = "";
-    std::string auth = "";
-    std::string encryption = "";
-    std::string wifi_wpa_state = "";
-
-    memset(&param, '\0', sizeof(param));
-
-    if(!m_useWifiConnectedCache)
-    {
-        auto list = WifiManagerState::retrieveValues(Command1, buff, sizeof (buff));
-
-        if (!list.empty())
-        {
-            for(auto it = list.cbegin(); it != list.cend(); ++it)
-            {
-                if (it->first == "wpa_state")
-                {
-                    wifi_wpa_state = it->second;
-                }
-                else if (it->first == "ssid")
-                {
-                    m_ConnectedSSIDCache = it->second;
-                }
-                else if (it->first == "bssid")
-                {
-                    m_ConnectedBSSIDCache = it->second;
-                }
-                else if (it->first == "pairwise_cipher")
-                {
-                    encryption = it->second.c_str();
-                    if(!encryption.compare("TKIP"))
-                    {
-                        encryption.clear();
-                        encryption = "_TKIP";
-                    }
-                    if(!encryption.compare("CCMP"))
-                    {
-                        encryption.clear();
-                        encryption = "_AES";
-                    }
-                }
-                else if (it->first == "key_mgmt")
-                {
-                    auth = it->second.c_str();
-                    std::replace( auth.begin(), auth.end(), '-', '_');
-                }
-            }
-            /* if Wifi is Disconnected ,getConnectedSSID api response becomes zero and empty string */
-            if(wifi_wpa_state != "COMPLETED")
-            {
-                result = true;
-                response["ssid"] = "";
-                response["bssid"] = "";
-                response["rate"] = to_string(param.rate);
-                response["noise"] = to_string(param.noise);
-                response["security"] = m_ConnectedSecurityModeCache;
-                response["signalStrength"] = to_string(param.signalStrength);
-                response["frequency"] = to_string(((float)param.frequency)/1000);
-
-                return result;
-             }
-             else
-             {
-                 if (auth.empty())
-                     security_mode = "NET_WIFI_SECURITY_NONE";
-                 else
-                     security_mode = "NET_WIFI_SECURITY_" + auth + encryption;
-
-                 m_ConnectedSecurityModeCache = static_cast<int>(getSecurityModeValue(security_mode));
-                 result = true;
-                 m_useWifiConnectedCache = true;
-             }
-        }
-        else
-        {
-            LOGERR("Command failed to execute:%s\n",Command1);
-            result = false;
-        }
+        auto &connectedSsid = param.data.getConnectedSSID;
+        response["ssid"] = string(connectedSsid.ssid);
+        response["bssid"] = string(connectedSsid.bssid);
+        response["rate"] = to_string(connectedSsid.rate);
+        response["noise"] = to_string(connectedSsid.noise);
+        response["security"] = to_string(connectedSsid.securityMode);
+        response["signalStrength"] = to_string(connectedSsid.signalStrength);
+        response["frequency"] = to_string(((float)connectedSsid.frequency)/1000);
     }
 
-    auto clist = WifiManagerState::retrieveValues(Command2, buff, sizeof (buff));
-
-    if (!clist.empty())
-    {
-        for(auto it = clist.cbegin(); it != clist.cend(); ++it)
-        {
-            if (it->first == "LINKSPEED") // phyRate
-            {
-                phyrate = atoi(it->second.c_str());
-                param.rate = phyrate;
-            }
-            else if (it->first == "RSSI")
-            {
-                rssi = atoi(it->second.c_str());
-                param.signalStrength  = rssi;
-            }
-            else if (it->first == "NOISE")
-            {
-                noise = atoi(it->second.c_str());
-                param.noise  = noise;
-            }
-            else if (it->first == "FREQUENCY")
-            {
-                freq = atoi(it->second.c_str());
-                param.frequency  = freq;
-            }
-        }
-        result = true;
-    }
-    else
-    {
-        LOGERR("Command failed to execute:%s\n",Command2);
-        result = false;
-    }
-
-    if(result == true)
-    {
-        response["ssid"] = m_ConnectedSSIDCache;
-        response["bssid"] = m_ConnectedBSSIDCache;
-        response["rate"] = to_string(param.rate);
-        response["noise"] = to_string(param.noise);
-        response["security"] = m_ConnectedSecurityModeCache;
-        response["signalStrength"] = to_string(param.signalStrength);
-        response["frequency"] = to_string(((float)param.frequency)/1000);
-    }
-
-    return result;
+    returnResponse(retVal == IARM_RESULT_SUCCESS);
 }
 
 uint32_t WifiManagerState::setEnabled(const JsonObject &parameters, JsonObject &response)
