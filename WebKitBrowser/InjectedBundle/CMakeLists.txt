@@ -66,6 +66,7 @@ if(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE)
 endif()
 
 if(PLUGIN_WEBKITBROWSER_UPDATE_TZ_FROM_FILE)
+    target_sources(${MODULE_NAME} PRIVATE TimeZoneSupport.cpp)
     target_compile_definitions(${MODULE_NAME} PRIVATE UPDATE_TZ_FROM_FILE)
     if(TZ_FILE)
         add_definitions(-DTZ_FILE="${TZ_FILE}")
