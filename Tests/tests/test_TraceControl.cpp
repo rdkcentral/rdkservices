@@ -23,7 +23,6 @@
 #include "TraceControl.h"
 
 #include "FactoriesImplementation.h"
-#include "IarmBusMock.h"
 #include "ServiceMock.h"
 #include "COMLinkMock.h"
 
@@ -63,7 +62,6 @@ protected:
 class TraceControlInitializedTest : public TraceControlTest {
 protected:
     FactoriesImplementation factoriesImplementation;
-    IarmBusImplMock iarmBusImplMock;
     ServiceMock service;
     COMLinkMock comLinkMock;
 
@@ -91,7 +89,6 @@ protected:
              .WillByDefault(::testing::Return(&comLinkMock));
 
         PluginHost::IFactories::Assign(&factoriesImplementation);
-        IarmBus::getInstance().impl = &iarmBusImplMock;
         EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
 
@@ -99,7 +96,6 @@ protected:
     {
         plugin->Deinitialize(&service);
         PluginHost::IFactories::Assign(nullptr);
-        IarmBus::getInstance().impl = nullptr;
     }
 };
 
@@ -180,12 +176,9 @@ TEST_F(TraceControlInitializedTest, jsonRpc)
     std::string s(buffer, buffer+len);
 
     //Verify the test data is present in the trace file
-    bool result = (s.find("Test1") != string::npos);
-    EXPECT_TRUE(result);
-    result = (s.find("Test2") != string::npos);
-    EXPECT_TRUE(result);
-    result = (s.find("Test3") != string::npos);
-    EXPECT_TRUE(result);
+    EXPECT_THAT(s, ::testing::HasSubstr("Test1"));
+    EXPECT_THAT(s, ::testing::HasSubstr("Test2"));
+    EXPECT_THAT(s, ::testing::HasSubstr("Test3"));
 
     //Delete trace files
     Core::File(volatilePath+"tracebuffer").Destroy();
@@ -407,12 +400,9 @@ TEST_F(TraceControlInitializedTest, httpGetPut)
     std::string s(buffer, buffer+len);
 
     //Verify the test data is present in the trace file
-    bool result = (s.find("Test4") != string::npos);
-    EXPECT_TRUE(result);
-    result = (s.find("Test5") != string::npos);
-    EXPECT_TRUE(result);
-    result = (s.find("Test6") != string::npos);
-    EXPECT_TRUE(result);
+    EXPECT_THAT(s, ::testing::HasSubstr("Test4"));
+    EXPECT_THAT(s, ::testing::HasSubstr("Test5"));
+    EXPECT_THAT(s, ::testing::HasSubstr("Test6"));
 
     //Delete trace files
     Core::File(volatilePath+"tracebuffer").Destroy();
