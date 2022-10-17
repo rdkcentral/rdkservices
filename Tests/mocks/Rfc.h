@@ -61,9 +61,9 @@ typedef enum {
 #define MAX_PARAM_LEN (2 * 1024)
 
 typedef struct _RFC_Param_t {
-   char name[MAX_PARAM_LEN];
-   char value[MAX_PARAM_LEN];
-   DATA_TYPE type;
+    char name[MAX_PARAM_LEN];
+    char value[MAX_PARAM_LEN];
+    DATA_TYPE type;
 } RFC_ParamData_t;
 
 class RfcApiImpl {
@@ -99,7 +99,6 @@ public:
     {
         return getInstance().impl->getRFCErrorString(code);
     }
-
 };
 
 constexpr auto getRFCParameter = &RfcApi::getRFCParameter;

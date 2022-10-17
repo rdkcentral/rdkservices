@@ -2,7 +2,7 @@
 
 #include <gmock/gmock.h>
 
-#include "telemetry_busmessage_sender.h"
+#include "Telemetry.h"
 
 class TelemetryApiImplMock : public TelemetryApiImpl {
 public:
