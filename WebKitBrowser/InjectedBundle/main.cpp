@@ -46,6 +46,8 @@
 #include "AAMPJSBindings.h"
 #endif
 
+#include <gio/gio.h>
+
 using namespace WPEFramework;
 using JavaScript::ClassDefinition;
 
@@ -68,6 +70,16 @@ std::string GetURL() {
 #include "WhiteListedOriginDomainsList.h"
 using WebKit::WhiteListedOriginDomainsList;
 
+#ifdef UPDATE_TZ_FROM_FILE
+
+#ifdef TZ_FILE
+const char *kTimeZoneFile = TZ_FILE;
+#else
+const char *kTimeZoneFile = "/opt/persistent/timeZoneDST";
+#endif
+
+#endif // UPDATE_TZ_FROM_FILE
+
 static Core::NodeId GetConnectionNode()
 {
     string nodeName;
@@ -86,6 +98,8 @@ public:
     PluginHost()
         : _engine(Core::ProxyType<RPC::InvokeServerType<2, 0, 4>>::Create())
         , _comClient(Core::ProxyType<RPC::CommunicatorClient>::Create(GetConnectionNode(), Core::ProxyType<Core::IIPCServer>(_engine)))
+        , _timeZoneFileMonitor(nullptr)
+        , _timeZoneFileMonitorId(0)
     {
         _engine->Announcements(_comClient->Announcement());
     }
@@ -107,10 +121,17 @@ public:
             Trace::TraceUnit::Instance().Open(_comClient->ConnectionId());
         }
         _whiteListedOriginDomainPairs = WhiteListedOriginDomainsList::RequestFromWPEFramework();
+
+#ifdef UPDATE_TZ_FROM_FILE
+        UpdateTimeZone();
+#endif // UPDATE_TZ_FROM_FILE
     }
 
     void Deinitialize()
     {
+        if (_timeZoneFileMonitor && _timeZoneFileMonitorId > 0) {
+            g_signal_handler_disconnect(_timeZoneFileMonitor, _timeZoneFileMonitorId);
+        }
         if (_comClient.IsValid() == true) {
             _comClient.Release();
         }
@@ -125,9 +146,54 @@ public:
         }
     }
 
+#ifdef UPDATE_TZ_FROM_FILE
+    static void HandleTimeZoneFileUpdate(GFileMonitor *monitor, GFile *file, GFile *other, GFileMonitorEvent evtype, gpointer user_data) {
+        if (evtype == G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT) {
+            gchar *content = nullptr;
+            gsize length = 0;
+
+            g_file_load_contents(file, nullptr, &content, &length, nullptr, nullptr);
+            if(content && length > 0) {
+                gchar *timezone = g_strdup_printf(":%s", content);
+
+                SYSLOG(Trace::Information, (_T("TimeZone is updated to %s from %s file"), timezone, kTimeZoneFile));
+                Core::SystemInfo::SetEnvironment(_T("TZ"), _T(timezone), true);
+                tzset();
+
+                g_free(timezone);
+                g_free(content);
+            }
+
+            if(user_data && monitor) {
+                gulong *handlerId = (gulong*)user_data;
+                g_signal_handler_disconnect(monitor, *handlerId);
+                *handlerId = 0;
+            }
+        }
+    }
+
+    void UpdateTimeZone() {
+        if(kTimeZoneFile == nullptr || strlen(kTimeZoneFile) == 0) {
+            SYSLOG(Trace::Warning, (_T("Invalid file input for TZ update")));
+            return;
+        }
+
+        GFile *file = g_file_new_for_path(kTimeZoneFile);
+        if(g_file_query_exists(file, nullptr)) {
+            HandleTimeZoneFileUpdate(nullptr, file, nullptr, G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT, nullptr);
+        } else {
+            _timeZoneFileMonitor = g_file_monitor_file(file, G_FILE_MONITOR_NONE, nullptr, nullptr);
+            _timeZoneFileMonitorId = g_signal_connect(_timeZoneFileMonitor, "changed", reinterpret_cast<GCallback>(HandleTimeZoneFileUpdate), &_timeZoneFileMonitorId);
+            SYSLOG(Trace::Information, (_T("Installed file monitor for %s"), kTimeZoneFile));
+        }
+    }
+#endif // UPDATE_TZ_FROM_FILE
+
 private:
     Core::ProxyType<RPC::InvokeServerType<2, 0, 4> > _engine;
     Core::ProxyType<RPC::CommunicatorClient> _comClient;
+    GFileMonitor *_timeZoneFileMonitor;
+    gulong _timeZoneFileMonitorId;
 
     // White list for CORS.
     std::unique_ptr<WhiteListedOriginDomainsList> _whiteListedOriginDomainPairs;
