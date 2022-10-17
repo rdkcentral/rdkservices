@@ -60,6 +60,9 @@ using std::ofstream;
 #define EVT_ONTEMPERATURETHRESHOLDCHANGED "onTemperatureThresholdChanged"
 #define EVT_ONMACADDRESSRETRIEVED         "onMacAddressesRetreived"
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+#define EVT_ONTIMESTATUSCHANGED           "onTimeStatusChanged"
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
 #define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
 #define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
@@ -189,6 +192,9 @@ namespace WPEFramework {
                 void onClockSet();
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+                void onTimeStatusChanged(string timequality,string timesource, string utctime);
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
                 void onRebootRequest(string reason);
                 void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
 		void onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion="", string newRegion="");
@@ -209,6 +215,10 @@ namespace WPEFramework {
                 uint32_t getDevicePowerState(const JsonObject& parameters,JsonObject& response);
                 uint32_t setDevicePowerState(const JsonObject& parameters,JsonObject& response);
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
+
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+                uint32_t getSystemTimeStatus(const JsonObject& parameters,JsonObject& response);
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
                 uint32_t isRebootRequested(const JsonObject& parameters,JsonObject& response);
                 uint32_t setGZEnabled(const JsonObject& parameters,JsonObject& response);
                 uint32_t isGZEnabled(const JsonObject& parameters,JsonObject& response);
