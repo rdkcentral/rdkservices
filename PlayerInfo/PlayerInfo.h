@@ -21,7 +21,9 @@
 
 #include "Module.h"
 #include <interfaces/json/JsonData_PlayerInfo.h>
+#if DOLBY_SUPPORT
 #include <interfaces/json/JDolbyOutput.h>
+#endif
 #include <interfaces/json/JPlayerProperties.h>
 
 namespace WPEFramework {
