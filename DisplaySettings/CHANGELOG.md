@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.13] - 2022-10-18
+### Fixed
+- Fixed Invoke the SAD on ARC InitiationEvent Test
+
 ## [1.0.12] - 2022-10-18
 ### Changed
 - API access on all versions of the handler
