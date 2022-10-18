@@ -34,6 +34,8 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 
+find_package(IARMBus)
+
 add_library(${MODULE_NAME} SHARED 
     Module.cpp
     LocationSync.cpp
@@ -49,7 +51,11 @@ target_link_libraries(${MODULE_NAME}
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
+        ${NAMESPACE}Definitions::${NAMESPACE}Definitions
+        ${IARMBUS_LIBRARIES}
+        )
+
+target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
 
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
