@@ -35,7 +35,23 @@ namespace Plugin {
         try {
             const auto& vPorts = device::Host::getInstance().getVideoOutputPorts();
             for (size_t i = 0; i < vPorts.size(); i++) {
-                list.emplace_back(vPorts.at(i).getName());
+
+                /**
+                 * There's N:1 relation between VideoOutputPort and AudioOutputPort.
+                 * When there are multiple Audio Ports on the Video Port,
+                 * there are multiple VideoOutputPort-s as well.
+                 * Those VideoOutputPort-s are the same except holding a different Audio Port id.
+                 * As a result, a list of Video Ports has multiple Video Ports
+                 * that represent the same Video Port, but different Audio Port.
+                 * A list of VideoOutputPort-s returned from DS
+                 * needs to be filtered by name.
+                 */
+
+                auto name = vPorts.at(i).getName();
+                if (std::find(list.begin(), list.end(), name) != list.end())
+                    continue;
+
+                list.emplace_back(name);
             }
         } catch (const device::Exception& e) {
             TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
