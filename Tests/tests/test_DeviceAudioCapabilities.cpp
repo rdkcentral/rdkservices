@@ -11,10 +11,6 @@
 
 using namespace WPEFramework;
 
-namespace {
-const string iarmName = _T("Thunder_Plugins");
-}
-
 class DeviceAudioCapabilitiesTest : public ::testing::Test {
 protected:
     IarmBusImplMock iarmBusImplMock;
@@ -26,41 +22,33 @@ protected:
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
         device::Manager::getInstance().impl = &managerImplMock;
+
+        EXPECT_CALL(managerImplMock, Initialize())
+            .Times(::testing::AnyNumber())
+            .WillRepeatedly(::testing::Return());
+
+        deviceAudioCapabilities = Core::ProxyType<Plugin::DeviceAudioCapabilities>::Create();
+
+        interface = static_cast<Exchange::IDeviceAudioCapabilities*>(
+            deviceAudioCapabilities->QueryInterface(Exchange::IDeviceAudioCapabilities::ID));
     }
+
     virtual ~DeviceAudioCapabilitiesTest()
     {
+        interface->Release();
+
         IarmBus::getInstance().impl = nullptr;
         device::Manager::getInstance().impl = nullptr;
     }
 
     virtual void SetUp()
     {
-        EXPECT_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
-            .Times(1)
-            .WillOnce(::testing::Invoke(
-                [](const char* memberName, int* isRegistered) {
-                    if (iarmName == string(memberName)) {
-                        // Return 1 as not interested in all steps of IARM connection
-                        *isRegistered = 1;
-                        return IARM_RESULT_SUCCESS;
-                    }
-                    return IARM_RESULT_INVALID_PARAM;
-                }));
-        EXPECT_CALL(managerImplMock, Initialize())
-            .Times(1)
-            .WillOnce(::testing::Return());
-
-        deviceAudioCapabilities = Core::ProxyType<Plugin::DeviceAudioCapabilities>::Create();
-
-        interface = static_cast<Exchange::IDeviceAudioCapabilities*>(
-            deviceAudioCapabilities->QueryInterface(Exchange::IDeviceAudioCapabilities::ID));
         ASSERT_TRUE(interface != nullptr);
     }
 
     virtual void TearDown()
     {
         ASSERT_TRUE(interface != nullptr);
-        interface->Release();
     }
 };
 
@@ -73,7 +61,7 @@ protected:
     {
         device::Host::getInstance().impl = &hostImplMock;
     }
-    virtual ~DeviceAudioCapabilitiesDsTest()
+    virtual ~DeviceAudioCapabilitiesDsTest() override
     {
         device::Host::getInstance().impl = nullptr;
     }
@@ -88,12 +76,10 @@ TEST_F(DeviceAudioCapabilitiesDsTest, SupportedAudioPorts)
     string audioPort(_T("HDMI0"));
     string element;
 
-    EXPECT_CALL(audioOutputPortMock, getName())
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(audioPort));
-    EXPECT_CALL(hostImplMock, getAudioOutputPorts())
-        .Times(1)
-        .WillOnce(::testing::Return(device::List<device::AudioOutputPort>({ audioOutputPort })));
+    ON_CALL(audioOutputPortMock, getName())
+        .WillByDefault(::testing::ReturnRef(audioPort));
+    ON_CALL(hostImplMock, getAudioOutputPorts())
+        .WillByDefault(::testing::Return(device::List<device::AudioOutputPort>({ audioOutputPort })));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SupportedAudioPorts(supportedAudioPorts));
     ASSERT_TRUE(supportedAudioPorts != nullptr);
@@ -112,20 +98,17 @@ TEST_F(DeviceAudioCapabilitiesDsTest, AudioCapabilities_noParam)
     string audioPort(_T("HDMI0"));
     Exchange::IDeviceAudioCapabilities::AudioCapability element;
 
-    EXPECT_CALL(audioOutputPortMock, getAudioCapabilities(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(audioOutputPortMock, getAudioCapabilities(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](int* capabilities) {
                 ASSERT_TRUE(capabilities != nullptr);
                 EXPECT_EQ(*capabilities, dsAUDIOSUPPORT_NONE);
                 *capabilities = dsAUDIOSUPPORT_ATMOS | dsAUDIOSUPPORT_DDPLUS;
             }));
-    EXPECT_CALL(hostImplMock, getDefaultAudioPortName())
-        .Times(1)
-        .WillOnce(::testing::Return(audioPort));
-    EXPECT_CALL(hostImplMock, getAudioOutputPort(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(audioOutputPort));
+    ON_CALL(hostImplMock, getDefaultAudioPortName())
+        .WillByDefault(::testing::Return(audioPort));
+    ON_CALL(hostImplMock, getAudioOutputPort(::testing::_))
+        .WillByDefault(::testing::ReturnRef(audioOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->AudioCapabilities(string(), audioCapabilities));
     ASSERT_TRUE(audioCapabilities != nullptr);
@@ -146,20 +129,17 @@ TEST_F(DeviceAudioCapabilitiesDsTest, MS12Capabilities_noParam)
     string audioPort(_T("HDMI0"));
     Exchange::IDeviceAudioCapabilities::MS12Capability element;
 
-    EXPECT_CALL(audioOutputPortMock, getMS12Capabilities(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(audioOutputPortMock, getMS12Capabilities(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](int* capabilities) {
                 ASSERT_TRUE(capabilities != nullptr);
                 EXPECT_EQ(*capabilities, dsMS12SUPPORT_NONE);
                 *capabilities = dsMS12SUPPORT_DolbyVolume | dsMS12SUPPORT_InteligentEqualizer;
             }));
-    EXPECT_CALL(hostImplMock, getDefaultAudioPortName())
-        .Times(1)
-        .WillOnce(::testing::Return(audioPort));
-    EXPECT_CALL(hostImplMock, getAudioOutputPort(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(audioOutputPort));
+    ON_CALL(hostImplMock, getDefaultAudioPortName())
+        .WillByDefault(::testing::Return(audioPort));
+    ON_CALL(hostImplMock, getAudioOutputPort(::testing::_))
+        .WillByDefault(::testing::ReturnRef(audioOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->MS12Capabilities(string(), ms12Capabilities));
     ASSERT_TRUE(ms12Capabilities != nullptr);
@@ -181,15 +161,12 @@ TEST_F(DeviceAudioCapabilitiesDsTest, SupportedMS12AudioProfiles_noParam)
     string audioPortMS12AudioProfile(_T("Movie"));
     string element;
 
-    EXPECT_CALL(audioOutputPortMock, getMS12AudioProfileList())
-        .Times(1)
-        .WillOnce(::testing::Return(std::vector<std::string>({ audioPortMS12AudioProfile })));
-    EXPECT_CALL(hostImplMock, getDefaultAudioPortName())
-        .Times(1)
-        .WillOnce(::testing::Return(audioPort));
-    EXPECT_CALL(hostImplMock, getAudioOutputPort(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::ReturnRef(audioOutputPort));
+    ON_CALL(audioOutputPortMock, getMS12AudioProfileList())
+        .WillByDefault(::testing::Return(std::vector<std::string>({ audioPortMS12AudioProfile })));
+    ON_CALL(hostImplMock, getDefaultAudioPortName())
+        .WillByDefault(::testing::Return(audioPort));
+    ON_CALL(hostImplMock, getAudioOutputPort(::testing::_))
+        .WillByDefault(::testing::ReturnRef(audioOutputPort));
 
     EXPECT_EQ(Core::ERROR_NONE, interface->SupportedMS12AudioProfiles(string(), supportedMS12AudioProfiles));
     ASSERT_TRUE(supportedMS12AudioProfiles != nullptr);
@@ -203,9 +180,8 @@ TEST_F(DeviceAudioCapabilitiesDsTest, SupportedAudioPorts_exception)
 {
     RPC::IStringIterator* supportedAudioPorts = nullptr;
 
-    EXPECT_CALL(hostImplMock, getAudioOutputPorts())
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(hostImplMock, getAudioOutputPorts())
+        .WillByDefault(::testing::Invoke(
             [&]() -> device::List<device::AudioOutputPort> {
                 throw device::Exception("test");
             }));
@@ -218,9 +194,8 @@ TEST_F(DeviceAudioCapabilitiesDsTest, AudioCapabilities_HDMI0_exception)
 {
     Exchange::IDeviceAudioCapabilities::IAudioCapabilityIterator* audioCapabilities = nullptr;
 
-    EXPECT_CALL(hostImplMock, getAudioOutputPort(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(hostImplMock, getAudioOutputPort(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](const std::string& name) -> device::AudioOutputPort& {
                 EXPECT_EQ(name, _T("HDMI0"));
                 throw device::Exception("test");
@@ -234,9 +209,8 @@ TEST_F(DeviceAudioCapabilitiesDsTest, MS12Capabilities_HDMI0_exception)
 {
     Exchange::IDeviceAudioCapabilities::IMS12CapabilityIterator* ms12Capabilities = nullptr;
 
-    EXPECT_CALL(hostImplMock, getAudioOutputPort(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(hostImplMock, getAudioOutputPort(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](const std::string& name) -> device::AudioOutputPort& {
                 EXPECT_EQ(name, _T("HDMI0"));
                 throw device::Exception("test");
@@ -250,9 +224,8 @@ TEST_F(DeviceAudioCapabilitiesDsTest, SupportedMS12AudioProfiles_HDMI0_exception
 {
     RPC::IStringIterator* supportedMS12AudioProfiles = nullptr;
 
-    EXPECT_CALL(hostImplMock, getAudioOutputPort(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(hostImplMock, getAudioOutputPort(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](const std::string& name) -> device::AudioOutputPort& {
                 EXPECT_EQ(name, _T("HDMI0"));
                 throw device::Exception("test");
