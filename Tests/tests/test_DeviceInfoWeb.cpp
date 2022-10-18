@@ -13,57 +13,53 @@ using namespace WPEFramework;
 
 namespace {
 const string webPrefix = _T("/Service/DeviceInfo");
-const string iarmName = _T("Thunder_Plugins");
 }
 
 class DeviceInfoWebTest : public ::testing::Test {
+protected:
+    Core::ProxyType<Plugin::DeviceInfo> plugin;
+    PluginHost::IWeb* interface;
+
+    DeviceInfoWebTest()
+        : plugin(Core::ProxyType<Plugin::DeviceInfo>::Create())
+    {
+        interface = static_cast<PluginHost::IWeb*>(plugin->QueryInterface(PluginHost::IWeb::ID));
+    }
+    virtual ~DeviceInfoWebTest()
+    {
+        interface->Release();
+    }
+
+    virtual void SetUp()
+    {
+        ASSERT_TRUE(interface != nullptr);
+    }
+
+    virtual void TearDown()
+    {
+        ASSERT_TRUE(interface != nullptr);
+    }
+};
+
+class DeviceInfoWebInitializedTest : public DeviceInfoWebTest {
 protected:
     FactoriesImplementation factoriesImplementation;
     IarmBusImplMock iarmBusImplMock;
     ManagerImplMock managerImplMock;
     ServiceMock service;
     Core::Sink<SystemInfo> subSystem;
-    Core::ProxyType<Plugin::DeviceInfo> plugin;
-    PluginHost::IWeb* interface;
 
-    DeviceInfoWebTest()
-        : plugin(Core::ProxyType<Plugin::DeviceInfo>::Create())
-        , interface(nullptr)
+    DeviceInfoWebInitializedTest()
+        : DeviceInfoWebTest()
     {
         PluginHost::IFactories::Assign(&factoriesImplementation);
         IarmBus::getInstance().impl = &iarmBusImplMock;
         device::Manager::getInstance().impl = &managerImplMock;
-    }
-    virtual ~DeviceInfoWebTest()
-    {
-        PluginHost::IFactories::Assign(nullptr);
-        IarmBus::getInstance().impl = nullptr;
-        device::Manager::getInstance().impl = nullptr;
-    }
 
-    virtual void SetUp()
-    {
-        interface = static_cast<PluginHost::IWeb*>(plugin->QueryInterface(PluginHost::IWeb::ID));
-        ASSERT_TRUE(interface != nullptr);
-
-        ON_CALL(iarmBusImplMock, IARM_Bus_IsConnected(::testing::_, ::testing::_))
-            .WillByDefault(::testing::Invoke(
-                [](const char* memberName, int* isRegistered) {
-                    if (iarmName == string(memberName)) {
-                        // Return 1 as not interested in all steps of IARM connection
-                        *isRegistered = 1;
-                        return IARM_RESULT_SUCCESS;
-                    }
-                    return IARM_RESULT_INVALID_PARAM;
-                }));
-        ON_CALL(managerImplMock, Initialize())
-            .WillByDefault(::testing::Return());
         ON_CALL(service, ConfigLine())
             .WillByDefault(::testing::Return("{\"root\":{\"mode\":\"Off\"}}"));
         ON_CALL(service, WebPrefix())
             .WillByDefault(::testing::Return(webPrefix));
-        ON_CALL(service, Version())
-            .WillByDefault(::testing::Return(string()));
         ON_CALL(service, SubSystems())
             .WillByDefault(::testing::Invoke(
                 [&]() {
@@ -74,17 +70,17 @@ protected:
 
         EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
-
-    virtual void TearDown()
+    virtual ~DeviceInfoWebInitializedTest() override
     {
-        ASSERT_TRUE(interface != nullptr);
-        interface->Release();
-
         plugin->Deinitialize(&service);
+
+        PluginHost::IFactories::Assign(nullptr);
+        IarmBus::getInstance().impl = nullptr;
+        device::Manager::getInstance().impl = nullptr;
     }
 };
 
-TEST_F(DeviceInfoWebTest, httpGet)
+TEST_F(DeviceInfoWebInitializedTest, httpGet)
 {
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;
@@ -129,7 +125,7 @@ TEST_F(DeviceInfoWebTest, httpGet)
                                                  "\\}"));
 }
 
-TEST_F(DeviceInfoWebTest, httpGetAdresses)
+TEST_F(DeviceInfoWebInitializedTest, httpGetAdresses)
 {
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;
@@ -153,7 +149,7 @@ TEST_F(DeviceInfoWebTest, httpGetAdresses)
                                                  "\\}"));
 }
 
-TEST_F(DeviceInfoWebTest, httpGetSystem)
+TEST_F(DeviceInfoWebInitializedTest, httpGetSystem)
 {
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;
@@ -194,7 +190,7 @@ TEST_F(DeviceInfoWebTest, httpGetSystem)
                                                  "\\}"));
 }
 
-TEST_F(DeviceInfoWebTest, httpGetSockets)
+TEST_F(DeviceInfoWebInitializedTest, httpGetSockets)
 {
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;

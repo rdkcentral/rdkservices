@@ -2,9 +2,11 @@
 
 #include <gmock/gmock.h>
 
+#include "sleepMode.hpp"
+
 class SleepModeMock : public device::SleepModeImpl {
 public:
     virtual ~SleepModeMock() = default;
-    MOCK_METHOD(List<SleepMode>, getSleepModes, (), (override));
-    MOCK_METHOD(onst std::string&, toString, (), (const, override));
+    MOCK_METHOD(device::List<device::SleepMode>, getSleepModes, (), (override));
+    MOCK_METHOD(const std::string&, toString, (), (const, override));
 };

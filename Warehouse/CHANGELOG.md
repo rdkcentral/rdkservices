@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.4] - 2022-10-18
+### Changed
+- API access on all versions of the handler
+
 ## [1.0.3] - 2022-10-14
 ### Changed
 - Updated changes for new power manager.

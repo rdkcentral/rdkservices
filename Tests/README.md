@@ -1,19 +1,8 @@
 # Unit Tests #
 
-Supply the CMake options or other steps for your plugins in [unit-tests.yml](../.github/workflows/unit-tests.yml).
-
-Read the [GoogleTest User’s Guide](https://google.github.io/googletest/) and write the tests.
-
-Enable [ClangFormat](./.clang-format).
-
-- [headers](./headers) - third party headers for the plugins
-- [mocks](./mocks) - mocks for the tests
-- [source](./source) - other sources for the tests
-- [tests](./tests) - the tests
-
 ## How to run locally ##
 
-Install act and docker.
+Install [act](https://github.com/nektos/act) and docker:
 
 ##### Ubuntu #####
 
@@ -34,7 +23,7 @@ brew install --cask docker
 
 Create a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 
-Invoke the workflow.
+Invoke the workflow:
 
 ```shell script
 act -W .github/workflows/unit-tests.yml -s GITHUB_TOKEN=[token]
@@ -42,24 +31,41 @@ act -W .github/workflows/unit-tests.yml -s GITHUB_TOKEN=[token]
 
 `-r, --reuse` to reuse the container.
 
-Get a bash shell in the container.
+Get a bash shell in the container, if needed:
 
 ```shell script
 docker ps
 docker exec -it <container name> /bin/bash
 ```
 
-## Tips and tricks ##
+## FAQ ##
 
-### GCC ###
+1. The commands to build and run tests are in [unit-tests.yml](../.github/workflows/unit-tests.yml).
+ For the queries on syntax please refer to the [Workflow syntax for GitHub Actions](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions).
 
-`-I dir` adds the dir to the list of directories to be searched for headers.\
-`-Wl,-wrap,symbol` uses a wrapper function for symbol.
+2. External dependencies need to be mocked.
+ For each external header, add one into the [headers folder](./headers) (preserve the original path parts, if needed).
+ Implement it so that it builds and is [mockable](http://google.github.io/googletest/gmock_cook_book.html).
+ It does not need to be a copy of original header!
+ Implement the respective mocks and add them into the [mocks folder](./mocks).
 
-### CMake ###
+3. For the queries on how to write tests please refer to the [GoogleTest User’s Guide](https://google.github.io/googletest/).
+ Common recommendations:
+   - Tests should be fast.
+   - Tests should be independent and repeatable.
+   - If two or more tests operate on similar data, use a test fixture.
+   - Fixture constructor/destructor should be preferred over `SetUp()/TearDown()` unless using `ASSERT_xx`.
+   - `EXPECT_*` are preferred, as they allow more than one failure to be reported in a test.
+     However, use `ASSERT_*` if it doesn’t make sense to continue when the assertion in question fails.
+   - Having more constraints than necessary is bad.
+     If a test over-specifies, it doesn’t leave enough freedom to the implementation.
+     Use `ON_CALL` by default, and only use `EXPECT_CALL` when intend to verify that the call is made.
 
-`-DCMAKE_DISABLE_FIND_PACKAGE_<PackageName>=ON` disables non-REQUIRED `find_package` call.
-
-### GitHub ###
-
-At the bottom of the workflow summary page on GitHub, there is a section with artifacts. [unit-tests.yml](../.github/workflows/unit-tests.yml) uploads: coverage, valgrind_log.
+4. Before review:
+   - Enable [ClangFormat](./.clang-format) and make sure the tests code is formatted.
+   - For the tests, the code is built with flags `-Wall -Werror`.
+     Make sure the code builds without warnings.
+   - At the bottom of the workflow summary page on GitHub, there is a section with artifacts.
+     Artifacts include coverage report and valgrind log.
+     They help to understand how much code is covered by tests and whether there are memory leaks.
+     Make sure you check both.
