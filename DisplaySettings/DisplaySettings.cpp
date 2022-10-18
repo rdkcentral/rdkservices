@@ -79,7 +79,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 12
+#define API_VERSION_NUMBER_PATCH 13
 
 static bool isCecArcRoutingThreadEnabled = false;
 static bool isCecEnabled = false;
@@ -281,6 +281,7 @@ namespace WPEFramework {
 	    m_cecArcRoutingThreadRun = false;
 	    isCecArcRoutingThreadEnabled = true;
             m_isPwrMgr2RFCEnabled = false;
+            m_arcPendingSADRequest = false;
         }
 
         DisplaySettings::~DisplaySettings()
@@ -4172,7 +4173,7 @@ namespace WPEFramework {
                             if(types & dsAUDIOARCSUPPORT_eARC) {
                                 aPort.setStereoAuto(true,true);
                             }
-                            else if (types & dsAUDIOARCSUPPORT_ARC && (m_arcAudioEnabled != pEnable)) {
+                            else if (types & dsAUDIOARCSUPPORT_ARC && ((m_arcAudioEnabled != pEnable) || ( m_arcPendingSADRequest == true))) {
                                 if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
                                     LOGERR("DisplaySettings::setEnableAudioPort (ARC-Auto): requestShortAudioDescriptor failed !!!\n");;
                                 }
@@ -4185,7 +4186,7 @@ namespace WPEFramework {
                             device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
                             mode = aPort.getStereoMode(); //get Last User set stereo mode and set
                             if((mode == device::AudioStereoMode::kPassThru) && (types & dsAUDIOARCSUPPORT_ARC)
-                                              && (m_arcAudioEnabled != pEnable)){
+                                              && ((m_arcAudioEnabled != pEnable) || ( m_arcPendingSADRequest == true))){
                                 if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
                                     LOGERR("DisplaySettings::setEnableAudioPort (ARC-Passthru): requestShortAudioDescriptor failed !!!\n");;
                                 }
@@ -4195,6 +4196,7 @@ namespace WPEFramework {
                             }
                             aPort.setStereoMode(mode.toString(), true);
                         }
+                        m_arcPendingSADRequest = false;
                     }
 
                     if(types & dsAUDIOARCSUPPORT_eARC) {
@@ -4612,6 +4614,7 @@ namespace WPEFramework {
 			        LOGINFO("onARCInitiationEventHandler: Enable ARC\n");
                                 aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
                                 m_arcAudioEnabled = true;
+                                m_arcPendingSADRequest = true;
 			    }
                         }
                         else {
