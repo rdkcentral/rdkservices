@@ -100,7 +100,13 @@ TEST_F(DeviceInfoWebInitializedTest, httpGet)
     body->ToString(bodyStr);
     EXPECT_THAT(bodyStr, ::testing::MatchesRegex("\\{"
                                                  "\"addresses\":"
-                                                 "\\[(\\{\"name\":\".+\",\"mac\":\".+\"(,\"ip\":\\[(\".+\"){1,}\\]){0,}\\}){0,}\\],"
+                                                 "\\["
+                                                 "(\\{"
+                                                 "\"name\":\"[^\"]+\","
+                                                 "\"mac\":\"[^\"]+\""
+                                                 "(,\"ip\":\\[(\"[^\"]+\",{0,1}){1,}\\]){0,1}"
+                                                 "\\},{0,1}){0,}"
+                                                 "\\],"
                                                  "\"systeminfo\":"
                                                  "\\{"
                                                  "\"version\":\"#\","
@@ -145,7 +151,13 @@ TEST_F(DeviceInfoWebInitializedTest, httpGetAdresses)
     body->ToString(bodyStr);
     EXPECT_THAT(bodyStr, ::testing::MatchesRegex("\\{"
                                                  "\"addresses\":"
-                                                 "\\[(\\{\"name\":\".+\",\"mac\":\".+\"(,\"ip\":\\[(\".+\"){1,}\\]){0,}\\}){0,}\\]"
+                                                 "\\["
+                                                 "(\\{"
+                                                 "\"name\":\"[^\"]+\","
+                                                 "\"mac\":\"[^\"]+\""
+                                                 "(,\"ip\":\\[(\"[^\"]+\",{0,1}){1,}\\]){0,1}"
+                                                 "\\},{0,1}){0,}"
+                                                 "\\]"
                                                  "\\}"));
 }
 
