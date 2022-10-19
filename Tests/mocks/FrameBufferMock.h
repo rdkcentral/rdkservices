@@ -2,7 +2,7 @@
 
 #include <gmock/gmock.h>
 
-#include "framebuffer-api.h"
+#include "FrameBuffer.h"
 
 class FrameBufferApiImplMock : public FrameBufferApiImpl {
 public:

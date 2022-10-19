@@ -6932,11 +6932,9 @@ namespace WPEFramework {
         {
             int32_t status = Core::ERROR_GENERAL;
 
-            auto systemService = mCurrentService->QueryInterfaceByCallsign<PluginHost::IDispatcher>(SYSTEM_SERVICE_CALLSIGN);
-            if (systemService != nullptr)
+            PluginHost::IShell::state state;
+            if ((getServiceState(mCurrentService, SYSTEM_SERVICE_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
             {
-                systemService->Release();
-
                 std::cout << "SystemService is already activated" << std::endl;
 
                 if (nullptr == gSystemServiceConnection)

@@ -159,6 +159,59 @@ namespace WPEFramework {
 
     namespace Plugin {
 
+        namespace {
+            // Display Settings should use inter faces
+
+            class Job : public Core::IDispatchType<void> {
+            public:
+                Job(std::function<void()> work)
+                    : _work(work)
+                {
+                }
+                void Dispatch() override
+                {
+                    _work();
+                }
+
+            private:
+                std::function<void()> _work;
+            };
+            uint32_t getServiceState(PluginHost::IShell* shell, const string& callsign, PluginHost::IShell::state& state)
+            {
+                uint32_t result;
+                auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
+                if (interface == nullptr) {
+                    result = Core::ERROR_UNAVAILABLE;
+                    std::cout << "no IShell for " << callsign << std::endl;
+                } else {
+                    result = Core::ERROR_NONE;
+                    state = interface->State();
+                    std::cout << "IShell state " << state << " for " << callsign << std::endl;
+                    interface->Release();
+                }
+                return result;
+            }
+            uint32_t activate(PluginHost::IShell* shell, const string& callsign)
+            {
+                uint32_t result = Core::ERROR_ASYNC_FAILED;
+                Core::Event event(false, true);
+                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]() {
+                    auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
+                    if (interface == nullptr) {
+                        result = Core::ERROR_UNAVAILABLE;
+                        std::cout << "no IShell for " << callsign << std::endl;
+                    } else {
+                        result = interface->Activate(PluginHost::IShell::reason::REQUESTED);
+                        std::cout << "IShell activate status " << result << " for " << callsign << std::endl;
+                        interface->Release();
+                    }
+                    event.SetEvent();
+                })));
+                event.Lock();
+                return result;
+            }
+        }
+
         SERVICE_REGISTRATION(DisplaySettings, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         DisplaySettings* DisplaySettings::_instance = nullptr;
@@ -367,10 +420,9 @@ namespace WPEFramework {
 				LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
 			}
 
-            auto hdmiCecSink = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(HDMICECSINK_CALLSIGN);
-            if (hdmiCecSink != nullptr) {
+            PluginHost::IShell::state state;
+            if ((getServiceState(m_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                 LOGINFO("%s is active", HDMICECSINK_CALLSIGN);
-                hdmiCecSink->Release();
 
                 if(!m_subscribed) {
 			        if((subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_CEC_ENABLED_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_POWER_STATUS_EVENT) == Core::ERROR_NONE)) {
@@ -3854,10 +3906,9 @@ namespace WPEFramework {
         {
             bool success = true;
 
-            auto hdmiCecSink = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(HDMICECSINK_CALLSIGN);
-            if (hdmiCecSink != nullptr) {
+            PluginHost::IShell::state state;
+            if ((getServiceState(m_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                 LOGINFO("%s is active", HDMICECSINK_CALLSIGN);
-                hdmiCecSink->Release();
 
                 getHdmiCecSinkPlugin();
                 if (!gHdmiCecConnection) {
@@ -3893,10 +3944,9 @@ namespace WPEFramework {
         {
             bool cecEnable = false;
 
-            auto hdmiCecSink = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(HDMICECSINK_CALLSIGN);
-            if (hdmiCecSink != nullptr) {
+            PluginHost::IShell::state state;
+            if ((getServiceState(m_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                 LOGINFO("%s is active", HDMICECSINK_CALLSIGN);
-                hdmiCecSink->Release();
 
                 getHdmiCecSinkPlugin();
                 if (!gHdmiCecConnection) {
@@ -3926,10 +3976,9 @@ namespace WPEFramework {
         {
             bool hdmiAudioDeviceDetected = false;
 
-            auto hdmiCecSink = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(HDMICECSINK_CALLSIGN);
-            if (hdmiCecSink != nullptr) {
+            PluginHost::IShell::state state;
+            if ((getServiceState(m_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                 LOGINFO("%s is active", HDMICECSINK_CALLSIGN);
-                hdmiCecSink->Release();
 
                 getHdmiCecSinkPlugin();
                 if (!gHdmiCecConnection) {
@@ -3959,10 +4008,9 @@ namespace WPEFramework {
         {
             bool success = true;
 
-            auto hdmiCecSink = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(HDMICECSINK_CALLSIGN);
-            if (hdmiCecSink != nullptr) {
+            PluginHost::IShell::state state;
+            if ((getServiceState(m_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                 LOGINFO("%s is active", HDMICECSINK_CALLSIGN);
-                hdmiCecSink->Release();
 
                 getHdmiCecSinkPlugin();
                 if (!gHdmiCecConnection) {
@@ -3992,10 +4040,9 @@ namespace WPEFramework {
         {
             bool success = true;
 
-            auto hdmiCecSink = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(HDMICECSINK_CALLSIGN);
-            if (hdmiCecSink != nullptr) {
+            PluginHost::IShell::state state;
+            if ((getServiceState(m_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                 LOGINFO("%s is active", HDMICECSINK_CALLSIGN);
-                hdmiCecSink->Release();
 
                 getHdmiCecSinkPlugin();
                 if (!gHdmiCecConnection) {
@@ -4025,10 +4072,9 @@ namespace WPEFramework {
         {
             bool success = true;
 
-            auto hdmiCecSink = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(HDMICECSINK_CALLSIGN);
-            if (hdmiCecSink != nullptr) {
+            PluginHost::IShell::state state;
+            if ((getServiceState(m_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                 LOGINFO("%s is active", HDMICECSINK_CALLSIGN);
-                hdmiCecSink->Release();
 
                 getHdmiCecSinkPlugin();
                 if (!gHdmiCecConnection) {
@@ -4885,10 +4931,9 @@ namespace WPEFramework {
 
             bool isPluginActivated = false;
 
-            auto hdmiCecSink = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(HDMICECSINK_CALLSIGN);
-            if (hdmiCecSink != nullptr) {
+            PluginHost::IShell::state state;
+            if ((getServiceState(m_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                 LOGINFO("%s is active", HDMICECSINK_CALLSIGN);
-                hdmiCecSink->Release();
                 isPluginActivated = true;
             }
 
@@ -4896,19 +4941,7 @@ namespace WPEFramework {
                 /*HDMICECSINK_CALLSIGN plugin activation moved to onTimer.
                  *To decouple from displyasettings init. Since its time taking*/
 
-                auto controller = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>("Controller");
-                if (controller != nullptr) {
-                    auto message = (Core::ProxyType<Core::JSONRPC::Message>(PluginHost::IFactories::Instance().JSONRPC()));
-                    message->JSONRPC = Core::JSONRPC::Message::DefaultVersion;
-                    message->Id = 0;
-                    message->Designator = "Controller.1.activate";
-                    message->Parameters = "{\"callsign\":\"org.rdk.HdmiCecSink\"}";
-                    auto resp = controller->Invoke("", ~0, *message);
-                    if (resp->Error.IsSet()) {
-                        std::cout << "Call failed: " << message->Designator.Value() << " error: " << resp->Error.Text.Value() << "\n";
-                    }
-                    controller->Release();
-                }
+                activate(m_service, HDMICECSINK_CALLSIGN);
 
                 LOGWARN ("DisplaySettings::onTimer after activatePlugin HDMICECSINK_CALLSIGN line:%d", __LINE__);
                 sleep(HDMICECSINK_PLUGIN_ACTIVATION_TIME);
@@ -4916,10 +4949,8 @@ namespace WPEFramework {
 
             bool pluginActivated = false;
 
-            hdmiCecSink = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(HDMICECSINK_CALLSIGN);
-            if (hdmiCecSink != nullptr) {
+            if ((getServiceState(m_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                 LOGINFO("%s is active", HDMICECSINK_CALLSIGN);
-                hdmiCecSink->Release();
                 pluginActivated = true;
             }
 

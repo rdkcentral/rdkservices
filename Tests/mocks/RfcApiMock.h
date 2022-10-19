@@ -2,7 +2,7 @@
 
 #include <gmock/gmock.h>
 
-#include "rfcapi.h"
+#include "Rfc.h"
 
 class RfcApiImplMock : public RfcApiImpl {
 public:
