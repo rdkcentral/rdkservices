@@ -25,15 +25,15 @@
 #include <interfaces/json/JConnectionProperties.h>
 #include <interfaces/json/JHDRProperties.h>
 #include <interfaces/json/JDisplayProperties.h>
+#include <interfaces/IConfiguration.h>
 
 namespace WPEFramework {
 namespace Plugin {
 
     class DisplayInfo : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
     private:
-        class Notification : protected Exchange::IConnectionProperties::INotification {
-        private:
-            Notification() = delete;
+        class Notification : public Exchange::IConnectionProperties::INotification, public RPC::IRemoteConnection::INotification {
+        public:
             Notification(const Notification&) = delete;
             Notification& operator=(const Notification&) = delete;
 
@@ -43,32 +43,24 @@ namespace Plugin {
             {
                 ASSERT(parent != nullptr);
             }
-            virtual ~Notification()
-            {
-            }
+            ~Notification() override = default;
 
-            void Initialize(Exchange::IConnectionProperties* client)
-            {
-                ASSERT(client != nullptr);
-                _client = client;
-                _client->AddRef();
-                _client->Register(this);
-            }
-            void Deinitialize()
-            {
-                ASSERT(_client != nullptr);
-                if (_client != nullptr) {
-                    _client->Unregister(this);
-                    _client->Release();
-                    _client = nullptr;
-                }
-            }
-            void Updated(Exchange::IConnectionProperties::INotification::Source event) override
+            void Updated(const Exchange::IConnectionProperties::INotification::Source event) override
             {
                 Exchange::JConnectionProperties::Event::Updated(_parent, event);
             }
+
+            void Activated(RPC::IRemoteConnection* connection VARIABLE_IS_NOT_USED) override {
+            }
+
+            void Deactivated(RPC::IRemoteConnection* connection) override
+            {
+                _parent.Deactivated(connection);
+            }
+
             BEGIN_INTERFACE_MAP(Notification)
             INTERFACE_ENTRY(Exchange::IConnectionProperties::INotification)
+            INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
             END_INTERFACE_MAP
 
         private:
@@ -88,12 +80,11 @@ namespace Plugin {
             , _hdrProperties(nullptr)
             , _displayProperties(nullptr)
             , _notification(this)
+            , _service(nullptr)
         {
         }
 
-        virtual ~DisplayInfo()
-        {
-        }
+        ~DisplayInfo() override = default;
 
         BEGIN_INTERFACE_MAP(DisplayInfo)
         INTERFACE_ENTRY(PluginHost::IPlugin)
@@ -108,18 +99,19 @@ namespace Plugin {
     public:
         //   IPlugin methods
         // -------------------------------------------------------------------------------------------------------
-        virtual const string Initialize(PluginHost::IShell* service) override;
-        virtual void Deinitialize(PluginHost::IShell* service) override;
-        virtual string Information() const override;
+        const string Initialize(PluginHost::IShell* service) override;
+        void Deinitialize(PluginHost::IShell* service) override;
+        string Information() const override;
 
         //   IWeb methods
         // -------------------------------------------------------------------------------------------------------
-        virtual void Inbound(Web::Request& request) override;
-        virtual Core::ProxyType<Web::Response> Process(const Web::Request& request) override;
+        void Inbound(Web::Request& request) override;
+        Core::ProxyType<Web::Response> Process(const Web::Request& request) override;
 
     private:
 
         void Info(JsonData::DisplayInfo::DisplayinfoData&) const;
+        void Deactivated(RPC::IRemoteConnection* connection);
 
     private:
         uint8_t _skipURL;
@@ -129,6 +121,7 @@ namespace Plugin {
         Exchange::IHDRProperties* _hdrProperties;
         Exchange::IDisplayProperties* _displayProperties;
         Core::Sink<Notification> _notification;
+        PluginHost::IShell* _service;
     };
 
 } // namespace Plugin
