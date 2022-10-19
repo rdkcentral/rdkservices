@@ -309,7 +309,7 @@
             }
         },
         "deletePersistentPath": {
-            "summary": "(Version 2) Deletes persistent path associated with a callsign.",
+            "summary": "Deletes persistent path associated with a callsign.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -371,7 +371,7 @@
             }
         },
         "fireFirmwarePendingReboot":{
-            "summary": "(Version 2) Notifies the device about a pending reboot.",
+            "summary": "Notifies the device about a pending reboot.",
             "events": {
                 "onFirmwarePendingReboot" : "Triggers when the firmware has a pending reboot"
             },
@@ -616,7 +616,7 @@
             }
         },
         "getLastFirmwareFailureReason": {
-            "summary": "(Version 2) Retrieves the last firmware failure reason.",
+            "summary": "Retrieves the last firmware failure reason.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -636,7 +636,7 @@
             }
         },
         "getLastWakeupKeyCode":{
-            "summary": "(Version 2) Returns the last wakeup keycode.",
+            "summary": "Returns the last wakeup keycode.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -785,7 +785,7 @@
             }
         },
         "getPlatformConfiguration": {
-            "summary": "(Version 2) Returns the supported features and device/account info.",
+            "summary": "Returns the supported features and device/account info.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -1092,7 +1092,7 @@
             }
         },
         "getStoreDemoLink":{
-            "summary": "(Version 2) Returns the store demo video link.",
+            "summary": "Returns the store demo video link.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1267,7 +1267,7 @@
             }
         },
         "getWakeupReason":{
-            "summary": "(Version 2) Returns the reason for the device coming out of deep sleep.",
+            "summary": "Returns the reason for the device coming out of deep sleep.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1564,7 +1564,7 @@
             }
         },
         "setFirmwareAutoReboot": {
-            "summary": "(Version 2) Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.",
+            "summary": "Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1583,7 +1583,7 @@
             }
         },
         "setFirmwareRebootDelay": {
-            "summary": "(Version 2) Delays the firmware reboot.",
+            "summary": "Delays the firmware reboot.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1831,7 +1831,7 @@
             }
         },
         "uploadLogs": {
-            "summary": "(Version 2) Uploads logs to a URL returned by SSR.",
+            "summary": "Uploads logs to a URL returned by SSR.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -1851,7 +1851,7 @@
     },
     "events": {
         "onFirmwarePendingReboot":{
-            "summary": "(Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked",
+            "summary": "Triggered when the `fireFirmwarePendingReboot` method is invoked",
             "params": {
                 "type" :"object",
                 "properties": {

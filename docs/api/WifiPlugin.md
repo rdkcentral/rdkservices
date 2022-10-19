@@ -55,7 +55,7 @@ WifiManager interface methods:
 | [getCurrentState](#getCurrentState) | Returns the current Wifi State |
 | [getPairedSSID](#getPairedSSID) | Returns the SSID to which the device is currently paired |
 | [getPairedSSIDInfo](#getPairedSSIDInfo) | Returns the SSID and BSSID to which the device is currently paired |
-| [getSupportedSecurityModes](#getSupportedSecurityModes) | (Version 2) Returns the Wifi security modes that the device supports |
+| [getSupportedSecurityModes](#getSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
 | [initiateWPSPairing](#initiateWPSPairing) | (Version 2) Initiates a connection using Wifi Protected Setup (WPS) |
 | [isPaired](#isPaired) | Determines if the device is paired to an SSID |
 | [isSignalThresholdChangeEnabled](#isSignalThresholdChangeEnabled) | Returns whether `onWifiSignalThresholdChanged` event is enabled or not |
@@ -473,7 +473,7 @@ This method takes no parameters.
 <a name="getSupportedSecurityModes"></a>
 ## *getSupportedSecurityModes*
 
-(Version 2) Returns the Wifi security modes that the device supports.
+Returns the Wifi security modes that the device supports.
 
 ### Events
 
