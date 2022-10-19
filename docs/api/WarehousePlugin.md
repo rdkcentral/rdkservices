@@ -47,9 +47,9 @@ Warehouse interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [executeHardwareTest](#executeHardwareTest) | (Version 2) Starts a hardware test on the device |
+| [executeHardwareTest](#executeHardwareTest) | Starts a hardware test on the device |
 | [getDeviceInfo](#getDeviceInfo) | Returns STB device information gathered from `/lib/rdk/getDeviceDetails |
-| [getHardwareTestResults](#getHardwareTestResults) | (Version 2) Returns the results of the last hardware test |
+| [getHardwareTestResults](#getHardwareTestResults) | Returns the results of the last hardware test |
 | [internalReset](#internalReset) | Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow |
 | [isClean](#isClean) | Checks the locations on the device where customer data may be stored |
 | [lightReset](#lightReset) | Resets the application data |
@@ -60,7 +60,7 @@ Warehouse interface methods:
 <a name="executeHardwareTest"></a>
 ## *executeHardwareTest*
 
-(Version 2) Starts a hardware test on the device. See `getHardwareTestResults`.
+Starts a hardware test on the device. See `getHardwareTestResults`.
 
 ### Events
 
@@ -172,7 +172,7 @@ This method takes no parameters.
 <a name="getHardwareTestResults"></a>
 ## *getHardwareTestResults*
 
-(Version 2) Returns the results of the last hardware test.
+Returns the results of the last hardware test.
 
 ### Events
 
