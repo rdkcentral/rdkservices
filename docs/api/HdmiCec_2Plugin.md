@@ -2,7 +2,7 @@
 <a name="HdmiCec_2Plugin"></a>
 # HdmiCec_2Plugin
 
-**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCec_2/CHANGELOG.md)**
+**Version: [1.0.3](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCec_2/CHANGELOG.md)**
 
 A org.rdk.HdmiCec_2 plugin for Thunder framework.
 
@@ -54,6 +54,7 @@ HdmiCec_2 interface methods:
 | [getOTPEnabled](#getOTPEnabled) | Returns HDMI-CEC OTP option enabled status |
 | [getVendorId](#getVendorId) | Returns the vendor ID set by the application |
 | [performOTPAction](#performOTPAction) | Turns on the TV and takes back the input to the device |
+| [sendKeyPressEvent](#sendKeyPressEvent) | Sends the CEC \<User Control Pressed\> and \<User Control Release\> message when TV remote key is pressed |
 | [sendStandbyMessage](#sendStandbyMessage) | Sends a CEC \<Standby\> message to the logical address of the device |
 | [setEnabled](#setEnabled) | Enables or disables HDMI-CEC driver |
 | [setOSDName](#setOSDName) | Sets the OSD name of the application |
@@ -382,6 +383,62 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.HdmiCec_2.performOTPAction"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="sendKeyPressEvent"></a>
+## *sendKeyPressEvent*
+
+Sends the CEC \<User Control Pressed\> and \<User Control Release\> message when TV remote key is pressed.
+  
+### Event 
+
+ No Events.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.logicalAddress | integer | Logical address of the device |
+| params.keyCode | integer | The key code for the pressed key |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiCec_2.sendKeyPressEvent",
+    "params": {
+        "logicalAddress": 0,
+        "keyCode": 65
+    }
 }
 ```
 
