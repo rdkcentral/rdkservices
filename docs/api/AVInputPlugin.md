@@ -1,70 +1,32 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.AVInput_Plugin"></a>
+<a name="AVInput_Plugin"></a>
 # AVInput Plugin
 
-**Version: 1.0**
+**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
 
-**Status: :black_circle::black_circle::black_circle:**
-
-org.rdk.AVInput plugin for Thunder framework.
+A org.rdk.AVInput plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#head.Introduction)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="head.Scope"></a>
-## Scope
+[[Refer to this link](userguide/aat.md)]
 
-This document describes purpose and functionality of the org.rdk.AVInput plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="head.Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="head.Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="acronym.API">API</a> | Application Programming Interface |
-| <a name="acronym.HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="acronym.JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="acronym.JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="term.callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="head.References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="ref.HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="ref.JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="ref.JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="ref.Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
-
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `AVInput` plugin allows you to control the Hdmi and Composite input source on a device.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -76,7 +38,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkAVInput.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.AVInput plugin:
@@ -85,27 +47,31 @@ AVInput interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [contentProtected](#method.contentProtected) | Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false` |
-| [currentVideoMode](#method.currentVideoMode) | Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input |
-| [numberOfInputs](#method.numberOfInputs) | Returns an integer that specifies the number of available inputs |
-| [getInputDevices](#method.getInputDevices) | Returns an array of available HDMI/Composite Input ports |
-| [getEdidVersion](#method.getEdidVersion) | Returns the EDID version |
-| [getSPD](#method.getSPD) | Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device |
-| [getRawSPD](#method.getRawSPD) | Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits |
-| [readEDID](#method.readEDID) | Returns the current EDID value |
-| [startInput](#method.startInput) | Activates the specified HDMI/Composite Input port as the primary video source |
-| [stopInput](#method.stopInput) | Deactivates the HDMI/Composite Input port currently selected as the primary video source |
-| [setEdidVersion](#method.setEdidVersion) | Sets an HDMI EDID version |
-| [setVideoRectangle](#method.setVideoRectangle) | Sets an HDMI/Composite Input video window |
-| [writeEDID](#method.writeEDID) | Changes a current EDID value |
-| [getSupportedGameFeatures](#method.getSupportedGameFeatures) | Returns the list of supported game features |
-| [getGameFeatureStatus](#method.getGameFeatureStatus) | Returns the Game Feature Status |
+| [contentProtected](#contentProtected) | Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false` |
+| [currentVideoMode](#currentVideoMode) | Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input |
+| [numberOfInputs](#numberOfInputs) | Returns an integer that specifies the number of available inputs |
+| [getInputDevices](#getInputDevices) | Returns an array of available HDMI/Composite Input ports |
+| [getEdidVersion](#getEdidVersion) | Returns the EDID version |
+| [getSPD](#getSPD) | Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device |
+| [getRawSPD](#getRawSPD) | Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits |
+| [readEDID](#readEDID) | Returns the current EDID value |
+| [startInput](#startInput) | Activates the specified HDMI/Composite Input port as the primary video source |
+| [stopInput](#stopInput) | Deactivates the HDMI/Composite Input port currently selected as the primary video source |
+| [setEdidVersion](#setEdidVersion) | Sets an HDMI EDID version |
+| [setVideoRectangle](#setVideoRectangle) | Sets an HDMI/Composite Input video window |
+| [writeEDID](#writeEDID) | Changes a current EDID value |
+| [getSupportedGameFeatures](#getSupportedGameFeatures) | Returns the list of supported game features |
+| [getGameFeatureStatus](#getGameFeatureStatus) | Returns the Game Feature Status |
 
 
-<a name="method.contentProtected"></a>
-## *contentProtected [<sup>method</sup>](#head.Methods)*
+<a name="contentProtected"></a>
+## *contentProtected*
 
 Returns `true` if the content coming in the HDMI input is protected; otherwise, it returns `false`. If the content is protected, then it is only presented if the component and composite outputs of the box are disabled.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -129,7 +95,7 @@ Returns `true` if the content coming in the HDMI input is protected; otherwise, 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.contentProtected",
+    "method": "org.rdk.AVInput.contentProtected",
     "params": {}
 }
 ```
@@ -147,10 +113,14 @@ Returns `true` if the content coming in the HDMI input is protected; otherwise, 
 }
 ```
 
-<a name="method.currentVideoMode"></a>
-## *currentVideoMode [<sup>method</sup>](#head.Methods)*
+<a name="currentVideoMode"></a>
+## *currentVideoMode*
 
 Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input. The format of the string is the same format used for the `resolutionName` parameter of the XRE `setResolution` messages. HDMI input is presentable if its resolution is less than or equal to the current Parker display resolution.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -175,7 +145,7 @@ Returns a string encoding the video mode being supplied by the device currently 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.currentVideoMode",
+    "method": "org.rdk.AVInput.currentVideoMode",
     "params": {}
 }
 ```
@@ -194,10 +164,14 @@ Returns a string encoding the video mode being supplied by the device currently 
 }
 ```
 
-<a name="method.numberOfInputs"></a>
-## *numberOfInputs [<sup>method</sup>](#head.Methods)*
+<a name="numberOfInputs"></a>
+## *numberOfInputs*
 
 Returns an integer that specifies the number of available inputs. For example, a value of `2` indicates that there are two available inputs that can be selected using `avin://input0` and `avin://input1`.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -222,7 +196,7 @@ Returns an integer that specifies the number of available inputs. For example, a
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.numberOfInputs",
+    "method": "org.rdk.AVInput.numberOfInputs",
     "params": {}
 }
 ```
@@ -241,10 +215,14 @@ Returns an integer that specifies the number of available inputs. For example, a
 }
 ```
 
-<a name="method.getInputDevices"></a>
-## *getInputDevices [<sup>method</sup>](#head.Methods)*
+<a name="getInputDevices"></a>
+## *getInputDevices*
 
 Returns an array of available HDMI/Composite Input ports.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -278,7 +256,7 @@ Returns an array of available HDMI/Composite Input ports.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.getInputDevices",
+    "method": "org.rdk.AVInput.getInputDevices",
     "params": {
         "typeOfInput": "HDMI"
     }
@@ -303,10 +281,14 @@ Returns an array of available HDMI/Composite Input ports.
 }
 ```
 
-<a name="method.getEdidVersion"></a>
-## *getEdidVersion [<sup>method</sup>](#head.Methods)*
+<a name="getEdidVersion"></a>
+## *getEdidVersion*
 
 Returns the EDID version.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -337,7 +319,7 @@ Returns the EDID version.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.getEdidVersion",
+    "method": "org.rdk.AVInput.getEdidVersion",
     "params": {
         "portId": 0
     }
@@ -356,10 +338,14 @@ Returns the EDID version.
 }
 ```
 
-<a name="method.getSPD"></a>
-## *getSPD [<sup>method</sup>](#head.Methods)*
+<a name="getSPD"></a>
+## *getSPD*
 
 Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -390,7 +376,7 @@ Returns the Source Data Product Descriptor (SPD) infoFrame packet information fo
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.getSPD",
+    "method": "org.rdk.AVInput.getSPD",
     "params": {
         "portId": 0
     }
@@ -409,10 +395,14 @@ Returns the Source Data Product Descriptor (SPD) infoFrame packet information fo
 }
 ```
 
-<a name="method.getRawSPD"></a>
-## *getRawSPD [<sup>method</sup>](#head.Methods)*
+<a name="getRawSPD"></a>
+## *getRawSPD*
 
 Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -443,7 +433,7 @@ Returns the Source Data Product Descriptor (SPD) infoFrame packet information fo
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.getRawSPD",
+    "method": "org.rdk.AVInput.getRawSPD",
     "params": {
         "portId": 0
     }
@@ -462,10 +452,14 @@ Returns the Source Data Product Descriptor (SPD) infoFrame packet information fo
 }
 ```
 
-<a name="method.readEDID"></a>
-## *readEDID [<sup>method</sup>](#head.Methods)*
+<a name="readEDID"></a>
+## *readEDID*
 
 Returns the current EDID value.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -496,7 +490,7 @@ Returns the current EDID value.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.readEDID",
+    "method": "org.rdk.AVInput.readEDID",
     "params": {
         "portId": 0
     }
@@ -515,13 +509,17 @@ Returns the current EDID value.
 }
 ```
 
-<a name="method.startInput"></a>
-## *startInput [<sup>method</sup>](#head.Methods)*
+<a name="startInput"></a>
+## *startInput*
 
 Activates the specified HDMI/Composite Input port as the primary video source.
 
-Also see: [onInputStatusChanged](#event.onInputStatusChanged), [onSignalChanged](#event.onSignalChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onInputStatusChanged](#onInputStatusChanged) | Triggers the event when HDMI/Composite Input source is activated and Input status changes to `started` |
+| [onSignalChanged](#onSignalChanged) | Triggers the event when HDMI/Composite Input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal) |
 ### Parameters
 
 | Name | Type | Description |
@@ -551,7 +549,7 @@ Also see: [onInputStatusChanged](#event.onInputStatusChanged), [onSignalChanged]
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.startInput",
+    "method": "org.rdk.AVInput.startInput",
     "params": {
         "portId": 0,
         "typeOfInput": "HDMI"
@@ -569,13 +567,16 @@ Also see: [onInputStatusChanged](#event.onInputStatusChanged), [onSignalChanged]
 }
 ```
 
-<a name="method.stopInput"></a>
-## *stopInput [<sup>method</sup>](#head.Methods)*
+<a name="stopInput"></a>
+## *stopInput*
 
 Deactivates the HDMI/Composite Input port currently selected as the primary video source.
 
-Also see: [onInputStatusChanged](#event.onInputStatusChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onInputStatusChanged](#onInputStatusChanged) | Triggers the event when HDMI/Composite Input source is deactivated and Input status changes to `stopped` |
 ### Parameters
 
 | Name | Type | Description |
@@ -604,7 +605,7 @@ Also see: [onInputStatusChanged](#event.onInputStatusChanged)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.stopInput",
+    "method": "org.rdk.AVInput.stopInput",
     "params": {
         "typeOfInput": "HDMI"
     }
@@ -621,10 +622,14 @@ Also see: [onInputStatusChanged](#event.onInputStatusChanged)
 }
 ```
 
-<a name="method.setEdidVersion"></a>
-## *setEdidVersion [<sup>method</sup>](#head.Methods)*
+<a name="setEdidVersion"></a>
+## *setEdidVersion*
 
 Sets an HDMI EDID version.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -655,7 +660,7 @@ Sets an HDMI EDID version.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.setEdidVersion",
+    "method": "org.rdk.AVInput.setEdidVersion",
     "params": {
         "portId": 0,
         "edidVersion": "HDMI2.0"
@@ -673,10 +678,14 @@ Sets an HDMI EDID version.
 }
 ```
 
-<a name="method.setVideoRectangle"></a>
-## *setVideoRectangle [<sup>method</sup>](#head.Methods)*
+<a name="setVideoRectangle"></a>
+## *setVideoRectangle*
 
 Sets an HDMI/Composite Input video window.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -710,7 +719,7 @@ Sets an HDMI/Composite Input video window.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.setVideoRectangle",
+    "method": "org.rdk.AVInput.setVideoRectangle",
     "params": {
         "x": 0,
         "y": 0,
@@ -731,10 +740,14 @@ Sets an HDMI/Composite Input video window.
 }
 ```
 
-<a name="method.writeEDID"></a>
-## *writeEDID [<sup>method</sup>](#head.Methods)*
+<a name="writeEDID"></a>
+## *writeEDID*
 
 Changes a current EDID value.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -764,7 +777,7 @@ Changes a current EDID value.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.writeEDID",
+    "method": "org.rdk.AVInput.writeEDID",
     "params": {
         "portId": 0,
         "message": "EDID"
@@ -782,10 +795,14 @@ Changes a current EDID value.
 }
 ```
 
-<a name="method.getSupportedGameFeatures"></a>
-## *getSupportedGameFeatures [<sup>method</sup>](#head.Methods)*
+<a name="getSupportedGameFeatures"></a>
+## *getSupportedGameFeatures*
 
 Returns the list of supported game features.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -813,7 +830,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.getSupportedGameFeatures"
+    "method": "org.rdk.AVInput.getSupportedGameFeatures"
 }
 ```
 
@@ -831,10 +848,14 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getGameFeatureStatus"></a>
-## *getGameFeatureStatus [<sup>method</sup>](#head.Methods)*
+<a name="getGameFeatureStatus"></a>
+## *getGameFeatureStatus*
 
 Returns the Game Feature Status. For example: ALLM.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -865,7 +886,7 @@ Returns the Game Feature Status. For example: ALLM.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.AVInput.1.getGameFeatureStatus",
+    "method": "org.rdk.AVInput.getGameFeatureStatus",
     "params": {
         "portId": 0,
         "gameFeature": "ALLM"
@@ -885,10 +906,10 @@ Returns the Game Feature Status. For example: ALLM.
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.AVInput plugin:
 
@@ -896,15 +917,15 @@ AVInput interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onDevicesChanged](#event.onDevicesChanged) | Triggered whenever a new HDMI/Composite device is connected to an HDMI/Composite Input |
-| [onInputStatusChanged](#event.onInputStatusChanged) | Triggered whenever the status changes for an HDMI/Composite Input |
-| [onSignalChanged](#event.onSignalChanged) | Triggered whenever the signal status changes for an HDMI/Composite Input |
-| [videoStreamInfoUpdate](#event.videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI Input video stream info |
-| [gameFeatureStatusUpdate](#event.gameFeatureStatusUpdate) | Triggered whenever game feature(ALLM) status changes for an HDMI Input |
+| [onDevicesChanged](#onDevicesChanged) | Triggered whenever a new HDMI/Composite device is connected to an HDMI/Composite Input |
+| [onInputStatusChanged](#onInputStatusChanged) | Triggered whenever the status changes for an HDMI/Composite Input |
+| [onSignalChanged](#onSignalChanged) | Triggered whenever the signal status changes for an HDMI/Composite Input |
+| [videoStreamInfoUpdate](#videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI Input video stream info |
+| [gameFeatureStatusUpdate](#gameFeatureStatusUpdate) | Triggered whenever game feature(ALLM) status changes for an HDMI Input |
 
 
-<a name="event.onDevicesChanged"></a>
-## *onDevicesChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onDevicesChanged"></a>
+## *onDevicesChanged*
 
 Triggered whenever a new HDMI/Composite device is connected to an HDMI/Composite Input.
 
@@ -924,7 +945,7 @@ Triggered whenever a new HDMI/Composite device is connected to an HDMI/Composite
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onDevicesChanged",
+    "method": "client.events.onDevicesChanged",
     "params": {
         "devices": [
             {
@@ -937,8 +958,8 @@ Triggered whenever a new HDMI/Composite device is connected to an HDMI/Composite
 }
 ```
 
-<a name="event.onInputStatusChanged"></a>
-## *onInputStatusChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onInputStatusChanged"></a>
+## *onInputStatusChanged*
 
 Triggered whenever the status changes for an HDMI/Composite Input.
 
@@ -956,7 +977,7 @@ Triggered whenever the status changes for an HDMI/Composite Input.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onInputStatusChanged",
+    "method": "client.events.onInputStatusChanged",
     "params": {
         "id": 0,
         "locator": "hdmiin://localhost/deviceid/0",
@@ -965,8 +986,8 @@ Triggered whenever the status changes for an HDMI/Composite Input.
 }
 ```
 
-<a name="event.onSignalChanged"></a>
-## *onSignalChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onSignalChanged"></a>
+## *onSignalChanged*
 
 Triggered whenever the signal status changes for an HDMI/Composite Input.
 
@@ -984,7 +1005,7 @@ Triggered whenever the signal status changes for an HDMI/Composite Input.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onSignalChanged",
+    "method": "client.events.onSignalChanged",
     "params": {
         "id": 0,
         "locator": "hdmiin://localhost/deviceid/0",
@@ -993,8 +1014,8 @@ Triggered whenever the signal status changes for an HDMI/Composite Input.
 }
 ```
 
-<a name="event.videoStreamInfoUpdate"></a>
-## *videoStreamInfoUpdate [<sup>event</sup>](#head.Notifications)*
+<a name="videoStreamInfoUpdate"></a>
+## *videoStreamInfoUpdate*
 
 Triggered whenever there is an update in HDMI Input video stream info.
 
@@ -1016,7 +1037,7 @@ Triggered whenever there is an update in HDMI Input video stream info.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.videoStreamInfoUpdate",
+    "method": "client.events.videoStreamInfoUpdate",
     "params": {
         "id": 0,
         "locator": "hdmiin://localhost/deviceid/0",
@@ -1029,8 +1050,8 @@ Triggered whenever there is an update in HDMI Input video stream info.
 }
 ```
 
-<a name="event.gameFeatureStatusUpdate"></a>
-## *gameFeatureStatusUpdate [<sup>event</sup>](#head.Notifications)*
+<a name="gameFeatureStatusUpdate"></a>
+## *gameFeatureStatusUpdate*
 
 Triggered whenever game feature(ALLM) status changes for an HDMI Input.
 
@@ -1048,7 +1069,7 @@ Triggered whenever game feature(ALLM) status changes for an HDMI Input.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.gameFeatureStatusUpdate",
+    "method": "client.events.gameFeatureStatusUpdate",
     "params": {
         "id": 0,
         "gameFeature": "ALLM",
