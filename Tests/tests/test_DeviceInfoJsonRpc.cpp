@@ -12,7 +12,7 @@
 #include "VideoOutputPortTypeMock.h"
 #include "VideoResolutionMock.h"
 
-#include "source/SystemInfo.h"
+#include "SystemInfo.h"
 
 #include <fstream>
 
