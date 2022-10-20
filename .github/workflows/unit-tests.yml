@@ -303,7 +303,6 @@ jobs:
           '*/install/usr/include/*'
           '*/Tests/headers/*'
           '*/Tests/mocks/*'
-          '*/Tests/source/*'
           '*/Tests/tests/*'
           '*/DeviceIdentification/Implementation/Realtek/*'
           -o filtered_coverage.info

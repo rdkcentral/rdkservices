@@ -32,8 +32,8 @@ FetchContent_MakeAvailable(googletest)
 file(GLOB TESTS tests/*.cpp)
 add_executable(${PROJECT_NAME}
         ${TESTS}
-        source/Module.cpp
-        source/Wraps.cpp
+        mocks/thunder/Module.cpp
+        mocks/Wraps.cpp
         )
 
 set_source_files_properties(
@@ -116,9 +116,9 @@ target_include_directories(${PROJECT_NAME}
         PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
-        source
         mocks
         mocks/devicesettings
+        mocks/thunder
         )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
