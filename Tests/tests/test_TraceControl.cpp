@@ -68,15 +68,6 @@ protected:
     TraceControlInitializedTest()
         : TraceControlTest()
     {
-    }
-    virtual ~TraceControlInitializedTest() override
-    {
-    }
-
-    void SetUp(bool bBackground)
-    {
-        ON_CALL(service, Background())
-            .WillByDefault(::testing::Return(bBackground));
         ON_CALL(service, ConfigLine())
             .WillByDefault(::testing::Return("{}"));
         ON_CALL(service, WebPrefix())
@@ -89,10 +80,8 @@ protected:
              .WillByDefault(::testing::Return(&comLinkMock));
 
         PluginHost::IFactories::Assign(&factoriesImplementation);
-        EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
-
-    virtual void TearDown()
+    virtual ~TraceControlInitializedTest() override
     {
         plugin->Deinitialize(&service);
         PluginHost::IFactories::Assign(nullptr);
@@ -101,94 +90,57 @@ protected:
 
 TEST_F(TraceControlInitializedTest, registeredMethods)
 {
-    SetUp(true);
+    ON_CALL(service, Background())
+        .WillByDefault(::testing::Return(true));
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("set")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("status")));
 }
 
 TEST_F(TraceControlInitializedTest, jsonRpc)
 {
-    SetUp(true);
+    ON_CALL(service, Background())
+        .WillByDefault(::testing::Return(true));
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("status"), _T("{}"), response));
 
-    JsonObject params;
-    params.FromString(response);
-    JsonArray arr = params["settings"].Array();
-    JsonObject traceObj;
-    string jsonString;
-    for (unsigned int i = 0; i < arr.Length(); i++)
-    {
-        traceObj = arr[i].Object();
-        traceObj.ToString(jsonString);
-        EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                    "\"module\":\".+\","
-                                                    "\"category\":\".+\","
-                                                    "\"state\":\"(disabled|enabled|tristated)\""
-                                                    "\\}")));
-    }
+    EXPECT_THAT(response, ::testing::MatchesRegex("\\{"
+                                                "\"settings\":"
+                                                "\\[(\\{\"module\":\"[^\"]+\",\"category\":\"[^\"]+\",\"state\":\"(disabled|enabled|tristated)\"\\},{0,}){0,}\\]"
+                                                "\\}"));
 
     //Set Plugin_TraceControl:Information:enabled
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("set"), _T("{\"module\":\"Plugin_TraceControl\",\"category\":\"Information\",\"state\":\"enabled\"}"), response));
 
     //Get status Plugin_TraceControl:Information:enabled
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("status"), _T("{\"module\":\"Plugin_TraceControl\",\"category\":\"Information\"}"), response));
-    params.FromString(response);
-    arr = params["settings"].Array();
-    traceObj = arr[0].Object();
-    traceObj.ToString(jsonString);
-    EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                "\"module\":\"Plugin_TraceControl\","
-                                                "\"category\":\"Information\","
-                                                "\"state\":\"enabled\""
-                                                "\\}")));
+    EXPECT_THAT(response, ::testing::MatchesRegex("\\{"
+                                                "\"settings\":"
+                                                "\\[\\{\"module\":\"Plugin_TraceControl\",\"category\":\"Information\",\"state\":\"enabled\"\\}\\]"
+                                                "\\}"));
 
     //Set Plugin_TraceControl:All:disabled
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("set"), _T("{\"module\":\"Plugin_TraceControl\",\"state\":\"disabled\"}"), response));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("status"), _T("{\"module\":\"Plugin_TraceControl\"}"), response));
-    params.FromString(response);
-    arr = params["settings"].Array();
     //Check all categories are set to disabled
-    for (unsigned int i = 0; i < arr.Length(); i++)
-    {
-        traceObj = arr[i].Object();
-        traceObj.ToString(jsonString);
-        EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                    "\"module\":\"Plugin_TraceControl\","
-                                                    "\"category\":\".+\","
-                                                    "\"state\":\"disabled\""
-                                                    "\\}")));
-    }
+    EXPECT_THAT(response, ::testing::MatchesRegex("\\{"
+                                                "\"settings\":"
+                                                "\\[(\\{\"module\":\"Plugin_TraceControl\",\"category\":\"[^\"]+\",\"state\":\"disabled\"\\},{0,}){0,}\\]"
+                                                "\\}"));
 
     //Set Plugin_TraceControl:All:enabled
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("set"), _T("{\"module\":\"Plugin_TraceControl\",\"state\":\"enabled\"}"), response));
-
-    //Log some trace data
-    TRACE(Trace::Information, (_T("Test1")));
-    TRACE(Trace::Information, (_T("Test2")));
-    TRACE(Trace::Information, (_T("Test3")));
-
-    //Access trace file from the system
-    Core::File file(volatilePath+"tracebuffer");
-    file.Open(true);
-    uint8_t buffer[1024];
-    uint32_t len = file.Read(buffer, sizeof(buffer));
-    std::string s(buffer, buffer+len);
-
-    //Verify the test data is present in the trace file
-    EXPECT_THAT(s, ::testing::HasSubstr("Test1"));
-    EXPECT_THAT(s, ::testing::HasSubstr("Test2"));
-    EXPECT_THAT(s, ::testing::HasSubstr("Test3"));
-
-    //Delete trace files
-    Core::File(volatilePath+"tracebuffer").Destroy();
-    Core::File(volatilePath+"tracebuffer.doorbell").Destroy();
-
 }
 
 TEST_F(TraceControlInitializedTest, httpGetPut)
 {
-    SetUp(false);
+    ON_CALL(service, Background())
+        .WillByDefault(::testing::Return(false));
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
     //HTTP_GET - Get status for all modules
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;
@@ -210,15 +162,10 @@ TEST_F(TraceControlInitializedTest, httpGetPut)
     params.FromString(bodyStr);
     JsonArray arr = params["settings"].Array();
     string jsonString;
-    for (unsigned int i = 0; i < arr.Length(); i++)
-    {
-        arr[i].Object().ToString(jsonString);
-        EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                    "\"module\":\".+\","
-                                                    "\"category\":\".+\","
-                                                    "\"state\":\"(disabled|enabled|tristated)\""
-                                                    "\\}")));
-    }
+    EXPECT_THAT(bodyStr, ::testing::MatchesRegex("\\{"
+                                                "\"settings\":"
+                                                "\\[(\\{\"module\":\"[^\"]+\",\"category\":\"[^\"]+\",\"state\":\"(disabled|enabled|tristated)\"\\},{0,}){0,}\\]"
+                                                "\\}"));
 
     //HTTP_PUT - Set all module state to "disabled"
     request.Verb = Web::Request::HTTP_PUT;
@@ -239,18 +186,10 @@ TEST_F(TraceControlInitializedTest, httpGetPut)
     //Validate the status for all modules. The state should be disabled
     body = httpResponse->Body<Web::JSONBodyType<Plugin::TraceControl::Data>>();
     body->ToString(bodyStr);
-    params.FromString(bodyStr);
-    arr = params["settings"].Array();
-    for (unsigned int i = 0; i < arr.Length(); i++)
-    {
-        arr[i].Object().ToString(jsonString);
-        //traceObj.ToString(jsonString);
-        EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                    "\"module\":\".+\","
-                                                    "\"category\":\".+\","
-                                                    "\"state\":\"disabled\""
-                                                    "\\}")));
-    }
+    EXPECT_THAT(bodyStr, ::testing::MatchesRegex("\\{"
+                                                "\"settings\":"
+                                                "\\[(\\{\"module\":\"[^\"]+\",\"category\":\"[^\"]+\",\"state\":\"disabled\"\\},{0,}){0,}\\]"
+                                                "\\}"));
 
     //HTTP_PUT - Set Plugin_TraceControl module state to "enabled"
     request.Verb = Web::Request::HTTP_PUT;
@@ -332,20 +271,19 @@ TEST_F(TraceControlInitializedTest, httpGetPut)
         {
             if(jsonString.find("Information") == string::npos)
             {
-            EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                        "\"module\":\"Plugin_TraceControl\","
-                                                        "\"category\":\".+\","
-                                                        "\"state\":\"enabled\""
-                                                        "\\}")));
+                EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
+                                                            "\"module\":\"Plugin_TraceControl\","
+                                                            "\"category\":\".+\","
+                                                            "\"state\":\"enabled\""
+                                                            "\\}")));
             }
             else
             {
-            EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                        "\"module\":\"Plugin_TraceControl\","
-                                                        "\"category\":\".+\","
-                                                        "\"state\":\"disabled\""
-                                                        "\\}")));
-
+                EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
+                                                            "\"module\":\"Plugin_TraceControl\","
+                                                            "\"category\":\".+\","
+                                                            "\"state\":\"disabled\""
+                                                            "\\}")));
             }
         }
     }
@@ -386,25 +324,4 @@ TEST_F(TraceControlInitializedTest, httpGetPut)
     ASSERT_TRUE(httpResponse.IsValid());
     EXPECT_EQ(httpResponse->ErrorCode, Web::STATUS_OK);
     EXPECT_EQ(httpResponse->Message, "OK");
-
-    //Log some trace data
-    TRACE(Trace::Information, (_T("Test4")));
-    TRACE(Trace::Information, (_T("Test5")));
-    TRACE(Trace::Information, (_T("Test6")));
-
-    //Access trace file from the system
-    Core::File file(volatilePath+"tracebuffer");
-    file.Open(true);
-    uint8_t buffer[1024];
-    uint32_t len = file.Read(buffer, sizeof(buffer));
-    std::string s(buffer, buffer+len);
-
-    //Verify the test data is present in the trace file
-    EXPECT_THAT(s, ::testing::HasSubstr("Test4"));
-    EXPECT_THAT(s, ::testing::HasSubstr("Test5"));
-    EXPECT_THAT(s, ::testing::HasSubstr("Test6"));
-
-    //Delete trace files
-    Core::File(volatilePath+"tracebuffer").Destroy();
-    Core::File(volatilePath+"tracebuffer.doorbell").Destroy();
 }
