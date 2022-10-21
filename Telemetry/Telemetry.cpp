@@ -24,9 +24,16 @@
 
 #include "rfcapi.h"
 
+#ifdef HAS_RBUS
+#define RBUS_COMPONENT_NAME "TelemetryThunderPlugin"
+#define T2_ON_DEMAND_REPORT "Device.X_RDKCENTRAL-COM_T2.UploadDCMReport"
+#endif
+
 // Methods
 #define TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS "setReportProfileStatus"
 #define TELEMETRY_METHOD_LOG_APPLICATION_EVENT "logApplicationEvent"
+#define TELEMETRY_METHOD_UPLOAD_LOGS "uploadLogs"
+
 
 #define RFC_CALLERID "Telemetry"
 #define RFC_REPORT_PROFILES "Device.X_RDKCENTRAL-COM_T2.ReportProfiles"
@@ -63,11 +70,15 @@ namespace WPEFramework
 
         Telemetry::Telemetry()
         : PluginHost::JSONRPC()
+#ifdef HAS_RBUS
+        , rbusHandleStatus(RBUS_ERROR_NOT_INITIALIZED)
+#endif
         {
             Telemetry::_instance = this;
 
             Register(TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS, &Telemetry::setReportProfileStatus, this);
             Register(TELEMETRY_METHOD_LOG_APPLICATION_EVENT, &Telemetry::logApplicationEvent, this);
+            Register(TELEMETRY_METHOD_UPLOAD_LOGS, &Telemetry::uploadLogs, this);
 
             Utils::Telemetry::init();
         }
@@ -148,12 +159,17 @@ namespace WPEFramework
                     LOGERR("Failed to open %s", defaultProfilesFile.c_str());
                 }
             }
+
             return "";
         }
 
         void Telemetry::Deinitialize(PluginHost::IShell* /* service */)
         {
             Telemetry::_instance = nullptr;
+#ifdef HAS_RBUS
+            if (RBUS_ERROR_SUCCESS == rbusHandleStatus)
+                rbus_close(rbusHandle);
+#endif
         }
 
         uint32_t Telemetry::setReportProfileStatus(const JsonObject& parameters, JsonObject& response)
@@ -214,6 +230,30 @@ namespace WPEFramework
             }
 
             returnResponse(true);
+        }
+
+        uint32_t Telemetry::uploadLogs(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+#ifdef HAS_RBUS
+            if (RBUS_ERROR_SUCCESS != rbusHandleStatus)
+            {
+                rbusHandleStatus = rbus_open(&rbusHandle, RBUS_COMPONENT_NAME);
+            }
+
+            if (RBUS_ERROR_SUCCESS == rbusHandleStatus)
+            {
+                returnResponse(RBUS_ERROR_SUCCESS == rbus_setBoolean(rbusHandle, T2_ON_DEMAND_REPORT, true));
+            }
+            else
+            {
+                LOGERR("%s:%d, rbus_open failed with error code %d \n", __func__, __LINE__, rbusHandleStatus);
+                returnResponse(false);
+            }
+#else
+            LOGERR("No RBus support");
+            returnResponse(false);
+#endif
         }
 
     } // namespace Plugin
