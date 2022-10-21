@@ -88,12 +88,8 @@ protected:
     }
 };
 
-TEST_F(TraceControlInitializedTest, registeredMethods)
+TEST_F(TraceControlTest, registeredMethods)
 {
-    ON_CALL(service, Background())
-        .WillByDefault(::testing::Return(true));
-    EXPECT_EQ(string(""), plugin->Initialize(&service));
-
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("set")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("status")));
 }
@@ -216,20 +212,20 @@ TEST_F(TraceControlInitializedTest, httpGetPut)
     for (unsigned int i = 0; i < arr.Length(); i++)
     {
         arr[i].Object().ToString(jsonString);
-        if(jsonString.find("Plugin_TraceControl") == string::npos)
-        {
-            EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                        "\"module\":\".+\","
-                                                        "\"category\":\".+\","
-                                                        "\"state\":\"disabled\""
-                                                        "\\}")));
-        }
-        else
+        if(arr[i].Object()["module"].String() == "Plugin_TraceControl")
         {
             EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
                                                         "\"module\":\"Plugin_TraceControl\","
                                                         "\"category\":\".+\","
                                                         "\"state\":\"enabled\""
+                                                        "\\}")));
+        }
+        else
+        {
+            EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
+                                                        "\"module\":\".+\","
+                                                        "\"category\":\".+\","
+                                                        "\"state\":\"disabled\""
                                                         "\\}")));
         }
     }
@@ -259,25 +255,9 @@ TEST_F(TraceControlInitializedTest, httpGetPut)
     for (unsigned int i = 0; i < arr.Length(); i++)
     {
         arr[i].Object().ToString(jsonString);
-        if(jsonString.find("Plugin_TraceControl") == string::npos)
+        if(arr[i].Object()["module"].String() == "Plugin_TraceControl")
         {
-            EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                        "\"module\":\".+\","
-                                                        "\"category\":\".+\","
-                                                        "\"state\":\"disabled\""
-                                                        "\\}")));
-        }
-        else
-        {
-            if(jsonString.find("Information") == string::npos)
-            {
-                EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                            "\"module\":\"Plugin_TraceControl\","
-                                                            "\"category\":\".+\","
-                                                            "\"state\":\"enabled\""
-                                                            "\\}")));
-            }
-            else
+            if(arr[i].Object()["category"].String() == "Information")
             {
                 EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
                                                             "\"module\":\"Plugin_TraceControl\","
@@ -285,6 +265,22 @@ TEST_F(TraceControlInitializedTest, httpGetPut)
                                                             "\"state\":\"disabled\""
                                                             "\\}")));
             }
+            else
+            {
+                EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
+                                                            "\"module\":\"Plugin_TraceControl\","
+                                                            "\"category\":\".+\","
+                                                            "\"state\":\"enabled\""
+                                                            "\\}")));
+            }
+        }
+        else
+        {
+            EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
+                                                        "\"module\":\".+\","
+                                                        "\"category\":\".+\","
+                                                        "\"state\":\"disabled\""
+                                                        "\\}")));
         }
     }
 
@@ -316,12 +312,4 @@ TEST_F(TraceControlInitializedTest, httpGetPut)
     httpResponse = interface->Process(request);
     ASSERT_TRUE(httpResponse.IsValid());
     EXPECT_EQ(httpResponse->ErrorCode, Web::STATUS_BAD_REQUEST);
-
-    //HTTP_PUT - Enable all modules
-    request.Verb = Web::Request::HTTP_PUT;
-    request.Path = webPrefix + "/on";
-    httpResponse = interface->Process(request);
-    ASSERT_TRUE(httpResponse.IsValid());
-    EXPECT_EQ(httpResponse->ErrorCode, Web::STATUS_OK);
-    EXPECT_EQ(httpResponse->Message, "OK");
 }
