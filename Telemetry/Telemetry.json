@@ -33,7 +33,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/common/result"        
+                "$ref": "#/common/result"
             }
         },
         "logApplicationEvent": {
@@ -58,7 +58,13 @@
                 ]
             },
             "result": {
-                "$ref": "#/common/result"        
+                "$ref": "#/common/result"
+            }
+        },
+        "uploadReport": {
+            "summary": "Triggers processing and uploading of telemetry report for legacy Xconf based configuration",
+            "result": {
+                "$ref": "#/common/result"
             }
         }
     }
