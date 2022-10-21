@@ -22,8 +22,8 @@
 #include "SecurityAgent.h"
 
 #include "ServiceMock.h"
-#include "source/SystemInfo.h"
-#include "source/WorkerPoolImplementation.h"
+#include "SystemInfo.h"
+#include "WorkerPoolImplementation.h"
 
 using namespace WPEFramework;
 
