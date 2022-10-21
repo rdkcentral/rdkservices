@@ -21,6 +21,10 @@
 
 #include "Module.h"
 
+#ifdef HAS_RBUS
+#include "rbus.h"
+#endif
+
 namespace WPEFramework {
 
     namespace Plugin {
@@ -48,6 +52,7 @@ namespace WPEFramework {
             //Begin methods
             uint32_t setReportProfileStatus(const JsonObject& parameters, JsonObject& response);
             uint32_t logApplicationEvent(const JsonObject& parameters, JsonObject& response);
+            uint32_t uploadLogs(const JsonObject& parameters, JsonObject& response);
             //End methods
 
         public:
@@ -65,6 +70,10 @@ namespace WPEFramework {
         public:
             static Telemetry* _instance;
         private:
+#ifdef HAS_RBUS
+            rbusError_t rbusHandleStatus;
+            rbusHandle_t rbusHandle;
+#endif
         };
     } // namespace Plugin
 } // namespace WPEFramework
