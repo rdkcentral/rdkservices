@@ -8,6 +8,7 @@ public:
 
     virtual int system(const char* command) = 0;
     virtual FILE* popen(const char* command, const char* type) = 0;
+    virtual void syslog(int pri, const char* strFmt) = 0;
 };
 
 class Wraps {
@@ -28,5 +29,10 @@ public:
     static FILE* popen(const char* command, const char* type)
     {
         return getInstance().impl->popen(command, type);
+    }
+
+    static void syslog(int pri, const char* strFmt)
+    {
+        getInstance().impl->syslog(pri, strFmt);
     }
 };
