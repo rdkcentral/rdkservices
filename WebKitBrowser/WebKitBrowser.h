@@ -30,7 +30,6 @@
 #include <interfaces/json/JWebBrowser.h>
 #include <interfaces/json/JBrowserResources.h>
 #include <interfaces/json/JBrowserSecurity.h>
-#include "odhlog.h"
 
 namespace WPEFramework {
 

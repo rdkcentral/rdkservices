@@ -53,6 +53,7 @@
 
 #include "BrowserConsoleLog.h"
 #include "InjectedBundle/Tags.h"
+#include "odhlog.h"
 #include "tracing/Logging.h"
 
 #define URL_LOAD_RESULT_TIMEOUT_MS                                   (15 * 1000)
@@ -842,7 +843,7 @@ static GSourceFuncs _handlerIntervention =
             if (odh_error_report_init("WebKitBrowser")) {
                 TRACE(Trace::Error, (_T("Failed to initialize ODH reporting")));
             } else {
-                ODH_WARNING("ThunderWebKitBrowser started: %p", this);
+                ODH_WARNING("WPE0010", WPE_CONTEXT, "ThunderWebKitBrowser started: %p", this);
             }
 
             implementation = this;
@@ -1408,7 +1409,7 @@ static GSourceFuncs _handlerIntervention =
             using namespace std::chrono;
 
             TRACE_L1("New URL: %s", URL.c_str());
-            ODH_WARNING("New URL: %s", URL.c_str());
+            ODH_WARNING("WPE0020", WPE_CONTEXT_WITH_URL(URL.c_str()), "New URL: %s", URL.c_str());
 
             if (!_context) return Core::ERROR_ILLEGAL_STATE;
 
@@ -1458,13 +1459,24 @@ static GSourceFuncs _handlerIntervention =
                 [this](){return Core::ERROR_TIMEDOUT != urlData_.result;});
 
             const auto diff = steady_clock::now() - now;
+            const int diff_in_ms = duration_cast<milliseconds>(diff).count();
+            const auto result_str = (Core::ERROR_NONE == urlData_.result ? "OK" : "NOK");
 
             TRACE_L1(
                     "URL: %s, load result %s(%d), %dms",
                     urlData_.url.c_str(),
-                    Core::ERROR_NONE == urlData_.result ? "OK" : "NOK",
+                    result_str,
                     int(urlData_.result),
-                    int(duration_cast<milliseconds>(diff).count()));
+                    diff_in_ms);
+
+            ODH_WARNING(
+                    "WPE0040",
+                    WPE_CONTEXT_WITH_URL(urlData_.url.c_str()),
+                    "URL: %s, load result %s(%d), %dms",
+                    urlData_.url.c_str(),
+                    result_str,
+                    int(urlData_.result),
+                    diff_in_ms);
 
             return urlData_.result;
         }
@@ -1914,7 +1926,7 @@ static GSourceFuncs _handlerIntervention =
             }
 
             _adminLock.Unlock();
-            ODH_ERROR("Failed to load URL: %s", url.c_str());
+            ODH_ERROR("WPE0030", WPE_CONTEXT_WITH_URL(url.c_str()), "Failed to load URL: %s", url.c_str());
         }
 
         void OnStateChange(const PluginHost::IStateControl::state newState)
