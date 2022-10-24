@@ -21,6 +21,7 @@
 #include <gmock/gmock.h>
 
 #include "TraceControl.h"
+#include "WrapsMock.h"
 
 #include "FactoriesImplementation.h"
 #include "ServiceMock.h"
@@ -40,6 +41,7 @@ protected:
     PluginHost::IWeb* interface;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
+    WrapsImplMock wrapsImplMock;
     string response;
 
     TraceControlTest()
@@ -49,10 +51,12 @@ protected:
     {
         interface = static_cast<PluginHost::IWeb*>(plugin->QueryInterface(PluginHost::IWeb::ID));
         Trace::TraceUnit::Instance().Open(volatilePath);
+        Wraps::getInstance().impl = &wrapsImplMock;
     }
 
     virtual ~TraceControlTest()
     {
+        Wraps::getInstance().impl = nullptr;
         interface->Release();
         plugin.Release();
         Trace::TraceUnit::Instance().Close();
@@ -96,6 +100,14 @@ TEST_F(TraceControlTest, registeredMethods)
 
 TEST_F(TraceControlInitializedTest, jsonRpc)
 {
+    ON_CALL(wrapsImplMock, syslog(::testing::_, ::testing::_))
+    .WillByDefault(::testing::Invoke(
+        [&](int pri, const char* strFmt) -> void {
+            EXPECT_EQ(LOG_NOTICE, pri);
+            std::string strFmt_local(strFmt);
+            EXPECT_THAT(strFmt_local, ::testing::MatchesRegex("\\[.+\\]: Test1.+"));
+        }));
+
     ON_CALL(service, Background())
         .WillByDefault(::testing::Return(true));
     EXPECT_EQ(string(""), plugin->Initialize(&service));
@@ -129,6 +141,34 @@ TEST_F(TraceControlInitializedTest, jsonRpc)
 
     //Set Plugin_TraceControl:All:enabled
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("set"), _T("{\"module\":\"Plugin_TraceControl\",\"state\":\"enabled\"}"), response));
+
+     //Log some trace data and verify the output format
+    TRACE(Trace::Information, (_T("Test1")));
+}
+
+TEST_F(TraceControlInitializedTest, syslogFormat)
+{
+    ON_CALL(wrapsImplMock, syslog(::testing::_, ::testing::_))
+    .WillByDefault(::testing::Invoke(
+        [&](int pri, const char* strFmt) -> void {
+            EXPECT_EQ(LOG_NOTICE, pri);
+            std::string strFmt_local(strFmt);
+            EXPECT_THAT(strFmt_local, ::testing::MatchesRegex("\\[.+\\]:\\[test_TraceControl.cpp:[0-9]+\\] Information: Test2.+"));
+        }));
+
+    ON_CALL(service, ConfigLine())
+        .WillByDefault(::testing::Return("{\n"
+                                            "\"console\":false,\n"
+                                            "\"syslog\":true,\n"
+                                            "\"abbreviated\":false\n"
+                                         "}"));
+
+    ON_CALL(service, Background())
+        .WillByDefault(::testing::Return(true));
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+     //Log some trace data and verify the output format
+    TRACE(Trace::Information, (_T("Test2")));
 }
 
 TEST_F(TraceControlInitializedTest, httpGetPut)
