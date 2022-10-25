@@ -249,11 +249,13 @@ TEST_F(TraceControlInitializedTest, httpGetPut)
     body->ToString(bodyStr);
     params.FromString(bodyStr);
     arr = params["settings"].Array();
+    bool bModPresent = false;
     for (unsigned int i = 0; i < arr.Length(); i++)
     {
         arr[i].Object().ToString(jsonString);
         if(arr[i].Object()["module"].String() == "Plugin_TraceControl")
         {
+            bModPresent = true;
             EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
                                                         "\"module\":\"Plugin_TraceControl\","
                                                         "\"category\":\".+\","
@@ -269,6 +271,7 @@ TEST_F(TraceControlInitializedTest, httpGetPut)
                                                         "\\}")));
         }
     }
+    EXPECT_EQ(true, bModPresent);
 
     //HTTP_PUT - Set Plugin_TraceControl module, Information category state to "disabled"
     request.Verb = Web::Request::HTTP_PUT;
@@ -292,6 +295,7 @@ TEST_F(TraceControlInitializedTest, httpGetPut)
     body->ToString(bodyStr);
     params.FromString(bodyStr);
     arr = params["settings"].Array();
+    bool bModCatPresent = false;
     for (unsigned int i = 0; i < arr.Length(); i++)
     {
         arr[i].Object().ToString(jsonString);
@@ -299,6 +303,7 @@ TEST_F(TraceControlInitializedTest, httpGetPut)
         {
             if(arr[i].Object()["category"].String() == "Information")
             {
+                bModCatPresent = true;
                 EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
                                                             "\"module\":\"Plugin_TraceControl\","
                                                             "\"category\":\".+\","
@@ -323,6 +328,7 @@ TEST_F(TraceControlInitializedTest, httpGetPut)
                                                         "\\}")));
         }
     }
+    EXPECT_EQ(true, bModCatPresent);
 
     //Negative test cases
     //HTTP_PUT - No data
