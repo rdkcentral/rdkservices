@@ -1,7 +1,6 @@
 #pragma once
 
-typedef enum
-{
+typedef enum {
     T2ERROR_SUCCESS,
     T2ERROR_FAILURE,
     T2ERROR_INVALID_PROFILE,
@@ -11,13 +10,13 @@ typedef enum
     T2ERROR_MEMALLOC_FAILED,
     T2ERROR_INVALID_ARGS,
     T2ERROR_INTERNAL_ERROR
-}T2ERROR;
+} T2ERROR;
 
 class TelemetryApiImpl {
 public:
     virtual ~TelemetryApiImpl() = default;
 
-    virtual void t2_init(char *component) = 0;
+    virtual void t2_init(char* component) = 0;
     virtual T2ERROR t2_event_s(char* marker, char* value) = 0;
 };
 
@@ -31,14 +30,11 @@ public:
         return instance;
     }
 
-    static void t2_init(char *component)
+    static void t2_init(char* component)
     {
-        if (nullptr != getInstance().impl)
-            getInstance().impl->t2_init(component);
-        else
-            fprintf(stderr, "TelemetryApi impl is null\n");
+        getInstance().impl->t2_init(component);
     }
-    
+
     static T2ERROR t2_event_s(char* marker, char* value)
     {
         return getInstance().impl->t2_event_s(marker, value);
