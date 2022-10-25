@@ -44,10 +44,9 @@ docker exec -it <container name> /bin/bash
  For the queries on syntax please refer to the [Workflow syntax for GitHub Actions](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions).
 
 2. External dependencies need to be mocked.
- For each external header, add one into the [headers folder](./headers) (preserve the original path parts, if needed).
- Implement it so that it builds and is [mockable](http://google.github.io/googletest/gmock_cook_book.html).
- It does not need to be a copy of original header!
- Implement the respective mocks and add them into the [mocks folder](./mocks).
+ For each external header, add one into the [unit-tests.yml](../.github/workflows/unit-tests.yml) (preserve the original path parts, if needed).
+ For each external declaration, add one into the [mocks folder](./mocks).
+ For the queries on mocks please refer to the [gMock Cookbook](http://google.github.io/googletest/gmock_cook_book.html).
 
 3. For the queries on how to write tests please refer to the [GoogleTest User’s Guide](https://google.github.io/googletest/).
  Common recommendations:
