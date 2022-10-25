@@ -2,7 +2,7 @@
 
 #include <gmock/gmock.h>
 
-#include "libudev.h"
+#include "Udev.h"
 
 class UdevImplMock : public UdevImpl {
 public:
