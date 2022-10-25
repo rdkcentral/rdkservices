@@ -11,6 +11,7 @@ extern "C" FILE* __wrap_popen(const char* command, const char* type)
     return Wraps::getInstance().popen(command, type);
 }
 
+extern "C" FILE* __real_syslog(int pri, const char *fmt, ...);
 //This function will be called for syslog() in the code (added -Wl,-wrap,syslog)
 extern  "C" void __wrap_syslog(int pri, const char *fmt, ...)
 {
@@ -21,4 +22,5 @@ extern  "C" void __wrap_syslog(int pri, const char *fmt, ...)
     va_end(args);
 
     Wraps::getInstance().syslog(pri, strFmt);
+    __real_syslog(pri, fmt);
 }
