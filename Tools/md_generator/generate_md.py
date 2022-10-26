@@ -19,7 +19,7 @@ def convert_json_to_md():
     print()
     filename = os.path.join(dirname, r"../../*/*Plugin.json")
     flist = glob.glob(os.path.join(filename))
-    jsongenpath ="python ../json_generator/generator_json.py"
+    jsongenpath ="python3 ../json_generator/generator_json.py"
 
     for file in flist:
         os.system(r"{} --docs "
