@@ -198,18 +198,18 @@ void AVInput::RegisterAll()
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_NUMBER_OF_INPUTS), &AVInput::endpoint_numberOfInputs, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_CURRENT_VIDEO_MODE), &AVInput::endpoint_currentVideoMode, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_CONTENT_PROTECTED), &AVInput::endpoint_contentProtected, this);
-    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_INPUT_DEVICES), &AVInput::getInputDevicesWrapper, this);
-    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_WRITE_EDID), &AVInput::writeEDIDWrapper, this);
-    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_READ_EDID), &AVInput::readEDIDWrapper, this);
-    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_READ_RAWSPD), &AVInput::getRawSPDWrapper, this);
-    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_READ_SPD), &AVInput::getSPDWrapper, this);
-    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_EDID_VERSION), &AVInput::setEdidVersionWrapper, this);
-    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_EDID_VERSION), &AVInput::getEdidVersionWrapper, this);
-    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_START_INPUT), &AVInput::startInput, this);
-    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_STOP_INPUT), &AVInput::stopInput, this);
-    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SCALE_INPUT), &AVInput::setVideoRectangleWrapper, this);
-    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SUPPORTED_GAME_FEATURES), &AVInput::getSupportedGameFeatures, this);
-    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GAME_FEATURE_STATUS), &AVInput::getGameFeatureStatusWrapper, this);
+    Register<JsonData::AVInput::GetInputDevicesParamsInfo, JsonData::AVInput::GetInputDevicesResultInfo>(_T(AVINPUT_METHOD_GET_INPUT_DEVICES), &AVInput::getInputDevicesWrapper, this);
+    Register<JsonData::AVInput::WriteEDIDParamsData,void>(_T(AVINPUT_METHOD_WRITE_EDID), &AVInput::writeEDIDWrapper, this);
+    Register<JsonData::AVInput::GetEdidVersionParamsInfo, JsonData::AVInput::ReadEDIDResultData>(_T(AVINPUT_METHOD_READ_EDID), &AVInput::readEDIDWrapper, this);
+    Register<JsonData::AVInput::GetEdidVersionParamsInfo, JsonData::AVInput::GetSPDResultInfo>(_T(AVINPUT_METHOD_READ_RAWSPD), &AVInput::getRawSPDWrapper, this);
+    Register<JsonData::AVInput::GetEdidVersionParamsInfo, JsonData::AVInput::GetSPDResultInfo>(_T(AVINPUT_METHOD_READ_SPD), &AVInput::getSPDWrapper, this);
+    Register<JsonData::AVInput::SetEdidVersionParamsData,void>(_T(AVINPUT_METHOD_SET_EDID_VERSION), &AVInput::setEdidVersionWrapper, this);
+    Register<JsonData::AVInput::GetEdidVersionParamsInfo, JsonData::AVInput::GetEdidVersionResultData>(_T(AVINPUT_METHOD_GET_EDID_VERSION), &AVInput::getEdidVersionWrapper, this);
+    Register<JsonData::AVInput::StartInputParamsData,void>(_T(AVINPUT_METHOD_START_INPUT), &AVInput::startInput, this);
+    Register<JsonData::AVInput::GetInputDevicesParamsInfo,void>(_T(AVINPUT_METHOD_STOP_INPUT), &AVInput::stopInput, this);
+    Register<JsonData::AVInput::SetVideoRectangleParamsData,void>(_T(AVINPUT_METHOD_SCALE_INPUT), &AVInput::setVideoRectangleWrapper, this);
+    Register<void,JsonData::AVInput::GetSupportedGameFeaturesResultData>(_T(AVINPUT_METHOD_SUPPORTED_GAME_FEATURES), &AVInput::getSupportedGameFeatures, this);
+    Register<JsonData::AVInput::GetGameFeatureStatusParamsData, JsonData::AVInput::GetGameFeatureStatusResultData>(_T(AVINPUT_METHOD_GAME_FEATURE_STATUS), &AVInput::getGameFeatureStatusWrapper, this);
 }
 
 void AVInput::UnregisterAll()
@@ -231,21 +231,9 @@ void AVInput::UnregisterAll()
     Unregister(_T(AVINPUT_METHOD_GAME_FEATURE_STATUS));
 }
 
-void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)
-{
-    JsonArray arr;
-    for(auto& i : items) arr.Add(JsonValue(i));
-
-    response[key] = arr;
-
-    string json;
-    response.ToString(json);
-    LOGINFO("%s: result json %s\n", __FUNCTION__, json.c_str());
-}
-
 uint32_t AVInput::endpoint_numberOfInputs(const JsonObject &parameters, JsonObject &response)
 {
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
 
     bool success = false;
 
@@ -259,7 +247,7 @@ uint32_t AVInput::endpoint_numberOfInputs(const JsonObject &parameters, JsonObje
 
 uint32_t AVInput::endpoint_currentVideoMode(const JsonObject &parameters, JsonObject &response)
 {
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
 
     bool success = false;
 
@@ -273,7 +261,7 @@ uint32_t AVInput::endpoint_currentVideoMode(const JsonObject &parameters, JsonOb
 
 uint32_t AVInput::endpoint_contentProtected(const JsonObject &parameters, JsonObject &response)
 {
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
 
     // "Ths is the way it's done in Service Manager"
     response[_T("isContentProtected")] = true;
@@ -314,18 +302,18 @@ string AVInput::currentVideoMode(bool &success)
 }
 
 
-uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
+uint32_t AVInput::startInput(const JsonData::AVInput::StartInputParamsData& parameters)
 {
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
 
-    string sType = parameters["typeOfInput"].String();
+    string sType = parameters.TypeOfInput.Value().c_str();
     int portId = 0;
     int iType = 0;
 
     if (parameters.HasLabel("portId") && parameters.HasLabel("typeOfInput"))
     {
         try {
-            portId = parameters["portId"].Number();
+            portId = parameters.PortId;
             iType = getTypeOfInput (sType);
         }catch (...) {
             LOGWARN("Invalid Arguments");
@@ -353,11 +341,11 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
     return Core::ERROR_NONE;
 }
 
-uint32_t AVInput::stopInput(const JsonObject& parameters, JsonObject& response)
+uint32_t AVInput::stopInput(const JsonData::AVInput::GetInputDevicesParamsInfo& parameters)
 {
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
 
-    string sType = parameters["typeOfInput"].String();
+    string sType = parameters.TypeOfInput.Value().c_str();
     int iType = 0;
 
     if (parameters.HasLabel("typeOfInput"))
@@ -388,9 +376,9 @@ uint32_t AVInput::stopInput(const JsonObject& parameters, JsonObject& response)
     return Core::ERROR_NONE;
 }
 
-uint32_t AVInput::setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response)
+uint32_t AVInput::setVideoRectangleWrapper(const JsonData::AVInput::SetVideoRectangleParamsData& parameters)
 {
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
 
     bool result = true;
     if (!parameters.HasLabel("x") && !parameters.HasLabel("y")) {
@@ -418,19 +406,19 @@ uint32_t AVInput::setVideoRectangleWrapper(const JsonObject& parameters, JsonObj
 
         try {
             if (parameters.HasLabel("x")) {
-                x = parameters["x"].Number();
+                x = parameters.X;
             }
             if (parameters.HasLabel("y")) {
-                y = parameters["y"].Number();
+                y = parameters.Y;
             }
             if (parameters.HasLabel("w")) {
-                w = parameters["w"].Number();
+                w = parameters.W;
             }
             if (parameters.HasLabel("h")) {
-                h = parameters["h"].Number();
+                h = parameters.H;
             }
             if (parameters.HasLabel("typeOfInput")) {
-                sType = parameters["typeOfInput"].String();
+                sType = parameters.TypeOfInput.Value().c_str();;
                 t = getTypeOfInput (sType);
             }
         }
@@ -469,12 +457,12 @@ bool AVInput::setVideoRectangle(int x, int y, int width, int height, int type)
     return ret;
 }
 
-uint32_t AVInput::getInputDevicesWrapper(const JsonObject& parameters, JsonObject& response)
+uint32_t AVInput::getInputDevicesWrapper(const JsonData::AVInput::GetInputDevicesParamsInfo& parameters, JsonData::AVInput::GetInputDevicesResultInfo& response)
 {
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
 
     if (parameters.HasLabel("typeOfInput")) {
-        string sType = parameters["typeOfInput"].String();
+        string sType = parameters.TypeOfInput.Value().c_str();
         int iType = 0;
         try {
             iType = getTypeOfInput (sType);
@@ -482,7 +470,7 @@ uint32_t AVInput::getInputDevicesWrapper(const JsonObject& parameters, JsonObjec
             LOGWARN("Invalid Arguments");
             return Core::ERROR_BAD_REQUEST;
         }
-        response["devices"] = getInputDevices(iType);
+        response.Devices = getInputDevices(iType);
     }
     else {
         JsonArray listHdmi = getInputDevices(HDMI);
@@ -490,21 +478,21 @@ uint32_t AVInput::getInputDevicesWrapper(const JsonObject& parameters, JsonObjec
         for (int i = 0; i < listComposite.Length(); i++) {
             listHdmi.Add(listComposite.Get(i));
         }
-        response["devices"] = listHdmi;
+        response.Devices = listHdmi;
     }
     return Core::ERROR_NONE;
 }
 
-uint32_t AVInput::writeEDIDWrapper(const JsonObject& parameters, JsonObject& response)
+uint32_t AVInput::writeEDIDWrapper(const JsonData::AVInput::WriteEDIDParamsData& parameters)
 {
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
 
     int portId;
     std::string message;
 
     if (parameters.HasLabel("portId") && parameters.HasLabel("message")) {
-        portId = parameters["portId"].Number();
-        message = parameters["message"].String();
+        portId = parameters.PortId;
+        message = parameters.Message.Value().c_str();;
     }
     else {
         LOGWARN("Required parameters are not passed");
@@ -515,13 +503,13 @@ uint32_t AVInput::writeEDIDWrapper(const JsonObject& parameters, JsonObject& res
     return Core::ERROR_NONE;
 }
 
-uint32_t AVInput::readEDIDWrapper(const JsonObject& parameters, JsonObject& response)
+uint32_t AVInput::readEDIDWrapper(const JsonData::AVInput::GetEdidVersionParamsInfo& parameters, JsonData::AVInput::ReadEDIDResultData& response)
 {
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
 
     int portId = 0;
     try {
-        portId = parameters["portId"].Number();
+        portId = parameters.PortId;
     }catch (...) {
             LOGWARN("Invalid Arguments");
             return Core::ERROR_BAD_REQUEST;
@@ -532,7 +520,7 @@ uint32_t AVInput::readEDIDWrapper(const JsonObject& parameters, JsonObject& resp
         return Core::ERROR_GENERAL;
     }
     else {
-        response["EDID"] = edid;
+        response.EDID = edid;
         return Core::ERROR_NONE;
     }
 }
@@ -616,8 +604,8 @@ void AVInput::AVInputHotplug( int input , int connect, int type)
 {
     LOGWARN("AVInputHotplug [%d, %d, %d]", input, connect, type);
 
-    JsonObject params;
-    params["devices"] = getInputDevices(type);
+    JsonData::AVInput::GetInputDevicesResultInfo params;
+    params.Devices = getInputDevices(type);
     sendNotify(AVINPUT_EVENT_ON_DEVICES_CHANGED, params);
 }
 
@@ -632,8 +620,8 @@ void AVInput::AVInputSignalChange( int port , int signalStatus, int type)
 {
     LOGWARN("AVInputSignalStatus [%d, %d, %d]", port, signalStatus, type);
 
-    JsonObject params;
-    params["id"] = port;
+    JsonData::AVInput::OnSignalChangedParamsData params;
+    params.Id = port;
     std::stringstream locator;
     if (type == HDMI) {
         locator << "hdmiin://localhost/deviceid/" << port;
@@ -641,28 +629,28 @@ void AVInput::AVInputSignalChange( int port , int signalStatus, int type)
     else {
         locator << "cvbsin://localhost/deviceid/" << port;
     }
-    params["locator"] = locator.str();
+    params.Locator = locator.str();
     /* values of dsHdmiInSignalStatus_t and dsCompInSignalStatus_t are same
    Hence used only HDMI macro for case statement */
     switch (signalStatus) {
         case dsHDMI_IN_SIGNAL_STATUS_NOSIGNAL:
-            params["signalStatus"] = "noSignal";
+            params.SignalStatus = "noSignal";
             break;
 
         case dsHDMI_IN_SIGNAL_STATUS_UNSTABLE:
-            params["signalStatus"] = "unstableSignal";
+            params.SignalStatus = "unstableSignal";
             break;
 
         case dsHDMI_IN_SIGNAL_STATUS_NOTSUPPORTED:
-            params["signalStatus"] = "notSupportedSignal";
+            params.SignalStatus = "notSupportedSignal";
             break;
 
         case dsHDMI_IN_SIGNAL_STATUS_STABLE:
-            params["signalStatus"] = "stableSignal";
+            params.SignalStatus = "stableSignal";
             break;
 
         default:
-            params["signalStatus"] = "none";
+            params.SignalStatus = "none";
             break;
     }
     sendNotify(AVINPUT_EVENT_ON_SIGNAL_CHANGED, params);
@@ -679,8 +667,8 @@ void AVInput::AVInputStatusChange( int port , bool isPresented, int type)
 {
     LOGWARN("avInputStatus [%d, %d, %d]", port, isPresented, type);
 
-    JsonObject params;
-    params["id"] = port;
+    JsonData::AVInput::OnInputStatusChangedParamsData params;
+    params.Id = port;
     std::stringstream locator;
     if (type == HDMI) {
         locator << "hdmiin://localhost/deviceid/" << port;
@@ -688,13 +676,13 @@ void AVInput::AVInputStatusChange( int port , bool isPresented, int type)
     else if (type == COMPOSITE) {
         locator << "cvbsin://localhost/deviceid/" << port;
     }
-    params["locator"] = locator.str();
+    params.Locator = locator.str();
 
     if(isPresented) {
-        params["status"] = "started";
+        params.Status = "started";
     }
     else {
-        params["status"] = "stopped";
+        params.Status = "stopped";
     }
     sendNotify(AVINPUT_EVENT_ON_STATUS_CHANGED, params);
 }
@@ -710,95 +698,95 @@ void AVInput::AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolut
 {
     LOGWARN("AVInputVideoModeUpdate [%d]", port);
 
-    JsonObject params;
-    params["id"] = port;
+    JsonData::AVInput::VideoStreamInfoUpdateParamsData params;
+    params.Id = port;
     std::stringstream locator;
     locator << "hdmiin://localhost/deviceid/" << port;
-    params["locator"] = locator.str();
+    params.Locator = locator.str();
 
     switch(resolution.pixelResolution) {
         case dsVIDEO_PIXELRES_720x480:
-            params["width"] = 720;
-            params["height"] = 480;
+            params.Width = 720;
+            params.Height = 480;
             break;
 
         case dsVIDEO_PIXELRES_720x576:
-            params["width"] = 720;
-            params["height"] = 576;
+            params.Width = 720;
+            params.Height = 576;
             break;
 
         case dsVIDEO_PIXELRES_1280x720:
-            params["width"] = 1280;
-            params["height"] = 720;
+            params.Width = 1280;
+            params.Height = 720;
             break;
 
         case dsVIDEO_PIXELRES_1920x1080:
-            params["width"] = 1920;
-            params["height"] = 1080;
+            params.Width = 1920;
+            params.Height = 1080;
             break;
 
         case dsVIDEO_PIXELRES_3840x2160:
-            params["width"] = 3840;
-            params["height"] = 2160;
+            params.Width = 3840;
+            params.Height = 2160;
             break;
 
         case dsVIDEO_PIXELRES_4096x2160:
-            params["width"] = 4096;
-            params["height"] = 2160;
+            params.Width = 4096;
+            params.Height = 2160;
             break;
 
         default:
-            params["width"] = 1920;
-            params["height"] = 1080;
+            params.Width = 1920;
+            params.Height = 1080;
             break;
     }
 
-    params["progressive"] = (!resolution.interlaced);
+    params.Progressive = (!resolution.interlaced);
 
     switch(resolution.frameRate) {
         case dsVIDEO_FRAMERATE_24:
-            params["frameRateN"] = 24000;
-            params["frameRateD"] = 1000;
+            params.FrameRateN = 24000;
+            params.FrameRateD = 1000;
             break;
 
         case dsVIDEO_FRAMERATE_25:
-            params["frameRateN"] = 25000;
-            params["frameRateD"] = 1000;
+            params.FrameRateN = 25000;
+            params.FrameRateD = 1000;
             break;
 
         case dsVIDEO_FRAMERATE_30:
-            params["frameRateN"] = 30000;
-            params["frameRateD"] = 1000;
+            params.FrameRateN = 30000;
+            params.FrameRateD = 1000;
             break;
 
         case dsVIDEO_FRAMERATE_50:
-            params["frameRateN"] = 50000;
-            params["frameRateD"] = 1000;
+            params.FrameRateN = 50000;
+            params.FrameRateD = 1000;
             break;
 
         case dsVIDEO_FRAMERATE_60:
-            params["frameRateN"] = 60000;
-            params["frameRateD"] = 1000;
+            params.FrameRateN = 60000;
+            params.FrameRateD = 1000;
             break;
 
         case dsVIDEO_FRAMERATE_23dot98:
-            params["frameRateN"] = 24000;
-            params["frameRateD"] = 1001;
+            params.FrameRateN = 24000;
+            params.FrameRateD = 1001;
             break;
 
         case dsVIDEO_FRAMERATE_29dot97:
-            params["frameRateN"] = 30000;
-            params["frameRateD"] = 1001;
+            params.FrameRateN = 30000;
+            params.FrameRateD = 1001;
             break;
 
         case dsVIDEO_FRAMERATE_59dot94:
-            params["frameRateN"] = 60000;
-            params["frameRateD"] = 1001;
+            params.FrameRateN = 60000;
+            params.FrameRateD = 1001;
             break;
 
         default:
-            params["frameRateN"] = 60000;
-            params["frameRateD"] = 1000;
+            params.FrameRateN = 60000;
+            params.FrameRateD = 1000;
             break;
     }
 
@@ -906,9 +894,9 @@ void AVInput::AVInputALLMChange( int port , bool allm_mode)
     sendNotify(AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED, params);
 }
 
-uint32_t AVInput::getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response)
+uint32_t AVInput::getSupportedGameFeatures(JsonData::AVInput::GetSupportedGameFeaturesResultData& response)
 {
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
     vector<string> supportedFeatures;
     try
     {
@@ -927,22 +915,25 @@ uint32_t AVInput::getSupportedGameFeatures(const JsonObject& parameters, JsonObj
         return Core::ERROR_GENERAL;
     }
     else {
-        setResponseArray(response, "suppoortedGameFeatures", supportedFeatures);
+        JsonArray arr;
+        for(auto& i : supportedFeatures) arr.Add(JsonValue(i));
+        response.SupportedGameFeatures = arr;
+
         return Core::ERROR_NONE;
     }
 }
 
-uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, JsonObject& response)
+uint32_t AVInput::getGameFeatureStatusWrapper(const JsonData::AVInput::GetGameFeatureStatusParamsData& parameters, JsonData::AVInput::GetGameFeatureStatusResultData& response)
 {
     string sGameFeature = "";
     int portId = 0;
 
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
     if (parameters.HasLabel("portId") && parameters.HasLabel("gameFeature"))
     {
         try {
-            portId = parameters["portId"].Number();
-            sGameFeature = parameters["gameFeature"].String();
+            portId = parameters.PortId;
+            sGameFeature = parameters.GameFeature.Value().c_str();
         }catch (...) {
             LOGWARN("Invalid Arguments");
             return Core::ERROR_BAD_REQUEST;
@@ -957,7 +948,7 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
     {
         bool allm = getALLMStatus(portId);
         LOGWARN("AVInput::getGameFeatureStatusWrapper ALLM MODE:%d", allm);
-        response["mode"] = allm;
+        response.Mode = allm;
     }
     else
     {
@@ -983,15 +974,15 @@ bool AVInput::getALLMStatus(int iPort)
     return allm;
 }
 
-uint32_t AVInput::getRawSPDWrapper(const JsonObject& parameters, JsonObject& response)
+uint32_t AVInput::getRawSPDWrapper(const JsonData::AVInput::GetEdidVersionParamsInfo& parameters, JsonData::AVInput::GetSPDResultInfo& response)
 {
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
 
     int portId = 0;
     if (parameters.HasLabel("portId"))
     {
         try {
-            portId = parameters["portId"].Number();
+            portId = parameters.PortId;
         }catch (...) {
             LOGWARN("Invalid Arguments");
             return Core::ERROR_BAD_REQUEST;
@@ -1003,7 +994,7 @@ uint32_t AVInput::getRawSPDWrapper(const JsonObject& parameters, JsonObject& res
     }
 
     string spdInfo = getRawSPD (portId);
-    response["HDMISPD"] = spdInfo;
+    response.HDMISPD = spdInfo;
     if (spdInfo.empty()) {
         return Core::ERROR_GENERAL;
     }
@@ -1012,15 +1003,15 @@ uint32_t AVInput::getRawSPDWrapper(const JsonObject& parameters, JsonObject& res
     }
 }
 
-uint32_t AVInput::getSPDWrapper(const JsonObject& parameters, JsonObject& response)
+uint32_t AVInput::getSPDWrapper(const JsonData::AVInput::GetEdidVersionParamsInfo& parameters, JsonData::AVInput::GetSPDResultInfo& response)
 {
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
 
     int portId = 0;
     if (parameters.HasLabel("portId"))
     {
         try {
-        portId = parameters["portId"].Number();
+        portId = parameters.PortId;
         }catch (...) {
             LOGWARN("Invalid Arguments");
             return Core::ERROR_BAD_REQUEST;
@@ -1032,7 +1023,7 @@ uint32_t AVInput::getSPDWrapper(const JsonObject& parameters, JsonObject& respon
     }
 
     string spdInfo = getSPD (portId);
-    response["HDMISPD"] = spdInfo;
+    response.HDMISPD = spdInfo;
     if (spdInfo.empty()) {
         return Core::ERROR_GENERAL;
     }
@@ -1115,16 +1106,16 @@ std::string AVInput::getSPD(int iPort)
     return spdbase64;
 }
 
-uint32_t AVInput::setEdidVersionWrapper(const JsonObject& parameters, JsonObject& response)
+uint32_t AVInput::setEdidVersionWrapper(const JsonData::AVInput::SetEdidVersionParamsData& parameters)
 {
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
     int portId = 0;
     string sVersion = "";
     if (parameters.HasLabel("portId") && parameters.HasLabel("edidVersion"))
     {
         try {
-            portId = parameters["portId"].Number();
-            sVersion = parameters["edidVersion"].String();
+            portId = parameters.PortId;
+            sVersion = parameters.EdidVersion.Value().c_str();
         }catch (...) {
             LOGWARN("Invalid Arguments");
             return Core::ERROR_BAD_REQUEST;
@@ -1169,15 +1160,15 @@ int AVInput::setEdidVersion(int iPort, int iEdidVer)
     return ret;
 }
 
-uint32_t AVInput::getEdidVersionWrapper(const JsonObject& parameters, JsonObject& response)
+uint32_t AVInput::getEdidVersionWrapper(const JsonData::AVInput::GetEdidVersionParamsInfo& parameters, JsonData::AVInput::GetEdidVersionResultData& response)
 {
     int portId = 0;
 
-    LOGINFOMETHOD();
+    LOGINFO("Enter");
     if (parameters.HasLabel("portId"))
     {
         try {
-            portId = parameters["portId"].Number();
+            portId = parameters.PortId;
         }
         catch (...) {
             LOGWARN("Invalid Arguments");
@@ -1192,10 +1183,10 @@ uint32_t AVInput::getEdidVersionWrapper(const JsonObject& parameters, JsonObject
     int edidVer = getEdidVersion (portId);
     switch (edidVer) {
         case HDMI_EDID_VER_14:
-            response["edidVersion"] = "HDMI1.4";
+            response.EdidVersion = "HDMI1.4";
             break;
         case HDMI_EDID_VER_20:
-            response["edidVersion"] = "HDMI2.0";
+            response.EdidVersion = "HDMI2.0";
             break;
     }
 
