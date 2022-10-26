@@ -280,6 +280,11 @@ typedef struct _IARM_Bus_MFRLib_GetSerializedData_Param_t {
 #define IARM_BUS_PWRMGR_API_SetNetworkStandbyMode "SetNetworkStandbyMode"
 #define IARM_BUS_PWRMGR_API_GetNetworkStandbyMode "GetNetworkStandbyMode"
 #define IARM_BUS_PWRMGR_API_Reboot "performReboot"
+#define IARM_BUS_PWRMGR_API_WareHouseClear "WarehouseClear" /*!< */
+#define IARM_BUS_PWRMGR_API_ColdFactoryReset "ColdFactoryReset" /*!< Reset the box to cold factory state*/
+#define IARM_BUS_PWRMGR_API_FactoryReset "FactoryReset" /*!< Reset the box to factory state*/
+#define IARM_BUS_PWRMGR_API_UserFactoryReset "UserFactoryReset" /*!< Reset the box to user factory state*/
+#define IARM_BUS_PWRMGR_API_WareHouseReset  "WareHouseReset" /*!< Reset the box to warehouse state*/
 
 typedef struct _IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t {
     bool bStandbyMode;
@@ -397,6 +402,39 @@ typedef struct _IARM_Bus_PWRMgr_SetWakeupSrcConfig_Param_t {
     WakeupSrcType_t srcType;
     bool config;
 } IARM_Bus_PWRMgr_SetWakeupSrcConfig_Param_t;
+
+/**
+ *  @brief Structure which holds the ware house reset time.
+ */
+typedef struct _IARM_Bus_PWRMgr_WareHouseReset_Param_t {
+        bool suppressReboot; /*!< STB should not be rebooted */
+} IARM_Bus_PWRMgr_WareHouseReset_Param_t;
+
+/**
+ *  @brief Enumerator which represents the  possible warehouse ops
+ */
+typedef enum _IARM_Bus_PWRMgr_WareHouseOpsStatus_t{
+    IARM_BUS_PWRMGR_WAREHOUSE_COMPLETED = 0,    /* warehouse operation completed sucessfully */
+    IARM_BUS_PWRMGR_WAREHOUSE_INPROGRESS,          /* warehouse operation in progress*/
+    IARM_BUS_PWRMGR_WAREHOUSE_FAILED,          /* warehouse operation failed.*/
+} IARM_Bus_PWRMgr_WareHouseOpsStatus_t;
+
+/**
+ *  @brief Enumerator which represents the  possible warehouse ops
+ */
+typedef enum _IARM_Bus_PWRMgr_WareHouseOps_t{
+    IARM_BUS_PWRMGR_WAREHOUSE_RESET = 0,    /* warehouse reset */
+    IARM_BUS_PWRMGR_WAREHOUSE_CLEAR,          /* warehouse clear*/
+} IARM_Bus_PWRMgr_WareHouseOps_t;
+
+/**
+ *  @brief Structure which holds warehouse opn status value.
+ */
+typedef struct _IARM_BUS_PWRMgr_WareHouseOpn_EventData_t {
+        IARM_Bus_PWRMgr_WareHouseOps_t wareHouseOpn;        /*!< WareHouse operation*/
+        IARM_Bus_PWRMgr_WareHouseOpsStatus_t status;        /*!< WareHouse operation status*/
+} IARM_BUS_PWRMgr_WareHouseOpn_EventData_t;
+
 #define IARM_BUS_PWRMGR_API_SetWakeupSrcConfig "setWakeupSrcConfig"
 
 #define IARM_BUS_SYSMGR_NAME "SYSMgr"
@@ -607,3 +645,10 @@ typedef enum _DSMgr_EventId_t {
     IARM_BUS_DSMGR_EVENT_SLEEP_MODE_CHANGED, /*!< Sleep Mode Change Event*/
     IARM_BUS_DSMGR_EVENT_MAX, /*!< Max Event  */
 } IARM_Bus_DSMgr_EventId_t;
+
+#define IARM_BUS_SYSMGR_API_RunScript "RunScript"
+/*! Parameter for RunScript call*/
+typedef struct _IARM_Bus_SYSMgr_RunScript_t{
+    char script_path [256];   //[in]  Null terminated path name of the script.
+    int  return_value;        //[out] Returns the ret value of system.
+} IARM_Bus_SYSMgr_RunScript_t;
