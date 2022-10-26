@@ -29,6 +29,11 @@ All notable changes to this RDK Service will be documented in this file.
 ### Changed
 - Updated changes for new power manager.
 
+## [1.1.4] - 2022-10-11
+### Deprecated
+- Deprecated below API's
+- cacheContains, getCachedValue, removeCacheKey, setCachedValue, getMilestones, isGzEnabled & setGzEnabled
+
 ## [1.0.4] - 2022-10-04
 ### Fixed
 - Fixed warnings that are treated as errors with "-Wall -Werror"
