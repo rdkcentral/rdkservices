@@ -27,6 +27,7 @@
 #include "libIARM.h"
 #include "irMgr.h"
 #include "pwrMgr.h"
+#include "rfcapi.h"
 
 namespace WPEFramework {
 
@@ -233,6 +234,7 @@ namespace WPEFramework {
 	    bool m_hdmiInAudioDeviceConnected;
         bool m_arcAudioEnabled;
             bool m_arcPendingSADRequest;   
+            bool m_isPwrMgr2RFCEnabled;
 	    bool m_hdmiCecAudioDeviceDetected;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
