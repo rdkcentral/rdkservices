@@ -21,10 +21,6 @@
 
 #include "Module.h"
 
-#ifdef HAS_RBUS
-#include "rbus.h"
-#endif
-
 namespace WPEFramework {
 
     namespace Plugin {
@@ -70,10 +66,6 @@ namespace WPEFramework {
         public:
             static Telemetry* _instance;
         private:
-#ifdef HAS_RBUS
-            rbusError_t rbusHandleStatus;
-            rbusHandle_t rbusHandle;
-#endif
         };
     } // namespace Plugin
 } // namespace WPEFramework
