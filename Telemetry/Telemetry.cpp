@@ -25,6 +25,8 @@
 #include "rfcapi.h"
 
 #ifdef HAS_RBUS
+#include "rbus.h"
+
 #define RBUS_COMPONENT_NAME "TelemetryThunderPlugin"
 #define T2_ON_DEMAND_REPORT "Device.X_RDKCENTRAL-COM_T2.UploadDCMReport"
 #endif
@@ -44,6 +46,11 @@
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
+
+#ifdef HAS_RBUS
+static rbusError_t rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
+static rbusHandle_t rbusHandle;
+#endif
 
 namespace WPEFramework
 {
@@ -70,9 +77,6 @@ namespace WPEFramework
 
         Telemetry::Telemetry()
         : PluginHost::JSONRPC()
-#ifdef HAS_RBUS
-        , rbusHandleStatus(RBUS_ERROR_NOT_INITIALIZED)
-#endif
         {
             Telemetry::_instance = this;
 
@@ -243,17 +247,32 @@ namespace WPEFramework
 
             if (RBUS_ERROR_SUCCESS == rbusHandleStatus)
             {
-                returnResponse(RBUS_ERROR_SUCCESS == rbus_setBoolean(rbusHandle, T2_ON_DEMAND_REPORT, true));
+                int ret = rbus_setBoolean(rbusHandle, T2_ON_DEMAND_REPORT, true);
+                if (RBUS_ERROR_SUCCESS != ret)
+                {
+                    std::stringstream str;
+                    str << "Failed to set " << T2_ON_DEMAND_REPORT << ": " << ret;
+
+                    LOGERR("%s", str.str().c_str());
+                    response["message"] = str.str();
+                    returnResponse(false);
+                }
             }
             else
             {
-                LOGERR("%s:%d, rbus_open failed with error code %d \n", __func__, __LINE__, rbusHandleStatus);
+                std::stringstream str;
+                str << "rbus_open failed with error code " << rbusHandleStatus;
+
+                LOGERR("%s", str.str().c_str());
+                response["message"] = str.str();
                 returnResponse(false);
             }
 #else
             LOGERR("No RBus support");
+            response["message"] = "No RBus support";
             returnResponse(false);
 #endif
+            returnResponse(true);
         }
 
     } // namespace Plugin
