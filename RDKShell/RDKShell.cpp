@@ -50,7 +50,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 5
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -4170,6 +4170,7 @@ namespace WPEFramework {
 
                     gRdkShellMutex.lock();
                     result = CompositorController::launchApplication(client, uri, mimeType, topmost, focus);
+		    RdkShell::CompositorController::addListener(client, mEventListener);
                     gRdkShellMutex.unlock();
 
                     if (!result)
