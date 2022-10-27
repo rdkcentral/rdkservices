@@ -6,6 +6,7 @@
 #include "RfcApiMock.h"
 #include "ServiceMock.h"
 #include "TelemetryMock.h"
+#include "RBusMock.h"
 
 namespace {
 const string profileFN = _T("/tmp/DefaultProfile.json");
@@ -66,10 +67,26 @@ protected:
     }
 };
 
+class TelemetryRBusTest : public TelemetryTest {
+protected:
+    RBusApiImplMock rBusApiImplMock;
+
+    TelemetryRBusTest()
+        : TelemetryTest()
+    {
+        RBusApi::getInstance().impl = &rBusApiImplMock;
+    }
+    virtual ~TelemetryRBusTest() override
+    {
+        RBusApi::getInstance().impl = nullptr;
+    }
+};
+
 TEST_F(TelemetryTest, RegisteredMethods)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setReportProfileStatus")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("logApplicationEvent")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadLogs")));
 }
 
 TEST_F(TelemetryRfcTest, InitializeDefaultProfile)
@@ -213,6 +230,60 @@ TEST_F(TelemetryRfcTest, Plugin)
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\"}"), response));
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventValue\":\"VALUE\"}"), response));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE\"}"), response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
+
+    plugin->Deinitialize(nullptr);
+}
+
+TEST_F(TelemetryRBusTest, rbusOpenFailure)
+{
+    EXPECT_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](rbusHandle_t* handle, char const* componentName) {
+                EXPECT_TRUE(nullptr != handle);
+                EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
+                return RBUS_ERROR_BUS_ERROR;
+            }));
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("uploadLogs"), _T("{}"), response));
+
+    plugin->Deinitialize(nullptr);
+}
+
+
+TEST_F(TelemetryRBusTest, uploadLogs)
+{
+    EXPECT_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](rbusHandle_t* handle, char const* componentName) {
+                EXPECT_TRUE(nullptr != handle);
+                EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
+                return RBUS_ERROR_SUCCESS;
+            }));
+
+    EXPECT_CALL(rBusApiImplMock, rbus_setBoolean(::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](rbusHandle_t handle, char const* paramName, bool paramVal) {
+                EXPECT_EQ(string(paramName), _T("Device.X_RDKCENTRAL-COM_T2.UploadDCMReport"));
+                EXPECT_EQ(paramVal, true);
+                return RBUS_ERROR_SUCCESS;
+            }));
+
+    EXPECT_CALL(rBusApiImplMock, rbus_close(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](rbusHandle_t handle) {
+                return RBUS_ERROR_SUCCESS;
+            }));
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadLogs"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
 
     plugin->Deinitialize(nullptr);
