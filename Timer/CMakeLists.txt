@@ -18,6 +18,8 @@
 set(PLUGIN_NAME Timer)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_TIMER_STARTUPORDER "" CACHE STRING "To configure startup order of Timer plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
