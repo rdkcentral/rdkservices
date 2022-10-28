@@ -53,27 +53,6 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 
-if (DOLBY_SUPPORT)
-
-    target_sources(${MODULE_NAME}
-        PRIVATE
-            ${CMAKE_CURRENT_LIST_DIR}/Dolby/DolbyOutput.cpp)
-
-    target_include_directories(${MODULE_NAME}
-        PRIVATE
-            ${CMAKE_CURRENT_LIST_DIR}/Dolby/include)
-
-    target_compile_definitions(${MODULE_NAME}
-        PRIVATE
-            DOLBY_SUPPORT=1)
-
-    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/Dolby)
-
-    target_link_libraries(${MODULE_NAME}
-        PRIVATE
-            PlayerInfoDolby)
-endif()
-
 find_package(GSTREAMER REQUIRED)
 if (GSTREAMER_FOUND)
     target_link_libraries(${MODULE_NAME}
@@ -102,6 +81,26 @@ if (GSTREAMER_FOUND)
         target_sources(${MODULE_NAME}
             PRIVATE
                 GStreamer/PlatformImplementation.cpp)
+
+        if (DOLBY_SUPPORT)
+            target_sources(${MODULE_NAME}
+                PRIVATE
+                    ${CMAKE_CURRENT_LIST_DIR}/Dolby/DolbyOutput.cpp)
+
+            target_include_directories(${MODULE_NAME}
+                PRIVATE
+                    ${CMAKE_CURRENT_LIST_DIR}/Dolby/include)
+
+            target_compile_definitions(${MODULE_NAME}
+                PRIVATE
+                    DOLBY_SUPPORT=1)
+
+            add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/Dolby)
+
+            target_link_libraries(${MODULE_NAME}
+                PRIVATE
+                    PlayerInfoDolby)
+        endif()
     endif ()
 endif ()
 
