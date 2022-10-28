@@ -18,6 +18,8 @@
 set(PLUGIN_NAME UserPreferences)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_USERPREFERENCE_STARTUPORDER "" CACHE STRING "To configure startup order of UserPreferences plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(DS)
 find_package(IARMBus)

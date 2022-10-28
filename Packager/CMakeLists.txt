@@ -22,6 +22,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set(PLUGIN_PACKAGER_AUTOSTART "true" CACHE STRING "Automatically start Packager plugin")
 set(PLUGIN_PACKAGER_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
+set(PLUGIN_PACKAGER_STARTUPORDER "" CACHE STRING "To configure startup order of Packager plugin")
 
 # deprecated/legacy flags support
 if(PLUGIN_PACKAGER_OUTOFPROCESS STREQUAL "false")
