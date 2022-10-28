@@ -100,12 +100,17 @@ TEST_F(TraceControlTest, registeredMethods)
 
 TEST_F(TraceControlInitializedTest, jsonRpc)
 {
-    ON_CALL(wrapsImplMock, syslog(::testing::_, ::testing::_))
+    ON_CALL(wrapsImplMock, syslog(::testing::_, ::testing::_, ::testing::_))
     .WillByDefault(::testing::Invoke(
-        [&](int pri, const char* strFmt) -> void {
+        [&](int pri, const char* fmt, va_list args) -> void {
             EXPECT_EQ(LOG_NOTICE, pri);
+            va_list args2;
+            va_copy(args2, args);
+            char strFmt[256];
+            vsprintf(strFmt, fmt, args2);
             std::string strFmt_local(strFmt);
             EXPECT_THAT(strFmt_local, ::testing::MatchesRegex("\\[.+\\]: Test1.+"));
+            va_end(args2);
         }));
 
     ON_CALL(service, Background())
@@ -148,12 +153,17 @@ TEST_F(TraceControlInitializedTest, jsonRpc)
 
 TEST_F(TraceControlInitializedTest, syslogFormat)
 {
-    ON_CALL(wrapsImplMock, syslog(::testing::_, ::testing::_))
+    ON_CALL(wrapsImplMock, syslog(::testing::_, ::testing::_, ::testing::_))
     .WillByDefault(::testing::Invoke(
-        [&](int pri, const char* strFmt) -> void {
+        [&](int pri, const char* fmt, va_list args) -> void {
             EXPECT_EQ(LOG_NOTICE, pri);
+            va_list args2;
+            va_copy(args2, args);
+            char strFmt[256];
+            vsprintf(strFmt, fmt, args2);
             std::string strFmt_local(strFmt);
             EXPECT_THAT(strFmt_local, ::testing::MatchesRegex("\\[.+\\]:\\[test_TraceControl.cpp:[0-9]+\\] Information: Test2.+"));
+            va_end(args2);
         }));
 
     ON_CALL(service, ConfigLine())
