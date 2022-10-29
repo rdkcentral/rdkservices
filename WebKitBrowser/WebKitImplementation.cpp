@@ -2965,6 +2965,15 @@ static GSourceFuncs _handlerIntervention =
                 WKRelease(contentTypes);
             }
 
+            if (_config.SpatialNavigation.IsSet() == true) {
+                // Turn on/off spatial navigation
+                WKPreferencesSetSpatialNavigationEnabled(preferences, _config.SpatialNavigation.Value());
+                WKPreferencesSetTabsToLinks(preferences, _config.SpatialNavigation.Value());
+            }
+
+            // Turn on scroll to focused element
+            WKPreferencesSetScrollToFocusedElementEnabled(preferences, true);
+
             WKPageGroupSetPreferences(pageGroup, preferences);
 
             _userContentController = WKUserContentControllerCreate();
