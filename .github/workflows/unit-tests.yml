@@ -202,13 +202,14 @@ jobs:
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmbus
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmmgrs-hal
           -I ${{github.workspace}}/rdkservices/Tests/headers/ccec/drivers
+          -I ${{github.workspace}}/rdkservices/Tests/mocks
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/FrameBuffer.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Iarm.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Rfc.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
-          --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system -Wl,-wrap,popen
+          --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wno-unused-variable -Wl,-wrap,system -Wl,-wrap,popen
           -DENABLE_TELEMETRY_LOGGING
           -DUSE_IARMBUS
           -DENABLE_SYSTEM_GET_STORE_DEMO_LINK
@@ -244,6 +245,7 @@ jobs:
           -DRDK_SERVICES_TEST=ON
           -DPLUGIN_HDMIINPUT=ON
           -DPLUGIN_HDCPPROFILE=ON
+          -DPLUGIN_RDKSHELL=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build rdkservices
