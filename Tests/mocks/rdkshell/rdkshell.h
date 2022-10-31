@@ -7,7 +7,6 @@
 #include <map>
 #include <string>
 #include <iostream>
-#include <GLES2/gl2.h>
 #ifdef RDKSHELL_ENABLE_IPC
 #include "servermessagehandler.h"
 #endif
