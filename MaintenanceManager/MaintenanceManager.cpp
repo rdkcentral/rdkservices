@@ -94,9 +94,6 @@ string notifyStatusToString(Maint_notify_status_t &status)
         case MAINTENANCE_INCOMPLETE:
             ret_status="MAINTENANCE_INCOMPLETE";
             break;
-        case MAINTENANCE_STOPPED:
-            ret_status="MAINTENANCE_STOPPED";
-            break;
         default:
             ret_status="MAINTENANCE_ERROR";
     }
@@ -809,8 +806,11 @@ namespace WPEFramework {
                             }
                             else {
                                 SET_STATUS(g_task_status,DCM_COMPLETE);
-                                task_thread.notify_one();
                                 LOGINFO("DCM script task execution was stopped \n");
+                                // Set remaining tasks status as complete as they are not going to execute anymore Since maintenance is stopped
+                                SET_STATUS(g_task_status,RFC_COMPLETE);
+                                SET_STATUS(g_task_status,DIFD_COMPLETE);
+                                SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
                                 m_task_map[task_names_foreground[0].c_str()]=false;
                             }
                             break;
@@ -821,8 +821,9 @@ namespace WPEFramework {
                             }
                             else {
                                 SET_STATUS(g_task_status,RFC_COMPLETE);
-                                task_thread.notify_one();
                                 LOGINFO("RFC script task execution was stopped \n");
+                                SET_STATUS(g_task_status,DIFD_COMPLETE);
+                                SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
                                 m_task_map[task_names_foreground[1].c_str()]=false;
                             }
                             break;
@@ -833,7 +834,6 @@ namespace WPEFramework {
                             }
 			    else {
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
-                                task_thread.notify_one();
                                 LOGINFO("LOGUPLOAD script task execution was stopped \n");
                                 m_task_map[task_names_foreground[3].c_str()]=false;
                             }
@@ -845,8 +845,8 @@ namespace WPEFramework {
                             }
                             else {
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
-                                task_thread.notify_one();
                                 LOGINFO("SWUPDATE script task execution was stopped \n");
+                                SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
 				m_task_map[task_names_foreground[2].c_str()]=false;
                             }
                             break;
@@ -1397,9 +1397,6 @@ namespace WPEFramework {
                 if(m_thread.joinable()){
                     m_thread.join();
                 }
-
-		LOGINFO("stopMaintenance method was executed and hence Maintenance was stopped \n");
-                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STOPPED);
 
 		m_statusMutex.unlock();
                 return result;
