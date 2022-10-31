@@ -21,9 +21,7 @@
 
 #include "Module.h"
 #include <interfaces/json/JsonData_PlayerInfo.h>
-#if DOLBY_SUPPORT
 #include <interfaces/json/JDolbyOutput.h>
-#endif
 #include <interfaces/json/JPlayerProperties.h>
 
 namespace WPEFramework {
@@ -60,7 +58,6 @@ namespace Plugin {
         private:
             PlayerInfo& _parent;
         };
-#if DOLBY_SUPPORT
         class DolbyNotification : protected Exchange::Dolby::IOutput::INotification {
         public:
             DolbyNotification() = delete;
@@ -102,7 +99,7 @@ namespace Plugin {
             PlayerInfo& _parent;
             Exchange::Dolby::IOutput* _client;
         };
-#endif
+
     public:
         PlayerInfo(const PlayerInfo&) = delete;
         PlayerInfo& operator=(const PlayerInfo&) = delete;
@@ -113,9 +110,7 @@ namespace Plugin {
             , _player(nullptr)
             , _audioCodecs(nullptr)
             , _videoCodecs(nullptr)
-#if DOLBY_SUPPORT
             , _dolbyNotification(this)
-#endif
             , _notification(this)
             , _service(nullptr)
         {
@@ -153,10 +148,8 @@ namespace Plugin {
         Exchange::IPlayerProperties* _player;
         Exchange::IPlayerProperties::IAudioCodecIterator* _audioCodecs;
         Exchange::IPlayerProperties::IVideoCodecIterator* _videoCodecs;
-#if DOLBY_SUPPORT
         Exchange::Dolby::IOutput* _dolbyOut;
         Core::Sink<DolbyNotification> _dolbyNotification;
-#endif
         Core::Sink<Notification> _notification;
         PluginHost::IShell* _service;
     };

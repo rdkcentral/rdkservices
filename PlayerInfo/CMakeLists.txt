@@ -30,7 +30,7 @@ message("Setup ${MODULE_NAME} v${PROJECT_VERSION}")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-option(DOLBY_SUPPORT "Build the PlayerInfo with dolby support" OFF)
+option(DOLBY_SUPPORT "Enable dolby support for Gstreamer based implementation" OFF)
 set(PLUGIN_PLAYERINFO_AUTOSTART "true" CACHE STRING "Automatically start PlayerInfo plugin")
 set(PLUGIN_PLAYERINFO_STARTUPORDER "" CACHE STRING "Automatically start PlayerInfo plugin")
 set(PLUGIN_PLAYERINFO_MODE "Off" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
