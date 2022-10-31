@@ -129,17 +129,26 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
         case MAINT_DCM_ERROR:
             ret_status="MAINTENANCE_DCM_ERROR";
             break;
+        case MAINT_DCM_STOP:
+	    ret_status="MAINTENANCE_DCM_STOP";
+            break;
         case MAINT_RFC_COMPLETE:
             ret_status="MAINTENANCE_RFC_COMPLETE";
             break;
         case MAINT_RFC_ERROR:
             ret_status="MAINTENANCE_RFC_ERROR";
             break;
+        case MAINT_RFC_STOP:
+            ret_status="MAINTENANCE_RFC_STOP";
+            break;
         case MAINT_LOGUPLOAD_COMPLETE:
             ret_status="MAINTENANCE_LOGUPLOAD_COMPLETE";
             break;
         case MAINT_LOGUPLOAD_ERROR:
             ret_status="MAINTENANCE_LOGUPLOAD_ERROR";
+            break;
+        case MAINT_LOGUPLOAD_STOP:
+            ret_status="MAINTENANCE_LOGUPLOAD_STOP";
             break;
         case MAINT_PINGTELEMETRY_COMPLETE:
             ret_status="MAINTENANCE_PINGTELEMETRY_COMPLETE";
@@ -152,6 +161,9 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
             break;
         case MAINT_FWDOWNLOAD_ERROR:
             ret_status="MAINTENANCE_FWDOWNLOAD_ERROR";
+            break;
+        case MAINT_FWDOWNLOAD_STOP:
+            ret_status="MAINTENANCE_FWDOWNLOAD_STOP";
             break;
         case MAINT_REBOOT_REQUIRED:
             ret_status="MAINTENANCE_REBOOT_REQUIRED";
@@ -788,6 +800,54 @@ namespace WPEFramework {
                                 task_thread.notify_one();
                                 LOGINFO("Error encountered in SWUPDATE script task \n");
                                 m_task_map[task_names_foreground[2].c_str()]=false;
+                            }
+                            break;
+                       case MAINT_DCM_STOP:
+                            if(task_status_DCM->second != true) {
+                                LOGINFO("Ignoring Event DCM_STOP");
+                                return;
+                            }
+                            else {
+                                SET_STATUS(g_task_status,DCM_COMPLETE);
+                                task_thread.notify_one();
+                                LOGINFO("DCM script task execution was stopped \n");
+                                m_task_map[task_names_foreground[0].c_str()]=false;
+                            }
+                            break;
+                       case MAINT_RFC_STOP:
+                            if(task_status_RFC->second != true) {
+                                LOGINFO("Ignoring Event RFC_STOP");
+                                return;
+                            }
+                            else {
+                                SET_STATUS(g_task_status,RFC_COMPLETE);
+                                task_thread.notify_one();
+                                LOGINFO("RFC script task execution was stopped \n");
+                                m_task_map[task_names_foreground[1].c_str()]=false;
+                            }
+                            break;
+                       case MAINT_LOGUPLOAD_STOP:
+                            if(task_status_LOGUPLD->second != true) {
+                                LOGINFO("Ignoring Event MAINT_LOGUPLOAD_STOP");
+                                return;
+                            }
+			    else {
+                                SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
+                                task_thread.notify_one();
+                                LOGINFO("LOGUPLOAD script task execution was stopped \n");
+                                m_task_map[task_names_foreground[3].c_str()]=false;
+                            }
+                            break;
+                       case MAINT_FWDOWNLOAD_STOP:
+                            if(task_status_FWDLD->second != true) {
+                                LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_STOP");
+                                return;
+                            }
+                            else {
+                                SET_STATUS(g_task_status,DIFD_COMPLETE);
+                                task_thread.notify_one();
+                                LOGINFO("SWUPDATE script task execution was stopped \n");
+				m_task_map[task_names_foreground[2].c_str()]=false;
                             }
                             break;
                        case MAINT_DCM_INPROGRESS:
