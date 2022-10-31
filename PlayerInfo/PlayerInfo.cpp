@@ -75,7 +75,6 @@ namespace Plugin {
                     // value, as it is not a essential.
                     // The relevant JSONRPC endpoints will return ERROR_UNAVAILABLE,
                     // if it hasn't been initialized.
-#if DOLBY_SUPPORT
                     _dolbyOut = _player->QueryInterface<Exchange::Dolby::IOutput>();
                     if(_dolbyOut == nullptr){
                         SYSLOG(Logging::Startup, (_T("Dolby output switching service is unavailable.")));
@@ -83,7 +82,6 @@ namespace Plugin {
                         _dolbyNotification.Initialize(_dolbyOut);
                         Exchange::Dolby::JOutput::Register(*this, _dolbyOut);
                     }
-#endif
                 } else {
                     message = _T("PlayerInfo Video Codecs not be Loaded.");
                 }
@@ -119,14 +117,12 @@ namespace Plugin {
                 _videoCodecs->Release();
                 _videoCodecs = nullptr;
             }
-            #if DOLBY_SUPPORT
-                if (_dolbyOut != nullptr) {
-                    _dolbyNotification.Deinitialize();
-                    Exchange::Dolby::JOutput::Unregister(*this);
-                    _dolbyOut->Release();
-                    _dolbyOut = nullptr;
-                }
-            #endif
+            if (_dolbyOut != nullptr) {
+                _dolbyNotification.Deinitialize();
+                Exchange::Dolby::JOutput::Unregister(*this);
+                _dolbyOut->Release();
+                _dolbyOut = nullptr;
+            }
 
             RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
             VARIABLE_IS_NOT_USED uint32_t result = _player->Release();
