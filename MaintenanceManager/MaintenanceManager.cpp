@@ -94,6 +94,9 @@ string notifyStatusToString(Maint_notify_status_t &status)
         case MAINTENANCE_INCOMPLETE:
             ret_status="MAINTENANCE_INCOMPLETE";
             break;
+        case MAINTENANCE_STOPPED:
+            ret_status="MAINTENANCE_STOPPED";
+            break;
         default:
             ret_status="MAINTENANCE_ERROR";
     }
@@ -1334,6 +1337,10 @@ namespace WPEFramework {
                 if(m_thread.joinable()){
                     m_thread.join();
                 }
+
+		LOGINFO("stopMaintenance method was executed and hence Maintenance was stopped \n");
+                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STOPPED);
+
 		m_statusMutex.unlock();
                 return result;
         }
