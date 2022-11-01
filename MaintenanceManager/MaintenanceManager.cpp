@@ -1397,7 +1397,6 @@ namespace WPEFramework {
                 if(m_thread.joinable()){
                     m_thread.join();
                 }
-
 		m_statusMutex.unlock();
                 return result;
         }
