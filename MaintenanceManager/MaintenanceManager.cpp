@@ -913,7 +913,7 @@ namespace WPEFramework {
                     LOGINFO("ENDING MAINTENANCE CYCLE");
                     if(m_thread.joinable()){
                         m_thread.join();
-                        LOGINFO("Thread joined successfully");
+                        LOGINFO("Thread joined successfully\n");
                     }
 
                     MaintenanceManager::_instance->onMaintenanceStatusChange(notify_status);
@@ -1275,7 +1275,7 @@ namespace WPEFramework {
                         * especially when device is in offline mode*/
                         if(m_thread.joinable()){
                             m_thread.join();
-                            LOGINFO("Thread joined successfully");
+                            LOGINFO("Thread joined successfully\n");
                         }
 
                         m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
@@ -1398,7 +1398,7 @@ namespace WPEFramework {
 
                 if(m_thread.joinable()){
                     m_thread.join();
-                    LOGINFO("Thread joined successfully");
+                    LOGINFO("Thread joined successfully\n");
                 }
 		m_statusMutex.unlock();
                 return result;
