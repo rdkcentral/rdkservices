@@ -20,6 +20,8 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
+set(PLUGIN_CONTROLSERVICE_STARTUPORDER "" CACHE STRING "To configure startup order of ControlService plugin")
+
 add_subdirectory(test)
 
 add_library(${MODULE_NAME} SHARED

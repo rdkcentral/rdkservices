@@ -18,6 +18,8 @@
 set(PLUGIN_NAME FrameRate)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_FRAMERATE_STARTUPORDER "" CACHE STRING "To configure startup order of FrameRate plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED

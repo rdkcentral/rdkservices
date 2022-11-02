@@ -19,6 +19,7 @@ set(PLUGIN_NAME ContinueWatching)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_CONTINUEWATCHING_AUTOSTART true CACHE STRING "Automatically start ContinueWatching plugin")
+set(PLUGIN_CONTINUEWATCHING_STARTUPORDER "" CACHE STRING "To configure startup order of ContinueWatching plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
