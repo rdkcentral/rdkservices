@@ -40,6 +40,7 @@
 #include <condition_variable>
 
 #include "UtilsBIT.h"
+#include "UtilsThreadRAII.h"
 
 namespace WPEFramework {
 
@@ -173,9 +174,9 @@ namespace WPEFramework {
             Connection *smConnection;
             int m_numberOfDevices;
             bool m_pollThreadExit;
-            std::thread m_pollThread;
+            Utils::ThreadRAII m_pollThread;
             bool m_updateThreadExit;
-            std::thread m_UpdateThread;
+            Utils::ThreadRAII m_UpdateThread;
 
             const void InitializeIARM();
             void DeinitializeIARM();
