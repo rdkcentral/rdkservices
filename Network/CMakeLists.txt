@@ -18,6 +18,8 @@
 set(PLUGIN_NAME Network)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_NETWORK_STARTUPORDER "" CACHE STRING "To configure startup order of Network plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
