@@ -18,6 +18,8 @@
 set(PLUGIN_NAME RemoteActionMapping)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_REMOTEACTIONMAPPING_STARTUPORDER "" CACHE STRING "To configure startup order of RemoteActionMapping plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_subdirectory(test)

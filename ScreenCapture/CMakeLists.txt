@@ -18,6 +18,8 @@
 set(PLUGIN_NAME ScreenCapture)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_SCREENCAPTURE_STARTUPORDER "" CACHE STRING "To configure startup order of ScreenCapture plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
