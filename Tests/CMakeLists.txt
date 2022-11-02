@@ -32,8 +32,8 @@ FetchContent_MakeAvailable(googletest)
 file(GLOB TESTS tests/*.cpp)
 add_executable(${PROJECT_NAME}
         ${TESTS}
-        source/Module.cpp
-        source/Wraps.cpp
+        mocks/thunder/Module.cpp
+        mocks/Wraps.cpp
         )
 
 set_source_files_properties(
@@ -50,6 +50,7 @@ include_directories(../LocationSync
         ../FrameRate
         ../AVInput
         ../Telemetry
+        ../ScreenCapture
         ../DataCapture
         ../UsbAccess
         ../Timer
@@ -61,6 +62,7 @@ include_directories(../LocationSync
         ../SystemServices
         ../HdmiInput
         ../HdcpProfile
+        ../TraceControl
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -70,6 +72,7 @@ link_directories(../LocationSync
         ../FrameRate
         ../AVInput
         ../Telemetry
+        ../ScreenCapture
         ../DataCapture
         ../UsbAccess
         ../Timer
@@ -80,6 +83,7 @@ link_directories(../LocationSync
         ../DeviceInfo
         ../HdmiInput
         ../HdcpProfile
+        ../TraceControl
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -93,7 +97,9 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}DeviceIdentification
         ${NAMESPACE}FrameRate
         ${NAMESPACE}AVInput
+        ${NAMESPACE}ScreenCapture
         ${NAMESPACE}Telemetry
+        ${NAMESPACE}ScreenCapture
         ${NAMESPACE}UsbAccess
         ${NAMESPACE}Timer
         ${NAMESPACE}LoggingPreferences
@@ -103,15 +109,16 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}DeviceInfo
         ${NAMESPACE}HdmiInput
         ${NAMESPACE}HdcpProfile
+        ${NAMESPACE}TraceControl
         )
 
 target_include_directories(${PROJECT_NAME}
         PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
-        source
         mocks
         mocks/devicesettings
+        mocks/thunder
         )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

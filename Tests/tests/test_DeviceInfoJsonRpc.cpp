@@ -12,7 +12,7 @@
 #include "VideoOutputPortTypeMock.h"
 #include "VideoResolutionMock.h"
 
-#include "source/SystemInfo.h"
+#include "SystemInfo.h"
 
 #include <fstream>
 
@@ -153,7 +153,13 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, systeminfo)
 TEST_F(DeviceInfoJsonRpcInitializedTest, addresses)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("addresses"), _T(""), response));
-    EXPECT_THAT(response, ::testing::MatchesRegex("\\[(\\{\"name\":\".+\",\"mac\":\".+\"(,\"ip\":\\[(\".+\"){1,}\\]){0,}\\}){0,}\\]"));
+    EXPECT_THAT(response, ::testing::MatchesRegex("\\["
+                                                  "(\\{"
+                                                  "\"name\":\"[^\"]+\","
+                                                  "\"mac\":\"[^\"]+\""
+                                                  "(,\"ip\":\\[(\"[^\"]+\",{0,1}){1,}\\]){0,1}"
+                                                  "\\},{0,1}){0,}"
+                                                  "\\]"));
 }
 
 TEST_F(DeviceInfoJsonRpcInitializedTest, socketinfo)

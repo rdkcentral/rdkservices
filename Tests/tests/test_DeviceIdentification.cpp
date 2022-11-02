@@ -4,7 +4,7 @@
 
 #include "COMLinkMock.h"
 #include "ServiceMock.h"
-#include "source/SystemInfo.h"
+#include "SystemInfo.h"
 
 using namespace WPEFramework;
 
