@@ -36,6 +36,7 @@
 #include "Module.h"
 
 #include "UtilsBIT.h"
+#include "UtilsThreadRAII.h"
 
 namespace WPEFramework {
 
@@ -242,15 +243,15 @@ namespace WPEFramework {
             Connection *smConnection;
             int m_numberOfDevices;
             bool m_pollThreadExit;
-            std::thread m_pollThread;
+            Utils::ThreadRAII m_pollThread;
             bool m_updateThreadExit;
-            std::thread m_UpdateThread;
-			bool m_sendKeyEventThreadExit;
-			bool m_sendKeyEventThreadRun;
-			std::thread m_sendKeyEventThread;
-			std::mutex m_sendKeyEventMutex;
-			std::queue<SendKeyInfo> m_SendKeyQueue;
-			std::condition_variable m_sendKeyCV;
+            Utils::ThreadRAII m_UpdateThread;
+            bool m_sendKeyEventThreadExit;
+            bool m_sendKeyEventThreadRun;
+            Utils::ThreadRAII m_sendKeyEventThread;
+            std::mutex m_sendKeyEventMutex;
+            std::queue<SendKeyInfo> m_SendKeyQueue;
+            std::condition_variable m_sendKeyCV;
 		
             HdmiCec_2Processor *msgProcessor;
             HdmiCec_2FrameListener *msgFrameListener;
