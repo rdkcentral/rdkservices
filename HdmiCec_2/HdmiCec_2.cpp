@@ -402,8 +402,6 @@ namespace WPEFramework
            Register(HDMICEC2_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec_2::getActiveSourceStatus, this);
            Register(HDMICEC2_METHOD_SEND_KEY_PRESS,&HdmiCec_2::sendRemoteKeyPressWrapper,this);
            Register("getDeviceList", &HdmiCec_2::getDeviceList, this);
-           m_sendKeyEventThreadExit = false;
-		   m_sendKeyEventThread = std::thread(threadSendKeyEvent);
 
        }
 
@@ -411,6 +409,7 @@ namespace WPEFramework
        {
            IsCecMgrActivated = false;
            LOGWARN("dtor");
+
        }
  
        const string HdmiCec_2::Initialize(PluginHost::IShell* /* service */)
@@ -519,23 +518,7 @@ namespace WPEFramework
            HdmiCec_2::_instance->sendActiveSourceEvent();
            HdmiCec_2::_instance = nullptr;
            smConnection = NULL;
-	       m_sendKeyEventThreadExit = true;
-           std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
-           m_sendKeyEventThreadRun = true;
-           m_sendKeyCV.notify_one();
-		   try
-	    {
-            if (m_sendKeyEventThread.joinable())
-                m_sendKeyEventThread.join();
-	    }
-	    catch(const std::system_error& e)
-	    {
-		    LOGERR("system_error exception in thread join %s", e.what());
-	    }
-	    catch(const std::exception& e)
-	    {
-		    LOGERR("exception in thread join %s", e.what());
-	    } 
+
            DeinitializeIARM();
        }
        
@@ -1170,7 +1153,17 @@ namespace WPEFramework
                 }
             }
             libcecInitStatus++;
-          
+
+            m_sendKeyEventThreadExit = false;
+            try {
+               if (m_sendKeyEventThread.get().joinable()) {
+                   m_sendKeyEventThread.get().join();
+	       }
+               m_sendKeyEventThread = Utils::ThreadRAII(std::thread(threadSendKeyEvent));
+            } catch(const std::system_error& e) {
+                LOGERR("exception in creating threadSendKeyEvent %s", e.what());
+	    }
+
 
             //Acquire CEC Addresses
             getPhysicalAddress();
@@ -1202,14 +1195,28 @@ namespace WPEFramework
                 m_updateThreadExit = false;
                 _instance->m_lockUpdate = PTHREAD_MUTEX_INITIALIZER;
                 _instance->m_condSigUpdate = PTHREAD_COND_INITIALIZER;
-                m_UpdateThread = std::thread(threadUpdateCheck);
+                try {
+                    if (m_UpdateThread.get().joinable()) {
+                       m_UpdateThread.get().join();
+	            }
+                    m_UpdateThread = Utils::ThreadRAII(std::thread(threadUpdateCheck));
+                } catch(const std::system_error& e) {
+                    LOGERR("exception in creating threadUpdateCheck %s", e.what());
+	        }
 
                 LOGWARN("Start Thread %p", smConnection );
                 m_pollThreadExit = false;
                 _instance->m_numberOfDevices = 0;
                 _instance->m_lock = PTHREAD_MUTEX_INITIALIZER;
                 _instance->m_condSig = PTHREAD_COND_INITIALIZER;
-                m_pollThread = std::thread(threadRun);
+                try {
+                    if (m_pollThread.get().joinable()) {
+                       m_pollThread.get().join();
+	            }
+                    m_pollThread = Utils::ThreadRAII(std::thread(threadRun));
+                } catch(const std::system_error& e) {
+                    LOGERR("exception in creating threadRun %s", e.what());
+	        }
 
             }
             return;
@@ -1231,6 +1238,13 @@ namespace WPEFramework
                 return;
             }
 
+            {
+                m_sendKeyEventThreadExit = true;
+                std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
+                m_sendKeyEventThreadRun = true;
+                m_sendKeyCV.notify_one();
+            }
+
             if (smConnection != NULL)
             {
                 LOGWARN("Stop Thread %p", smConnection );
@@ -1238,35 +1252,11 @@ namespace WPEFramework
                 m_updateThreadExit = true;
                 //Trigger codition to exit poll loop
                 pthread_cond_signal(&(_instance->m_condSigUpdate));
-                try {
-                    if (m_UpdateThread.joinable()) {
-                       LOGWARN("Join update Thread %p", smConnection );
-                       m_UpdateThread.join();
-                    }
-                }
-                catch(const std::system_error& e) {
-                    LOGERR("system_error exception in thread join %s", e.what());
-                }
-                catch(const std::exception& e) {
-                    LOGERR("exception in thread join %s", e.what());
-                }
                 LOGWARN("Deleted update Thread %p", smConnection );
 
                 m_pollThreadExit = true;
                 //Trigger codition to exit poll loop
                 pthread_cond_signal(&(_instance->m_condSig));
-                try {
-                    if (m_pollThread.joinable()) {
-                       LOGWARN("Join Thread %p", smConnection );
-                       m_pollThread.join();
-                    }
-                }
-                catch(const std::system_error& e) {
-                    LOGERR("system_error exception in thread join %s", e.what());
-                }
-                catch(const std::exception& e) {
-                    LOGERR("exception in thread join %s", e.what());
-                }
                 LOGWARN("Deleted Thread %p", smConnection );
                 //Clear cec device cache.
                 removeAllCecDevices();
@@ -1631,6 +1621,7 @@ namespace WPEFramework
 
 		}
 		pthread_mutex_unlock(&(_instance->m_lock));
+	        LOGINFO("%s: Thread exited", __FUNCTION__);
 	}
 	void HdmiCec_2::threadSendKeyEvent()
         {
@@ -1668,6 +1659,7 @@ namespace WPEFramework
 			    _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
 			    _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
             }
+	    LOGINFO("%s: Thread exited", __FUNCTION__);
         }
 	void HdmiCec_2::threadUpdateCheck()
 	{
@@ -1725,6 +1717,7 @@ namespace WPEFramework
 
 		}
 		pthread_mutex_unlock(&(_instance->m_lockUpdate));
+	        LOGINFO("%s: Thread exited", __FUNCTION__);
 	}
 
     } // namespace Plugin
