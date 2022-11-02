@@ -18,6 +18,8 @@
 set(PLUGIN_NAME FrontPanel)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_FRONTPANEL_STARTUPORDER "" CACHE STRING "To configure startup order of FrontPanel plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
