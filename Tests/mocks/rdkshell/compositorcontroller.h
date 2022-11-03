@@ -12,7 +12,6 @@
 #include <algorithm>
 #include "rdkshell.h"
 #include "logger.h"
-#include "linuxkeys.h"
 #include "eastereggs.h"
 #include "string.h"
 #include <iostream>

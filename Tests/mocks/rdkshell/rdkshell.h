@@ -8,7 +8,6 @@
 #include <string>
 #include <iostream>
 #include <GLES2/gl2.h>
-#include "linuxkeys.h"
 #include "compositorcontroller.h"
 #include "eastereggs.h"
 #include <unistd.h>
@@ -17,6 +16,7 @@
 #include <fstream>
 #include <thread>
 #include <mutex>
+#include <stdint.h>
 
 #define RDKSHELL_FPS 40
 
@@ -26,6 +26,16 @@
 #define RDKSHELL_DEFAULT_SWAP_INCREASE_THRESHOLD_MB 50
 #define RDKSHELL_SPLASH_SCREEN_FILE_CHECK "/tmp/.rdkshellsplash"
 
+#define RDKSHELL_FLAGS_SHIFT        8
+#define RDKSHELL_FLAGS_CONTROL      16
+#define RDKSHELL_FLAGS_ALT          32
+#define RDKSHELL_FLAGS_COMMAND      64
+
+bool keyCodeFromWayland(uint32_t waylandKeyCode, uint32_t waylandFlags, uint32_t &mappedKeyCode, uint32_t &mappedFlags){return true;}
+uint32_t keyCodeToWayland(uint32_t keyCode){return 0;}
+void mapNativeKeyCodes(){return;}
+void mapVirtualKeyCodes(){return;}
+bool keyCodeFromVirtual(std::string& virtualKey, uint32_t &mappedKeyCode, uint32_t &mappedFlags){return true;}
 
 int gCurrentFramerate = RDKSHELL_FPS;
 bool gRdkShellIsRunning = false;

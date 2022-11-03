@@ -185,6 +185,7 @@ jobs:
           rdk/iarmmgrs-hal/pwrMgr.h
           rdk/iarmmgrs-hal/sysMgr.h
           rdkshell/application.h
+          rdkshell/linuxkeys.h
           framebuffer-api.h
           libudev.h
           rfcapi.h
