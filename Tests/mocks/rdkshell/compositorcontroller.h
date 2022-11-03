@@ -5,14 +5,12 @@
 #include "rdkshelldata.h"
 
 #include "rdkshellevents.h"
-#include "rdkcompositor.h"
 #include <string>
 #include <vector>
 #include <map>
 #include <memory>
 #include <algorithm>
 #include "rdkshell.h"
-#include "application.h"
 #include "logger.h"
 #include "linuxkeys.h"
 #include "eastereggs.h"
@@ -32,8 +30,29 @@
 
 namespace RdkShell
 {
+    #define RDKSHELL_APPLICATION_MIME_TYPE_NATIVE "application/native"
+    #define RDKSHELL_APPLICATION_MIME_TYPE_DAC_NATIVE "application/dac.native"
+    #define RDKSHELL_APPLICATION_MIME_TYPE_HTML "application/html"
+    #define RDKSHELL_APPLICATION_MIME_TYPE_LIGHTNING "application/lightning"
 
-   
+    enum class ApplicationState
+    {
+        Unknown,
+        Running,
+        Suspended,
+        Stopped
+    };
+  
+
+  class RdkCompositor;
+
+   int32_t mPositionX;
+   int32_t mPositionY;
+   uint32_t mWidth;
+   uint32_t mHeight;
+   uint32_t mCursorWidth;
+   uint32_t mCursorHeight;
+   bool  mIsVisible; 
    
     class CompositorController
     {
@@ -61,8 +80,22 @@ namespace RdkShell
             static bool setScreenResolution(const uint32_t width, const uint32_t height){return true;}
             static bool getClients(std::vector<std::string>& clients){return true;}
             static bool getZOrder(std::vector<std::string>&clients){return true;}
-            static bool getBounds(const std::string& client, uint32_t &x, uint32_t &y, uint32_t &width, uint32_t &height){return true;}
-            static bool setBounds(const std::string& client, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height){return true;}
+            static bool getBounds(const std::string& client, uint32_t &x, uint32_t &y, uint32_t &width, uint32_t &height)
+            {
+		   x = mPositionX;
+                   y = mPositionY;
+                   width = mWidth;
+                   height = mHeight;
+                   return true;
+	    }
+            static bool setBounds(const std::string& client, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height )
+	    {
+		    mPositionX = x;
+                    mPositionY = y;
+		    mWidth = width;
+                    mHeight = height;
+		    return true;
+	    }
             static bool getVisibility(const std::string& client, bool& visible){return true;}
             static bool setVisibility(const std::string& client, const bool visible){return true;}
             static bool getOpacity(const std::string& client, unsigned int& opacity){return true;}
@@ -104,8 +137,16 @@ namespace RdkShell
             static bool showFullScreenImage(std::string file){return true;}
             static bool draw(){return true;}
             static bool update(){return true;}
-            static bool setLogLevel(const std::string level){return true;}
-            static bool getLogLevel(std::string& level){return true;}
+            static bool setLogLevel(const std::string level)
+	    {
+		    Logger::setLogLevel(level.c_str());
+                    return true;
+	    }
+            static bool getLogLevel(std::string& level)
+	    {
+		    Logger::logLevel(level);
+                    return true;
+	    }
             static bool setTopmost(const std::string& client, bool topmost, bool focus = false){return true;}
             static bool getTopmost(std::string& client){return true;}
             static bool sendEvent(const std::string& eventName, std::vector<std::map<std::string, RdkShellData>>& data){return true;}
@@ -125,10 +166,28 @@ namespace RdkShell
             static bool alwaysShowWatermarkImageOnTop(bool show=false){return true;}
             static bool screenShot(uint8_t* &data, uint32_t &size){return true;}
             static bool enableInputEvents(const std::string& client, bool enable){return true;}
-            static bool showCursor(){return true;}
-            static bool hideCursor(){return true;}
-            static bool setCursorSize(uint32_t width, uint32_t height){return true;}
-            static bool getCursorSize(uint32_t& width, uint32_t& height){return true;}
+            static bool showCursor()
+            {
+		    mIsVisible = true;
+		    return true;
+	    }
+            static bool hideCursor()
+	    {
+		    mIsVisible = false;
+		    return true;
+	    }
+            static bool setCursorSize(uint32_t width, uint32_t height)
+            {
+		    mCursorWidth = width;
+                    mCursorHeight = height;
+		    return true;
+	    }
+            static bool getCursorSize(uint32_t& width, uint32_t& height)
+            {
+		    height = mCursorHeight;
+                    width = mCursorWidth;
+		    return true;
+	    }
             static void setKeyRepeatConfig(bool enabled, int32_t initialDelay, int32_t repeatInterval){return;}
 	    static bool setAVBlocked(std::string callsign, bool blockAV){return true;}
             static bool getBlockedAVApplications(std::vector<std::string>& apps){return true;}
@@ -139,5 +198,3 @@ namespace RdkShell
 }
 
 #endif //RDKSHELL_COMPOSITOR_CONTROLLER_H
-
-

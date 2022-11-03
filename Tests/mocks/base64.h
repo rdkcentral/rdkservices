@@ -22,3 +22,19 @@ size_t b64url_decode( const uint8_t *input, const size_t input_size, uint8_t *ou
 #endif
 
 #endif /* __BASE64_LIB__ */
+
+#ifndef __RDK_INFO_H__
+#define __RDK_INFO_H__
+
+#include <stdlib.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void logMilestone(const char *msg_code){return;}
+
+#ifdef __cplusplus
+}
+#endif
+#endif

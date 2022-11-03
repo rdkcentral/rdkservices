@@ -153,6 +153,7 @@ jobs:
           headers/rdk/ds
           headers/rdk/iarmbus
           headers/rdk/iarmmgrs-hal
+          headers/rdkshell
           headers/ccec/drivers &&
           cd headers &&
           touch
@@ -183,10 +184,12 @@ jobs:
           rdk/iarmmgrs-hal/mfrMgr.h
           rdk/iarmmgrs-hal/pwrMgr.h
           rdk/iarmmgrs-hal/sysMgr.h
+          rdkshell/application.h
           framebuffer-api.h
           libudev.h
           rfcapi.h
           telemetry_busmessage_sender.h
+          rdk_logger_milestone.h
 
       - name: Configure rdkservices
         run: >

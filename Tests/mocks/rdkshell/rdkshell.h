@@ -7,27 +7,16 @@
 #include <map>
 #include <string>
 #include <iostream>
-#ifdef RDKSHELL_ENABLE_IPC
-#include "servermessagehandler.h"
-#endif
-
-#ifdef RDKSHELL_ENABLE_WEBSOCKET_IPC
-#include "messageHandler.h"
-#endif
-#include "essosinstance.h"
-#include "compositorcontroller.h"
+#include <GLES2/gl2.h>
 #include "linuxkeys.h"
+#include "compositorcontroller.h"
 #include "eastereggs.h"
-#include "linuxinput.h"
-#include "animation.h"
-#include "logger.h"
-#include "rdkshellimage.h"
-#include "permissions.h"
 #include <unistd.h>
 #include <time.h>
 #include <sys/sysinfo.h>
 #include <fstream>
 #include <thread>
+#include <mutex>
 
 #define RDKSHELL_FPS 40
 
@@ -66,9 +55,15 @@ std::mutex gMemoryMonitorMutex;
 
 namespace RdkShell
 {
+    void readPermissionsConfiguration(){return;}
+    void logPermissionsConfiguration(){return;}
+    void getAllowedExtensions(const std::string& clientName, std::vector<std::string>& extensions){return;}
+    void readInputDevicesConfiguration(){return;}
+
 
     bool systemRam(uint32_t& freeKb, uint32_t& totalKb, uint32_t& availableKb, uint32_t& usedSwapKb)
     {
+	std::cout << "ezhil1" << std::endl;
         struct sysinfo systemInformation;
         int ret = sysinfo(&systemInformation);
         uint64_t freeMemKb=0, usedSwapMemKb=0, totalMemKb=0;
@@ -122,12 +117,14 @@ namespace RdkShell
             return false;
         }
         fclose(file);
+	std::cout << "ezhil3" << std::endl;
         return true;
     }
 
     bool systemRam(uint32_t& freeKb, uint32_t& totalKb, uint32_t& usedSwapKb)
     {
         uint32_t availableKb = 0;
+	std::cout << "ezhil" << std::endl;
         bool ret = systemRam(freeKb, totalKb, availableKb, usedSwapKb);
         return ret;
     }
@@ -329,7 +326,6 @@ namespace RdkShell
             }
         }
 
-        RdkShell::EssosInstance::instance()->configureKeyInput(initialKeyDelay, repeatKeyInterval);
 
         #ifdef RDKSHELL_ENABLE_IPC
         char const* ipcSetting = getenv("RDKSHELL_ENABLE_IPC");
@@ -362,16 +358,13 @@ namespace RdkShell
         if (file720.good())
         {
             Logger::log(LogLevel::Information,  "!!!!! forcing 720 start!");
-            RdkShell::EssosInstance::instance()->initialize(false, 1280, 720);
             gForce720 = true;
         }
         else
         {
             Logger::log(LogLevel::Information,  "!!!!! forcing 1080 start!");
-            RdkShell::EssosInstance::instance()->initialize(false, 1920, 1080);
         }
         #else
-        RdkShell::EssosInstance::instance()->initialize(false);
         #endif //RDKSHELL_ENABLE_FORCE_1080
         //glEnable(GL_BLEND);
         //glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -431,7 +424,6 @@ namespace RdkShell
             update();
             uint32_t width = 0;
             uint32_t height = 0;
-            RdkShell::EssosInstance::instance()->resolution(width, height);
             //glViewport( 0, 0, width, height );
            // glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
            // glClear(GL_COLOR_BUFFER_BIT);
@@ -439,7 +431,6 @@ namespace RdkShell
             const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
             double startFrameTime = microseconds();
             RdkShell::CompositorController::draw();
-            RdkShell::EssosInstance::instance()->update();
 
             #ifdef RDKSHELL_ENABLE_WEBSOCKET_IPC
             if (gWebsocketIpcEnabled)
@@ -459,10 +450,8 @@ namespace RdkShell
 
     void draw()
     {
-        RdkShell::EssosInstance::instance()->update();
         uint32_t width = 0;
         uint32_t height = 0;
-        RdkShell::EssosInstance::instance()->resolution(width, height);
         //glViewport( 0, 0, width, height );
        // glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
        // glClear(GL_COLOR_BUFFER_BIT);

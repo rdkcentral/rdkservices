@@ -110,4 +110,57 @@ TEST_F(RDKShellTest, RegisteredMethods){
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("launchFactoryAppShortcut")));
     }
 
+TEST_F(RDKShellTest, visibility)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVisibility"), _T("{\"client\": \"org.rdk.Netflix\","
+                                                                                             "\"callsign\": \"org.rdk.Netflix\","
+                                                                                             "\"visible\": true}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
 
+TEST_F(RDKShellTest, getSystemMemory)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSystemMemory"), _T("{}"), response));
+}
+
+TEST_F(RDKShellTest, Bounds)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setBounds"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getBounds"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBounds"), _T("{\"client\": \"org.rdk.Netflix\","
+                                                                                             "\"callsign\": \"org.rdk.Netflix\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBounds"), _T("{\"client\": \"org.rdk.Netflix\","
+                                                                                             "\"callsign\": \"org.rdk.Netflix\",\"x\":10,\"y\":15,\"w\":1000,\"h\":1000}"),response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBounds"), _T("{\"client\": \"org.rdk.Netflix\","
+                                                                                             "\"callsign\": \"org.rdk.Netflix\"}"), response));
+}
+
+TEST_F(RDKShellTest, CursorSize)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setCursorSize"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCursorSize"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setCursorSize"), _T("{\"width\":255,\"height\":255}"),response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCursorSize"), _T("{}"), response));
+}
+
+TEST_F(RDKShellTest, showandhideCursor)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("showCursor"), _T("{}"),response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("hideCursor"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
+}
+
+TEST_F(RDKShellTest, launchResidentApp)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("launchResidentApp"), _T("{}"), response));
+}
+
+
+TEST_F(RDKShellTest, keyRepeat)
+{
+	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("enableKeyRepeats"), _T("{}"), response));
+	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableKeyRepeats"), _T("{\"enable\": \"true\"}"), response));
+	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getKeyRepeatsEnabled"), _T("{}"), response));
+
+}
