@@ -7,7 +7,6 @@
 #include <map>
 #include <string>
 #include <iostream>
-#include <GLES2/gl2.h>
 #include "compositorcontroller.h"
 #include "eastereggs.h"
 #include <unistd.h>
