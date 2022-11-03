@@ -75,7 +75,7 @@ uint32_t WifiManagerConnect::disconnect(const JsonObject &parameters, JsonObject
     IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_disconnectSSID, (void *)&param, sizeof(param));
     LOGINFO("[%s] : retVal:%d status:%d", IARM_BUS_WIFI_MGR_API_disconnectSSID, retVal, param.status);
 
-    response["result"] = string();
+    response["result"] = param.status ? 0 : 1;
     returnResponse(retVal == IARM_RESULT_SUCCESS);
 }
 
