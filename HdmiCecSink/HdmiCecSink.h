@@ -39,6 +39,7 @@
 #include <chrono>
 
 #include "UtilsLogging.h"
+#include "UtilsThreadRAII.h"
 
 namespace WPEFramework {
 
@@ -609,7 +610,7 @@ private:
 			int  m_numofHdmiInput;
 			uint8_t m_deviceType;
 			int m_logicalAddressAllocated;
-			std::thread m_pollThread;
+			Utils::ThreadRAII m_pollThread;
 			uint32_t m_pollThreadState;
 			uint32_t m_pollNextState;
 			bool m_pollThreadExit;
@@ -619,14 +620,14 @@ private:
             /* Send Key event related */
             bool m_sendKeyEventThreadExit;
             bool m_sendKeyEventThreadRun;
-            std::thread m_sendKeyEventThread;
+            Utils::ThreadRAII m_sendKeyEventThread;
             std::mutex m_sendKeyEventMutex;
             std::queue<SendKeyInfo> m_SendKeyQueue;
             std::condition_variable m_sendKeyCV;
 	    std::condition_variable m_ThreadExitCV;
 
             /* ARC related */
-            std::thread m_arcRoutingThread;
+            Utils::ThreadRAII m_arcRoutingThread;
 	    uint32_t m_currentArcRoutingState;
 	    std::mutex m_arcRoutingStateMutex;
 	    binary_semaphore m_semSignaltoArcRoutingThread;

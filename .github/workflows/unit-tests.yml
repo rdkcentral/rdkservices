@@ -212,7 +212,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Rfc.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
-          --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wno-unused-variable -Wl,-wrap,system -Wl,-wrap,popen
+          --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wno-unused-variable -Wno-unused-but-set-variable -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
           -DUSE_IARMBUS
           -DENABLE_SYSTEM_GET_STORE_DEMO_LINK
@@ -248,6 +248,7 @@ jobs:
           -DRDK_SERVICES_TEST=ON
           -DPLUGIN_HDMIINPUT=ON
           -DPLUGIN_HDCPPROFILE=ON
+          -DPLUGIN_TRACECONTROL=ON
           -DPLUGIN_RDKSHELL=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
