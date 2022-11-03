@@ -28,6 +28,8 @@
     },
     "methods": {
         "getCompositeInputDevices" :{
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getinputdevices",
             "summary": "returns a list of composite input devices.",
             "result": {
                 "type":"object",
@@ -66,6 +68,8 @@
             }
         },
         "setVideoRectangle":{
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setvideorectangle",
             "summary": "Sets the composite input video window.",
             "params": {
                 "type":"object",
@@ -104,6 +108,8 @@
 
         },
         "startCompositeInput":{
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=startinput",
             "summary": "Activates the specified composite input as the primary video source.",
             "events": {
                 "onInputStatusChanged" : "Triggers this event when activates composite input source and input status changes to started",
@@ -127,6 +133,8 @@
             }
         },
         "stopCompositeInput":{
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=stopinput",
             "summary": "Deactivates the current composite input source that is the primary video source.",
             "events": {
                 "onInputStatusChanged" : "Triggers this event when deactivates composite input source and input status changes to stopped"

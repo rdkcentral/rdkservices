@@ -2,7 +2,7 @@
 <a name="HdmiInputPlugin"></a>
 # HdmiInputPlugin
 
-**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
+**Version: [1.0.3](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
 
 A org.rdk.HdmiInput plugin for Thunder framework.
 
@@ -66,6 +66,8 @@ HdmiInput interface methods:
 
 Returns an array of available HDMI Input ports.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getinputdevices)
+
 ### Events
 
 No Events
@@ -122,6 +124,8 @@ This method takes no parameters.
 
 Returns the EDID version.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getedidversion)
+
 ### Events
 
 No Events
@@ -173,6 +177,8 @@ No Events
 ## *getHDMISPD*
 
 Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getspd)
 
 ### Events
 
@@ -226,6 +232,8 @@ No Events
 
 Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getrawspd)
+
 ### Events
 
 No Events
@@ -277,6 +285,8 @@ No Events
 ## *readEDID*
 
 Returns the current EDID value.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=readedid)
 
 ### Events
 
@@ -330,6 +340,8 @@ No Events
 
 Activates the specified HDMI Input port as the primary video source.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=startinput)
+
 ### Events
 
 | Event | Description |
@@ -382,6 +394,8 @@ Activates the specified HDMI Input port as the primary video source.
 
 Deactivates the HDMI Input port currently selected as the primary video source.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=stopinput)
+
 ### Events
 
 | Event | Description |
@@ -426,6 +440,8 @@ This method takes no parameters.
 ## *setEdidVersion*
 
 Sets an HDMI EDID version.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setedidversion)
 
 ### Events
 
@@ -478,6 +494,8 @@ No Events
 ## *setVideoRectangle*
 
 Sets an HDMI Input video window.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setvideorectangle)
 
 ### Events
 
@@ -535,6 +553,8 @@ No Events
 
 Changes a current EDID value.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=writeedid)
+
 ### Events
 
 No Events
@@ -587,6 +607,8 @@ No Events
 
 Returns the list of supported game features.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getsupportedgamefeatures)
+
 ### Events
 
 No Events
@@ -632,6 +654,8 @@ This method takes no parameters.
 ## *getHdmiGameFeatureStatus*
 
 Returns the Game Feature Status. For example: ALLM.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getgamefeaturestatus)
 
 ### Events
 
