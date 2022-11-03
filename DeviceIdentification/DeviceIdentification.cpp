@@ -31,11 +31,19 @@ namespace {
         // Version (Major, Minor, Patch)
         API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
         // Preconditions
+#ifdef DISABLE_DEVICEID_CONTROL
+        { PluginHost::ISubSystem::IDENTIFIER },
+#else
         {},
+#endif
         // Terminations
         {},
         // Controls
+#ifdef DISABLE_DEVICEID_CONTROL
         {}
+#else
+        { PluginHost::ISubSystem::IDENTIFIER }
+#endif
     );
 }
 
@@ -74,7 +82,9 @@ namespace Plugin {
             RegisterAll();
 
             if (_deviceId.empty() != true) {
+#ifndef DISABLE_DEVICEID_CONTROL
                 service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, _identifier);
+#endif
             }
             else {
                 message = _T("DeviceIdentification plugin could not be instantiated. No DeviceID available");
@@ -98,10 +108,11 @@ namespace Plugin {
         _service->Unregister(&_notification);
 
         if (_deviceId.empty() != true) {
+#ifndef DISABLE_DEVICEID_CONTROL
             service->SubSystems()->Set(PluginHost::ISubSystem::IDENTIFIER, nullptr);
+#endif
             _deviceId.clear();
         }
-
         if(_identifier != nullptr) {
 
             UnregisterAll();
@@ -143,6 +154,7 @@ namespace Plugin {
     string DeviceIdentification::GetDeviceId() const
     {
         string result;
+#ifndef DISABLE_DEVICEID_CONTROL
         ASSERT(_identifier != nullptr);
 
         if (_identifier != nullptr) {
@@ -154,7 +166,22 @@ namespace Plugin {
                 result = Core::SystemInfo::Instance().Id(myBuffer, ~0);
             }
         }
+#else
+        // extract DeviceId set by Thunder
+        if (_service->SubSystems()->IsActive(PluginHost::ISubSystem::IDENTIFIER) == true) {
 
+            const PluginHost::ISubSystem::IIdentifier* identifier(_service->SubSystems()->Get<PluginHost::ISubSystem::IIdentifier>());
+
+            if (identifier != nullptr) {
+                uint8_t myBuffer[64];
+
+                if ((myBuffer[0] = identifier->Identifier(sizeof(myBuffer) - 1, &(myBuffer[1]))) != 0) {
+                    result = Core::SystemInfo::Instance().Id(myBuffer, ~0);
+                }
+                identifier->Release();
+            }
+         }
+#endif
         return result;
     }
 

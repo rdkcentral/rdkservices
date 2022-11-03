@@ -12,6 +12,7 @@ RDK services are a set of JSON-RPC based RESTful services for accessing various 
 [Documentation](#documentation)<br>
 [Coding Guidelines](#coding-guidelines)<br>
 [Versioning](#versioning)<br>
+[Code Review Checklist](#code-review-checklist)<br>
 [Questions?](#questions)<br>
 
 ## Contributing to RDKServices ##
@@ -148,7 +149,7 @@ Use the existing services as a guide when learning the structure of both the plu
 
 ## Coding Guidelines ##
 
-1. **Be Consistent**
+1. Be Consistent
 
     * The point of having style guidelines is to have a common vocabulary of coding so people can concentrate on what you’re saying rather than on how you’re saying it.
 
@@ -164,7 +165,7 @@ Use the existing services as a guide when learning the structure of both the plu
 
     * Minimise the use of exceptions and handle exceptions locally if possible
     
-    * All resources acquired by a RDKSerice must be released by the Deinitialize method and/or the destructor
+    * All resources acquired by a RDK Service must be released by the Deinitialize method and/or the destructor
 
 2. RDK services are implemented as Thunder Plugins and must adhere to the [PluginHost::IPlugin](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h) interface.
 
@@ -253,6 +254,18 @@ Use the existing services as a guide when learning the structure of both the plu
         * Add a changelog entry with minor version update and include **Deprecated** label to call out the API/s getting deprecated. 
         * If this API/s is getting replaced by a newer API then it can come in the same minor version update with changelog entry with **Added** label.
     <br><br>
+
+## Code Review Checklist ##
+
+This checklist is primarily intended for maintainers or reviewers. Please check for the following before approving Pull Requests.
+
+* [Coding Guidelines](#coding-guidelines) are followed. 
+* API Changes are [documented](#documentation) and [versioned](#versioning).
+* JIRA Ticket Number is mentioned in the title or commit message for tracking.
+* Any Dependent HAL changes are to be merged first before merging changes to RDK Service to avoid build issues.
+* For a New RDK Service, ensure [autostart](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/AVInput.config#L1) flag is set to false. The general recommendation is for RDK Services to **not** be autostarted or activated unless it's required on bootup. Resident Apps can activate the required RDK Services on demand.
+* Approve Pull Requests to [main](https://github.com/rdkcentral/RDKServices/tree/main) branch or release branches (release/*) only after you get Release Management approval for those specific branches.
+
 
 ## Questions? ##
 
