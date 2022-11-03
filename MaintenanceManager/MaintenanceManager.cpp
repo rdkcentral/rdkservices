@@ -126,17 +126,26 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
         case MAINT_DCM_ERROR:
             ret_status="MAINTENANCE_DCM_ERROR";
             break;
+        case MAINT_DCM_STOP:
+	    ret_status="MAINTENANCE_DCM_STOP";
+            break;
         case MAINT_RFC_COMPLETE:
             ret_status="MAINTENANCE_RFC_COMPLETE";
             break;
         case MAINT_RFC_ERROR:
             ret_status="MAINTENANCE_RFC_ERROR";
             break;
+        case MAINT_RFC_STOP:
+            ret_status="MAINTENANCE_RFC_STOP";
+            break;
         case MAINT_LOGUPLOAD_COMPLETE:
             ret_status="MAINTENANCE_LOGUPLOAD_COMPLETE";
             break;
         case MAINT_LOGUPLOAD_ERROR:
             ret_status="MAINTENANCE_LOGUPLOAD_ERROR";
+            break;
+        case MAINT_LOGUPLOAD_STOP:
+            ret_status="MAINTENANCE_LOGUPLOAD_STOP";
             break;
         case MAINT_PINGTELEMETRY_COMPLETE:
             ret_status="MAINTENANCE_PINGTELEMETRY_COMPLETE";
@@ -149,6 +158,9 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
             break;
         case MAINT_FWDOWNLOAD_ERROR:
             ret_status="MAINTENANCE_FWDOWNLOAD_ERROR";
+            break;
+        case MAINT_FWDOWNLOAD_STOP:
+            ret_status="MAINTENANCE_FWDOWNLOAD_STOP";
             break;
         case MAINT_REBOOT_REQUIRED:
             ret_status="MAINTENANCE_REBOOT_REQUIRED";
@@ -787,6 +799,57 @@ namespace WPEFramework {
                                 m_task_map[task_names_foreground[2].c_str()]=false;
                             }
                             break;
+                       case MAINT_DCM_STOP:
+                            if(task_status_DCM->second != true) {
+                                LOGINFO("Ignoring Event DCM_STOP");
+                                return;
+                            }
+                            else {
+                                SET_STATUS(g_task_status,DCM_COMPLETE);
+                                LOGINFO("DCM script task execution was stopped \n");
+                                // Set remaining tasks status as complete as they are not going to execute anymore Since maintenance is stopped
+                                SET_STATUS(g_task_status,RFC_COMPLETE);
+                                SET_STATUS(g_task_status,DIFD_COMPLETE);
+                                SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
+                                m_task_map[task_names_foreground[0].c_str()]=false;
+                            }
+                            break;
+                       case MAINT_RFC_STOP:
+                            if(task_status_RFC->second != true) {
+                                LOGINFO("Ignoring Event RFC_STOP");
+                                return;
+                            }
+                            else {
+                                SET_STATUS(g_task_status,RFC_COMPLETE);
+                                LOGINFO("RFC script task execution was stopped \n");
+                                SET_STATUS(g_task_status,DIFD_COMPLETE);
+                                SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
+                                m_task_map[task_names_foreground[1].c_str()]=false;
+                            }
+                            break;
+                       case MAINT_LOGUPLOAD_STOP:
+                            if(task_status_LOGUPLD->second != true) {
+                                LOGINFO("Ignoring Event MAINT_LOGUPLOAD_STOP");
+                                return;
+                            }
+			    else {
+                                SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
+                                LOGINFO("LOGUPLOAD script task execution was stopped \n");
+                                m_task_map[task_names_foreground[3].c_str()]=false;
+                            }
+                            break;
+                       case MAINT_FWDOWNLOAD_STOP:
+                            if(task_status_FWDLD->second != true) {
+                                LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_STOP");
+                                return;
+                            }
+                            else {
+                                SET_STATUS(g_task_status,DIFD_COMPLETE);
+                                LOGINFO("SWUPDATE script task execution was stopped \n");
+                                SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
+				m_task_map[task_names_foreground[2].c_str()]=false;
+                            }
+                            break;
                        case MAINT_DCM_INPROGRESS:
                             m_task_map[task_names_foreground[0].c_str()]=true;
                             /*will be set to false once COMEPLETE/ERROR received for DCM*/
@@ -850,6 +913,7 @@ namespace WPEFramework {
                     LOGINFO("ENDING MAINTENANCE CYCLE");
                     if(m_thread.joinable()){
                         m_thread.join();
+                        LOGINFO("Thread joined successfully\n");
                     }
 
                     MaintenanceManager::_instance->onMaintenanceStatusChange(notify_status);
@@ -1211,6 +1275,7 @@ namespace WPEFramework {
                         * especially when device is in offline mode*/
                         if(m_thread.joinable()){
                             m_thread.join();
+                            LOGINFO("Thread joined successfully\n");
                         }
 
                         m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
@@ -1333,6 +1398,7 @@ namespace WPEFramework {
 
                 if(m_thread.joinable()){
                     m_thread.join();
+                    LOGINFO("Thread joined successfully\n");
                 }
 		m_statusMutex.unlock();
                 return result;
