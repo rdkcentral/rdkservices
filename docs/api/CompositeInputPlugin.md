@@ -2,7 +2,7 @@
 <a name="CompositeInput_Plugin"></a>
 # CompositeInput Plugin
 
-**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/CompositeInput/CHANGELOG.md)**
+**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/CompositeInput/CHANGELOG.md)**
 
 A org.rdk.CompositeInput plugin for Thunder framework.
 
@@ -57,6 +57,8 @@ CompositeInput interface methods:
 ## *getCompositeInputDevices*
 
 returns a list of composite input devices.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getinputdevices)
 
 ### Events
 
@@ -114,6 +116,8 @@ This method takes no parameters.
 
 Sets the composite input video window.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setvideorectangle)
+
 ### Events
 
 No Events
@@ -170,6 +174,8 @@ No Events
 
 Activates the specified composite input as the primary video source.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=startinput)
+
 ### Events
 
 | Event | Description |
@@ -221,6 +227,8 @@ Activates the specified composite input as the primary video source.
 ## *stopCompositeInput*
 
 Deactivates the current composite input source that is the primary video source.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=stopinput)
 
 ### Events
 
