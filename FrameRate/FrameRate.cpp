@@ -215,6 +215,7 @@ namespace WPEFramework
 
             string sPortId = parameters["frmmode"].String();
             int frfmode = 0;
+	    int frmmode = dsHDRSTANDARD_NONE;
             try {
                 frfmode = stoi(sPortId);
             }catch (const device::Exception& err) {
@@ -227,6 +228,10 @@ namespace WPEFramework
             {
                 device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
                 device.setFRFMode(frfmode);
+		device.getFRFMode(&frmmode);
+		if(frfmode != frmmode){
+		    success = false;
+		}
             }
             catch (const device::Exception& err)
             {
