@@ -90,6 +90,9 @@ elseif (BUILD_AMLOGIC)
     target_sources(${MODULE_NAME}
         PRIVATE
             Implementation/Amlogic/Amlogic.cpp)
+    target_compile_definitions(${MODULE_NAME}
+        PRIVATE
+            DISABLE_DEVICEID_CONTROL=1)
 elseif (BUILD_REALTEK)
     target_sources(${MODULE_NAME}
         PRIVATE
