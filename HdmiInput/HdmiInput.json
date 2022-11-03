@@ -56,6 +56,8 @@
     },
     "methods": {
         "getHDMIInputDevices": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getinputdevices",
             "summary": "Returns an array of available HDMI Input ports.",
             "result": {
                 "type": "object",
@@ -74,6 +76,8 @@
             }
         },
         "getEdidVersion":{
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getedidversion",
             "summary": "Returns the EDID version.",
             "params": {
                 "type":"object",
@@ -105,6 +109,8 @@
             }
         },
         "getHDMISPD": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getspd",
             "summary": "Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device. The SPD infoFrame packet includes vendor name, product description, and source information.",
             "params": {
                 "type":"object",
@@ -136,6 +142,8 @@
             }
         },
         "getRawHDMISPD":{
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getrawspd",
             "summary": "Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits.",
             "params": {
                 "type":"object",
@@ -167,6 +175,8 @@
             }
         },
         "readEDID":{
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=readedid",
             "summary": "Returns the current EDID value.",
             "params": {
                 "type":"object",
@@ -198,6 +208,8 @@
             }
         },
         "startHdmiInput": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=startinput",
             "summary": "Activates the specified HDMI Input port as the primary video source.",
             "events": {
                 "onInputStatusChanged" : "Triggers the event when HDMI Input source is activated and Input status changes to started",
@@ -219,6 +231,8 @@
             }
         },
         "stopHdmiInput": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=stopinput",
             "summary": "Deactivates the HDMI Input port currently selected as the primary video source.",
             "events": {
                 "onInputStatusChanged" : "Triggers the event when HDMI Input source is deactivated and Input status changes to `stopped`"
@@ -236,6 +250,8 @@
             }            
         },
         "setEdidVersion": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setedidversion",
             "summary": "Sets an HDMI EDID version.",
             "params": {
                 "type":"object",
@@ -259,6 +275,8 @@
             }
         },
         "setVideoRectangle": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setvideorectangle",
             "summary": "Sets an HDMI Input video window.",
             "params": {
                 "type":"object",
@@ -295,6 +313,8 @@
             }
         },
         "writeEDID": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=writeedid",
             "summary": "Changes a current EDID value.",
             "params": {
                 "type":"object",
@@ -320,6 +340,8 @@
             }
         },
         "getSupportedGameFeatures":{
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getsupportedgamefeatures",
             "summary": "Returns the list of supported game features.",
             "result": {
                 "type": "object",
@@ -340,6 +362,8 @@
             }
         },
        "getHdmiGameFeatureStatus":{
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getgamefeaturestatus",
             "summary": "Returns the Game Feature Status. For example: ALLM",
             "params": {
                 "type":"object",
