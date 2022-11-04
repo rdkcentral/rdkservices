@@ -38,7 +38,6 @@
 
 #define TELEMETRY_METHOD_EVT_ON_REPORT_UPLOAD "onReportUpload"
 
-
 #define RFC_CALLERID "Telemetry"
 #define RFC_REPORT_PROFILES "Device.X_RDKCENTRAL-COM_T2.ReportProfiles"
 #define RFC_REPORT_DEFAULT_PROFILE_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.FTUEReport.Enable"
