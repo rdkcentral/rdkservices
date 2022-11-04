@@ -77,18 +77,8 @@ TEST_F(TraceControlJsonRpcTest, registeredMethods)
 
 TEST_F(TraceControlJsonRpcInitializedTest, jsonRpc)
 {
-    ON_CALL(wrapsImplMock, syslog(::testing::_, ::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [&](int pri, const char* fmt, va_list args) -> void {
-                EXPECT_EQ(LOG_NOTICE, pri);
-                va_list args2;
-                va_copy(args2, args);
-                char strFmt[256];
-                vsprintf(strFmt, fmt, args2);
-                std::string strFmt_local(strFmt);
-                EXPECT_THAT(strFmt_local, ::testing::MatchesRegex("\\[.+\\] Information: Test1.+"));
-                va_end(args2);
-            }));
+    EXPECT_CALL(wrapsImplMock, syslog(::testing::_, ::testing::_, ::testing::_))
+        .WillOnce(::testing::Return());
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("status"), _T("{}"), response));
 
@@ -129,8 +119,8 @@ TEST_F(TraceControlJsonRpcInitializedTest, jsonRpc)
 
 TEST_F(TraceControlJsonRpcInitializedTest, syslogFormat)
 {
-    ON_CALL(wrapsImplMock, syslog(::testing::_, ::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke(
+    EXPECT_CALL(wrapsImplMock, syslog(::testing::_, ::testing::_, ::testing::_))
+        .WillOnce(::testing::Invoke(
             [&](int pri, const char* fmt, va_list args) -> void {
                 EXPECT_EQ(LOG_NOTICE, pri);
                 va_list args2;
