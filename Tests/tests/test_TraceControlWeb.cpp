@@ -21,7 +21,6 @@
 #include <gmock/gmock.h>
 
 #include "TraceControl.h"
-#include "WrapsMock.h"
 
 #include "FactoriesImplementation.h"
 #include "ServiceMock.h"
@@ -39,24 +38,16 @@ class TraceControlWebTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::TraceControl> plugin;
     PluginHost::IWeb* interface;
-    Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
-    WrapsImplMock wrapsImplMock;
-    string response;
 
     TraceControlWebTest()
         : plugin(Core::ProxyType<Plugin::TraceControl>::Create())
-        , handler(*(plugin))
-        , connection(1, 0)
     {
         interface = static_cast<PluginHost::IWeb*>(plugin->QueryInterface(PluginHost::IWeb::ID));
         Trace::TraceUnit::Instance().Open(volatilePath);
-        Wraps::getInstance().impl = &wrapsImplMock;
     }
 
     virtual ~TraceControlWebTest()
     {
-        Wraps::getInstance().impl = nullptr;
         interface->Release();
         plugin.Release();
         Trace::TraceUnit::Instance().Close();
@@ -94,8 +85,6 @@ protected:
 
 TEST_F(TraceControlWebInitializedTest, httpGetPut)
 {
-    ON_CALL(service, Background())
-        .WillByDefault(::testing::Return(false));
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
     //HTTP_GET - Get status for all modules

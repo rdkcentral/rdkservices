@@ -23,7 +23,6 @@
 #include "TraceControl.h"
 #include "WrapsMock.h"
 
-#include "FactoriesImplementation.h"
 #include "ServiceMock.h"
 #include "COMLinkMock.h"
 
@@ -38,7 +37,6 @@ const string volatilePath = _T("/tmp/");
 class TraceControlJsonRpcTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::TraceControl> plugin;
-    PluginHost::IWeb* interface;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     WrapsImplMock wrapsImplMock;
@@ -49,7 +47,6 @@ protected:
         , handler(*(plugin))
         , connection(1, 0)
     {
-        interface = static_cast<PluginHost::IWeb*>(plugin->QueryInterface(PluginHost::IWeb::ID));
         Trace::TraceUnit::Instance().Open(volatilePath);
         Wraps::getInstance().impl = &wrapsImplMock;
     }
@@ -57,7 +54,6 @@ protected:
     virtual ~TraceControlJsonRpcTest()
     {
         Wraps::getInstance().impl = nullptr;
-        interface->Release();
         plugin.Release();
         Trace::TraceUnit::Instance().Close();
     }
@@ -65,7 +61,6 @@ protected:
 
 class TraceControlJsonRpcInitializedTest : public TraceControlJsonRpcTest {
 protected:
-    FactoriesImplementation factoriesImplementation;
     ServiceMock service;
     COMLinkMock comLinkMock;
 
@@ -82,13 +77,10 @@ protected:
             .WillByDefault(::testing::Return(callSign));
          ON_CALL(service, COMLink())
              .WillByDefault(::testing::Return(&comLinkMock));
-
-        PluginHost::IFactories::Assign(&factoriesImplementation);
     }
     virtual ~TraceControlJsonRpcInitializedTest() override
     {
         plugin->Deinitialize(&service);
-        PluginHost::IFactories::Assign(nullptr);
     }
 };
 
@@ -113,8 +105,6 @@ TEST_F(TraceControlJsonRpcInitializedTest, jsonRpc)
             va_end(args2);
         }));
 
-    ON_CALL(service, Background())
-        .WillByDefault(::testing::Return(true));
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("status"), _T("{}"), response));
@@ -173,8 +163,6 @@ TEST_F(TraceControlJsonRpcInitializedTest, syslogFormat)
                                             "\"abbreviated\":false\n"
                                          "}"));
 
-    ON_CALL(service, Background())
-        .WillByDefault(::testing::Return(true));
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
      //Log some trace data and verify the output format
