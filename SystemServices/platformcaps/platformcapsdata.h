@@ -153,7 +153,8 @@ private:
         ToMessage(parameters, message);
 
         const uint32_t channelId = ~0;
-        auto resp = dispatcher_->Invoke("", channelId, *message);
+        Core::JSONRPC::Context channel;
+        auto resp = dispatcher_->Invoke(channel, *message);
         if (resp->Error.IsSet()) {
           std::cout << "Call failed: " << message->Designator.Value() << " error: " << resp->Error.Text.Value() << "\n";
           return resp->Error.Code;
