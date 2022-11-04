@@ -68,7 +68,11 @@ protected:
         : TraceControlJsonRpcTest()
     {
         ON_CALL(service, ConfigLine())
-            .WillByDefault(::testing::Return("{}"));
+            .WillByDefault(::testing::Return("{\n"
+                                             "\"console\":false,\n"
+                                             "\"syslog\":true,\n"
+                                             "\"abbreviated\":false\n"
+                                             "}"));
         ON_CALL(service, WebPrefix())
             .WillByDefault(::testing::Return(webPrefix));
         ON_CALL(service, VolatilePath())
@@ -77,6 +81,7 @@ protected:
             .WillByDefault(::testing::Return(callSign));
          ON_CALL(service, COMLink())
              .WillByDefault(::testing::Return(&comLinkMock));
+        EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
     virtual ~TraceControlJsonRpcInitializedTest() override
     {
@@ -101,15 +106,14 @@ TEST_F(TraceControlJsonRpcInitializedTest, jsonRpc)
             char strFmt[256];
             vsprintf(strFmt, fmt, args2);
             std::string strFmt_local(strFmt);
-            EXPECT_THAT(strFmt_local, ::testing::MatchesRegex("\\[.+\\]: Test1.+"));
+            EXPECT_THAT(strFmt_local, ::testing::MatchesRegex("\\[.+\\] Information: Test1.+"));
             va_end(args2);
         }));
-
-    EXPECT_EQ(string(""), plugin->Initialize(&service));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("status"), _T("{}"), response));
 
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{"
+                                                  "\"console\":false,"
                                                 "\"settings\":"
                                                 "\\[(\\{\"module\":\"[^\"]+\",\"category\":\"[^\"]+\",\"state\":\"(disabled|enabled|tristated)\"\\},{0,}){0,}\\]"
                                                 "\\}"));
@@ -120,6 +124,7 @@ TEST_F(TraceControlJsonRpcInitializedTest, jsonRpc)
     //Get status Plugin_TraceControl:Information:enabled
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("status"), _T("{\"module\":\"Plugin_TraceControl\",\"category\":\"Information\"}"), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{"
+                                                  "\"console\":false,"
                                                 "\"settings\":"
                                                 "\\[\\{\"module\":\"Plugin_TraceControl\",\"category\":\"Information\",\"state\":\"enabled\"\\}\\]"
                                                 "\\}"));
@@ -130,6 +135,7 @@ TEST_F(TraceControlJsonRpcInitializedTest, jsonRpc)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("status"), _T("{\"module\":\"Plugin_TraceControl\"}"), response));
     //Check all categories are set to disabled
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{"
+                                                  "\"console\":false,"
                                                 "\"settings\":"
                                                 "\\[(\\{\"module\":\"Plugin_TraceControl\",\"category\":\"[^\"]+\",\"state\":\"disabled\"\\},{0,}){0,}\\]"
                                                 "\\}"));
@@ -155,15 +161,6 @@ TEST_F(TraceControlJsonRpcInitializedTest, syslogFormat)
             EXPECT_THAT(strFmt_local, ::testing::MatchesRegex("\\[.+\\]:\\[test_TraceControlJsonRpc.cpp:[0-9]+\\] Information: Test2.+"));
             va_end(args2);
         }));
-
-    ON_CALL(service, ConfigLine())
-        .WillByDefault(::testing::Return("{\n"
-                                            "\"console\":false,\n"
-                                            "\"syslog\":true,\n"
-                                            "\"abbreviated\":false\n"
-                                         "}"));
-
-    EXPECT_EQ(string(""), plugin->Initialize(&service));
 
      //Log some trace data and verify the output format
     TRACE(Trace::Information, (_T("Test2")));
