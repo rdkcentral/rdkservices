@@ -30,6 +30,10 @@ add_library(${MODULE_NAME} SHARED
         PingNotifier.cpp
         Module.cpp)
 
+set_source_files_properties(
+	Network.cpp
+        PROPERTIES COMPILE_FLAGS "-fexceptions")
+
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
