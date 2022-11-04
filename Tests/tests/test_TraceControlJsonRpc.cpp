@@ -126,9 +126,8 @@ TEST_F(TraceControlJsonRpcInitializedTest, syslogFormat)
                 va_list args2;
                 va_copy(args2, args);
                 char strFmt[256];
-                vsprintf(strFmt, fmt, args2);
-                std::string strFmt_local(strFmt);
-                EXPECT_THAT(strFmt_local, ::testing::MatchesRegex("\\[.+\\]:\\[test_TraceControlJsonRpc.cpp:[0-9]+\\] Information: Test2.+"));
+                vsnprintf(strFmt, sizeof(strFmt), fmt, args2);
+                EXPECT_THAT(std::string(strFmt), ::testing::MatchesRegex("\\[.+\\]:\\[test_TraceControlJsonRpc.cpp:[0-9]+\\] Information: Test2.+"));
                 va_end(args2);
             }));
 
