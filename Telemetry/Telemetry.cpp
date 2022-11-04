@@ -36,6 +36,8 @@
 #define TELEMETRY_METHOD_LOG_APPLICATION_EVENT "logApplicationEvent"
 #define TELEMETRY_METHOD_UPLOAD_LOGS "uploadLogs"
 
+#define TELEMETRY_METHOD_EVT_ON_REPORT_UPLOAD "onReportUpload"
+
 
 #define RFC_CALLERID "Telemetry"
 #define RFC_REPORT_PROFILES "Device.X_RDKCENTRAL-COM_T2.ReportProfiles"
@@ -44,7 +46,7 @@
 #define DEFAULT_PROFILES_FILE "/etc/t2profiles/default.json"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_MINOR 1
 #define API_VERSION_NUMBER_PATCH 0
 
 #ifdef HAS_RBUS
@@ -236,6 +238,42 @@ namespace WPEFramework
             returnResponse(true);
         }
 
+#ifdef HAS_RBUS
+        static void t2EventHandler(rbusHandle_t handle, char const* methodName, rbusError_t error, rbusObject_t param)
+        {
+            LOGINFO("Got %s rbus callback", methodName);
+
+            if (RBUS_ERROR_SUCCESS == error)
+            {
+                rbusValue_t uploadStatus = rbusObject_GetValue(param, "UPLOAD_STATUS");
+
+                if(uploadStatus)
+                {
+                    if (Telemetry::_instance)
+                    {
+                        Telemetry::_instance->onReportUploadStatus(rbusValue_GetString(uploadStatus, NULL));
+                    }
+                }
+                else
+                {
+                    LOGERR("No 'UPLOAD_STATUS' value");
+                }
+            }
+            else
+            {
+                LOGERR("Call failed with %d error", error);
+            }
+        }
+
+        void Telemetry::onReportUploadStatus(const char* status)
+        {
+            JsonObject eventData;
+            std::string s(status);
+            eventData["telemetryUploadStatus"] = s == "SUCCESS" ? "UPLOAD_SUCCESS" : "UPLOAD_FAILURE";
+            sendNotify(TELEMETRY_METHOD_EVT_ON_REPORT_UPLOAD, eventData);
+        }
+
+#endif
         uint32_t Telemetry::uploadLogs(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -247,32 +285,28 @@ namespace WPEFramework
 
             if (RBUS_ERROR_SUCCESS == rbusHandleStatus)
             {
-                int ret = rbus_setBoolean(rbusHandle, T2_ON_DEMAND_REPORT, true);
-                if (RBUS_ERROR_SUCCESS != ret)
+                int rc = rbusMethod_InvokeAsync(rbusHandle, "Device.X_RDKCENTRAL-COM_T2.UploadDCMReport", NULL, t2EventHandler, 0);
+                if (RBUS_ERROR_SUCCESS != rc)
                 {
                     std::stringstream str;
-                    str << "Failed to set " << T2_ON_DEMAND_REPORT << ": " << ret;
-
+                    str << "Failed to call " << T2_ON_DEMAND_REPORT << ": " << rc;
                     LOGERR("%s", str.str().c_str());
-                    response["message"] = str.str();
-                    returnResponse(false);
+
+                    return Core::ERROR_RPC_CALL_FAILED;
                 }
             }
             else
             {
                 std::stringstream str;
                 str << "rbus_open failed with error code " << rbusHandleStatus;
-
                 LOGERR("%s", str.str().c_str());
-                response["message"] = str.str();
-                returnResponse(false);
+                return Core::ERROR_OPENING_FAILED;
             }
 #else
             LOGERR("No RBus support");
-            response["message"] = "No RBus support";
-            returnResponse(false);
-#endif
-            returnResponse(true);
+            return Core::ERROR_NOT_EXIST;
+#endif 
+            return Core::ERROR_NONE;
         }
 
     } // namespace Plugin

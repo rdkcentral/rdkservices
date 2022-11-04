@@ -63,6 +63,9 @@ namespace WPEFramework {
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             END_INTERFACE_MAP
 
+#ifdef HAS_RBUS
+            void onReportUploadStatus(const char* status);
+#endif
         public:
             static Telemetry* _instance;
         private:
