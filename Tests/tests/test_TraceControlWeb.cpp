@@ -75,6 +75,7 @@ protected:
              .WillByDefault(::testing::Return(&comLinkMock));
 
         PluginHost::IFactories::Assign(&factoriesImplementation);
+        EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
     virtual ~TraceControlWebInitializedTest() override
     {
@@ -85,8 +86,6 @@ protected:
 
 TEST_F(TraceControlWebInitializedTest, httpGetPut)
 {
-    EXPECT_EQ(string(""), plugin->Initialize(&service));
-
     //HTTP_GET - Get status for all modules
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;
