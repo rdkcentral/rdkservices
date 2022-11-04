@@ -1,30 +1,10 @@
-/**
- * If not stated otherwise in this file or this component's LICENSE
- * file the following copyright and licenses apply:
- *
- * Copyright 2022 RDK Management
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- **/
-
-#include "gtest/gtest.h"
-#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "TraceControl.h"
 
+#include "COMLinkMock.h"
 #include "FactoriesImplementation.h"
 #include "ServiceMock.h"
-#include "COMLinkMock.h"
 
 using namespace WPEFramework;
 
@@ -71,8 +51,8 @@ protected:
             .WillByDefault(::testing::Return(volatilePath));
         ON_CALL(service, Callsign())
             .WillByDefault(::testing::Return(callSign));
-         ON_CALL(service, COMLink())
-             .WillByDefault(::testing::Return(&comLinkMock));
+        ON_CALL(service, COMLink())
+            .WillByDefault(::testing::Return(&comLinkMock));
 
         PluginHost::IFactories::Assign(&factoriesImplementation);
         EXPECT_EQ(string(""), plugin->Initialize(&service));
@@ -108,9 +88,9 @@ TEST_F(TraceControlWebInitializedTest, httpGetPut)
     JsonArray arr = params["settings"].Array();
     string jsonString;
     EXPECT_THAT(bodyStr, ::testing::MatchesRegex("\\{"
-                                                "\"settings\":"
-                                                "\\[(\\{\"module\":\"[^\"]+\",\"category\":\"[^\"]+\",\"state\":\"(disabled|enabled|tristated)\"\\},{0,}){0,}\\]"
-                                                "\\}"));
+                                                 "\"settings\":"
+                                                 "\\[(\\{\"module\":\"[^\"]+\",\"category\":\"[^\"]+\",\"state\":\"(disabled|enabled|tristated)\"\\},{0,}){0,}\\]"
+                                                 "\\}"));
 
     //HTTP_PUT - Set all module state to "disabled"
     request.Verb = Web::Request::HTTP_PUT;
@@ -132,9 +112,9 @@ TEST_F(TraceControlWebInitializedTest, httpGetPut)
     body = httpResponse->Body<Web::JSONBodyType<Plugin::TraceControl::Data>>();
     body->ToString(bodyStr);
     EXPECT_THAT(bodyStr, ::testing::MatchesRegex("\\{"
-                                                "\"settings\":"
-                                                "\\[(\\{\"module\":\"[^\"]+\",\"category\":\"[^\"]+\",\"state\":\"disabled\"\\},{0,}){0,}\\]"
-                                                "\\}"));
+                                                 "\"settings\":"
+                                                 "\\[(\\{\"module\":\"[^\"]+\",\"category\":\"[^\"]+\",\"state\":\"disabled\"\\},{0,}){0,}\\]"
+                                                 "\\}"));
 
     //HTTP_PUT - Set Plugin_TraceControl module state to "enabled"
     request.Verb = Web::Request::HTTP_PUT;
@@ -159,25 +139,21 @@ TEST_F(TraceControlWebInitializedTest, httpGetPut)
     params.FromString(bodyStr);
     arr = params["settings"].Array();
     bool bModPresent = false;
-    for (unsigned int i = 0; i < arr.Length(); i++)
-    {
+    for (unsigned int i = 0; i < arr.Length(); i++) {
         arr[i].Object().ToString(jsonString);
-        if(arr[i].Object()["module"].String() == "Plugin_TraceControl")
-        {
+        if (arr[i].Object()["module"].String() == "Plugin_TraceControl") {
             bModPresent = true;
             EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                        "\"module\":\"Plugin_TraceControl\","
-                                                        "\"category\":\".+\","
-                                                        "\"state\":\"enabled\""
-                                                        "\\}")));
-        }
-        else
-        {
+                                                               "\"module\":\"Plugin_TraceControl\","
+                                                               "\"category\":\".+\","
+                                                               "\"state\":\"enabled\""
+                                                               "\\}")));
+        } else {
             EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                        "\"module\":\".+\","
-                                                        "\"category\":\".+\","
-                                                        "\"state\":\"disabled\""
-                                                        "\\}")));
+                                                               "\"module\":\".+\","
+                                                               "\"category\":\".+\","
+                                                               "\"state\":\"disabled\""
+                                                               "\\}")));
         }
     }
     EXPECT_EQ(true, bModPresent);
@@ -205,36 +181,29 @@ TEST_F(TraceControlWebInitializedTest, httpGetPut)
     params.FromString(bodyStr);
     arr = params["settings"].Array();
     bool bModCatPresent = false;
-    for (unsigned int i = 0; i < arr.Length(); i++)
-    {
+    for (unsigned int i = 0; i < arr.Length(); i++) {
         arr[i].Object().ToString(jsonString);
-        if(arr[i].Object()["module"].String() == "Plugin_TraceControl")
-        {
-            if(arr[i].Object()["category"].String() == "Information")
-            {
+        if (arr[i].Object()["module"].String() == "Plugin_TraceControl") {
+            if (arr[i].Object()["category"].String() == "Information") {
                 bModCatPresent = true;
                 EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                            "\"module\":\"Plugin_TraceControl\","
-                                                            "\"category\":\".+\","
-                                                            "\"state\":\"disabled\""
-                                                            "\\}")));
-            }
-            else
-            {
+                                                                   "\"module\":\"Plugin_TraceControl\","
+                                                                   "\"category\":\".+\","
+                                                                   "\"state\":\"disabled\""
+                                                                   "\\}")));
+            } else {
                 EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                            "\"module\":\"Plugin_TraceControl\","
-                                                            "\"category\":\".+\","
-                                                            "\"state\":\"enabled\""
-                                                            "\\}")));
+                                                                   "\"module\":\"Plugin_TraceControl\","
+                                                                   "\"category\":\".+\","
+                                                                   "\"state\":\"enabled\""
+                                                                   "\\}")));
             }
-        }
-        else
-        {
+        } else {
             EXPECT_THAT(jsonString, ::testing::MatchesRegex(_T("\\{"
-                                                        "\"module\":\".+\","
-                                                        "\"category\":\".+\","
-                                                        "\"state\":\"disabled\""
-                                                        "\\}")));
+                                                               "\"module\":\".+\","
+                                                               "\"category\":\".+\","
+                                                               "\"state\":\"disabled\""
+                                                               "\\}")));
         }
     }
     EXPECT_EQ(true, bModCatPresent);
