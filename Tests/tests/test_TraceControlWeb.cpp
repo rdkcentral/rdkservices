@@ -146,12 +146,15 @@ TEST_F(TraceControlWebInitializedTest, httpGetPut)
     body = httpResponse->Body<Web::JSONBodyType<Plugin::TraceControl::Data>>();
     body->ToString(bodyStr);
     EXPECT_THAT(bodyStr, ::testing::HasSubstr("{\"module\":\"Plugin_TraceControl\",\"category\":\"Information\",\"state\":\"disabled\"}"));
+}
 
-    //Negative test cases
+TEST_F(TraceControlWebInitializedTest, httpGetPut_negative)
+{
     //HTTP_PUT - No data
+    Web::Request request;
     request.Verb = Web::Request::HTTP_PUT;
     request.Path = webPrefix;
-    httpResponse = interface->Process(request);
+    auto httpResponse = interface->Process(request);
     ASSERT_TRUE(httpResponse.IsValid());
     EXPECT_EQ(httpResponse->ErrorCode, Web::STATUS_BAD_REQUEST);
 
