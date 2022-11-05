@@ -15,12 +15,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME DisplayInfo)
-set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+project(DisplayInfo)
 
-set(PLUGIN_DISPLAYINFO_AUTOSTART "true" CACHE BOOL "Automatically start DisplayInfo plugin")
+cmake_minimum_required(VERSION 3.3)
+
+find_package(WPEFramework)
+
+project_version(1.0.0)
+set(PLUGIN_NAME DisplayInfo)
+set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
+message("Setup ${MODULE_NAME} v${PROJECT_VERSION}")
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
+set(PLUGIN_DISPLAYINFO_AUTOSTART "true" CACHE STRING "Automatically start DisplayInfo plugin")
 set(PLUGIN_DISPLAYINFO_STARTUPORDER "" CACHE STRING "Automatically start DisplayInfo plugin")
-set(PLUGIN_DISPLAYINFO_MODE "Off" CACHE STRING "Set DisplayInfo plugin mode")
+set(PLUGIN_DISPLAYINFO_MODE "Off" CACHE STRING "Set DisplayInfo plugin mode, controls if the plugin should run in its own process, in process or remote.")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
@@ -28,7 +38,7 @@ find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(BCM_HOST QUIET)
 find_package(NEXUS QUIET)
 find_package(NXCLIENT QUIET)
-find_package(DRM)
+find_package(LibDRM QUIET)
 find_path (STAGING_INCDIR glib-2.0)
 include_directories(include)
 include_directories(${STAGING_INCDIR})
@@ -69,14 +79,45 @@ if (USE_DEVICESETTINGS)
     target_sources(${MODULE_NAME}
         PRIVATE
             DeviceSettings/PlatformImplementation.cpp)
+    if (BUILD_BROADCOM)
+        target_sources(${MODULE_NAME}
+            PRIVATE
+                DeviceSettings/Broadcom/SoC_abstraction.cpp)
+    elseif (BUILD_REALTEK)
+        target_sources(${MODULE_NAME}
+            PRIVATE
+                DeviceSettings/Realtek/SoC_abstraction.cpp
+                DeviceSettings/Realtek/kms.c)
+    elseif (BUILD_AMLOGIC)
+        target_sources(${MODULE_NAME}
+            PRIVATE
+            DeviceSettings/Amlogic/SoC_abstraction.cpp
+            DeviceSettings/Amlogic/kms.c)
+    endif()
+
 elseif (NXCLIENT_FOUND AND NEXUS_FOUND)
-    target_sources(${MODULE_NAME}
-        PRIVATE
-            Nexus/PlatformImplementation.cpp)
+    if (DISPLAYINFO_IMPLEMENTATION_PATH)
+        target_sources(${MODULE_NAME}
+            PRIVATE
+                ${DISPLAYINFO_IMPLEMENTATION_PATH}/PlatformImplementation.cpp)
+    else()
+        include(GetExternalCode)
+        set(DISPLAYINFO_IMPLEMENTATION_VERSION "master" CACHE STRING "DisplayInfo implementation version: commit_id_or_tag_or_branch_name")
+        set(DISPLAYINFO_IMPLEMENTATION_REPOSITORY "https://code.rdkcentral.com/r/soc/broadcom/components/rdkcentral/thundernanoservices/DisplayInfo" CACHE STRING "DisplayInfo implementation repository")
+        GetExternalCode(
+            GIT_REPOSITORY ${DISPLAYINFO_IMPLEMENTATION_REPOSITORY}
+            GIT_VERSION ${DISPLAYINFO_IMPLEMENTATION_VERSION}
+            SOURCE_DIR "Nexus"
+        )
+        target_sources(${MODULE_NAME}
+            PRIVATE
+                Nexus/PlatformImplementation.cpp)
+    endif()
     target_link_libraries(${MODULE_NAME}
         PRIVATE
             NEXUS::NEXUS
             NXCLIENT::NXCLIENT)
+
 elseif (BCM_HOST_FOUND)
     target_sources(${MODULE_NAME}
         PRIVATE
@@ -84,27 +125,17 @@ elseif (BCM_HOST_FOUND)
     target_link_libraries(${MODULE_NAME}
         PRIVATE
             BCM_HOST::BCM_HOST)
+
+elseif (LIBDRM_FOUND)
+    target_sources(${MODULE_NAME}
+        PRIVATE
+	Linux/PlatformImplementation.cpp)
+
+    target_link_libraries(${MODULE_NAME}
+        PRIVATE
+            drm)
 else ()
     message(FATAL_ERROR "There is no graphic backend for display info plugin")
-endif ()
-
-if (BUILD_BROADCOM)
-    target_sources(${MODULE_NAME}
-        PRIVATE
-            DeviceSettings/Broadcom/SoC_abstraction.cpp
-    )
-elseif (BUILD_REALTEK)
-    target_sources(${MODULE_NAME}
-        PRIVATE
-            DeviceSettings/Realtek/SoC_abstraction.cpp
-            DeviceSettings/Realtek/kms.c
-    )
-elseif (BUILD_AMLOGIC)
-    target_sources(${MODULE_NAME}
-        PRIVATE
-	DeviceSettings/Amlogic/SoC_abstraction.cpp
-	DeviceSettings/Amlogic/kms.c
-    )
 endif ()
 
 install(TARGETS ${MODULE_NAME}
