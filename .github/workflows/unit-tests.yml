@@ -60,7 +60,7 @@ jobs:
       - name: Set up CMake
         # 3.16.x To support flow control commands to be overridden.
         # Installs in: find /opt -ipath *bin/cmake
-        uses: jwlawson/actions-setup-cmake@v1.12
+        uses: jwlawson/actions-setup-cmake@v1.13
         with:
           cmake-version: '3.16.x'
 
