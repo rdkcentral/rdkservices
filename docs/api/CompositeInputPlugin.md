@@ -22,7 +22,7 @@ A org.rdk.CompositeInput plugin for Thunder framework.
 <a name="Description"></a>
 # Description
 
-The `CompositeInput` Plugin allows you to control the composite input source on a device.
+The `CompositeInput` Plugin allows you to control the composite input source on a device. The CompositeInput Plugin is **deprecated** to AVInput plugin. Please refer this link.https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
@@ -291,6 +291,8 @@ CompositeInput interface events:
 
 Triggered when the composite input device changes.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=ondeviceschanged)
+
 ### Parameters
 
 | Name | Type | Description |
@@ -325,6 +327,8 @@ Triggered when the composite input device changes.
 
 Triggered when the status of the composite input changes.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=oninputstatuschanged)
+
 ### Parameters
 
 | Name | Type | Description |
@@ -352,6 +356,8 @@ Triggered when the status of the composite input changes.
 ## *onSignalChanged*
 
 Triggered when the status of the composite input signal changes.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=onsignalchanged)
 
 ### Parameters
 
