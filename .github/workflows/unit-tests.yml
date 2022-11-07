@@ -249,6 +249,7 @@ jobs:
           -DPLUGIN_HDMIINPUT=ON
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_TRACECONTROL=ON
+          -DPLUGIN_NETWORK=ON
           -DPLUGIN_WIFIMANAGER=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
@@ -260,6 +261,9 @@ jobs:
 
       - name: Install valgrind
         run: sudo apt update && sudo apt install -y valgrind
+
+      - name: Install traceroute
+        run: sudo apt update && sudo apt install -y traceroute
 
       - name: Set up files
         run: >
