@@ -22,7 +22,7 @@ A org.rdk.HdmiInput plugin for Thunder framework.
 <a name="Description"></a>
 # Description
 
-The `HdmiInput` plugin allows you to control the HDMI Input on a set-top box.
+The `HdmiInput` plugin allows you to control the HDMI Input on a set-top box. The HdmiInput Plugin is deprecated to AVInput plugin. Please refer this link.https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
@@ -729,6 +729,8 @@ HdmiInput interface events:
 
 Triggered whenever a new HDMI device is connected to an HDMI Input.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=ondeviceschanged)
+
 ### Parameters
 
 | Name | Type | Description |
@@ -763,6 +765,8 @@ Triggered whenever a new HDMI device is connected to an HDMI Input.
 
 Triggered whenever the status changes for an HDMI Input.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=oninputstatuschanged)
+
 ### Parameters
 
 | Name | Type | Description |
@@ -791,6 +795,8 @@ Triggered whenever the status changes for an HDMI Input.
 
 Triggered whenever the signal status changes for an HDMI Input.
 
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=onsignalchanged)
+
 ### Parameters
 
 | Name | Type | Description |
@@ -818,6 +824,8 @@ Triggered whenever the signal status changes for an HDMI Input.
 ## *videoStreamInfoUpdate*
 
 Triggered whenever there is an update in HDMI Input video stream info.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=videostreaminfoupdate)
 
 ### Parameters
 
@@ -854,6 +862,8 @@ Triggered whenever there is an update in HDMI Input video stream info.
 ## *hdmiGameFeatureStatusUpdate*
 
 Triggered whenever game feature(ALLM) status changes for an HDMI Input.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=gamefeaturestatusupdate)
 
 ### Parameters
 
