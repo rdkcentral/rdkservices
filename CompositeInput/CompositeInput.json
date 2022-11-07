@@ -146,6 +146,8 @@
     },
     "events": {
         "onDevicesChanged":{
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=ondeviceschanged",
             "summary": "Triggered when the composite input device changes",
             "params": {
                 "type":"object",
@@ -180,6 +182,8 @@
             }
         },
         "onInputStatusChanged":{
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=oninputstatuschanged",
             "summary": "Triggered when the status of the composite input changes",
             "params": {
                 "type":"object",
@@ -208,6 +212,8 @@
             }
         },
         "onSignalChanged":{
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=onsignalchanged",
             "summary": "Triggered when the status of the composite input signal changes",
             "params": {
                 "type":"object",

@@ -403,6 +403,8 @@
     },
     "events": {
         "onDevicesChanged": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=ondeviceschanged",
             "summary": "Triggered whenever a new HDMI device is connected to an HDMI Input",
             "params": {
                 "type":"object",
@@ -417,6 +419,8 @@
             }
         },
         "onInputStatusChanged": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=oninputstatuschanged",
             "summary": "Triggered whenever the status changes for an HDMI Input",
             "params": {
                 "type": "object",
@@ -441,6 +445,8 @@
             }
         },
         "onSignalChanged": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=onsignalchanged",
             "summary": "Triggered whenever the signal status changes for an HDMI Input",
             "params": {
                 "type": "object",
@@ -465,6 +471,8 @@
             }
         },
         "videoStreamInfoUpdate": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=videostreaminfoupdate",
             "summary": "Triggered whenever there is an update in HDMI Input video stream info",
             "params": {
                 "type": "object",
@@ -513,6 +521,8 @@
             }
         },
         "hdmiGameFeatureStatusUpdate": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=gamefeaturestatusupdate",
             "summary": "Triggered whenever game feature(ALLM) status changes for an HDMI Input",
             "params": {
                 "type": "object",
