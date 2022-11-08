@@ -2,11 +2,11 @@ name: update changelog and api version
 
 on:
   push:
-    branches: [ main, 'sprint/**', 'release/**' ]
+    branches: [ main, 'release/**' ]
     paths-ignore: ['docs/**', 'Tests/**']
 
   pull_request:
-    branches: [ main, 'sprint/**', 'release/**' ]
+    branches: [ main, 'release/**' ]
     paths-ignore: ['docs/**', 'Tests/**']
 
 
