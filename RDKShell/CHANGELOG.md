@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.7] - 2022-11-08
+### Fixed
+- Use interfaces instead of JSON-RPC
+
 ## [1.3.6] - 2022-10-27
 ### Added
 - Added support for LISA to launch Application
