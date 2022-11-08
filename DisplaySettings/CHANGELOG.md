@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.14] - 2022-11-08
+### Fixed
+- Use interfaces instead of JSON-RPC
+
 ## [1.0.13] - 2022-10-18
 ### Fixed
 - Fixed Invoke the SAD on ARC InitiationEvent Test
