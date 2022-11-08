@@ -25,6 +25,8 @@
 #include "FactoriesImplementation.h"
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
+#include "RfcApiMock.h"
+#include "WrapsMock.h"
 
 using namespace WPEFramework;
 
@@ -51,18 +53,32 @@ protected:
 class WarehouseInitializedTest : public WarehouseTest {
 protected:
     IarmBusImplMock iarmBusImplMock;
+    RfcApiImplMock rfcApiImplMock;
+    WrapsImplMock wrapsImplMock;
+    IARM_EventHandler_t whMgrStatusChangeEventsHandler;
 
     WarehouseInitializedTest()
              : WarehouseTest()
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
-
+        RfcApi::getInstance().impl = &rfcApiImplMock;
+        Wraps::getInstance().impl = &wrapsImplMock;
+        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
+                    if ((string(IARM_BUS_PWRMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_PWRMGR_EVENT_WAREHOUSEOPS_STATUSCHANGED)) {
+                        whMgrStatusChangeEventsHandler = handler;
+                    }
+                    return IARM_RESULT_SUCCESS;
+                }));
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
     }
     virtual ~WarehouseInitializedTest() override
     {
         plugin->Deinitialize(nullptr);
         IarmBus::getInstance().impl = nullptr;
+        RfcApi::getInstance().impl = nullptr;
+        Wraps::getInstance().impl = nullptr;
     }
 };
 
@@ -103,93 +119,389 @@ TEST_F(WarehouseTest, registeredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getHardwareTestResults")));
 }
 
-TEST_F(WarehouseEventTest, resetDevice)
-{
-    Core::Event resetDone(false, true);
-    unsigned int userFactoryResetCnt = 0;
+class WarehouseResetDeviceTest : public WarehouseEventTest {
+protected:
+    Core::Event resetDone;
+    bool bRespondWithError = false;
+    WarehouseResetDeviceTest()
+        : WarehouseEventTest(), resetDone(false, true)
+    {
+        EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+            .Times(::testing::AnyNumber())
+            // called by WareHouseResetIARM
+            .WillRepeatedly(::testing::Invoke(
+                [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                    string text;
+                    EXPECT_TRUE(json->ToString(text));
+                    //Check for error response for the second call - Negative test case
+                    if(bRespondWithError == true)
+                    {
+                        EXPECT_EQ(text, string(_T("{"
+                                                "\"jsonrpc\":\"2.0\","
+                                                "\"method\":\"org.rdk.Warehouse.resetDone\","
+                                                "\"params\":{\"success\":false,"
+                                                "\"error\":\"Reset failed\"}"
+                                                "}")));
+                    }
+                    else
+                    {
+                        EXPECT_EQ(text, string(_T("{"
+                                                "\"jsonrpc\":\"2.0\","
+                                                "\"method\":\"org.rdk.Warehouse.resetDone\","
+                                                "\"params\":{\"success\":true}"
+                                                "}")));
+                    }
+                    resetDone.SetEvent();
+                    return Core::ERROR_NONE;
+                }));
+    }
 
-    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
-        .Times(6)
-        // called by WareHouseResetIARM
-        .WillRepeatedly(::testing::Invoke(
-            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
-                string text;
-                EXPECT_TRUE(json->ToString(text));
-                //Check for error response for the second call - Negative test case
-                if(userFactoryResetCnt == 2)
-                {
-                    userFactoryResetCnt = 0;
-                    EXPECT_EQ(text, string(_T("{"
-                                            "\"jsonrpc\":\"2.0\","
-                                            "\"method\":\"org.rdk.Warehouse.resetDone\","
-                                            "\"params\":{\"success\":false,"
-                                            "\"error\":\"Reset failed\"}"
-                                            "}")));
-                }
-                else
-                {
-                    EXPECT_EQ(text, string(_T("{"
-                                            "\"jsonrpc\":\"2.0\","
-                                            "\"method\":\"org.rdk.Warehouse.resetDone\","
-                                            "\"params\":{\"success\":true}"
-                                            "}")));
-                }
-                resetDone.SetEvent();
-                return Core::ERROR_NONE;
+    /* These tests are common between IARM based reset requests and Power manager 2 
+     * based resets (By calling system() methods)
+    */
+    void RunTests()
+    {
+        handler.Subscribe(0, _T("resetDone"), _T("org.rdk.Warehouse"), message);
+        //reset: suppress reboot: true, type: COLD
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true,\"resetType\":\"COLD\"}"), response));
+        EXPECT_EQ(response, _T("{\"success\":true}"));
+        EXPECT_EQ(Core::ERROR_NONE, resetDone.Lock());
+
+        //reset: suppress reboot: true, type: FACTORY
+        resetDone.ResetEvent();
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true,\"resetType\":\"FACTORY\"}"), response));
+        EXPECT_EQ(response, _T("{\"success\":true}"));
+        EXPECT_EQ(Core::ERROR_NONE, resetDone.Lock());
+
+        //reset: suppress reboot: true, type: USERFACTORY
+        resetDone.ResetEvent();
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true,\"resetType\":\"USERFACTORY\"}"), response));
+        EXPECT_EQ(response, _T("{\"success\":true}"));
+        EXPECT_EQ(Core::ERROR_NONE, resetDone.Lock());
+
+        //reset: suppress reboot: true, type: USERFACTORY
+        //Same as above test case, but return error from EXPECT_CALL above (Only for m_isPwrMgr2RFCEnabled == flase)
+        if(plugin->m_isPwrMgr2RFCEnabled == false)
+        {
+            bRespondWithError = true;
+            resetDone.ResetEvent();
+            EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true,\"resetType\":\"USERFACTORY\"}"), response));
+            EXPECT_EQ(response, _T("{\"success\":true}"));
+            EXPECT_EQ(Core::ERROR_NONE, resetDone.Lock());
+            bRespondWithError = false;
+        }
+
+        //reset: suppress reboot: false, type: WAREHOUSE_CLEAR
+        resetDone.ResetEvent();
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":false,\"resetType\":\"WAREHOUSE_CLEAR\"}"), response));
+        EXPECT_EQ(response, _T("{\"success\":true}"));
+        EXPECT_EQ(Core::ERROR_NONE, resetDone.Lock());
+
+        //reset: suppress reboot: true, type: WAREHOUSE_CLEAR, Expect no response
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true,\"resetType\":\"WAREHOUSE_CLEAR\"}"), response));
+        EXPECT_EQ(response, _T("{\"success\":true}"));
+        usleep(10 * 1000);  //Wait for reset thread to finish
+
+        //reset: suppress reboot: false
+        resetDone.ResetEvent();
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":false}"), response));
+        EXPECT_EQ(response, _T("{\"success\":true}"));
+        EXPECT_EQ(Core::ERROR_NONE, resetDone.Lock());
+
+        //reset: suppress reboot: true - This doesn't generate any event (Expect no response)
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true}"), response));
+        EXPECT_EQ(response, _T("{\"success\":true}"));
+        usleep(10 * 1000);  //Wait for reset thread to finish
+
+        //reset: suppress reboot: true
+        //Return error from EXPECT_CALL above (Only for m_isPwrMgr2RFCEnabled == true)
+        if(plugin->m_isPwrMgr2RFCEnabled == true)
+        {
+            bRespondWithError = true;
+            resetDone.ResetEvent();
+            EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true}"), response));
+            EXPECT_EQ(response, _T("{\"success\":true}"));
+            EXPECT_EQ(Core::ERROR_NONE, resetDone.Lock());
+            bRespondWithError = false;
+        }
+
+        handler.Unsubscribe(0, _T("resetDone"), _T("org.rdk.Warehouse"), message);
+    }
+    virtual ~WarehouseResetDeviceTest() override
+    {
+    }
+};
+
+TEST_F(WarehouseResetDeviceTest, resetDevice)
+{
+    unsigned int cnt = 0;
+    //These are the expected IARM methods in this order, based on test cases in RunTests()
+    std::string expectedMethods[] = {
+        IARM_BUS_PWRMGR_API_ColdFactoryReset,
+        IARM_BUS_PWRMGR_API_FactoryReset,
+        IARM_BUS_PWRMGR_API_UserFactoryReset,
+        IARM_BUS_PWRMGR_API_UserFactoryReset,
+        IARM_BUS_PWRMGR_API_WareHouseClear,
+        IARM_BUS_PWRMGR_API_WareHouseClear,
+        IARM_BUS_PWRMGR_API_WareHouseReset,
+        IARM_BUS_PWRMGR_API_WareHouseReset
+    };
+
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    .Times(::testing::AnyNumber())
+    .WillRepeatedly(
+        [&](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+            std::cout << "method = " << methodName << "\n";
+            EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+            EXPECT_EQ(string(methodName), expectedMethods[cnt++]);
+            //Return error for the Negative test case
+            return (bRespondWithError ? IARM_RESULT_INVALID_PARAM : IARM_RESULT_SUCCESS);
+        });
+
+    RunTests();
+}
+
+TEST_F(WarehouseResetDeviceTest, resetDevicePwrMgr2RFCEnabled)
+{
+    plugin->m_isPwrMgr2RFCEnabled = true;
+    unsigned int cnt = 0;
+    //These are the expected commands in this order, based on test cases in RunTests()
+    std::string expectedCommands[] = {
+        "sh /lib/rdk/deviceReset.sh coldfactory",
+        "echo 0 > /opt/.rebootFlag",
+        "echo `/bin/timestamp` ------------- Rebooting due to Cold Factory Reset process --------------- >> /opt/logs/receiver.log",
+        "sleep 5; /rebootNow.sh -s PowerMgr_coldFactoryReset -o 'Rebooting the box due to Cold Factory Reset process ...'",
+        "sh /lib/rdk/deviceReset.sh factory",
+        "echo 0 > /opt/.rebootFlag",
+        "echo `/bin/timestamp` -------------Rebooting due to Factory Reset process-------------- >> /opt/logs/receiver.log",
+        "echo 0 > /opt/.rebootFlag",
+        "echo `/bin/timestamp` ------------- Rebooting due to User Factory Reset process--------------- >> /opt/logs/receiver.log",
+        "sh /lib/rdk/deviceReset.sh userfactory",
+        "echo 0 > /opt/.rebootFlag",
+        "touch /tmp/.warehouse-clear",
+        "echo `/bin/timestamp` ------------- Warehouse Clear  --------------- >> /opt/logs/receiver.log",
+        "sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR",
+        "touch /tmp/.warehouse-clear",
+        "sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR --suppressReboot",
+        "echo 0 > /opt/.rebootFlag",
+        "touch /tmp/.warehouse-reset",
+        "echo `/bin/timestamp` ------------- Rebooting due to Warehouse Reset process--------------- >> /opt/logs/receiver.log",
+        "sh /lib/rdk/deviceReset.sh warehouse",
+        "touch /tmp/.warehouse-reset",
+        "sh /lib/rdk/deviceReset.sh warehouse --suppressReboot &",
+        "touch /tmp/.warehouse-reset",
+        "sh /lib/rdk/deviceReset.sh warehouse --suppressReboot &"
+    };
+
+    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+    .Times(::testing::AnyNumber())
+    .WillRepeatedly(::testing::Invoke(
+        [&](const char* command) {
+            std::cout << "command = " << command << "\n";
+            EXPECT_EQ(string(command), expectedCommands[cnt++]);
+            return (bRespondWithError ? Core::ERROR_GENERAL : Core::ERROR_NONE);
+        }));
+    RunTests();
+    plugin->m_isPwrMgr2RFCEnabled = false;
+}
+
+TEST_F(WarehouseInitializedTest, setFrontPanelState)
+{
+#ifndef HAS_FRONT_PANEL
+    //Invoke setFrontPanelState - Should return error since HAS_FRONT_PANEL is not defined
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFrontPanelState"), _T("{\"state\":1}"), response));
+    EXPECT_EQ(response, _T("{\"success\":false,\"error\":\"unsupported\"}"));
+#endif
+}
+
+TEST_F(WarehouseInitializedTest, internalReset)
+{
+    //Invoke internalReset - No pass phrase
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("internalReset"), _T("{}"), response));
+
+    //Invoke internalReset - Incorrect pass phrase
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("internalReset"), _T("{\"passPhrase\":\"Test Phrase\"}"), response));
+
+    //Invoke internalReset - Correct pass phrase
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("internalReset"), _T("{\"passPhrase\":\"FOR TEST PURPOSES ONLY\"}"), response));
+    EXPECT_EQ(response, _T("{\"success\":false,\"error\":\"script returned: -1\"}"));
+}
+
+TEST_F(WarehouseInitializedTest, lightReset)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    .Times(2)
+    .WillOnce(
+        [&](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+            EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_SYSMGR_NAME)));
+            if (string(methodName) == string(_T(IARM_BUS_SYSMGR_API_RunScript)))
+            {
+                auto* runScriptParam = static_cast<IARM_Bus_SYSMgr_RunScript_t*>(arg);
+                runScriptParam->return_value = -1;
+            }
+            return IARM_RESULT_SUCCESS;
+        })
+    .WillOnce(
+        [&](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+            EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_SYSMGR_NAME)));
+            if (string(methodName) == string(_T(IARM_BUS_SYSMGR_API_RunScript)))
+            {
+                auto* runScriptParam = static_cast<IARM_Bus_SYSMgr_RunScript_t*>(arg);
+                runScriptParam->return_value = 0;
+                EXPECT_EQ(string(runScriptParam->script_path), string("rm -rf /opt/netflix/* /opt/QT/home/data/* /opt/hn_service_settings.conf /opt/apps/common/proxies.conf /opt/lib/bluetooth /opt/persistent/rdkservicestore"));
+            }
+            return IARM_RESULT_SUCCESS;
+        });
+
+    //Invoke lightReset - returns error
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("lightReset"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"success\":false,\"error\":\"script returned: -1\"}"));
+
+    //Invoke lightReset
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("lightReset"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
+}
+
+TEST_F(WarehouseInitializedTest, isClean)
+{
+
+    const string userPrefFile = _T("/opt/user_preferences.conf");
+    const uint8_t userPrefLang[] = "[General]\nui_language=US_en\n";
+    const string customDataFile = _T("/lib/rdk/wh_api_5.conf");
+    const uint8_t customDataFileContent[] = "[files]\n/opt/user_preferences.conf\n";
+
+    //Invoke isClean - No conf file
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isClean"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"success\":false,\"error\":\"Can't open file \\/lib\\/rdk\\/wh_api_5.conf\",\"clean\":false,\"files\":[]}"));
+
+    //Invoke isClean - Empty conf file
+    Core::File fileConf(customDataFile);
+    Core::Directory(fileConf.PathName().c_str()).CreatePath();
+    fileConf.Create();
+    EXPECT_TRUE(Core::File(customDataFile).Exists());
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isClean"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"error\":\"file \\/lib\\/rdk\\/wh_api_5.conf doesn't have any lines with paths\",\"success\":false,\"files\":[]}"));
+
+    //Invoke isClean - Create empty conf file
+    fileConf.Write(customDataFileContent, sizeof(customDataFileContent));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isClean"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"success\":true,\"files\":[],\"clean\":true}"));
+
+    //Invoke isClean - Add test data to conf file
+    Core::File filePref(userPrefFile);
+    filePref.Create();
+    filePref.Write(userPrefLang, sizeof(userPrefLang));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isClean"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"success\":true,\"files\":[\"\\/opt\\/user_preferences.conf\"],\"clean\":false}"));
+
+    fileConf.Destroy();
+    filePref.Destroy();
+}
+
+TEST_F(WarehouseInitializedTest, executeHardwareTest)
+{
+    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .Times(2)
+        .WillOnce(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+                EXPECT_EQ(string(pcCallerID), _T("Warehouse"));
+                EXPECT_EQ(string(pcParameterName), _T("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.Enable"));
+                EXPECT_EQ(string(pcParameterValue), _T("true"));
+                EXPECT_EQ(eDataType, WDMP_BOOLEAN);
+                return WDMP_SUCCESS;
+            }))
+        .WillOnce(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+                EXPECT_EQ(string(pcCallerID), _T("Warehouse"));
+                EXPECT_EQ(string(pcParameterName), _T("Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.ExecuteTest"));
+                EXPECT_EQ(string(pcParameterValue), _T("1"));
+                EXPECT_EQ(eDataType, WDMP_INT);
+                return WDMP_SUCCESS;
             }));
 
+    //Invoke executeHardwareTest
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("executeHardwareTest"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
+}
+
+TEST_F(WarehouseInitializedTest, getHardwareTestResults)
+{
+    EXPECT_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                EXPECT_EQ(string(pcCallerID), string("Warehouse"));
+                EXPECT_EQ(string(pcParameterName), string("Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.Results"));
+                strncpy(pstParamData->value, "test", sizeof(pstParamData->value));
+                return WDMP_SUCCESS;
+            }));
+    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
+                EXPECT_EQ(string(pcCallerID), _T("Warehouse"));
+                EXPECT_EQ(string(pcParameterName), _T("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.Enable"));
+                EXPECT_EQ(string(pcParameterValue), _T("false"));
+                EXPECT_EQ(eDataType, WDMP_BOOLEAN);
+                return WDMP_SUCCESS;
+            }));
+
+    //Invoke getHardwareTestResults
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getHardwareTestResults"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"testResults\":\"test\",\"success\":true}"));
+}
+
+TEST_F(WarehouseInitializedTest, getDeviceInfo)
+{
+    const string deviceInfoFile = _T("/tmp/deviceInfoTemp.txt");
+    const uint8_t deviceInfoContent[] = "bluetooth_mac=12:34:56:78:90:AB\n"
+                                    "boxIP=192.168.1.0\n"
+                                    "build_type=VBN\n"
+                                    "estb_mac=12:34:56:78:90:AB\n"
+                                    "eth_mac=12:34:56:78:90:AB\n"
+                                    "friendly_id=Abc XYZ\n"
+                                    "imageVersion=ABCADS_VBN_2022010101sdy__MH_SPLASH_TEST_2\n"
+                                    "model_number=ABC123ADS\n"
+                                    "wifi_mac=12:34:56:78:90:AB\n";
+
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](const char* command, const char* type) -> FILE* {
+                return fopen(deviceInfoFile.c_str(), type);
+            }));
+
+    //Invoke getDeviceInfo
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
+
+    //Create fake device info data file & Invoke getDeviceInfo
+    Core::File file(deviceInfoFile);
+    file.Create();
+    file.Write(deviceInfoContent, sizeof(deviceInfoContent));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"bluetooth_mac\":\"12:34:56:78:90:AB\","
+                            "\"boxIP\":\"192.168.1.0\","
+                            "\"build_type\":\"VBN\","
+                            "\"estb_mac\":\"12:34:56:78:90:AB\","
+                            "\"eth_mac\":\"12:34:56:78:90:AB\","
+                            "\"friendly_id\":\"Abc XYZ\","
+                            "\"imageVersion\":\"ABCADS_VBN_2022010101sdy__MH_SPLASH_TEST_2\","
+                            "\"version\":\"ABCADS_VBN_2022010101sdy__MH_SPLASH_TEST_2\","
+                            "\"software_version\":\"ABCADS_VBN_2022010101sdy__MH_SPLASH_TEST_2\","
+                            "\"model_number\":\"ABC123ADS\","
+                            "\"wifi_mac\":\"12:34:56:78:90:AB\","
+                            "\"success\":true"
+                            "}"));
+
+    file.Destroy();
+}
+
+TEST_F(WarehouseResetDeviceTest, statusChangeEvent)
+{
     handler.Subscribe(0, _T("resetDone"), _T("org.rdk.Warehouse"), message);
 
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
-        .WillByDefault(
-            [&](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
-                if (string(methodName) == string(_T(IARM_BUS_PWRMGR_API_UserFactoryReset)))
-                {
-                    //Throw error for the second call - Negative test case
-                    if(++userFactoryResetCnt == 2)
-                    {
-                        return IARM_RESULT_INVALID_PARAM;
-                    }
-                }
-                return IARM_RESULT_SUCCESS;
-            });
-
-    //reset: suppress reboot: true, type: COLD
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true,\"resetType\":\"COLD\"}"), response));
-    EXPECT_EQ(response, _T("{\"success\":true}"));
+    IARM_BUS_PWRMgr_WareHouseOpn_EventData_t eventData = {IARM_BUS_PWRMGR_WAREHOUSE_RESET, IARM_BUS_PWRMGR_WAREHOUSE_COMPLETED};
+    whMgrStatusChangeEventsHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_WAREHOUSEOPS_STATUSCHANGED, &eventData, 0);
     EXPECT_EQ(Core::ERROR_NONE, resetDone.Lock());
-
-    //reset: suppress reboot: true, type: FACTORY
-    resetDone.ResetEvent();
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true,\"resetType\":\"FACTORY\"}"), response));
-    EXPECT_EQ(response, _T("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, resetDone.Lock());
-
-    //reset: suppress reboot: true, type: USERFACTORY
-    resetDone.ResetEvent();
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true,\"resetType\":\"USERFACTORY\"}"), response));
-    EXPECT_EQ(response, _T("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, resetDone.Lock());
-
-    //reset: suppress reboot: true, type: USERFACTORY
-    //Same as above test case, but return error from EXPECT_CALL above
-    resetDone.ResetEvent();
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true,\"resetType\":\"USERFACTORY\"}"), response));
-    EXPECT_EQ(response, _T("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, resetDone.Lock());
-
-    //reset: suppress reboot: false, type: WAREHOUSE_CLEAR
-    resetDone.ResetEvent();
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":false,\"resetType\":\"WAREHOUSE_CLEAR\"}"), response));
-    EXPECT_EQ(response, _T("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, resetDone.Lock());
-
-    //reset: suppress reboot: false
-    resetDone.ResetEvent();
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":false}"), response));
-    EXPECT_EQ(response, _T("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, resetDone.Lock());
-
     handler.Unsubscribe(0, _T("resetDone"), _T("org.rdk.Warehouse"), message);
 }
