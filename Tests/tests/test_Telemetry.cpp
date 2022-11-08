@@ -18,19 +18,14 @@ using namespace WPEFramework;
 
 class T2Test : public ::testing::Test {
 protected:
-    TelemetryApiImplMock telemetryApiImplMock;
+    TelemetryApiMock telemetryApiMock;
 
     T2Test()
     {
-        TelemetryApi::getInstance().impl = &telemetryApiImplMock;
-
-        EXPECT_CALL(telemetryApiImplMock, t2_init(::testing::_))
+        EXPECT_CALL(telemetryApiMock, t2_init(::testing::_))
             .Times(1);
     }
-    virtual ~T2Test()
-    {
-        TelemetryApi::getInstance().impl = nullptr;
-    }
+    virtual ~T2Test() = default;
 };
 
 class TelemetryTest : public T2Test {
@@ -54,32 +49,24 @@ protected:
 
 class TelemetryRfcTest : public TelemetryTest {
 protected:
-    RfcApiImplMock rfcApiImplMock;
+    RfcApiMock rfcApiMock;
 
     TelemetryRfcTest()
         : TelemetryTest()
     {
-        RfcApi::getInstance().impl = &rfcApiImplMock;
     }
-    virtual ~TelemetryRfcTest() override
-    {
-        RfcApi::getInstance().impl = nullptr;
-    }
+    virtual ~TelemetryRfcTest() override = default;
 };
 
 class TelemetryRBusTest : public TelemetryTest {
 protected:
-    RBusApiImplMock rBusApiImplMock;
+    RBusApiMock rBusApiMock;
 
     TelemetryRBusTest()
         : TelemetryTest()
     {
-        RBusApi::getInstance().impl = &rBusApiImplMock;
     }
-    virtual ~TelemetryRBusTest() override
-    {
-        RBusApi::getInstance().impl = nullptr;
-    }
+    virtual ~TelemetryRBusTest() override = default;
 };
 
 TEST_F(TelemetryTest, RegisteredMethods)
@@ -97,7 +84,7 @@ TEST_F(TelemetryRfcTest, InitializeDefaultProfile)
                               "\"t2PersistentFolder\":\"/tmp/.t2reportprofiles/\","
                               "\"defaultProfilesFile\":\"/tmp/DefaultProfile.json\""
                               "}"));
-    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(rfcApiMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
@@ -127,7 +114,7 @@ TEST_F(TelemetryRfcTest, InitializeDefaultProfileRFCFailure)
                               "\"t2PersistentFolder\":\"/tmp/.t2reportprofiles/\","
                               "\"defaultProfilesFile\":\"/tmp/DefaultProfile.json\""
                               "}"));
-    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(rfcApiMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
@@ -185,7 +172,7 @@ TEST_F(TelemetryRfcTest, Plugin)
     ON_CALL(service, ConfigLine())
         .WillByDefault(
             ::testing::Return("{}"));
-    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(rfcApiMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(3)
         .WillOnce(::testing::Invoke(
             [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
@@ -209,7 +196,7 @@ TEST_F(TelemetryRfcTest, Plugin)
 
                 return WDMP_SUCCESS;
             }));
-    EXPECT_CALL(telemetryApiImplMock, t2_event_s(::testing::_, ::testing::_))
+    EXPECT_CALL(telemetryApiMock, t2_event_s(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char* marker, char* value) {

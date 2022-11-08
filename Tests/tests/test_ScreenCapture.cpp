@@ -55,17 +55,13 @@ protected:
 
 class ScreenCaptureFrameBufferTest : public ScreenCaptureEventTest {
 protected:
-    FrameBufferApiImplMock frameBufferApiImplMock;
+    FrameBufferApiMock frameBufferApiMock;
 
     ScreenCaptureFrameBufferTest()
         : ScreenCaptureEventTest()
     {
-        FrameBufferApi::getInstance().impl = &frameBufferApiImplMock;
     }
-    virtual ~ScreenCaptureFrameBufferTest() override
-    {
-        FrameBufferApi::getInstance().impl = nullptr;
-    }
+    virtual ~ScreenCaptureFrameBufferTest() override = default;
 };
 
 TEST_F(ScreenCaptureTest, RegisteredMethods)
@@ -82,7 +78,7 @@ TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
     
     Core::Event uploadComplete(false, true);
     
-    EXPECT_CALL(frameBufferApiImplMock, fbCreate(::testing::_))
+    EXPECT_CALL(frameBufferApiMock, fbCreate(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](FBContext** fbctx) {
@@ -90,7 +86,7 @@ TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
                 return ErrNone;
             }));
 
-    EXPECT_CALL(frameBufferApiImplMock, fbInit(::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(frameBufferApiMock, fbInit(::testing::_, ::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](FBContext* fbctx, VncServerFramebufferAPI* server, void* serverctx) {
@@ -104,30 +100,30 @@ TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
                 return ErrNone;
             }));
 
-    ON_CALL(frameBufferApiImplMock, fbGetPixelFormat(::testing::_))
+    ON_CALL(frameBufferApiMock, fbGetPixelFormat(::testing::_))
         .WillByDefault(
             ::testing::Return(&pixelFormat));
 
-    ON_CALL(frameBufferApiImplMock, fbGetWidth(::testing::_))
+    ON_CALL(frameBufferApiMock, fbGetWidth(::testing::_))
         .WillByDefault(
             ::testing::Return(1280));
 
-    ON_CALL(frameBufferApiImplMock, fbGetHeight(::testing::_))
+    ON_CALL(frameBufferApiMock, fbGetHeight(::testing::_))
         .WillByDefault(
             ::testing::Return(720));
 
-    ON_CALL(frameBufferApiImplMock, fbGetStride(::testing::_))
+    ON_CALL(frameBufferApiMock, fbGetStride(::testing::_))
         .WillByDefault(
             ::testing::Return(5120));
 
-    EXPECT_CALL(frameBufferApiImplMock, fbGetFramebuffer(::testing::_))
+    EXPECT_CALL(frameBufferApiMock, fbGetFramebuffer(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](FBContext* fbctx) {
                 return frameBuffer;
             }));
 
-    EXPECT_CALL(frameBufferApiImplMock, fbDestroy(::testing::_))
+    EXPECT_CALL(frameBufferApiMock, fbDestroy(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](FBContext* fbctx) {

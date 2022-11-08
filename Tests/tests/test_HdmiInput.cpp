@@ -47,7 +47,7 @@ protected:
 
 class HdmiInputInitializedTest : public HdmiInputTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    IarmBusMock iarmBusMock;
     IARM_EventHandler_t dsHdmiEventHandler;
     IARM_EventHandler_t dsHdmiStatusEventHandler;
     IARM_EventHandler_t dsHdmiSignalStatusEventHandler;
@@ -57,9 +57,7 @@ protected:
     HdmiInputInitializedTest()
         : HdmiInputTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-
-        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+        ON_CALL(iarmBusMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                     if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG)) {
@@ -90,8 +88,6 @@ protected:
     virtual ~HdmiInputInitializedTest() override
     {
         plugin->Deinitialize(nullptr);
-
-        IarmBus::getInstance().impl = nullptr;
     }
 };
 

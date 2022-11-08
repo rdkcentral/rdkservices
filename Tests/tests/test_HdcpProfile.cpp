@@ -78,21 +78,20 @@ protected:
 
 class HDCPProfileEventIarmTest : public HDCPProfileEventTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    IarmBusMock iarmBusMock;
     ManagerImplMock managerImplMock;
     IARM_EventHandler_t dsHdmiEventHandler;
 
     HDCPProfileEventIarmTest()
         : HDCPProfileEventTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
         device::Manager::getInstance().impl = &managerImplMock;
 
         EXPECT_CALL(managerImplMock, Initialize())
             .Times(::testing::AnyNumber())
             .WillRepeatedly(::testing::Return());
 
-        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+        ON_CALL(iarmBusMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                     if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG)) {
@@ -110,7 +109,6 @@ protected:
     virtual ~HDCPProfileEventIarmTest() override
     {
         plugin->Deinitialize(&service);
-        IarmBus::getInstance().impl = nullptr;
         device::Manager::getInstance().impl = nullptr;
     }
 };
@@ -382,7 +380,7 @@ TEST_F(HDCPProfileEventIarmTest, onHdmiOutputHDCPStatusEvent)
                 return Core::ERROR_NONE;
             }));
 
-      ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+      ON_CALL(iarmBusMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 if (strcmp(methodName, IARM_BUS_PWRMGR_API_GetPowerState) == 0) {

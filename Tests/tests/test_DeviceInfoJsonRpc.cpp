@@ -40,7 +40,7 @@ protected:
 
 class DeviceInfoJsonRpcInitializedTest : public DeviceInfoJsonRpcTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    IarmBusMock iarmBusMock;
     ManagerImplMock managerImplMock;
     ServiceMock service;
     Core::Sink<SystemInfo> subSystem;
@@ -48,7 +48,6 @@ protected:
     DeviceInfoJsonRpcInitializedTest()
         : DeviceInfoJsonRpcTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
         device::Manager::getInstance().impl = &managerImplMock;
 
         ON_CALL(service, ConfigLine())
@@ -69,7 +68,6 @@ protected:
     {
         plugin->Deinitialize(&service);
 
-        IarmBus::getInstance().impl = nullptr;
         device::Manager::getInstance().impl = nullptr;
     }
 };

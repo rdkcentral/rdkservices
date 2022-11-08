@@ -110,20 +110,16 @@ protected:
 
 class DataCaptureInitializedTest : public DataCaptureTest {
 protected:
-    NiceMock<IarmBusImplMock> iarmBusImplMock_;
+    NiceMock<IarmBusMock> iarmBusMock_;
 
     DataCaptureInitializedTest()
         : DataCaptureTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock_;
-
         EXPECT_EQ(string(""), dataCapture_->Initialize(nullptr));
     }
     virtual ~DataCaptureInitializedTest() override
     {
         dataCapture_->Deinitialize(nullptr);
-
-        IarmBus::getInstance().impl = nullptr;
     }
 };
 
@@ -132,7 +128,7 @@ protected:
     DataCaptureInitializedEnableAudioCaptureTest()
         : DataCaptureInitializedTest()
     {
-        ON_CALL(iarmBusImplMock_, IARM_Bus_Call)
+        ON_CALL(iarmBusMock_, IARM_Bus_Call)
             .WillByDefault(
                 [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                     if (strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_OPEN) == 0) {
@@ -207,7 +203,7 @@ TEST_F(DataCaptureTest, ShouldReturnErrorWhenParamsAreEmpty)
 
 TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOnAudioCapture)
 {
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call)
+    ON_CALL(iarmBusMock_, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 if (strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_REQUEST_SAMPLE) == 0) {
@@ -228,7 +224,7 @@ TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOnAudioCapture)
 
 TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOffAudioCapture)
 {
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call)
+    ON_CALL(iarmBusMock_, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 if (strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_STOP) == 0) {
@@ -280,7 +276,7 @@ TEST_F(DataCaptureInitializedEnableAudioCaptureEventTest, ShouldUploadData)
                 return Core::ERROR_NONE;
             });
 
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call)
+    ON_CALL(iarmBusMock_, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 if (strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_REQUEST_SAMPLE) == 0) {

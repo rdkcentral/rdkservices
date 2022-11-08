@@ -16,14 +16,13 @@ using namespace WPEFramework;
 
 class DeviceVideoCapabilitiesTest : public ::testing::Test {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    IarmBusMock iarmBusMock;
     ManagerImplMock managerImplMock;
     Core::ProxyType<Plugin::DeviceVideoCapabilities> deviceVideoCapabilities;
     Exchange::IDeviceVideoCapabilities* interface;
 
     DeviceVideoCapabilitiesTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
         device::Manager::getInstance().impl = &managerImplMock;
 
         EXPECT_CALL(managerImplMock, Initialize())
@@ -39,7 +38,6 @@ protected:
     {
         interface->Release();
 
-        IarmBus::getInstance().impl = nullptr;
         device::Manager::getInstance().impl = nullptr;
     }
 

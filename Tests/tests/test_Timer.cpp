@@ -45,20 +45,16 @@ protected:
 
 class TimerInitializedTest : public TimerTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    IarmBusMock iarmBusMock;
 
     TimerInitializedTest()
         : TimerTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
     }
     virtual ~TimerInitializedTest() override
     {
         plugin->Deinitialize(nullptr);
-
-        IarmBus::getInstance().impl = nullptr;
     }
 };
 

@@ -46,20 +46,16 @@ protected:
 
 class LoggingPreferencesInitializedTest : public LoggingPreferencesTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    IarmBusMock iarmBusMock;
 
     LoggingPreferencesInitializedTest()
         : LoggingPreferencesTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
     }
     virtual ~LoggingPreferencesInitializedTest() override
     {
         plugin->Deinitialize(nullptr);
-
-        IarmBus::getInstance().impl = nullptr;
     }
 };
 
@@ -101,7 +97,7 @@ TEST_F(LoggingPreferencesTest, paramsMissing)
 
 TEST_F(LoggingPreferencesInitializedTest, getKeystrokeMask)
 {
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+    ON_CALL(iarmBusMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 if (strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0) {
@@ -119,7 +115,7 @@ TEST_F(LoggingPreferencesInitializedEventTest, enableKeystrokeMask)
 {
     Core::Event onKeystrokeMaskEnabledChange(false, true);
 
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+    ON_CALL(iarmBusMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 if (strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0) {
@@ -163,7 +159,7 @@ TEST_F(LoggingPreferencesInitializedEventTest, disbleKeystrokeMask)
 {
     Core::Event onKeystrokeMaskEnabledChange(false, true);
 
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+    ON_CALL(iarmBusMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 if (strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0) {
@@ -202,7 +198,7 @@ TEST_F(LoggingPreferencesInitializedEventTest, disbleKeystrokeMask)
 
 TEST_F(LoggingPreferencesInitializedTest, errorCases)
 {
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+    ON_CALL(iarmBusMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 if (strcmp(methodName, IARM_BUS_SYSMGR_API_GetKeyCodeLoggingPref) == 0) {

@@ -29,16 +29,14 @@ protected:
 
 class FrameRateInitializedTest : public FrameRateTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    IarmBusMock iarmBusMock;
     IARM_EventHandler_t handlerOnDisplayFrameRateChanging;
     IARM_EventHandler_t handlerOnDisplayFrameRateChanged;
 
     FrameRateInitializedTest()
         : FrameRateTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-
-        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+        ON_CALL(iarmBusMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                     if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_PRECHANGE)) {
@@ -55,8 +53,6 @@ protected:
     virtual ~FrameRateInitializedTest() override
     {
         plugin->Deinitialize(nullptr);
-
-        IarmBus::getInstance().impl = nullptr;
     }
 };
 

@@ -44,7 +44,7 @@ protected:
 class DeviceInfoWebInitializedTest : public DeviceInfoWebTest {
 protected:
     FactoriesImplementation factoriesImplementation;
-    IarmBusImplMock iarmBusImplMock;
+    IarmBusMock iarmBusMock;
     ManagerImplMock managerImplMock;
     ServiceMock service;
     Core::Sink<SystemInfo> subSystem;
@@ -53,7 +53,6 @@ protected:
         : DeviceInfoWebTest()
     {
         PluginHost::IFactories::Assign(&factoriesImplementation);
-        IarmBus::getInstance().impl = &iarmBusImplMock;
         device::Manager::getInstance().impl = &managerImplMock;
 
         ON_CALL(service, ConfigLine())
@@ -75,7 +74,6 @@ protected:
         plugin->Deinitialize(&service);
 
         PluginHost::IFactories::Assign(nullptr);
-        IarmBus::getInstance().impl = nullptr;
         device::Manager::getInstance().impl = nullptr;
     }
 };

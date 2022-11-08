@@ -36,12 +36,11 @@ TEST_F(UsbAccessTest, RegisteredMethods)
 TEST_F(UsbAccessTest, UpdateFirmware)
 {
     UdevImplMock udevImplMock;
-    WrapsImplMock wrapsImplMock;
+    WrapsMock wrapsMock;
 
     Udev::getInstance().impl = &udevImplMock;
-    Wraps::getInstance().impl = &wrapsImplMock;
 
-    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+    EXPECT_CALL(wrapsMock, system(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](const char* command) {
@@ -56,5 +55,4 @@ TEST_F(UsbAccessTest, UpdateFirmware)
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp\';reboot;/my.bin\"}"), response));
 
     Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
 }

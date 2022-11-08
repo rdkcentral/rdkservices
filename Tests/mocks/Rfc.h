@@ -66,41 +66,6 @@ typedef struct _RFC_Param_t {
     DATA_TYPE type;
 } RFC_ParamData_t;
 
-class RfcApiImpl {
-public:
-    virtual ~RfcApiImpl() = default;
-
-    virtual WDMP_STATUS getRFCParameter(char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) = 0;
-    virtual WDMP_STATUS setRFCParameter(char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) = 0;
-    virtual const char* getRFCErrorString(WDMP_STATUS code) = 0;
-};
-
-class RfcApi {
-public:
-    static RfcApi& getInstance()
-    {
-        static RfcApi instance;
-        return instance;
-    }
-
-    RfcApiImpl* impl;
-
-    static WDMP_STATUS getRFCParameter(char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData)
-    {
-        return getInstance().impl->getRFCParameter(pcCallerID, pcParameterName, pstParamData);
-    }
-
-    static WDMP_STATUS setRFCParameter(char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType)
-    {
-        return getInstance().impl->setRFCParameter(pcCallerID, pcParameterName, pcParameterValue, eDataType);
-    }
-
-    static const char* getRFCErrorString(WDMP_STATUS code)
-    {
-        return getInstance().impl->getRFCErrorString(code);
-    }
-};
-
-constexpr auto getRFCParameter = &RfcApi::getRFCParameter;
-constexpr auto setRFCParameter = &RfcApi::setRFCParameter;
-constexpr auto getRFCErrorString = &RfcApi::getRFCErrorString;
+extern WDMP_STATUS getRFCParameter(char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData);
+extern WDMP_STATUS setRFCParameter(char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType);
+extern const char* getRFCErrorString(WDMP_STATUS code);

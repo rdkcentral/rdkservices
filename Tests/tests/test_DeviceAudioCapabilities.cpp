@@ -13,14 +13,13 @@ using namespace WPEFramework;
 
 class DeviceAudioCapabilitiesTest : public ::testing::Test {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    IarmBusMock iarmBusMock;
     ManagerImplMock managerImplMock;
     Core::ProxyType<Plugin::DeviceAudioCapabilities> deviceAudioCapabilities;
     Exchange::IDeviceAudioCapabilities* interface;
 
     DeviceAudioCapabilitiesTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
         device::Manager::getInstance().impl = &managerImplMock;
 
         EXPECT_CALL(managerImplMock, Initialize())
@@ -37,7 +36,6 @@ protected:
     {
         interface->Release();
 
-        IarmBus::getInstance().impl = nullptr;
         device::Manager::getInstance().impl = nullptr;
     }
 

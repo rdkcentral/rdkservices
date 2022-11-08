@@ -10,14 +10,12 @@ using namespace WPEFramework;
 
 class DeviceInfoTest : public ::testing::Test {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    IarmBusMock iarmBusMock;
     Core::ProxyType<Plugin::DeviceInfoImplementation> deviceInfoImplementation;
     Exchange::IDeviceInfo* interface;
 
     DeviceInfoTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-
         deviceInfoImplementation = Core::ProxyType<Plugin::DeviceInfoImplementation>::Create();
 
         interface = static_cast<Exchange::IDeviceInfo*>(
@@ -26,7 +24,6 @@ protected:
     virtual ~DeviceInfoTest()
     {
         interface->Release();
-        IarmBus::getInstance().impl = nullptr;
     }
 
     virtual void SetUp()

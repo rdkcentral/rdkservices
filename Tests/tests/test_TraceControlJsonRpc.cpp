@@ -19,7 +19,7 @@ protected:
     Core::ProxyType<Plugin::TraceControl> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
-    WrapsImplMock wrapsImplMock;
+    WrapsMock wrapsMock;
     string response;
 
     TraceControlJsonRpcTest()
@@ -28,12 +28,10 @@ protected:
         , connection(1, 0)
     {
         Trace::TraceUnit::Instance().Open(volatilePath);
-        Wraps::getInstance().impl = &wrapsImplMock;
     }
 
     virtual ~TraceControlJsonRpcTest()
     {
-        Wraps::getInstance().impl = nullptr;
         plugin.Release();
         Trace::TraceUnit::Instance().Close();
     }
@@ -77,7 +75,7 @@ TEST_F(TraceControlJsonRpcTest, registeredMethods)
 
 TEST_F(TraceControlJsonRpcInitializedTest, jsonRpc)
 {
-    EXPECT_CALL(wrapsImplMock, syslog(::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(wrapsMock, syslog(::testing::_, ::testing::_, ::testing::_))
         .WillOnce(::testing::Return());
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("status"), _T("{}"), response));
@@ -119,7 +117,7 @@ TEST_F(TraceControlJsonRpcInitializedTest, jsonRpc)
 
 TEST_F(TraceControlJsonRpcInitializedTest, syslogFormat)
 {
-    EXPECT_CALL(wrapsImplMock, syslog(::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(wrapsMock, syslog(::testing::_, ::testing::_, ::testing::_))
         .WillOnce(::testing::Invoke(
             [&](int pri, const char* fmt, va_list args) -> void {
                 EXPECT_EQ(LOG_NOTICE, pri);
