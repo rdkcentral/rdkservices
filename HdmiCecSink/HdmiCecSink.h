@@ -286,7 +286,11 @@ namespace WPEFramework {
 				LOGINFO(" logicalAddr = %d, phisicalAddr = %s", m_logicalAddr.toInt(), physical_addr.toString().c_str());
 				
 				if ( m_logicalAddr.toInt() != LogicalAddress::UNREGISTERED &&
-						m_logicalAddr.toInt() != logical_addr.toInt() )
+						m_logicalAddr.toInt() != logical_addr.toInt() &&
+                                                (physical_addr.getByteValue(0) != m_physicalAddr.getByteValue(0) ||
+                                                physical_addr.getByteValue(1) != m_physicalAddr.getByteValue(1) ||
+                                                physical_addr.getByteValue(2) != m_physicalAddr.getByteValue(2) ||
+                                                physical_addr.getByteValue(3) != m_physicalAddr.getByteValue(3)) )
 				{
 					LOGINFO(" update own logicalAddr = %d, new devcie logicalAddress = %d", m_logicalAddr.toInt(), logical_addr.toInt() );
 					/* check matching with this port's physical address */

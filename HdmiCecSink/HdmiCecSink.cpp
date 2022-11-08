@@ -1719,7 +1719,25 @@ namespace WPEFramework
 				{
 					LOGINFO(" addr = %d, portID = %d", phy_addr.getByteValue(0), hdmiInputs[i].m_portID);
 					if (phy_addr.getByteValue(0) == (hdmiInputs[i].m_portID + 1)) {
-						hdmiInputs[i].addChild(logicalAddress, phy_addr);
+						/* If two logical adress being sent from the same audio device,
+						   map Audio device LA to the HdmiPortMap */
+                                                if ((phy_addr.getByteValue(0) ==
+                                                                        hdmiInputs[i].m_physicalAddr.getByteValue(0) &&
+                                                        phy_addr.getByteValue(1) ==
+                                                                        hdmiInputs[i].m_physicalAddr.getByteValue(1) &&
+                                                        phy_addr.getByteValue(2) ==
+                                                                        hdmiInputs[i].m_physicalAddr.getByteValue(2) &&
+                                                        phy_addr.getByteValue(3) ==
+                                                                       hdmiInputs[i].m_physicalAddr.getByteValue(3)) &&
+                                                    hdmiInputs[i].m_logicalAddr.toInt() != LogicalAddress::UNREGISTERED) {
+                                                    if (hdmiInputs[i].m_logicalAddr.toInt() != LogicalAddress::AUDIO_SYSTEM){
+                                                        LOGINFO("Adding Audio device");
+                                                        hdmiInputs[i].addChild(logicalAddress, phy_addr);
+                                                    }
+                                                } else {
+                                                    LOGINFO("Adding Child");
+                                                    hdmiInputs[i].addChild(logicalAddress, phy_addr);
+                                                }
 					}
 				}
 			}
@@ -2009,6 +2027,9 @@ namespace WPEFramework
 					  catch(Exception &e)
 					  {
 						LOGWARN("Ping device: 0x%x caught %s \r\n", i, e.what());
+						if ( _instance->deviceList[i].m_isDevicePresent ) {
+                                                        --i;
+                                                }
                                                 usleep(50000);
                                                 continue;
 					  }
