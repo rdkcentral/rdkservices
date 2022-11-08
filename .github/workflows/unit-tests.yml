@@ -52,7 +52,7 @@ jobs:
           key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-2
 
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
       - run: pip install jsonref
@@ -60,7 +60,7 @@ jobs:
       - name: Set up CMake
         # 3.16.x To support flow control commands to be overridden.
         # Installs in: find /opt -ipath *bin/cmake
-        uses: jwlawson/actions-setup-cmake@v1.12
+        uses: jwlawson/actions-setup-cmake@v1.13
         with:
           cmake-version: '3.16.x'
 
@@ -153,7 +153,8 @@ jobs:
           headers/rdk/ds
           headers/rdk/iarmbus
           headers/rdk/iarmmgrs-hal
-          headers/ccec/drivers &&
+          headers/ccec/drivers
+          headers/network &&
           cd headers &&
           touch
           audiocapturemgr/audiocapturemgr_iarm.h
@@ -183,9 +184,12 @@ jobs:
           rdk/iarmmgrs-hal/mfrMgr.h
           rdk/iarmmgrs-hal/pwrMgr.h
           rdk/iarmmgrs-hal/sysMgr.h
+          network/wifiSrvMgrIarmIf.h
+          network/netsrvmgrIarm.h
           framebuffer-api.h
           libudev.h
           rfcapi.h
+          rbus.h
           telemetry_busmessage_sender.h
 
       - name: Configure rdkservices
@@ -202,10 +206,12 @@ jobs:
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmbus
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmmgrs-hal
           -I ${{github.workspace}}/rdkservices/Tests/headers/ccec/drivers
+          -I ${{github.workspace}}/rdkservices/Tests/headers/network
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/FrameBuffer.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Iarm.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Rfc.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
           --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
@@ -224,6 +230,7 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
+          -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
           -DPLUGIN_LOCATIONSYNC=ON
@@ -245,6 +252,7 @@ jobs:
           -DPLUGIN_HDMIINPUT=ON
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_TRACECONTROL=ON
+          -DPLUGIN_WIFIMANAGER=ON
           -DPLUGIN_WAREHOUSE=ON
           -DDS_FOUND=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
