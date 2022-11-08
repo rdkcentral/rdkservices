@@ -63,8 +63,9 @@ protected:
         IarmBus::getInstance().impl = &iarmBusImplMock;
         RfcApi::getInstance().impl = &rfcApiImplMock;
         Wraps::getInstance().impl = &wrapsImplMock;
-        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
-            .WillByDefault(::testing::Invoke(
+        EXPECT_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+            .Times(1)
+            .WillOnce(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                     if ((string(IARM_BUS_PWRMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_PWRMGR_EVENT_WAREHOUSEOPS_STATUSCHANGED)) {
                         whMgrStatusChangeEventsHandler = handler;
@@ -316,23 +317,10 @@ TEST_F(WarehouseInitializedTest, setFrontPanelState)
 
 TEST_F(WarehouseInitializedTest, internalReset)
 {
-    //Invoke internalReset - No pass phrase
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("internalReset"), _T("{}"), response));
-
-    //Invoke internalReset - Incorrect pass phrase
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("internalReset"), _T("{\"passPhrase\":\"Test Phrase\"}"), response));
-
-    //Invoke internalReset - Correct pass phrase
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("internalReset"), _T("{\"passPhrase\":\"FOR TEST PURPOSES ONLY\"}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false,\"error\":\"script returned: -1\"}"));
-}
-
-TEST_F(WarehouseInitializedTest, lightReset)
-{
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
     .Times(2)
     .WillOnce(
-        [&](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+        [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
             EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_SYSMGR_NAME)));
             if (string(methodName) == string(_T(IARM_BUS_SYSMGR_API_RunScript)))
             {
@@ -342,7 +330,48 @@ TEST_F(WarehouseInitializedTest, lightReset)
             return IARM_RESULT_SUCCESS;
         })
     .WillOnce(
-        [&](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+        [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+            EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_SYSMGR_NAME)));
+            if (string(methodName) == string(_T(IARM_BUS_SYSMGR_API_RunScript)))
+            {
+                auto* runScriptParam = static_cast<IARM_Bus_SYSMgr_RunScript_t*>(arg);
+                runScriptParam->return_value = 0;
+                EXPECT_EQ(string(runScriptParam->script_path), string("rm -rf /opt/drm /opt/www/whitebox /opt/www/authService && /rebootNow.sh -s WarehouseService &"));
+            }
+            return IARM_RESULT_SUCCESS;
+        });
+
+    //Invoke internalReset - No pass phrase
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("internalReset"), _T("{}"), response));
+
+    //Invoke internalReset - Incorrect pass phrase
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("internalReset"), _T("{\"passPhrase\":\"Test Phrase\"}"), response));
+
+    //Invoke internalReset - Correct pass phrase - Return error
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("internalReset"), _T("{\"passPhrase\":\"FOR TEST PURPOSES ONLY\"}"), response));
+    EXPECT_EQ(response, _T("{\"success\":false,\"error\":\"script returned: -1\"}"));
+
+    //Invoke internalReset - Correct pass phrase - Return success
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("internalReset"), _T("{\"passPhrase\":\"FOR TEST PURPOSES ONLY\"}"), response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
+}
+
+TEST_F(WarehouseInitializedTest, lightReset)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    .Times(2)
+    .WillOnce(
+        [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+            EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_SYSMGR_NAME)));
+            if (string(methodName) == string(_T(IARM_BUS_SYSMGR_API_RunScript)))
+            {
+                auto* runScriptParam = static_cast<IARM_Bus_SYSMgr_RunScript_t*>(arg);
+                runScriptParam->return_value = -1;
+            }
+            return IARM_RESULT_SUCCESS;
+        })
+    .WillOnce(
+        [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
             EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_SYSMGR_NAME)));
             if (string(methodName) == string(_T(IARM_BUS_SYSMGR_API_RunScript)))
             {
@@ -364,7 +393,6 @@ TEST_F(WarehouseInitializedTest, lightReset)
 
 TEST_F(WarehouseInitializedTest, isClean)
 {
-
     const string userPrefFile = _T("/opt/user_preferences.conf");
     const uint8_t userPrefLang[] = "[General]\nui_language=US_en\n";
     const string customDataFile = _T("/lib/rdk/wh_api_5.conf");
