@@ -24,6 +24,14 @@
         "description": {
           "description": "Description of the interface",
           "type": "string"
+        },
+        "deprecated": {
+          "description": "Value is set as true if plugin is deprecated",
+          "type": "boolean"
+        },
+        "referencePluginUrl": {
+          "description": "Provides the alternate plugin for the deprecated plugin",
+          "type": "string"
         }
       },
       "required": [
