@@ -3,11 +3,11 @@ name: update changelog and api version
 on:
   push:
     branches: [ main, 'release/**' ]
-    paths-ignore: ['docs/**', 'Tests/**']
+    paths-ignore: ['docs/**', 'Tests/**', 'Tools/**', '.github/**']
 
   pull_request:
     branches: [ main, 'release/**' ]
-    paths-ignore: ['docs/**', 'Tests/**']
+    paths-ignore: ['docs/**', 'Tests/**', 'Tools/**', '.github/**']
 
 
 jobs:
