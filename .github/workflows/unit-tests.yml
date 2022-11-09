@@ -271,7 +271,7 @@ jobs:
           sudo mkdir -p -m 777
           /opt/persistent
           /opt/secure /opt/secure/reboot /opt/secure/persistent /opt/secure/persistent/System
-          /opt/logs &&
+          /opt/logs /lib/rdk &&
           sudo touch
           /opt/standbyReason.txt /opt/tmtryoptout /opt/fwdnldstatus.txt
           /etc/device.properties /etc/authService.conf
