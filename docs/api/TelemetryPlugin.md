@@ -2,7 +2,7 @@
 <a name="Telemetry_Plugin"></a>
 # Telemetry Plugin
 
-**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/Telemetry/CHANGELOG.md)**
+**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/Telemetry/CHANGELOG.md)**
 
 A org.rdk.Telemetry plugin for Thunder framework.
 
@@ -48,6 +48,7 @@ Telemtry interface methods:
 | :-------- | :-------- |
 | [setReportProfileStatus](#setReportProfileStatus) | Sets the status of telemetry reporting |
 | [logApplicationEvent](#logApplicationEvent) | Logs an application event |
+| [uploadReport](#uploadReport) | Triggers processing and uploading of telemetry report for legacy Xconf based configuration |
 
 
 <a name="setReportProfileStatus"></a>
@@ -149,6 +150,55 @@ No Events
     "result": {
         "success": true
     }
+}
+```
+
+<a name="uploadReport"></a>
+## *uploadReport*
+
+Triggers processing and uploading of telemetry report for legacy Xconf based configuration.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | null | Always null |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 25 | ```ERROR_RPC_CALL_FAILED``` | RBus call report uploading failed |
+| 6 | ```ERROR_OPENING_FAILED``` | Failed to open RBus handle |
+| 43 | ```ERROR_NOT_EXIST``` | Built with no support for RBus |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Telemetry.uploadReport"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": null
 }
 ```
 
