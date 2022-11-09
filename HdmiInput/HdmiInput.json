@@ -4,7 +4,9 @@
     "info": {
         "title": "HdmiInput API", 
         "class": "HdmiInput", 
-        "description": "The `HdmiInput` plugin allows you to control the HDMI Input on a set-top box."
+        "description": "The `HdmiInput` plugin allows you to control the HDMI Input on a set-top box.",
+        "deprecated" : true,
+        "referencePluginUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin"
     },
     "common": {
         "$ref": "../common/common.json"
