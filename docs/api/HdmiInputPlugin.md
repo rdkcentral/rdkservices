@@ -22,9 +22,11 @@ A org.rdk.HdmiInput plugin for Thunder framework.
 <a name="Description"></a>
 # Description
 
-The `HdmiInput` plugin allows you to control the HDMI Input on a set-top box. The HdmiInput Plugin is deprecated to AVInput plugin. Please refer this link.https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin.
+The `HdmiInput` plugin allows you to control the HDMI Input on a set-top box.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
+
+> This Plugin is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new plugin](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin)
 
 <a name="Configuration"></a>
 # Configuration

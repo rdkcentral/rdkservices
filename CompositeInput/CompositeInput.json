@@ -4,7 +4,9 @@
     "info": {
         "title": "CompositeInput API", 
         "class": "CompositeInput",
-        "description": "The `CompositeInput` Plugin allows you to control the composite input source on a device."
+        "description": "The `CompositeInput` Plugin allows you to control the composite input source on a device.",
+        "deprecated" : true,
+        "referencePluginUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin"
     },
     "common": {
         "$ref": "../common/common.json"
