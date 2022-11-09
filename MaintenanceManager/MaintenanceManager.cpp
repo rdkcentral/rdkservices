@@ -66,7 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 8
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -184,6 +184,27 @@ namespace WPEFramework {
     }
 
     namespace Plugin {
+
+        namespace {
+            // MaintenanceManager should use interfaces
+
+            uint32_t getServiceState(PluginHost::IShell* shell, const string& callsign, PluginHost::IShell::state& state)
+            {
+                uint32_t result;
+                auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
+                if (interface == nullptr) {
+                    result = Core::ERROR_UNAVAILABLE;
+                    std::cout << "no IShell for " << callsign << std::endl;
+                } else {
+                    result = Core::ERROR_NONE;
+                    state = interface->State();
+                    std::cout << "IShell state " << state << " for " << callsign << std::endl;
+                    interface->Release();
+                }
+                return result;
+            }
+        }
+
         //Prototypes
         SERVICE_REGISTRATION(MaintenanceManager, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
         /* Global time variable */
@@ -349,13 +370,12 @@ namespace WPEFramework {
             std::string ret_status("invalid");
 
             /* check if plugin active */
-            auto auth = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>("org.rdk.AuthService");
-            if (auth == nullptr){
+            PluginHost::IShell::state state = PluginHost::IShell::state::UNAVAILABLE;
+            if ((getServiceState(m_service, "org.rdk.AuthService", state) != Core::ERROR_NONE) || (state != PluginHost::IShell::state::ACTIVATED)) {
                 LOGINFO("AuthService plugin is not activated.Retrying.. \n");
                 //if plugin is not activated we need to retry
                 do{
-                    auth = m_service->QueryInterfaceByCallsign<PluginHost::IDispatcher>("org.rdk.AuthService");
-                    if (auth == nullptr){
+                    if ((getServiceState(m_service, "org.rdk.AuthService", state) != Core::ERROR_NONE) || (state != PluginHost::IShell::state::ACTIVATED)) {
                         sleep(10);
                         i++;
                         LOGINFO("AuthService retries [%d/4] \n",i);
@@ -365,7 +385,7 @@ namespace WPEFramework {
                     }
                 }while( i < MAX_ACTIVATION_RETRIES );
 
-                if (auth == nullptr){
+                if (state != PluginHost::IShell::state::ACTIVATED){
                     LOGINFO("AuthService plugin is Still not active");
                     return ret_status;
                 }
@@ -373,9 +393,8 @@ namespace WPEFramework {
                     LOGINFO("AuthService plugin is Now active");
                 }
             }
-            if (auth != nullptr){
+            if (state == PluginHost::IShell::state::ACTIVATED){
                 LOGINFO("AuthService is active");
-                auth->Release();
             }
 
             string token;
