@@ -2,7 +2,7 @@
 <a name="HdmiCec_2Plugin"></a>
 # HdmiCec_2Plugin
 
-**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCec_2/CHANGELOG.md)**
+**Version: [1.0.3](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCec_2/CHANGELOG.md)**
 
 A org.rdk.HdmiCec_2 plugin for Thunder framework.
 
