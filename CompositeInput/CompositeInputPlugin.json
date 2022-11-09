@@ -5,7 +5,7 @@
       "callsign": "org.rdk.CompositeInput",
       "locator": "libWPEFrameworkCompositeInput.so",
       "status": "production",
-      "description": "The `CompositeInput` Plugin allows you to control the composite input source on a device. The CompositeInput Plugin is **deprecated** to AVInput plugin. Please refer this link.https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin."
+      "description": "The `CompositeInput` Plugin allows you to control the composite input source on a device."
     },
     "interface": {
       "$ref": "CompositeInput.json#"
