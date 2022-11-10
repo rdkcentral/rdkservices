@@ -440,11 +440,19 @@ namespace WPEFramework {
                 MemCheckpointRestoreClient &operator=(const MemCheckpointRestoreClient &) = delete;
 
             public:
-                MemCheckpointRestoreClient(RDKShell *shell): mShell(*shell) {}
-                bool checkpoint(const std::string &callSign);
-                bool restore(const std::string &callSign);
+                enum ProcessedAppState
+                {
+                    CHECKPOINTING,
+                    CHECKPOINTED,
+                    RESTORING
+                };
 
-            private:
+                MemCheckpointRestoreClient(RDKShell *shell): mShell(*shell) {}
+                bool checkpoint(const std::string &callSign, uint32_t timeouteMs);
+                bool restore(const std::string &callSign, uint32_t timeouteMs);
+                bool getState(const std::string &callSign, ProcessedAppState &state);
+
+            private/*types and const*/:
                 enum ServerRequestCode
                 {
                     MEMCR_CHECKPOINT = 100,
@@ -468,12 +476,18 @@ namespace WPEFramework {
                     ServerResponseCode respCode;
                 } __attribute__((packed));
 
-                void launchRequestThread(ServerRequestCode request, const std::string &callSign);
-                bool sendRcvCmd(ServerRequest &cmd, ServerResponse &resp, uint32_t timeouteMs);
-                void FindPid(const string& item, std::list<uint32_t>& pids);
-                void ProcessName(const uint32_t pid, TCHAR buffer[], const uint32_t maxLength);
+                const string MEMCR_SERVER_SOCKET = "/tmp/memcrservice";
 
+            private/*methods*/:
+                void launchRequestThread(ServerRequestCode request, const std::string &callSign, uint32_t timeouteMs);
+                bool sendRcvCmd(ServerRequest &cmd, ServerResponse &resp, uint32_t timeouteMs);
+                void findPid(const string& item, std::list<uint32_t>& pids);
+                void processName(const uint32_t pid, TCHAR buffer[], const uint32_t maxLength);
+
+            private/*members*/:
                 RDKShell& mShell;
+                std::mutex mProcessedAppsLock;
+                std::map<std::string, ProcessedAppState> mProcessedApps;
             };
 
         private/*members*/:
