@@ -300,7 +300,7 @@ namespace WPEFramework
         {
             try
             {
-                clockBrightness =  device::FrontPanelTextDisplay::getInstance("Text").getTextBrightness();
+                clockBrightness = device::FrontPanelTextDisplay::getInstance("Text").getTextBrightness();
             }
             catch (...)
             {
@@ -491,8 +491,7 @@ namespace WPEFramework
             bool success = false;
             string ledIndicator = svc2iarm(parameters["ledIndicator"].String());
             int brightness = -1;
-
-            if (parameters.HasLabel("brightness"))
+	    if (parameters.HasLabel("brightness"))
                 //brightness = properties["brightness"].Number();
                 getNumberParameter("brightness", brightness);
 
@@ -632,7 +631,7 @@ namespace WPEFramework
 
         void CFrontPanel::startBlinkTimer(int numberOfBlinkRepeats)
         {
-            LOGWARN("startBlinkTimer numberOfBlinkRepeats: %d m_blinkList.length : %d", numberOfBlinkRepeats, m_blinkList.size());
+            LOGWARN("startBlinkTimer numberOfBlinkRepeats: %d m_blinkList.length : %d", numberOfBlinkRepeats,(int) m_blinkList.size());
             stopBlinkTimer();
             m_numberOfBlinks = 0;
             m_isBlinking = true;

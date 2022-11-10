@@ -177,6 +177,9 @@ jobs:
           rdk/ds/videoOutputPortConfig.hpp
           rdk/ds/videoOutputPortType.hpp
           rdk/ds/videoResolution.hpp
+          rdk/ds/frontPanelIndicator.hpp
+          rdk/ds/frontPanelConfig.hpp
+          rdk/ds/frontPanelTextDisplay.hpp
           rdk/iarmbus/libIARM.h
           rdk/iarmbus/libIBus.h
           rdk/iarmbus/libIBusDaemon.h
@@ -224,6 +227,7 @@ jobs:
           -DUSE_FRAMEBUFFER_SCREENCAPTURE
           -DHAS_API_SYSTEM
           -DHAS_API_POWERSTATE
+          -DCLOCK_BRIGHTNESS_ENABLED
           -DENABLE_DEVICE_MANUFACTURER_INFO"
           -DCOMCAST_CONFIG=OFF
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
@@ -231,6 +235,8 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
+          -DDS_FOUND=ON
+          -DHAS_FRONT_PANEL=ON
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
           -DPLUGIN_LOCATIONSYNC=ON
@@ -250,6 +256,7 @@ jobs:
           -DPLUGIN_SYSTEMSERVICES=ON
           -DRDK_SERVICES_TEST=ON
           -DPLUGIN_HDMIINPUT=ON
+          -DPLUGIN_FRONTPANEL=ON
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_TRACECONTROL=ON
           -DPLUGIN_WIFIMANAGER=ON
@@ -290,6 +297,7 @@ jobs:
           --show-reachable=yes
           --track-fds=yes
           --fair-sched=try
+          --track-origins=yes
           RdkServicesTest
 
       - name: Install lcov
