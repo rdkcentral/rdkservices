@@ -20,6 +20,7 @@
   - [FrontPanel](api/FrontPanelPlugin.md)
   - [HdcpProfile](api/HdcpProfilePlugin.md)
   - [HdmiCec_2](api/HdmiCec_2Plugin.md)
+  - [HdmiCecSource](api/HdmiCecSourcePlugin.md)
   - [HdmiCec](api/HdmiCecPlugin.md)
   - [HdmiCecSink](api/HdmiCecSinkPlugin.md)
   - [HdmiInput](api/HdmiInputPlugin.md)

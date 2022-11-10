@@ -1,0 +1,364 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "HdmiCecSource API", 
+        "class": "HdmiCecSource", 
+        "description": "The `HdmiCecSource` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. The HdmiCecSource plugin is meant to be used on the source devices where an application relies on the Thunder plugin to handle protocol related messaging. The plugin also provides API's and events to implement the CEC use cases."
+    },
+    "common": {
+        "$ref": "../common/common.json"
+    },
+    "definitions": {
+        "vendorid": {
+            "summary": "The vendor ID. The default value is `0019FB` if no value is set. If the device is connected to an LG TV, then `00E091` is used as the vendor ID.",
+            "type": "string",
+            "example": "0x0019FB"
+        },
+        "name": {
+            "summary": "The OSD name. The default value is `TV Box` if no value is set.",
+            "type": "string",
+            "example": "Sky TV"
+        },
+        "enabled": {
+            "summary": "Indicates whether HDMI-CEC is enabled (`true`) or disabled (`false`). The default value is `true` if the parameter has not been set before.",
+            "type":"boolean",
+            "example": false
+        },
+        "enabled_otp": {
+            "summary": "Indicates whether HDMI-CEC OTP is enabled (`true`) or disabled (`false`). The default value is `true` if the parameter has not been set before.",
+            "type":"boolean",
+            "example": false
+        },
+        "logicalAddress":{
+            "summary": "Logical address of the device",
+            "type":"integer",
+            "example": 0
+        },
+        "osdName":{
+            "summary": "OSD name of the device",
+            "type":"string",
+            "example": "TV Box"
+        },
+        "vendorID":{
+            "summary": "Vendor ID of the device",
+            "type":"string",
+            "example": "019fb"
+        },
+        "status":{
+            "summary": "`true` if the device is active source otherwise, `false`",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+        "getActiveSourceStatus":{
+            "summary": "Gets the active source status of the device.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "status": {
+                       "$ref": "#/definitions/status"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "getDeviceList":{
+            "summary": "Gets the list of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "numberofdevices": {
+                        "summary": "number of devices in the `deviceList` array", 
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "deviceList":{
+                        "summary": "Object [] of information about each device",
+                        "type":"array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "logicalAddress": {
+                                    "$ref": "#/definitions/logicalAddress"
+                                },
+                                "osdName":{
+                                    "$ref": "#/definitions/osdName"
+                                },
+                                "vendorID":{
+                                    "$ref": "#/definitions/vendorID"
+                                }
+                            },
+                            "required": [
+                                "logicalAddress",
+                                "osdName",
+                                "vendorID"
+                            ]
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "numberofdevices",
+                    "deviceList",
+                    "success"
+                ]
+            }
+        },
+        "getEnabled": {
+            "summary": "Returns HDMI-CEC driver enabled status.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/enabled"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "success"
+                ]
+            }
+        },
+        "getOSDName":{
+            "summary": "Returns the OSD name set by the application.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "$ref": "#/definitions/name"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "name",
+                    "success"
+                ]
+            }
+        },
+        "getOTPEnabled":{
+            "summary": "Returns HDMI-CEC OTP option enabled status.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/enabled_otp"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "success"
+                ]
+            }
+        },
+        "getVendorId":{
+            "summary": "Returns the vendor ID set by the application.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "vendorid": {
+                        "$ref": "#/definitions/vendorid"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "vendorid",
+                    "success"
+                ]
+            }
+        },
+        "performOTPAction":{
+            "summary": "Turns on the TV and takes back the input to the device.",
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "sendKeyPressEvent": {
+            "summary": "Sends the CEC \\<User Control Pressed\\> and \\<User Control Release\\> message when TV remote key is pressed.\n  \n### Event \n\n No Events",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress":{
+                        "$ref": "#/definitions/logicalAddress"
+                    },
+                    "keyCode":{
+                        "summary":"The key code for the pressed key",
+                        "type": "integer",
+                        "example": 65
+                    }
+                },
+                "required": [
+                    "logicalAddress",
+                    "keyCode"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "sendStandbyMessage": {
+            "summary": "Sends a CEC \\<Standby\\> message to the logical address of the device.",
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "setEnabled":{
+            "summary": "Enables or disables HDMI-CEC driver.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enabled":{
+                        "$ref": "#/definitions/enabled" 
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "setOSDName":{
+            "summary": "Sets the OSD name of the application.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "name": {
+                        "$ref": "#/definitions/name"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "setOTPEnabled":{
+            "summary": "Enables or disables HDMI-CEC OTP option.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/enabled_otp"
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "setVendorId":{
+            "summary": "Sets the vendor ID of the application.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "vendorid": {
+                        "$ref": "#/definitions/vendorid"
+                    }
+                },
+                "required": [
+                    "vendorid"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        }        
+    },
+    "events": {
+        "onActiveSourceStatusUpdated":{
+            "summary": "Triggered when the device active source status changes",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "status": {
+                        "$ref": "#/definitions/status"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },   
+        "onDeviceAdded": {
+            "summary": "Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device.  After a new device is hotplugged to the port, various information such as OSD name and vendor ID is collected. The `onDeviceAdded` event is sent as soon as any of these details are available. However, the connected device sends the information asynchronously; therefore, the information may not be collected immediately.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            }
+        },
+        "onDeviceInfoUpdated": {
+            "summary": "Triggered when device system information is updated (vendorID, osdName)",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            }            
+        },
+        "onDeviceRemoved": {
+            "summary": "Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device. The device is considered removed when no ACK messages are received after pinging the device.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            }
+        },
+         "standbyMessageReceived":{
+            "summary": "Triggered when the source device changes status to `STANDBY`",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            }
+        }
+    }
+}
