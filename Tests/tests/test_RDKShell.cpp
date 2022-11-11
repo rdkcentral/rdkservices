@@ -11,7 +11,6 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
-    CompositorControllerMock compositorControllerMock;
 
     RDKShellTest()
         : plugin(Core::ProxyType<Plugin::RDKShell>::Create())
