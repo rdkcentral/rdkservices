@@ -65,7 +65,13 @@ namespace {
         string signalStrength = retrieveValues(Command, buff, sizeof (buff));
 
         signalStrengthOut = 0.0f;
-        signalStrengthOut = std::stof(signalStrength.c_str());
+        if (!signalStrength.empty())
+            signalStrengthOut = std::stof(signalStrength.c_str());
+        else {
+            LOGERR("signalStrength is empty\n");
+            strengthOut = "Disconnected";
+            return;
+        }
 
         if (signalStrengthOut >= signalStrengthThresholdExcellent && signalStrengthOut < 0)
         {
