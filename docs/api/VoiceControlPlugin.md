@@ -386,7 +386,6 @@ Requests a voice session using the specified request type and optional parameter
 | [onServerMessage](#onServerMessage) | Triggers if a message is received from the Voice Server |
 | [onStreamEnd](#onStreamEnd) | Triggers if streaming audio is stopped from the device |
 | [onSessionEnd](#onSessionEnd) | Triggers if interaction with the server is end |
-
 ### Parameters
 
 | Name | Type | Description |
@@ -498,6 +497,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result?.maskPii | boolean | <sup>*(optional)*</sup> Indicated is PII should be masked (1 - mask PII, 0 display PII |
 | result.capabilities | array | A list of capabilities |
 | result.capabilities[#] | string |  |
 | result.urlPtt | string | The PTT URL |
@@ -510,7 +510,6 @@ This method takes no parameters.
 | result.ff.status | string | The status of the device |
 | result.mic | object | The status information for the MIC device type |
 | result.mic.status | string | The status of the device |
-| result.maskPii | boolean | Indicated is PII should be masked |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -532,6 +531,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "maskPii": true,
         "capabilities": [
             "PRV"
         ],

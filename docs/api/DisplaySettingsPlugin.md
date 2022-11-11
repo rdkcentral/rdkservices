@@ -2,7 +2,7 @@
 <a name="DisplaySettings_Plugin"></a>
 # DisplaySettings Plugin
 
-**Version: [1.0.8](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/CHANGELOG.md)**
+**Version: [1.1.11](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/CHANGELOG.md)**
 
 A org.rdk.DisplaySettings plugin for Thunder framework.
 
@@ -1490,7 +1490,10 @@ No Events
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -1508,7 +1511,10 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.getSinkAtmosCapability"
+    "method": "org.rdk.DisplaySettings.getSinkAtmosCapability",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
 }
 ```
 
