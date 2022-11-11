@@ -80,7 +80,7 @@ protected:
     }
 };
 
-TEST_F(DeviceInfoWebInitializedTest, httpGet)
+TEST_F(DeviceInfoWebInitializedTest, verify_HTTP_GET_returns_addresses_systeminfo_and_sockets)
 {
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;
@@ -131,7 +131,7 @@ TEST_F(DeviceInfoWebInitializedTest, httpGet)
                                                  "\\}"));
 }
 
-TEST_F(DeviceInfoWebInitializedTest, httpGetAdresses)
+TEST_F(DeviceInfoWebInitializedTest, verify_HTTP_GET_Adresses_returns_addresses_array)
 {
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;
@@ -161,7 +161,7 @@ TEST_F(DeviceInfoWebInitializedTest, httpGetAdresses)
                                                  "\\}"));
 }
 
-TEST_F(DeviceInfoWebInitializedTest, httpGetSystem)
+TEST_F(DeviceInfoWebInitializedTest, verify_HTTP_GET_System_returns_map_with_properties)
 {
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;
@@ -202,7 +202,7 @@ TEST_F(DeviceInfoWebInitializedTest, httpGetSystem)
                                                  "\\}"));
 }
 
-TEST_F(DeviceInfoWebInitializedTest, httpGetSockets)
+TEST_F(DeviceInfoWebInitializedTest, verify_HTTP_GET_Sockets_returns_runs)
 {
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;

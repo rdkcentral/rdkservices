@@ -104,7 +104,7 @@ protected:
     }
 };
 
-TEST_F(DeviceInfoJsonRpcTest, registeredMethods)
+TEST_F(DeviceInfoJsonRpcTest, verify_api_registered)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("socketinfo")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("addresses")));
@@ -127,7 +127,7 @@ TEST_F(DeviceInfoJsonRpcTest, registeredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("supportedms12audioprofiles")));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedTest, systeminfo)
+TEST_F(DeviceInfoJsonRpcInitializedTest, verify_systeminfo_returns_map_with_properties)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("systeminfo"), _T(""), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{"
@@ -150,7 +150,7 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, systeminfo)
                                                   "\\}"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedTest, addresses)
+TEST_F(DeviceInfoJsonRpcInitializedTest, verify_addresses_returns_array)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("addresses"), _T(""), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\["
@@ -162,13 +162,13 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, addresses)
                                                   "\\]"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedTest, socketinfo)
+TEST_F(DeviceInfoJsonRpcInitializedTest, verify_socketinfo_returns_runs)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("socketinfo"), _T(""), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{\"runs\":[0-9]+\\}"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedTest, firmwareversion)
+TEST_F(DeviceInfoJsonRpcInitializedTest, verify_firmwareversion_returns_verions_from_file)
 {
     std::ofstream file("/version.txt");
     file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\nSDK_VERSION=17.3\nMEDIARITE=8.3.53\nYOCTO_VERSION=dunfell\n";
@@ -178,7 +178,7 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, firmwareversion)
     EXPECT_EQ(response, _T("{\"imagename\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\",\"sdk\":\"17.3\",\"mediarite\":\"8.3.53\",\"yocto\":\"dunfell\"}"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedTest, make)
+TEST_F(DeviceInfoJsonRpcInitializedTest, verify_make_returns_make_from_file)
 {
     std::ofstream file("/etc/device.properties");
     file << "MFG_NAME=Pace\nFRIENDLY_ID=\"Pace Xi5\"\n";
@@ -188,7 +188,7 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, make)
     EXPECT_EQ(response, _T("{\"make\":\"pace\"}"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedTest, modelname)
+TEST_F(DeviceInfoJsonRpcInitializedTest, verify_modelname_returns_model_from_file)
 {
     std::ofstream file("/etc/device.properties");
     file << "MFG_NAME=Pace\nFRIENDLY_ID=\"Pace Xi5\"\n";
@@ -198,7 +198,7 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, modelname)
     EXPECT_EQ(response, _T("{\"model\":\"Pace Xi5\"}"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedTest, devicetype)
+TEST_F(DeviceInfoJsonRpcInitializedTest, verify_devicetype_returns_devicetype_from_file)
 {
     std::ofstream file("/etc/authService.conf");
     file << "deviceType=IpStb";
@@ -208,7 +208,7 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, devicetype)
     EXPECT_EQ(response, _T("{\"devicetype\":\"IpStb\"}"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedDsTest, supportedaudioports)
+TEST_F(DeviceInfoJsonRpcInitializedDsTest, verify_supportedaudioports_returns_supportedAudioPorts_array)
 {
     AudioOutputPortMock audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
@@ -224,7 +224,7 @@ TEST_F(DeviceInfoJsonRpcInitializedDsTest, supportedaudioports)
     EXPECT_EQ(response, _T("{\"supportedAudioPorts\":[\"HDMI0\"]}"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedDsTest, supportedvideodisplays)
+TEST_F(DeviceInfoJsonRpcInitializedDsTest, verify_supportedvideodisplays_returns_supportedVideoDisplays_array)
 {
     VideoOutputPortMock videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
@@ -240,7 +240,7 @@ TEST_F(DeviceInfoJsonRpcInitializedDsTest, supportedvideodisplays)
     EXPECT_EQ(response, _T("{\"supportedVideoDisplays\":[\"HDMI0\"]}"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedDsTest, hostedid)
+TEST_F(DeviceInfoJsonRpcInitializedDsTest, verify_hostedid_returns_encoded_EDID)
 {
     ON_CALL(hostImplMock, getHostEDID(::testing::_))
         .WillByDefault(::testing::Invoke(
@@ -252,7 +252,7 @@ TEST_F(DeviceInfoJsonRpcInitializedDsTest, hostedid)
     EXPECT_EQ(response, _T("{\"EDID\":\"dGVzdA==\"}"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedDsTest, defaultresolution)
+TEST_F(DeviceInfoJsonRpcInitializedDsTest, verify_defaultresolution_returns_defaultResolution)
 {
     VideoOutputPortMock videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
@@ -276,7 +276,7 @@ TEST_F(DeviceInfoJsonRpcInitializedDsTest, defaultresolution)
     EXPECT_EQ(response, _T("{\"defaultResolution\":\"1080p\"}"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedDsVideoOutputTest, supportedresolutions)
+TEST_F(DeviceInfoJsonRpcInitializedDsVideoOutputTest, verify_supportedresolutions_returns_supportedResolutions_array)
 {
     VideoOutputPortMock videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
@@ -309,7 +309,7 @@ TEST_F(DeviceInfoJsonRpcInitializedDsVideoOutputTest, supportedresolutions)
     EXPECT_EQ(response, _T("{\"supportedResolutions\":[\"1080p\"]}"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedDsVideoOutputTest, supportedhdcp)
+TEST_F(DeviceInfoJsonRpcInitializedDsVideoOutputTest, verify_supportedhdcp_returns_supportedHDCPVersion)
 {
     VideoOutputPortMock videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
@@ -327,7 +327,7 @@ TEST_F(DeviceInfoJsonRpcInitializedDsVideoOutputTest, supportedhdcp)
     EXPECT_EQ(response, _T("{\"supportedHDCPVersion\":\"2.2\"}"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedDsTest, audiocapabilities)
+TEST_F(DeviceInfoJsonRpcInitializedDsTest, verify_audiocapabilities_returns_AudioCapabilities_array)
 {
     AudioOutputPortMock audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
@@ -350,7 +350,7 @@ TEST_F(DeviceInfoJsonRpcInitializedDsTest, audiocapabilities)
     EXPECT_EQ(response, _T("{\"AudioCapabilities\":[\"ATMOS\",\"DOLBY DIGITAL\",\"DOLBY DIGITAL PLUS\",\"Dual Audio Decode\",\"DAPv2\",\"MS12\"]}"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedDsTest, ms12capabilities)
+TEST_F(DeviceInfoJsonRpcInitializedDsTest, verify_ms12capabilities_returns_MS12Capabilities_array)
 {
     AudioOutputPortMock audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
@@ -373,7 +373,7 @@ TEST_F(DeviceInfoJsonRpcInitializedDsTest, ms12capabilities)
     EXPECT_EQ(response, _T("{\"MS12Capabilities\":[\"Dolby Volume\",\"Inteligent Equalizer\",\"Dialogue Enhancer\"]}"));
 }
 
-TEST_F(DeviceInfoJsonRpcInitializedDsTest, supportedms12audioprofiles)
+TEST_F(DeviceInfoJsonRpcInitializedDsTest, verify_supportedms12audioprofiles_returns_supportedMS12AudioProfiles_array)
 {
     AudioOutputPortMock audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;

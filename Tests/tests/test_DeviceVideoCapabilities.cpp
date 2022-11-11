@@ -72,7 +72,7 @@ protected:
     }
 };
 
-TEST_F(DeviceVideoCapabilitiesDsTest, SupportedVideoDisplays)
+TEST_F(DeviceVideoCapabilitiesDsTest, verify_SupportedVideoDisplays_returns_IStringIterator)
 {
     VideoOutputPortMock videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
@@ -94,7 +94,7 @@ TEST_F(DeviceVideoCapabilitiesDsTest, SupportedVideoDisplays)
     supportedVideoDisplays->Release();
 }
 
-TEST_F(DeviceVideoCapabilitiesDsTest, HostEDID)
+TEST_F(DeviceVideoCapabilitiesDsTest, verify_HostEDID_returns_encoded_string)
 {
     string edid;
 
@@ -108,7 +108,7 @@ TEST_F(DeviceVideoCapabilitiesDsTest, HostEDID)
     EXPECT_EQ(edid, _T("dGVzdA=="));
 }
 
-TEST_F(DeviceVideoCapabilitiesDsTest, DefaultResolution_noParam)
+TEST_F(DeviceVideoCapabilitiesDsTest, verify_DefaultResolution_returns_string)
 {
     VideoOutputPortMock videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
@@ -133,7 +133,7 @@ TEST_F(DeviceVideoCapabilitiesDsTest, DefaultResolution_noParam)
     EXPECT_EQ(defaultResolution, videoPortDefaultResolution);
 }
 
-TEST_F(DeviceVideoCapabilitiesDsTest, SupportedResolutions_noParam)
+TEST_F(DeviceVideoCapabilitiesDsTest, verify_SupportedResolutions_returns_IStringIterator)
 {
     VideoOutputPortMock videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
@@ -172,7 +172,7 @@ TEST_F(DeviceVideoCapabilitiesDsTest, SupportedResolutions_noParam)
     supportedResolutions->Release();
 }
 
-TEST_F(DeviceVideoCapabilitiesDsTest, SupportedHdcp_noParam)
+TEST_F(DeviceVideoCapabilitiesDsTest, verify_SupportedHdcp_returns_enum)
 {
     VideoOutputPortMock videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
@@ -191,7 +191,7 @@ TEST_F(DeviceVideoCapabilitiesDsTest, SupportedHdcp_noParam)
     EXPECT_EQ(supportedHDCPVersion, Exchange::IDeviceVideoCapabilities::CopyProtection::HDCP_22);
 }
 
-TEST_F(DeviceVideoCapabilitiesDsTest, SupportedVideoDisplays_exception)
+TEST_F(DeviceVideoCapabilitiesDsTest, verify_SupportedVideoDisplays_returns_error_if_DS_throws)
 {
     RPC::IStringIterator* supportedVideoDisplays = nullptr;
 
@@ -205,7 +205,7 @@ TEST_F(DeviceVideoCapabilitiesDsTest, SupportedVideoDisplays_exception)
     EXPECT_EQ(supportedVideoDisplays, nullptr);
 }
 
-TEST_F(DeviceVideoCapabilitiesDsTest, HostEDID_exception)
+TEST_F(DeviceVideoCapabilitiesDsTest, verify_HostEDID_returns_error_if_DS_throws)
 {
     string edid;
 
@@ -219,7 +219,7 @@ TEST_F(DeviceVideoCapabilitiesDsTest, HostEDID_exception)
     EXPECT_EQ(edid, string());
 }
 
-TEST_F(DeviceVideoCapabilitiesDsTest, DefaultResolution_HDMI0_exception)
+TEST_F(DeviceVideoCapabilitiesDsTest, verify_DefaultResolution_returns_error_if_DS_throws)
 {
     string defaultResolution;
 
@@ -234,7 +234,7 @@ TEST_F(DeviceVideoCapabilitiesDsTest, DefaultResolution_HDMI0_exception)
     EXPECT_EQ(defaultResolution, string());
 }
 
-TEST_F(DeviceVideoCapabilitiesDsTest, SupportedResolutions_HDMI0_exception)
+TEST_F(DeviceVideoCapabilitiesDsTest, verify_SupportedResolutions_returns_error_if_DS_throws)
 {
     RPC::IStringIterator* supportedResolutions = nullptr;
 
@@ -249,7 +249,7 @@ TEST_F(DeviceVideoCapabilitiesDsTest, SupportedResolutions_HDMI0_exception)
     EXPECT_EQ(supportedResolutions, nullptr);
 }
 
-TEST_F(DeviceVideoCapabilitiesDsTest, SupportedHdcp_HDMI0_exception)
+TEST_F(DeviceVideoCapabilitiesDsTest, verify_SupportedHdcp_returns_error_if_DS_throws)
 {
     auto supportedHDCPVersion = Exchange::IDeviceVideoCapabilities::CopyProtection::HDCP_UNAVAILABLE;
 

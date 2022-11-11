@@ -115,20 +115,20 @@ protected:
     }
 };
 
-TEST_F(AVInputTest, RegisteredMethods)
+TEST_F(AVInputTest, verify_api_registered)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("numberOfInputs")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("currentVideoMode")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("contentProtected")));
 }
 
-TEST_F(AVInputTest, contentProtected)
+TEST_F(AVInputTest, verify_contentProtected_returns_true)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("contentProtected"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"isContentProtected\":true,\"success\":true}"));
 }
 
-TEST_F(AVInputDsTest, numberOfInputs)
+TEST_F(AVInputDsTest, verify_numberOfInputs_returns_number)
 {
     ON_CALL(hdmiInputImplMock, getNumberOfInputs())
         .WillByDefault(::testing::Return(1));
@@ -137,7 +137,7 @@ TEST_F(AVInputDsTest, numberOfInputs)
     EXPECT_EQ(response, string("{\"numberOfInputs\":1,\"success\":true}"));
 }
 
-TEST_F(AVInputDsTest, currentVideoMode)
+TEST_F(AVInputDsTest, verify_currentVideoMode_returns_string)
 {
     ON_CALL(hdmiInputImplMock, getCurrentVideoMode())
         .WillByDefault(::testing::Return(string("unknown")));

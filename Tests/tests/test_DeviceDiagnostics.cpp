@@ -38,13 +38,13 @@ protected:
     }
 };
 
-TEST_F(DeviceDiagnosticsTest, RegisterMethod)
+TEST_F(DeviceDiagnosticsTest, verify_api_registered)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler_.Exists(_T("getConfiguration")));
     EXPECT_EQ(Core::ERROR_NONE, handler_.Exists(_T("getAVDecoderStatus")));
 }
 
-TEST_F(DeviceDiagnosticsTest, getConfiguration)
+TEST_F(DeviceDiagnosticsTest, verify_getConfiguration_returns_data_from_http_localhost10999)
 {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     ASSERT_TRUE(sockfd != -1);
@@ -75,7 +75,7 @@ TEST_F(DeviceDiagnosticsTest, getConfiguration)
     close(sockfd);
 }
 
-TEST_F(DeviceDiagnosticsTest, getAVDecoderStatus)
+TEST_F(DeviceDiagnosticsTest, verify_getAVDecoderStatus_returns_IDLE)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("getAVDecoderStatus"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"avDecoderStatus\":\"IDLE\",\"success\":true}"));

@@ -40,7 +40,7 @@ protected:
     }
 };
 
-TEST_F(DeviceInfoTest, Make)
+TEST_F(DeviceInfoTest, verify_Make_returns_string_from_file)
 {
     std::ofstream file("/etc/device.properties");
     file << "MFG_NAME=Pace";
@@ -51,7 +51,7 @@ TEST_F(DeviceInfoTest, Make)
     EXPECT_EQ(make, _T("Pace"));
 }
 
-TEST_F(DeviceInfoTest, Model)
+TEST_F(DeviceInfoTest, verify_Model_returns_string_from_file)
 {
     std::ofstream file("/etc/device.properties");
     file << "FRIENDLY_ID=\"Pace Xi5\"";
@@ -62,7 +62,7 @@ TEST_F(DeviceInfoTest, Model)
     EXPECT_EQ(model, _T("Pace Xi5"));
 }
 
-TEST_F(DeviceInfoTest, DeviceType)
+TEST_F(DeviceInfoTest, verify_DeviceType_returns_string_from_file)
 {
     std::ofstream file("/etc/authService.conf");
     file << "deviceType=IpStb";

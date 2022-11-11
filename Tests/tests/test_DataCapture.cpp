@@ -192,41 +192,20 @@ protected:
     }
 };
 
-TEST_F(DataCaptureTest, ShouldRegisterMethod)
+TEST_F(DataCaptureTest, verify_api_registered)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler_.Exists(_T("enableAudioCapture")));
     EXPECT_EQ(Core::ERROR_NONE, handler_.Exists(_T("getAudioClip")));
 }
 
-TEST_F(DataCaptureTest, ShouldReturnErrorWhenParamsAreEmpty)
+TEST_F(DataCaptureTest, verify_api_returns_error_if_no_params)
 {
     string response;
     EXPECT_EQ(Core::ERROR_GENERAL, handler_.Invoke(connection_, _T("enableAudioCapture"), _T(""), response));
     EXPECT_EQ(Core::ERROR_GENERAL, handler_.Invoke(connection_, _T("getAudioClip"), _T(""), response));
 }
 
-TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOnAudioCapture)
-{
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call)
-        .WillByDefault(
-            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                if (strcmp(methodName, IARMBUS_AUDIOCAPTUREMGR_REQUEST_SAMPLE) == 0) {
-                    auto* param = static_cast<iarmbus_acm_arg_t*>(arg);
-                    param->result = 0;
-                }
-                return IARM_RESULT_SUCCESS;
-            });
-
-    string response;
-    EXPECT_EQ(Core::ERROR_NONE,
-        handler_.Invoke(connection_,
-            _T("getAudioClip"),
-            _T("{\"clipRequest\":{\"stream\":\"primary\",\"url\":\"https://192.168.0.1\",\"duration\":8,\"captureMode\":\"preCapture\"}}"),
-            response));
-    EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
-}
-
-TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOffAudioCapture)
+TEST_F(DataCaptureInitializedEnableAudioCaptureTest, verify_enableAudioCapture_turns_off_audio_capture)
 {
     ON_CALL(iarmBusImplMock_, IARM_Bus_Call)
         .WillByDefault(
@@ -247,7 +226,7 @@ TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOffAudioCapture)
     EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
 }
 
-TEST_F(DataCaptureInitializedEnableAudioCaptureEventTest, ShouldUploadData)
+TEST_F(DataCaptureInitializedEnableAudioCaptureEventTest, verify_getAudioClip_uploads_and_emits_onAudioClipReady)
 {
     constexpr const char dataLocator[] = "dataLocator123";
     constexpr const char owner[] = "DataCaptureTest";

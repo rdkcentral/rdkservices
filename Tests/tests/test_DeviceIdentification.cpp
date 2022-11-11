@@ -92,12 +92,12 @@ protected:
     }
 };
 
-TEST_F(DeviceIdentificationInitializedTest, RegisteredMethods)
+TEST_F(DeviceIdentificationInitializedTest, verify_api_registered)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("deviceidentification")));
 }
 
-TEST_F(DeviceIdentificationInitializedTest, deviceidentification)
+TEST_F(DeviceIdentificationInitializedTest, verify_deviceidentification_returns_data_from_service_DeviceImplementation)
 {
     EXPECT_TRUE(subSystem.Get(PluginHost::ISubSystem::IDENTIFIER) != nullptr);
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deviceidentification"), _T(""), response));

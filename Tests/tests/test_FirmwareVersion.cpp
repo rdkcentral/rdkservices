@@ -33,7 +33,7 @@ protected:
     }
 };
 
-TEST_F(FirmwareVersionTest, Imagename)
+TEST_F(FirmwareVersionTest, verify_Imagename_returns_string_from_file)
 {
     std::ofstream file("/version.txt");
     file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
@@ -44,7 +44,7 @@ TEST_F(FirmwareVersionTest, Imagename)
     EXPECT_EQ(imagename, _T("PX051AEI_VBN_2203_sprint_20220331225312sdy_NG"));
 }
 
-TEST_F(FirmwareVersionTest, Sdk)
+TEST_F(FirmwareVersionTest, verify_Sdk_returns_string_from_file)
 {
     std::ofstream file("/version.txt");
     file << "SDK_VERSION=17.3";
@@ -55,7 +55,7 @@ TEST_F(FirmwareVersionTest, Sdk)
     EXPECT_EQ(sdk, _T("17.3"));
 }
 
-TEST_F(FirmwareVersionTest, Mediarite)
+TEST_F(FirmwareVersionTest, verify_Mediarite_returns_string_from_file)
 {
     std::ofstream file("/version.txt");
     file << "MEDIARITE=8.3.53";
@@ -66,7 +66,7 @@ TEST_F(FirmwareVersionTest, Mediarite)
     EXPECT_EQ(mediarite, _T("8.3.53"));
 }
 
-TEST_F(FirmwareVersionTest, Yocto)
+TEST_F(FirmwareVersionTest, verify_Yocto_returns_string_from_file)
 {
     std::ofstream file("/version.txt");
     file << "YOCTO_VERSION=dunfell";
