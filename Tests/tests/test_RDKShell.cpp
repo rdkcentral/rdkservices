@@ -2,7 +2,6 @@
 
 #include "RDKShell.h"
 
-#include "CompositorControllerMock.h"
 
 using namespace WPEFramework;
 
