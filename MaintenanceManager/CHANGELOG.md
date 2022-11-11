@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.8] - 2022-11-08
+### Fixed
+- Use interfaces instead of JSON-RPC
+
 ## [1.0.7] - 2022-10-29
 ### Changed
 - Send maintenance mode using IARM event to download manager and added new readRFC api for reading rfc value
