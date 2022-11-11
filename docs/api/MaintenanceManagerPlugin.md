@@ -2,7 +2,7 @@
 <a name="MaintenanceManagerPlugin"></a>
 # MaintenanceManagerPlugin
 
-**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/MaintenanceManager/CHANGELOG.md)**
+**Version: [1.0.7](https://github.com/rdkcentral/rdkservices/blob/main/MaintenanceManager/CHANGELOG.md)**
 
 A org.rdk.MaintenanceManager plugin for Thunder framework.
 

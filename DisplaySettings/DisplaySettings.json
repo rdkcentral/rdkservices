@@ -951,6 +951,17 @@
         },
         "getSinkAtmosCapability":{
             "summary": "Returns the ATMOS capability of the sink (HDMI0).",
+	    "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
             "result": {
                 "type":"object",
                 "properties": {

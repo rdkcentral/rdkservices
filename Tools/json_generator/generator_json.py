@@ -2393,7 +2393,10 @@ def CreateDocument(schema, path):
             if document_type == "plugin":
                 MdParagraph(("The plugin is designed to be loaded and executed within the Thunder framework. "
                             "For more information about the framework refer to [[Thunder](#ref.Thunder)]."))
-
+            pluginInfo=interface["info"]
+            if "deprecated" in pluginInfo:
+                    referenceUrl = pluginInfo["referencePluginUrl"]
+                    MdParagraph("> This Plugin is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [{}]({})".format("Refer this link for the new plugin",referenceUrl))
         if document_type == "plugin":
             MdHeader("Configuration")
             commonConfig = OrderedDict()
