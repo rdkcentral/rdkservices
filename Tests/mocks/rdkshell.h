@@ -48,7 +48,7 @@ static uint32_t mCursorWidth;
 static uint32_t mCursorHeight;
 static bool  mIsVisible;
 static uint32_t mVirtualWidth;
-static uint32_t mVirtualHeight
+static uint32_t mVirtualHeight;
 #ifndef MODULE_NAME
 #define MODULE_NAME Interfaces
 #endif
