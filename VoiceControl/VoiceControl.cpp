@@ -6,7 +6,7 @@
 #include "UtilsIarm.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_MINOR 3
 #define API_VERSION_NUMBER_PATCH 0
 
 using namespace std;
@@ -62,6 +62,7 @@ namespace WPEFramework {
         const string VoiceControl::Initialize(PluginHost::IShell*  /* service */)
         {
             InitializeIARM();
+            getMaskPii_();
             // On success return empty, to indicate there is no error text.
             return (string());
         }
@@ -197,6 +198,15 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             response["version"] = m_apiVersionNumber;
             returnResponse(true);
+        }
+
+        void VoiceControl::getMaskPii_()
+        {
+            JsonObject params;
+            JsonObject result;
+            voiceStatus(params, result);
+            m_maskPii = result["maskPii"].Boolean();
+            LOGINFO("Mask pii set to %s.", (m_maskPii ? "True" : "False"));
         }
 
         uint32_t VoiceControl::voiceStatus(const JsonObject& parameters, JsonObject& response)
@@ -689,7 +699,7 @@ namespace WPEFramework {
 
             params.FromString(eventData->payload);
 
-            sendNotify("onServerMessage", params);
+            sendNotify_("onServerMessage", params);
         }
 
         void VoiceControl::onStreamEnd(ctrlm_voice_iarm_event_json_t* eventData)
@@ -707,7 +717,7 @@ namespace WPEFramework {
 
             params.FromString(eventData->payload);
 
-            sendNotify("onSessionEnd", params);
+            sendNotify_("onSessionEnd", params);
         }
         //End events
 
@@ -716,6 +726,18 @@ namespace WPEFramework {
         {
             LOGINFO("setting version: %d", (int)apiVersionNumber);
             m_apiVersionNumber = apiVersionNumber;
+        }
+
+        void VoiceControl::sendNotify_(const char* eventName, JsonObject parameters)
+        {
+            if(m_maskPii)
+            {
+                sendNotifyMaskParameters(eventName, parameters);
+            }
+            else
+            {
+                sendNotify(eventName, parameters);
+            }
         }
         //End local private utility methods
 

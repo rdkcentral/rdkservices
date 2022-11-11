@@ -12,7 +12,7 @@ env:
   BUILD_TYPE: Debug
 
   # Refs for stable2
-  THUNDER_REF: "R2-v1.11"
+  THUNDER_REF: "R2-v1.12"
   INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
 
 jobs:
@@ -52,7 +52,7 @@ jobs:
           key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-2
 
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
       - run: pip install jsonref
@@ -60,7 +60,7 @@ jobs:
       - name: Set up CMake
         # 3.16.x To support flow control commands to be overridden.
         # Installs in: find /opt -ipath *bin/cmake
-        uses: jwlawson/actions-setup-cmake@v1.12
+        uses: jwlawson/actions-setup-cmake@v1.13
         with:
           cmake-version: '3.16.x'
 
