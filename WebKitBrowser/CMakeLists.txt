@@ -136,6 +136,7 @@ find_package(WPEWebKit REQUIRED)
 find_package(WPEBackend REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_library(ODHERR odherr)
+find_package(Threads REQUIRED)
 if(DEFINED WEBKIT_GLIB_API)
 find_package(LibSoup REQUIRED)
 endif()
@@ -197,6 +198,7 @@ target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
         ${WPE_WEBKIT_LIBRARIES}
         ${OPENSSL_LIBRARIES}
         ${ODHERR}
+        Threads::Threads
 )
 
 if(WPE_WEBKIT_DEPRECATED_API)
