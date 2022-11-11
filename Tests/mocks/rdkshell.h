@@ -298,10 +298,19 @@ namespace RdkShell
     static const int numLogLevels = sizeof(logLevelStrings)/sizeof(logLevelStrings[0]);
    struct RdkShellEasterEggKeyDetails
     {
+	RdkShellEasterEggKeyDetails() {}
+        RdkShellEasterEggKeyDetails(uint32_t code, uint32_t modifiers, uint32_t holdTime): keyCode(code), keyModifiers(modifiers), keyHoldTime(holdTime) {}
+        uint32_t keyCode;
+        uint32_t keyModifiers;
+        uint32_t keyHoldTime;
     };
 
     struct RdkShellEasterEggDetails
     {
+	std::string id;
+        std::vector<RdkShellEasterEggKeyDetails> keySequence;
+        uint32_t duration;
+        std::string api;
     };
 
     class EasterEgg
