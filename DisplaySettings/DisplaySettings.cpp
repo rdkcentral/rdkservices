@@ -4902,7 +4902,8 @@ namespace WPEFramework {
                     message->Id = 0;
                     message->Designator = "Controller.1.activate";
                     message->Parameters = "{\"callsign\":\"org.rdk.HdmiCecSink\"}";
-                    auto resp = controller->Invoke("", ~0, *message);
+		    Core::JSONRPC::Context context(~0,0,"");
+                    auto resp = controller->Invoke(context, *message);
                     if (resp->Error.IsSet()) {
                         std::cout << "Call failed: " << message->Designator.Value() << " error: " << resp->Error.Text.Value() << "\n";
                     }
