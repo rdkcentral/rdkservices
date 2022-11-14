@@ -48,7 +48,7 @@ namespace WPEFramework {
             //Begin methods
             uint32_t setReportProfileStatus(const JsonObject& parameters, JsonObject& response);
             uint32_t logApplicationEvent(const JsonObject& parameters, JsonObject& response);
-            uint32_t uploadLogs(const JsonObject& parameters, JsonObject& response);
+            uint32_t uploadReport(const JsonObject& parameters, JsonObject& response);
             //End methods
 
         public:

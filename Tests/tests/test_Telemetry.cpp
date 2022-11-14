@@ -86,7 +86,7 @@ TEST_F(TelemetryTest, RegisteredMethods)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setReportProfileStatus")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("logApplicationEvent")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadLogs")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadReport")));
 }
 
 TEST_F(TelemetryRfcTest, InitializeDefaultProfile)
