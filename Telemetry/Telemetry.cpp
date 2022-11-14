@@ -34,7 +34,7 @@
 // Methods
 #define TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS "setReportProfileStatus"
 #define TELEMETRY_METHOD_LOG_APPLICATION_EVENT "logApplicationEvent"
-#define TELEMETRY_METHOD_UPLOAD_LOGS "uploadLogs"
+#define TELEMETRY_METHOD_UPLOAD_REPORT "uploadReport"
 
 #define TELEMETRY_METHOD_EVT_ON_REPORT_UPLOAD "onReportUpload"
 
@@ -83,7 +83,7 @@ namespace WPEFramework
 
             Register(TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS, &Telemetry::setReportProfileStatus, this);
             Register(TELEMETRY_METHOD_LOG_APPLICATION_EVENT, &Telemetry::logApplicationEvent, this);
-            Register(TELEMETRY_METHOD_UPLOAD_LOGS, &Telemetry::uploadLogs, this);
+            Register(TELEMETRY_METHOD_UPLOAD_REPORT, &Telemetry::uploadReport, this);
 
             Utils::Telemetry::init();
         }
@@ -273,7 +273,7 @@ namespace WPEFramework
         }
 
 #endif
-        uint32_t Telemetry::uploadLogs(const JsonObject& parameters, JsonObject& response)
+        uint32_t Telemetry::uploadReport(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
 #ifdef HAS_RBUS
