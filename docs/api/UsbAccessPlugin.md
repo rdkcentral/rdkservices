@@ -2,7 +2,7 @@
 <a name="UsbAccess_Plugin"></a>
 # UsbAccess Plugin
 
-**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/UsbAccess/CHANGELOG.md)**
+**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/UsbAccess/CHANGELOG.md)**
 
 A org.rdk.UsbAccess plugin for Thunder framework.
 

@@ -30,13 +30,47 @@ namespace {
     const float signalStrengthThresholdGood = -60.0f;
     const float signalStrengthThresholdFair = -67.0f;
 
+    #define BUFFER_SIZE 512
+    #define Command "wpa_cli signal_poll"
+
+    std::string retrieveValues(const char *command, char *output_buffer, size_t output_buffer_size)
+    {
+        std::string key, value;
+        std::string rssi = "";
+
+        FILE *fp = popen(command, "r");
+        if (!fp)
+        {
+            LOGERR("Failed in getting output from command %s \n",command);
+            return rssi;
+        }
+        while ((!feof(fp)) && (fgets(output_buffer, output_buffer_size, fp) != NULL))
+        {
+            std::istringstream mystream(output_buffer);
+            if(std::getline(std::getline(mystream, key, '=') >> std::ws, value))
+                if (key == "RSSI") {
+                    rssi = value;
+                    break;
+                }
+        }
+        pclose(fp);
+
+        return rssi;
+    }
+
     void getSignalData(float &signalStrengthOut, std::string &strengthOut) {
         JsonObject response;
-        WifiManager::getInstance().getConnectedSSID2(JsonObject(), response);
+        char buff[BUFFER_SIZE] = {'\0'};
+
+        string signalStrength = retrieveValues(Command, buff, sizeof (buff));
 
         signalStrengthOut = 0.0f;
-        if (response.HasLabel("signalStrength")) {
-            signalStrengthOut = std::stof(response["signalStrength"].String());
+        if (!signalStrength.empty())
+            signalStrengthOut = std::stof(signalStrength.c_str());
+        else {
+            LOGERR("signalStrength is empty\n");
+            strengthOut = "Disconnected";
+            return;
         }
 
         if (signalStrengthOut >= signalStrengthThresholdExcellent && signalStrengthOut < 0)

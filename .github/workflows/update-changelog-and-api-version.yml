@@ -2,14 +2,12 @@ name: update changelog and api version
 
 on:
   push:
-    branches: 
-      - main
-      - 'release/**'
+    branches: [ main, 'release/**' ]
+    paths-ignore: ['docs/**', 'Tests/**', 'Tools/**', '.github/**']
 
   pull_request:
-    branches: 
-      - main
-      - 'release/**'
+    branches: [ main, 'release/**' ]
+    paths-ignore: ['docs/**', 'Tests/**', 'Tools/**', '.github/**']
 
 
 jobs:
@@ -27,7 +25,7 @@ jobs:
 
       - name: Run step when a CHANGELOG.md didn't change
         uses: actions/github-script@v3
-        if: ${{ !contains(steps.changed-files.outputs.modified_files, 'CHANGELOG.md') }}
+        if: ${{ !contains(steps.changed-files.outputs.all_changed_files, 'CHANGELOG.md') }}
         with:
           script: |
               core.setFailed('CHANGELOG.md should be modified')
