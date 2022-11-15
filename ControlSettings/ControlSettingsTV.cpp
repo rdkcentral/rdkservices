@@ -2240,22 +2240,6 @@ namespace Plugin {
                 LOGWARN("Failed to Save DimmingMode to ssm_data\n");
             }
 	    
-	    // setLocalDimmingLevel
-            if ( appUsesGlobalBackLightFactor )
-            {
-                LOGINFO("Entry : SetLocalDimminglevel to %d \n",params[0]);
-                ret = UpdateEDIDAndSetDimmingLevel(params[0]);
-
-                if(ret == tvERROR_NONE) {
-                    int retval=UpdatePQParamsToCache("set","localdimminglevel","LocalDimmingLevel",PQ_PARAM_LOCALDIMMING_LEVEL,params);
-                    if(retval != 0 ) {
-                        LOGWARN("Failed to Save ldimlevel to ssm_data\n");
-                        ret = tvERROR_GENERAL;
-                    }
-                LOGINFO("Exit : SetLocalDimminglevel to %d\n",params[0]);
-                }
-            }
-
             LOGINFO("Exit : setDimmingMode successful to value: %d\n", dimmingMode);
             returnResponse(true, "success");
         }
@@ -2309,23 +2293,6 @@ namespace Plugin {
         }
         else
         {
-            if( appUsesGlobalBackLightFactor )
-            {
-                int params[3]={0};
-                params[0]=dMode;
-                LOGINFO("Entry : resetDimmingLevel to %d\n",params[0]);
-
-                ret=UpdateEDIDAndSetDimmingLevel(params[0]);
-
-                if(ret == tvERROR_NONE) {
-                    int retval=UpdatePQParamsToCache("reset","localdimminglevel","LocalDimmingLevel",PQ_PARAM_LOCALDIMMING_LEVEL,params);
-                    if(retval != 0 ) {
-                        LOGWARN("Failed to Save ldimlevel to ssm_data\n");
-                        ret = tvERROR_GENERAL;
-                    }
-                }
-                LOGINFO("Exit : resetDimmingLevel\n");
-            }
             LOGINFO("Exit : resetBacklightDimmingMode Successful to value : %s \n",dimmingMode);
             returnResponse(true, "success");
         }
