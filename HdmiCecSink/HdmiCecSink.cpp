@@ -2470,7 +2470,7 @@ namespace WPEFramework
 
 					case CECDeviceParams::REQUEST_OSD_NAME :	
 					{
-						//default OSDNmae is NA, No need to update here on request elapsed.
+						//Default OSDName is NA, No need to update here on request elapsed.
 						//_instance->deviceList[logicalAddress].update(OSDName("NA"));
 					}
 						break;
