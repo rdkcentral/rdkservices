@@ -350,7 +350,8 @@ namespace WPEFramework {
             ToMessage(parameters, message);
 
             const uint32_t channelId = ~0;
-            auto resp =  dispatcher_->Invoke(sThunderSecurityToken, channelId, *message);
+            Core::JSONRPC::Context channel;
+            auto resp =  dispatcher_->Invoke(channel, *message);
             if (resp->Error.IsSet()) {
               std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  resp->Error.Text.Value() << "\n";
               return resp->Error.Code;
@@ -642,7 +643,191 @@ namespace WPEFramework {
             return displayName;
         }
 
-        void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
+
+        void RDKShell::MonitorClients::Activated(const string& callsign, PluginHost::IShell* service)
+        {
+            if (service)
+            {
+                PluginHost::IShell::state currentState(service->State());
+
+                gExitReasonMutex.lock();
+                if ((currentState == PluginHost::IShell::DEACTIVATED) || (currentState == PluginHost::IShell::DESTROYED))
+                {
+                     gApplicationsExitReason[service->Callsign()] = AppLastExitReason::DEACTIVATED;
+                }
+                if(service->Reason() == PluginHost::IShell::FAILURE)
+                {
+                    gApplicationsExitReason[service->Callsign()] = AppLastExitReason::CRASH;
+                }
+                gExitReasonMutex.unlock();
+
+                if (currentState == PluginHost::IShell::ACTIVATION)
+                {
+                   std::string configLine = service->ConfigLine();
+                   if (configLine.empty())
+                   {
+                       return;
+                   }
+                   JsonObject serviceConfig = JsonObject(configLine.c_str());
+                   if (serviceConfig.HasLabel("clientidentifier"))
+                   {
+                       std::string clientidentifier = serviceConfig["clientidentifier"].String();
+                       if (!isClientExists(service->Callsign()))
+                       {
+                           std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(service->Callsign(), clientidentifier);
+                           gRdkShellMutex.lock();
+                           gCreateDisplayRequests.push_back(request);
+                           gRdkShellMutex.unlock();
+                           sem_wait(&request->mSemaphore);
+                       }
+                       gRdkShellMutex.lock();
+                       RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
+                       gRdkShellMutex.unlock();
+                       gPluginDataMutex.lock();
+                       std::string className = service->ClassName();
+                       PluginData pluginData;
+                       pluginData.mClassName = className;
+                       if (gActivePluginsData.find(service->Callsign()) == gActivePluginsData.end())
+                       {
+                           gActivePluginsData[service->Callsign()] = pluginData;
+                       }
+                       gPluginDataMutex.unlock();
+                   }
+                }
+                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == WPEFramework::Plugin::RDKShell::SERVICE_NAME)
+                {
+                   /*PluginHost::ISubSystem* subSystems(service->SubSystems());
+                    if (subSystems != nullptr)
+                    {
+                        subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
+                        subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
+                        subSystems->Release();
+                    }*/
+                }
+                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN)
+                {
+                    if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
+                    {
+                        // not first launch
+                        if (sResidentAppFirstActivated)
+                        {
+                            if(sFactoryAppLaunchStatus != NOTLAUNCHED)
+                            {
+                                std::cout << "deactivating resident app as factory app launch in progress or completed" << std::endl;
+                                RDKShellApiRequest apiRequest;
+                                apiRequest.mName = "deactivateresidentapp";
+                                RDKShell* rdkshellPlugin = RDKShell::_instance;
+                                rdkshellPlugin->launchRequestThread(apiRequest);
+                            }
+                        }
+                        else
+                        {
+                            sResidentAppFirstActivated = true;
+                            if (sFactoryModeStart || mShell.checkForBootupFactoryAppLaunch()) //checking once again to make sure this condition not received before factory app launch
+                            {
+                                std::cout << "deactivating resident app as factory mode on start is set" << std::endl;
+                                RDKShellApiRequest apiRequest;
+                                apiRequest.mName = "deactivateresidentapp";
+                                RDKShell* rdkshellPlugin = RDKShell::_instance;
+                                rdkshellPlugin->launchRequestThread(apiRequest);
+                                if (false == sFactoryModeStart)
+                                {
+                                  // reached scenario where persistent store loaded late and conditions matched
+                                  sFactoryModeStart = true;
+                                  JsonObject request, response;
+                                  std::cout << "about to launch factory app\n";
+                                  request["resetagingtime"] = "true";
+                                  uint32_t status = getThunderControllerClient("org.rdk.RDKShell.1")->Invoke(1, "launchFactoryApp", request, response);
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == PERSISTENT_STORE_CALLSIGN && !sPersistentStoreFirstActivated)
+                {
+                    std::cout << "persistent store activated\n";
+                    gRdkShellMutex.lock();
+                    sPersistentStoreFirstActivated = true;
+                    gRdkShellMutex.unlock();
+                }
+                else if (currentState == PluginHost::IShell::DEACTIVATION)
+                {
+                    gLaunchDestroyMutex.lock();
+                    if (gDestroyApplications.find(service->Callsign()) == gDestroyApplications.end())
+                    {
+                        gExternalDestroyApplications[service->Callsign()] = true;
+                    }
+                    gLaunchDestroyMutex.unlock();
+                    StateControlNotification* notification = nullptr;
+                    gPluginDataMutex.lock();
+                    auto notificationIt = gStateNotifications.find(service->Callsign());
+                    if (notificationIt != gStateNotifications.end())
+                    {
+                        notification = notificationIt->second;
+                        gStateNotifications.erase(notificationIt);
+                    }
+                    gPluginDataMutex.unlock();
+                    if (notification)
+                    {
+                        PluginHost::IStateControl* stateControl(service->QueryInterface<PluginHost::IStateControl>());
+                        if (stateControl != nullptr)
+                        {
+                            stateControl->Unregister(notification);
+                            stateControl->Release();
+                        }
+                        notification->Release();
+                    }
+                }
+                else if (currentState == PluginHost::IShell::DEACTIVATED)
+                {
+                    std::string configLine = service->ConfigLine();
+                    if (configLine.empty())
+                    {
+                        return;
+                    }
+                    JsonObject serviceConfig = JsonObject(configLine.c_str());
+                    if (serviceConfig.HasLabel("clientidentifier"))
+                    {
+                        std::string clientidentifier = serviceConfig["clientidentifier"].String();
+                        std::shared_ptr<KillClientRequest> request = std::make_shared<KillClientRequest>(service->Callsign());
+                        gRdkShellMutex.lock();
+                        gKillClientRequests.push_back(request);
+                        gRdkShellMutex.unlock();
+                        sem_wait(&request->mSemaphore);
+                        gRdkShellMutex.lock();
+                        RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
+                        gRdkShellMutex.unlock();
+                    }
+
+                    gPluginDataMutex.lock();
+                    std::map<std::string, PluginData>::iterator pluginToRemove = gActivePluginsData.find(service->Callsign());
+                    if (pluginToRemove != gActivePluginsData.end())
+                    {
+                        gActivePluginsData.erase(pluginToRemove);
+                    }
+                    std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(service->Callsign());
+                    if (pluginStateChangeEntry != gPluginsEventListener.end())
+                    {
+                        PluginStateChangeData* stateChangeData = pluginStateChangeEntry->second;
+                        if (nullptr != stateChangeData)
+                        {
+                            stateChangeData->resetConnection();
+                            delete stateChangeData;
+                        }
+                        pluginStateChangeEntry->second = nullptr;
+                        gPluginsEventListener.erase(pluginStateChangeEntry);
+                    }
+                    gPluginDataMutex.unlock();
+                    gLaunchDestroyMutex.lock();
+                    if (gExternalDestroyApplications.find(service->Callsign()) != gExternalDestroyApplications.end())
+                    {
+                        gExternalDestroyApplications.erase(service->Callsign());
+                    }
+                    gLaunchDestroyMutex.unlock();
+                }
+            }
+        }
+        void RDKShell::MonitorClients::Deactivated(const string& callsign, PluginHost::IShell* service)
         {
             if (service)
             {
@@ -825,6 +1010,9 @@ namespace WPEFramework {
                 }
             }
         }
+
+        void RDKShell::MonitorClients::Unavailable(const string& callsign, PluginHost::IShell* service)
+        {}
 
         bool RDKShell::ScreenCapture::Capture(ICapture::IStore& storer)
         {
