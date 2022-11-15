@@ -63,7 +63,8 @@ include_directories(../LocationSync
         ../HdmiInput
         ../HdcpProfile
         ../TraceControl
-	../WifiManager
+	      ../WifiManager
+        ../RDKShell
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -85,7 +86,8 @@ link_directories(../LocationSync
         ../HdmiInput
         ../HdcpProfile
         ../TraceControl
-	../WifiManager
+	      ../WifiManager
+        ../RDKShell
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -113,6 +115,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}HdcpProfile
         ${NAMESPACE}TraceControl
         ${NAMESPACE}WifiManager
+        ${NAMESPACE}RDKShell
         )
 
 target_include_directories(${PROJECT_NAME}

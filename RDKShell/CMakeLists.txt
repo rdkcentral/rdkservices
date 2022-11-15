@@ -43,11 +43,12 @@ endif (PLUGIN_RDKSHELL_READ_MAC_ON_STARTUP)
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${IARMBUS_INCLUDE_DIRS} )
+set_source_files_properties(RDKShell.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 set(RDKSHELL_INCLUDES $ENV{RDKSHELL_INCLUDES})
 separate_arguments(RDKSHELL_INCLUDES)
 include_directories(BEFORE ${RDKSHELL_INCLUDES})
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lrdkshell ${PLUGIN_RDKSHELL_EXTRA_LIBRARIES} trower-base64)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${PLUGIN_RDKSHELL_EXTRA_LIBRARIES})
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
