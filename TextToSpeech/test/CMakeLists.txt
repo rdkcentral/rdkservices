@@ -18,6 +18,7 @@
 set(PLUGIN_NAME TTSThunderAPITest)
 find_package(${NAMESPACE}COM REQUIRED)
 find_package(securityagent REQUIRED)
+find_package(${NAMESPACE}WebSocket REQUIRED)
 
 option(PLUGIN_SECURITY_AGENT "Enable the Security Agent Features interface in javascript." OFF)
 
@@ -34,6 +35,7 @@ target_include_directories(${PLUGIN_NAME} PRIVATE ../../helpers ../impl)
 target_link_libraries(${PLUGIN_NAME} PUBLIC ${LIBRARIES}
     PRIVATE
     ${NAMESPACE}COM::${NAMESPACE}COM
+    ${NAMESPACE}WebSocket::${NAMESPACE}WebSocket
     )
 
 install(TARGETS ${PLUGIN_NAME} DESTINATION bin)
