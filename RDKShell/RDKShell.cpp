@@ -857,8 +857,11 @@ namespace WPEFramework {
                             if(sFactoryAppLaunchStatus != NOTLAUNCHED)
                             {
                                 std::cout << "deactivating resident app as factory app launch in progress or completed" << std::endl;
+				JsonObject destroyRequest;
++                               destroyRequest["callsign"] = "ResidentApp";
                                 RDKShellApiRequest apiRequest;
-                                apiRequest.mName = "deactivateresidentapp";
+				apiRequest.mName = "destroy";
++                               apiRequest.mRequest = destroyRequest;
                                 RDKShell* rdkshellPlugin = RDKShell::_instance;
                                 rdkshellPlugin->launchRequestThread(apiRequest);
                             }
@@ -869,8 +872,11 @@ namespace WPEFramework {
                             if (sFactoryModeStart || mShell.checkForBootupFactoryAppLaunch()) //checking once again to make sure this condition not received before factory app launch
                             {
                                 std::cout << "deactivating resident app as factory mode on start is set" << std::endl;
+				JsonObject destroyRequest;
+                                destroyRequest["callsign"] = "ResidentApp";
                                 RDKShellApiRequest apiRequest;
-                                apiRequest.mName = "deactivateresidentapp";
+				apiRequest.mName = "destroy";
+				apiRequest.mRequest = destroyRequest;
                                 RDKShell* rdkshellPlugin = RDKShell::_instance;
                                 rdkshellPlugin->launchRequestThread(apiRequest);
                                 if (false == sFactoryModeStart)
@@ -4078,6 +4084,7 @@ namespace WPEFramework {
             if (result)
             {
                 const string callsign = parameters["callsign"].String();
+		setVisibility(callsign, false);
                 bool isApplicationBeingLaunched = false;
 		gLaunchDestroyMutex.lock();
                 if (gLaunchApplications.find(callsign) != gLaunchApplications.end())
