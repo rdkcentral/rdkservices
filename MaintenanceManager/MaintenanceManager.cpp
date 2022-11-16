@@ -66,7 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 8
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -850,6 +850,7 @@ namespace WPEFramework {
                     LOGINFO("ENDING MAINTENANCE CYCLE");
                     if(m_thread.joinable()){
                         m_thread.join();
+                        LOGINFO("Thread joined successfully\n");
                     }
 
                     MaintenanceManager::_instance->onMaintenanceStatusChange(notify_status);
@@ -1211,6 +1212,7 @@ namespace WPEFramework {
                         * especially when device is in offline mode*/
                         if(m_thread.joinable()){
                             m_thread.join();
+                            LOGINFO("Thread joined successfully\n");
                         }
 
                         m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
@@ -1249,12 +1251,10 @@ namespace WPEFramework {
             pid_t pid_num=-1;
 
             int k_ret=EINVAL;
-            int i=0,record=-1;
-            int32_t exec_status=E_NOK;
+            int i=0;
 
             bool task_status[4]={false};
             bool result=false;
-            bool task_incomplete=false;
 
                 /* run only when the maintenance status is MAINTENANCE_STARTED */
                 m_statusMutex.lock();
@@ -1277,7 +1277,6 @@ namespace WPEFramework {
                         LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
                     for (i=0;i<4;i++){
                         if(task_status[i]){
-                            record = i;
                             LOGINFO("Checking the Task PID\n");
                             pid_num=getTaskPID(script_names[i].c_str());
                             LOGINFO("PID of script_name [%d] = %s is %d \n", i,script_names[i].c_str(),pid_num);
@@ -1287,7 +1286,7 @@ namespace WPEFramework {
                                 if (k_ret == 0){
                                     LOGINFO(" %s Termimated\n",script_names[i].c_str());
                                     /*this means we killed the task currently running */
-                                    task_incomplete = true;
+                                    m_task_map[task_names_foreground[i].c_str()]=false;
                                 }
                                 else{
                                     LOGINFO("Failed to terminate with error %s - %d \n",script_names[i].c_str(),k_ret);
@@ -1305,25 +1304,6 @@ namespace WPEFramework {
                         }
                     }
 
-                    /* if we still didnt get the pid but we still know which task is running */
-                    if ( !task_incomplete ){
-
-                        char cmd[128] = {'\0'};
-                        if (Utils::fileExists("/lib/rdk/maintenanceTrapEventNotifier.sh")){
-                            /* send the arg to the trap notifier */
-                            snprintf(cmd, 127, "/lib/rdk/maintenanceTrapEventNotifier.sh %i &", record);
-                            exec_status=system(cmd);
-                            if ( E_OK == exec_status ){
-                                LOGINFO("DBG:Succesfully executed maintenanceTrapEventNotifier.sh \n");
-                            }
-                            else{
-                                LOGERR("Failed to execute maintenanceTrapEventNotifier.sh \n");
-                            }
-                        }
-                        else {
-                            LOGINFO("Failed to locate maintenanceTrapEventNotifier.sh \n");
-                        }
-                    }
                     result=true;
                 }
                 else {
@@ -1333,8 +1313,11 @@ namespace WPEFramework {
 
                 if(m_thread.joinable()){
                     m_thread.join();
+                    LOGINFO("Thread joined successfully\n");
                 }
 		m_statusMutex.unlock();
+
+                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 return result;
         }
 
