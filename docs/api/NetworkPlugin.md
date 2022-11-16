@@ -743,8 +743,8 @@ Sets the default interface. The call fails if the interface is not enabled.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onInterfaceStatusChanged](#onInterfaceStatusChanged) | Triggered when device’s default interface changed. |
-| [onConnectionStatusChanged](#onConnectionStatusChanged) | Triggered when interface’s status changes to enabled/disabled. |
+| [onInterfaceStatusChanged](#onInterfaceStatusChanged) | Triggered when deviceâ€™s default interface changed. |
+| [onConnectionStatusChanged](#onConnectionStatusChanged) | Triggered when interfaceâ€™s status changes to enabled/disabled. |
 | [onIPAddressStatusChanged](#onIPAddressStatusChanged) | Triggered when the device connects to router. |
 | [onDefaultInterfaceChanged](#onDefaultInterfaceChanged) | Triggered when each IP address is lost or acquired. |
 ### Parameters
@@ -799,7 +799,7 @@ Enables the specified interface.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onInterfaceStatusChanged](#onInterfaceStatusChanged) | Triggered when interface’s status changes to enabled/disabled. |
+| [onInterfaceStatusChanged](#onInterfaceStatusChanged) | Triggered when interfaceâ€™s status changes to enabled/disabled. |
 ### Parameters
 
 | Name | Type | Description |
