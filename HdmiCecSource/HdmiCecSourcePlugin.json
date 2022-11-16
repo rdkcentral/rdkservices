@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "HdmiCecSourcePlugin",
+      "callsign": "org.rdk.HdmiCecSource",
+      "locator": "libWPEFrameworkHdmiCecSource.so",
+      "status": "production",
+      "description": "The `HdmiCecSource` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. The HdmiCecSource plugin is meant to be used on the source devices where an application relies on the Thunder plugin to handle protocol related messaging. The plugin also provides API's and events to implement the CEC use cases."
+    },
+    "interface": {
+      "$ref": "HdmiCecSource.json#"
+    }
+}
