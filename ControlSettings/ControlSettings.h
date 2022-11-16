@@ -37,7 +37,6 @@
 #include "tvSettings.h"
 #include <pthread.h>
 #include "Module.h"
-#include "utils.h"
 #include "tvTypes.h"
 #include "tvError.h"
 

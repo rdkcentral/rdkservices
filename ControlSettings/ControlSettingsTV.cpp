@@ -228,7 +228,6 @@ namespace Plugin {
         std::string format;
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int backlight = 0,err = 0;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -249,10 +248,10 @@ namespace Plugin {
         if( err == 0 ) {
             response["backlight"] = std::to_string(backlight);
             LOGINFO("Exit : Backlight Value: %d \n", backlight);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -270,7 +269,6 @@ namespace Plugin {
         range["To"] = 100;
         backlightObj["Range"] = range;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int backlight = 0,err = 0;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -291,10 +289,10 @@ namespace Plugin {
             backlightObj["Setting"] = std::to_string(backlight);
             response["Backlight"] = backlightObj;
             LOGINFO("Exit : Backlight Value: %d \n", backlight);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -307,11 +305,10 @@ namespace Plugin {
         std::string source;
         std::string format;
         int backlight = 0;
-        int userScaleBacklight = 0;
         tvError_t ret  = tvERROR_NONE;
 
         value = parameters.HasLabel("backlight") ? parameters["backlight"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"backlight");
         backlight = std::stoi(value);
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -329,11 +326,11 @@ namespace Plugin {
         ret = SetBacklight(backlight,pqmode.c_str(),format.c_str(),source.c_str(),true);
         if(ret != tvERROR_NONE) {
             LOGWARN("Failed to set backlight\n");
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             LOGINFO("Exit : setBacklight successful to value: %d\n",backlight);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
 
     }
@@ -380,7 +377,7 @@ namespace Plugin {
 	int retval= UpdatePQParamsToCache("reset","Backlight",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_BACKLIGHT,params);
         if(retval != 0 ) {
             LOGWARN("Failed to reset Backlight\n");
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
         else {
             GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
@@ -395,12 +392,12 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : resetBacklight Successful to value : %d \n",backlight);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
 
     }
@@ -414,7 +411,6 @@ namespace Plugin {
         std::string format;
 	std::string key;
 	int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int brightness = 0;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -434,10 +430,10 @@ namespace Plugin {
         if( err == 0 ) {
             response["brightness"] = std::to_string(brightness);
             LOGINFO("Exit : Brightness Value: %d \n", brightness);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -450,7 +446,6 @@ namespace Plugin {
         std::string format;
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int brightness = 0;
         JsonObject range;
         JsonObject brightnessObj;
@@ -476,10 +471,10 @@ namespace Plugin {
             brightnessObj["Setting"] = std::to_string(brightness);
             response["Brightness"] = brightnessObj;
             LOGINFO("Exit : Brightness Value: %d \n", brightness);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -495,7 +490,7 @@ namespace Plugin {
 	tvError_t ret = tvERROR_NONE;
 
         value = parameters.HasLabel("brightness") ? parameters["brightness"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"brightness");
         brightness = stoi(value);
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -519,7 +514,7 @@ namespace Plugin {
 
 	if(ret != tvERROR_NONE) {
             LOGWARN("Failed to set Brightness\n");
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             int params[3]={0};
@@ -529,7 +524,7 @@ namespace Plugin {
                 LOGWARN("Failed to Save Brightness to ssm_data\n");
             }
             LOGINFO("Exit : setBrightness successful to value: %d\n", brightness);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
 
     }
@@ -562,7 +557,7 @@ namespace Plugin {
         int retval= UpdatePQParamsToCache("reset","Brightness",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_BRIGHTNESS,params);
         if(retval != 0 ) {
             LOGWARN("Failed to reset Brightness\n");
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
         else {
             GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
@@ -577,12 +572,12 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : resetBrightness Successful to value : %d \n",brightness);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
 
     }
@@ -596,7 +591,6 @@ namespace Plugin {
         std::string format;
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int contrast = 0;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -616,10 +610,10 @@ namespace Plugin {
         if( err == 0 ) {
             response["contrast"] = std::to_string(contrast);
             LOGINFO("Exit : Contrast Value: %d \n", contrast);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -632,7 +626,6 @@ namespace Plugin {
         std::string format;
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int contrast = 0;
         JsonObject range;
         JsonObject contrastObj;
@@ -658,10 +651,10 @@ namespace Plugin {
             contrastObj["Setting"] = std::to_string(contrast);
             response["Contrast"] = contrastObj;
             LOGINFO("Exit : Contrast Value: %d \n", contrast);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -677,7 +670,7 @@ namespace Plugin {
 	tvError_t ret = tvERROR_NONE;
 
         value = parameters.HasLabel("contrast") ? parameters["contrast"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"contrast");
         contrast = stoi(value);
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -701,7 +694,7 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE) {
             LOGWARN("Failed to set Contrast\n");
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             int params[3]={0};
@@ -711,7 +704,7 @@ namespace Plugin {
                 LOGWARN("Failed to Save Contrast to ssm_data\n");
             }
             LOGINFO("Exit : setContrast successful to value: %d\n", contrast);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
 
     }
@@ -745,7 +738,7 @@ namespace Plugin {
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset Contrast\n");
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
         else {
             GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
@@ -760,12 +753,12 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : resetContrast Successful to value : %d \n",contrast);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
 
     }
@@ -779,7 +772,6 @@ namespace Plugin {
         std::string format;
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int saturation = 0;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -799,10 +791,10 @@ namespace Plugin {
         if( err == 0 ) {
             response["saturation"] = std::to_string(saturation);
             LOGINFO("Exit : Saturation Value: %d \n", saturation);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -815,7 +807,6 @@ namespace Plugin {
         std::string format;
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int saturation = 0;
         JsonObject range;
         JsonObject saturationObj;
@@ -841,10 +832,10 @@ namespace Plugin {
             saturationObj["Setting"] = std::to_string(saturation);
             response["Saturation"] = saturationObj;
             LOGINFO("Exit : Saturation Value: %d \n", saturation);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -860,7 +851,7 @@ namespace Plugin {
         tvError_t ret = tvERROR_NONE;
 
         value = parameters.HasLabel("saturation") ? parameters["saturation"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"saturation");
         saturation = stoi(value);
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -885,7 +876,7 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE) {
             LOGWARN("Failed to set Saturation\n");
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             int params[3]={0};
@@ -895,7 +886,7 @@ namespace Plugin {
                 LOGWARN("Failed to Save Saturation to ssm_data\n");
             }
             LOGINFO("Exit : setSaturation successful to value: %d\n", saturation);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
 
     }
@@ -929,7 +920,7 @@ namespace Plugin {
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset Saturation\n");
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
         else {
             GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
@@ -944,12 +935,12 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : resetSaturation Successful to value : %d \n",saturation);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
 
     }
@@ -963,7 +954,6 @@ namespace Plugin {
         std::string format;
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int sharpness = 0;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -983,10 +973,10 @@ namespace Plugin {
         if( err == 0 ) {
             response["sharpness"] = std::to_string(sharpness);
             LOGINFO("Exit : Sharpness Value: %d \n", sharpness);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -999,7 +989,6 @@ namespace Plugin {
         std::string format;
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int sharpness = 0;
         JsonObject range;
         JsonObject sharpnessObj;
@@ -1025,10 +1014,10 @@ namespace Plugin {
             sharpnessObj["Setting"] = std::to_string(sharpness);
             response["Sharpness"] = sharpnessObj;
             LOGINFO("Exit : Sharpness Value: %d \n", sharpness);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -1044,7 +1033,7 @@ namespace Plugin {
         tvError_t ret = tvERROR_NONE;
 
         value = parameters.HasLabel("sharpness") ? parameters["sharpness"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"sharpness");
         sharpness = stoi(value);
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -1068,7 +1057,7 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE) {
             LOGWARN("Failed to set Sharpness\n");
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             int params[3]={0};
@@ -1078,7 +1067,7 @@ namespace Plugin {
                 LOGWARN("Failed to Save Sharpness to ssm_data\n");
             }
             LOGINFO("Exit : setSharpness successful to value: %d\n", sharpness);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
 
     }
@@ -1112,7 +1101,7 @@ namespace Plugin {
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset Sharpness\n");
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
         else {
             GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
@@ -1127,12 +1116,12 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : resetSharpness Successful to value : %d \n",sharpness);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
 
     }
@@ -1146,7 +1135,6 @@ namespace Plugin {
         std::string format;
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int hue = 0;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -1166,10 +1154,10 @@ namespace Plugin {
         if( err == 0 ) {
             response["hue"] = std::to_string(hue);
             LOGINFO("Exit : Hue Value: %d \n", hue);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -1182,7 +1170,6 @@ namespace Plugin {
         std::string format;
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int hue = 0;
         JsonObject range;
         JsonObject hueObj;
@@ -1208,10 +1195,10 @@ namespace Plugin {
             hueObj["Setting"] = std::to_string(hue);
             response["Hue"] = hueObj;
             LOGINFO("Exit : Hue Value: %d \n", hue);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -1227,7 +1214,7 @@ namespace Plugin {
         tvError_t ret = tvERROR_NONE;
 
         value = parameters.HasLabel("hue") ? parameters["hue"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"hue");
         hue = stoi(value);
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -1252,7 +1239,7 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE) {
             LOGWARN("Failed to set Hue\n");
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             int params[3]={0};
@@ -1262,7 +1249,7 @@ namespace Plugin {
                 LOGWARN("Failed to Save Hue to ssm_data\n");
             }
             LOGINFO("Exit : setHue successful to value: %d\n", hue);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
 
     }
@@ -1296,7 +1283,7 @@ namespace Plugin {
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset Hue\n");
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
         else {
             GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
@@ -1311,12 +1298,12 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : resetHue Successful to value : %d \n",hue);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
 
     }
@@ -1330,7 +1317,6 @@ namespace Plugin {
         std::string format;
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int colortemp = 0;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -1376,10 +1362,10 @@ namespace Plugin {
                     break;
             }
             LOGINFO("Exit : ColorTemperature Value: %d \n", colortemp);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -1392,7 +1378,6 @@ namespace Plugin {
         std::string format;
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int colortemp = 0;
 		JsonObject ctObj;
         JsonArray ctOptions;
@@ -1444,10 +1429,10 @@ namespace Plugin {
             }
             LOGINFO("Exit : ColorTemperature Value: %d \n", colortemp);
             response["ColorTemperature"] = ctObj;
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -1463,7 +1448,7 @@ namespace Plugin {
         tvError_t ret = tvERROR_NONE;
 
         value = parameters.HasLabel("colorTemp") ? parameters["colorTemp"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"colorTemp");
         if(!value.compare("Standard")) {
             colortemp = tvColorTemp_STANDARD;
         }
@@ -1477,7 +1462,7 @@ namespace Plugin {
             colortemp = tvColorTemp_USER;
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_INVALID_PARAM));
+            returnResponse(false);
         }
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -1501,7 +1486,7 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE) {
             LOGWARN("Failed to set ColorTemperature\n");
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             int params[3]={0};
@@ -1511,7 +1496,7 @@ namespace Plugin {
                 LOGWARN("Failed to Save ColorTemperature to ssm_data\n");
             }
             LOGINFO("Exit : setColorTemperature successful to value: %d\n", colortemp);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -1544,7 +1529,7 @@ namespace Plugin {
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset ColorTemperature\n");
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
         else {
             GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
@@ -1559,12 +1544,12 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : resetColorTemperature Successful to value : %d \n",colortemp);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -1578,7 +1563,6 @@ namespace Plugin {
 	std::string cms("saturation.");
 	std::string value;
 	int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         tvDataComponentColor_t blSaturationColor;
         int saturation=0;
         JsonObject range;
@@ -1588,7 +1572,7 @@ namespace Plugin {
         saturationColorObj["Range"] = range;
 
 	value = parameters.HasLabel("color") ? parameters["color"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"color");
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -1605,7 +1589,7 @@ namespace Plugin {
         blSaturationColor =  GetComponentColorEnum(value);
         if(blSaturationColor ==tvDataColor_MAX)
         {
-            returnResponse(false, getErrorString(tvERROR_INVALID_PARAM));
+            returnResponse(false);
         }
         cms += value;
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);	
@@ -1614,17 +1598,17 @@ namespace Plugin {
             saturationColorObj["Setting"] = std::to_string(saturation);
             response["saturation"] = saturationColorObj;
             LOGINFO("Exit : Component Saturation for color: %s Value: %d\n", value.c_str(),saturation);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
 
     }
 
     uint32_t ControlSettingsTV::setComponentSaturation(const JsonObject& parameters, JsonObject& response)
     {
-        LOGINFO("Entry");
+        LOGINFO("Entry\n");
         std::string value;
         std::string pqmode;
         std::string source;
@@ -1633,16 +1617,16 @@ namespace Plugin {
         tvDataComponentColor_t blSaturationColor;
 
         value = parameters.HasLabel("saturation") ? parameters["saturation"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"saturation");
         saturation = stoi(value);
 
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"color");
 
 	blSaturationColor =  GetComponentColorEnum(value);
         if(blSaturationColor ==tvDataColor_MAX)
         {
-            returnResponse(false, getErrorString(tvERROR_INVALID_PARAM));
+            returnResponse(false);
         }
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -1660,7 +1644,7 @@ namespace Plugin {
         tvError_t ret = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_ENABLE);
         if(ret != tvERROR_NONE) {
             LOGWARN("CMS enable failed\n");
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else
         {
@@ -1677,7 +1661,7 @@ namespace Plugin {
 
         ret = SetCurrentComponentSaturation(blSaturationColor, saturation);
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             int params[3]={0};
@@ -1692,8 +1676,8 @@ namespace Plugin {
             if(retval != 0) {
                 LOGWARN("Failed to Save component saturation to ssm_data\n");
             }
-            LOGINFO("Exit : SetComponentSaturation() %s : %s\n",format,value.c_str());
-            returnResponse(true, "success");
+            LOGINFO("Exit : SetComponentSaturation() %s : %s\n",format.c_str(),value.c_str());
+            returnResponse(true);
         }
     }
 
@@ -1705,7 +1689,6 @@ namespace Plugin {
         std::string pqmode;
         std::string source;
         std::string format;
-        int sourceIndex=0,pqIndex=0,formatIndex=0,contrast=0,ret=0;
         tvError_t err = tvERROR_NONE;
 	char param[BUFFER_SIZE]={0};
 
@@ -1727,7 +1710,7 @@ namespace Plugin {
             int params[3]={0};
             params[0]=COLOR_STATE;
             params[1]=COLOR_ENABLE;
-            ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
+            int ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
             if(ret != 0) {
                 LOGWARN("Failed to Save enable flag to ssm_data\n");
             }
@@ -1748,14 +1731,14 @@ namespace Plugin {
             }
         }
 		
-		if(err != tvERROR_NONE)
+	if(err != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(err));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : resetComponentSaturation()\n");
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }    
 
@@ -1768,9 +1751,8 @@ namespace Plugin {
         std::string format;
         std::string cms("hue.");
         std::string value;
-        int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         tvDataComponentColor_t blHueColor;
+	int sourceIndex=0,pqIndex=0,formatIndex=0;
         int hue=0;
         JsonObject range;
         JsonObject hueColorObj;
@@ -1779,7 +1761,7 @@ namespace Plugin {
         hueColorObj["Range"] = range;
 
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"color");
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -1796,7 +1778,7 @@ namespace Plugin {
         blHueColor =  GetComponentColorEnum(value);
         if(blHueColor ==tvDataColor_MAX)
         {
-            returnResponse(false, getErrorString(tvERROR_INVALID_PARAM));
+            returnResponse(false);
         }
         cms += value;
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
@@ -1805,10 +1787,10 @@ namespace Plugin {
             hueColorObj["Setting"] = std::to_string(hue);
             response["hue"] = hueColorObj;
             LOGINFO("Exit : Component Hue for color: %s Value: %d\n", value.c_str(),hue);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -1824,16 +1806,16 @@ namespace Plugin {
         tvDataComponentColor_t blHueColor;
 
         value = parameters.HasLabel("hue") ? parameters["hue"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"hue");
         hue = stoi(value);
 
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"color");
 
         blHueColor =  GetComponentColorEnum(value);
         if(blHueColor ==tvDataColor_MAX)
         {
-            returnResponse(false, getErrorString(tvERROR_INVALID_PARAM));
+            returnResponse(false);
         }
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -1851,7 +1833,7 @@ namespace Plugin {
         tvError_t ret = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_ENABLE);
         if(ret != tvERROR_NONE) {
             LOGWARN("CMS enable failed\n");
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else
         {
@@ -1868,7 +1850,7 @@ namespace Plugin {
 
         ret = SetCurrentComponentHue(blHueColor, hue);
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             int params[3]={0};
@@ -1883,8 +1865,8 @@ namespace Plugin {
             if(retval != 0) {
                 LOGWARN("Failed to Save component hue to ssm_data\n");
             }
-            LOGINFO("Exit : SetComponentHue() %s : %s\n",format,value.c_str());
-            returnResponse(true, "success");
+            LOGINFO("Exit : SetComponentHue() %s : %s\n",format.c_str(),value.c_str());
+            returnResponse(true);
         }
     }
 
@@ -1896,7 +1878,6 @@ namespace Plugin {
         std::string pqmode;
         std::string source;
         std::string format;
-        int sourceIndex=0,pqIndex=0,formatIndex=0,contrast=0,ret=0;
         tvError_t err = tvERROR_NONE;
         char param[BUFFER_SIZE]={0};
 
@@ -1918,7 +1899,7 @@ namespace Plugin {
             int params[3]={0};
             params[0]=COLOR_STATE;
             params[1]=COLOR_ENABLE;
-            ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
+            int ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
             if(ret != 0) {
                 LOGWARN("Failed to Save enable flag to ssm_data\n");
             }
@@ -1941,12 +1922,12 @@ namespace Plugin {
 
         if(err != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(err));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : resetComponentHue()\n");
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -1960,7 +1941,6 @@ namespace Plugin {
         std::string cms("luma.");
         std::string value;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         tvDataComponentColor_t blLumaColor;
         int luma=0;
         JsonObject range;
@@ -1970,7 +1950,7 @@ namespace Plugin {
         lumaColorObj["Range"] = range;
 
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"color");
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -1987,7 +1967,7 @@ namespace Plugin {
         blLumaColor =  GetComponentColorEnum(value);
         if(blLumaColor ==tvDataColor_MAX)
         {
-            returnResponse(false, getErrorString(tvERROR_INVALID_PARAM));
+            returnResponse(false);
         }
         cms += value;
 	GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
@@ -1996,10 +1976,10 @@ namespace Plugin {
             lumaColorObj["Setting"] = std::to_string(luma);
             response["luma"] = lumaColorObj;
             LOGINFO("Exit : Component Luma for color: %s Value: %d\n", value.c_str(),luma);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
     
@@ -2014,16 +1994,16 @@ namespace Plugin {
         tvDataComponentColor_t blLumaColor;
 
         value = parameters.HasLabel("luma") ? parameters["luma"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"luma");
         luma = stoi(value);
 
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"color");
 
         blLumaColor =  GetComponentColorEnum(value);
         if(blLumaColor ==tvDataColor_MAX)
         {
-            returnResponse(false, getErrorString(tvERROR_INVALID_PARAM));
+            returnResponse(false);
         }
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -2041,7 +2021,7 @@ namespace Plugin {
         tvError_t ret = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_ENABLE);
         if(ret != tvERROR_NONE) {
             LOGWARN("CMS enable failed\n");
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else
         {
@@ -2058,7 +2038,7 @@ namespace Plugin {
 
         ret = SetCurrentComponentLuma(blLumaColor, luma);
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             int params[3]={0};
@@ -2074,7 +2054,7 @@ namespace Plugin {
                 LOGWARN("Failed to Save component luma to ssm_data\n");
             }
             LOGINFO("Exit : SetComponentLuma() %s : %d\n",value.c_str(),params[2]);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2086,7 +2066,6 @@ namespace Plugin {
         std::string pqmode;
         std::string source;
         std::string format;
-        int sourceIndex=0,pqIndex=0,formatIndex=0,contrast=0,ret=0;
         tvError_t err = tvERROR_NONE;
         char param[BUFFER_SIZE]={0};
 
@@ -2108,7 +2087,7 @@ namespace Plugin {
             int params[3]={0};
             params[0]=COLOR_STATE;
             params[1]=COLOR_ENABLE;
-            ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
+            int ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
             if(ret != 0) {
                 LOGWARN("Failed to Save enable flag to ssm_data\n");
             }
@@ -2131,12 +2110,12 @@ namespace Plugin {
 
         if(err != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(err));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : resetComponentLuma()\n");
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2149,7 +2128,6 @@ namespace Plugin {
         std::string format;
 	std::string key;
 	int sourceIndex=0,pqIndex=0,formatIndex=0;
-        tvError_t ret = tvERROR_NONE;
         int dimmingMode = 0;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -2185,10 +2163,10 @@ namespace Plugin {
                 
             }
             LOGINFO("Exit : DimmingMode Value: %d \n", dimmingMode);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
     }
 
@@ -2204,7 +2182,7 @@ namespace Plugin {
 	tvError_t ret = tvERROR_NONE;
 
         value = parameters.HasLabel("DimmingMode") ? parameters["DimmingMode"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"DimmingMode");
 
         dimmingMode = GetDimmingModeIndex(value.c_str());
 
@@ -2230,7 +2208,7 @@ namespace Plugin {
 
 	if(ret != tvERROR_NONE) {
             LOGWARN("Failed to set DimmingMode\n");
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             int params[3]={0};
@@ -2241,7 +2219,7 @@ namespace Plugin {
             }
 	    
             LOGINFO("Exit : setDimmingMode successful to value: %d\n", dimmingMode);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2273,7 +2251,7 @@ namespace Plugin {
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset ldim\n");
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
         else {
             GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
@@ -2289,12 +2267,12 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else
         {
-            LOGINFO("Exit : resetBacklightDimmingMode Successful to value : %s \n",dimmingMode);
-            returnResponse(true, "success");
+            LOGINFO("Exit : resetBacklightDimmingMode Successful to value : %s \n",dimmingMode.c_str());
+            returnResponse(true);
         }
     }
 
@@ -2321,7 +2299,7 @@ namespace Plugin {
         if(ret != tvERROR_NONE) {
             response["mode"] = "none";
             response["supportedModes"] = supportedBLModes;
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
 	else {
             switch(blMode) {
@@ -2353,7 +2331,7 @@ namespace Plugin {
             }
 
             response["supportedModes"] = supportedBLModes;
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2364,7 +2342,7 @@ namespace Plugin {
         tvBacklightMode_t blMode = tvBacklightMode_NONE;
 
         value = parameters.HasLabel("mode") ? parameters["mode"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"mode");
 
         if(!value.compare("none")) {
             blMode = tvBacklightMode_NONE;
@@ -2379,14 +2357,14 @@ namespace Plugin {
             blMode = tvBacklightMode_ECO;
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_INVALID_PARAM));
+            returnResponse(false);
         }
 
 
         tvError_t ret = SetCurrentBacklightMode(blMode);
 
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
@@ -2397,7 +2375,7 @@ namespace Plugin {
                 LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
             }
             LOGINFO("Exit : value :%s\n",value.c_str());
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2453,11 +2431,11 @@ namespace Plugin {
         }
 	if(ret != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else
         {
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2469,7 +2447,7 @@ namespace Plugin {
         unsigned short totalAvailable = 0;
         tvError_t ret = GetTVSupportedDVModes(&dvModes,&totalAvailable);
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             JsonArray SupportedDVModes;
@@ -2481,7 +2459,7 @@ namespace Plugin {
 
             response["SupportedDVModes"] = SupportedDVModes;
             LOGINFO("Exit\n");
-            returnResponse(true, "success");
+            returnResponse(true);
         }
 
     }
@@ -2493,14 +2471,14 @@ namespace Plugin {
 
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM, &param);
         if (err!= tr181Success) {
-            returnResponse(false,getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
         else {
             std::string s;
             s+=param.value;
             response["DolbyVisionMode"] = s;
             LOGINFO("Exit getDolbyVisionMode(): %s\n",s.c_str());
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2513,7 +2491,7 @@ namespace Plugin {
         std::string format;
 
 	value = parameters.HasLabel("DolbyVisionMode") ? parameters["DolbyVisionMode"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"DolbyVisionMode");
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -2531,7 +2509,7 @@ namespace Plugin {
         tvError_t ret = SetTVDolbyVisionMode(value.c_str());
 
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             int params[3]={0};
@@ -2549,7 +2527,7 @@ namespace Plugin {
             }
 
             LOGINFO("Exit\n");
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2560,7 +2538,6 @@ namespace Plugin {
         std::string pqmode;
         std::string source;
         std::string format;
-        int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -2614,12 +2591,12 @@ namespace Plugin {
         }
         if(ret != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : resetDolbyVisionMode() \n");
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2632,7 +2609,7 @@ namespace Plugin {
         unsigned short totalAvailable = 0;
         tvError_t ret = GetTVSupportedHDR10Modes(&hdr10Modes,&totalAvailable);
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             JsonArray SupportedHDR10Modes;
@@ -2644,7 +2621,7 @@ namespace Plugin {
 
             response["SupportedHDR10Modes"] = SupportedHDR10Modes;
             LOGINFO("Exit\n");
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2656,8 +2633,8 @@ namespace Plugin {
         std::string source;
         std::string format;
 
-        value = parameters.HasLabel("DolbyVisionMode") ? parameters["DolbyVisionMode"].String() : "";
-        returnIfParamNotFound(value);
+        value = parameters.HasLabel("HDR10Mode") ? parameters["HDR10Mode"].String() : "";
+        returnIfParamNotFound(parameters,"HDR10Mode");
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -2674,7 +2651,7 @@ namespace Plugin {
         tvError_t ret = SetTVHDR10Mode(value.c_str());
 
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             int params[3]={0};
@@ -2692,7 +2669,7 @@ namespace Plugin {
             }
 
             LOGINFO("Exit\n");
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2704,14 +2681,14 @@ namespace Plugin {
 
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_HDR10MODE_RFC_PARAM, &param);
         if (err!= tr181Success) {
-            returnResponse(false,getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
         else {
             std::string s;
             s+=param.value;
             response["HDR10Mode"] = s;
             LOGINFO("Exit getHDR10Mode(): %s\n",s.c_str());
-            returnResponse(true, "success");
+            returnResponse(true);
         }
 
     }
@@ -2723,7 +2700,6 @@ namespace Plugin {
         std::string pqmode;
         std::string source;
         std::string format;
-        int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -2777,12 +2753,12 @@ namespace Plugin {
         }
         if(ret != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : %s \n",__FUNCTION__);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2793,7 +2769,7 @@ namespace Plugin {
         unsigned short totalAvailable = 0;
         tvError_t ret = GetTVSupportedHLGModes(&hlgModes,&totalAvailable);
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             JsonArray SupportedHLGModes;
@@ -2805,7 +2781,7 @@ namespace Plugin {
 
             response["SupportedHLGModes"] = SupportedHLGModes;
             LOGINFO("Exit\n");
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2816,14 +2792,14 @@ namespace Plugin {
 
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_HLGMODE_RFC_PARAM, &param);
         if (err!= tr181Success) {
-            returnResponse(false,getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
         else {
             std::string s;
             s+=param.value;
             response["HLGMode"] = s;
             LOGINFO("Exit getHLGMode(): %s\n",s.c_str());
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2836,7 +2812,7 @@ namespace Plugin {
         std::string format;
 
         value = parameters.HasLabel("HLGMode") ? parameters["HLGMode"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"HLGMode");
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -2853,7 +2829,7 @@ namespace Plugin {
         tvError_t ret = SetTVHLGMode(value.c_str());
 
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             int params[3]={0};
@@ -2871,7 +2847,7 @@ namespace Plugin {
             }
 
             LOGINFO("Exit\n");
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2882,7 +2858,6 @@ namespace Plugin {
         std::string pqmode;
         std::string source;
         std::string format;
-        int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -2936,12 +2911,12 @@ namespace Plugin {
         }
         if(ret != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : %s \n",__FUNCTION__);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -2999,7 +2974,7 @@ namespace Plugin {
         offset["max"] = std::string(wbInfo.wbOffset[1]);
         supportedWBCtrlInfo[wbInfo.wbControls[1]] = offset;
         response["supportedWBCtrlInfo"] = supportedWBCtrlInfo;
-        returnResponse(true, "success");
+        returnResponse(true);
     }
 
     uint32_t ControlSettingsTV::getWBCtrl(const JsonObject& parameters,JsonObject& response)
@@ -3047,18 +3022,18 @@ namespace Plugin {
                 tvError_t ret = getWBctrl (const_cast <char *> (inputSrc.c_str()), const_cast <char *> (colorTemp.c_str()), const_cast <char *> (color.c_str()), const_cast <char *> (ctrl.c_str()), &value);
                 if(ret != tvERROR_NONE) {
                     LOGWARN("getWBCtrl failed");
-                    returnResponse(false, getErrorString(ret).c_str());
+                    returnResponse(false);
                 } else {
                     LOGINFO("Exit : getWBCtrl success");
                     response["value"] = value;
-                    returnResponse(true, "success");
+                    returnResponse(true);
                 }
 
             } else {
-                returnResponse(false, "wrong selector value");
+                returnResponse(false);
             }
         } else {
-            returnResponse(false, "Missing Parameter");
+            returnResponse(false);
         }
     }
 
@@ -3108,7 +3083,7 @@ namespace Plugin {
                 tvError_t ret = setWBctrl (const_cast <char *> (inputSrc.c_str()),const_cast <char *> (colorTemp.c_str()), const_cast <char *> (color.c_str()), const_cast <char *> (ctrl.c_str()), value);
                 if(ret != tvERROR_NONE) {
                     LOGWARN("setWBCtrl failed");
-                    returnResponse(false, getErrorString(ret).c_str());
+                    returnResponse(false);
                 } else {
                     //set it to local cache
                     std::string identifier = TVSETTINGS_GENERIC_STRING_RFC_PARAM;
@@ -3121,14 +3096,15 @@ namespace Plugin {
                         LOGINFO("setLocalParam for %s Successful, Value: %d\n", identifier.c_str(), value);
                     }
                     LOGINFO("Exit : setWBCtrl success");
-                    returnResponse(true, "success");
+                    returnResponse(true);
                 }
             } else {
-                returnResponse(false, "color temp or input not available");
+                returnResponse(false);
             }
         }
         else{
-            returnResponse(false,"not valid parameter");
+            LOGINFO("Not a  valid parameter\n");
+            returnResponse(false);
         }
     }
 
@@ -3154,12 +3130,12 @@ namespace Plugin {
         }
         if(ret != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : Successfully reset user WB Entries \n");
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -3170,7 +3146,7 @@ namespace Plugin {
         unsigned short totalAvailable = 0;
         tvError_t ret = GetTVSupportedPictureModes(&pictureModes,&totalAvailable);
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             JsonArray SupportedPicModes;
@@ -3183,7 +3159,7 @@ namespace Plugin {
 
             response["SupportedPicmodes"] = SupportedPicModes;
             LOGINFO("Exit\n");
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -3194,14 +3170,14 @@ namespace Plugin {
         std::string picturemode;
         tvError_t ret = GetTVPictureMode(mode);
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             std::string s;
             s+=mode;
             response["pictureMode"] = s;
 	    LOGINFO("Exit : getPictureMode() : %s\n",s.c_str());
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -3211,12 +3187,12 @@ namespace Plugin {
         std::string value;
 
         value = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"pictureMode");
 
         tvError_t ret = SetTVPictureMode(value.c_str());
 
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
@@ -3227,7 +3203,7 @@ namespace Plugin {
                 LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
             }
             LOGINFO("Exit : Value : %s \n",value.c_str());
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -3239,7 +3215,7 @@ namespace Plugin {
         err = clearLocalParam(rfc_caller_id, TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM);
         if ( err != tr181Success ) {
             LOGWARN("clearLocalParam for %s Failed : %s\n", TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM, getTR181ErrorString(err));
-            returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+            returnResponse(false);
         }
         else {
             TR181_ParamData_t param = {0};
@@ -3251,16 +3227,16 @@ namespace Plugin {
                 tvError_t ret = SetTVPictureMode(param.value);
                 if(ret != tvERROR_NONE) {
                     LOGWARN("Picture Mode set failed: %s\n",getErrorString(ret).c_str());
-                    returnResponse(false, getErrorString(ret).c_str());
+                    returnResponse(false);
                 }
                 else {
                     LOGINFO("Exit : Picture Mode reset successfully, value: %s\n", param.value);
-                    returnResponse(true, "success");
+                    returnResponse(true);
                 }
             }
             else {
                 LOGWARN("getLocalParam for %s failed\n", TVSETTINGS_PICTUREMODE_STRING_RFC_PARAM);
-                returnResponse(false, getErrorString(tvERROR_GENERAL).c_str());
+                returnResponse(false);
             }
         }
     }
@@ -3281,15 +3257,15 @@ namespace Plugin {
             ret = enableWBmode(mode);
             if(ret != tvERROR_NONE) {
                 LOGERR("enableWBmode failed\n");
-                returnResponse(false, getErrorString(ret).c_str());
+                returnResponse(false);
             }
             else{
                 LOGINFO("enableWBmode successful... \n");
-                returnResponse(true, "Success");
+                returnResponse(true);
             }
 
         } else {
-            returnResponse(false, "Parameter missing");
+            returnResponse(false);
         }
     }
 
@@ -3322,11 +3298,11 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE) {
            LOGWARN("Failed to set BacklightFade \n");
-           returnResponse(false, getErrorString(ret).c_str());
+           returnResponse(false);
         }
         else {
            LOGINFO("Exit : backlightFade Success \n");
-           returnResponse(true, "success");
+           returnResponse(true);
         }
     }
 }//namespace Plugin

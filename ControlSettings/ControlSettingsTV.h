@@ -30,12 +30,13 @@
 #include "tvError.h"
 #include "tvTypes.h"
 #include "tr181api.h"
-#include "utils.h"
 #include "ControlSettingsCommon.h"
 #include "libIARM.h"
 #include "libIBusDaemon.h"
 #include "libIBus.h"
 #include "iarmUtil.h"
+#include "UtilsLogging.h"
+#include "UtilsJsonRpc.h"
 
 namespace WPEFramework {
 namespace Plugin {

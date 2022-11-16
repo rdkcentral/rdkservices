@@ -29,19 +29,6 @@ uint32_t method(const JsonObject& parameters, JsonObject& response);
 #define PLUGIN_Lock(lock) pthread_mutex_lock(&lock)
 #define PLUGIN_Unlock(lock) pthread_mutex_unlock(&lock)
 
-#define returnResponse(return_status, error_log) \
-    {response["success"] = return_status; \
-    if(!return_status) \
-    response["error_message"] = _T(error_log); \
-    return (Core::ERROR_NONE);}
-
-#define returnIfParamNotFound(param)\
-    if(param.empty())\
-    {\
-        LOGERR("missing parameter %s\n",#param);\
-        returnResponse(false,"missing parameter");\
-    }
-
 #define IARM_CHECK(FUNC) \
   if ((res = FUNC) != IARM_RESULT_SUCCESS) { \
     LOGINFO("IARM %s: %s", #FUNC, \
@@ -52,27 +39,5 @@ uint32_t method(const JsonObject& parameters, JsonObject& response);
   } else { \
     LOGINFO("IARM %s: success", #FUNC); \
   }
-
-
-static pthread_mutex_t Lock = PTHREAD_MUTEX_INITIALIZER;
-
-
-static std::string getErrorString (tvError_t eReturn)
-    {
-        switch (eReturn)
-        {
-            case tvERROR_NONE:
-                return "API SUCCESS";
-            case tvERROR_GENERAL:
-                return "API FAILED";
-            case tvERROR_OPERATION_NOT_SUPPORTED:
-                return "OPERATION NOT SUPPORTED ERROR";
-            case tvERROR_INVALID_PARAM:
-                return "INVALID PARAM ERROR";
-            case tvERROR_INVALID_STATE:
-                return "INVALID STATE ERROR";
-        }
-        return "UNKNOWN ERROR";
-    }
 
 #endif

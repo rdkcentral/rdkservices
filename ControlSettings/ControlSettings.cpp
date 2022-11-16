@@ -453,12 +453,12 @@ namespace Plugin {
         response["supportedVideoFormat"] = getSupportedVideoFormat();
         if(ret != tvERROR_NONE) {
             response["currentVideoFormat"] = "NONE";
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             response["currentVideoFormat"] = getVideoFormatTypeToString(videoFormat);
             LOGINFO("Exit: getVideoFormat :%d   success \n",videoFormat);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -479,12 +479,12 @@ namespace Plugin {
         response["supportedVideoResolution"] = getSupportedVideoResolution();
         if(ret != tvERROR_NONE) {
             response["currentVideoResolution"] = "NONE";
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else {
             response["currentVideoResolution"] = getVideoResolutionTypeToString(videoResolution);
             LOGINFO("Exit: getVideoResolution :%d   success \n",videoResolution.resolutionValue);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -504,12 +504,12 @@ namespace Plugin {
         response["supportedFrameRate"] = getSupportedVideoFrameRate();
         if(ret != tvERROR_NONE) {
             response["currentVideoFrameRate"] = "NONE";
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else {
             response["currentVideoFrameRate"] = getVideoFrameRateTypeToString(videoFramerate);
             LOGINFO("Exit: videoFramerate :%d   success \n",videoFramerate);
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -526,7 +526,7 @@ namespace Plugin {
 
 
         value = parameters.HasLabel("aspectRatio") ? parameters["aspectRatio"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"aspectRatio");
 
 	pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -559,14 +559,14 @@ namespace Plugin {
             mode = tvDisplayMode_ZOOM;
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_INVALID_PARAM));
+            returnResponse(false);
         }
 
 	m_videoZoomMode = mode;
         tvError_t ret = setAspectRatioZoomSettings (mode);
 
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             //Save DisplayMode to localstore and ssm_data
@@ -586,7 +586,7 @@ namespace Plugin {
                 LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM, value.c_str());
             }
             LOGINFO("Exit : SetAspectRatio2() value : %s\n",value.c_str());
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -601,7 +601,7 @@ namespace Plugin {
 
 
         value = parameters.HasLabel("aspectRatio") ? parameters["aspectRatio"].String() : "";
-        returnIfParamNotFound(value);
+        returnIfParamNotFound(parameters,"aspectRatio");
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -614,9 +614,6 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
-
-        value = parameters.HasLabel("aspectRatio") ? parameters["aspectRatio"].String() : "";
-        returnIfParamNotFound(value);
 
         if(!value.compare("TV 16X9 STRETCH")) {
             mode = tvDisplayMode_16x9;
@@ -637,13 +634,13 @@ namespace Plugin {
             mode = tvDisplayMode_ZOOM;
         }
         else {
-            returnResponse(false, getErrorString(tvERROR_INVALID_PARAM));
+            returnResponse(false);
         }
         m_videoZoomMode = mode;
         tvError_t ret = setAspectRatioZoomSettings (mode);
 
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             //Save DisplayMode to localstore and ssm_data
@@ -663,7 +660,7 @@ namespace Plugin {
                 LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM, value.c_str());
             }
             LOGINFO("Exit : SetAspectRatio2() value : %s\n",value.c_str());
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -682,7 +679,7 @@ namespace Plugin {
         tvError_t ret = getUserSelectedAspectRatio (&mode);
 
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             switch(mode) {
@@ -722,7 +719,7 @@ namespace Plugin {
                     break;
             }
 	    response["AspectRatio"] = dispModeObj;
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -741,7 +738,7 @@ namespace Plugin {
         tvError_t ret = getUserSelectedAspectRatio (&mode);
 
         if(ret != tvERROR_NONE) {
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
         else {
             switch(mode) {
@@ -781,7 +778,7 @@ namespace Plugin {
                     break;
             }
             response["AspectRatio"] = dispModeObj;
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
@@ -858,12 +855,12 @@ namespace Plugin {
         }
         if(ret != tvERROR_NONE)
         {
-            returnResponse(false, getErrorString(ret));
+            returnResponse(false);
         }
         else
         {
             LOGINFO("Exit : resetDefaultAspectRatio()\n");
-            returnResponse(true, "success");
+            returnResponse(true);
         }
     }
 
