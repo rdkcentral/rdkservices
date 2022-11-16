@@ -1437,7 +1437,9 @@ namespace WPEFramework
 
 		LOGWARN("PING for  0x%x \r\n",idev);
 		try {
-			_instance->smConnection->ping(logicalAddress, LogicalAddress(idev), Throw_e());
+			if (logicalAddress.toInt() != idev) {
+				_instance->smConnection->ping(logicalAddress, LogicalAddress(idev), Throw_e());
+			}
 		}
 		catch(CECNoAckException &e)
 		{

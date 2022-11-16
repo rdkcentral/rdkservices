@@ -851,7 +851,7 @@ namespace WPEFramework
 		returnResponse(success);
 	}
 
-	bool HdmiCec::pingDeviceUpdateList (int idev)
+	bool HdmiCec::pingDeviceUpdateList (unsigned int idev)
 	{
 		bool isConnected = false;
 		if(!HdmiCec::_instance)
@@ -867,7 +867,9 @@ namespace WPEFramework
 
 		LOGWARN("PING for  0x%x \r\n",idev);
 		try {
-			_instance->smConnection->ping(LogicalAddress(_instance->logicalAddress), LogicalAddress(idev), Throw_e());
+			if (_instance->logicalAddress != idev) {
+				_instance->smConnection->ping(LogicalAddress(_instance->logicalAddress), LogicalAddress(idev), Throw_e());
+			}
 		}
 		catch(CECNoAckException &e)
 		{
@@ -1028,7 +1030,7 @@ namespace WPEFramework
 		if(!(_instance->smConnection))
 			return;
 		LOGINFO("Entering ThreadRun: _instance->m_pollThreadExit %d",_instance->m_pollThreadExit);
-		int i = 0;
+		unsigned int i = 0;
 		pthread_mutex_lock(&(_instance->m_lock));//pthread_cond_wait should be mutex protected. //pthread_cond_wait will unlock the mutex and perfoms wait for the condition.
 		while (!_instance->m_pollThreadExit) {
 			bool isActivateUpdateThread = false;

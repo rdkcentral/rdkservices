@@ -198,7 +198,7 @@ namespace WPEFramework {
             void setName(std::string name);
             std::string getName();
             JsonObject getCECAddresses();
-            bool pingDeviceUpdateList (int idev);
+            bool pingDeviceUpdateList (unsigned int idev);
             void removeAllCecDevices();
             void requestVendorID(const int newDevlogicalAddress);
             void requestOsdName(const int newDevlogicalAddress);
