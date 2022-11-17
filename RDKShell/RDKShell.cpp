@@ -350,7 +350,8 @@ namespace WPEFramework {
             ToMessage(parameters, message);
 
             const uint32_t channelId = ~0;
-            auto resp =  dispatcher_->Invoke(sThunderSecurityToken, channelId, *message);
+            Core::JSONRPC::Context context(channelId, message->Id.Value(), sThunderSecurityToken) ;
+            auto resp =  dispatcher_->Invoke(context, *message);
             if (resp->Error.IsSet()) {
               std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  resp->Error.Text.Value() << "\n";
               return resp->Error.Code;
@@ -796,7 +797,7 @@ namespace WPEFramework {
                         RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
                         gRdkShellMutex.unlock();
                     }
-                    
+
                     gPluginDataMutex.lock();
                     std::map<std::string, PluginData>::iterator pluginToRemove = gActivePluginsData.find(service->Callsign());
                     if (pluginToRemove != gActivePluginsData.end())
@@ -825,6 +826,17 @@ namespace WPEFramework {
                 }
             }
         }
+        void RDKShell::MonitorClients::Activated(const string& callsign, PluginHost::IShell* service)
+        {
+            StateChange(service);
+        }
+        void RDKShell::MonitorClients::Deactivated(const string& callsign, PluginHost::IShell* service)
+        {
+            StateChange(service);
+        }
+
+        void RDKShell::MonitorClients::Unavailable(const string& callsign, PluginHost::IShell* service)
+        {}
 
         bool RDKShell::ScreenCapture::Capture(ICapture::IStore& storer)
         {
