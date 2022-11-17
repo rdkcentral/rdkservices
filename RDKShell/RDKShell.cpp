@@ -858,10 +858,10 @@ namespace WPEFramework {
                             {
                                 std::cout << "deactivating resident app as factory app launch in progress or completed" << std::endl;
 				JsonObject destroyRequest;
-+                               destroyRequest["callsign"] = "ResidentApp";
+                                destroyRequest["callsign"] = "ResidentApp";
                                 RDKShellApiRequest apiRequest;
 				apiRequest.mName = "destroy";
-+                               apiRequest.mRequest = destroyRequest;
+                                apiRequest.mRequest = destroyRequest;
                                 RDKShell* rdkshellPlugin = RDKShell::_instance;
                                 rdkshellPlugin->launchRequestThread(apiRequest);
                             }
