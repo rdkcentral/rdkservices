@@ -1,10 +1,10 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="HdmiCec_2Plugin"></a>
-# HdmiCec_2Plugin
+<a name="HdmiCecSourcePlugin"></a>
+# HdmiCecSourcePlugin
 
-**Version: [1.0.3](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCec_2/CHANGELOG.md)**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCecSource/CHANGELOG.md)**
 
-A org.rdk.HdmiCec_2 plugin for Thunder framework.
+A org.rdk.HdmiCecSource plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -22,7 +22,7 @@ A org.rdk.HdmiCec_2 plugin for Thunder framework.
 <a name="Description"></a>
 # Description
 
-The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. The HdmiCec_2 plugin is meant to be used on the source devices where an application relies on the Thunder plugin to handle protocol related messaging. The plugin also provides API's and events to implement the CEC use cases.
+The `HdmiCecSource` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. The HdmiCecSource plugin is meant to be used on the source devices where an application relies on the Thunder plugin to handle protocol related messaging. The plugin also provides API's and events to implement the CEC use cases.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
@@ -33,17 +33,17 @@ The table below lists configuration options of the plugin.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| callsign | string | Plugin instance name (default: *org.rdk.HdmiCec_2*) |
-| classname | string | Class name: *org.rdk.HdmiCec_2* |
-| locator | string | Library name: *libWPEFrameworkHdmiCec_2.so* |
+| callsign | string | Plugin instance name (default: *org.rdk.HdmiCecSource*) |
+| classname | string | Class name: *org.rdk.HdmiCecSource* |
+| locator | string | Library name: *libWPEFrameworkHdmiCecSource.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
 <a name="Methods"></a>
 # Methods
 
-The following methods are provided by the org.rdk.HdmiCec_2 plugin:
+The following methods are provided by the org.rdk.HdmiCecSource plugin:
 
-HdmiCec_2 interface methods:
+HdmiCecSource interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
@@ -93,7 +93,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.getActiveSourceStatus",
+    "method": "org.rdk.HdmiCecSource.getActiveSourceStatus",
     "params": {
         "status": true
     }
@@ -146,7 +146,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.getDeviceList"
+    "method": "org.rdk.HdmiCecSource.getDeviceList"
 }
 ```
 
@@ -199,7 +199,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.getEnabled"
+    "method": "org.rdk.HdmiCecSource.getEnabled"
 }
 ```
 
@@ -245,7 +245,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.getOSDName"
+    "method": "org.rdk.HdmiCecSource.getOSDName"
 }
 ```
 
@@ -291,7 +291,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.getOTPEnabled"
+    "method": "org.rdk.HdmiCecSource.getOTPEnabled"
 }
 ```
 
@@ -337,7 +337,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.getVendorId"
+    "method": "org.rdk.HdmiCecSource.getVendorId"
 }
 ```
 
@@ -382,7 +382,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.performOTPAction"
+    "method": "org.rdk.HdmiCecSource.performOTPAction"
 }
 ```
 
@@ -434,7 +434,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.sendKeyPressEvent",
+    "method": "org.rdk.HdmiCecSource.sendKeyPressEvent",
     "params": {
         "logicalAddress": 0,
         "keyCode": 65
@@ -482,7 +482,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.sendStandbyMessage"
+    "method": "org.rdk.HdmiCecSource.sendStandbyMessage"
 }
 ```
 
@@ -529,7 +529,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.setEnabled",
+    "method": "org.rdk.HdmiCecSource.setEnabled",
     "params": {
         "enabled": false
     }
@@ -579,7 +579,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.setOSDName",
+    "method": "org.rdk.HdmiCecSource.setOSDName",
     "params": {
         "name": "Sky TV"
     }
@@ -629,7 +629,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.setOTPEnabled",
+    "method": "org.rdk.HdmiCecSource.setOTPEnabled",
     "params": {
         "enabled": false
     }
@@ -679,7 +679,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.HdmiCec_2.setVendorId",
+    "method": "org.rdk.HdmiCecSource.setVendorId",
     "params": {
         "vendorid": "0x0019FB"
     }
@@ -703,9 +703,9 @@ No Events
 
 Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
-The following events are provided by the org.rdk.HdmiCec_2 plugin:
+The following events are provided by the org.rdk.HdmiCecSource plugin:
 
-HdmiCec_2 interface events:
+HdmiCecSource interface events:
 
 | Event | Description |
 | :-------- | :-------- |

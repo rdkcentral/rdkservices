@@ -16,13 +16,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.1.0] - 2022-10-21
+## [1.0.0]
 ### Added
-- Added uploadReport call (triggers processing and uploading of telemetry report for legacy Xconf based configuration)
-
-## [1.0.0] - 2022-05-11
-### Added
-- Add CHANGELOG
+- Renaming Hdmicec_2 to HdmiCecSource and initializing the HdmiCecSource plugin.
 
 ### Change
 - Reset API version to 1.0.0
