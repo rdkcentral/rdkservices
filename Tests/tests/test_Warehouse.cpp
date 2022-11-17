@@ -504,13 +504,6 @@ TEST_F(WarehouseResetDeviceFailureTest, UserFactoryResetDeviceFailurePwrMgr2RFCE
     plugin->m_isPwrMgr2RFCEnabled = false;
 }
 
-TEST_F(WarehouseInitializedTest, setFrontPanelState)
-{
-    //Invoke setFrontPanelState - Should return error since HAS_FRONT_PANEL is not defined
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFrontPanelState"), _T("{\"state\":1}"), response));
-    EXPECT_EQ(response, _T("{\"success\":false,\"error\":\"unsupported\"}"));
-}
-
 TEST_F(WarehouseInitializedTest, internalResetFailPassPhrase)
 {
     //Invoke internalReset - No pass phrase
