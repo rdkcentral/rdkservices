@@ -1826,9 +1826,11 @@ namespace WPEFramework {
 
             if(!capabilities)hdrCapabilities.Add("none");
             if(capabilities & dsHDRSTANDARD_HDR10)hdrCapabilities.Add("HDR10");
+            if(capabilities & dsHDRSTANDARD_HDR10PLUS)hdrCapabilities.Add("HDR10PLUS");
 	    if(capabilities & dsHDRSTANDARD_HLG)hdrCapabilities.Add("HLG");
             if(capabilities & dsHDRSTANDARD_DolbyVision)hdrCapabilities.Add("Dolby Vision");
             if(capabilities & dsHDRSTANDARD_TechnicolorPrime)hdrCapabilities.Add("Technicolor Prime");
+            if(capabilities & dsHDRSTANDARD_SDR)hdrCapabilities.Add("SDR");
 
             if(capabilities)
             {
@@ -1871,9 +1873,11 @@ namespace WPEFramework {
 
             if(!capabilities)hdrCapabilities.Add("none");
             if(capabilities & dsHDRSTANDARD_HDR10)hdrCapabilities.Add("HDR10");
+            if(capabilities & dsHDRSTANDARD_HDR10PLUS)hdrCapabilities.Add("HDR10PLUS");
 	    if(capabilities & dsHDRSTANDARD_HLG)hdrCapabilities.Add("HLG");
             if(capabilities & dsHDRSTANDARD_DolbyVision)hdrCapabilities.Add("Dolby Vision");
             if(capabilities & dsHDRSTANDARD_TechnicolorPrime)hdrCapabilities.Add("Technicolor Prime");
+            if(capabilities & dsHDRSTANDARD_SDR)hdrCapabilities.Add("SDR");
 
             if(capabilities)
             {
@@ -5586,11 +5590,12 @@ namespace WPEFramework {
                 return videoFormats;
             }
 
-            videoFormats.Add("SDR");
             if(capabilities & dsHDRSTANDARD_HDR10)videoFormats.Add("HDR10");
             if(capabilities & dsHDRSTANDARD_HLG)videoFormats.Add("HLG");
             if(capabilities & dsHDRSTANDARD_DolbyVision)videoFormats.Add("DV");
             if(capabilities & dsHDRSTANDARD_TechnicolorPrime)videoFormats.Add("Technicolor Prime");
+            if(capabilities & dsHDRSTANDARD_HDR10PLUS)videoFormats.Add("HDR10PLUS");
+            if(capabilities & dsHDRSTANDARD_SDR)videoFormats.Add("SDR");
             for (uint32_t i = 0; i < videoFormats.Length(); i++)
             {
                LOGINFO("capabilities: %s", videoFormats[i].String().c_str());
@@ -5603,13 +5608,17 @@ namespace WPEFramework {
             const char *strValue = "NONE";
             switch (format)
             {
-                case dsHDRSTANDARD_NONE:
+                case dsHDRSTANDARD_SDR:
                     LOGINFO("Video Format: SDR\n");
                     strValue = "SDR";
                     break;
                 case dsHDRSTANDARD_HDR10:
                     LOGINFO("Video Format: HDR10\n");
                     strValue = "HDR10";
+                    break;
+                case dsHDRSTANDARD_HDR10PLUS:
+                    LOGINFO("Video Format: HDR10PLUS\n");
+                    strValue = "HDR10PLUS";
                     break;
                 case dsHDRSTANDARD_HLG:
                     LOGINFO("Video Format: HLG\n");
@@ -5634,10 +5643,14 @@ namespace WPEFramework {
 	dsHDRStandard_t DisplaySettings::getVideoFormatTypeFromString(const char *strFormat)
         {
            dsHDRStandard_t mode = dsHDRSTANDARD_NONE;
-            if(strcmp(strFormat,"SDR")== 0 || strcmp(strFormat,"NONE")== 0 )
+            if(strcmp(strFormat,"SDR")== 0 )
+                    mode = dsHDRSTANDARD_SDR;
+            else if(strcmp(strFormat,"NONE")== 0)
                     mode = dsHDRSTANDARD_NONE;
             else if(strcmp(strFormat,"HDR10")== 0)
                     mode = dsHDRSTANDARD_HDR10;
+            else if(strcmp(strFormat,"HDR10PLUS")== 0)
+                    mode = dsHDRSTANDARD_HDR10PLUS;
             else if(strcmp(strFormat,"DV")== 0)
                     mode = dsHDRSTANDARD_DolbyVision;
             else if(strcmp(strFormat,"HLG")== 0)
