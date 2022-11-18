@@ -34,10 +34,11 @@ namespace {
 
         auto auth = service->QueryInterfaceByCallsign<WPEFramework::PluginHost::IAuthenticate>("SecurityAgent");
         if (auth != nullptr) {
+            auto payload = "{\"url\":\"" + token + "\"}";
             string encoded;
             if (auth->CreateToken(
-                    static_cast<uint16_t>(token.length()),
-                    reinterpret_cast<const uint8_t *>(token.c_str()),
+                    static_cast<uint16_t>(payload.length()),
+                    reinterpret_cast<const uint8_t *>(payload.c_str()),
                     encoded) == WPEFramework::Core::ERROR_NONE) {
                 WPEFramework::PluginHost::ISecurity *officer = auth->Officer(encoded);
                 if (officer != nullptr) {
@@ -45,8 +46,10 @@ namespace {
                     message.Designator = designator;
 
                     result = officer->Allowed(message);
+                    officer->Release();
                 }
             }
+            auth->Release();
         }
 
         return result;
