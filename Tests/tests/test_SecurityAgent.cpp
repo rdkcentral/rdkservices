@@ -28,8 +28,7 @@
 using namespace WPEFramework;
 
 namespace {
-const string payload = _T("http://localhost");
-const string tokenPrefix = _T("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aHR0cDovL2xvY2FsaG9zdA.");
+const string payload = _T("{\"url\":\"http://localhost\"}");
 const string envEndPoint = _T("SECURITYAGENT_PATH");
 const string expectedEndPoint = _T("/tmp/token");
 const string callSign = _T("SecurityAgent");
@@ -112,9 +111,7 @@ TEST_F(SecurityAgentInitializedTest, validate)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("validate")));
     EXPECT_EQ(Core::ERROR_NONE, plugin->CreateToken(static_cast<uint16_t>(payload.length()), reinterpret_cast<const uint8_t*>(payload.c_str()), token));
-
-    EXPECT_EQ(0, token.rfind(tokenPrefix, 0));
-
+    EXPECT_THAT(token, ::testing::MatchesRegex(_T("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\\..+")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("validate"), "{\"token\":\"" + token + "\"}", response));
     EXPECT_EQ(response, _T("{\"valid\":true}"));
 }
@@ -138,8 +135,7 @@ TEST_F(SecurityAgentInitializedTest, rpcCom)
     ASSERT_TRUE(interface != nullptr);
 
     EXPECT_EQ(Core::ERROR_NONE, interface->CreateToken(static_cast<uint16_t>(payload.length()), reinterpret_cast<const uint8_t*>(payload.c_str()), token));
-
-    EXPECT_EQ(0, token.rfind(tokenPrefix, 0));
+    EXPECT_THAT(token, ::testing::MatchesRegex(_T("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\\..+")));
 
     interface->Release();
 
