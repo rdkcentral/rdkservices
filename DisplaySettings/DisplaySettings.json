@@ -33,7 +33,7 @@
             "type": "array",
             "items": {
                 "type": "string",
-                "example": "`SDR`, `HDR10`, `HLG`, `DV`, `Technicolor Prime`"
+                "example": "`SDR`, `HDR10`, `HDR10PLUS`, `HLG`, `DV`, `Technicolor Prime`"
             }
         },
         "currentAudioFormat": {
@@ -141,7 +141,7 @@
             "example":"STEREO"
         },
         "standards": {
-            "summary": "A string [] of HDR capabilities. Possible values: `none`, `HDR10`, `Dolby Vision`, `Technicolor Prime`",
+            "summary": "A string [] of HDR capabilities. Possible values: `none`, `HDR10`, `HDR10PLUS`, `Dolby Vision`, `Technicolor Prime`, `SDR`",
             "type": "array",
             "items": {
                 "type": "string",
@@ -418,7 +418,7 @@
                         "example": 0
                     },
                     "videoEOTF": {
-                        "summary": "HDR standard. Possible values: `0x0` (dsHDRSTANDARD_NONE), `0x01` (dsHDRSTANDARD_HDR10), `0x02` (dsHDRSTANDARD_HLG), `0x04` (dsHDRSTANDARD_DolbyVision), `0x08` (dsHDRSTANDARD_TechnicolorPrime), `0x80` (dsHDRSTANDARD_Invalid)",
+                        "summary": "HDR standard. Possible values: `0x0` (dsHDRSTANDARD_NONE), `0x01` (dsHDRSTANDARD_HDR10), `0x02` (dsHDRSTANDARD_HLG), `0x04` (dsHDRSTANDARD_DolbyVision), `0x08` (dsHDRSTANDARD_TechnicolorPrime), `0x10` (dsHDRSTANDARD_HDR10PLUS), `0x20` (dsHDRSTANDARD_SDR), `0x80` (dsHDRSTANDARD_Invalid)",
                         "type": "integer",
                         "example": 0
                     },
@@ -1283,7 +1283,7 @@
             }
         },
         "getTVHDRCapabilities":{
-            "summary": "Gets HDR capabilities supported by the TV. The following values (OR-ed value) are possible:  \n* 0 - HDRSTANDARD_NONE  \n* 1 - HDRSTANDARD_HDR10  \n* 2 - HDRSTANDARD_HLG  \n* 4 - HDRSTANDARD_DolbyVision  \n* 8 - HDRSTANDARD_TechnicolorPrime.",
+            "summary": "Gets HDR capabilities supported by the TV. The following values (OR-ed value) are possible:  \n* 0x0 - HDRSTANDARD_NONE  \n* 0x1 - HDRSTANDARD_HDR10  \n* 0x2 - HDRSTANDARD_HLG  \n* 0x4 - HDRSTANDARD_DolbyVision  \n* 0x8 - HDRSTANDARD_TechnicolorPrime. \n* 0x10 - HDRSTANDARD_HDR10PLUS  \n* 0x20 - HDRSTANDARD_SDR",
             "result": {
                 "type":"object",
                 "properties": {

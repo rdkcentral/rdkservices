@@ -46,6 +46,8 @@ namespace JavaScript {
                     uint8_t buffer[2 * 1024];
 
                     std::string url = WebKit::Utils::GetURL();
+                    //Formatting the url string to json for creating token
+                    url = "{\"url\":\"" + url + "\"}";
 
                     std::string tokenAsString;
                     if (url.length() < sizeof(buffer)) {

@@ -156,6 +156,10 @@ if(PLUGIN_HDMICEC2)
     add_subdirectory(HdmiCec_2)
 endif()
 
+if(PLUGIN_HDMICECSOURCE)
+    add_subdirectory(HdmiCecSource)
+endif()
+
 if(PLUGIN_HDMICECSINK)
     add_subdirectory(HdmiCecSink)
 endif()
