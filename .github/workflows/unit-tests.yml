@@ -13,7 +13,7 @@ env:
 
   # Refs for 22Q4_sprint
   THUNDER_REF: "R2-v1.12"
-  INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
+  INTERFACES_REF: "a909d66b31125d8cf20eda4b681f82fcc5f0deb1"
 
 jobs:
   unit-tests:
@@ -154,7 +154,9 @@ jobs:
           headers/rdk/iarmbus
           headers/rdk/iarmmgrs-hal
           headers/ccec/drivers
-          headers/network &&
+          headers/network
+          headers/rdkshell
+          headers/interfaces &&
           cd headers &&
           touch
           audiocapturemgr/audiocapturemgr_iarm.h
@@ -191,6 +193,15 @@ jobs:
           rfcapi.h
           rbus.h
           telemetry_busmessage_sender.h
+          rdkshell/rdkshellevents.h
+          rdkshell/rdkshell.h
+          rdkshell/compositorcontroller.h
+          rdkshell/logger.h
+          rdkshell/eastereggs.h
+          rdkshell/application.h
+          rdkshell/linuxkeys.h
+          rdk_logger_milestone.h
+          base64.h
 
       - name: Configure rdkservices
         run: >
@@ -207,6 +218,7 @@ jobs:
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmmgrs-hal
           -I ${{github.workspace}}/rdkservices/Tests/headers/ccec/drivers
           -I ${{github.workspace}}/rdkservices/Tests/headers/network
+          -I ${{github.workspace}}/rdkservices/Tests/headers/rdkshell
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/FrameBuffer.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Iarm.h
@@ -214,7 +226,8 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
-          --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/rdkshell.h
+          --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wno-unused-variable -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
           -DUSE_IARMBUS
           -DENABLE_SYSTEM_GET_STORE_DEMO_LINK
@@ -226,6 +239,7 @@ jobs:
           -DHAS_API_POWERSTATE
           -DENABLE_DEVICE_MANUFACTURER_INFO"
           -DCOMCAST_CONFIG=OFF
+          -DRDKSHELL_TEST_MODE=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
@@ -253,6 +267,7 @@ jobs:
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_TRACECONTROL=ON
           -DPLUGIN_WIFIMANAGER=ON
+          -DPLUGIN_RDKSHELL=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build rdkservices
