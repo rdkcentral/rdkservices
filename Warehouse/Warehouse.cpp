@@ -185,6 +185,8 @@ namespace WPEFramework
 
         void Warehouse::Deinitialize(PluginHost::IShell* /* service */)
         {
+            if (m_resetThread.get().joinable())
+                m_resetThread.get().join();
             Warehouse::_instance = nullptr;
             DeinitializeIARM();
             LOGWARN ("Warehouse::Deinitialize finished line:%d", __LINE__);
