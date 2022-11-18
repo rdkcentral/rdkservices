@@ -1007,6 +1007,7 @@ namespace device{
 		virtual std::string getName() const = 0;
 		virtual std::string getColorName() const = 0;
 		virtual void setState(const bool &enable) const = 0;
+		virtual void setColor() const = 0;
 		
         };
         class FrontPanelIndicator{
@@ -1073,7 +1074,6 @@ namespace device{
                 {
 			
                        return impl->setBrightness(brightness, persist);
-		       return;
                 }
 		void setBrightness(const int brightness)
                 {
@@ -1091,11 +1091,11 @@ namespace device{
                         return impl->setState(enable);
                 }
 		void setColor(Color color, bool persist){
-			return;
+			return impl->setColor();
 			
 		}
 		void setColor(Color color){
-                 	return;
+                 	return impl->setColor();
 			
  		}
 		std::string getName() const{

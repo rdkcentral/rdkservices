@@ -189,6 +189,8 @@ TEST_F(FrontPanelTest, RegisteredMethods)
 
 TEST_F(FrontPanelDsTest, setBrightnessWIndex)
 {
+    ON_CALL(frontPanelTextDisplayImplStringMock, setBrightness(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Return());
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBrightness"), _T("{\"brightness\": 1,\"index\": \"power_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
@@ -259,6 +261,9 @@ TEST_F(FrontPanelDsTest, getClockBrightness)
 
 TEST_F(FrontPanelDsTest, setClockBrightness)
 {
+    ON_CALL(frontPanelTextDisplayImplStringMock, setTextBrightness(::testing::_))
+        .WillByDefault(::testing::Return());
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setClockBrightness"), _T("{\"brightness\": 1}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
@@ -372,6 +377,9 @@ TEST_F(FrontPanelDsTest, is24HourClock)
 
 TEST_F(FrontPanelDsTest, powerLedOffPower)
 {
+    ON_CALL(frontPanelTextDisplayImplStringMock, setTextBrightness(::testing::_))
+        .WillByDefault(::testing::Return());
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("powerLedOff"), _T("{\"index\": \"power_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
@@ -499,7 +507,8 @@ TEST_F(FrontPanelDsTest, setClockTestPattern)
 
 TEST_F(FrontPanelDsTest, setLED)
 {
-
+    ON_CALL(frontPanelTextDisplayImplStringMock, setColor())
+        .WillByDefault(::testing::Return());
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setLED"), _T("{\"ledIndicator\": \"power_led\", \"brightness\": 50, \"color\": \"red\", \"red\": 0, \"green\": 0, \"blue\":0}"), response));
 
         EXPECT_EQ(response, string("{\"success\":true}"));

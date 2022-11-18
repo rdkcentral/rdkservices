@@ -23,6 +23,7 @@ public:
     MOCK_METHOD(int,getBrightness, (), (const, override));
     MOCK_METHOD(std::string,getColorName, (), (const, override));
     MOCK_METHOD(void,setState, (const bool &enable), (const, override));
+    MOCK_METHOD(void,setColor, (), (const, override));
 
 };
 
