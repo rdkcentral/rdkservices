@@ -99,6 +99,7 @@ namespace WPEFramework
         {
         public:
             static CFrontPanel* instance();
+	    void Deinitialize();
             bool start();
             bool stop();
             std::string getLastError();
@@ -142,11 +143,15 @@ namespace WPEFramework
 
             std::string lastError_;
             FrontPanelHelper* mFrontPanelHelper;
+	    ~CFrontPanel(){}
         };
-
+	
         class FrontPanelHelper
         {
-            void setRemoteLedState(bool state);
+	    private: 
+            		void setRemoteLedState(bool state);
+	    public:
+			virtual ~FrontPanelHelper() = default;
         };
 
     } // namespace Plugin

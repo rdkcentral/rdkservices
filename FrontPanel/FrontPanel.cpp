@@ -208,6 +208,7 @@ namespace WPEFramework
 
         void FrontPanel::Deinitialize(PluginHost::IShell* /* service */)
         {
+	    CFrontPanel::instance()->Deinitialize();
             FrontPanel::_instance = nullptr;
 
             {
