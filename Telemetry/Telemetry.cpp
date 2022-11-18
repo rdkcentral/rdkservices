@@ -256,11 +256,15 @@ namespace WPEFramework
                 else
                 {
                     LOGERR("No 'UPLOAD_STATUS' value");
+                    Telemetry::_instance->onReportUploadStatus("No 'UPLOAD_STATUS' value");
                 }
             }
             else
             {
-                LOGERR("Call failed with %d error", error);
+                std::stringstream str;
+                str << "Call failed with " << error << " error"; 
+                LOGERR("%s", str.str().c_str());
+                Telemetry::_instance->onReportUploadStatus(str.str().c_str());
             }
         }
 
