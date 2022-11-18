@@ -63,6 +63,10 @@
         },
         "uploadReport": {
             "summary": "Triggers processing and uploading of telemetry report for legacy Xconf based configuration",
+            "events": {
+                "onReportUpload" : "Triggered by callback from Telemetry after report uploading"
+            },
+
             "result": {
                 "$ref": "#/common/results/void"
             },
@@ -80,6 +84,24 @@
                     "$ref": "#/common/errors/notexist"
                 }
             ]
+        }
+    },
+    "events":{
+        "onReportUpload": {
+            "summary": "Triggered by callback from Telemetry after report uploading",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "telemetryUploadStatus":{
+                        "summary": "Indicates if the upload was successful",
+                        "type": "string",
+                        "example": "UPLOAD_SUCCESS"
+                    }
+                },
+                "required": [
+                    "telemetryUploadStatus"
+                ]
+            }
         }
     }
 }
