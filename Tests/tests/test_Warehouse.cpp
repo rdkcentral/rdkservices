@@ -223,19 +223,21 @@ TEST_F(WarehouseResetDeviceTest, WarehouseClearResetDevice)
 
 TEST_F(WarehouseInitializedTest, WarehouseClearResetDeviceNoResponse)
 {
+    Core::Event resetCallRxed(false, true);
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .Times(1)
         .WillOnce(
-            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+            [&](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
                 EXPECT_EQ(string(methodName), string(IARM_BUS_PWRMGR_API_WareHouseClear));
+                resetCallRxed.SetEvent();
                 return IARM_RESULT_SUCCESS;
             });
 
     //reset: suppress reboot: true, type: WAREHOUSE_CLEAR, Expect no response
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true,\"resetType\":\"WAREHOUSE_CLEAR\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    usleep(10 * 1000);  //Wait for reset thread to finish
+    EXPECT_EQ(Core::ERROR_NONE, resetCallRxed.Lock());
 }
 
 TEST_F(WarehouseResetDeviceTest, GenericResetDevice)
@@ -257,19 +259,21 @@ TEST_F(WarehouseResetDeviceTest, GenericResetDevice)
 
 TEST_F(WarehouseInitializedTest, GenericResetDeviceNoResponse)
 {
+    Core::Event resetCallRxed(false, true);
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .Times(1)
         .WillOnce(
-            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+            [&](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
                 EXPECT_EQ(string(methodName), string(IARM_BUS_PWRMGR_API_WareHouseReset));
+                resetCallRxed.SetEvent();
                 return IARM_RESULT_SUCCESS;
             });
 
     //reset: suppress reboot: true - This doesn't generate any event (Expect no response)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    usleep(10 * 1000);  //Wait for reset thread to finish
+    EXPECT_EQ(Core::ERROR_NONE, resetCallRxed.Lock());
 }
 
 class WarehouseResetDeviceFailureTest : public WarehouseEventTest {
@@ -416,6 +420,7 @@ TEST_F(WarehouseResetDeviceTest, WarehouseClearResetDevicePwrMgr2RFCEnabled)
 
 TEST_F(WarehouseInitializedTest, WarehouseClearResetDeviceNoResponsePwrMgr2RFCEnabled)
 {
+    Core::Event resetCallRxed(false, true);
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
@@ -423,15 +428,16 @@ TEST_F(WarehouseInitializedTest, WarehouseClearResetDeviceNoResponsePwrMgr2RFCEn
         .Times(2)
         .WillOnce(::testing::Return(Core::ERROR_NONE))
         .WillOnce(::testing::Invoke(
-            [](const char* command) {
+            [&](const char* command) {
                 EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR --suppressReboot"));
+                resetCallRxed.SetEvent();
                 return Core::ERROR_NONE;
             }));
 
     //reset: suppress reboot: true, type: WAREHOUSE_CLEAR, Expect no response
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true,\"resetType\":\"WAREHOUSE_CLEAR\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    usleep(10 * 1000);  //Wait for reset thread to finish
+    EXPECT_EQ(Core::ERROR_NONE, resetCallRxed.Lock());
     //Disable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = false;
 }
@@ -462,6 +468,7 @@ TEST_F(WarehouseResetDeviceTest, GenericResetDevicePwrMgr2RFCEnabled)
 
 TEST_F(WarehouseInitializedTest, GenericResetDeviceNoResponsePwrMgr2RFCEnabled)
 {
+    Core::Event resetCallRxed(false, true);
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
@@ -469,15 +476,16 @@ TEST_F(WarehouseInitializedTest, GenericResetDeviceNoResponsePwrMgr2RFCEnabled)
         .Times(2)
         .WillOnce(::testing::Return(Core::ERROR_NONE))
         .WillOnce(::testing::Invoke(
-            [](const char* command) {
+            [&](const char* command) {
                 EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh warehouse --suppressReboot &"));
+                resetCallRxed.SetEvent();
                 return Core::ERROR_NONE;
             }));
 
     //reset: suppress reboot: true - This doesn't generate any event (Expect no response)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    usleep(10 * 1000);  //Wait for reset thread to finish
+    EXPECT_EQ(Core::ERROR_NONE, resetCallRxed.Lock());
     //Disable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = false;
 }
@@ -499,7 +507,7 @@ TEST_F(WarehouseResetDeviceFailureTest, UserFactoryResetDeviceFailurePwrMgr2RFCE
     //reset: suppress reboot: true - This doesn't generate any event (Expect no response)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetDevice"), _T("{\"suppressReboot\":true}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    usleep(10 * 1000);  //Wait for reset thread to finish
+    EXPECT_EQ(Core::ERROR_NONE, resetDone.Lock());
     //Disable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = false;
 }
