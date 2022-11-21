@@ -49,6 +49,7 @@ option(PLUGIN_WEBKITBROWSER_ENABLE_DFG "Enable the use of DFG javascript optimal
 option(PLUGIN_APPS_ENABLE_JIT "Enable the use of JIT javascript optimalization" OFF)
 option(PLUGIN_APPS_ENABLE_DFG "Enable the use of DFG javascript optimalization" OFF)
 option(PLUGIN_WEBKITBROWSER_CLOUD_COOKIEJAR "Enable support for exporting/importing cookie jar" OFF)
+option(PLUGIN_WEBKITBROWSER_LOGGING_UTILS "Enable possibility to redirect stdout/err to specific systemd service" OFF)
 
 set(PLUGIN_WEBKITBROWSER_IMPLEMENTATION "${MODULE_NAME}Impl" CACHE STRING "Specify a library with a webkit implementation." )
 
@@ -211,6 +212,11 @@ if (PLUGIN_WEBKITBROWSER_CLOUD_COOKIEJAR)
         ENABLE_CLOUD_COOKIE_JAR=1)
     target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE CookieJar.cpp)
     include(CookieJarCrypto/CMakeLists.txt)
+endif()
+
+if (PLUGIN_WEBKITBROWSER_LOGGING_UTILS)
+    target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE ENABLE_LOGGING_UTILS)
+    target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE LoggingUtils.cpp)
 endif()
 
 if(WPE_WEBKIT_DEPRECATED_API)
