@@ -80,9 +80,7 @@ namespace WPEFramework {
             Warehouse(const Warehouse&) = delete;
             Warehouse& operator=(const Warehouse&) = delete;
 
-            void resetDevice();
             void resetDevice(bool suppressReboot, const string& resetType = string());
-            std::vector<std::string>  getAllowedCNameTails();
             void setFrontPanelState(int state, JsonObject& response);
             void internalReset(JsonObject& response);
             void lightReset(JsonObject& response);
@@ -142,8 +140,6 @@ namespace WPEFramework {
             uint32_t processWHResetNoReboot();
             uint32_t processWHClear();
             uint32_t processWHClearNoReboot();
-            uint32_t processCustomerReset();
-            uint32_t processPersonalityReset();
             uint32_t processUserFactoryReset();
 
         };
