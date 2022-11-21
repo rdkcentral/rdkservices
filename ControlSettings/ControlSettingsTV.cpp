@@ -2217,7 +2217,13 @@ namespace Plugin {
             if(retval != 0 ) {
                 LOGWARN("Failed to Save DimmingMode to ssm_data\n");
             }
-	    
+
+            //Update DimmingLevel to ssmdata
+	    retval = SaveLocalDimmingLevelToDriverCache("set",pqmode.c_str(),source.c_str(),format.c_str(),params);
+            if( retval != 0 ) {
+                LOGWARN("Failed to Save DimmingLevel to ssmdata\n");
+            }
+
             LOGINFO("Exit : setDimmingMode successful to value: %d\n", dimmingMode);
             returnResponse(true);
         }
@@ -2271,6 +2277,13 @@ namespace Plugin {
         }
         else
         {
+            //Update DimmingLevel to ssmdata
+	    params[0] = dMode;
+            retval = SaveLocalDimmingLevelToDriverCache("reset",pqmode.c_str(),source.c_str(),format.c_str(),params);
+            if( retval != 0 ) {
+                LOGWARN("Failed to Save DimmingLevel to ssmdata\n");
+            }
+
             LOGINFO("Exit : resetBacklightDimmingMode Successful to value : %s \n",dimmingMode.c_str());
             returnResponse(true);
         }
