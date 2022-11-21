@@ -240,6 +240,8 @@ jobs:
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_NETWORK=ON
           -DPLUGIN_WIFIMANAGER=ON
+          -DPLUGIN_WAREHOUSE=ON
+          -DDS_FOUND=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
@@ -254,7 +256,7 @@ jobs:
           /opt/secure/reboot
           /opt/secure/persistent
           /opt/secure/persistent/System
-          /opt/logs
+          /opt/logs /lib/rdk &&
           &&
           sudo touch
           /opt/standbyReason.txt
