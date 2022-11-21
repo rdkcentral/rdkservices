@@ -3325,6 +3325,16 @@ namespace WPEFramework {
                     response["message"] = "failed to launch application due to active destroy request";
                     returnResponse(false);
                 }
+
+                if(mMemCheckpointRestoreClient.isProcessed(appCallsign))
+                {
+                    gLaunchMutex.lock();
+                    gLaunchCount = 0;
+                    gLaunchMutex.unlock();
+                    response["message"] = "failed to launch application due to active mem checkpoint/restore request";
+                    returnResponse(false);
+                }
+
                 RDKShellLaunchType launchType = RDKShellLaunchType::UNKNOWN;
                 const string callsign = parameters["callsign"].String();
                 const string callsignWithVersion = callsign + ".1";
@@ -4052,6 +4062,14 @@ namespace WPEFramework {
 		    response["message"] = "failed to suspend application";
                     returnResponse(result);
             	}
+
+                if(mMemCheckpointRestoreClient.isProcessed(client))
+                {
+                    std::cout << "ignoring suspend for " << client << " as it is being checkpointed/restored " << std::endl;
+                    result=false;
+                    response["message"] = "failed to suspend application";
+                    returnResponse(result);
+                }
                 gDestroyMutex.lock();
                 PluginHost::IStateControl* stateControl(mCurrentService->QueryInterfaceByCallsign<PluginHost::IStateControl>(callsign));
                 if (stateControl)
@@ -4612,6 +4630,7 @@ namespace WPEFramework {
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
             auto thunderController = getThunderControllerClient();
+            //FIXME: if something is checkpointed, API hangs here
             thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
 
             JsonArray stateArray;
@@ -4633,39 +4652,42 @@ namespace WPEFramework {
                             service.Callsign.ToString(callsign);
                             callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
 
-                            WPEFramework::Core::JSON::String stateString;
-                            const string callsignWithVersion = callsign + ".1";
-                            auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
-                            uint32_t stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
-
-                            if (stateStatus == 0)
+                            if(mMemCheckpointRestoreClient.isProcessed(callsign) == false)
                             {
-                                WPEFramework::Core::JSON::String urlString;
-                                uint32_t urlStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
+                                WPEFramework::Core::JSON::String stateString;
+                                const string callsignWithVersion = callsign + ".1";
+                                auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
+                                uint32_t stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
 
-                                JsonObject typeObject;
-                                typeObject["callsign"] = callsign;
-                                typeObject["state"] = stateString.Value();
-                                if (urlStatus == 0)
+                                if (stateStatus == 0)
                                 {
-                                    typeObject["uri"] = urlString.Value();
-                                }
-                                else
-                                {
-                                    typeObject["uri"] = "";
-                                }
-                                gExitReasonMutex.lock();
-                                if (gApplicationsExitReason.find(callsign) != gApplicationsExitReason.end())
-                                {
-                                    typeObject["lastExitReason"] = (int)gApplicationsExitReason[callsign];
-                                }
-                                else
-                                {
-                                    typeObject["lastExitReason"] = (int)AppLastExitReason::UNDEFINED;
-                                }
-                                gExitReasonMutex.unlock();
+                                    WPEFramework::Core::JSON::String urlString;
+                                    uint32_t urlStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url", urlString);
 
-                                stateArray.Add(typeObject);
+                                    JsonObject typeObject;
+                                    typeObject["callsign"] = callsign;
+                                    typeObject["state"] = stateString.Value();
+                                    if (urlStatus == 0)
+                                    {
+                                        typeObject["uri"] = urlString.Value();
+                                    }
+                                    else
+                                    {
+                                        typeObject["uri"] = "";
+                                    }
+                                    gExitReasonMutex.lock();
+                                    if (gApplicationsExitReason.find(callsign) != gApplicationsExitReason.end())
+                                    {
+                                        typeObject["lastExitReason"] = (int)gApplicationsExitReason[callsign];
+                                    }
+                                    else
+                                    {
+                                        typeObject["lastExitReason"] = (int)AppLastExitReason::UNDEFINED;
+                                    }
+                                    gExitReasonMutex.unlock();
+
+                                    stateArray.Add(typeObject);
+                                }
                             }
                         }
                     }
@@ -4705,6 +4727,7 @@ namespace WPEFramework {
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
             auto thunderController = getThunderControllerClient();
+            //FIXME: if something is checkpointed, API hangs here
             thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
 
             /*std::cout << "DEACTIVATED: " << PluginHost::MetaData::Service::state::DEACTIVATED << std::endl;
@@ -4737,11 +4760,15 @@ namespace WPEFramework {
 
                             WPEFramework::Core::JSON::String stateString;
                             const string callsignWithVersion = callsign + ".1";
-                            uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
 
-                            if (stateStatus == 0)
+                            if(mMemCheckpointRestoreClient.isProcessed(callsign) == false)
                             {
-                                result = pluginMemoryUsage(callsign, memoryInfo);
+                                uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+
+                                if (stateStatus == 0)
+                                {
+                                    result = pluginMemoryUsage(callsign, memoryInfo);
+                                }
                             }
                         }
                     }
@@ -7331,6 +7358,16 @@ namespace WPEFramework {
             }
             mProcessedAppsLock.unlock();
             return status;
+        }
+
+        bool RDKShell::MemCheckpointRestoreClient::isProcessed(const std::string &callSign)
+        {
+            bool isProcessed = false;
+            mProcessedAppsLock.lock();
+            isProcessed = (mProcessedApps.find(callSign) != mProcessedApps.end());
+            mProcessedAppsLock.unlock();
+
+            return isProcessed;
         }
 
 
