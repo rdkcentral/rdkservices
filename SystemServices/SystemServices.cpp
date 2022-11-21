@@ -420,9 +420,8 @@ namespace WPEFramework {
             registerMethod("getPowerStateIsManagedByDevice", &SystemServices::getPowerStateIsManagedByDevice, this);
     	    registerMethod("setTerritory", &SystemServices::setTerritory, this);
 	    registerMethod("getTerritory", &SystemServices::getTerritory, this);
-#ifdef ENABLE_SET_WAKEUP_SRC_CONFIG
             registerMethod("setWakeupSrcConfiguration", &SystemServices::setWakeupSrcConfiguration, this);
-#endif //ENABLE_SET_WAKEUP_SRC_CONFIG
+	    registerMethod("getWakeupSrcConfiguration", &SystemServices::getWakeupSrcConfiguration, this);
 
             // version 2 APIs
             registerMethod(_T("getTimeZones"), &SystemServices::getTimeZones, this);
@@ -2218,6 +2217,7 @@ namespace WPEFramework {
             sendNotify(EVT_ONTEMPERATURETHRESHOLDCHANGED, params);
         }
 
+
         /***
          * @brief : To set the Time to TZ_FILE.
          * @param1[in]	: {"params":{"timeZone":"<string>"}}
@@ -3684,8 +3684,6 @@ namespace WPEFramework {
 
             returnResponse(retVal);
         }
-
-#ifdef ENABLE_SET_WAKEUP_SRC_CONFIG
 	/***
          * @brief : To set the wakeup source configuration.
          * @param1[in] : {"params":{ "wakeupSrc": <int>, "config": <int>}
@@ -3696,55 +3694,136 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool status = false;
-            string src, value;
-            WakeupSrcType_t srcType;
-            bool config;
-            int paramErr = 0;
-            IARM_Bus_PWRMgr_SetWakeupSrcConfig_Param_t param;
-            if (parameters.HasLabel("wakeupSrc") && parameters.HasLabel("config")) {
-                src = parameters["wakeupSrc"].String();
-                srcType = (WakeupSrcType_t)atoi(src.c_str());
-                value = parameters["config"].String();
-                config = (bool)atoi(value.c_str());
+	    unsigned int srcType = 0x0;
+            unsigned int config = 0x0;
+		LOGWARN("Amit %s: %d Entry srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
 
-                switch(srcType){
-                    case WAKEUPSRC_VOICE:
-                    case WAKEUPSRC_PRESENCE_DETECTION:
-                    case WAKEUPSRC_BLUETOOTH:
-                    case WAKEUPSRC_WIFI:
-                    case WAKEUPSRC_IR:
-                    case WAKEUPSRC_POWER_KEY:
-                    case WAKEUPSRC_TIMER:
-                    case WAKEUPSRC_CEC:
-                    case WAKEUPSRC_LAN:
-                        param.srcType = srcType;
-                        param.config = config;
-                        break;
-                    default:
-                        LOGERR("setWakeupSrcConfiguration invalid parameter\n");
-                        status = false;
-                        paramErr = 1;
+            if (parameters.HasLabel("WAKEUPSRC_VOICE")) 
+	    {
+	        srcType |= 1<<WAKEUPSRC_VOICE;
+	        if(parameters["WAKEUPSRC_VOICE"].Boolean())
+	            config |= 1<<WAKEUPSRC_VOICE;
+		LOGWARN("Amit %s: %d WAKEUPSRC_VOICE srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
+
+	    }
+	    else if(parameters.HasLabel("WAKEUPSRC_PRESENCE_DETECTION"))
+            {   
+                srcType |= 1<<WAKEUPSRC_PRESENCE_DETECTION;
+                if(parameters["WAKEUPSRC_PRESENCE_DETECTION"].Boolean())
+                    config |= 1<<WAKEUPSRC_PRESENCE_DETECTION;
+		LOGWARN("Amit %s: %d WAKEUPSRC_PD srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
+            
+            }
+            else if(parameters.HasLabel("WAKEUPSRC_BLUETOOTH"))
+            {
+                srcType |= 1<<WAKEUPSRC_BLUETOOTH;
+                if(parameters["WAKEUPSRC_BLUETOOTH"].Boolean())
+                    config |= 1<<WAKEUPSRC_BLUETOOTH;
+		LOGWARN("Amit %s: %d WAKEUPSRC_BLUETOOTH srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
+
+            }
+	    else if(parameters.HasLabel("WAKEUPSRC_WIFI"))
+            {
+                srcType |= 1<<WAKEUPSRC_WIFI;
+                if(parameters["WAKEUPSRC_WIFI"].Boolean())
+                    config |= 1<<WAKEUPSRC_WIFI;
+		LOGWARN("Amit %s: %d WAKEUPSRC_WIFI srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
+
+            }
+	    else if(parameters.HasLabel("WAKEUPSRC_IR"))
+            {
+                srcType |= 1<<WAKEUPSRC_IR;
+                if(parameters["WAKEUPSRC_IR"].Boolean())
+                    config |= 1<<WAKEUPSRC_IR;
+		LOGWARN("Amit %s: %d WAKEUPSRC_IR srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
+
+            }
+	    else if(parameters.HasLabel("WAKEUPSRC_POWER_KEY"))
+            {
+                srcType |= 1<<WAKEUPSRC_POWER_KEY;
+                if(parameters["WAKEUPSRC_POWER_KEY"].Boolean())
+                    config |= 1<<WAKEUPSRC_POWER_KEY;
+		LOGWARN("Amit %s: %d WAKEUPSRC_KEY srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
+
+            }
+	    else if(parameters.HasLabel("WAKEUPSRC_TIMER"))
+            {
+                srcType |= 1<<WAKEUPSRC_TIMER;
+                if(parameters["WAKEUPSRC_TIMER"].Boolean())
+                    config |= 1<<WAKEUPSRC_TIMER;
+		LOGWARN("Amit %s: %d WAKEUPSRC_TIMER srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
+
+            }
+	    else if(parameters.HasLabel("WAKEUPSRC_CEC"))
+            {
+                srcType |= 1<<WAKEUPSRC_CEC;
+                if(parameters["WAKEUPSRC_CEC"].Boolean())
+                    config |= 1<<WAKEUPSRC_CEC;
+		LOGWARN("Amit %s: %d WAKEUPSRC_CECsrcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
+
+            }
+	    else if(parameters.HasLabel("WAKEUPSRC_LAN"))
+            {
+                srcType |= 1<<WAKEUPSRC_LAN;
+                if(parameters["WAKEUPSRC_LAN"].Boolean())
+                    config |= 1<<WAKEUPSRC_LAN;
+		LOGWARN("Amit %s: %d WAKEUPSRC_LANsrcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
+
+            }
+            if(srcType) {
+
+                IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t param;
+                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                                       IARM_BUS_PWRMGR_API_SetWakeupSrcConfig, (void *)&param,
+                                       sizeof(param));
+
+                if (IARM_RESULT_SUCCESS == res) {
+                    status = true;
+                } else {
+                    status = false;
                 }
-
-                if(paramErr == 0) {
-
-                    IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
-                                           IARM_BUS_PWRMGR_API_SetWakeupSrcConfig, (void *)&param,
-                                           sizeof(param));
-
-                    if (IARM_RESULT_SUCCESS == res) {
-                        status = true;
-                    } else {
-                        status = false;
-                    }
-                }
-            } else {
-                LOGERR("setWakeupSrcConfiguration Missing Key Values\n");
-                populateResponseWithError(SysSrv_MissingKeyValues, response);
             }
             returnResponse(status);
         }
-#endif //ENABLE_SET_WAKEUP_SRC_CONFIG
+
+        uint32_t SystemServices::getWakeupSrcConfiguration(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t param;
+	    bool status = false;
+            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                                  IARM_BUS_PWRMGR_API_GetWakeupSrcConfig, (void *)&param,
+                                  sizeof(param));
+	    LOGWARN("Amit %s: %d res:%d srcType :%x  config :%x \n",__FUNCTION__,__LINE__,res,param.srcType,param.config);
+
+            if (IARM_RESULT_SUCCESS == res) {
+               status = true;
+	       if( param.srcType & WAKEUPSRC_VOICE)
+	          response["WAKEUPSRC_VOICE"] = (param.config & WAKEUPSRC_VOICE)?true:false;
+	       else if( param.srcType & WAKEUPSRC_PRESENCE_DETECTION)
+                  response["WAKEUPSRC_PRESENCE_DETECTION"] = (param.config & WAKEUPSRC_PRESENCE_DETECTION)?true:false;
+	       else if( param.srcType & WAKEUPSRC_BLUETOOTH)
+                  response["WAKEUPSRC_BLUETOOTH"] = (param.config & WAKEUPSRC_BLUETOOTH)?true:false;
+	       else if( param.srcType & WAKEUPSRC_WIFI)
+                  response["WAKEUPSRC_WIFI"] = (param.config & WAKEUPSRC_WIFI)?true:false;
+	       else if( param.srcType & WAKEUPSRC_IR)
+                  response["WAKEUPSRC_IR"] = (param.config & WAKEUPSRC_IR)?true:false;
+	       else if( param.srcType & WAKEUPSRC_POWER_KEY)
+                  response["WAKEUPSRC_POWER_KEY"] = (param.config & WAKEUPSRC_POWER_KEY )?true:false;
+	       else if( param.srcType & WAKEUPSRC_TIMER)
+                  response["WAKEUPSRC_TIMER"] = (param.config & WAKEUPSRC_TIMER)?true:false;
+	       else if( param.srcType & WAKEUPSRC_CEC)
+                  response["WAKEUPSRC_CEC"] = (param.config & WAKEUPSRC_CEC)?true:false;
+	       else if( param.srcType & WAKEUPSRC_LAN)
+                  response["WAKEUPSRC_LAN"] = (param.config & WAKEUPSRC_LAN)?true:false;
+
+            } else {
+               status = false;
+            }
+
+            returnResponse(status);
+        }
+
 
         /***
          * @brief : To handle the event of Power State change.
