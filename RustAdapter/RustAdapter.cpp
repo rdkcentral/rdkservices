@@ -176,16 +176,12 @@ WPEFramework::Plugin::RustAdapter::GetAuthToken(WPEFramework::PluginHost::IShell
 {
   std::string auth_token;
 
-  char buff[256];
-  memset(buff, 0, sizeof(buff));
-
-  int n = snprintf(buff, sizeof(buff), "plugin://%s", callsign.c_str());
-  buff[255] = '\0';
+  string payload = "{\"url\":\"plugin://" + callsign + "\"}";
 
   auto auth = service->QueryInterfaceByCallsign<WPEFramework::PluginHost::IAuthenticate>("SecurityAgent");
   if (auth != nullptr) {
     string encoded;
-    if (auth->CreateToken(n, (const uint8_t*) buff, encoded) == WPEFramework::Core::ERROR_NONE) {
+    if (auth->CreateToken(static_cast<uint16_t>(payload.length()), reinterpret_cast<const uint8_t *>(payload.c_str()), encoded) == WPEFramework::Core::ERROR_NONE) {
       auth_token = encoded;
     }
     auth->Release();
