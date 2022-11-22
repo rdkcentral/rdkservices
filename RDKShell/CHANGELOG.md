@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.8] - 2022-11-22
+### Fixed
+- Focus was setting true to RA while launching FTA
+
 ## [1.3.7] - 2022-11-08
 ### Fixed
 - Use interfaces instead of JSON-RPC
