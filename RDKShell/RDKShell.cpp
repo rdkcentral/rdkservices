@@ -51,7 +51,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 8
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
