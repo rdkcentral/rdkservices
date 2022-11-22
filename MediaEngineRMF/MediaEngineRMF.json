@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkMediaEngineRMF.so",
+ "classname":"MediaEngineRMF",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.MediaEngineRMF",
+ "autostart":false
+}
