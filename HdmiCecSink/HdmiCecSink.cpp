@@ -148,7 +148,7 @@ static int32_t HdmiArcPortID = -1;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 5
+#define API_VERSION_NUMBER_PATCH 6
 
 namespace WPEFramework
 {
@@ -670,7 +670,7 @@ namespace WPEFramework
             try
 	    {
 		if (m_arcRoutingThread.joinable())
-                	m_arcRoutingThread.join();
+			m_arcRoutingThread.join();
 	    }
 	    catch(const std::system_error& e)
 	    {
