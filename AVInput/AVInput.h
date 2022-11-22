@@ -22,6 +22,7 @@
 #include "Module.h"
 #include "libIBus.h"
 #include "dsTypes.h"
+#include <interfaces/json/JsonData_AVInput.h>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -64,18 +65,18 @@ private:
     static string currentVideoMode(bool &success);
 
     //Begin methods
-    uint32_t getInputDevicesWrapper(const JsonObject& parameters, JsonObject& response);
-    uint32_t writeEDIDWrapper(const JsonObject& parameters, JsonObject& response);
-    uint32_t readEDIDWrapper(const JsonObject& parameters, JsonObject& response);
-    uint32_t getRawSPDWrapper(const JsonObject& parameters, JsonObject& response);
-    uint32_t getSPDWrapper(const JsonObject& parameters, JsonObject& response);
-    uint32_t setEdidVersionWrapper(const JsonObject& parameters, JsonObject& response);
-    uint32_t getEdidVersionWrapper(const JsonObject& parameters, JsonObject& response);
-    uint32_t startInput(const JsonObject& parameters, JsonObject& response);
-    uint32_t stopInput(const JsonObject& parameters, JsonObject& response);
-    uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);
-    uint32_t getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response);
-    uint32_t getGameFeatureStatusWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t getInputDevicesWrapper(const JsonData::AVInput::GetInputDevicesParamsInfo& parameters, JsonData::AVInput::GetInputDevicesResultInfo& response);
+    uint32_t writeEDIDWrapper(const JsonData::AVInput::WriteEDIDParamsData& parameters);
+    uint32_t readEDIDWrapper(const JsonData::AVInput::GetEdidVersionParamsInfo& parameters, JsonData::AVInput::ReadEDIDResultData& response);
+    uint32_t getRawSPDWrapper(const JsonData::AVInput::GetEdidVersionParamsInfo& parameters, JsonData::AVInput::GetSPDResultInfo& response);
+    uint32_t getSPDWrapper(const JsonData::AVInput::GetEdidVersionParamsInfo& parameters, JsonData::AVInput::GetSPDResultInfo& response);
+    uint32_t setEdidVersionWrapper(const JsonData::AVInput::SetEdidVersionParamsData& parameters);
+    uint32_t getEdidVersionWrapper(const JsonData::AVInput::GetEdidVersionParamsInfo& parameters, JsonData::AVInput::GetEdidVersionResultData& response);
+    uint32_t startInput(const JsonData::AVInput::StartInputParamsData& parameters);
+    uint32_t stopInput(const JsonData::AVInput::GetInputDevicesParamsInfo& parameters);
+    uint32_t setVideoRectangleWrapper(const JsonData::AVInput::SetVideoRectangleParamsData& parameters);
+    uint32_t getSupportedGameFeatures(JsonData::AVInput::GetSupportedGameFeaturesResultData& response);
+    uint32_t getGameFeatureStatusWrapper(const JsonData::AVInput::GetGameFeatureStatusParamsData& parameters, JsonData::AVInput::GetGameFeatureStatusResultData& response);
     //End methods
 
     JsonArray getInputDevices(int iType);
