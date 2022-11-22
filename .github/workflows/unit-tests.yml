@@ -13,7 +13,7 @@ env:
 
   # Refs for 22Q4_sprint
   THUNDER_REF: "R2-v1.12"
-  INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
+  INTERFACES_REF: "28ddc3d8bb7c0a347d1e98d02630941bd85d4e2b"
 
 jobs:
   unit-tests:

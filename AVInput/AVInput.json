@@ -57,6 +57,11 @@
             "summary": "The type of Input - HDMI/COMPOSITE",
             "type": "string",
             "example": "HDMI"
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
         }
     },
     "methods": {
@@ -76,7 +81,7 @@
                         "example": true
                     },
                     "success": {
-                        "$ref": "#/common/success"
+                        "$ref": "#/definitions/success"
                     }
                 },
                 "required": [
@@ -106,7 +111,7 @@
                         "example": "Success"
                     },
                     "success": {
-                        "$ref": "#/common/success"
+                        "$ref": "#/definitions/success"
                     }
                 },
                 "required": [
@@ -137,7 +142,7 @@
                         "example": "Success"
                     },
                     "success": {
-                        "$ref": "#/common/success"
+                        "$ref": "#/definitions/success"
                     }
                 },
                 "required": [
