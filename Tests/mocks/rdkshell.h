@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <thread>
 #include <mutex>
+#include <memory>
 #define RDKSHELL_FPS 40
 #define RDKSHELL_SPLASH_SCREEN_FILE_CHECK "/tmp/.rdkshellsplash"
 #define RDKSHELL_FLAGS_SHIFT        8
