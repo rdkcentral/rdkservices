@@ -1261,6 +1261,10 @@ namespace WPEFramework {
                         subSystems->Release();
                         if (sFactoryModeStart) 
                         {
+                            if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
+		            {
+                                CompositorController::setVisibility("ResidentApp", false);
+			    }
                             JsonObject request, response;
                             std::cout << "about to launch factory app on start without persistent store wait\n";
                             gRdkShellMutex.unlock();
@@ -1367,6 +1371,10 @@ namespace WPEFramework {
                     {
                         JsonObject request, response;
                         std::cout << "about to launch factory app after persistent store wait\n";
+                        if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
+		        {
+                            CompositorController::setVisibility("ResidentApp", false);
+                        }
                         gRdkShellMutex.unlock();
                         if (sFactoryModeBlockResidentApp)
                         {
