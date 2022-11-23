@@ -10,8 +10,6 @@ on:
 
 env:
   BUILD_TYPE: Debug
-
-  # Refs for 22Q4_sprint
   THUNDER_REF: "R2-v1.12"
   INTERFACES_REF: "8d3bd0ddd187c6104543699041ec53e1e186d49a"
 
@@ -74,6 +72,14 @@ jobs:
           repository: rdkcentral/Thunder
           path: Thunder
           ref: ${{env.THUNDER_REF}}
+
+      - name: Thunder/pull/699
+        # Doesn't build without this commit (depends on GCC)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          cd Thunder
+          git fetch origin 486051b14294aefb6a56d78e28e5ac894afbc151
+          git cherry-pick -n FETCH_HEAD
 
       - name: Configure ThunderTools
         if: steps.cache.outputs.cache-hit != 'true'
