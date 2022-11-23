@@ -32,9 +32,10 @@ static char* thunderToken(gpointer userData)
     const char *uri = webkit_frame_get_uri(frame);
     if (uri) {
         uint8_t buffer[2 * 1024];
-        size_t input_length = snprintf(
-            reinterpret_cast<char*>(buffer), sizeof(buffer),
-            "{\"url\":\"%.*s\"}", int(sizeof(buffer) - sizeof("{\"url\":\"\"}")), uri);
+        size_t input_length = std::min ( strlen(uri), sizeof(buffer) );
+
+        ::memset (buffer, 0, sizeof(buffer));
+        ::memcpy (buffer, uri, input_length);
 
         int length = GetToken(static_cast<uint16_t>(sizeof(buffer)), input_length, buffer);
         if (length > 0) {
