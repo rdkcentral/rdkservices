@@ -452,6 +452,7 @@ namespace WPEFramework {
                 bool restore(const std::string &callSign, uint32_t timeouteMs);
                 bool getState(const std::string &callSign, ProcessedAppState &state);
                 bool isProcessed(const std::string &callSign);
+                void removeFromProcessed(const std::string &callSign);
 
             private/*types and const*/:
                 enum ServerRequestCode
