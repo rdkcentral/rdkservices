@@ -185,6 +185,8 @@ namespace WPEFramework
 
         void Warehouse::Deinitialize(PluginHost::IShell* /* service */)
         {
+            if (m_resetThread.get().joinable())
+                m_resetThread.get().join();
             Warehouse::_instance = nullptr;
             DeinitializeIARM();
             LOGWARN ("Warehouse::Deinitialize finished line:%d", __LINE__);
@@ -204,63 +206,6 @@ namespace WPEFramework
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
             }
-        }
-
-        /**
-         * @brief This function is used to write the client name in the host file if
-         * the string list is empty by default ".warehouse.ccp.xcal.tv" will write in
-         * to the host file.
-         *
-         * @return Attribute of string value list.
-         */
-        std::vector<std::string> Warehouse::getAllowedCNameTails()
-        {
-            std::vector<std::string> cnameTails;
-            RFC_ParamData_t param;
-
-            memset(&param, 0, sizeof(param));
-            WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char*>(WAREHOUSE_RFC_CALLERID), WAREHOUSE_HOSTCLIENT_NAME1_RFC_PARAM, &param);
-            if ( WDMP_SUCCESS == wdmpStatus )
-            {
-                cnameTails.push_back(std::string(param.value));
-                LOGINFO ("getRFCParameter for %s is %s\n", WAREHOUSE_HOSTCLIENT_NAME1_RFC_PARAM, param.value);
-            }
-            else
-                LOGERR ("getRFCParameter for %s Failed : %s\n", WAREHOUSE_HOSTCLIENT_NAME1_RFC_PARAM, getRFCErrorString(wdmpStatus));
-
-            memset(&param, 0, sizeof(param));
-            wdmpStatus = getRFCParameter(const_cast<char*>(WAREHOUSE_RFC_CALLERID), WAREHOUSE_HOSTCLIENT_NAME2_RFC_PARAM, &param);
-            if ( WDMP_SUCCESS == wdmpStatus )
-            {
-                cnameTails.push_back(std::string(param.value));
-                LOGINFO ("getRFCParameter for %s is %s\n", WAREHOUSE_HOSTCLIENT_NAME2_RFC_PARAM, param.value);
-            }
-            else
-                LOGERR ("getRFCParameter for %s Failed : %s\n", WAREHOUSE_HOSTCLIENT_NAME2_RFC_PARAM, getRFCErrorString(wdmpStatus));
-
-            if (cnameTails.size() == 0)
-            {
-                memset(&param, 0, sizeof(param));
-                wdmpStatus = getRFCParameter(const_cast<char*>(WAREHOUSE_RFC_CALLERID), WAREHOUSE_HOSTCLIENT_TAIL_RFC_PARAM, &param);
-                if ( WDMP_SUCCESS == wdmpStatus )
-                {
-                    cnameTails.push_back(std::string(param.value));
-                    LOGINFO ("getRFCParameter for %s is %s\n", WAREHOUSE_HOSTCLIENT_TAIL_RFC_PARAM, param.value);
-                }
-                else
-                    LOGERR ("getRFCParameter for %s Failed : %s\n", WAREHOUSE_HOSTCLIENT_TAIL_RFC_PARAM, getRFCErrorString(wdmpStatus));
-            }
-            return cnameTails;
-        }
-
-        /**
-         * @brief Creates a new task for resetting the device.
-         * An event will be dispatched after reset is done by notifying success code.
-         * @ingroup SERVMGR_WAREHOUSE_API
-         */
-        void Warehouse::resetDevice()
-        {
-            resetDevice(false);
         }
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
@@ -688,6 +633,7 @@ namespace WPEFramework
                 pos += rm[0].rm_so + replace.size();
             }
 
+            regfree(&rx);
             LOGWARN("lightReset: %s", script.c_str());
 
             std::string error;
@@ -1056,7 +1002,7 @@ namespace WPEFramework
 		}
 		JsonObject params;
 		if (IARM_BUS_PWRMGR_WAREHOUSE_COMPLETED == eventData->status) {
-                    params[PARAM_SUCCESS] = 0;
+                    params[PARAM_SUCCESS] = true;
 		}
 		else {
                     params[PARAM_ERROR] = "Reset failed";
@@ -1078,7 +1024,7 @@ namespace WPEFramework
             /*Execute the script for Cold Factory Reset*/
             system("sh /lib/rdk/deviceReset.sh coldfactory");
             system("echo 0 > /opt/.rebootFlag");
-            system(" echo `/bin/timestamp` ------------- Rebooting due to Cold Factory Reset process --------------- >> /opt/logs/receiver.log");
+            system("echo `/bin/timestamp` ------------- Rebooting due to Cold Factory Reset process --------------- >> /opt/logs/receiver.log");
             system("sleep 5; /rebootNow.sh -s PowerMgr_coldFactoryReset -o 'Rebooting the box due to Cold Factory Reset process ...'");
             return Core::ERROR_NONE;
         }
@@ -1093,7 +1039,7 @@ namespace WPEFramework
             /*Execute the script for Factory Reset*/
             system("sh /lib/rdk/deviceReset.sh factory");
             system("echo 0 > /opt/.rebootFlag");
-            system(" echo `/bin/timestamp` -------------Rebooting due to Factory Reset process-------------- >> /opt/logs/receiver.log");
+            system("echo `/bin/timestamp` -------------Rebooting due to Factory Reset process-------------- >> /opt/logs/receiver.log");
             return Core::ERROR_NONE;
         }
 
@@ -1136,26 +1082,6 @@ namespace WPEFramework
             /*Execute the script for Ware House Reset*/
             system("touch /tmp/.warehouse-reset");
             return system("sh /lib/rdk/deviceReset.sh warehouse --suppressReboot &");
-        }
-
-        uint32_t Warehouse::processCustomerReset()
-        {
-            /*Code copied from X1.. Needs modification*/
-            LOGINFO("\n Reset: Processing Customer Reset\n");
-            fflush(stdout);
-            LOGINFO("... Reset: Clearing data from your box before reseting \n");
-            fflush(stdout);
-            /*Execute the script for Customer Reset*/
-            system("sh /lib/rdk/deviceReset.sh customer");
-            system("echo 0 > /opt/.rebootFlag");
-            system(" echo `/bin/timestamp` ------------- Rebooting due to Customer Reset process --------------- >> /opt/logs/receiver.log");
-            system("sleep 5; /rebootNow.sh -s PowerMgr_CustomerReset -o 'Rebooting the box due to Customer Reset process ...'");
-            return Core::ERROR_NONE;
-        }
-
-        uint32_t Warehouse::processPersonalityReset()
-        {
-            return Core::ERROR_NONE;
         }
 
         uint32_t Warehouse::processUserFactoryReset()
