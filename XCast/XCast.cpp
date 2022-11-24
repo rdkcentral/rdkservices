@@ -172,9 +172,9 @@ void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *dat
             if(m_standbyBehavior == false)
             {
                 if(m_xcastEnable && ( m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON))
-                    _rtConnector->enableCastService(true);
+                    _rtConnector->enableCastService(m_friendlyName,true);
                 else
-                    _rtConnector->enableCastService(false);
+                    _rtConnector->enableCastService(m_friendlyName,false);
             }
          }
     }
@@ -210,7 +210,7 @@ void XCast::Deinitialize(PluginHost::IShell* /* service */)
         m_locateCastTimer.stop();
     }
     if( XCast::isCastEnabled){
-        _rtConnector->enableCastService(false);
+        _rtConnector->enableCastService(m_friendlyName,false);
         _rtConnector->shutdown();
     }
     DeinitializeIARM();
@@ -273,9 +273,9 @@ uint32_t XCast::setEnabled(const JsonObject& parameters, JsonObject& response)
     }
     m_xcastEnable= enabled;
     if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) )
-        _rtConnector->enableCastService(true);
+        _rtConnector->enableCastService(m_friendlyName,true);
     else
-        _rtConnector->enableCastService(false);
+        _rtConnector->enableCastService(m_friendlyName,false);
     returnResponse(true);
 }
 uint32_t XCast::getEnabled(const JsonObject& parameters, JsonObject& response)
@@ -322,17 +322,20 @@ uint32_t XCast::setFriendlyName(const JsonObject& parameters, JsonObject& respon
     std::string paramStr;
     if (parameters.HasLabel("friendlyname"))
     {
-        getStringParameter("friendlyname", paramStr);
-        if(_rtConnector)
-        {
+         getStringParameter("friendlyname",paramStr);
+         if(_rtConnector)
+         {
             m_friendlyName = paramStr;
-            LOGINFO("XcastService::setFriendlyName  :%s", m_friendlyName.c_str());
-            _rtConnector->setFriendlyName(paramStr);
-        }
-        else
-        {
+            LOGINFO("XcastService::setFriendlyName  :%s",m_friendlyName.c_str());
+            if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
+               _rtConnector->enableCastService(m_friendlyName,true);
+            }
+            else {
+                _rtConnector->enableCastService(m_friendlyName,false);
+            }
+         }
+         else
             returnResponse(false);
-        }
     }
     else
     {
@@ -660,7 +663,7 @@ uint32_t XCast::registerApplications(const JsonObject& parameters, JsonObject& r
            LOGINFO("%s:%d _rtConnector Not NULL", __FUNCTION__, __LINE__);
            if(_rtConnector->IsDynamicAppListEnabled()) {
                /*Disable cast service before registering Applications*/
-               _rtConnector->enableCastService(false);
+               _rtConnector->enableCastService(m_friendlyName,false);
 
                m_isDynamicRegistrationsRequired = true;
                //Register dynamic application list to app cache map
@@ -676,7 +679,7 @@ uint32_t XCast::registerApplications(const JsonObject& parameters, JsonObject& r
                /*Reenabling cast service after registering Applications*/
                if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
                    LOGINFO("Enable CastService  m_xcastEnable: %d m_standbyBehavior: %d m_powerState:%d", m_xcastEnable, m_standbyBehavior, m_powerState);
-                   _rtConnector->enableCastService(true);
+                   _rtConnector->enableCastService(m_friendlyName,true);
                }
                else {
                    LOGINFO("CastService not enabled m_xcastEnable: %d m_standbyBehavior: %d m_powerState:%d", m_xcastEnable, m_standbyBehavior, m_powerState);
@@ -795,10 +798,10 @@ void XCast::onLocateCastTimer()
         LOGINFO("XCast::onLocateCastTimer :_rtConnector: %p",  _rtConnector);
     }
     if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
-        _rtConnector->enableCastService(true);
+        _rtConnector->enableCastService(m_friendlyName,true);
     }
     else {
-        _rtConnector->enableCastService(false);
+        _rtConnector->enableCastService(m_friendlyName,false);
     }
     
     LOGINFO("XCast::onLocateCastTimer : Timer still active ? %d ",m_locateCastTimer.isActive());
