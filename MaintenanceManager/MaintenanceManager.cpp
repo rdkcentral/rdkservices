@@ -288,14 +288,18 @@ namespace WPEFramework {
 #endif
 
             if ( false == internetConnectStatus ) {
+                m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
+                m_statusMutex.unlock();
                 LOGINFO("Maintenance is exiting as device is not connected to internet.");
                 return;
             }
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
+            m_statusMutex.lock();
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
+            m_statusMutex.unlock();
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
@@ -629,7 +633,9 @@ namespace WPEFramework {
             MaintenanceManager::m_abort_flag=false;
 
             /* we post just to tell that we are in idle at this moment */
+            m_statusMutex.lock();
             MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
+            m_statusMutex.unlock();
 
             m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
         }
@@ -646,6 +652,8 @@ namespace WPEFramework {
 
         void MaintenanceManager::iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
+          m_statusMutex.lock();
+          if ( !m_abort_flag ){
             Maint_notify_status_t notify_status=MAINTENANCE_STARTED;
             IARM_Bus_MaintMGR_EventData_t *module_event_data=(IARM_Bus_MaintMGR_EventData_t*)data;
             IARM_Maint_module_status_t module_status;
@@ -863,6 +871,8 @@ namespace WPEFramework {
             else {
                 LOGWARN("Ignoring unexpected event - owner: %s, eventId: %d!!", owner, eventId);
             }
+          }
+          m_statusMutex.unlock();
         }
         void MaintenanceManager::DeinitializeIARM()
         {
@@ -1315,9 +1325,9 @@ namespace WPEFramework {
                     m_thread.join();
                     LOGINFO("Thread joined successfully\n");
                 }
+                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
 		m_statusMutex.unlock();
 
-                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 return result;
         }
 
@@ -1384,9 +1394,7 @@ namespace WPEFramework {
         void MaintenanceManager::onMaintenanceStatusChange(Maint_notify_status_t status) {
             JsonObject params;
             /* we store the updated value as well */
-            m_statusMutex.lock();
             m_notify_status=status;
-            m_statusMutex.unlock();
             params["maintenanceStatus"]=notifyStatusToString(status);
             sendNotify(EVT_ONMAINTENANCSTATUSCHANGE, params);
         }
