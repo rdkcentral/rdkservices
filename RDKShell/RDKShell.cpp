@@ -574,6 +574,7 @@ namespace WPEFramework {
         std::map<std::string, bool> gLaunchApplications;
         std::map<std::string, AppLastExitReason> gApplicationsExitReason;
         std::map<std::string, std::string> gPluginDisplayNameMap;
+        MemCheckpointRestoreClient gMemCheckpointRestoreClient;
         
         uint32_t getKeyFlag(std::string modifier)
         {
@@ -953,12 +954,12 @@ namespace WPEFramework {
                     }
                     
                     gPluginDataMutex.lock();
+                    gMemCheckpointRestoreClient.removeFromProcessed(service->Callsign());
                     std::map<std::string, PluginData>::iterator pluginToRemove = gActivePluginsData.find(service->Callsign());
                     if (pluginToRemove != gActivePluginsData.end())
                     {
                         gActivePluginsData.erase(pluginToRemove);
                     }
-                    //mMemCheckpointRestoreClient.removeFromProcessed(service->Callsign()); //FIXME: if it was killed, it should be removed from memcr as well
                     std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(service->Callsign());
                     if (pluginStateChangeEntry != gPluginsEventListener.end())
                     {
@@ -978,6 +979,308 @@ namespace WPEFramework {
                         gExternalDestroyApplications.erase(service->Callsign());
                     }
                     gLaunchDestroyMutex.unlock();
+                }
+            }
+        }
+
+        bool MemCheckpointRestoreClient::checkpoint(const std::string &callSign, uint32_t timeouteMs)
+        {
+            bool isCheckpointAllowed = false;
+
+            mProcessedAppsLock.lock();
+            if(mProcessedApps.find(callSign) == mProcessedApps.end())
+            {
+                //App not processed
+                isCheckpointAllowed = true;
+            }
+            else if(mProcessedApps[callSign] == MemCheckpointRestoreClient::RESTORING)
+            {
+                //App being processeed, then shedule checkpoint only if restore is ongoing
+                isCheckpointAllowed = true;
+            }
+
+            if(isCheckpointAllowed)
+            {
+                mProcessedApps[callSign] = MemCheckpointRestoreClient::CHECKPOINTING;
+            }
+
+            mProcessedAppsLock.unlock();
+
+            if(isCheckpointAllowed)
+            {
+                LOGINFO("Launching Checkpoint Thread for %s", callSign.c_str());
+                launchRequestThread(MemCheckpointRestoreClient::MEMCR_CHECKPOINT, callSign, timeouteMs);
+                return true;
+            }
+
+            LOGWARN("Checkpoint not allowed for %s", callSign.c_str());
+            return false;
+        }
+
+        bool MemCheckpointRestoreClient::restore(const std::string &callSign, uint32_t timeouteMs)
+        {
+            bool isRestoreAllowed = false;
+
+            mProcessedAppsLock.lock();
+            if(mProcessedApps.find(callSign) != mProcessedApps.end()
+                && (mProcessedApps[callSign] == MemCheckpointRestoreClient::CHECKPOINTING
+                        || mProcessedApps[callSign] == MemCheckpointRestoreClient::CHECKPOINTED))
+            {
+                //Apps checkpoint ongoing or already checkpointed
+                isRestoreAllowed = true;
+                mProcessedApps[callSign] = MemCheckpointRestoreClient::RESTORING;
+            }
+
+            mProcessedAppsLock.unlock();
+
+            if(isRestoreAllowed)
+            {
+                LOGINFO("Launching Restore Thread for %s", callSign.c_str());
+                launchRequestThread(MemCheckpointRestoreClient::MEMCR_RESTORE, callSign, timeouteMs);
+                return true;
+            }
+
+            LOGWARN("Restore not allowed for %s", callSign.c_str());
+            return false;
+        }
+
+        bool MemCheckpointRestoreClient::getState(const std::string &callSign, ProcessedAppState &state)
+        {
+            bool status = false;
+            mProcessedAppsLock.lock();
+            if(mProcessedApps.find(callSign) != mProcessedApps.end())
+            {
+                state = mProcessedApps[callSign];
+                status = true;
+            }
+            mProcessedAppsLock.unlock();
+            return status;
+        }
+
+        bool MemCheckpointRestoreClient::isProcessed(const std::string &callSign)
+        {
+            bool isProcessed = false;
+            mProcessedAppsLock.lock();
+            isProcessed = (mProcessedApps.find(callSign) != mProcessedApps.end());
+            mProcessedAppsLock.unlock();
+
+            return isProcessed;
+        }
+
+        void MemCheckpointRestoreClient::removeFromProcessed(const std::string &callSign)
+        {
+            std::cout << "AM: MemCheckpointRestoreClient::removeFromProcessed " << callSign << std::endl << std::flush;
+            mProcessedAppsLock.lock();
+            if(mProcessedApps.find(callSign) != mProcessedApps.end())
+            {
+                std::cout << "AM: MemCheckpointRestoreClient::removeFromProcessed erased " << callSign << std::endl << std::flush;
+                mProcessedApps.erase(callSign);
+            }
+            mProcessedAppsLock.unlock();
+        }
+
+
+        void MemCheckpointRestoreClient::launchRequestThread(
+            MemCheckpointRestoreClient::ServerRequestCode cmd,
+            const std::string &callSign,
+            uint32_t timeouteMs)
+        {
+            std::thread requestsThread =
+                std::thread([=]()
+                {
+                    bool success = false;
+                    std::string errorMsg;
+
+                    std::list<uint32_t> processPids;
+                    findPid(callSign, processPids);
+                    // only one process with callsign as a name is allowed
+                    if (processPids.size() == 1)
+                    {
+                        pid_t appPid = processPids.front();
+                        LOGINFO("Pid found for %s: %d", callSign.c_str(), appPid);
+
+                        MemCheckpointRestoreClient::ServerRequest req = {
+                            .reqCode = cmd,
+                            .pid = appPid};
+
+                        MemCheckpointRestoreClient::ServerResponse resp;
+
+                        success = sendRcvCmd(req, resp, timeouteMs);
+                        if (!success)
+                        {
+                            errorMsg = std::to_string(static_cast<int>(resp.respCode));
+                        }
+                    }
+                    else
+                    {
+                        LOGWARN("Pid not found or more than one found for %s:  %d", callSign.c_str(), processPids.size());
+                        errorMsg = "Process not found";
+                        success = false;
+                    }
+
+                    JsonObject params;
+                    params["callsign"] = callSign;
+                    params["success"] = success;
+                    if (!success)
+                    {
+                        params["message"] = errorMsg;
+                        removeFromProcessed(callSign);
+                    }
+
+                    if (cmd == MemCheckpointRestoreClient::MEMCR_CHECKPOINT)
+                    {
+                        mProcessedAppsLock.lock();
+                        if(success && mProcessedApps.find(callSign) != mProcessedApps.end()
+                            && mProcessedApps[callSign] == MemCheckpointRestoreClient::CHECKPOINTING)
+                        {
+                            mProcessedApps[callSign] = MemCheckpointRestoreClient::CHECKPOINTED;
+                        }
+                        mProcessedAppsLock.unlock();
+
+                        RDKShell* rdkshellPlugin = RDKShell::_instance;
+                        rdkshellPlugin->notify(RDKShell::RDKSHELL_EVENT_ON_CHECKPOINTED, params);
+                    }
+                    else if (cmd == MemCheckpointRestoreClient::MEMCR_RESTORE)
+                    {
+                        mProcessedAppsLock.lock();
+                        if(success && mProcessedApps.find(callSign) != mProcessedApps.end()
+                            && mProcessedApps[callSign] == MemCheckpointRestoreClient::RESTORING)
+                        {
+                            mProcessedApps.erase(callSign);
+                        }
+                        mProcessedAppsLock.unlock();
+                        
+                        RDKShell* rdkshellPlugin = RDKShell::_instance;
+                        rdkshellPlugin->notify(RDKShell::RDKSHELL_EVENT_ON_RESTORED, params);
+                    }
+                });
+            requestsThread.detach();
+        }
+
+        bool MemCheckpointRestoreClient::sendRcvCmd(
+            MemCheckpointRestoreClient::ServerRequest &cmd,
+            MemCheckpointRestoreClient::ServerResponse &resp,
+            uint32_t timeouteMs)
+        {
+            int cd;
+            int ret;
+            struct sockaddr_un addr = {0};
+
+            cd = socket(PF_UNIX, SOCK_STREAM, 0);
+            if (cd < 0)
+            {
+                LOGWARN("Socket create failed: %d", cd);
+                return false;
+            }
+
+            struct timeval rcvTimeout;
+            rcvTimeout.tv_sec = timeouteMs/1000;
+            rcvTimeout.tv_usec = (timeouteMs%1000)*1000;
+
+            setsockopt(cd, SOL_SOCKET, SO_RCVTIMEO, &rcvTimeout, sizeof(rcvTimeout));
+
+            addr.sun_family = PF_UNIX;
+            snprintf(addr.sun_path, sizeof(addr.sun_path),
+                MemCheckpointRestoreClient::MEMCR_SERVER_SOCKET.c_str());
+
+            ret = connect(cd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un));
+            if (ret < 0)
+            {
+                LOGWARN("Socket connect failed: %d with %s", ret,
+                    MemCheckpointRestoreClient::MEMCR_SERVER_SOCKET.c_str());
+                close(cd);
+                return false;
+            }
+
+            ret = write(cd, &cmd, sizeof(cmd));
+            if (ret != sizeof(cmd))
+            {
+                LOGWARN("Socket write failed: ret %d", ret);
+                close(cd);
+                return false;
+            }
+
+            ret = read(cd, &resp, sizeof(resp));
+            if(ret != sizeof(resp))
+            {
+                LOGWARN("Socket read failed: ret %d", ret);
+                close(cd);
+                return false;
+            }
+
+            close(cd);
+
+            return true;
+        }
+
+        void MemCheckpointRestoreClient::findPid(const string& item, std::list<uint32_t>& pids)
+        {
+            DIR *dp;
+            struct dirent *ep;
+
+            pids.clear();
+
+            dp = opendir("/proc");
+            if (dp != nullptr)
+            {
+                while (nullptr != (ep = readdir(dp)))
+                {
+                    int pid;
+                    char *endptr;
+
+                    pid = strtol(ep->d_name, &endptr, 10);
+
+                    if ('\0' == endptr[0])
+                    {
+                        // We have a valid PID, Find, the parent of this process..
+                        TCHAR buffer[512];
+                        processName(pid, buffer, sizeof(buffer));
+                        if(item == buffer)
+                        {
+                            pids.push_back(pid);
+                        }
+                    }
+                }
+
+                (void)closedir(dp);
+            }
+        }
+
+        void MemCheckpointRestoreClient::processName(const uint32_t pid, TCHAR buffer[], const uint32_t maxLength)
+        {
+            ASSERT(maxLength > 0);
+
+            if (maxLength > 0)
+            {
+                char procpath[48];
+                int fd;
+
+                snprintf(procpath, sizeof(procpath), "/proc/%u/comm", pid);
+
+                if ((fd = open(procpath, O_RDONLY)) > 0)
+                {
+                    ssize_t size;
+                    if ((size = read(fd, buffer, maxLength - 1)) > 0)
+                    {
+                        if (buffer[size - 1] == '\n')
+                        {
+                            buffer[size - 1] = '\0';
+                        }
+                        else
+                        {
+                            buffer[size] = '\0';
+                        }
+                    }
+                    else
+                    {
+                        buffer[0] = '\0';
+                    }
+
+                    close(fd);
+                }
+                else
+                {
+                    buffer[0] = '\0';
                 }
             }
         }
@@ -1012,8 +1315,7 @@ namespace WPEFramework {
                 mLastWakeupKeyTimestamp(0),
                 mEnableEasterEggs(true),
                 mScreenCapture(this),
-                mErmEnabled(false),
-                mMemCheckpointRestoreClient(this)
+                mErmEnabled(false)
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -3327,7 +3629,7 @@ namespace WPEFramework {
                     returnResponse(false);
                 }
 
-                if(mMemCheckpointRestoreClient.isProcessed(appCallsign))
+                if(gMemCheckpointRestoreClient.isProcessed(appCallsign))
                 {
                     gLaunchMutex.lock();
                     gLaunchCount = 0;
@@ -4064,7 +4366,7 @@ namespace WPEFramework {
                     returnResponse(result);
             	}
 
-                if(mMemCheckpointRestoreClient.isProcessed(client))
+                if(gMemCheckpointRestoreClient.isProcessed(client))
                 {
                     std::cout << "ignoring suspend for " << client << " as it is being checkpointed/restored " << std::endl;
                     result=false;
@@ -4646,7 +4948,7 @@ namespace WPEFramework {
                 uint32_t stateStatus(0);
                 uint32_t urlStatus(0);
 
-                if(mMemCheckpointRestoreClient.isProcessed(callsign) == false)
+                if(gMemCheckpointRestoreClient.isProcessed(callsign) == false)
                 {
                     Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
                     thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method, callsign, joResult);
@@ -4768,7 +5070,7 @@ namespace WPEFramework {
                             WPEFramework::Core::JSON::String stateString;
                             const string callsignWithVersion = callsign + ".1";
 
-                            if(mMemCheckpointRestoreClient.isProcessed(callsign) == false)
+                            if(gMemCheckpointRestoreClient.isProcessed(callsign) == false)
                             {
                                 uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
 
@@ -5806,8 +6108,8 @@ namespace WPEFramework {
                     returnResponse(status);
                 }
 
-                RDKShell::MemCheckpointRestoreClient::ProcessedAppState memcrAppState;
-                bool memcrStatus = mMemCheckpointRestoreClient.getState(callsign, memcrAppState);
+                MemCheckpointRestoreClient::ProcessedAppState memcrAppState;
+                bool memcrStatus = gMemCheckpointRestoreClient.getState(callsign, memcrAppState);
                 if(memcrStatus == false)
                 {
                     //App should be responsive
@@ -5824,7 +6126,7 @@ namespace WPEFramework {
                         returnResponse(status);
                     }
                 }
-                else if(memcrAppState != RDKShell::MemCheckpointRestoreClient::RESTORING)
+                else if(memcrAppState != MemCheckpointRestoreClient::RESTORING)
                 {
                     std::cout << "ignoring checkpoint for " << callsign << " as it is checkpointing or already checkpointed " << std::endl;
                     status = false;
@@ -5832,7 +6134,7 @@ namespace WPEFramework {
                     returnResponse(status);
                 }
 
-                status = mMemCheckpointRestoreClient.checkpoint(callsign, RDKSHELL_THUNDER_TIMEOUT);
+                status = gMemCheckpointRestoreClient.checkpoint(callsign, RDKSHELL_THUNDER_TIMEOUT);
             }
 
             returnResponse(status);
@@ -5845,7 +6147,7 @@ namespace WPEFramework {
             if (parameters.HasLabel("callsign"))
             {
                 std::string callsign = parameters["callsign"].String();
-                status = mMemCheckpointRestoreClient.restore(callsign, RDKSHELL_THUNDER_TIMEOUT);
+                status = gMemCheckpointRestoreClient.restore(callsign, RDKSHELL_THUNDER_TIMEOUT);
             }
 
             returnResponse(status);
@@ -7291,301 +7593,6 @@ namespace WPEFramework {
             gRdkShellMutex.unlock();
 
             return result;
-        }
-
-        bool RDKShell::MemCheckpointRestoreClient::checkpoint(const std::string &callSign, uint32_t timeouteMs)
-        {
-            bool isCheckpointAllowed = false;
-
-            mProcessedAppsLock.lock();
-            if(mProcessedApps.find(callSign) == mProcessedApps.end())
-            {
-                //App not processed
-                isCheckpointAllowed = true;
-            }
-            else if(mProcessedApps[callSign] == RDKShell::MemCheckpointRestoreClient::RESTORING)
-            {
-                //App being processeed, then shedule checkpoint only if restore is ongoing
-                isCheckpointAllowed = true;
-            }
-
-            if(isCheckpointAllowed)
-            {
-                mProcessedApps[callSign] = RDKShell::MemCheckpointRestoreClient::CHECKPOINTING;
-            }
-
-            mProcessedAppsLock.unlock();
-
-            if(isCheckpointAllowed)
-            {
-                LOGINFO("Launching Checkpoint Thread for %s", callSign.c_str());
-                launchRequestThread(RDKShell::MemCheckpointRestoreClient::MEMCR_CHECKPOINT, callSign, timeouteMs);
-                return true;
-            }
-
-            LOGWARN("Checkpoint not allowed for %s", callSign.c_str());
-            return false;
-        }
-
-        bool RDKShell::MemCheckpointRestoreClient::restore(const std::string &callSign, uint32_t timeouteMs)
-        {
-            bool isRestoreAllowed = false;
-
-            mProcessedAppsLock.lock();
-            if(mProcessedApps.find(callSign) != mProcessedApps.end()
-                && (mProcessedApps[callSign] == RDKShell::MemCheckpointRestoreClient::CHECKPOINTING
-                        || mProcessedApps[callSign] == RDKShell::MemCheckpointRestoreClient::CHECKPOINTED))
-            {
-                //Apps checkpoint ongoing or already checkpointed
-                isRestoreAllowed = true;
-                mProcessedApps[callSign] = RDKShell::MemCheckpointRestoreClient::RESTORING;
-            }
-
-            mProcessedAppsLock.unlock();
-
-            if(isRestoreAllowed)
-            {
-                LOGINFO("Launching Restore Thread for %s", callSign.c_str());
-                launchRequestThread(RDKShell::MemCheckpointRestoreClient::MEMCR_RESTORE, callSign, timeouteMs);
-                return true;
-            }
-
-            LOGWARN("Restore not allowed for %s", callSign.c_str());
-            return false;
-        }
-
-        bool RDKShell::MemCheckpointRestoreClient::getState(const std::string &callSign, ProcessedAppState &state)
-        {
-            bool status = false;
-            mProcessedAppsLock.lock();
-            if(mProcessedApps.find(callSign) != mProcessedApps.end())
-            {
-                state = mProcessedApps[callSign];
-                status = true;
-            }
-            mProcessedAppsLock.unlock();
-            return status;
-        }
-
-        bool RDKShell::MemCheckpointRestoreClient::isProcessed(const std::string &callSign)
-        {
-            bool isProcessed = false;
-            mProcessedAppsLock.lock();
-            isProcessed = (mProcessedApps.find(callSign) != mProcessedApps.end());
-            mProcessedAppsLock.unlock();
-
-            return isProcessed;
-        }
-
-        void RDKShell::MemCheckpointRestoreClient::removeFromProcessed(const std::string &callSign)
-        {
-            mProcessedAppsLock.lock();
-            if(mProcessedApps.find(callSign) != mProcessedApps.end())
-            {
-                mProcessedApps.erase(callSign);
-            }
-            mProcessedAppsLock.unlock();
-        }
-
-
-        void RDKShell::MemCheckpointRestoreClient::launchRequestThread(
-            RDKShell::MemCheckpointRestoreClient::ServerRequestCode cmd,
-            const std::string &callSign,
-            uint32_t timeouteMs)
-        {
-            std::thread requestsThread =
-                std::thread([=]()
-                {
-                    bool success = false;
-                    std::string errorMsg;
-
-                    std::list<uint32_t> processPids;
-                    findPid(callSign, processPids);
-                    // only one process with callsign as a name is allowed
-                    if (processPids.size() == 1)
-                    {
-                        pid_t appPid = processPids.front();
-                        LOGINFO("Pid found for %s: %d", callSign.c_str(), appPid);
-
-                        RDKShell::MemCheckpointRestoreClient::ServerRequest req = {
-                            .reqCode = cmd,
-                            .pid = appPid};
-
-                        RDKShell::MemCheckpointRestoreClient::ServerResponse resp;
-
-                        success = sendRcvCmd(req, resp, timeouteMs);
-                        if (!success)
-                        {
-                            errorMsg = std::to_string(static_cast<int>(resp.respCode));
-                        }
-                    }
-                    else
-                    {
-                        LOGWARN("Pid not found or more than one found for %s:  %d", callSign.c_str(), processPids.size());
-                        errorMsg = "Process not found";
-                        success = false;
-                    }
-
-                    JsonObject params;
-                    params["callsign"] = callSign;
-                    params["success"] = success;
-                    if (!success)
-                    {
-                        params["message"] = errorMsg;
-                    }
-
-                    if (cmd == RDKShell::MemCheckpointRestoreClient::MEMCR_CHECKPOINT)
-                    {
-                        mProcessedAppsLock.lock();
-                        if(success && mProcessedApps.find(callSign) != mProcessedApps.end()
-                            && mProcessedApps[callSign] == RDKShell::MemCheckpointRestoreClient::CHECKPOINTING)
-                        {
-                            mProcessedApps[callSign] = RDKShell::MemCheckpointRestoreClient::CHECKPOINTED;
-                        }
-                        mProcessedAppsLock.unlock();
-                        mShell.notify(RDKSHELL_EVENT_ON_CHECKPOINTED, params);
-                    }
-                    else if (cmd == RDKShell::MemCheckpointRestoreClient::MEMCR_RESTORE)
-                    {
-                        mProcessedAppsLock.lock();
-                        if(success && mProcessedApps.find(callSign) != mProcessedApps.end()
-                            && mProcessedApps[callSign] == RDKShell::MemCheckpointRestoreClient::RESTORING)
-                        {
-                            mProcessedApps.erase(callSign);
-                        }
-                        mProcessedAppsLock.unlock();
-                        mShell.notify(RDKSHELL_EVENT_ON_RESTORED, params);
-                    }
-                });
-            requestsThread.detach();
-        }
-
-        bool RDKShell::MemCheckpointRestoreClient::sendRcvCmd(
-            RDKShell::MemCheckpointRestoreClient::ServerRequest &cmd,
-            RDKShell::MemCheckpointRestoreClient::ServerResponse &resp,
-            uint32_t timeouteMs)
-        {
-            int cd;
-            int ret;
-            struct sockaddr_un addr = {0};
-
-            cd = socket(PF_UNIX, SOCK_STREAM, 0);
-            if (cd < 0)
-            {
-                LOGWARN("Socket create failed: %d", cd);
-                return false;
-            }
-
-            struct timeval rcvTimeout;
-            rcvTimeout.tv_sec = timeouteMs/1000;
-            rcvTimeout.tv_usec = (timeouteMs%1000)*1000;
-
-            setsockopt(cd, SOL_SOCKET, SO_RCVTIMEO, &rcvTimeout, sizeof(rcvTimeout));
-
-            addr.sun_family = PF_UNIX;
-            snprintf(addr.sun_path, sizeof(addr.sun_path),
-                RDKShell::MemCheckpointRestoreClient::MEMCR_SERVER_SOCKET.c_str());
-
-            ret = connect(cd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un));
-            if (ret < 0)
-            {
-                LOGWARN("Socket connect failed: %d with %s", ret,
-                    RDKShell::MemCheckpointRestoreClient::MEMCR_SERVER_SOCKET.c_str());
-                close(cd);
-                return false;
-            }
-
-            ret = write(cd, &cmd, sizeof(cmd));
-            if (ret != sizeof(cmd))
-            {
-                LOGWARN("Socket write failed: ret %d", ret);
-                close(cd);
-                return false;
-            }
-
-            ret = read(cd, &resp, sizeof(resp));
-            if(ret != sizeof(resp))
-            {
-                LOGWARN("Socket read failed: ret %d", ret);
-                close(cd);
-                return false;
-            }
-
-            close(cd);
-
-            return true;
-        }
-
-        void RDKShell::MemCheckpointRestoreClient::findPid(const string& item, std::list<uint32_t>& pids)
-        {
-            DIR *dp;
-            struct dirent *ep;
-
-            pids.clear();
-
-            dp = opendir("/proc");
-            if (dp != nullptr)
-            {
-                while (nullptr != (ep = readdir(dp)))
-                {
-                    int pid;
-                    char *endptr;
-
-                    pid = strtol(ep->d_name, &endptr, 10);
-
-                    if ('\0' == endptr[0])
-                    {
-                        // We have a valid PID, Find, the parent of this process..
-                        TCHAR buffer[512];
-                        processName(pid, buffer, sizeof(buffer));
-                        if(item == buffer)
-                        {
-                            pids.push_back(pid);
-                        }
-                    }
-                }
-
-                (void)closedir(dp);
-            }
-        }
-
-        void RDKShell::MemCheckpointRestoreClient::processName(const uint32_t pid, TCHAR buffer[], const uint32_t maxLength)
-        {
-            ASSERT(maxLength > 0);
-
-            if (maxLength > 0)
-            {
-                char procpath[48];
-                int fd;
-
-                snprintf(procpath, sizeof(procpath), "/proc/%u/comm", pid);
-
-                if ((fd = open(procpath, O_RDONLY)) > 0)
-                {
-                    ssize_t size;
-                    if ((size = read(fd, buffer, maxLength - 1)) > 0)
-                    {
-                        if (buffer[size - 1] == '\n')
-                        {
-                            buffer[size - 1] = '\0';
-                        }
-                        else
-                        {
-                            buffer[size] = '\0';
-                        }
-                    }
-                    else
-                    {
-                        buffer[0] = '\0';
-                    }
-
-                    close(fd);
-                }
-                else
-                {
-                    buffer[0] = '\0';
-                }
-            }
         }
         // Internal methods end
     } // namespace Plugin

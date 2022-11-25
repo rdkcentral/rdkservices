@@ -432,66 +432,6 @@ namespace WPEFramework {
                 std::vector<ICapture::IStore *>mCaptureStorers;
             };
 
-            class MemCheckpointRestoreClient
-            {
-            private:
-                MemCheckpointRestoreClient() = delete;
-                MemCheckpointRestoreClient(const MemCheckpointRestoreClient &) = delete;
-                MemCheckpointRestoreClient &operator=(const MemCheckpointRestoreClient &) = delete;
-
-            public:
-                enum ProcessedAppState
-                {
-                    CHECKPOINTING,
-                    CHECKPOINTED,
-                    RESTORING
-                };
-
-                MemCheckpointRestoreClient(RDKShell *shell): mShell(*shell) {}
-                bool checkpoint(const std::string &callSign, uint32_t timeouteMs);
-                bool restore(const std::string &callSign, uint32_t timeouteMs);
-                bool getState(const std::string &callSign, ProcessedAppState &state);
-                bool isProcessed(const std::string &callSign);
-                void removeFromProcessed(const std::string &callSign);
-
-            private/*types and const*/:
-                enum ServerRequestCode
-                {
-                    MEMCR_CHECKPOINT = 100,
-                    MEMCR_RESTORE
-                };
-
-                enum ServerResponseCode
-                {
-                    MEMCR_OK = 0,
-                    MEMCR_ERROR = -1
-                };
-
-                struct ServerRequest
-                {
-                    ServerRequestCode reqCode;
-                    pid_t pid;
-                } __attribute__((packed));
-
-                struct ServerResponse
-                {
-                    ServerResponseCode respCode;
-                } __attribute__((packed));
-
-                const string MEMCR_SERVER_SOCKET = "/tmp/memcrservice";
-
-            private/*methods*/:
-                void launchRequestThread(ServerRequestCode request, const std::string &callSign, uint32_t timeouteMs);
-                bool sendRcvCmd(ServerRequest &cmd, ServerResponse &resp, uint32_t timeouteMs);
-                void findPid(const string& item, std::list<uint32_t>& pids);
-                void processName(const uint32_t pid, TCHAR buffer[], const uint32_t maxLength);
-
-            private/*members*/:
-                RDKShell& mShell;
-                std::mutex mProcessedAppsLock;
-                std::map<std::string, ProcessedAppState> mProcessedApps;
-            };
-
         private/*members*/:
             bool mRemoteShell;
             bool mEnableUserInactivityNotification;
@@ -506,7 +446,6 @@ namespace WPEFramework {
             bool mEnableEasterEggs;
             ScreenCapture mScreenCapture;
             bool mErmEnabled;
-            MemCheckpointRestoreClient mMemCheckpointRestoreClient;
         };
 
         struct PluginData
@@ -528,6 +467,59 @@ namespace WPEFramework {
                 std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> mPluginConnection;
                 RDKShell& mRDKShell;
                 bool mLaunchEnabled;
+        };
+
+        class MemCheckpointRestoreClient
+        {
+        public:
+            enum ProcessedAppState
+            {
+                CHECKPOINTING,
+                CHECKPOINTED,
+                RESTORING
+            };
+
+            bool checkpoint(const std::string &callSign, uint32_t timeouteMs);
+            bool restore(const std::string &callSign, uint32_t timeouteMs);
+            bool getState(const std::string &callSign, ProcessedAppState &state);
+            bool isProcessed(const std::string &callSign);
+            void removeFromProcessed(const std::string &callSign);
+
+        private /*types and const*/:
+            enum ServerRequestCode
+            {
+                MEMCR_CHECKPOINT = 100,
+                MEMCR_RESTORE
+            };
+
+            enum ServerResponseCode
+            {
+                MEMCR_OK = 0,
+                MEMCR_ERROR = -1
+            };
+
+            struct ServerRequest
+            {
+                ServerRequestCode reqCode;
+                pid_t pid;
+            } __attribute__((packed));
+
+            struct ServerResponse
+            {
+                ServerResponseCode respCode;
+            } __attribute__((packed));
+
+            const string MEMCR_SERVER_SOCKET = "/tmp/memcrservice";
+
+        private /*methods*/:
+            void launchRequestThread(ServerRequestCode request, const std::string &callSign, uint32_t timeouteMs);
+            bool sendRcvCmd(ServerRequest &cmd, ServerResponse &resp, uint32_t timeouteMs);
+            void findPid(const string &item, std::list<uint32_t> &pids);
+            void processName(const uint32_t pid, TCHAR buffer[], const uint32_t maxLength);
+
+        private /*members*/:
+            std::mutex mProcessedAppsLock;
+            std::map<std::string, ProcessedAppState> mProcessedApps;
         };
 
     } // namespace Plugin
