@@ -64,8 +64,9 @@ include_directories(../LocationSync
         ../HdmiInput
         ../HdcpProfile
         ../TraceControl
-	../WifiManager
+	    ../WifiManager
         ../Warehouse
+		../CompositeInput
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -87,8 +88,9 @@ link_directories(../LocationSync
         ../HdmiInput
         ../HdcpProfile
         ../TraceControl
-	../WifiManager
+		../WifiManager
         ../Warehouse
+		../CompositeInput
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -117,6 +119,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}TraceControl
         ${NAMESPACE}WifiManager
         ${NAMESPACE}Warehouse
+		${NAMESPACE}CompositeInput
         )
 
 target_include_directories(${PROJECT_NAME}

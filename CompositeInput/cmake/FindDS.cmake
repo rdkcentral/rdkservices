@@ -26,7 +26,7 @@
 find_package(PkgConfig)
 
 find_library(DS_LIBRARIES NAMES ds)
-find_path(DS_INCLUDE_DIRS NAMES hdmiIn.hpp PATH_SUFFIXES rdk/ds)
+find_path(DS_INCLUDE_DIRS NAMES compositeIn.hpp PATH_SUFFIXES rdk/ds)
 
 set(DS_LIBRARIES ${DS_LIBRARIES})
 set(DS_LIBRARIES ${DS_LIBRARIES} CACHE PATH "Path to DS library")

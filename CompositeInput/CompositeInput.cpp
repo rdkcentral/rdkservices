@@ -70,7 +70,7 @@ namespace WPEFramework
         {
             CompositeInput::_instance = this;
 
-            InitializeIARM();
+            //InitializeIARM();
 
             Register(COMPOSITEINPUT_METHOD_GET_COMPOSITE_INPUT_DEVICES, &CompositeInput::getCompositeInputDevicesWrapper, this);
             Register(COMPOSITEINPUT_METHOD_START_COMPOSITE_INPUT, &CompositeInput::startCompositeInput, this);
@@ -81,6 +81,14 @@ namespace WPEFramework
         CompositeInput::~CompositeInput()
         {
         }
+
+	const string CompositeInput::Initialize(PluginHost::IShell * /* service */)
+	{
+  	    CompositeInput::_instance = this;
+	    InitializeIARM();
+
+	    return (string());
+	}
 
         void CompositeInput::Deinitialize(PluginHost::IShell* /* service */)
         {
@@ -120,9 +128,9 @@ namespace WPEFramework
             int portId = 0;
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
+            }catch (const std::exception& err) {
+				LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
             }
 
             bool success = true;
