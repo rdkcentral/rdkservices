@@ -69,16 +69,33 @@ protected:
 
 class TelemetryRBusTest : public TelemetryTest {
 protected:
+
+    ServiceMock service;
+    Core::JSONRPC::Message message;
+    FactoriesImplementation factoriesImplementation;
+    PluginHost::IDispatcher* dispatcher;
+
     RBusApiImplMock rBusApiImplMock;
 
     TelemetryRBusTest()
         : TelemetryTest()
     {
+        PluginHost::IFactories::Assign(&factoriesImplementation);
+
+        dispatcher = static_cast<PluginHost::IDispatcher*>(
+            plugin->QueryInterface(PluginHost::IDispatcher::ID));
+        dispatcher->Activate(&service);
+
         RBusApi::getInstance().impl = &rBusApiImplMock;
     }
     virtual ~TelemetryRBusTest() override
     {
         RBusApi::getInstance().impl = nullptr;
+
+        dispatcher->Deactivate();
+        dispatcher->Release();
+
+        PluginHost::IFactories::Assign(nullptr);
     }
 };
 
@@ -231,6 +248,214 @@ TEST_F(TelemetryRfcTest, Plugin)
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventValue\":\"VALUE\"}"), response));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("logApplicationEvent"), _T("{\"eventName\":\"NAME\", \"eventValue\":\"VALUE\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
+
+    plugin->Deinitialize(nullptr);
+}
+
+TEST_F(TelemetryRBusTest, uploadLogsRbusOpenFailure)
+{
+    EXPECT_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](rbusHandle_t* handle, char const* componentName) {
+                EXPECT_TRUE(nullptr != handle);
+                EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
+                return RBUS_ERROR_BUS_ERROR;
+            }));
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    EXPECT_EQ(Core::ERROR_OPENING_FAILED, handler.Invoke(connection, _T("uploadReport"), _T("{}"), response));
+
+    plugin->Deinitialize(nullptr);
+}
+
+TEST_F(TelemetryRBusTest, uploadLogsRbusMethodFailure)
+{
+    EXPECT_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](rbusHandle_t* handle, char const* componentName) {
+                EXPECT_TRUE(nullptr != handle);
+                EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
+                return RBUS_ERROR_SUCCESS;
+            }));
+
+    EXPECT_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](rbusHandle_t handle, char const* methodName, rbusObject_t inParams, rbusMethodAsyncRespHandler_t callback,  int timeout) {
+                return RBUS_ERROR_BUS_ERROR;
+            }));
+
+    EXPECT_CALL(rBusApiImplMock, rbus_close(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](rbusHandle_t handle) {
+                return RBUS_ERROR_SUCCESS;
+            }));
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    EXPECT_EQ(Core::ERROR_RPC_CALL_FAILED, handler.Invoke(connection, _T("uploadReport"), _T("{}"), response));
+
+    plugin->Deinitialize(nullptr);
+}
+
+TEST_F(TelemetryRBusTest, uploadLogs)
+{
+    Core::Event onReportUploadSuccess(false, true);
+
+    struct _rbusObject rbObject;
+    struct _rbusValue rbValue;
+
+    EXPECT_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](rbusHandle_t* handle, char const* componentName) {
+                EXPECT_TRUE(nullptr != handle);
+                EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
+                return RBUS_ERROR_SUCCESS;
+            }));
+
+
+    EXPECT_CALL(rBusApiImplMock, rbusValue_GetString(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](rbusValue_t value, int* len) {
+                EXPECT_EQ(value, &rbValue);
+                return "SUCCESS";
+            }));
+
+    EXPECT_CALL(rBusApiImplMock, rbusObject_GetValue(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](rbusObject_t object, char const* name) {
+                EXPECT_EQ(object, &rbObject);
+                EXPECT_EQ(string(name), _T("UPLOAD_STATUS"));
+                return &rbValue;
+            }));
+
+    EXPECT_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](rbusHandle_t handle, char const* methodName, rbusObject_t inParams, rbusMethodAsyncRespHandler_t callback,  int timeout) {
+                sleep(2);
+                callback(handle, methodName, RBUS_ERROR_SUCCESS, &rbObject);
+
+                return RBUS_ERROR_SUCCESS;
+            }));
+
+    EXPECT_CALL(rBusApiImplMock, rbus_close(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](rbusHandle_t handle) {
+                return RBUS_ERROR_SUCCESS;
+            }));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+
+                EXPECT_EQ(text, string(_T(
+                    "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.Telemetry.onReportUpload\",\"params\":{\"telemetryUploadStatus\":\"UPLOAD_SUCCESS\"}}"
+                )));
+
+                onReportUploadSuccess.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    handler.Subscribe(0, _T("onReportUpload"), _T("org.rdk.Telemetry"), message);
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadReport"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, onReportUploadSuccess.Lock());
+
+    handler.Unsubscribe(0, _T("onReportUpload"), _T("org.rdk.Telemetry"), message);
+
+    plugin->Deinitialize(nullptr);
+}
+
+
+TEST_F(TelemetryRBusTest, uploadLogsCallbackFailed)
+{
+    Core::Event onReportUploadFailure(false, true);
+
+    struct _rbusObject rbObject;
+    struct _rbusValue rbValue;
+
+    EXPECT_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](rbusHandle_t* handle, char const* componentName) {
+                EXPECT_TRUE(nullptr != handle);
+                EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
+                return RBUS_ERROR_SUCCESS;
+            }));
+
+    EXPECT_CALL(rBusApiImplMock, rbusValue_GetString(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](rbusValue_t value, int* len) {
+                EXPECT_EQ(value, &rbValue);
+                return "FAILURE";
+            }));
+
+    EXPECT_CALL(rBusApiImplMock, rbusObject_GetValue(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](rbusObject_t object, char const* name) {
+                EXPECT_EQ(object, &rbObject);
+                EXPECT_EQ(string(name), _T("UPLOAD_STATUS"));
+                return &rbValue;
+            }));
+
+    EXPECT_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](rbusHandle_t handle, char const* methodName, rbusObject_t inParams, rbusMethodAsyncRespHandler_t callback,  int timeout) {
+                sleep(2);
+                callback(handle, methodName, RBUS_ERROR_SUCCESS, &rbObject);
+
+                return RBUS_ERROR_SUCCESS;
+            }));
+
+    EXPECT_CALL(rBusApiImplMock, rbus_close(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](rbusHandle_t handle) {
+                return RBUS_ERROR_SUCCESS;
+            }));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+
+                EXPECT_EQ(text, string(_T(
+                    "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.Telemetry.onReportUpload\",\"params\":{\"telemetryUploadStatus\":\"UPLOAD_FAILURE\"}}"
+                )));
+
+                onReportUploadFailure.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    handler.Subscribe(0, _T("onReportUpload"), _T("org.rdk.Telemetry"), message);
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadReport"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, onReportUploadFailure.Lock());
+
+    handler.Unsubscribe(0, _T("onReportUpload"), _T("org.rdk.Telemetry"), message);
 
     plugin->Deinitialize(nullptr);
 }

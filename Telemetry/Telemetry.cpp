@@ -173,7 +173,10 @@ namespace WPEFramework
             Telemetry::_instance = nullptr;
 #ifdef HAS_RBUS
             if (RBUS_ERROR_SUCCESS == rbusHandleStatus)
+            {
                 rbus_close(rbusHandle);
+                rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
+            }
 #endif
         }
 
