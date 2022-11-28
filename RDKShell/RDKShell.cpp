@@ -1105,6 +1105,11 @@ namespace WPEFramework {
         RDKShell::~RDKShell()
         {
             //LOGINFO("dtor");
+	    if(mClientsMonitor != nullptr)
+            {
+                    delete mClientsMonitor;
+            }
+
         }
 
         const string RDKShell::Initialize(PluginHost::IShell* service )
