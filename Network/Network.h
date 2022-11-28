@@ -33,6 +33,8 @@
 #define MAX_IP_ADDRESS_LEN 46
 #define NETSRVMGR_INTERFACES_MAX 16
 #define MAX_ENDPOINTS 5
+#define MAX_ENDPOINT_SIZE 260 // 253 + 1 + 5 + 1 (domain name max length + ':' + port number max chars + '\0')
+#define MAX_HOST_NAME_LEN 128
 
 typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
