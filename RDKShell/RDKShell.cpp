@@ -1203,7 +1203,7 @@ namespace WPEFramework {
             // TODO: use interfaces and remove token
             auto security = mCurrentService->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
             if (security != nullptr) {
-                string payload = "{\"url\":\"http://localhost\"}";
+                string payload = "http://localhost";
                 string token;
                 if (security->CreateToken(
                         static_cast<uint16_t>(payload.length()),
@@ -1266,6 +1266,10 @@ namespace WPEFramework {
                         subSystems->Release();
                         if (sFactoryModeStart) 
                         {
+                            if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
+		            {
+                                CompositorController::setVisibility("ResidentApp", false);
+			    }
                             JsonObject request, response;
                             std::cout << "about to launch factory app on start without persistent store wait\n";
                             gRdkShellMutex.unlock();
@@ -1372,6 +1376,10 @@ namespace WPEFramework {
                     {
                         JsonObject request, response;
                         std::cout << "about to launch factory app after persistent store wait\n";
+                        if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
+		        {
+                            CompositorController::setVisibility("ResidentApp", false);
+                        }
                         gRdkShellMutex.unlock();
                         if (sFactoryModeBlockResidentApp)
                         {

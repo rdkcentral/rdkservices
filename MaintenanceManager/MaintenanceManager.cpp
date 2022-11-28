@@ -389,7 +389,7 @@ namespace WPEFramework {
             // TODO: use interfaces and remove token
             auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
             if (security != nullptr) {
-                string payload = "{\"url\":\"http://localhost\"}";
+                string payload = "http://localhost";
                 if (security->CreateToken(
                         static_cast<uint16_t>(payload.length()),
                         reinterpret_cast<const uint8_t*>(payload.c_str()),
@@ -490,7 +490,7 @@ namespace WPEFramework {
             // TODO: use interfaces and remove token
             auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
             if (security != nullptr) {
-                string payload = "{\"url\":\"http://localhost\"}";
+                string payload = "http://localhost";
                 if (security->CreateToken(
                         static_cast<uint16_t>(payload.length()),
                         reinterpret_cast<const uint8_t*>(payload.c_str()),
