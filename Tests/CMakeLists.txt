@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
         ${TESTS}
         mocks/thunder/Module.cpp
         mocks/Wraps.cpp
+	mocks/rdkshell.cpp
         )
 
 set_source_files_properties(

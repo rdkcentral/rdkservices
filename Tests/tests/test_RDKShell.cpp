@@ -120,21 +120,32 @@ TEST_F(RDKShellTest, setMemoryMonitor)
                                                                                              "\"interval\": 300,"
 											     "\"lowRam\": 128,"
                                                                                              "\"criticallyLowRam\": 64}"), response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
 }
 
 TEST_F(RDKShellTest, getClients)
 {  
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getClients"), _T("{}"), response));
+    EXPECT_EQ(response, string("{"
+        "\"clients\":["
+            "\"org.rdk.Netflix\","
+            "\"org.rdk.RDKBrowser2\","
+            "\"Test2\""
+        "],"
+        "\"success\":true"
+    "}"));
 }
 
 TEST_F(RDKShellTest, getAvailableTypes)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAvailableTypes"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"types\":[],\"success\":true}"));
 }
 
 TEST_F(RDKShellTest, getState)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getState"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"state\":[],\"success\":true}"));
 }
 
 TEST_F(RDKShellTest, keyRepeatConfig)
@@ -153,6 +164,7 @@ TEST_F(RDKShellTest, keyRepeatConfig)
 TEST_F(RDKShellTest, resetinactivity)
 {
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resetInactivityTime"), _T("{}"), response));
+	EXPECT_EQ(response, _T("{\"success\":true}"));
 }
 
 TEST_F(RDKShellTest, launchApplication)
@@ -161,11 +173,13 @@ TEST_F(RDKShellTest, launchApplication)
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("launchApplication"), _T("{\"client\": \"HtmlApp\","
                                                                                              "\"mimeType\": \"application/native\","
                                                                                              "\"uri\": \"https://x1box-app.xumo.com/3.0.70/index.html%22\"}"), response));
+	EXPECT_EQ(response, _T("{\"success\":true}"));
 }
 
 TEST_F(RDKShellTest, getScreenShot)
 {
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getScreenshot"), _T("{}"), response));
+	EXPECT_EQ(response, _T("{\"success\":true}"));
 }
 
 TEST_F(RDKShellTest, GraphicsFrameRate)
@@ -202,6 +216,7 @@ TEST_F(RDKShellTest, visibility)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVisibility"), _T("{\"client\": \"org.rdk.Netflix\","
                                                                                              "\"callsign\": \"org.rdk.Netflix\","
                                                                                              "\"visible\": true}"), response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
 
     ON_CALL(rdkshellmock, setVisibility(::testing::_, ::testing::_))
         .WillByDefault(::testing::Return(false));
@@ -218,6 +233,7 @@ TEST_F(RDKShellTest, visibility)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getVisibility"), _T("{\"client\": \"org.rdk.Netflix\","
                                                                                              "\"callsign\": \"org.rdk.Netflix\"}"), response));
+    EXPECT_EQ(response, string("{\"visible\":true,\"success\":true}"));
 
 }
 
@@ -225,6 +241,7 @@ TEST_F(RDKShellTest, visibility)
 TEST_F(RDKShellTest, getSystemMemory)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSystemMemory"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"freeRam\":0,\"swapRam\":0,\"totalRam\":0,\"availablememory\":0,\"success\":true}"));
 }
 
 TEST_F(RDKShellTest, showWaterMark)
@@ -242,6 +259,7 @@ TEST_F(RDKShellTest, Bounds)
          .WillByDefault(::testing::Return(true));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBounds"), _T("{\"client\": \"org.rdk.Netflix\","
                                                                                              "\"callsign\": \"org.rdk.Netflix\",\"x\":0,\"y\":0,\"w\":1920,\"h\":1080}"),response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
     ON_CALL(rdkshellmock, getBounds(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [](const std::string& client, uint32_t &x, uint32_t &y, uint32_t &width, uint32_t &height){
@@ -254,6 +272,15 @@ TEST_F(RDKShellTest, Bounds)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBounds"), _T("{\"client\": \"org.rdk.Netflix\","
                                                                                              "\"callsign\": \"org.rdk.Netflix\"}"), response));
+    EXPECT_EQ(response, string("{"
+                            "\"bounds\":{"
+                                "\"x\":0,"
+                                "\"y\":0,"
+                                "\"w\":1920,"
+                                "\"h\":1080"
+                            "},"
+                           "\"success\":true"
+                        "}"));
 }
 
 TEST_F(RDKShellTest, CursorSize)
@@ -262,6 +289,7 @@ TEST_F(RDKShellTest, CursorSize)
     ON_CALL(rdkshellmock, setCursorSize(::testing::_, ::testing::_))
          .WillByDefault(::testing::Return(true));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setCursorSize"), _T("{\"width\":255,\"height\":255}"),response));
+    EXPECT_EQ(response, _T("{\"success\":true}"));
     ON_CALL(rdkshellmock, getCursorSize(::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [](uint32_t& width, uint32_t& height){
@@ -271,6 +299,7 @@ TEST_F(RDKShellTest, CursorSize)
                 }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCursorSize"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"width\":255,\"height\":255,\"success\":true}"));
 }
 
 TEST_F(RDKShellTest, showandhideCursor)
@@ -302,11 +331,13 @@ TEST_F(RDKShellTest, LogLevel)
     ON_CALL(rdkshellmock, getLogLevel(::testing::_))
             .WillByDefault(::testing::Invoke(
                 [](std::string& level){
-                      level = "DEBUG";
-                      return true;
+                 std::string a = "DEBUG";
+                 level = a;     
+		 return true;
                 }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getLogLevel"), _T("{}"), response));
+    EXPECT_EQ(response, _T("{\"logLevel\":\"DEBUG\",\"success\":true}"));
     }
 
 
@@ -317,6 +348,7 @@ TEST_F(RDKShellTest, keyRepeat)
 	ON_CALL(rdkshellmock, enableKeyRepeats(::testing::_))
             .WillByDefault(::testing::Return(true));
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableKeyRepeats"), _T("{\"enable\": \"true\"}"), response));
+	EXPECT_EQ(response, _T("{\"success\":true}"));
 	ON_CALL(rdkshellmock, getKeyRepeatsEnabled(::testing::_))
             .WillByDefault(::testing::Invoke(
                 [](bool& enable){
@@ -324,7 +356,7 @@ TEST_F(RDKShellTest, keyRepeat)
                       return true;
                 }));
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getKeyRepeatsEnabled"), _T("{}"), response));
-
+        EXPECT_EQ(response, _T("{\"keyRepeat\":true,\"success\":true}"));
 }
 
 TEST_F(RDKShellTest, ScreenResolution)
@@ -333,6 +365,8 @@ TEST_F(RDKShellTest, ScreenResolution)
         ON_CALL(rdkshellmock, setScreenResolution(::testing::_, ::testing::_))
             .WillByDefault(::testing::Return(true));
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setScreenResolution"), _T("{\"w\":1920,\"h\":1080}"), response));
+	EXPECT_EQ(response, _T("{\"success\":true}"));
+
         ON_CALL(rdkshellmock, getScreenResolution(::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [](uint32_t &width, uint32_t &height){
@@ -374,6 +408,7 @@ TEST_F(RDKShellTest, getBlockedAVApplications)
                       return true;
                   }));
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlockedAVApplications"), _T("{}"), response));
+	EXPECT_EQ(response, _T("{\"message\":\"ERM not enabled\",\"success\":true}"));
 }
 
 
@@ -397,6 +432,7 @@ TEST_F(RDKShellTest, ScaleToFit)
 TEST_F(RDKShellTest, hideAllClients)
 {
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("hideAllClients"), _T("{\"hide\":true}"), response));
+	EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
 TEST_F(RDKShellTest, ignoreKeyInputs)
@@ -407,6 +443,7 @@ TEST_F(RDKShellTest, ignoreKeyInputs)
                   .WillByDefault(::testing::Return(true));
 
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("ignoreKeyInputs"), _T("{\"ignore\":false}"), response));
+	EXPECT_EQ(response, string("{\"success\":true}"));
 
 	ON_CALL(rdkshellmock, ignoreKeyInputs(::testing::_))
               .WillByDefault(::testing::Return(false));
@@ -423,6 +460,8 @@ TEST_F(RDKShellTest, moveToFront)
 		.WillByDefault(::testing::Return(true));
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("moveToFront"), _T("{\"client\": \"org.rdk.Netflix\","
                                                                                              "\"callsign\": \"org.rdk.Netflix\"}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+
 	ON_CALL(rdkshellmock, moveToFront(::testing::_))
                 .WillByDefault(::testing::Return(false));
         EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("moveToFront"), _T("{\"client\": \"org.rdk.Netflix\","
@@ -439,6 +478,8 @@ TEST_F(RDKShellTest, moveToBack)
                 .WillRepeatedly(::testing::Return(true));
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("moveToBack"), _T("{\"client\": \"org.rdk.Netflix\","
                                                                                              "\"callsign\": \"org.rdk.Netflix\"}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+
         EXPECT_CALL(rdkshellmock, moveToBack(::testing::_))
 		.Times(::testing::AnyNumber())
                 .WillRepeatedly(::testing::Return(false));
@@ -457,12 +498,23 @@ TEST_F(RDKShellTest, moveBehind)
          
 
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getClients"), _T("{}"), response));
+	EXPECT_EQ(response, string("{"
+        "\"clients\":["
+            "\"org.rdk.Netflix\","
+            "\"org.rdk.RDKBrowser2\","
+            "\"Test2\""
+        "],"
+        "\"success\":true"
+        "}"));
+
        
        	EXPECT_CALL(rdkshellmock, moveBehind(::testing::_, ::testing::_))
                 .Times(::testing::AnyNumber())
                 .WillRepeatedly(::testing::Return(true));
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("moveBehind"), _T("{\"client\": \"org.rdk.Netflix\","
                                                                                              "\"target\": \"org.rdk.RDKBrowser2\"}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+
         EXPECT_CALL(rdkshellmock, moveBehind(::testing::_, ::testing::_))
                 .Times(::testing::AnyNumber())
                 .WillRepeatedly(::testing::Return(false));
@@ -476,6 +528,7 @@ TEST_F(RDKShellTest, Opacity)
         EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getOpacity"), _T("{}"), response));
 
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getOpacity"), _T("{\"client\": \"org.rdk.Netflix\"}"), response));
+	EXPECT_EQ(response, string("{\"opacity\":100,\"success\":true}"));
 
 	ON_CALL(rdkshellmock, getOpacity(::testing::_, ::testing::_))
                 .WillByDefault(::testing::Return(false));
@@ -508,6 +561,7 @@ TEST_F(RDKShellTest, setFocus)
         ON_CALL(rdkshellmock, setFocus(::testing::_))
                 .WillByDefault(::testing::Return(true));
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFocus"), _T("{\"client\": \"org.rdk.Netflix\"}"), response));
+	EXPECT_EQ(response, string("{\"success\":true}"));
 
 	ON_CALL(rdkshellmock, setFocus(::testing::_))
                 .WillByDefault(::testing::Return(false));
@@ -527,6 +581,8 @@ TEST_F(RDKShellTest, removeKeyIntercepts)
                                                                                 "\"client\": \"org.rdk.Netflix\","
                                                                                 "\"callsign\": \"org.rdk.Netflix\""
                                                                                 "}"), response));
+	EXPECT_EQ(response, string("{\"success\":true}"));
+
 	ON_CALL(rdkshellmock, removeKeyIntercept(::testing::_, ::testing::_, ::testing::_))
                 .WillByDefault(::testing::Return(false));
         EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("removeKeyIntercept"), _T("{"
@@ -558,7 +614,8 @@ TEST_F(RDKShellTest, removeKeyListeners)
                                                                                            "\"propagate\": true"
                                                                                      "}"
                                                                                          "]"
-                                                                                    "}"), response));
+	      										 "}"), response));
+	EXPECT_EQ(response, string("{\"success\":true}"));
 	ON_CALL(rdkshellmock, removeKeyListener(::testing::_, ::testing::_, ::testing::_))
                 .WillByDefault(::testing::Return(false));
         EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("removeKeyListener"), _T("{"
@@ -586,6 +643,8 @@ TEST_F(RDKShellTest, removeKeyMetadataListener)
                 .WillByDefault(::testing::Return(true));
 
    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("removeKeyMetadataListener"), _T("{\"client\": \"org.rdk.Netflix\"}"), response));
+   EXPECT_EQ(response, string("{\"success\":true}"));
+
    ON_CALL(rdkshellmock, removeKeyMetadataListener(::testing::_))
                 .WillByDefault(::testing::Return(false));
 
@@ -609,6 +668,14 @@ TEST_F(RDKShellTest, injectKey)
 TEST_F(RDKShellTest, getZOrder)
 {
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getZOrder"), _T("{}"), response));
+	EXPECT_EQ(response, string("{"
+        "\"clients\":["
+            "\"org.rdk.Netflix\","
+            "\"org.rdk.RDKBrowser2\","
+            "\"Test2\""
+        "],"
+        "\"success\":true"
+    "}"));
 }
 
 TEST_F(RDKShellTest, HolePunch)
@@ -618,6 +685,7 @@ TEST_F(RDKShellTest, HolePunch)
   EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setHolePunch"), _T("{\"client\": \"org.rdk.Netflix\","
                                                                                              "\"callsign\": \"org.rdk.Netflix\","
                                                                                              "\"holePunch\": true}"), response));
+  EXPECT_EQ(response, string("{\"success\":true}"));
   ON_CALL(rdkshellmock, getHolePunch(::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [](const std::string& client, bool& holePunch){
@@ -627,7 +695,7 @@ TEST_F(RDKShellTest, HolePunch)
 
   EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getHolePunch"), _T("{\"client\": \"org.rdk.Netflix\","
                                                                                              "\"callsign\": \"org.rdk.Netflix\"}"), response));
-
+  EXPECT_EQ(response, string("{\"holePunch\":true,\"success\":true}"));
 
 }
 
@@ -643,7 +711,6 @@ TEST_F(RDKShellTest, Scale)
 
   EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getScale"), _T("{\"client\": \"org.rdk.Netflix\","
                                                                                              "\"callsign\": \"org.rdk.Netflix\"}"), response));
-
 
 }
 

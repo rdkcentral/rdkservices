@@ -56,6 +56,7 @@ public:
                 [](std::vector<std::string>& clients){
                       clients.push_back("org.rdk.Netflix");
                       clients.push_back("org.rdk.RDKBrowser2");
+		       clients.push_back("Test2");
                       return true;
 		  }));
 	    ON_CALL(*this, getFocused(::testing::_))
