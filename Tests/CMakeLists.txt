@@ -40,6 +40,7 @@ set_source_files_properties(
         tests/test_DeviceAudioCapabilities.cpp
         tests/test_DeviceVideoCapabilities.cpp
         tests/test_SystemServices.cpp
+        tests/test_Warehouse.cpp
         PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 include_directories(../LocationSync
@@ -65,6 +66,7 @@ include_directories(../LocationSync
         ../TraceControl
         ../Network
 	../WifiManager
+        ../Warehouse
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -88,6 +90,7 @@ link_directories(../LocationSync
         ../TraceControl
         ../Network
 	../WifiManager
+        ../Warehouse
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -114,8 +117,9 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}HdmiInput
         ${NAMESPACE}HdcpProfile
         ${NAMESPACE}TraceControl
-	${NAMESPACE}Network
-	${NAMESPACE}WifiManager
+	      ${NAMESPACE}Network
+        ${NAMESPACE}WifiManager
+        ${NAMESPACE}Warehouse
         )
 
 target_include_directories(${PROJECT_NAME}

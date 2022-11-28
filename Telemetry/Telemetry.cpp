@@ -24,9 +24,19 @@
 
 #include "rfcapi.h"
 
+#ifdef HAS_RBUS
+#include "rbus.h"
+
+#define RBUS_COMPONENT_NAME "TelemetryThunderPlugin"
+#define T2_ON_DEMAND_REPORT "Device.X_RDKCENTRAL-COM_T2.UploadDCMReport"
+#endif
+
 // Methods
 #define TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS "setReportProfileStatus"
 #define TELEMETRY_METHOD_LOG_APPLICATION_EVENT "logApplicationEvent"
+#define TELEMETRY_METHOD_UPLOAD_REPORT "uploadReport"
+
+#define TELEMETRY_METHOD_EVT_ON_REPORT_UPLOAD "onReportUpload"
 
 #define RFC_CALLERID "Telemetry"
 #define RFC_REPORT_PROFILES "Device.X_RDKCENTRAL-COM_T2.ReportProfiles"
@@ -35,8 +45,13 @@
 #define DEFAULT_PROFILES_FILE "/etc/t2profiles/default.json"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_MINOR 1
 #define API_VERSION_NUMBER_PATCH 0
+
+#ifdef HAS_RBUS
+static rbusError_t rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
+static rbusHandle_t rbusHandle;
+#endif
 
 namespace WPEFramework
 {
@@ -68,6 +83,7 @@ namespace WPEFramework
 
             Register(TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS, &Telemetry::setReportProfileStatus, this);
             Register(TELEMETRY_METHOD_LOG_APPLICATION_EVENT, &Telemetry::logApplicationEvent, this);
+            Register(TELEMETRY_METHOD_UPLOAD_REPORT, &Telemetry::uploadReport, this);
 
             Utils::Telemetry::init();
         }
@@ -148,12 +164,17 @@ namespace WPEFramework
                     LOGERR("Failed to open %s", defaultProfilesFile.c_str());
                 }
             }
+
             return "";
         }
 
         void Telemetry::Deinitialize(PluginHost::IShell* /* service */)
         {
             Telemetry::_instance = nullptr;
+#ifdef HAS_RBUS
+            if (RBUS_ERROR_SUCCESS == rbusHandleStatus)
+                rbus_close(rbusHandle);
+#endif
         }
 
         uint32_t Telemetry::setReportProfileStatus(const JsonObject& parameters, JsonObject& response)
@@ -214,6 +235,81 @@ namespace WPEFramework
             }
 
             returnResponse(true);
+        }
+
+#ifdef HAS_RBUS
+        static void t2EventHandler(rbusHandle_t handle, char const* methodName, rbusError_t error, rbusObject_t param)
+        {
+            LOGINFO("Got %s rbus callback", methodName);
+
+            if (RBUS_ERROR_SUCCESS == error)
+            {
+                rbusValue_t uploadStatus = rbusObject_GetValue(param, "UPLOAD_STATUS");
+
+                if(uploadStatus)
+                {
+                    if (Telemetry::_instance)
+                    {
+                        Telemetry::_instance->onReportUploadStatus(rbusValue_GetString(uploadStatus, NULL));
+                    }
+                }
+                else
+                {
+                    LOGERR("No 'UPLOAD_STATUS' value");
+                    Telemetry::_instance->onReportUploadStatus("No 'UPLOAD_STATUS' value");
+                }
+            }
+            else
+            {
+                std::stringstream str;
+                str << "Call failed with " << error << " error"; 
+                LOGERR("%s", str.str().c_str());
+                Telemetry::_instance->onReportUploadStatus(str.str().c_str());
+            }
+        }
+
+        void Telemetry::onReportUploadStatus(const char* status)
+        {
+            JsonObject eventData;
+            std::string s(status);
+            eventData["telemetryUploadStatus"] = s == "SUCCESS" ? "UPLOAD_SUCCESS" : "UPLOAD_FAILURE";
+            sendNotify(TELEMETRY_METHOD_EVT_ON_REPORT_UPLOAD, eventData);
+        }
+
+#endif
+        uint32_t Telemetry::uploadReport(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+#ifdef HAS_RBUS
+            if (RBUS_ERROR_SUCCESS != rbusHandleStatus)
+            {
+                rbusHandleStatus = rbus_open(&rbusHandle, RBUS_COMPONENT_NAME);
+            }
+
+            if (RBUS_ERROR_SUCCESS == rbusHandleStatus)
+            {
+                int rc = rbusMethod_InvokeAsync(rbusHandle, "Device.X_RDKCENTRAL-COM_T2.UploadDCMReport", NULL, t2EventHandler, 0);
+                if (RBUS_ERROR_SUCCESS != rc)
+                {
+                    std::stringstream str;
+                    str << "Failed to call " << T2_ON_DEMAND_REPORT << ": " << rc;
+                    LOGERR("%s", str.str().c_str());
+
+                    return Core::ERROR_RPC_CALL_FAILED;
+                }
+            }
+            else
+            {
+                std::stringstream str;
+                str << "rbus_open failed with error code " << rbusHandleStatus;
+                LOGERR("%s", str.str().c_str());
+                return Core::ERROR_OPENING_FAILED;
+            }
+#else
+            LOGERR("No RBus support");
+            return Core::ERROR_NOT_EXIST;
+#endif 
+            return Core::ERROR_NONE;
         }
 
     } // namespace Plugin

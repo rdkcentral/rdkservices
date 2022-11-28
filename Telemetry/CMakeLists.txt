@@ -35,12 +35,24 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 list(APPEND CMAKE_MODULE_PATH
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
-
 find_package(RFC)
 
-target_include_directories(${MODULE_NAME} PRIVATE ${RFC_INCLUDE_DIRS} ../helpers)
+find_path(RBUS_API_HEADER NAMES rbus.h PATH_SUFFIXES rbus)
 
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${RFC_LIBRARIES})
+if (NOT ${RBUS_API_HEADER} STREQUAL "RBUS_API_HEADER-NOTFOUND")
+    message("Found rbus.h ${RBUS_API_HEADER}")
+    add_definitions (-DHAS_RBUS)
+    set(RBUS_API_HEADERS ${RBUS_API_HEADER})
+find_library(RBUS_LIBRARY NAMES rbus)
+endif()
+
+set(RBUS_LIBRARIES "")
+if (NOT ${RBUS_LIBRARY} STREQUAL "RBUS_LIBRARY-NOTFOUND")
+    set(RBUS_LIBRARIES ${RBUS_LIBRARY})
+endif()
+
+target_include_directories(${MODULE_NAME} PRIVATE ${RFC_INCLUDE_DIRS} ${RBUS_API_HEADERS} ../helpers)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${RFC_LIBRARIES} ${RBUS_LIBRARIES})
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

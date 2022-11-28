@@ -857,8 +857,11 @@ namespace WPEFramework {
                             if(sFactoryAppLaunchStatus != NOTLAUNCHED)
                             {
                                 std::cout << "deactivating resident app as factory app launch in progress or completed" << std::endl;
+				JsonObject destroyRequest;
+                                destroyRequest["callsign"] = "ResidentApp";
                                 RDKShellApiRequest apiRequest;
-                                apiRequest.mName = "deactivateresidentapp";
+				apiRequest.mName = "destroy";
+                                apiRequest.mRequest = destroyRequest;
                                 RDKShell* rdkshellPlugin = RDKShell::_instance;
                                 rdkshellPlugin->launchRequestThread(apiRequest);
                             }
@@ -869,8 +872,11 @@ namespace WPEFramework {
                             if (sFactoryModeStart || mShell.checkForBootupFactoryAppLaunch()) //checking once again to make sure this condition not received before factory app launch
                             {
                                 std::cout << "deactivating resident app as factory mode on start is set" << std::endl;
+				JsonObject destroyRequest;
+                                destroyRequest["callsign"] = "ResidentApp";
                                 RDKShellApiRequest apiRequest;
-                                apiRequest.mName = "deactivateresidentapp";
+				apiRequest.mName = "destroy";
+				apiRequest.mRequest = destroyRequest;
                                 RDKShell* rdkshellPlugin = RDKShell::_instance;
                                 rdkshellPlugin->launchRequestThread(apiRequest);
                                 if (false == sFactoryModeStart)
@@ -1255,6 +1261,10 @@ namespace WPEFramework {
                         subSystems->Release();
                         if (sFactoryModeStart) 
                         {
+                            if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
+		            {
+                                CompositorController::setVisibility("ResidentApp", false);
+			    }
                             JsonObject request, response;
                             std::cout << "about to launch factory app on start without persistent store wait\n";
                             gRdkShellMutex.unlock();
@@ -1361,6 +1371,10 @@ namespace WPEFramework {
                     {
                         JsonObject request, response;
                         std::cout << "about to launch factory app after persistent store wait\n";
+                        if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
+		        {
+                            CompositorController::setVisibility("ResidentApp", false);
+                        }
                         gRdkShellMutex.unlock();
                         if (sFactoryModeBlockResidentApp)
                         {
@@ -4078,6 +4092,7 @@ namespace WPEFramework {
             if (result)
             {
                 const string callsign = parameters["callsign"].String();
+		setVisibility(callsign, false);
                 bool isApplicationBeingLaunched = false;
 		gLaunchDestroyMutex.lock();
                 if (gLaunchApplications.find(callsign) != gLaunchApplications.end())
