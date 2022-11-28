@@ -64,73 +64,6 @@ using namespace std;
 // TODO: remove this
 #define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
-typedef enum _NetworkManager_EventId_t {
-    IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
-    IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_CONTROL_PERSISTENCE,
-    IARM_BUS_NETWORK_MANAGER_EVENT_WIFI_INTERFACE_STATE,
-    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS,
-    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS,
-    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS,
-    IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE,
-    IARM_BUS_NETWORK_MANAGER_MAX,
-} IARM_Bus_NetworkManager_EventId_t;
-
-typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
-    union {
-        char activeIface[INTERFACE_SIZE];
-        char allNetworkInterfaces[INTERFACE_LIST];
-        char setInterface[INTERFACE_SIZE];
-        char activeIfaceIpaddr[MAX_IP_ADDRESS_LEN];
-    };
-    char interfaceCount;
-    bool isInterfaceEnabled;
-    bool persist;
-    char ipfamily[MAX_IP_FAMILY_SIZE];
-} IARM_BUS_NetSrvMgr_Iface_EventData_t;
-
-typedef struct
-{
-    unsigned char size;
-    char          endpoints[MAX_ENDPOINTS][MAX_ENDPOINT_SIZE];
-} IARM_BUS_NetSrvMgr_Iface_TestEndpoints_t;
-
-typedef struct {
-    char interface[16];
-    char gateway[MAX_IP_ADDRESS_LEN];
-} IARM_BUS_NetSrvMgr_DefaultRoute_t;
-
-typedef struct {
-    char interface[16];
-    bool status;
-} IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t;
-
-typedef IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t;
-typedef IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t;
-
-typedef struct {
-    char interface[16];
-    char ip_address[MAX_IP_ADDRESS_LEN];
-    bool is_ipv6;
-    bool acquired;
-} IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t;
-
-typedef struct {
-    char oldInterface[16];
-    char newInterface[16];
-} IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t;
-
-typedef struct
-{
-    char server[MAX_HOST_NAME_LEN];
-    uint16_t port;
-    bool ipv6;
-    char interface[16];
-    uint16_t bind_timeout;
-    uint16_t cache_timeout;
-    bool sync;
-    char public_ip[MAX_IP_ADDRESS_LEN];
-} IARM_BUS_NetSrvMgr_Iface_StunRequest_t;
-
 namespace WPEFramework
 {
     
@@ -1441,12 +1374,12 @@ namespace WPEFramework
         {
             if (strcmp(owner, IARM_BUS_NM_SRV_MGR_NAME) != 0)
             {
-                LOGERR("ERROR - unexpected event: owner %s, eventId: %d, data: %p, size: %d.", owner, (int)eventId, data, len);
+                LOGERR("ERROR - unexpected event: owner %s, eventId: %d, data: %p, size: %d.", owner, (int)eventId, data, (int)len);
                 return;
             }
             if (data == nullptr || len == 0)
             {
-                LOGERR("ERROR - event with NO DATA: eventId: %d, data: %p, size: %d.", (int)eventId, data, len);
+                LOGERR("ERROR - event with NO DATA: eventId: %d, data: %p, size: %d.", (int)eventId, data, (int)len);
                 return;
             }
 
