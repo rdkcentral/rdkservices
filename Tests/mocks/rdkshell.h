@@ -13,6 +13,10 @@
 #include <thread>
 #include <mutex>
 #include <memory>
+#define RDKSHELL_SPLASH_SCREEN_FILE_CHECK "/tmp/.rdkshellsplash"
+#define RDKSHELL_FLAGS_SHIFT        8
+#define RDKSHELL_FLAGS_CONTROL      16
+#define RDKSHELL_FLAGS_ALT          32
 class shell {
 public:
     shell()
