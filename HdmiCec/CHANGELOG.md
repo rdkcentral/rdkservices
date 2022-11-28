@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.4] - 2022-11-28
+### Fixed
+- Treat warnings as errors for unit tests workflow
+
 ## [1.0.3] - 2022-11-22
 ### Fixed
 - RAII thread midifications
