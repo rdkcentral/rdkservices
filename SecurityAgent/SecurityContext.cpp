@@ -52,10 +52,9 @@ int testApp()
 namespace WPEFramework {
 namespace Plugin {
 
-    SecurityContext::SecurityContext(const AccessControlList* acl, const uint16_t length, const uint8_t payload[], const string& servicePrefix)
+    SecurityContext::SecurityContext(const AccessControlList* acl, const uint16_t length, const uint8_t payload[])
         : _token(string(reinterpret_cast<const TCHAR*>(payload), length))
         , _accessControlList(nullptr)
-        , _servicePrefix(servicePrefix)
     {
         _context.FromString(_token);
 
@@ -77,23 +76,12 @@ namespace Plugin {
     //! Allow a request to be checked before it is offered for processing.
     bool SecurityContext::Allowed(const Web::Request& request) const /* override */ 
     {
-        string callsign = "";
-        string method = "";
+        bool allowed = (_accessControlList != nullptr);
 
-        if ((request.Path.find(_servicePrefix, 0) != 0) || (_servicePrefix.length() > request.Path.length())) {
-            return ((_accessControlList != nullptr) && (_accessControlList->Allowed("","")));
+        if (allowed == true) {
         }
 
-        Core::TextSegmentIterator index(Core::TextFragment(request.Path, _servicePrefix.length(), static_cast<uint32_t>(request.Path.length() - _servicePrefix.length())), false, '/');
-
-        if (index.Next()) {
-            callsign = index.Current().Text();
-            if (index.Next()) {
-                method = index.Current().Text();
-            }
-        }
-
-        return ((_accessControlList != nullptr) && (_accessControlList->Allowed(callsign, method)));
+        return (allowed);
     }
 
     //! Allow a JSONRPC message to be checked before it is offered for processing.
