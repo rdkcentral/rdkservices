@@ -3631,9 +3631,6 @@ namespace WPEFramework {
 
                 if(gMemCheckpointRestoreClient.isProcessed(appCallsign))
                 {
-                    gLaunchMutex.lock();
-                    gLaunchCount = 0;
-                    gLaunchMutex.unlock();
                     response["message"] = "failed to launch application due to active mem checkpoint/restore request";
                     returnResponse(false);
                 }
