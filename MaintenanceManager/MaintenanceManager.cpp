@@ -685,7 +685,7 @@ namespace WPEFramework {
                         case MAINT_RFC_COMPLETE :
                             if(task_status_RFC->second != true) {
                                  LOGINFO("Ignoring Event RFC_COMPLETE");
-                                 return;
+                                 break;
                             }
                             else {
                                  SET_STATUS(g_task_status,RFC_SUCCESS);
@@ -697,7 +697,7 @@ namespace WPEFramework {
                         case MAINT_DCM_COMPLETE :
                             if(task_status_DCM->second != true) {
                                  LOGINFO("Ignoring Event DCM_COMPLETE");
-                                 return;
+                                 break;
                             }
                             else {
                                 SET_STATUS(g_task_status,DCM_SUCCESS);
@@ -709,7 +709,7 @@ namespace WPEFramework {
                         case MAINT_FWDOWNLOAD_COMPLETE :
                             if(task_status_FWDLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_COMPLETE");
-                                 return;
+                                 break;
                             }
                             else {
                                 SET_STATUS(g_task_status,DIFD_SUCCESS);
@@ -721,7 +721,7 @@ namespace WPEFramework {
                        case MAINT_LOGUPLOAD_COMPLETE :
                             if(task_status_LOGUPLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_LOGUPLOAD_COMPLETE");
-                                 return;
+                                 break;
                             }
                             else {
                                 SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
@@ -749,6 +749,7 @@ namespace WPEFramework {
                         case MAINT_DCM_ERROR:
                             if(task_status_DCM->second != true) {
                                  LOGINFO("Ignoring Event DCM_ERROR");
+                                 break;
                             }
                             else {
                                 SET_STATUS(g_task_status,DCM_COMPLETE);
@@ -760,7 +761,7 @@ namespace WPEFramework {
                         case MAINT_RFC_ERROR:
                             if(task_status_RFC->second != true) {
                                  LOGINFO("Ignoring Event RFC_ERROR");
-                                 return;
+                                 break;
                             }
                             else {
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
@@ -773,7 +774,7 @@ namespace WPEFramework {
                         case MAINT_LOGUPLOAD_ERROR:
                             if(task_status_LOGUPLD->second != true) {
                                   LOGINFO("Ignoring Event MAINT_LOGUPLOAD_ERROR");
-                                  return;
+                                  break;
                             }
                             else {
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
@@ -786,7 +787,7 @@ namespace WPEFramework {
                        case MAINT_FWDOWNLOAD_ERROR:
                             if(task_status_FWDLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_ERROR");
-                                 return;
+                                 break;
                             }
                             else {
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
