@@ -2748,6 +2748,7 @@ static GSourceFuncs _handlerIntervention =
             webkit_settings_set_enable_mediasource(preferences, TRUE);
             webkit_settings_set_enable_media_stream(preferences, TRUE);
             webkit_settings_set_enable_page_cache(preferences, FALSE);
+            webkit_settings_set_enable_directory_upload(preferences, FALSE);
 
             // Turn on/off WebGL
             webkit_settings_set_enable_webgl(preferences, _config.WebGLEnabled.Value());
