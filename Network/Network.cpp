@@ -63,6 +63,19 @@ using namespace std;
 namespace WPEFramework
 {
     
+typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
+   union {
+        char activeIface[INTERFACE_SIZE];
+        char allNetworkInterfaces[INTERFACE_LIST];
+        char setInterface[INTERFACE_SIZE];
+        char activeIfaceIpaddr[MAX_IP_ADDRESS_LEN];
+        };
+   char interfaceCount;
+   bool isInterfaceEnabled;
+   bool persist;
+   char ipfamily[MAX_IP_FAMILY_SIZE];
+} IARM_BUS_NetSrvMgr_Iface_EventData_t;
+
     namespace {
 
         static Plugin::Metadata<Plugin::Network> metadata(
