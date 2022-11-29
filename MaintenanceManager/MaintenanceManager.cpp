@@ -66,7 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 8
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -288,14 +288,18 @@ namespace WPEFramework {
 #endif
 
             if ( false == internetConnectStatus ) {
+                m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
+                m_statusMutex.unlock();
                 LOGINFO("Maintenance is exiting as device is not connected to internet.");
                 return;
             }
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
+            m_statusMutex.lock();
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
+            m_statusMutex.unlock();
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
@@ -629,7 +633,9 @@ namespace WPEFramework {
             MaintenanceManager::m_abort_flag=false;
 
             /* we post just to tell that we are in idle at this moment */
+            m_statusMutex.lock();
             MaintenanceManager::_instance->onMaintenanceStatusChange(m_notify_status);
+            m_statusMutex.unlock();
 
             m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
         }
@@ -646,6 +652,8 @@ namespace WPEFramework {
 
         void MaintenanceManager::iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
+          m_statusMutex.lock();
+          if ( !m_abort_flag ){
             Maint_notify_status_t notify_status=MAINTENANCE_STARTED;
             IARM_Bus_MaintMGR_EventData_t *module_event_data=(IARM_Bus_MaintMGR_EventData_t*)data;
             IARM_Maint_module_status_t module_status;
@@ -677,7 +685,7 @@ namespace WPEFramework {
                         case MAINT_RFC_COMPLETE :
                             if(task_status_RFC->second != true) {
                                  LOGINFO("Ignoring Event RFC_COMPLETE");
-                                 return;
+                                 break;
                             }
                             else {
                                  SET_STATUS(g_task_status,RFC_SUCCESS);
@@ -689,7 +697,7 @@ namespace WPEFramework {
                         case MAINT_DCM_COMPLETE :
                             if(task_status_DCM->second != true) {
                                  LOGINFO("Ignoring Event DCM_COMPLETE");
-                                 return;
+                                 break;
                             }
                             else {
                                 SET_STATUS(g_task_status,DCM_SUCCESS);
@@ -701,7 +709,7 @@ namespace WPEFramework {
                         case MAINT_FWDOWNLOAD_COMPLETE :
                             if(task_status_FWDLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_COMPLETE");
-                                 return;
+                                 break;
                             }
                             else {
                                 SET_STATUS(g_task_status,DIFD_SUCCESS);
@@ -713,7 +721,7 @@ namespace WPEFramework {
                        case MAINT_LOGUPLOAD_COMPLETE :
                             if(task_status_LOGUPLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_LOGUPLOAD_COMPLETE");
-                                 return;
+                                 break;
                             }
                             else {
                                 SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
@@ -741,6 +749,7 @@ namespace WPEFramework {
                         case MAINT_DCM_ERROR:
                             if(task_status_DCM->second != true) {
                                  LOGINFO("Ignoring Event DCM_ERROR");
+                                 break;
                             }
                             else {
                                 SET_STATUS(g_task_status,DCM_COMPLETE);
@@ -752,7 +761,7 @@ namespace WPEFramework {
                         case MAINT_RFC_ERROR:
                             if(task_status_RFC->second != true) {
                                  LOGINFO("Ignoring Event RFC_ERROR");
-                                 return;
+                                 break;
                             }
                             else {
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
@@ -765,7 +774,7 @@ namespace WPEFramework {
                         case MAINT_LOGUPLOAD_ERROR:
                             if(task_status_LOGUPLD->second != true) {
                                   LOGINFO("Ignoring Event MAINT_LOGUPLOAD_ERROR");
-                                  return;
+                                  break;
                             }
                             else {
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
@@ -778,7 +787,7 @@ namespace WPEFramework {
                        case MAINT_FWDOWNLOAD_ERROR:
                             if(task_status_FWDLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_ERROR");
-                                 return;
+                                 break;
                             }
                             else {
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
@@ -850,6 +859,7 @@ namespace WPEFramework {
                     LOGINFO("ENDING MAINTENANCE CYCLE");
                     if(m_thread.joinable()){
                         m_thread.join();
+                        LOGINFO("Thread joined successfully\n");
                     }
 
                     MaintenanceManager::_instance->onMaintenanceStatusChange(notify_status);
@@ -862,6 +872,11 @@ namespace WPEFramework {
             else {
                 LOGWARN("Ignoring unexpected event - owner: %s, eventId: %d!!", owner, eventId);
             }
+          }
+          else {
+              LOGINFO("Maintenance has been aborted. Hence ignoring the event");
+          }
+          m_statusMutex.unlock();
         }
         void MaintenanceManager::DeinitializeIARM()
         {
@@ -1211,6 +1226,7 @@ namespace WPEFramework {
                         * especially when device is in offline mode*/
                         if(m_thread.joinable()){
                             m_thread.join();
+                            LOGINFO("Thread joined successfully\n");
                         }
 
                         m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
@@ -1249,12 +1265,10 @@ namespace WPEFramework {
             pid_t pid_num=-1;
 
             int k_ret=EINVAL;
-            int i=0,record=-1;
-            int32_t exec_status=E_NOK;
+            int i=0;
 
             bool task_status[4]={false};
             bool result=false;
-            bool task_incomplete=false;
 
                 /* run only when the maintenance status is MAINTENANCE_STARTED */
                 m_statusMutex.lock();
@@ -1277,7 +1291,6 @@ namespace WPEFramework {
                         LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
                     for (i=0;i<4;i++){
                         if(task_status[i]){
-                            record = i;
                             LOGINFO("Checking the Task PID\n");
                             pid_num=getTaskPID(script_names[i].c_str());
                             LOGINFO("PID of script_name [%d] = %s is %d \n", i,script_names[i].c_str(),pid_num);
@@ -1287,7 +1300,7 @@ namespace WPEFramework {
                                 if (k_ret == 0){
                                     LOGINFO(" %s Termimated\n",script_names[i].c_str());
                                     /*this means we killed the task currently running */
-                                    task_incomplete = true;
+                                    m_task_map[task_names_foreground[i].c_str()]=false;
                                 }
                                 else{
                                     LOGINFO("Failed to terminate with error %s - %d \n",script_names[i].c_str(),k_ret);
@@ -1305,25 +1318,6 @@ namespace WPEFramework {
                         }
                     }
 
-                    /* if we still didnt get the pid but we still know which task is running */
-                    if ( !task_incomplete ){
-
-                        char cmd[128] = {'\0'};
-                        if (Utils::fileExists("/lib/rdk/maintenanceTrapEventNotifier.sh")){
-                            /* send the arg to the trap notifier */
-                            snprintf(cmd, 127, "/lib/rdk/maintenanceTrapEventNotifier.sh %i &", record);
-                            exec_status=system(cmd);
-                            if ( E_OK == exec_status ){
-                                LOGINFO("DBG:Succesfully executed maintenanceTrapEventNotifier.sh \n");
-                            }
-                            else{
-                                LOGERR("Failed to execute maintenanceTrapEventNotifier.sh \n");
-                            }
-                        }
-                        else {
-                            LOGINFO("Failed to locate maintenanceTrapEventNotifier.sh \n");
-                        }
-                    }
                     result=true;
                 }
                 else {
@@ -1333,8 +1327,12 @@ namespace WPEFramework {
 
                 if(m_thread.joinable()){
                     m_thread.join();
+                    LOGINFO("Thread joined successfully\n");
                 }
+                LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR\n");
+                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
 		m_statusMutex.unlock();
+
                 return result;
         }
 
@@ -1401,9 +1399,7 @@ namespace WPEFramework {
         void MaintenanceManager::onMaintenanceStatusChange(Maint_notify_status_t status) {
             JsonObject params;
             /* we store the updated value as well */
-            m_statusMutex.lock();
             m_notify_status=status;
-            m_statusMutex.unlock();
             params["maintenanceStatus"]=notifyStatusToString(status);
             sendNotify(EVT_ONMAINTENANCSTATUSCHANGE, params);
         }
