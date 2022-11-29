@@ -632,7 +632,7 @@ namespace WPEFramework
 
         void CFrontPanel::startBlinkTimer(int numberOfBlinkRepeats)
         {
-            //LOGWARN("startBlinkTimer numberOfBlinkRepeats: %d m_blinkList.length : %ld", numberOfBlinkRepeats, m_blinkList.size());
+            LOGWARN("startBlinkTimer numberOfBlinkRepeats: %d m_blinkList.length : %ld", numberOfBlinkRepeats, m_blinkList.size());
             stopBlinkTimer();
             m_numberOfBlinks = 0;
             m_isBlinking = true;
