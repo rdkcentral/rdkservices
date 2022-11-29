@@ -874,7 +874,7 @@ namespace WPEFramework {
             }
           }
           else {
-              LOGINFO("Abort flag has been set and hence ignoring the event");
+              LOGINFO("Maintenance has been aborted. Hence ignoring the event");
           }
           m_statusMutex.unlock();
         }
@@ -1329,6 +1329,7 @@ namespace WPEFramework {
                     m_thread.join();
                     LOGINFO("Thread joined successfully\n");
                 }
+                LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR\n");
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
 		m_statusMutex.unlock();
 
