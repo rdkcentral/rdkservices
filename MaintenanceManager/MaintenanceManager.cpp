@@ -873,6 +873,9 @@ namespace WPEFramework {
                 LOGWARN("Ignoring unexpected event - owner: %s, eventId: %d!!", owner, eventId);
             }
           }
+          else {
+              LOGINFO("Abort flag has been set and hence ignoring the event");
+          }
           m_statusMutex.unlock();
         }
         void MaintenanceManager::DeinitializeIARM()
