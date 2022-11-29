@@ -137,6 +137,7 @@ set(PLUGIN_HTML_APP_WEBINSPECTOR_ADDRESS ":::10001" CACHE STRING "IP:Port for We
 set(PLUGIN_HTML_APP_LOCALSTORAGE_ENABLE "false" CACHE STRING "Enable LocalStorage of Html App")
 set(PLUGIN_HTML_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_HTML_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Html App Memory Pressure")
+set(PLUGIN_HTML_APP_COMPOSITOR "noaa" CACHE STRING "cairo compositor mode for Html App")
 
 set(PLUGIN_LIGHTNING_APP_AUTOSTART "false" CACHE STRING "Automatically start Lightning App plugin")
 set(PLUGIN_LIGHTNING_APP_STARTUPORDER "" CACHE STRING "To configure startup order of Lightning App plugin")
@@ -146,6 +147,7 @@ set(PLUGIN_LIGHTNING_APP_WEBINSPECTOR_ADDRESS ":::10002" CACHE STRING "IP:Port f
 set(PLUGIN_LIGHTNING_APP_LOCALSTORAGE_ENABLE "false" CACHE STRING "Enable LocalStorage of Lightning App")
 set(PLUGIN_LIGHTNING_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_LIGHTNING_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Lightning App Memory Pressure")
+set(PLUGIN_LIGHTNING_APP_COMPOSITOR "noaa" CACHE STRING "cairo compositor mode for Lightning App")
 
 set(PLUGIN_JSPP_AUTOSTART "false" CACHE STRING "Automatically start JSPP plugin")
 set(PLUGIN_JSPP_STARTUPORDER "" CACHE STRING "To configure startup order of JSPP plugin")
