@@ -71,17 +71,6 @@ const string PersistentStore::Initialize(PluginHost::IShell *service)
     ASSERT(service != nullptr);
 
     string configLine = service->ConfigLine();
-
-    // TODO
-    if (configLine == "{}") {
-        configLine = "{\n"
-                     "\"path\":\"/opt/secure/persistent/rdkservicestore\",\n"
-                     "\"key\":null,\n"
-                     "\"maxsize\":1000000,\n"
-                     "\"maxvalue\":1000\n"
-                     "}";
-    }
-
     _config.FromString(configLine);
 
     ASSERT(!_config.Path.Value().empty());

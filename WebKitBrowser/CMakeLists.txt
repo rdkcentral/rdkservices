@@ -49,6 +49,7 @@ option(PLUGIN_WEBKITBROWSER_ENABLE_DFG "Enable the use of DFG javascript optimal
 option(PLUGIN_APPS_ENABLE_JIT "Enable the use of JIT javascript optimalization" OFF)
 option(PLUGIN_APPS_ENABLE_DFG "Enable the use of DFG javascript optimalization" OFF)
 option(PLUGIN_WEBKITBROWSER_CLOUD_COOKIEJAR "Enable support for exporting/importing cookie jar" OFF)
+option(PLUGIN_WEBKITBROWSER_LOGGING_UTILS "Enable possibility to redirect stdout/err to specific systemd service" OFF)
 
 set(PLUGIN_WEBKITBROWSER_IMPLEMENTATION "${MODULE_NAME}Impl" CACHE STRING "Specify a library with a webkit implementation." )
 
@@ -136,6 +137,7 @@ set(PLUGIN_HTML_APP_WEBINSPECTOR_ADDRESS ":::10001" CACHE STRING "IP:Port for We
 set(PLUGIN_HTML_APP_LOCALSTORAGE_ENABLE "false" CACHE STRING "Enable LocalStorage of Html App")
 set(PLUGIN_HTML_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_HTML_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Html App Memory Pressure")
+set(PLUGIN_HTML_APP_COMPOSITOR "noaa" CACHE STRING "cairo compositor mode for Html App")
 
 set(PLUGIN_LIGHTNING_APP_AUTOSTART "false" CACHE STRING "Automatically start Lightning App plugin")
 set(PLUGIN_LIGHTNING_APP_STARTUPORDER "" CACHE STRING "To configure startup order of Lightning App plugin")
@@ -145,6 +147,7 @@ set(PLUGIN_LIGHTNING_APP_WEBINSPECTOR_ADDRESS ":::10002" CACHE STRING "IP:Port f
 set(PLUGIN_LIGHTNING_APP_LOCALSTORAGE_ENABLE "false" CACHE STRING "Enable LocalStorage of Lightning App")
 set(PLUGIN_LIGHTNING_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_LIGHTNING_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Lightning App Memory Pressure")
+set(PLUGIN_LIGHTNING_APP_COMPOSITOR "noaa" CACHE STRING "cairo compositor mode for Lightning App")
 
 set(PLUGIN_JSPP_AUTOSTART "false" CACHE STRING "Automatically start JSPP plugin")
 set(PLUGIN_JSPP_STARTUPORDER "" CACHE STRING "To configure startup order of JSPP plugin")
@@ -211,6 +214,11 @@ if (PLUGIN_WEBKITBROWSER_CLOUD_COOKIEJAR)
         ENABLE_CLOUD_COOKIE_JAR=1)
     target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE CookieJar.cpp)
     include(CookieJarCrypto/CMakeLists.txt)
+endif()
+
+if (PLUGIN_WEBKITBROWSER_LOGGING_UTILS)
+    target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE ENABLE_LOGGING_UTILS)
+    target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE LoggingUtils.cpp)
 endif()
 
 if(WPE_WEBKIT_DEPRECATED_API)

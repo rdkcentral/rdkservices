@@ -670,7 +670,7 @@ namespace WPEFramework
             try
 	    {
 		if (m_arcRoutingThread.joinable())
-                	m_arcRoutingThread.join();
+			m_arcRoutingThread.join();
 	    }
 	    catch(const std::system_error& e)
 	    {

@@ -15,6 +15,15 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+## [1.1.12] - 2022-11-08
+### Fixed
+- Fixed No Audio issue while playing Dolby Mat and HDMI hotplug
+
+## [1.1.11] - 2022-11-08
+### Changed
+- Handled identifying Atmos sink capability for all audio output ports and host capability
+
+
 ## [1.0.11] - 2022-10-14
 ### Changed
 - Updated changes for new power manager.

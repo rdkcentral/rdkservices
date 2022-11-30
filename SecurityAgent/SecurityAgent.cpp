@@ -95,8 +95,11 @@ namespace Plugin {
         Config config;
         config.FromString(service->ConfigLine());
         string version = service->Version();
+        string webPrefix = service->WebPrefix();
+        string callsign = service->Callsign();
 
-        _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
+        _skipURL = static_cast<uint8_t>(webPrefix.length());
+        _servicePrefix = webPrefix.substr(0, webPrefix.find(callsign));
         Core::File aclFile(service->PersistentPath() + config.ACL.Value(), true);
 
         PluginHost::ISubSystem* subSystem = service->SubSystems();
@@ -137,7 +140,7 @@ namespace Plugin {
             } else {
                 if (subSystem != nullptr) {
                     Core::SystemInfo::SetEnvironment(_T("SECURITYAGENT_PATH"), _dispatcher->Connector().c_str(), true);
-                    Core::Sink<SecurityCallsign> information(service->Callsign());
+                    Core::Sink<SecurityCallsign> information(callsign);
 
                     if (subSystem->IsActive(PluginHost::ISubSystem::SECURITY) != false) {
                         SYSLOG(Logging::Startup, (_T("Security is not defined as External !!")));
@@ -200,7 +203,7 @@ namespace Plugin {
 
             if (load != static_cast<uint16_t>(~0)) {
                 // Seems like we extracted a valid payload, time to create an security context
-                result = Core::Service<SecurityContext>::Create<SecurityContext>(&_acl, load, payload);
+                result = Core::Service<SecurityContext>::Create<SecurityContext>(&_acl, load, payload, _servicePrefix);
             }
         }
         return (result);
