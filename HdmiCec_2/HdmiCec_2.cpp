@@ -1424,6 +1424,10 @@ namespace WPEFramework
 	bool HdmiCec_2::pingDeviceUpdateList (int idev)
 	{
 		bool isConnected = false;
+		//self ping is not required
+		if (idev == logicalAddress.toInt()){
+		        return isConnected;
+		}
 		if(!HdmiCec_2::_instance)
 		{
 			LOGERR("HdmiCec_2::_instance not existing");
