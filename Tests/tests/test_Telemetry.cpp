@@ -340,7 +340,6 @@ TEST_F(TelemetryRBusTest, uploadLogs)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](rbusHandle_t handle, char const* methodName, rbusObject_t inParams, rbusMethodAsyncRespHandler_t callback,  int timeout) {
-                sleep(2);
                 callback(handle, methodName, RBUS_ERROR_SUCCESS, &rbObject);
 
                 return RBUS_ERROR_SUCCESS;
@@ -419,7 +418,6 @@ TEST_F(TelemetryRBusTest, uploadLogsCallbackFailed)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](rbusHandle_t handle, char const* methodName, rbusObject_t inParams, rbusMethodAsyncRespHandler_t callback,  int timeout) {
-                sleep(2);
                 callback(handle, methodName, RBUS_ERROR_SUCCESS, &rbObject);
 
                 return RBUS_ERROR_SUCCESS;
