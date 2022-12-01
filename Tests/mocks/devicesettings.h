@@ -421,6 +421,17 @@ typedef enum _dsDisplayEvent_t {
     dsDISPLAY_EVENT_MAX
 } dsDisplayEvent_t;
 
+enum {
+	ACTIVE_SOURCE = 0x82,
+	ROUTING_CHANGE = 0x80,
+	ROUTING_INFORMATION = 0x81,
+	SET_STREAM_PATH = 0x86,
+};
+
+typedef struct _Throw_e{
+
+}Throw_e;
+
 namespace device {
 
 template <class T>
@@ -1120,3 +1131,400 @@ public:
 
 }
 
+
+typedef uint32_t Op_t;
+class Exception : public std::exception
+{
+	public:
+		virtual const char* what() const throw()
+		{
+			return "Base Exception..";
+		}
+
+};
+class CECNoAckException : public Exception
+{
+	public:
+		virtual const char* what() const throw()
+		{
+			return "Acl not received..";
+		}
+};
+class IOException : public Exception
+{
+	public:
+		virtual const char* what() const throw()
+		{
+			return "IO Exception..";
+		}
+};
+
+class CECFrameImpl{
+	public:
+		virtual void getBuffer(const uint8_t **buf, size_t *len) const = 0;
+
+};
+class CECFrame{
+	public:
+	static CECFrame& getInstance()
+    	{
+                static CECFrame instance;
+       	        return instance;
+	}
+
+	enum {
+		MAX_LENGTH = 128,
+	};
+	CECFrameImpl* impl;
+	void getBuffer(const uint8_t **buf, size_t *len) const{
+		return impl->getBuffer(buf, len);
+	}
+	CECFrame(const uint8_t *buf = NULL, uint16_t len = 0){
+		
+	}
+	private:
+		size_t len_;
+
+
+};
+class CECBytesImpl {
+	public:
+	virtual const std::string toString() = 0;
+};
+
+class LogicalAddressImpl{
+	public:
+		virtual int toInt() const = 0;
+		virtual int getType() const = 0;
+
+};
+class LogicalAddress{
+	public: 		
+		enum {
+			MAX_LEN = 1,
+		};
+
+		static const LogicalAddress kTv;
+
+		enum {
+			TV,
+			RECORDING_DEVICE_1,
+			RECORDING_DEVICE_2,
+			TUNER_1,
+			PLAYBACK_DEVICE_1,
+			AUDIO_SYSTEM,
+			TUNER_2,
+			TUNER_3,
+			PLAYBACK_DEVICE_2,
+			RECORDING_DEVICE_3,
+			TUNER_4,
+			PLAYBACK_DEVICE_3,
+			RESERVED_12,
+			RESERVED_13,
+			SPECIFIC_USE,
+			UNREGISTERED,
+			BROADCAST = UNREGISTERED,
+		};
+
+		LogicalAddress(int addr = UNREGISTERED){};
+
+		CECBytesImpl* impl;
+		const std::string toString(void) const {
+			return "1";
+                }
+		LogicalAddressImpl* implLog;
+		int toInt(void) const{
+			return 1;
+		}
+		int getType(void) const {
+			return 1;
+		}
+
+
+
+};
+class DeviceType
+{
+	public:
+		enum {
+			MAX_LEN = 1,
+		};
+
+		enum {
+			TV = 0x0,
+			RECORDING_DEVICE,
+			RESERVED,
+			TUNER,
+			PLAYBACK_DEVICE,
+			AUDIO_SYSTEM,
+			PURE_CEC_SWITCH,
+			VIDEO_PROCESSOR,
+		};
+		DeviceType(int type) {};
+
+		CECBytesImpl* impl;
+                const std::string toString() const {
+			return "1";
+                }
+
+};
+class PhysicalAddressImpl{
+	public:
+		virtual std::string name() const = 0;
+
+};
+class PhysicalAddress{
+	public:
+		PhysicalAddressImpl* implPhys;
+		std::string name() const{
+			return "1";
+
+		}
+
+		CECBytesImpl* impl;
+                const std::string toString(void) const {
+			return "1";
+                }
+
+
+};
+
+class VendorID{
+
+	public:
+		enum{
+			MAX_LEN=3,
+		};
+	
+		VendorID(uint8_t byte0,uint8_t byte1,uint8_t byte2){};
+
+                const std::string toString(void) const {
+			return "1";
+                }
+
+
+};
+
+class OSDName{
+	public:
+		enum{
+			MAX_LEN=14,
+		};
+
+		OSDName(const char *str){
+
+		};
+
+                const std::string toString(void) const {
+			return "1";
+                }
+
+
+};
+
+class FrameListener
+{
+	public:
+		virtual void notify(const CECFrame &) const = 0;
+		virtual ~FrameListener(void){}
+
+};
+
+class MessageProcessor {
+	public:
+		MessageProcessor(void){}
+		virtual ~MessageProcessor(void){}
+
+};
+
+class ActiveSourceImpl{
+	public:
+		virtual Op_t opCode() const = 0;
+};
+class ActiveSource {
+	public:
+		ActiveSource(){
+			
+		
+		}
+		ActiveSourceImpl* impl;
+		Op_t opCode(void) const{
+			return 1;
+		}
+		
+		PhysicalAddress physicalAddress;
+
+};
+
+class ImageViewOn {
+
+
+};
+
+class Header {
+ public: 
+	 LogicalAddress from;
+	 LogicalAddress to;
+
+};
+
+class TextViewOn {
+
+
+};
+class Version{
+	public:
+		CECBytesImpl* impl;
+                const std::string toString(void) const {
+			return "1";
+                }
+
+
+};
+class CECVersion {
+	public:
+		Version version;
+
+};
+
+class SetOSDName{
+	public:
+		OSDName osdName;
+
+};
+
+class ReportPhysicalAddress {
+
+};
+
+
+class DeviceVendorID {
+	public:
+		DeviceVendorID(const VendorID &vendor) : vendorId(vendor){}
+		VendorID vendorId;
+};
+class PowerStatus{
+	public:
+                CECBytesImpl* impl;
+                const std::string toString(void) const {
+			return "1";
+                }
+
+
+
+};
+class ReportPowerStatus{
+	public:
+		PowerStatus status;
+
+};
+
+class ConnectionImpl{
+	public:
+		virtual void open() const = 0;
+		virtual void close() const = 0;
+		virtual void addFrameListener(FrameListener *listener) const = 0;
+		virtual void removeFrameListener(FrameListener *listener) const = 0;
+		virtual void sendAsync(const CECFrame &frame) const = 0;
+		virtual void ping(const LogicalAddress &from, const LogicalAddress &to, const Throw_e &doThrow) const = 0;
+};
+
+class Connection{
+	public:
+		ConnectionImpl* impl;
+		Connection(const LogicalAddress &source = LogicalAddress::UNREGISTERED, bool opened = true, const std::string &name="")
+		{
+		
+		}
+	
+	static Connection& getInstance()
+        {
+                static Connection instance;
+                return instance;
+        };
+
+	void open(void){
+		return;
+	}
+	void close(void){
+		return;
+	}
+	void addFrameListener(FrameListener *listener){
+		return;
+	}
+	void removeFrameListener(FrameListener *listener){
+		return;
+	}
+	void sendAsync(const CECFrame &frame){
+		return;
+	}
+	void ping(const LogicalAddress &from, const LogicalAddress &to, const Throw_e &doThrow){
+		return;
+	}
+
+
+
+};
+
+class LibCCECImpl{
+	public:
+		virtual void init(const char *name) const = 0;
+		virtual void init() const = 0;
+		virtual void term() const = 0;
+		virtual void getPhysicalAddress(unsigned int *physicalAddress) const  = 0;
+		virtual int getLogicalAddress(int devType) const = 0;
+};
+class LibCCEC{
+	public:
+		LibCCEC(void){};
+
+		static LibCCEC& getInstance()
+		{
+			static LibCCEC instance;
+			return instance;
+		};
+		LibCCECImpl* impl;
+		void init(const char *name){
+			return impl->init(name);
+		}
+		void init(){
+                        return impl->init();
+                }
+		void term(){
+			return;
+		}
+		void getPhysicalAddress(unsigned int *physicalAddress){
+			return impl->getPhysicalAddress(physicalAddress);
+		}
+		int getLogicalAddress(int devType){
+                        return impl->getLogicalAddress(devType);
+                }
+
+
+};
+
+class MessageDecoderImpl{
+	public:
+		virtual void decode(const CECFrame &in) const = 0;
+
+};
+class MessageDecoder {
+	private:
+                MessageProcessor &processor;
+
+
+	public:
+		MessageDecoderImpl* impl;
+		MessageDecoder(MessageProcessor & proc) : processor(proc){};
+
+		void decode(const CECFrame &in){
+			return impl->decode(in);
+		}
+
+};
+
+inline const char *GetOpName(Op_t op)
+{
+
+	return "name";
+}

@@ -81,7 +81,6 @@ public:
     {
         return getInstance().impl->IARM_Bus_RegisterCall(methodName, handler);
     }
-
     static IARM_Result_t IARM_Bus_Call_with_IPCTimeout(const char *ownerName,  const char *methodName, void *arg, size_t argLen, int timeout)
     {
         return getInstance().impl->IARM_Bus_Call_with_IPCTimeout(ownerName, methodName, arg, argLen, timeout);
@@ -115,6 +114,30 @@ typedef enum _IARM_Bus_Daemon_SysMode_t {
     IARM_BUS_SYS_MODE_EAS,
     IARM_BUS_SYS_MODE_WAREHOUSE
 } IARM_Bus_Daemon_SysMode_t;
+
+typedef enum _CECMgr_EventId_t {
+        IARM_BUS_CECMGR_EVENT_SEND,
+        IARM_BUS_CECMGR_EVENT_RECV,
+        IARM_BUS_CECMGR_EVENT_ENABLE,
+        IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,
+        IARM_BUS_CECMGR_EVENT_MAX,
+        IARM_BUS_CECMGR_EVENT_STATUS_UPDATED
+} IARM_Bus_CECMgr_EventId_t;
+
+typedef struct _IARM_Bus_CECMgr_Status_Updated_Param_t
+{
+        int logicalAddress;
+}IARM_Bus_CECMgr_Status_Updated_Param_t;
+
+#define IARM_BUS_CECMGR_NAME "CECMgr"
+#define IARM_BUS_CECMGR_MAX_DATA_LENGTH 62
+#define IARM_BUS_CECMGR_API_Enable "enable"
+#define IARM_BUS_CECMGR_Send "Send"
+#define IARM_BUS_CECMGR_GetLogicalAddress "GetLogicalAddress"
+#define IARM_BUS_CECMGR_AddLogicalAddress "AddLogicalAddress"
+#define IARM_BUS_CECMGR_GetPhysicalAddress "GetPHysicalAddress"
+#define IARM_BUS_CECMGR_API_isAvailable "isAvailable"
+
 
 #define IARMBUS_AUDIOCAPTUREMGR_NAME "audiocapturemgr"
 #define IARMBUS_AUDIOCAPTUREMGR_REQUEST_SAMPLE "requestSample"

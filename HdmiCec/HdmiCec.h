@@ -135,7 +135,7 @@ namespace WPEFramework {
         public:
             HdmiCec();
             virtual ~HdmiCec();
-            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
+            virtual const string Initialize(PluginHost::IShell* shell) override; 
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override { return {}; }
             void addDevice(const int logicalAddress);

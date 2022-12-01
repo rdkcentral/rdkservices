@@ -175,7 +175,7 @@ namespace WPEFramework
         : PluginHost::JSONRPC(),cecEnableStatus(false),smConnection(nullptr)
         {
             HdmiCec::_instance = this;
-            InitializeIARM();
+            
 
             Register(HDMICEC_METHOD_SET_ENABLED, &HdmiCec::setEnabledWrapper, this);
             Register(HDMICEC_METHOD_GET_ENABLED, &HdmiCec::getEnabledWrapper, this);
@@ -204,9 +204,19 @@ namespace WPEFramework
         HdmiCec::~HdmiCec()
         {
         }
+        const std::string  HdmiCec::Initialize(PluginHost::IShell* /* service */)
+	{
+		HdmiCec::_instance = this;
 
+		InitializeIARM();
+		return(std::string());
+
+	}
         void HdmiCec::Deinitialize(PluginHost::IShell* /* service */)
         {
+	    if (m_UpdateThread.get().joinable()) { 
+                        m_UpdateThread.get().join();
+            }
             isDeviceActiveSource = false;
             HdmiCec::_instance->sendActiveSourceEvent();
             CECDisable();
@@ -281,6 +291,7 @@ namespace WPEFramework
 
         void HdmiCec::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
+	    LOGINFO("INSIDE DSHDMIEVENTHANDLER");
             if(!HdmiCec::_instance)
                 return;
 
@@ -471,6 +482,7 @@ namespace WPEFramework
             libcecInitStatus++;
 
             smConnection = new Connection(LogicalAddress::UNREGISTERED,false,"ServiceManager::Connection::");
+	    
             smConnection->open();
             smConnection->addFrameListener(this);
 
@@ -803,11 +815,11 @@ namespace WPEFramework
             Core::ToString((uint8_t*)input_frameBuf, length, true, bufbase64);
 
             if (HdmiCec::_instance) {
-                MessageDecoder((*(HdmiCec::_instance))).decode(in);
+		    MessageDecoder((*(HdmiCec::_instance))).decode(in);
             } else {
                 LOGWARN("HdmiCec::_instance NULL Cec msg decoding failed.");
             }
-            LOGINFO("recvMessage :%d  :%s ",bufbase64.length(),bufbase64.c_str());
+            LOGINFO("recvMessage :%d  :%s ",(int)bufbase64.length(),bufbase64.c_str());
             (const_cast<HdmiCec*>(this))->onMessage(bufbase64.c_str());
             return;
         }
@@ -962,7 +974,7 @@ namespace WPEFramework
 	void HdmiCec::sendUnencryptMsg(unsigned char* msg, int size)
 	{
 		LOGINFO("sendMessage ");
-
+		
 		if(true == cecEnableStatus)
 		{
 			std::vector <unsigned char> buf;
@@ -1108,7 +1120,6 @@ namespace WPEFramework
 					}
 				}
 			}
-
 		}
 		pthread_mutex_unlock(&(_instance->m_lockUpdate));
                 LOGINFO("%s: Thread exited", __FUNCTION__);

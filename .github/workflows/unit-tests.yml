@@ -136,13 +136,66 @@ jobs:
         with:
           path: rdkservices
 
-      - name: Set clang toolchain
-        if: ${{ matrix.compiler == 'clang' }}
-        run: echo "TOOLCHAIN_FILE=${{github.workspace}}/rdkservices/Tests/clang.cmake" >> $GITHUB_ENV
-
-      - name: Set gcc/with-coverage toolchain
-        if: ${{ matrix.compiler == 'gcc' && matrix.coverage == 'with-coverage' && !env.ACT }}
-        run: echo "TOOLCHAIN_FILE=${{github.workspace}}/rdkservices/Tests/gcc-with-coverage.cmake" >> $GITHUB_ENV
+      - name: Generate external headers
+        # Empty headers to mute errors
+        run: >
+          cd "${{github.workspace}}/rdkservices/Tests/"
+          &&
+          mkdir -p
+          headers
+          headers/audiocapturemgr
+          headers/rdk/ds
+          headers/rdk/iarmbus
+          headers/rdk/iarmmgrs-hal
+          headers/ccec/drivers
+          headers/ccec/drivers/iarmbus
+          headers/ccec/host
+          headers/network &&
+          cd headers &&
+          touch
+          audiocapturemgr/audiocapturemgr_iarm.h
+          ccec/drivers/CecIARMBusMgr.h
+          ccec/drivers/iarmbus/CecIARMBusMgr.h
+          ccec/FrameListener.hpp
+          ccec/Connection.hpp
+          ccec/Assert.hpp
+          ccec/Messages.hpp
+          ccec/MessageDecoder.hpp
+          ccec/MessageProcessor.hpp
+          ccec/CECFrame.hpp
+          ccec/host/RDK.hpp
+          rdk/ds/audioOutputPort.hpp
+          rdk/ds/compositeIn.hpp
+          rdk/ds/dsDisplay.h
+          rdk/ds/dsError.h
+          rdk/ds/dsMgr.h
+          rdk/ds/dsTypes.h
+          rdk/ds/dsUtl.h
+          rdk/ds/exception.hpp
+          rdk/ds/hdmiIn.hpp
+          rdk/ds/host.hpp
+          rdk/ds/list.hpp
+          rdk/ds/manager.hpp
+          rdk/ds/sleepMode.hpp
+          rdk/ds/videoDevice.hpp
+          rdk/ds/videoOutputPort.hpp
+          rdk/ds/videoOutputPortConfig.hpp
+          rdk/ds/videoOutputPortType.hpp
+          rdk/ds/videoResolution.hpp
+          rdk/iarmbus/libIARM.h
+          rdk/iarmbus/libIBus.h
+          rdk/iarmbus/libIBusDaemon.h
+          rdk/iarmmgrs-hal/deepSleepMgr.h
+          rdk/iarmmgrs-hal/mfrMgr.h
+          rdk/iarmmgrs-hal/pwrMgr.h
+          rdk/iarmmgrs-hal/sysMgr.h
+          network/wifiSrvMgrIarmIf.h
+          network/netsrvmgrIarm.h
+          framebuffer-api.h
+          libudev.h
+          rfcapi.h
+          rbus.h
+          telemetry_busmessage_sender.h
 
       - name: Build rdkservices
         run: >
@@ -153,7 +206,31 @@ jobs:
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCOMCAST_CONFIG=OFF
+          -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
+          -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
+          -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
+          -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
+          -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
+          -DCMAKE_DISABLE_FIND_PACKAGE_CEC=ON
+          -DPLUGIN_DATACAPTURE=ON
+          -DPLUGIN_DEVICEDIAGNOSTICS=ON
+          -DPLUGIN_LOCATIONSYNC=ON
+          -DPLUGIN_PERSISTENTSTORE=ON
+          -DPLUGIN_TIMER=ON
+          -DPLUGIN_SECURITYAGENT=ON
+          -DPLUGIN_DEVICEIDENTIFICATION=ON
+          -DPLUGIN_FRAMERATE=ON
+          -DPLUGIN_AVINPUT=ON
+          -DPLUGIN_TELEMETRY=ON
+          -DPLUGIN_SCREENCAPTURE=ON
+          -DPLUGIN_USBACCESS=ON
+          -DPLUGIN_LOGGINGPREFERENCES=ON
+          -DPLUGIN_USERPREFERENCES=ON
+          -DPLUGIN_MESSENGER=ON
+          -DPLUGIN_DEVICEINFO=ON
+          -DPLUGIN_SYSTEMSERVICES=ON
           -DRDK_SERVICES_TEST=ON
+          -DPLUGIN_HDMICEC=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
@@ -205,6 +282,8 @@ jobs:
           --show-reachable=yes
           --track-fds=yes
           --fair-sched=try
+          --track-origins=yes
+          --num-callers=24
           RdkServicesTest
 
       - name: Generate coverage
