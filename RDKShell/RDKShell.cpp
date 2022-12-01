@@ -140,8 +140,10 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AV_BLOCKED_APPS
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE = "getGraphicsFrameRate";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE = "setGraphicsFrameRate";
+#ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_CHECKPOINT = "checkpoint";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_RESTORE = "restore";
+#endif
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -163,8 +165,10 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LO
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onEasterEgg";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_WILL_DESTROY = "onWillDestroy";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE = "onScreenshotComplete";
+#ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_CHECKPOINTED = "onCheckpointed";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_RESTORED = "onRestored";
+#endif
 
 using namespace std;
 using namespace RdkShell;
@@ -574,7 +578,9 @@ namespace WPEFramework {
         std::map<std::string, bool> gLaunchApplications;
         std::map<std::string, AppLastExitReason> gApplicationsExitReason;
         std::map<std::string, std::string> gPluginDisplayNameMap;
+        #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
         MemCheckpointRestoreClient gMemCheckpointRestoreClient;
+        #endif
         
         uint32_t getKeyFlag(std::string modifier)
         {
@@ -954,7 +960,11 @@ namespace WPEFramework {
                     }
                     
                     gPluginDataMutex.lock();
+
+                    #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
                     gMemCheckpointRestoreClient.removeFromProcessed(service->Callsign());
+                    #endif
+
                     std::map<std::string, PluginData>::iterator pluginToRemove = gActivePluginsData.find(service->Callsign());
                     if (pluginToRemove != gActivePluginsData.end())
                     {
@@ -983,6 +993,7 @@ namespace WPEFramework {
             }
         }
 
+#ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
         bool MemCheckpointRestoreClient::checkpoint(const std::string &callSign, uint32_t timeouteMs)
         {
             bool isCheckpointAllowed = false;
@@ -1284,6 +1295,7 @@ namespace WPEFramework {
                 }
             }
         }
+#endif
 
         bool RDKShell::ScreenCapture::Capture(ICapture::IStore& storer)
         {
@@ -1407,8 +1419,10 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE, &RDKShell::setGraphicsFrameRateWrapper, this);
             Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
             Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
+            #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
             Register(RDKSHELL_METHOD_CHECKPOINT, &RDKShell::checkpointWrapper, this);
             Register(RDKSHELL_METHOD_RESTORE, &RDKShell::restoreWrapper, this);
+            #endif
       	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -3629,11 +3643,13 @@ namespace WPEFramework {
                     returnResponse(false);
                 }
 
+                #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
                 if(gMemCheckpointRestoreClient.isProcessed(appCallsign))
                 {
                     response["message"] = "failed to launch application due to active mem checkpoint/restore request";
                     returnResponse(false);
                 }
+                #endif
 
                 RDKShellLaunchType launchType = RDKShellLaunchType::UNKNOWN;
                 const string callsign = parameters["callsign"].String();
@@ -4363,6 +4379,7 @@ namespace WPEFramework {
                     returnResponse(result);
             	}
 
+                #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
                 if(gMemCheckpointRestoreClient.isProcessed(client))
                 {
                     std::cout << "ignoring suspend for " << client << " as it is being checkpointed/restored " << std::endl;
@@ -4370,6 +4387,8 @@ namespace WPEFramework {
                     response["message"] = "failed to suspend application";
                     returnResponse(result);
                 }
+                #endif
+
                 gDestroyMutex.lock();
                 PluginHost::IStateControl* stateControl(mCurrentService->QueryInterfaceByCallsign<PluginHost::IStateControl>(callsign));
                 if (stateControl)
@@ -4945,7 +4964,13 @@ namespace WPEFramework {
                 uint32_t stateStatus(0);
                 uint32_t urlStatus(0);
 
-                if(gMemCheckpointRestoreClient.isProcessed(callsign) == false)
+                #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+                if(gMemCheckpointRestoreClient.isProcessed(callsign))
+                    stateString = "checkpointed";
+                    stateStatus = 0;
+                    urlStatus = 1;
+                else
+                #endif
                 {
                     Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
                     thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method, callsign, joResult);
@@ -4963,13 +4988,6 @@ namespace WPEFramework {
                             urlStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url", urlString);
                         }
                     }
-                }
-                else
-                {
-                    //FIXME: get data from cache
-                    stateString = "suspended";
-                    stateStatus = 0;
-                    urlStatus = 1;
                 }
 
                 if (stateStatus == 0)
@@ -5033,7 +5051,7 @@ namespace WPEFramework {
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
             auto thunderController = getThunderControllerClient();
-            //FIXME: if something is checkpointed, API hangs here
+
             thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
 
             /*std::cout << "DEACTIVATED: " << PluginHost::MetaData::Service::state::DEACTIVATED << std::endl;
@@ -5067,7 +5085,9 @@ namespace WPEFramework {
                             WPEFramework::Core::JSON::String stateString;
                             const string callsignWithVersion = callsign + ".1";
 
+                            #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
                             if(gMemCheckpointRestoreClient.isProcessed(callsign) == false)
+                            #endif
                             {
                                 uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
 
@@ -6076,7 +6096,7 @@ namespace WPEFramework {
             }
             returnResponse(status);
         }
-
+#ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
         uint32_t RDKShell::checkpointWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -6149,6 +6169,7 @@ namespace WPEFramework {
 
             returnResponse(status);
         }
+#endif
 
 
         // Registered methods end

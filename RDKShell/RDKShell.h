@@ -262,8 +262,10 @@ namespace WPEFramework {
             uint32_t keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
+            #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
             uint32_t checkpointWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t restoreWrapper(const JsonObject& parameters, JsonObject& response);
+            #endif
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -469,6 +471,8 @@ namespace WPEFramework {
                 bool mLaunchEnabled;
         };
 
+        #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+
         class MemCheckpointRestoreClient
         {
         public:
@@ -521,6 +525,7 @@ namespace WPEFramework {
             std::mutex mProcessedAppsLock;
             std::map<std::string, ProcessedAppState> mProcessedApps;
         };
+        #endif
 
     } // namespace Plugin
 } // namespace WPEFramework
