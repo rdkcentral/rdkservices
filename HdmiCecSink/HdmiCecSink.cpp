@@ -2470,7 +2470,12 @@ namespace WPEFramework
 
 					case CECDeviceParams::REQUEST_OSD_NAME :	
 					{
-						_instance->deviceList[logicalAddress].update(OSDName("NA"));
+						if ( _instance->deviceList[logicalAddress].m_isRequestRetry++ >= HDMICECSINK_REQUEST_MAX_RETRY )
+						{
+							LOGINFO("Max retry for REQUEST_OSD_NAME = %d", _instance->deviceList[logicalAddress].m_isRequestRetry);
+							_instance->deviceList[logicalAddress].update(OSDName("NA"));
+							_instance->deviceList[logicalAddress].m_isRequestRetry = 0;
+						}
 					}
 						break;
 
