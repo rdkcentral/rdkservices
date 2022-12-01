@@ -152,6 +152,10 @@ jobs:
           headers/ccec/host
           headers/network &&
           cd headers &&
+          headers/ccec/drivers/iarmbus
+          headers/ccec/host
+          headers/network &&
+          cd headers &&
           touch
           audiocapturemgr/audiocapturemgr_iarm.h
           ccec/drivers/CecIARMBusMgr.h
@@ -230,6 +234,13 @@ jobs:
           -DPLUGIN_DEVICEINFO=ON
           -DPLUGIN_SYSTEMSERVICES=ON
           -DRDK_SERVICES_TEST=ON
+          -DPLUGIN_HDMIINPUT=ON
+          -DPLUGIN_HDCPPROFILE=ON
+          -DPLUGIN_TRACECONTROL=ON
+          -DPLUGIN_NETWORK=ON
+          -DPLUGIN_WIFIMANAGER=ON
+          -DPLUGIN_WAREHOUSE=ON
+          -DDS_FOUND=ON
           -DPLUGIN_HDMICEC=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
