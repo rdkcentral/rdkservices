@@ -321,6 +321,7 @@ namespace WPEFramework
 	     updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isOSDNameUpdated;
 	     LOGINFO("updateStatus %d\n",updateStatus);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.osdName);
+	     HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
              if(!updateStatus)
 	     HdmiCecSink::_instance->sendDeviceUpdateInfo(header.from.toInt());
        }
