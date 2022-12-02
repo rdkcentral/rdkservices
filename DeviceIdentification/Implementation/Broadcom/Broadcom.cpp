@@ -28,7 +28,7 @@ namespace WPEFramework {
 namespace Plugin {
 
 class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
-    static constexpr const TCHAR* PlatformFile = _T("/proc/brcm/platform");
+    static constexpr const TCHAR* PlatformFile = _T("/tmp/device_identification.txt");
 
 public:
     DeviceImplementation()
