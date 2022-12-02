@@ -518,8 +518,6 @@ namespace WPEFramework {
         private /*methods*/:
             void launchRequestThread(ServerRequestCode request, const std::string &callSign, uint32_t timeouteMs);
             bool sendRcvCmd(ServerRequest &cmd, ServerResponse &resp, uint32_t timeouteMs);
-            void findPid(const string &item, std::list<uint32_t> &pids);
-            void processName(const uint32_t pid, TCHAR buffer[], const uint32_t maxLength);
 
         private /*members*/:
             std::mutex mProcessedAppsLock;
