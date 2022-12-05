@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.8] - 2022-12-05
+### updated the system json file
+- RDK-39389: Add Doc for onTerritoryChanged & onTimeZoneDSTChanged events to System Plugin
+
 ## [1.0.7] - 2022-10-21
 ### Fixed
 - Fix uploadLogs API "(HTTP) 405 Method Not Allowed"
