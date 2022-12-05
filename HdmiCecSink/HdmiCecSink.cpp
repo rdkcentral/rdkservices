@@ -320,8 +320,9 @@ namespace WPEFramework
 	     HdmiCecSink::_instance->addDevice(header.from.toInt());
 	     updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isOSDNameUpdated;
 	     LOGINFO("updateStatus %d\n",updateStatus);
-	     LOGINFO("update OSDNmae on request type %d", HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequested);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.osdName);
+	     if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry > 0 &&
+			HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequested == 5)
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
              if(!updateStatus)
 	     HdmiCecSink::_instance->sendDeviceUpdateInfo(header.from.toInt());
@@ -360,9 +361,10 @@ namespace WPEFramework
 	     updateDeviceTypeStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isDeviceTypeUpdated;
              updatePAStatus   = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isPAUpdated;
 	     LOGINFO("updateDeviceTypeStatus %d updatePAStatus %d \n",updateDeviceTypeStatus,updatePAStatus);
-	     LOGINFO("update physicalAddress and deviceType on request type %d", HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequested);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.physicalAddress);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.deviceType);
+	     if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry > 0 &&
+			HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequested == 1)
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
 	     HdmiCecSink::_instance->updateDeviceChain(header.from, msg.physicalAddress);
 	     if (!updateDeviceTypeStatus || !updatePAStatus)
