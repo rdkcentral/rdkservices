@@ -1764,6 +1764,9 @@
         },
         "setTerritory":{
             "summary": "Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).",
+			"events":{
+                "onTerritoryChanged": "Triggered when territory is set"
+            },
             "params": {
                 "type" :"object",
                 "properties": {
@@ -1784,6 +1787,9 @@
         },
         "setTimeZoneDST":{
             "summary": "Sets the system time zone. See `getTimeZones` to get a list of available timezones on the system.",
+			"events":{
+                "onTimeZoneDSTChanged": "Triggered when device time zone DST changed"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -2097,6 +2103,62 @@
                     "exceeded",
                     "temperature"
                 ]
+            }
+        },
+		"onTerritoryChanged":{
+            "summary": "Triggered when the device territory changed",
+            "params": {
+                "type" :"object",
+                "properties": {
+                "m_strTerritory": {
+                        "summary": " old territory",
+                        "type": "string",
+                        "example":"GBR"
+                },
+                "territoryStr":{
+                    "summary": " new territory",
+                    "type": "string",
+                    "example": "USA"
+                },
+                "m_strRegion":{
+                    "summary": "old region",
+                    "type":"string",
+                    "example": "GB-ENG"
+                },
+                "regionStr":{
+                    "summary": "new region",
+                    "type":"string",
+                    "example": "US-NY"
+                }
+				},
+                "required":[
+                    "m_strTerritory",
+                    "territoryStr",
+                    "m_strRegion",
+                    "regionStr"
+                ]
+            }
+        },
+		"onTimeZoneDSTChanged":{
+            "summary": "Triggered when device time zone changed",
+            "params": {
+                "type": "object",
+                "properties": {
+                "oldTimeZone":{
+                        "summary": " old time zone",
+                        "type": "string",
+                        "example":"America/New_York"
+                },
+                "newTimeZone":{
+                        "summary": " new time zone",
+                        "type": "string",
+                        "example":"Europe/London"
+                    }
+				},
+                "required":[
+                    "oldTimeZone",
+                    "newTimeZone"
+                    ]
             }
         }
     }
