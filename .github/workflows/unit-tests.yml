@@ -243,6 +243,7 @@ jobs:
           -DPLUGIN_WIFIMANAGER=ON
           -DPLUGIN_WAREHOUSE=ON
           -DDS_FOUND=ON
+		  -DPLUGIN_COMPOSITEINPUT=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
