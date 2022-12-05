@@ -1764,7 +1764,7 @@
         },
         "setTerritory":{
             "summary": "Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).",
-            "events": {
+			"events":{
                 "onTerritoryChanged": "Triggered when territory is set"
             },
             "params": {
@@ -1787,7 +1787,7 @@
         },
         "setTimeZoneDST":{
             "summary": "Sets the system time zone. See `getTimeZones` to get a list of available timezones on the system.",
-            "events": {
+			"events":{
                 "onTimeZoneDSTChanged": "Triggered when device time zone DST changed"
             },
             "params": {
@@ -2105,7 +2105,7 @@
                 ]
             }
         },
-        "onTerritoryChanged":{
+		"onTerritoryChanged":{
             "summary": "Triggered when the device territory changed",
             "params": {
                 "type" :"object",
@@ -2129,17 +2129,17 @@
                     "summary": "new region",
                     "type":"string",
                     "example": "US-NY"
-                },
+                }
+				},
                 "required":[
                     "m_strTerritory",
                     "territoryStr",
                     "m_strRegion",
                     "regionStr"
                 ]
-                }
             }
         },
-        "onTimeZoneDSTChanged":{
+		"onTimeZoneDSTChanged":{
             "summary": "Triggered when device time zone changed",
             "params": {
                 "type": "object",
@@ -2153,12 +2153,12 @@
                         "summary": " new time zone",
                         "type": "string",
                         "example":"Europe/London"
-                    },
+                    }
+				},
                 "required":[
                     "oldTimeZone",
                     "newTimeZone"
                     ]
-                }
             }
         }
     }
