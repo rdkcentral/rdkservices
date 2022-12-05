@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.9] - 2022-11-30
+### Fixed
+- Fix RA launch in factory mode
+
 ## [1.3.8] - 2022-11-22
 ### Fixed
 - Focus was setting true to RA while launching FTA
