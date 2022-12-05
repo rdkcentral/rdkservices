@@ -2148,9 +2148,13 @@
                         "summary": " new time zone",
                         "type": "string",
                         "example":"Europe/London"
-                    }
+                    },
+                "required":[
+                    "oldTimeZone",
+                    "newTimeZone"
+                    ]
                 }
             }
         }
-}
+    }
 }
