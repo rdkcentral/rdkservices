@@ -1764,7 +1764,9 @@
         },
         "setTerritory":{
             "summary": "Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).",
-            "onTerritoryChanged": "Triggered when territory is set",
+            "events": {
+                "onTerritoryChanged": "Triggered when territory is set"
+            },
             "params": {
                 "type" :"object",
                 "properties": {
@@ -1785,6 +1787,9 @@
         },
         "setTimeZoneDST":{
             "summary": "Sets the system time zone. See `getTimeZones` to get a list of available timezones on the system.",
+            "events": {
+                "onTimeZoneDSTChanged": "Triggered when device time zone DST changed"
+            },
             "params": {
                 "type":"object",
                 "properties": {
