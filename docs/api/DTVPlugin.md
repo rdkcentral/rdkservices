@@ -333,7 +333,7 @@ Starts playing the specified service.
 | Event | Description |
 | :-------- | :-------- |
 | [serviceupdated](#serviceupdated) | Triggered when info for a service changes |
-| [eventchanged](#eventchanged) | Triggered when the EIT ‘now’ event changes |
+| [eventchanged](#eventchanged) | Triggered when the EIT â€˜nowâ€™ event changes |
 | [videochanged](#videochanged) | Triggered when the video PID or codec are changed |
 | [audiochanged](#audiochanged) | Triggered when the audio PID or codec are changed |
 | [subtitleschanged](#subtitleschanged) | Triggered when the subtitle PID or details are changed |
