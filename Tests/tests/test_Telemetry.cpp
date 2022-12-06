@@ -272,9 +272,8 @@ TEST_F(TelemetryRBusTest, uploadLogsRbusOpenFailure)
 
 TEST_F(TelemetryRBusTest, uploadLogsRbusMethodFailure)
 {
-    EXPECT_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
             [](rbusHandle_t* handle, char const* componentName) {
                 EXPECT_TRUE(nullptr != handle);
                 EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
@@ -288,9 +287,8 @@ TEST_F(TelemetryRBusTest, uploadLogsRbusMethodFailure)
                 return RBUS_ERROR_BUS_ERROR;
             }));
 
-    EXPECT_CALL(rBusApiImplMock, rbus_close(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbus_close(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [](rbusHandle_t handle) {
                 return RBUS_ERROR_SUCCESS;
             }));
@@ -308,9 +306,8 @@ TEST_F(TelemetryRBusTest, uploadLogsCallbackFailed)
 
     struct _rbusObject rbObject;
 
-    EXPECT_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
             [](rbusHandle_t* handle, char const* componentName) {
                 EXPECT_TRUE(nullptr != handle);
                 EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
@@ -326,9 +323,8 @@ TEST_F(TelemetryRBusTest, uploadLogsCallbackFailed)
                 return RBUS_ERROR_SUCCESS;
             }));
 
-    EXPECT_CALL(rBusApiImplMock, rbus_close(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbus_close(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [](rbusHandle_t handle) {
                 return RBUS_ERROR_SUCCESS;
             }));
@@ -367,9 +363,8 @@ TEST_F(TelemetryRBusTest, uploadLogsGetValueFailure)
 
     struct _rbusObject rbObject;
 
-    EXPECT_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
             [](rbusHandle_t* handle, char const* componentName) {
                 EXPECT_TRUE(nullptr != handle);
                 EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
@@ -385,18 +380,16 @@ TEST_F(TelemetryRBusTest, uploadLogsGetValueFailure)
                 return nullptr;
             }));
 
-    EXPECT_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](rbusHandle_t handle, char const* methodName, rbusObject_t inParams, rbusMethodAsyncRespHandler_t callback,  int timeout) {
                 callback(handle, methodName, RBUS_ERROR_SUCCESS, &rbObject);
 
                 return RBUS_ERROR_SUCCESS;
             }));
 
-    EXPECT_CALL(rBusApiImplMock, rbus_close(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbus_close(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [](rbusHandle_t handle) {
                 return RBUS_ERROR_SUCCESS;
             }));
@@ -436,9 +429,8 @@ TEST_F(TelemetryRBusTest, uploadLogsFailure)
     struct _rbusObject rbObject;
     struct _rbusValue rbValue;
 
-    EXPECT_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
             [](rbusHandle_t* handle, char const* componentName) {
                 EXPECT_TRUE(nullptr != handle);
                 EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
@@ -453,27 +445,24 @@ TEST_F(TelemetryRBusTest, uploadLogsFailure)
                 return "FAILURE";
             }));
 
-    EXPECT_CALL(rBusApiImplMock, rbusObject_GetValue(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbusObject_GetValue(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](rbusObject_t object, char const* name) {
                 EXPECT_EQ(object, &rbObject);
                 EXPECT_EQ(string(name), _T("UPLOAD_STATUS"));
                 return &rbValue;
             }));
 
-    EXPECT_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](rbusHandle_t handle, char const* methodName, rbusObject_t inParams, rbusMethodAsyncRespHandler_t callback,  int timeout) {
                 callback(handle, methodName, RBUS_ERROR_SUCCESS, &rbObject);
 
                 return RBUS_ERROR_SUCCESS;
             }));
 
-    EXPECT_CALL(rBusApiImplMock, rbus_close(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbus_close(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [](rbusHandle_t handle) {
                 return RBUS_ERROR_SUCCESS;
             }));
@@ -513,9 +502,8 @@ TEST_F(TelemetryRBusTest, uploadLogs)
     struct _rbusObject rbObject;
     struct _rbusValue rbValue;
 
-    EXPECT_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
             [](rbusHandle_t* handle, char const* componentName) {
                 EXPECT_TRUE(nullptr != handle);
                 EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
@@ -523,35 +511,31 @@ TEST_F(TelemetryRBusTest, uploadLogs)
             }));
 
 
-    EXPECT_CALL(rBusApiImplMock, rbusValue_GetString(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbusValue_GetString(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](rbusValue_t value, int* len) {
                 EXPECT_EQ(value, &rbValue);
                 return "SUCCESS";
             }));
 
-    EXPECT_CALL(rBusApiImplMock, rbusObject_GetValue(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbusObject_GetValue(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](rbusObject_t object, char const* name) {
                 EXPECT_EQ(object, &rbObject);
                 EXPECT_EQ(string(name), _T("UPLOAD_STATUS"));
                 return &rbValue;
             }));
 
-    EXPECT_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](rbusHandle_t handle, char const* methodName, rbusObject_t inParams, rbusMethodAsyncRespHandler_t callback,  int timeout) {
                 callback(handle, methodName, RBUS_ERROR_SUCCESS, &rbObject);
 
                 return RBUS_ERROR_SUCCESS;
             }));
 
-    EXPECT_CALL(rBusApiImplMock, rbus_close(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
+    ON_CALL(rBusApiImplMock, rbus_close(::testing::_))
+        .WillByDefault(::testing::Invoke(
             [](rbusHandle_t handle) {
                 return RBUS_ERROR_SUCCESS;
             }));
