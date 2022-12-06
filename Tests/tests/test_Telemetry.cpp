@@ -273,12 +273,8 @@ TEST_F(TelemetryRBusTest, uploadLogsRbusOpenFailure)
 TEST_F(TelemetryRBusTest, uploadLogsRbusMethodFailure)
 {
     ON_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](rbusHandle_t* handle, char const* componentName) {
-                EXPECT_TRUE(nullptr != handle);
-                EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
-                return RBUS_ERROR_SUCCESS;
-            }));
+        .WillByDefault(
+            ::testing::Return(RBUS_ERROR_SUCCESS));
 
     EXPECT_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(1)
@@ -288,10 +284,8 @@ TEST_F(TelemetryRBusTest, uploadLogsRbusMethodFailure)
             }));
 
     ON_CALL(rBusApiImplMock, rbus_close(::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](rbusHandle_t handle) {
-                return RBUS_ERROR_SUCCESS;
-            }));
+        .WillByDefault(
+            ::testing::Return(RBUS_ERROR_SUCCESS));
 
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
@@ -307,12 +301,8 @@ TEST_F(TelemetryRBusTest, uploadLogsCallbackFailed)
     struct _rbusObject rbObject;
 
     ON_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](rbusHandle_t* handle, char const* componentName) {
-                EXPECT_TRUE(nullptr != handle);
-                EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
-                return RBUS_ERROR_SUCCESS;
-            }));
+        .WillByDefault(
+            ::testing::Return(RBUS_ERROR_SUCCESS));
 
     EXPECT_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(1)
@@ -324,10 +314,8 @@ TEST_F(TelemetryRBusTest, uploadLogsCallbackFailed)
             }));
 
     ON_CALL(rBusApiImplMock, rbus_close(::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](rbusHandle_t handle) {
-                return RBUS_ERROR_SUCCESS;
-            }));
+        .WillByDefault(
+            ::testing::Return(RBUS_ERROR_SUCCESS));
 
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
@@ -364,12 +352,8 @@ TEST_F(TelemetryRBusTest, uploadLogsGetValueFailure)
     struct _rbusObject rbObject;
 
     ON_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](rbusHandle_t* handle, char const* componentName) {
-                EXPECT_TRUE(nullptr != handle);
-                EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
-                return RBUS_ERROR_SUCCESS;
-            }));
+        .WillByDefault(
+            ::testing::Return(RBUS_ERROR_SUCCESS));
 
     EXPECT_CALL(rBusApiImplMock, rbusObject_GetValue(::testing::_, ::testing::_))
         .Times(1)
@@ -389,10 +373,8 @@ TEST_F(TelemetryRBusTest, uploadLogsGetValueFailure)
             }));
 
     ON_CALL(rBusApiImplMock, rbus_close(::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](rbusHandle_t handle) {
-                return RBUS_ERROR_SUCCESS;
-            }));
+        .WillByDefault(
+            ::testing::Return(RBUS_ERROR_SUCCESS));
 
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
@@ -430,12 +412,8 @@ TEST_F(TelemetryRBusTest, uploadLogsFailure)
     struct _rbusValue rbValue;
 
     ON_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](rbusHandle_t* handle, char const* componentName) {
-                EXPECT_TRUE(nullptr != handle);
-                EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
-                return RBUS_ERROR_SUCCESS;
-            }));
+        .WillByDefault(
+            ::testing::Return(RBUS_ERROR_SUCCESS));
 
     EXPECT_CALL(rBusApiImplMock, rbusValue_GetString(::testing::_, ::testing::_))
         .Times(1)
@@ -453,8 +431,9 @@ TEST_F(TelemetryRBusTest, uploadLogsFailure)
                 return &rbValue;
             }));
 
-    ON_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke(
+    EXPECT_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
             [&](rbusHandle_t handle, char const* methodName, rbusObject_t inParams, rbusMethodAsyncRespHandler_t callback,  int timeout) {
                 callback(handle, methodName, RBUS_ERROR_SUCCESS, &rbObject);
 
@@ -462,10 +441,8 @@ TEST_F(TelemetryRBusTest, uploadLogsFailure)
             }));
 
     ON_CALL(rBusApiImplMock, rbus_close(::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](rbusHandle_t handle) {
-                return RBUS_ERROR_SUCCESS;
-            }));
+        .WillByDefault(
+            ::testing::Return(RBUS_ERROR_SUCCESS));
 
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
@@ -503,20 +480,12 @@ TEST_F(TelemetryRBusTest, uploadLogs)
     struct _rbusValue rbValue;
 
     ON_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](rbusHandle_t* handle, char const* componentName) {
-                EXPECT_TRUE(nullptr != handle);
-                EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
-                return RBUS_ERROR_SUCCESS;
-            }));
-
+        .WillByDefault(
+            ::testing::Return(RBUS_ERROR_SUCCESS));
 
     ON_CALL(rBusApiImplMock, rbusValue_GetString(::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [&](rbusValue_t value, int* len) {
-                EXPECT_EQ(value, &rbValue);
-                return "SUCCESS";
-            }));
+        .WillByDefault(
+            ::testing::Return( "SUCCESS"));
 
     ON_CALL(rBusApiImplMock, rbusObject_GetValue(::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
@@ -526,8 +495,9 @@ TEST_F(TelemetryRBusTest, uploadLogs)
                 return &rbValue;
             }));
 
-    ON_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke(
+    EXPECT_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
             [&](rbusHandle_t handle, char const* methodName, rbusObject_t inParams, rbusMethodAsyncRespHandler_t callback,  int timeout) {
                 callback(handle, methodName, RBUS_ERROR_SUCCESS, &rbObject);
 
@@ -535,10 +505,8 @@ TEST_F(TelemetryRBusTest, uploadLogs)
             }));
 
     ON_CALL(rBusApiImplMock, rbus_close(::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](rbusHandle_t handle) {
-                return RBUS_ERROR_SUCCESS;
-            }));
+        .WillByDefault(
+            ::testing::Return(RBUS_ERROR_SUCCESS));
 
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
