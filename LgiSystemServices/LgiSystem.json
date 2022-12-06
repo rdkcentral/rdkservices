@@ -1,0 +1,50 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "System API", 
+        "class": "SystemServices",
+        "description": "The `System` plugin is used to manage various system-level features such as power settings and firmware updates."
+    },
+    "common": {
+        "$ref": "../common/common.json"
+    },
+    "methods": {       
+        "getDeviceInfo":{
+            "summary": "Collects device details. Sample keys include:  \n* bluetooth_mac  \n* boxIP  \n* build_type  \n* estb_mac  \n* imageVersion  \n* rf4ce_mac  \n* wifi_mac.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "params": {
+                        "summary": "A list of supported device keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "estb_mac"
+                        }
+                    }
+                },
+                "required": [
+                    "params"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "estb_mac": {
+                        "summary": "Value for the specified key name",
+                        "type": "string",
+                        "example": "20:F1:9E:EE:62:08"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "estb_mac",
+                    "success"
+                ]
+            }
+        }
+    }
+}
