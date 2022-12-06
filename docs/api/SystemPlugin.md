@@ -1,123 +1,121 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="System_Plugin"></a>
-# System Plugin
+<a name="head.System_API"></a>
+# System API
 
 **Version: [1.0.7](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
-A org.rdk.System plugin for Thunder framework.
+A SystemServices plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
-- [Description](#Description)
-- [Configuration](#Configuration)
-- [Methods](#Methods)
-- [Notifications](#Notifications)
+- [Abbreviation, Acronyms and Terms](#head.Abbreviation,_Acronyms_and_Terms)
+- [Description](#head.Description)
+- [Configuration](#head.Configuration)
+- [Methods](#head.Methods)
+- [Notifications](#head.Notifications)
 
-<a name="Abbreviation,_Acronyms_and_Terms"></a>
+<a name="head.Abbreviation,_Acronyms_and_Terms"></a>
 # Abbreviation, Acronyms and Terms
 
 [[Refer to this link](userguide/aat.md)]
 
-<a name="Description"></a>
+<a name="head.Description"></a>
 # Description
 
 The `System` plugin is used to manage various system-level features such as power settings and firmware updates.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
-<a name="Configuration"></a>
+<a name="head.Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| callsign | string | Plugin instance name (default: *org.rdk.System*) |
-| classname | string | Class name: *org.rdk.System* |
-| locator | string | Library name: *libWPEFrameworkSystemServices.so* |
+| classname | string | Class name: *SystemServices* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="Methods"></a>
+<a name="head.Methods"></a>
 # Methods
 
-The following methods are provided by the org.rdk.System plugin:
+The following methods are provided by the SystemServices plugin:
 
 SystemServices interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [cacheContains](#cacheContains) | Checks if a key is present in the cache |
-| [clearLastDeepSleepReason](#clearLastDeepSleepReason) | Clears the last deep sleep reason |
-| [deletePersistentPath](#deletePersistentPath) | Deletes persistent path associated with a callsign |
-| [enableMoca](#enableMoca) | Enables (or disables) Moca support for the platform |
-| [enableXREConnectionRetention](#enableXREConnectionRetention) | Enables (or disables) XRE Connection Retention option |
-| [fireFirmwarePendingReboot](#fireFirmwarePendingReboot) | Notifies the device about a pending reboot |
-| [getAvailableStandbyModes](#getAvailableStandbyModes) | Queries the available standby modes |
-| [getCachedValue](#getCachedValue) | Gets the value of a key in the cache |
-| [getCoreTemperature](#getCoreTemperature) | Returns the core temperature of the device |
-| [getDeviceInfo](#getDeviceInfo) | Collects device details |
-| [getDownloadedFirmwareInfo](#getDownloadedFirmwareInfo) | Returns information about firmware downloads |
-| [getFirmwareDownloadPercent](#getFirmwareDownloadPercent) | Gets the current download percentage |
-| [getFirmwareUpdateInfo](#getFirmwareUpdateInfo) | Checks the firmware update information |
-| [getFirmwareUpdateState](#getFirmwareUpdateState) | Checks the state of the firmware update |
-| [getLastDeepSleepReason](#getLastDeepSleepReason) | Retrieves the last deep sleep reason |
-| [getLastFirmwareFailureReason](#getLastFirmwareFailureReason) | Retrieves the last firmware failure reason |
-| [getLastWakeupKeyCode](#getLastWakeupKeyCode) | Returns the last wakeup keycode |
-| [getMacAddresses](#getMacAddresses) | Gets the MAC address of the device |
-| [getMfgSerialNumber](#getMfgSerialNumber) | Gets the Manufacturing Serial Number |
-| [getMilestones](#getMilestones) | Returns the list of milestones |
-| [getMode](#getMode) | Returns the currently set mode information |
-| [getNetworkStandbyMode](#getNetworkStandbyMode) | Returns the network standby mode of the device |
-| [getOvertempGraceInterval](#getOvertempGraceInterval) | Returns the over-temperature grace interval value |
-| [getPlatformConfiguration](#getPlatformConfiguration) | Returns the supported features and device/account info |
-| [getPowerState](#getPowerState) | Returns the power state of the device |
-| [getPowerStateBeforeReboot](#getPowerStateBeforeReboot) | Returns the power state before reboot |
-| [getPowerStateIsManagedByDevice](#getPowerStateIsManagedByDevice) | Checks whether the power state is managed by the device |
-| [getPreferredStandbyMode](#getPreferredStandbyMode) | Returns the preferred standby mode |
-| [getPreviousRebootInfo](#getPreviousRebootInfo) | Returns basic information about a reboot |
-| [getPreviousRebootInfo2](#getPreviousRebootInfo2) | Returns detailed information about a reboot |
-| [getPreviousRebootReason](#getPreviousRebootReason) | Returns the last reboot reason |
-| [getRFCConfig](#getRFCConfig) | Returns information that is related to RDK Feature Control (RFC) configurations |
-| [getSerialNumber](#getSerialNumber) | Returns the device serial number |
-| [getStateInfo](#getStateInfo) | Queries device state information of various properties |
-| [getStoreDemoLink](#getStoreDemoLink) | Returns the store demo video link |
-| [getSystemVersions](#getSystemVersions) | Returns system version details |
-| [getTemperatureThresholds](#getTemperatureThresholds) | Returns temperature threshold values |
-| [getTerritory](#getTerritory) | Gets the configured system territory and region |
-| [getTimeZones](#getTimeZones) | (Version2) Gets the available timezones from the system's time zone database |
-| [getTimeZoneDST](#getTimeZoneDST) | Get the configured time zone from the file referenced by `TZ_FILE` |
-| [getWakeupReason](#getWakeupReason) | Returns the reason for the device coming out of deep sleep |
-| [getXconfParams](#getXconfParams) | Returns XCONF configuration parameters for the device |
-| [hasRebootBeenRequested](#hasRebootBeenRequested) | Checks whether a reboot has been requested |
-| [isGzEnabled](#isGzEnabled) | Checks whether GZ is enabled |
-| [isOptOutTelemetry](#isOptOutTelemetry) | Checks the telemetry opt-out status |
-| [queryMocaStatus](#queryMocaStatus) | Checks whether MOCA is enabled |
-| [reboot](#reboot) | Requests that the system performs a reboot of the set-top box |
-| [removeCacheKey](#removeCacheKey) | Removes the cache key |
-| [requestSystemUptime](#requestSystemUptime) | Returns the device uptime |
-| [setBootLoaderPattern](#setBootLoaderPattern) | Sets the boot loader pattern mode in MFR |
-| [setCachedValue](#setCachedValue) | Sets the value for a key in the cache |
-| [setDeepSleepTimer](#setDeepSleepTimer) | Sets the deep sleep timeout period |
-| [setFirmwareAutoReboot](#setFirmwareAutoReboot) | Enables or disables the AutoReboot Feature |
-| [setFirmwareRebootDelay](#setFirmwareRebootDelay) | Delays the firmware reboot |
-| [setGzEnabled](#setGzEnabled) | Enables or disables GZ |
-| [setMode](#setMode) | Sets the mode of the set-top box for a specific duration before returning to normal mode |
-| [setNetworkStandbyMode](#setNetworkStandbyMode) | Enables or disables the network standby mode of the device |
-| [setOptOutTelemetry](#setOptOutTelemetry) | Sets the telemetry opt-out status |
-| [setOvertempGraceInterval](#setOvertempGraceInterval) | Sets the over-temperature grace interval value |
-| [setPowerState](#setPowerState) | Sets the power state of the device |
-| [setPreferredStandbyMode](#setPreferredStandbyMode) | Sets and persists the preferred standby mode |
-| [setTemperatureThresholds](#setTemperatureThresholds) | Sets the temperature threshold values |
-| [setTerritory](#setTerritory) | Sets the system territory and region |
-| [setTimeZoneDST](#setTimeZoneDST) | Sets the system time zone |
-| [setWakeupSrcConfiguration](#setWakeupSrcConfiguration) | Sets the wakeup source configuration |
-| [updateFirmware](#updateFirmware) | Initiates a firmware update |
-| [uploadLogs](#uploadLogs) | Uploads logs to a URL returned by SSR |
+| [cacheContains](#method.cacheContains) | Checks if a key is present in the cache |
+| [clearLastDeepSleepReason](#method.clearLastDeepSleepReason) | Clears the last deep sleep reason |
+| [deletePersistentPath](#method.deletePersistentPath) | Deletes persistent path associated with a callsign |
+| [enableMoca](#method.enableMoca) | Enables (or disables) Moca support for the platform |
+| [enableXREConnectionRetention](#method.enableXREConnectionRetention) | Enables (or disables) XRE Connection Retention option |
+| [fireFirmwarePendingReboot](#method.fireFirmwarePendingReboot) | Notifies the device about a pending reboot |
+| [getAvailableStandbyModes](#method.getAvailableStandbyModes) | Queries the available standby modes |
+| [getCachedValue](#method.getCachedValue) | Gets the value of a key in the cache |
+| [getCoreTemperature](#method.getCoreTemperature) | Returns the core temperature of the device |
+| [getDeviceInfo](#method.getDeviceInfo) | Collects device details |
+| [getDownloadedFirmwareInfo](#method.getDownloadedFirmwareInfo) | Returns information about firmware downloads |
+| [getFirmwareDownloadPercent](#method.getFirmwareDownloadPercent) | Gets the current download percentage |
+| [getFirmwareUpdateInfo](#method.getFirmwareUpdateInfo) | Checks the firmware update information |
+| [getFirmwareUpdateState](#method.getFirmwareUpdateState) | Checks the state of the firmware update |
+| [getLastDeepSleepReason](#method.getLastDeepSleepReason) | Retrieves the last deep sleep reason |
+| [getLastFirmwareFailureReason](#method.getLastFirmwareFailureReason) | Retrieves the last firmware failure reason |
+| [getLastWakeupKeyCode](#method.getLastWakeupKeyCode) | Returns the last wakeup keycode |
+| [getMacAddresses](#method.getMacAddresses) | Gets the MAC address of the device |
+| [getMfgSerialNumber](#method.getMfgSerialNumber) | Gets the Manufacturing Serial Number |
+| [getMilestones](#method.getMilestones) | Returns the list of milestones |
+| [getMode](#method.getMode) | Returns the currently set mode information |
+| [getNetworkStandbyMode](#method.getNetworkStandbyMode) | Returns the network standby mode of the device |
+| [getOvertempGraceInterval](#method.getOvertempGraceInterval) | Returns the over-temperature grace interval value |
+| [getPlatformConfiguration](#method.getPlatformConfiguration) | Returns the supported features and device/account info |
+| [getPowerState](#method.getPowerState) | Returns the power state of the device |
+| [getPowerStateBeforeReboot](#method.getPowerStateBeforeReboot) | Returns the power state before reboot |
+| [getPowerStateIsManagedByDevice](#method.getPowerStateIsManagedByDevice) | Checks whether the power state is managed by the device |
+| [getPreferredStandbyMode](#method.getPreferredStandbyMode) | Returns the preferred standby mode |
+| [getPreviousRebootInfo](#method.getPreviousRebootInfo) | Returns basic information about a reboot |
+| [getPreviousRebootInfo2](#method.getPreviousRebootInfo2) | Returns detailed information about a reboot |
+| [getPreviousRebootReason](#method.getPreviousRebootReason) | Returns the last reboot reason |
+| [getRFCConfig](#method.getRFCConfig) | Returns information that is related to RDK Feature Control (RFC) configurations |
+| [getSerialNumber](#method.getSerialNumber) | Returns the device serial number |
+| [getStateInfo](#method.getStateInfo) | Queries device state information of various properties |
+| [getStoreDemoLink](#method.getStoreDemoLink) | Returns the store demo video link |
+| [getSystemVersions](#method.getSystemVersions) | Returns system version details |
+| [getTemperatureThresholds](#method.getTemperatureThresholds) | Returns temperature threshold values |
+| [getTerritory](#method.getTerritory) | Gets the configured system territory and region |
+| [getTimeZones](#method.getTimeZones) | (Version2) Gets the available timezones from the system's time zone database |
+| [getTimeZoneDST](#method.getTimeZoneDST) | Get the configured time zone from the file referenced by `TZ_FILE` |
+| [getWakeupReason](#method.getWakeupReason) | Returns the reason for the device coming out of deep sleep |
+| [getXconfParams](#method.getXconfParams) | Returns XCONF configuration parameters for the device |
+| [hasRebootBeenRequested](#method.hasRebootBeenRequested) | Checks whether a reboot has been requested |
+| [isGzEnabled](#method.isGzEnabled) | Checks whether GZ is enabled |
+| [isOptOutTelemetry](#method.isOptOutTelemetry) | Checks the telemetry opt-out status |
+| [queryMocaStatus](#method.queryMocaStatus) | Checks whether MOCA is enabled |
+| [reboot](#method.reboot) | Requests that the system performs a reboot of the set-top box |
+| [removeCacheKey](#method.removeCacheKey) | Removes the cache key |
+| [requestSystemUptime](#method.requestSystemUptime) | Returns the device uptime |
+| [setBootLoaderPattern](#method.setBootLoaderPattern) | Sets the boot loader pattern mode in MFR |
+| [setCachedValue](#method.setCachedValue) | Sets the value for a key in the cache |
+| [setDeepSleepTimer](#method.setDeepSleepTimer) | Sets the deep sleep timeout period |
+| [setFirmwareAutoReboot](#method.setFirmwareAutoReboot) | Enables or disables the AutoReboot Feature |
+| [setFirmwareRebootDelay](#method.setFirmwareRebootDelay) | Delays the firmware reboot |
+| [setGzEnabled](#method.setGzEnabled) | Enables or disables GZ |
+| [setMode](#method.setMode) | Sets the mode of the set-top box for a specific duration before returning to normal mode |
+| [setNetworkStandbyMode](#method.setNetworkStandbyMode) | Enables or disables the network standby mode of the device |
+| [setOptOutTelemetry](#method.setOptOutTelemetry) | Sets the telemetry opt-out status |
+| [setOvertempGraceInterval](#method.setOvertempGraceInterval) | Sets the over-temperature grace interval value |
+| [setPowerState](#method.setPowerState) | Sets the power state of the device |
+| [setPreferredStandbyMode](#method.setPreferredStandbyMode) | Sets and persists the preferred standby mode |
+| [setTemperatureThresholds](#method.setTemperatureThresholds) | Sets the temperature threshold values |
+| [setTerritory](#method.setTerritory) | Sets the system territory and region |
+| [setTimeZoneDST](#method.setTimeZoneDST) | Sets the system time zone |
+| [setWakeupSrcConfiguration](#method.setWakeupSrcConfiguration) | Sets the wakeup source configuration |
+| [updateFirmware](#method.updateFirmware) | Initiates a firmware update |
+| [uploadLogs](#method.uploadLogs) | Uploads logs to a URL returned by SSR |
 
 
-<a name="cacheContains"></a>
-## *cacheContains*
+<a name="method.cacheContains"></a>
+## *cacheContains [<sup>method</sup>](#head.Methods)*
 
 Checks if a key is present in the cache.
 
@@ -149,7 +147,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.cacheContains",
+    "method": "SystemServices.cacheContains",
     "params": {
         "key": "sampleKey"
     }
@@ -168,8 +166,8 @@ No Events
 }
 ```
 
-<a name="clearLastDeepSleepReason"></a>
-## *clearLastDeepSleepReason*
+<a name="method.clearLastDeepSleepReason"></a>
+## *clearLastDeepSleepReason [<sup>method</sup>](#head.Methods)*
 
 Clears the last deep sleep reason.
 
@@ -196,7 +194,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.clearLastDeepSleepReason"
+    "method": "SystemServices.clearLastDeepSleepReason"
 }
 ```
 
@@ -212,8 +210,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="deletePersistentPath"></a>
-## *deletePersistentPath*
+<a name="method.deletePersistentPath"></a>
+## *deletePersistentPath [<sup>method</sup>](#head.Methods)*
 
 Deletes persistent path associated with a callsign.
 
@@ -244,7 +242,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.deletePersistentPath",
+    "method": "SystemServices.deletePersistentPath",
     "params": {
         "callsign": "HtmlApp",
         "type": "HtmlApp"
@@ -264,8 +262,8 @@ No Events
 }
 ```
 
-<a name="enableMoca"></a>
-## *enableMoca*
+<a name="method.enableMoca"></a>
+## *enableMoca [<sup>method</sup>](#head.Methods)*
 
 Enables (or disables) Moca support for the platform.
 
@@ -295,7 +293,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.enableMoca",
+    "method": "SystemServices.enableMoca",
     "params": {
         "value": true
     }
@@ -314,8 +312,8 @@ No Events
 }
 ```
 
-<a name="enableXREConnectionRetention"></a>
-## *enableXREConnectionRetention*
+<a name="method.enableXREConnectionRetention"></a>
+## *enableXREConnectionRetention [<sup>method</sup>](#head.Methods)*
 
 Enables (or disables) XRE Connection Retention option.
 
@@ -345,7 +343,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.enableXREConnectionRetention",
+    "method": "SystemServices.enableXREConnectionRetention",
     "params": {
         "enable": true
     }
@@ -364,8 +362,8 @@ No Events
 }
 ```
 
-<a name="fireFirmwarePendingReboot"></a>
-## *fireFirmwarePendingReboot*
+<a name="method.fireFirmwarePendingReboot"></a>
+## *fireFirmwarePendingReboot [<sup>method</sup>](#head.Methods)*
 
 Notifies the device about a pending reboot.
 
@@ -373,7 +371,7 @@ Notifies the device about a pending reboot.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onFirmwarePendingReboot](#onFirmwarePendingReboot) | Triggers when the firmware has a pending reboot |
+| [onFirmwarePendingReboot](#event.onFirmwarePendingReboot) | Triggers when the firmware has a pending reboot |
 ### Parameters
 
 This method takes no parameters.
@@ -393,7 +391,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.fireFirmwarePendingReboot"
+    "method": "SystemServices.fireFirmwarePendingReboot"
 }
 ```
 
@@ -409,8 +407,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getAvailableStandbyModes"></a>
-## *getAvailableStandbyModes*
+<a name="method.getAvailableStandbyModes"></a>
+## *getAvailableStandbyModes [<sup>method</sup>](#head.Methods)*
 
 Queries the available standby modes.
 
@@ -439,7 +437,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getAvailableStandbyModes"
+    "method": "SystemServices.getAvailableStandbyModes"
 }
 ```
 
@@ -458,8 +456,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getCachedValue"></a>
-## *getCachedValue*
+<a name="method.getCachedValue"></a>
+## *getCachedValue [<sup>method</sup>](#head.Methods)*
 
 Gets the value of a key in the cache.
 
@@ -492,7 +490,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getCachedValue",
+    "method": "SystemServices.getCachedValue",
     "params": {
         "key": "sampleKey"
     }
@@ -512,8 +510,8 @@ No Events
 }
 ```
 
-<a name="getCoreTemperature"></a>
-## *getCoreTemperature*
+<a name="method.getCoreTemperature"></a>
+## *getCoreTemperature [<sup>method</sup>](#head.Methods)*
 
 Returns the core temperature of the device. Not supported on all devices.
 
@@ -541,7 +539,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getCoreTemperature"
+    "method": "SystemServices.getCoreTemperature"
 }
 ```
 
@@ -558,8 +556,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getDeviceInfo"></a>
-## *getDeviceInfo*
+<a name="method.getDeviceInfo"></a>
+## *getDeviceInfo [<sup>method</sup>](#head.Methods)*
 
 Collects device details. Sample keys include:  
 * bluetooth_mac  
@@ -598,7 +596,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getDeviceInfo",
+    "method": "SystemServices.getDeviceInfo",
     "params": {
         "params": [
             "estb_mac"
@@ -620,8 +618,8 @@ No Events
 }
 ```
 
-<a name="getDownloadedFirmwareInfo"></a>
-## *getDownloadedFirmwareInfo*
+<a name="method.getDownloadedFirmwareInfo"></a>
+## *getDownloadedFirmwareInfo [<sup>method</sup>](#head.Methods)*
 
 Returns information about firmware downloads.
 
@@ -652,7 +650,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getDownloadedFirmwareInfo"
+    "method": "SystemServices.getDownloadedFirmwareInfo"
 }
 ```
 
@@ -672,8 +670,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getFirmwareDownloadPercent"></a>
-## *getFirmwareDownloadPercent*
+<a name="method.getFirmwareDownloadPercent"></a>
+## *getFirmwareDownloadPercent [<sup>method</sup>](#head.Methods)*
 
 Gets the current download percentage.
 
@@ -701,7 +699,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getFirmwareDownloadPercent"
+    "method": "SystemServices.getFirmwareDownloadPercent"
 }
 ```
 
@@ -718,8 +716,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getFirmwareUpdateInfo"></a>
-## *getFirmwareUpdateInfo*
+<a name="method.getFirmwareUpdateInfo"></a>
+## *getFirmwareUpdateInfo [<sup>method</sup>](#head.Methods)*
 
 Checks the firmware update information.
 
@@ -727,7 +725,7 @@ Checks the firmware update information.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onFirmwareUpdateInfoReceived](#onFirmwareUpdateInfoReceived) | Triggers when the firmware update information is requested |
+| [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived) | Triggers when the firmware update information is requested |
 ### Parameters
 
 | Name | Type | Description |
@@ -751,7 +749,7 @@ Checks the firmware update information.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getFirmwareUpdateInfo",
+    "method": "SystemServices.getFirmwareUpdateInfo",
     "params": {
         "GUID": "1234abcd"
     }
@@ -771,8 +769,8 @@ Checks the firmware update information.
 }
 ```
 
-<a name="getFirmwareUpdateState"></a>
-## *getFirmwareUpdateState*
+<a name="method.getFirmwareUpdateState"></a>
+## *getFirmwareUpdateState [<sup>method</sup>](#head.Methods)*
 
 Checks the state of the firmware update.
 
@@ -800,7 +798,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getFirmwareUpdateState"
+    "method": "SystemServices.getFirmwareUpdateState"
 }
 ```
 
@@ -817,8 +815,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getLastDeepSleepReason"></a>
-## *getLastDeepSleepReason*
+<a name="method.getLastDeepSleepReason"></a>
+## *getLastDeepSleepReason [<sup>method</sup>](#head.Methods)*
 
 Retrieves the last deep sleep reason.
 
@@ -846,7 +844,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getLastDeepSleepReason"
+    "method": "SystemServices.getLastDeepSleepReason"
 }
 ```
 
@@ -863,8 +861,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getLastFirmwareFailureReason"></a>
-## *getLastFirmwareFailureReason*
+<a name="method.getLastFirmwareFailureReason"></a>
+## *getLastFirmwareFailureReason [<sup>method</sup>](#head.Methods)*
 
 Retrieves the last firmware failure reason.
 
@@ -892,7 +890,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getLastFirmwareFailureReason"
+    "method": "SystemServices.getLastFirmwareFailureReason"
 }
 ```
 
@@ -909,8 +907,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getLastWakeupKeyCode"></a>
-## *getLastWakeupKeyCode*
+<a name="method.getLastWakeupKeyCode"></a>
+## *getLastWakeupKeyCode [<sup>method</sup>](#head.Methods)*
 
 Returns the last wakeup keycode.
 
@@ -938,7 +936,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getLastWakeupKeyCode"
+    "method": "SystemServices.getLastWakeupKeyCode"
 }
 ```
 
@@ -955,8 +953,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getMacAddresses"></a>
-## *getMacAddresses*
+<a name="method.getMacAddresses"></a>
+## *getMacAddresses [<sup>method</sup>](#head.Methods)*
 
 Gets the MAC address of the device.
 
@@ -964,7 +962,7 @@ Gets the MAC address of the device.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onMacAddressesRetreived](#onMacAddressesRetreived) | Triggers when the MAC addresses are requested |
+| [onMacAddressesRetreived](#event.onMacAddressesRetreived) | Triggers when the MAC addresses are requested |
 ### Parameters
 
 | Name | Type | Description |
@@ -988,7 +986,7 @@ Gets the MAC address of the device.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getMacAddresses",
+    "method": "SystemServices.getMacAddresses",
     "params": {
         "GUID": "1234abcd"
     }
@@ -1008,8 +1006,8 @@ Gets the MAC address of the device.
 }
 ```
 
-<a name="getMfgSerialNumber"></a>
-## *getMfgSerialNumber*
+<a name="method.getMfgSerialNumber"></a>
+## *getMfgSerialNumber [<sup>method</sup>](#head.Methods)*
 
 Gets the Manufacturing Serial Number.
 
@@ -1037,7 +1035,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getMfgSerialNumber"
+    "method": "SystemServices.getMfgSerialNumber"
 }
 ```
 
@@ -1054,8 +1052,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getMilestones"></a>
-## *getMilestones*
+<a name="method.getMilestones"></a>
+## *getMilestones [<sup>method</sup>](#head.Methods)*
 
 Returns the list of milestones.
 
@@ -1086,7 +1084,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getMilestones"
+    "method": "SystemServices.getMilestones"
 }
 ```
 
@@ -1105,8 +1103,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getMode"></a>
-## *getMode*
+<a name="method.getMode"></a>
+## *getMode [<sup>method</sup>](#head.Methods)*
 
 Returns the currently set mode information.
 
@@ -1136,7 +1134,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getMode"
+    "method": "SystemServices.getMode"
 }
 ```
 
@@ -1156,8 +1154,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getNetworkStandbyMode"></a>
-## *getNetworkStandbyMode*
+<a name="method.getNetworkStandbyMode"></a>
+## *getNetworkStandbyMode [<sup>method</sup>](#head.Methods)*
 
 Returns the network standby mode of the device. If network standby is `true`, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.
 
@@ -1185,7 +1183,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getNetworkStandbyMode"
+    "method": "SystemServices.getNetworkStandbyMode"
 }
 ```
 
@@ -1202,8 +1200,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getOvertempGraceInterval"></a>
-## *getOvertempGraceInterval*
+<a name="method.getOvertempGraceInterval"></a>
+## *getOvertempGraceInterval [<sup>method</sup>](#head.Methods)*
 
 Returns the over-temperature grace interval value. Not supported on all devices.
 
@@ -1231,7 +1229,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getOvertempGraceInterval"
+    "method": "SystemServices.getOvertempGraceInterval"
 }
 ```
 
@@ -1248,8 +1246,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getPlatformConfiguration"></a>
-## *getPlatformConfiguration*
+<a name="method.getPlatformConfiguration"></a>
+## *getPlatformConfiguration [<sup>method</sup>](#head.Methods)*
 
 Returns the supported features and device/account info.
 
@@ -1303,7 +1301,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getPlatformConfiguration",
+    "method": "SystemServices.getPlatformConfiguration",
     "params": {
         "query": "..."
     }
@@ -1351,8 +1349,8 @@ No Events
 }
 ```
 
-<a name="getPowerState"></a>
-## *getPowerState*
+<a name="method.getPowerState"></a>
+## *getPowerState [<sup>method</sup>](#head.Methods)*
 
 Returns the power state of the device.
 
@@ -1380,7 +1378,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getPowerState"
+    "method": "SystemServices.getPowerState"
 }
 ```
 
@@ -1397,8 +1395,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getPowerStateBeforeReboot"></a>
-## *getPowerStateBeforeReboot*
+<a name="method.getPowerStateBeforeReboot"></a>
+## *getPowerStateBeforeReboot [<sup>method</sup>](#head.Methods)*
 
 Returns the power state before reboot.
 
@@ -1426,7 +1424,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getPowerStateBeforeReboot"
+    "method": "SystemServices.getPowerStateBeforeReboot"
 }
 ```
 
@@ -1443,8 +1441,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getPowerStateIsManagedByDevice"></a>
-## *getPowerStateIsManagedByDevice*
+<a name="method.getPowerStateIsManagedByDevice"></a>
+## *getPowerStateIsManagedByDevice [<sup>method</sup>](#head.Methods)*
 
 Checks whether the power state is managed by the device.
 
@@ -1472,7 +1470,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getPowerStateIsManagedByDevice"
+    "method": "SystemServices.getPowerStateIsManagedByDevice"
 }
 ```
 
@@ -1489,8 +1487,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getPreferredStandbyMode"></a>
-## *getPreferredStandbyMode*
+<a name="method.getPreferredStandbyMode"></a>
+## *getPreferredStandbyMode [<sup>method</sup>](#head.Methods)*
 
 Returns the preferred standby mode. This method returns an empty string if the preferred mode has not been set.
 
@@ -1518,7 +1516,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getPreferredStandbyMode"
+    "method": "SystemServices.getPreferredStandbyMode"
 }
 ```
 
@@ -1535,8 +1533,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getPreviousRebootInfo"></a>
-## *getPreviousRebootInfo*
+<a name="method.getPreviousRebootInfo"></a>
+## *getPreviousRebootInfo [<sup>method</sup>](#head.Methods)*
 
 Returns basic information about a reboot.
 
@@ -1568,7 +1566,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getPreviousRebootInfo"
+    "method": "SystemServices.getPreviousRebootInfo"
 }
 ```
 
@@ -1589,8 +1587,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getPreviousRebootInfo2"></a>
-## *getPreviousRebootInfo2*
+<a name="method.getPreviousRebootInfo2"></a>
+## *getPreviousRebootInfo2 [<sup>method</sup>](#head.Methods)*
 
 Returns detailed information about a reboot.
 
@@ -1623,7 +1621,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getPreviousRebootInfo2"
+    "method": "SystemServices.getPreviousRebootInfo2"
 }
 ```
 
@@ -1646,8 +1644,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getPreviousRebootReason"></a>
-## *getPreviousRebootReason*
+<a name="method.getPreviousRebootReason"></a>
+## *getPreviousRebootReason [<sup>method</sup>](#head.Methods)*
 
 Returns the last reboot reason.
 
@@ -1675,7 +1673,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getPreviousRebootReason"
+    "method": "SystemServices.getPreviousRebootReason"
 }
 ```
 
@@ -1692,8 +1690,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getRFCConfig"></a>
-## *getRFCConfig*
+<a name="method.getRFCConfig"></a>
+## *getRFCConfig [<sup>method</sup>](#head.Methods)*
 
 Returns information that is related to RDK Feature Control (RFC) configurations.
 
@@ -1726,7 +1724,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getRFCConfig",
+    "method": "SystemServices.getRFCConfig",
     "params": {
         "rfcList": [
             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID"
@@ -1750,8 +1748,8 @@ No Events
 }
 ```
 
-<a name="getSerialNumber"></a>
-## *getSerialNumber*
+<a name="method.getSerialNumber"></a>
+## *getSerialNumber [<sup>method</sup>](#head.Methods)*
 
 Returns the device serial number.
 
@@ -1779,7 +1777,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getSerialNumber"
+    "method": "SystemServices.getSerialNumber"
 }
 ```
 
@@ -1796,8 +1794,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getStateInfo"></a>
-## *getStateInfo*
+<a name="method.getStateInfo"></a>
+## *getStateInfo [<sup>method</sup>](#head.Methods)*
 
 Queries device state information of various properties.
 
@@ -1828,7 +1826,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getStateInfo",
+    "method": "SystemServices.getStateInfo",
     "params": {
         "param": "com.comcast.channel_map"
     }
@@ -1848,8 +1846,8 @@ No Events
 }
 ```
 
-<a name="getStoreDemoLink"></a>
-## *getStoreDemoLink*
+<a name="method.getStoreDemoLink"></a>
+## *getStoreDemoLink [<sup>method</sup>](#head.Methods)*
 
 Returns the store demo video link.
 
@@ -1877,7 +1875,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getStoreDemoLink"
+    "method": "SystemServices.getStoreDemoLink"
 }
 ```
 
@@ -1894,8 +1892,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getSystemVersions"></a>
-## *getSystemVersions*
+<a name="method.getSystemVersions"></a>
+## *getSystemVersions [<sup>method</sup>](#head.Methods)*
 
 Returns system version details.
 
@@ -1925,7 +1923,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getSystemVersions"
+    "method": "SystemServices.getSystemVersions"
 }
 ```
 
@@ -1944,8 +1942,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getTemperatureThresholds"></a>
-## *getTemperatureThresholds*
+<a name="method.getTemperatureThresholds"></a>
+## *getTemperatureThresholds [<sup>method</sup>](#head.Methods)*
 
 Returns temperature threshold values. Not supported on all devices.
 
@@ -1976,7 +1974,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getTemperatureThresholds"
+    "method": "SystemServices.getTemperatureThresholds"
 }
 ```
 
@@ -1997,8 +1995,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getTerritory"></a>
-## *getTerritory*
+<a name="method.getTerritory"></a>
+## *getTerritory [<sup>method</sup>](#head.Methods)*
 
 Gets the configured system territory and region. Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).
 
@@ -2027,7 +2025,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getTerritory"
+    "method": "SystemServices.getTerritory"
 }
 ```
 
@@ -2045,8 +2043,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getTimeZones"></a>
-## *getTimeZones*
+<a name="method.getTimeZones"></a>
+## *getTimeZones [<sup>method</sup>](#head.Methods)*
 
 (Version2) Gets the available timezones from the system's time zone database. This method is useful for determining time offsets per zone.
 
@@ -2079,7 +2077,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getTimeZones"
+    "method": "SystemServices.getTimeZones"
 }
 ```
 
@@ -2104,8 +2102,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getTimeZoneDST"></a>
-## *getTimeZoneDST*
+<a name="method.getTimeZoneDST"></a>
+## *getTimeZoneDST [<sup>method</sup>](#head.Methods)*
 
 Get the configured time zone from the file referenced by `TZ_FILE`. If the time zone is not set, then `null` is returned.
 
@@ -2133,7 +2131,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getTimeZoneDST"
+    "method": "SystemServices.getTimeZoneDST"
 }
 ```
 
@@ -2150,8 +2148,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getWakeupReason"></a>
-## *getWakeupReason*
+<a name="method.getWakeupReason"></a>
+## *getWakeupReason [<sup>method</sup>](#head.Methods)*
 
 Returns the reason for the device coming out of deep sleep.
 
@@ -2179,7 +2177,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getWakeupReason"
+    "method": "SystemServices.getWakeupReason"
 }
 ```
 
@@ -2196,8 +2194,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getXconfParams"></a>
-## *getXconfParams*
+<a name="method.getXconfParams"></a>
+## *getXconfParams [<sup>method</sup>](#head.Methods)*
 
 Returns XCONF configuration parameters for the device.
 
@@ -2229,7 +2227,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.getXconfParams"
+    "method": "SystemServices.getXconfParams"
 }
 ```
 
@@ -2251,8 +2249,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="hasRebootBeenRequested"></a>
-## *hasRebootBeenRequested*
+<a name="method.hasRebootBeenRequested"></a>
+## *hasRebootBeenRequested [<sup>method</sup>](#head.Methods)*
 
 Checks whether a reboot has been requested.
 
@@ -2280,7 +2278,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.hasRebootBeenRequested"
+    "method": "SystemServices.hasRebootBeenRequested"
 }
 ```
 
@@ -2297,8 +2295,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="isGzEnabled"></a>
-## *isGzEnabled*
+<a name="method.isGzEnabled"></a>
+## *isGzEnabled [<sup>method</sup>](#head.Methods)*
 
 Checks whether GZ is enabled.
 
@@ -2328,7 +2326,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.isGzEnabled"
+    "method": "SystemServices.isGzEnabled"
 }
 ```
 
@@ -2345,8 +2343,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="isOptOutTelemetry"></a>
-## *isOptOutTelemetry*
+<a name="method.isOptOutTelemetry"></a>
+## *isOptOutTelemetry [<sup>method</sup>](#head.Methods)*
 
 Checks the telemetry opt-out status.
 
@@ -2374,7 +2372,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.isOptOutTelemetry"
+    "method": "SystemServices.isOptOutTelemetry"
 }
 ```
 
@@ -2391,8 +2389,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="queryMocaStatus"></a>
-## *queryMocaStatus*
+<a name="method.queryMocaStatus"></a>
+## *queryMocaStatus [<sup>method</sup>](#head.Methods)*
 
 Checks whether MOCA is enabled.
 
@@ -2420,7 +2418,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.queryMocaStatus"
+    "method": "SystemServices.queryMocaStatus"
 }
 ```
 
@@ -2437,8 +2435,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="reboot"></a>
-## *reboot*
+<a name="method.reboot"></a>
+## *reboot [<sup>method</sup>](#head.Methods)*
 
 Requests that the system performs a reboot of the set-top box.
 
@@ -2446,7 +2444,7 @@ Requests that the system performs a reboot of the set-top box.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onRebootRequest](#onRebootRequest) | Triggers when a device reboot request is made |
+| [onRebootRequest](#event.onRebootRequest) | Triggers when a device reboot request is made |
 ### Parameters
 
 | Name | Type | Description |
@@ -2470,7 +2468,7 @@ Requests that the system performs a reboot of the set-top box.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.reboot",
+    "method": "SystemServices.reboot",
     "params": {
         "rebootReason": "FIRMWARE_FAILURE"
     }
@@ -2490,8 +2488,8 @@ Requests that the system performs a reboot of the set-top box.
 }
 ```
 
-<a name="removeCacheKey"></a>
-## *removeCacheKey*
+<a name="method.removeCacheKey"></a>
+## *removeCacheKey [<sup>method</sup>](#head.Methods)*
 
 Removes the cache key.
 
@@ -2523,7 +2521,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.removeCacheKey",
+    "method": "SystemServices.removeCacheKey",
     "params": {
         "key": "sampleKey"
     }
@@ -2542,8 +2540,8 @@ No Events
 }
 ```
 
-<a name="requestSystemUptime"></a>
-## *requestSystemUptime*
+<a name="method.requestSystemUptime"></a>
+## *requestSystemUptime [<sup>method</sup>](#head.Methods)*
 
 Returns the device uptime.
 
@@ -2571,7 +2569,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.requestSystemUptime"
+    "method": "SystemServices.requestSystemUptime"
 }
 ```
 
@@ -2588,8 +2586,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="setBootLoaderPattern"></a>
-## *setBootLoaderPattern*
+<a name="method.setBootLoaderPattern"></a>
+## *setBootLoaderPattern [<sup>method</sup>](#head.Methods)*
 
 Sets the boot loader pattern mode in MFR.
 
@@ -2619,7 +2617,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setBootLoaderPattern",
+    "method": "SystemServices.setBootLoaderPattern",
     "params": {
         "pattern": "NORMAL"
     }
@@ -2638,8 +2636,8 @@ No Events
 }
 ```
 
-<a name="setCachedValue"></a>
-## *setCachedValue*
+<a name="method.setCachedValue"></a>
+## *setCachedValue [<sup>method</sup>](#head.Methods)*
 
 Sets the value for a key in the cache.
 
@@ -2672,7 +2670,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setCachedValue",
+    "method": "SystemServices.setCachedValue",
     "params": {
         "key": "sampleKey",
         "value": 4343.3434
@@ -2692,8 +2690,8 @@ No Events
 }
 ```
 
-<a name="setDeepSleepTimer"></a>
-## *setDeepSleepTimer*
+<a name="method.setDeepSleepTimer"></a>
+## *setDeepSleepTimer [<sup>method</sup>](#head.Methods)*
 
 Sets the deep sleep timeout period.
 
@@ -2723,7 +2721,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setDeepSleepTimer",
+    "method": "SystemServices.setDeepSleepTimer",
     "params": {
         "seconds": 3
     }
@@ -2742,8 +2740,8 @@ No Events
 }
 ```
 
-<a name="setFirmwareAutoReboot"></a>
-## *setFirmwareAutoReboot*
+<a name="method.setFirmwareAutoReboot"></a>
+## *setFirmwareAutoReboot [<sup>method</sup>](#head.Methods)*
 
 Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.
 
@@ -2773,7 +2771,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setFirmwareAutoReboot",
+    "method": "SystemServices.setFirmwareAutoReboot",
     "params": {
         "enable": true
     }
@@ -2792,8 +2790,8 @@ No Events
 }
 ```
 
-<a name="setFirmwareRebootDelay"></a>
-## *setFirmwareRebootDelay*
+<a name="method.setFirmwareRebootDelay"></a>
+## *setFirmwareRebootDelay [<sup>method</sup>](#head.Methods)*
 
 Delays the firmware reboot.
 
@@ -2823,7 +2821,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setFirmwareRebootDelay",
+    "method": "SystemServices.setFirmwareRebootDelay",
     "params": {
         "delaySeconds": 60
     }
@@ -2842,8 +2840,8 @@ No Events
 }
 ```
 
-<a name="setGzEnabled"></a>
-## *setGzEnabled*
+<a name="method.setGzEnabled"></a>
+## *setGzEnabled [<sup>method</sup>](#head.Methods)*
 
 Enables or disables GZ.
 
@@ -2875,7 +2873,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setGzEnabled",
+    "method": "SystemServices.setGzEnabled",
     "params": {
         "enabled": false
     }
@@ -2894,8 +2892,8 @@ No Events
 }
 ```
 
-<a name="setMode"></a>
-## *setMode*
+<a name="method.setMode"></a>
+## *setMode [<sup>method</sup>](#head.Methods)*
 
 Sets the mode of the set-top box for a specific duration before returning to normal mode. Valid modes are:  
 * `NORMAL` - The set-top box is operating in normal mode.  
@@ -2906,7 +2904,7 @@ Sets the mode of the set-top box for a specific duration before returning to nor
 
 | Event | Description |
 | :-------- | :-------- |
-| [onSystemModeChanged](#onSystemModeChanged) | Triggers when the system mode is changed successfully |
+| [onSystemModeChanged](#event.onSystemModeChanged) | Triggers when the system mode is changed successfully |
 ### Parameters
 
 | Name | Type | Description |
@@ -2931,7 +2929,7 @@ Sets the mode of the set-top box for a specific duration before returning to nor
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setMode",
+    "method": "SystemServices.setMode",
     "params": {
         "modeInfo": {
             "mode": "NORMAL",
@@ -2953,8 +2951,8 @@ Sets the mode of the set-top box for a specific duration before returning to nor
 }
 ```
 
-<a name="setNetworkStandbyMode"></a>
-## *setNetworkStandbyMode*
+<a name="method.setNetworkStandbyMode"></a>
+## *setNetworkStandbyMode [<sup>method</sup>](#head.Methods)*
 
 Enables or disables the network standby mode of the device. If network standby is enabled, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.
 
@@ -2984,7 +2982,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setNetworkStandbyMode",
+    "method": "SystemServices.setNetworkStandbyMode",
     "params": {
         "nwStandby": false
     }
@@ -3003,8 +3001,8 @@ No Events
 }
 ```
 
-<a name="setOptOutTelemetry"></a>
-## *setOptOutTelemetry*
+<a name="method.setOptOutTelemetry"></a>
+## *setOptOutTelemetry [<sup>method</sup>](#head.Methods)*
 
 Sets the telemetry opt-out status.
 
@@ -3034,7 +3032,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setOptOutTelemetry",
+    "method": "SystemServices.setOptOutTelemetry",
     "params": {
         "Opt-Out": false
     }
@@ -3053,8 +3051,8 @@ No Events
 }
 ```
 
-<a name="setOvertempGraceInterval"></a>
-## *setOvertempGraceInterval*
+<a name="method.setOvertempGraceInterval"></a>
+## *setOvertempGraceInterval [<sup>method</sup>](#head.Methods)*
 
 Sets the over-temperature grace interval value. Not supported on all devices.
 
@@ -3084,7 +3082,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setOvertempGraceInterval",
+    "method": "SystemServices.setOvertempGraceInterval",
     "params": {
         "graceInterval": "600"
     }
@@ -3103,8 +3101,8 @@ No Events
 }
 ```
 
-<a name="setPowerState"></a>
-## *setPowerState*
+<a name="method.setPowerState"></a>
+## *setPowerState [<sup>method</sup>](#head.Methods)*
 
 Sets the power state of the device.
 
@@ -3112,7 +3110,7 @@ Sets the power state of the device.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onSystemPowerStateChanged](#onSystemPowerStateChanged) | Triggers when the system power state changes |
+| [onSystemPowerStateChanged](#event.onSystemPowerStateChanged) | Triggers when the system power state changes |
 ### Parameters
 
 | Name | Type | Description |
@@ -3136,7 +3134,7 @@ Sets the power state of the device.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setPowerState",
+    "method": "SystemServices.setPowerState",
     "params": {
         "powerState": "ON",
         "standbyReason": "APIUnitTest"
@@ -3156,8 +3154,8 @@ Sets the power state of the device.
 }
 ```
 
-<a name="setPreferredStandbyMode"></a>
-## *setPreferredStandbyMode*
+<a name="method.setPreferredStandbyMode"></a>
+## *setPreferredStandbyMode [<sup>method</sup>](#head.Methods)*
 
 Sets and persists the preferred standby mode. See [getAvailableStandbyModes](#getAvailableStandbyModes) for valid modes. Invoking this function does not change the power state of the device. It only sets the user preference for the preferred action when the [setPowerState](#setPowerState) method is invoked with a value of `STANDBY`.
 
@@ -3187,7 +3185,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setPreferredStandbyMode",
+    "method": "SystemServices.setPreferredStandbyMode",
     "params": {
         "standbyMode": "DEEP_SLEEP"
     }
@@ -3206,8 +3204,8 @@ No Events
 }
 ```
 
-<a name="setTemperatureThresholds"></a>
-## *setTemperatureThresholds*
+<a name="method.setTemperatureThresholds"></a>
+## *setTemperatureThresholds [<sup>method</sup>](#head.Methods)*
 
 Sets the temperature threshold values. Not supported on all devices.
 
@@ -3239,7 +3237,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setTemperatureThresholds",
+    "method": "SystemServices.setTemperatureThresholds",
     "params": {
         "thresholds": {
             "WARN": "100.000000",
@@ -3261,15 +3259,16 @@ No Events
 }
 ```
 
-<a name="setTerritory"></a>
-## *setTerritory*
+<a name="method.setTerritory"></a>
+## *setTerritory [<sup>method</sup>](#head.Methods)*
 
 Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).
 
 ### Events
 
-No Events
-
+| Event | Description |
+| :-------- | :-------- |
+| [onTerritoryChanged](#event.onTerritoryChanged) | Triggered when territory is set |
 ### Parameters
 
 | Name | Type | Description |
@@ -3293,7 +3292,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setTerritory",
+    "method": "SystemServices.setTerritory",
     "params": {
         "territory": "USA",
         "region": "US-NY"
@@ -3313,15 +3312,16 @@ No Events
 }
 ```
 
-<a name="setTimeZoneDST"></a>
-## *setTimeZoneDST*
+<a name="method.setTimeZoneDST"></a>
+## *setTimeZoneDST [<sup>method</sup>](#head.Methods)*
 
 Sets the system time zone. See `getTimeZones` to get a list of available timezones on the system.
 
 ### Events
 
-No Events
-
+| Event | Description |
+| :-------- | :-------- |
+| [onTimeZoneDSTChanged](#event.onTimeZoneDSTChanged) | Triggered when device time zone DST changed |
 ### Parameters
 
 | Name | Type | Description |
@@ -3344,7 +3344,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setTimeZoneDST",
+    "method": "SystemServices.setTimeZoneDST",
     "params": {
         "timeZone": "America/New_York"
     }
@@ -3363,8 +3363,8 @@ No Events
 }
 ```
 
-<a name="setWakeupSrcConfiguration"></a>
-## *setWakeupSrcConfiguration*
+<a name="method.setWakeupSrcConfiguration"></a>
+## *setWakeupSrcConfiguration [<sup>method</sup>](#head.Methods)*
 
 Sets the wakeup source configuration.
 
@@ -3395,7 +3395,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.setWakeupSrcConfiguration",
+    "method": "SystemServices.setWakeupSrcConfiguration",
     "params": {
         "wakeupSrc": "3",
         "config": "1"
@@ -3415,8 +3415,8 @@ No Events
 }
 ```
 
-<a name="updateFirmware"></a>
-## *updateFirmware*
+<a name="method.updateFirmware"></a>
+## *updateFirmware [<sup>method</sup>](#head.Methods)*
 
 Initiates a firmware update. This method has no affect if an update is not available.
 
@@ -3443,7 +3443,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.updateFirmware"
+    "method": "SystemServices.updateFirmware"
 }
 ```
 
@@ -3459,8 +3459,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="uploadLogs"></a>
-## *uploadLogs*
+<a name="method.uploadLogs"></a>
+## *uploadLogs [<sup>method</sup>](#head.Methods)*
 
 Uploads logs to a URL returned by SSR.
 
@@ -3490,7 +3490,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.uploadLogs",
+    "method": "SystemServices.uploadLogs",
     "params": {
         "url": "https://ssr.ccp.xcal.tv/cgi-bin/rdkb_snmp.cgi"
     }
@@ -3509,31 +3509,33 @@ No Events
 }
 ```
 
-<a name="Notifications"></a>
+<a name="head.Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
 
-The following events are provided by the org.rdk.System plugin:
+The following events are provided by the SystemServices plugin:
 
 SystemServices interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onFirmwarePendingReboot](#onFirmwarePendingReboot) | Triggered when the `fireFirmwarePendingReboot` method is invoked |
-| [onFirmwareUpdateInfoReceived](#onFirmwareUpdateInfoReceived) | Triggered when the `getFirmwareUpdateInfo` asynchronous method is invoked |
-| [onFirmwareUpdateStateChange](#onFirmwareUpdateStateChange) | Triggered when the state of a firmware update changes |
-| [onMacAddressesRetreived](#onMacAddressesRetreived) | Triggered when the `getMacAddresses` asynchronous method is invoked |
-| [onNetworkStandbyModeChanged](#onNetworkStandbyModeChanged) | Triggered when the network standby mode setting changes |
-| [onRebootRequest](#onRebootRequest) | Triggered when an application invokes the reboot method |
-| [onSystemClockSet](#onSystemClockSet) | Triggered when the clock on the set-top device is updated |
-| [onSystemModeChanged](#onSystemModeChanged) | Triggered when the device operating mode changes |
-| [onSystemPowerStateChanged](#onSystemPowerStateChanged) | Triggered when the power manager detects a device power state change |
-| [onTemperatureThresholdChanged](#onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
+| [onFirmwarePendingReboot](#event.onFirmwarePendingReboot) | Triggered when the `fireFirmwarePendingReboot` method is invoked |
+| [onFirmwareUpdateInfoReceived](#event.onFirmwareUpdateInfoReceived) | Triggered when the `getFirmwareUpdateInfo` asynchronous method is invoked |
+| [onFirmwareUpdateStateChange](#event.onFirmwareUpdateStateChange) | Triggered when the state of a firmware update changes |
+| [onMacAddressesRetreived](#event.onMacAddressesRetreived) | Triggered when the `getMacAddresses` asynchronous method is invoked |
+| [onNetworkStandbyModeChanged](#event.onNetworkStandbyModeChanged) | Triggered when the network standby mode setting changes |
+| [onRebootRequest](#event.onRebootRequest) | Triggered when an application invokes the reboot method |
+| [onSystemClockSet](#event.onSystemClockSet) | Triggered when the clock on the set-top device is updated |
+| [onSystemModeChanged](#event.onSystemModeChanged) | Triggered when the device operating mode changes |
+| [onSystemPowerStateChanged](#event.onSystemPowerStateChanged) | Triggered when the power manager detects a device power state change |
+| [onTemperatureThresholdChanged](#event.onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
+| [onTerritoryChanged](#event.onTerritoryChanged) | Triggered when the device territory changed |
+| [onTimeZoneDSTChanged](#event.onTimeZoneDSTChanged) | Triggered when device time zone changed |
 
 
-<a name="onFirmwarePendingReboot"></a>
-## *onFirmwarePendingReboot*
+<a name="event.onFirmwarePendingReboot"></a>
+## *onFirmwarePendingReboot [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the `fireFirmwarePendingReboot` method is invoked.
 
@@ -3558,8 +3560,8 @@ Triggered when the `fireFirmwarePendingReboot` method is invoked.
 }
 ```
 
-<a name="onFirmwareUpdateInfoReceived"></a>
-## *onFirmwareUpdateInfoReceived*
+<a name="event.onFirmwareUpdateInfoReceived"></a>
+## *onFirmwareUpdateInfoReceived [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the `getFirmwareUpdateInfo` asynchronous method is invoked.  
 Update details are:  
@@ -3599,8 +3601,8 @@ Update details are:
 }
 ```
 
-<a name="onFirmwareUpdateStateChange"></a>
-## *onFirmwareUpdateStateChange*
+<a name="event.onFirmwareUpdateStateChange"></a>
+## *onFirmwareUpdateStateChange [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the state of a firmware update changes.  
 State details are:  
@@ -3631,8 +3633,8 @@ State details are:
 }
 ```
 
-<a name="onMacAddressesRetreived"></a>
-## *onMacAddressesRetreived*
+<a name="event.onMacAddressesRetreived"></a>
+## *onMacAddressesRetreived [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the `getMacAddresses` asynchronous method is invoked.
 
@@ -3671,8 +3673,8 @@ Triggered when the `getMacAddresses` asynchronous method is invoked.
 }
 ```
 
-<a name="onNetworkStandbyModeChanged"></a>
-## *onNetworkStandbyModeChanged*
+<a name="event.onNetworkStandbyModeChanged"></a>
+## *onNetworkStandbyModeChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the network standby mode setting changes.
 
@@ -3695,10 +3697,10 @@ Triggered when the network standby mode setting changes.
 }
 ```
 
-<a name="onRebootRequest"></a>
-## *onRebootRequest*
+<a name="event.onRebootRequest"></a>
+## *onRebootRequest [<sup>event</sup>](#head.Notifications)*
 
-Triggered when an application invokes the reboot 
+Triggered when an application invokes the reboot method.
 
 ### Parameters
 
@@ -3721,8 +3723,8 @@ Triggered when an application invokes the reboot
 }
 ```
 
-<a name="onSystemClockSet"></a>
-## *onSystemClockSet*
+<a name="event.onSystemClockSet"></a>
+## *onSystemClockSet [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the clock on the set-top device is updated.
 
@@ -3739,8 +3741,8 @@ This event carries no parameters.
 }
 ```
 
-<a name="onSystemModeChanged"></a>
-## *onSystemModeChanged*
+<a name="event.onSystemModeChanged"></a>
+## *onSystemModeChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the device operating mode changes.
 
@@ -3763,8 +3765,8 @@ Triggered when the device operating mode changes.
 }
 ```
 
-<a name="onSystemPowerStateChanged"></a>
-## *onSystemPowerStateChanged*
+<a name="event.onSystemPowerStateChanged"></a>
+## *onSystemPowerStateChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the power manager detects a device power state change.
 
@@ -3789,8 +3791,8 @@ Triggered when the power manager detects a device power state change.
 }
 ```
 
-<a name="onTemperatureThresholdChanged"></a>
-## *onTemperatureThresholdChanged*
+<a name="event.onTemperatureThresholdChanged"></a>
+## *onTemperatureThresholdChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`). Not supported on all devices.
 
@@ -3813,6 +3815,62 @@ Triggered when the device temperature changes beyond the `WARN` or `MAX` limits 
         "thresholdType": "MAX",
         "exceeded": true,
         "temperature": "48.000000"
+    }
+}
+```
+
+<a name="event.onTerritoryChanged"></a>
+## *onTerritoryChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when the device territory changed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.oldTerritory | string |  old territory |
+| params.newTerritory | string |  new territory |
+| params.oldRegion | string | old region |
+| params.newRegion | string | new region |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onTerritoryChanged",
+    "params": {
+        "oldTerritory": "GBR",
+        "newTerritory": "USA",
+        "oldRegion": "GB-ENG",
+        "newRegion": "US-NY"
+    }
+}
+```
+
+<a name="event.onTimeZoneDSTChanged"></a>
+## *onTimeZoneDSTChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when device time zone changed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.oldTimeZone | string |  old time zone |
+| params.newTimeZone | string |  new time zone |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onTimeZoneDSTChanged",
+    "params": {
+        "oldTimeZone": "America/New_York",
+        "newTimeZone": "Europe/London"
     }
 }
 ```

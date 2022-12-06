@@ -2110,32 +2110,32 @@
             "params": {
                 "type" :"object",
                 "properties": {
-                "m_strTerritory": {
+                "oldTerritory": {
                         "summary": " old territory",
                         "type": "string",
                         "example":"GBR"
                 },
-                "territoryStr":{
+                "newTerritory":{
                     "summary": " new territory",
                     "type": "string",
                     "example": "USA"
                 },
-                "m_strRegion":{
+                "oldRegion":{
                     "summary": "old region",
                     "type":"string",
                     "example": "GB-ENG"
                 },
-                "regionStr":{
+                "newRegion":{
                     "summary": "new region",
                     "type":"string",
                     "example": "US-NY"
                 }
 				},
                 "required":[
-                    "m_strTerritory",
-                    "territoryStr",
-                    "m_strRegion",
-                    "regionStr"
+                    "oldTerritory",
+                    "newTerritory",
+                    "oldRegion",
+                    "newRegion"
                 ]
             }
         },
