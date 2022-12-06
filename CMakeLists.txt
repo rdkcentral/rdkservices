@@ -67,6 +67,10 @@ if(PLUGIN_SYSTEMSERVICES)
     add_subdirectory(SystemServices)
 endif()
 
+if(PLUGIN_LGISYSTEMSERVICES)
+    add_subdirectory(LgiSystemServices)
+endif()
+
 if(PLUGIN_MAINTENANCEMANAGER)
     add_subdirectory(MaintenanceManager)
 endif()

@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "System Plugin",
+      "callsign": "org.rdk.System",
+      "locator": "libWPEFrameworkLgiSystemServices.so",
+      "status": "production",
+      "description": "The `System` plugin is used to manage various system-level features such as power settings and firmware updates."
+    },
+    "interface": {
+      "$ref": "LgiSystem.json#"
+    }
+}
