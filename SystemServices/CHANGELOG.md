@@ -16,7 +16,6 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-
 ## [1.0.7] - 2022-10-21
 ### Fixed
 - Fix uploadLogs API "(HTTP) 405 Method Not Allowed"
