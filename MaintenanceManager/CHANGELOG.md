@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.8] - 2022-11-16
+### Fixed
+- Send MAINTENANCE_ERROR event from stopMaintenance()
+
 ## [1.0.7] - 2022-10-07
 ### Fixed
 - Fixed race condition in MM while checking for network connectivity"
