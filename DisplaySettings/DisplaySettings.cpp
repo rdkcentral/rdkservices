@@ -221,7 +221,7 @@ namespace WPEFramework {
         IARM_Bus_PWRMgr_PowerState_t DisplaySettings::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
 
         DisplaySettings::DisplaySettings()
-            : PluginHost::JSONRPC()
+            // : PluginHost::JSONRPC()
         {
             LOGINFO("ctor");
             DisplaySettings::_instance = this;
@@ -4022,7 +4022,10 @@ namespace WPEFramework {
                     }
 
                     LOGINFO("ARC Routing - %d \n", arcEnable);
-                    gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "setupARCRouting", param, hdmiCecSinkResult);
+                    {
+                        UnlockApiGuard unlockApi;
+                        gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "setupARCRouting", param, hdmiCecSinkResult);
+                    }
                     if (!hdmiCecSinkResult["success"].Boolean()) {
 			success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
@@ -4053,7 +4056,10 @@ namespace WPEFramework {
                     JsonObject hdmiCecSinkResult;
                     JsonObject param;
 
-                    gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "getEnabled", param, hdmiCecSinkResult);
+                    {
+                        UnlockApiGuard unlockApi;
+                        gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "getEnabled", param, hdmiCecSinkResult);
+                    }
 
 		    cecEnable = hdmiCecSinkResult["enabled"].Boolean();
 		    LOGINFO("get-cecEnabled [%d]\n",cecEnable);
@@ -4085,7 +4091,10 @@ namespace WPEFramework {
                     JsonObject hdmiCecSinkResult;
                     JsonObject param;
 
-                    gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "getAudioDeviceConnectedStatus", param, hdmiCecSinkResult);
+                    {
+                        UnlockApiGuard unlockApi;
+                        gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "getAudioDeviceConnectedStatus", param, hdmiCecSinkResult);
+                    }
 
                     hdmiAudioDeviceDetected = hdmiCecSinkResult["connected"].Boolean();
                     LOGINFO("getAudioDeviceConnectedStatus [%d]\n",hdmiAudioDeviceDetected);
@@ -4118,7 +4127,10 @@ namespace WPEFramework {
                     JsonObject param;
 
                     LOGINFO("Send Audio Device Power On !!!\n");
-                    gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "sendAudioDevicePowerOnMessage", param, hdmiCecSinkResult);
+                    {
+                        UnlockApiGuard unlockApi;
+                        gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "sendAudioDevicePowerOnMessage", param, hdmiCecSinkResult);
+                    }
                     if (!hdmiCecSinkResult["success"].Boolean()) {
                         success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
@@ -4150,7 +4162,10 @@ namespace WPEFramework {
                     JsonObject param;
 
                     LOGINFO("Requesting Short Audio Descriptor \n");
-                    gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "requestShortAudioDescriptor", param, hdmiCecSinkResult);
+                    {
+                        UnlockApiGuard unlockApi;
+                        gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "requestShortAudioDescriptor", param, hdmiCecSinkResult);
+                    }
                     if (!hdmiCecSinkResult["success"].Boolean()) {
                         success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
@@ -4182,7 +4197,10 @@ namespace WPEFramework {
                     JsonObject param;
 
                     LOGINFO("Requesting Audio Device power Status \n");
-                    gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "requestAudioDevicePowerStatus", param, hdmiCecSinkResult);
+                    {
+                        UnlockApiGuard unlockApi;
+                        gHdmiCecConnection->Invoke<JsonObject, JsonObject>(2000, "requestAudioDevicePowerStatus", param, hdmiCecSinkResult);
+                    }
                     if (!hdmiCecSinkResult["success"].Boolean()) {
                         success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
