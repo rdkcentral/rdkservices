@@ -3321,7 +3321,7 @@ Sets the system time zone. See `getTimeZones` to get a list of available timezon
 
 | Event | Description |
 | :-------- | :-------- |
-| [onTimeZoneDSTChanged](#event.onTimeZoneDSTChanged) | Triggered when device time zone DST changed |
+| [onTimeZoneDSTChanged](#event.onTimeZoneDSTChanged) | Triggered when device time zone changed |
 ### Parameters
 
 | Name | Type | Description |
