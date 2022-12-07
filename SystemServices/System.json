@@ -1788,7 +1788,7 @@
         "setTimeZoneDST":{
             "summary": "Sets the system time zone. See `getTimeZones` to get a list of available timezones on the system.",
 			"events":{
-                "onTimeZoneDSTChanged": "Triggered when device time zone DST changed"
+                "onTimeZoneDSTChanged": "Triggered when device time zone changed"
             },
             "params": {
                 "type":"object",
