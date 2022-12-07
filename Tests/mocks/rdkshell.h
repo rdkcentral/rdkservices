@@ -89,14 +89,8 @@ namespace RdkShell
     class RdkShellData
     {
        public:
-              RdkShellData& operator=(bool value)
-	      {
-		      return *this;
-	      }
-              RdkShellData& operator=(const std::string& value)
-	      {
-		      return *this;
-	      }
+              RdkShellData& operator=(bool value) {return *this; }
+              RdkShellData& operator=(const std::string& value) {return *this; }
 
     };
 
