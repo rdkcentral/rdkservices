@@ -452,7 +452,7 @@ private:
             {"audio/x-vorbis", Exchange::IPlayerProperties::AUDIO_VORBIS_OGG},
             {"audio/x-wav", Exchange::IPlayerProperties::AUDIO_WAV},
         };
-        //hardcoded values
+        //hardcoded values - correct for ApolloV1+
         _audioCodecs.push_back(Exchange::IPlayerProperties::AudioCodec::AUDIO_MPEG1);
         _audioCodecs.push_back(Exchange::IPlayerProperties::AudioCodec::AUDIO_MPEG3);
         _audioCodecs.push_back(Exchange::IPlayerProperties::AudioCodec::AUDIO_MPEG2);
@@ -481,7 +481,7 @@ private:
             {"video/x-vp9", Exchange::IPlayerProperties::VideoCodec::VIDEO_VP9},
             {"video/x-vp10", Exchange::IPlayerProperties::VideoCodec::VIDEO_VP10}
         };
-        //hardcoded values
+        //hardcoded values - correct for ApolloV1+
         _videoCodecs.push_back(Exchange::IPlayerProperties::VideoCodec::VIDEO_MPEG);
         _videoCodecs.push_back(Exchange::IPlayerProperties::VideoCodec::VIDEO_H264);
         _videoCodecs.push_back(Exchange::IPlayerProperties::VideoCodec::VIDEO_H265);
