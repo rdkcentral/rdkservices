@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkHdcpProfile.so",
+ "classname":"HdcpProfile",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.HdcpProfile",
+ "autostart":false
+}

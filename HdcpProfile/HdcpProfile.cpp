@@ -68,7 +68,7 @@ namespace WPEFramework
         HdcpProfile* HdcpProfile::_instance = nullptr;
 
         HdcpProfile::HdcpProfile()
-        : PluginHost::JSONRPC()
+        // : PluginHost::JSONRPC()
         {
             RegisterAll();
         }
