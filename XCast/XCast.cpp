@@ -101,8 +101,7 @@ namespace {
     const std::string systemRequestKeyValue = "vaLib)6?b%$^CP;/F";
 }
 
-XCast::XCast() : PluginHost::JSONRPC()
-, m_apiVersionNumber(1), m_isDynamicRegistrationsRequired(false)
+XCast::XCast() : m_apiVersionNumber(1), m_isDynamicRegistrationsRequired(false)
 {
     InitializeIARM();
     XCast::checkRFCServiceStatus();
