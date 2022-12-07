@@ -452,9 +452,20 @@ private:
             {"audio/x-vorbis", Exchange::IPlayerProperties::AUDIO_VORBIS_OGG},
             {"audio/x-wav", Exchange::IPlayerProperties::AUDIO_WAV},
         };
-        if (GstUtils::GstRegistryCheckElementsForMediaTypes(audioCaps, _audioCodecs) != true) {
-            TRACE(Trace::Warning, (_T("There is no Audio Codec support available")));
-        }
+        //hardcoded values
+        _audioCodecs.push_back(Exchange::IPlayerProperties::AudioCodec::AUDIO_MPEG1);
+        _audioCodecs.push_back(Exchange::IPlayerProperties::AudioCodec::AUDIO_MPEG3);
+        _audioCodecs.push_back(Exchange::IPlayerProperties::AudioCodec::AUDIO_MPEG2);
+        _audioCodecs.push_back(Exchange::IPlayerProperties::AudioCodec::AUDIO_MPEG4);
+        _audioCodecs.push_back(Exchange::IPlayerProperties::AudioCodec::AUDIO_AAC);
+        _audioCodecs.push_back(Exchange::IPlayerProperties::AUDIO_AC3);
+        _audioCodecs.push_back(Exchange::IPlayerProperties::AUDIO_AC3_PLUS);
+        _audioCodecs.push_back(Exchange::IPlayerProperties::AUDIO_OPUS);
+        _audioCodecs.push_back(Exchange::IPlayerProperties::AUDIO_VORBIS_OGG);
+
+        //if (GstUtils::GstRegistryCheckElementsForMediaTypes(audioCaps, _audioCodecs) != true) {
+        //    TRACE(Trace::Warning, (_T("There is no Audio Codec support available")));
+        //}
 
     }
     void UpdateVideoCodecInfo()
@@ -470,9 +481,15 @@ private:
             {"video/x-vp9", Exchange::IPlayerProperties::VideoCodec::VIDEO_VP9},
             {"video/x-vp10", Exchange::IPlayerProperties::VideoCodec::VIDEO_VP10}
         };
-        if (GstUtils::GstRegistryCheckElementsForMediaTypes(videoCaps, _videoCodecs) != true) {
-            TRACE(Trace::Warning, (_T("There is no Video Codec support available")));
-        }
+        //hardcoded values
+        _videoCodecs.push_back(Exchange::IPlayerProperties::VideoCodec::VIDEO_MPEG);
+        _videoCodecs.push_back(Exchange::IPlayerProperties::VideoCodec::VIDEO_H264);
+        _videoCodecs.push_back(Exchange::IPlayerProperties::VideoCodec::VIDEO_H265);
+        _videoCodecs.push_back(Exchange::IPlayerProperties::VideoCodec::VIDEO_VP9);
+
+        //if (GstUtils::GstRegistryCheckElementsForMediaTypes(videoCaps, _videoCodecs) != true) {
+        //    TRACE(Trace::Warning, (_T("There is no Video Codec support available")));
+        //}
     }
 
 private:
