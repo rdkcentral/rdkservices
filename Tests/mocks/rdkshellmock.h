@@ -4,6 +4,72 @@
 
 #include "rdkshell.h"
 
+class shellImplMock : public shell{
+public:
+      shellImplMock()
+	      : shell()
+     {
+
+     }
+     virtual ~shellImplMock() = default;
+     MOCK_METHOD(size_t, b64_get_encoded_buffer_size, ( const size_t decoded_size ), (override));
+     MOCK_METHOD(size_t, b64url_get_encoded_buffer_size, ( const size_t decoded_size ), (override));
+     MOCK_METHOD(void, b64_encode, ( const uint8_t *input, const size_t input_size, uint8_t *output ), (override));
+     MOCK_METHOD(void, logMilestone, (const char *msg_code), (override));
+     MOCK_METHOD(bool, keyCodeFromWayland, (uint32_t waylandKeyCode, uint32_t waylandFlags, uint32_t &mappedKeyCode, uint32_t &mappedFlags), (override));
+};
+
+class aImplMock : public RdkShell::rdkcomp
+{
+	public:
+		aImplMock() : RdkShell::rdkcomp()
+	{
+
+	}
+        virtual ~aImplMock() = default;
+	MOCK_METHOD(bool, systemRam, (uint32_t& freeKb, uint32_t& totalKb, uint32_t& availableKb, uint32_t& usedSwapKb), (override));
+	MOCK_METHOD(void, setMemoryMonitor, ((std::map<std::string, RdkShell::RdkShellData> &configuration)), (override));
+	MOCK_METHOD(void, enableFlushing, (bool enable), (override));
+	MOCK_METHOD(bool, isFlushingEnabled, (), (override));
+	MOCK_METHOD(void, addEasterEgg, (std::vector<RdkShell::RdkShellEasterEggKeyDetails>& details, std::string name, uint32_t timeout, std::string actionJson), (override));
+	MOCK_METHOD(void, removeEasterEgg, (std::string name), (override));
+	MOCK_METHOD(void, getEasterEggs, (std::vector<RdkShell::RdkShellEasterEggDetails>& easterEggs), (override));
+	MOCK_METHOD(void, initialize, (), (override));
+	MOCK_METHOD(void, update, (), (override));
+	MOCK_METHOD(void, draw, (), (override));
+	MOCK_METHOD(void, deinitialize, (), (override));
+	MOCK_METHOD(double,  microseconds, (), (override));
+	MOCK_METHOD(double, milliseconds, (), (override));
+	MOCK_METHOD(double, seconds, (), (override));
+};
+
+class RdkShellEventImplMock : public RdkShell::RdkShellEvent
+{
+  public:
+    RdkShellEventImplMock()
+            : RdkShell::RdkShellEvent()
+    {
+
+    }
+    virtual ~RdkShellEventImplMock() = default;
+    MOCK_METHOD(void, onApplicationLaunched, (const std::string& client), (override));
+    MOCK_METHOD(void, onApplicationConnected, (const std::string& client), (override));
+    MOCK_METHOD(void, onApplicationDisconnected, (const std::string& client), (override));
+    MOCK_METHOD(void, onApplicationTerminated, (const std::string& client), (override));
+    MOCK_METHOD(void, onApplicationFirstFrame, (const std::string& client), (override));
+    MOCK_METHOD(void, onApplicationSuspended, (const std::string& client), (override));
+    MOCK_METHOD(void, onApplicationResumed, (const std::string& client), (override));
+    MOCK_METHOD(void, onApplicationActivated, (const std::string& client), (override));
+    MOCK_METHOD(void, onUserInactive, (const double minutes), (override));
+    MOCK_METHOD(void, onDeviceLowRamWarning, (const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb), (override));
+    MOCK_METHOD(void, onDeviceCriticallyLowRamWarning, (const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb), (override));
+    MOCK_METHOD(void, onDeviceLowRamWarningCleared, (const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb), (override));
+    MOCK_METHOD(void, onDeviceCriticallyLowRamWarningCleared, (const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb), (override));
+    MOCK_METHOD(void, onPowerKey, (), (override));
+    MOCK_METHOD(void, onSizeChangeComplete, (const std::string& client), (override));
+    MOCK_METHOD(void, onEasterEgg, (const std::string& name, const std::string& actionJson), (override));
+}; 
+
 class RdkShellApiImplMock : public RdkShell::CompControl {
 public:
     RdkShellApiImplMock()
@@ -56,7 +122,7 @@ public:
                 [](std::vector<std::string>& clients){
                       clients.push_back("org.rdk.Netflix");
                       clients.push_back("org.rdk.RDKBrowser2");
-		       clients.push_back("Test2");
+		      clients.push_back("Test2");
                       return true;
 		  }));
 	    ON_CALL(*this, getFocused(::testing::_))
@@ -109,5 +175,39 @@ public:
     MOCK_METHOD(bool, getLogLevel, (std::string& level), (override));
     MOCK_METHOD(bool, enableKeyRepeats, (bool enable), (override));
     MOCK_METHOD(bool, getKeyRepeatsEnabled, (bool& enable), (override));
+    MOCK_METHOD(bool, screenShot, (uint8_t* &data, uint32_t &size), (override));
+    MOCK_METHOD(bool, getLastKeyPress, (uint32_t &keyCode, uint32_t &modifiers, uint64_t &timestampInSeconds), (override));
+    MOCK_METHOD(bool, getVirtualDisplayEnabled, (const std::string& client, bool &enabled), (override));
+    MOCK_METHOD(bool, enableVirtualDisplay, (const std::string& client, const bool enable), (override));
+    MOCK_METHOD(bool, isSurfaceModeEnabled, (), (override));
+    MOCK_METHOD(bool, getTopmost, (std::string& client), (override));
+    MOCK_METHOD(bool, setTopmost, (const std::string& client, bool topmost, bool focus), (override));
+    MOCK_METHOD(bool, showFullScreenImage, (std::string file), (override));
+    MOCK_METHOD(bool, hideFullScreenImage, (), (override));
+    MOCK_METHOD(bool, showWatermark, (), (override));
+    MOCK_METHOD(bool, hideWatermark, (), (override));
+    MOCK_METHOD(bool, showSplashScreen, (uint32_t displayTimeInSeconds), (override));
+    MOCK_METHOD(bool, hideSplashScreen, (), (override));
+    MOCK_METHOD(bool, setMimeType, (const std::string& client, const std::string& mimeType), (override));
+    MOCK_METHOD(bool, getMimeType, (const std::string& client, std::string& mimeType), (override));
+    MOCK_METHOD(bool, launchApplication, (const std::string& client, const std::string& uri, const std::string& mimeType, bool topmost, bool focus), (override));
+    MOCK_METHOD(bool, suspendApplication, (const std::string& client), (override));
+    MOCK_METHOD(bool, resumeApplication, (const std::string& client), (override));
+    MOCK_METHOD(void, setEventListener, (std::shared_ptr<RdkShell::RdkShellEventListener> listener), (override));
+    MOCK_METHOD(void, resetInactivityTime, (), (override));
+    MOCK_METHOD(bool, removeListener, (const std::string& client, std::shared_ptr<RdkShell::RdkShellEventListener> listener), (override));
+    MOCK_METHOD(bool, addListener, (const std::string& client, std::shared_ptr<RdkShell::RdkShellEventListener> listener), (override));
+    MOCK_METHOD(bool, addAnimation, (const std::string& client, double duration, (std::map<std::string, RdkShell::RdkShellData> &animationProperties)), (override));
+    MOCK_METHOD(bool, removeAnimation,(const std::string& client), (override));
+    MOCK_METHOD(bool, createDisplay, (const std::string& client, const std::string& displayName, uint32_t displayWidth, uint32_t displayHeight,
+                bool virtualDisplayEnabled, uint32_t virtualWidth, uint32_t virtualHeight, bool topmost, bool focus, bool autodestroy), (override));
+    MOCK_METHOD(bool, generateKey, (const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::string virtualKey), (override));
+    MOCK_METHOD(bool, addKeyMetadataListener, (const std::string& client), (override));
+    MOCK_METHOD(bool, removeNativeKeyListener, (const std::string& client, const uint32_t& keyCode, const uint32_t& flags), (override));
+    MOCK_METHOD(bool, addNativeKeyListener, (const std::string& client, const uint32_t& keyCode, const uint32_t& flags, (std::map<std::string, RdkShell::RdkShellData> &listenerProperties)), (override));
+    MOCK_METHOD(bool, addKeyListener, (const std::string& client, const uint32_t& keyCode, const uint32_t& flags, (std::map<std::string, RdkShell::RdkShellData> &listenerProperties)), (override));
+    MOCK_METHOD(bool, addKeyIntercept, (const std::string& client, const uint32_t& keyCode, const uint32_t& flags), (override));
+    MOCK_METHOD(bool, kill, (const std::string& client), (override));
+    MOCK_METHOD(void, setInactivityInterval, (const double minutes), (override));
 };
 

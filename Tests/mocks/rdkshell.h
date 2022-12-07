@@ -1,22 +1,14 @@
 #pragma once
-#include <stdint.h>
-#include <typeindex>
 #include <string>
 #include <map>
 #include <vector>
-#include <unistd.h>
-#include <string.h>
-#include <stdio.h>
-#include <iostream>
-#include <ctime>
-#include <sys/types.h>
-#include <thread>
-#include <mutex>
+#include <sys/sysinfo.h>
+#include <fstream>
 #include <memory>
-#define RDKSHELL_SPLASH_SCREEN_FILE_CHECK "/tmp/.rdkshellsplash"
 #define RDKSHELL_FLAGS_SHIFT        8
 #define RDKSHELL_FLAGS_CONTROL      16
 #define RDKSHELL_FLAGS_ALT          32
+
 class shell {
 public:
     shell()
@@ -72,163 +64,119 @@ constexpr auto logMilestone = &Shell::logMilestone;
 constexpr auto keyCodeFromWayland = &Shell::keyCodeFromWayland;
 namespace RdkShell
 {
-    union RdkShellDataInfo
+    class RdkShellEvent
     {
-        bool        booleanData;
-        int8_t      integer8Data;
-        int32_t     integer32Data;
-        int64_t     integer64Data;
-        uint8_t     unsignedInteger8Data;
-        uint32_t    unsignedInteger32Data;
-        uint64_t    unsignedInteger64Data;
-        float       floatData;
-        double      doubleData;
-        std::string* stringData;
-        void*       pointerData;
-        RdkShellDataInfo() {}
-        ~RdkShellDataInfo() {}
+       public:
+          virtual void onApplicationLaunched(const std::string& client) = 0;
+          virtual void onApplicationConnected(const std::string& client) = 0;
+          virtual void onApplicationDisconnected(const std::string& client) = 0;
+          virtual void onApplicationTerminated(const std::string& client) = 0;
+          virtual void onApplicationFirstFrame(const std::string& client) = 0;
+          virtual void onApplicationSuspended(const std::string& client) = 0;
+          virtual void onApplicationResumed(const std::string& client) = 0;
+          virtual void onApplicationActivated(const std::string& client) = 0;
+          virtual void onUserInactive(const double minutes) = 0;
+          virtual void onDeviceLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb) = 0;
+          virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb) = 0;
+          virtual void onDeviceLowRamWarningCleared(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb) = 0;
+          virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb) = 0;
+          virtual void onPowerKey() = 0;
+          virtual void onSizeChangeComplete(const std::string& client) = 0;
+	  virtual void onEasterEgg(const std::string& name, const std::string& actionJson) = 0;
     };
+
 
     class RdkShellData
     {
-        public:
-            RdkShellData(): mDataTypeIndex(typeid(void*))
-           {
-                   mData.pointerData = nullptr;
-                   mData.stringData = nullptr;
-           }
-            ~RdkShellData()
-            {
-              if (mDataTypeIndex == typeid(std::string))
-              {
-                if (nullptr != mData.stringData)
-               {
-                 delete mData.stringData;
-                 mData.stringData = nullptr;
-               }
-              }
-            }
-            RdkShellData(bool data);
-            RdkShellData(int8_t data);
-            RdkShellData(int32_t data);
-            RdkShellData(int64_t data);
-            RdkShellData(uint8_t data);
-            RdkShellData(uint32_t data);
-            RdkShellData(uint64_t data);
-            RdkShellData(float data);
-            RdkShellData(double data);
-            RdkShellData(std::string data);
-            RdkShellData(void* data);
+       public:
+              RdkShellData& operator=(bool value)
+	      {
+		      return *this;
+	      }
+              RdkShellData& operator=(const std::string& value)
+	      {
+		      return *this;
+	      }
 
-            bool toBoolean() const{return true;}
-            int8_t toInteger8() const{return 0;}
-            int32_t toInteger32() const{return 0;}
-            int64_t toInteger64() const{return 0;}
-            uint8_t toUnsignedInteger8() const{return 0;}
-            uint32_t toUnsignedInteger32() const{return 0;}
-            uint64_t toUnsignedInteger64() const{return 0;}
-            float toFloat() const{return 0.0;}
-            double toDouble() const{return 0.0;}
-            std::string toString() const{return "a";}
-            void* toVoidPointer() const{return NULL;}
-
-            RdkShellData& operator=(bool value){return *this;}
-            RdkShellData& operator=(int8_t value){return *this;}
-            RdkShellData& operator=(int32_t value){return *this;}
-            RdkShellData& operator=(int64_t value){return *this;}
-            RdkShellData& operator=(uint8_t value){return *this;}
-            RdkShellData& operator=(uint32_t value){return *this;}
-            RdkShellData& operator=(uint64_t value){return *this;}
-            RdkShellData& operator=(float value){return *this;}
-            RdkShellData& operator=(double value){return *this;}
-            RdkShellData& operator=(const char* value){return *this;}
-            RdkShellData& operator=(const std::string& value){return *this;}
-            RdkShellData& operator=(void* value){return *this;}
-            RdkShellData& operator=(const RdkShellData& value){return *this;}
-
-            std::type_index dataTypeIndex();
-
-        private:
-            std::type_index mDataTypeIndex;
-            RdkShellDataInfo mData;
-
-            void setData(std::type_index typeIndex, void* data){return;}
     };
+
     class RdkShellEventListener
     {
         public:
-          virtual void onApplicationLaunched(const std::string& client) {}
-          virtual void onApplicationConnected(const std::string& client) {}
-          virtual void onApplicationDisconnected(const std::string& client)  {}
-          virtual void onApplicationTerminated(const std::string& client) {}
-          virtual void onApplicationFirstFrame(const std::string& client) {}
-          virtual void onApplicationSuspended(const std::string& client) {}
-          virtual void onApplicationResumed(const std::string& client) {}
-          virtual void onApplicationActivated(const std::string& client) {}
-          virtual void onUserInactive(const double minutes) {}
-          virtual void onDeviceLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb) {}
-          virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb) {}
-          virtual void onDeviceLowRamWarningCleared(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb) {}
-          virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb) {}
-          virtual void onAnimation(std::vector<std::map<std::string, RdkShellData>>& animationData) {}
-          virtual void onEasterEgg(const std::string& name, const std::string& actionJson) {}
-          virtual void onPowerKey() {}
-          virtual void onKeyEvent(const uint32_t keyCode, const uint32_t flags, const bool keyDown) {}
-          virtual void onSizeChangeComplete(const std::string& client) {}
+          static RdkShellEventListener& getInstance()
+          {
+           static RdkShellEventListener instance;
+           return instance;
+          }
+
+          RdkShellEvent* impl;	  
+          virtual void onApplicationLaunched(const std::string& client)
+	  {
+		  getInstance().impl->onApplicationLaunched(client);
+	  }
+          virtual void onApplicationConnected(const std::string& client)
+	  {
+		  getInstance().impl->onApplicationConnected(client);
+	  }
+          virtual void onApplicationDisconnected(const std::string& client) 
+	  {
+		  getInstance().impl->onApplicationDisconnected(client);
+	  }
+          virtual void onApplicationTerminated(const std::string& client)
+	  {
+		  getInstance().impl->onApplicationTerminated(client);
+	  }
+          virtual void onApplicationFirstFrame(const std::string& client)
+	  {
+		  getInstance().impl->onApplicationFirstFrame(client);
+	  }
+          virtual void onApplicationSuspended(const std::string& client)
+	  {
+                 getInstance().impl->onApplicationSuspended(client);
+	  }
+          virtual void onApplicationResumed(const std::string& client)
+	  {
+		  getInstance().impl->onApplicationResumed(client);
+	  }
+          virtual void onApplicationActivated(const std::string& client)
+	  {
+		  getInstance().impl->onApplicationActivated(client);
+	  }
+          virtual void onUserInactive(const double minutes)
+	  {
+		  getInstance().impl->onUserInactive(minutes);
+	  }
+          virtual void onDeviceLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb) 
+	  {
+		  getInstance().impl->onDeviceLowRamWarning(freeKb, availableKb, usedSwapKb);
+	  }
+          virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb) 
+	  {
+		  getInstance().impl->onDeviceCriticallyLowRamWarning(freeKb, availableKb, usedSwapKb);
+	  }
+          virtual void onDeviceLowRamWarningCleared(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb)
+	  {
+		  getInstance().impl->onDeviceLowRamWarningCleared(freeKb, availableKb, usedSwapKb);
+	  }
+          virtual void onDeviceCriticallyLowRamWarningCleared(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb)
+	  {
+		  getInstance().impl->onDeviceCriticallyLowRamWarningCleared(freeKb, availableKb, usedSwapKb);
+	  }
+          virtual void onEasterEgg(const std::string& name, const std::string& actionJson)
+	  {
+		  getInstance().impl->onEasterEgg(name, actionJson);
+          }
+          virtual void onPowerKey() 
+	  {
+		  getInstance().impl->onPowerKey();
+	  }
+          virtual void onSizeChangeComplete(const std::string& client) 
+	  {
+		 getInstance().impl->onSizeChangeComplete(client);
+	  }
+	  const std::string RDKSHELL_EVENT_SIZE_CHANGE_COMPLETE = "onSizeChangeComplete";
     };
 
-    const std::string RDKSHELL_EVENT_APPLICATION_LAUNCHED = "onApplicationLaunched";
-    const std::string RDKSHELL_EVENT_APPLICATION_CONNECTED = "onApplicationConnected";
-    const std::string RDKSHELL_EVENT_APPLICATION_DISCONNECTED = "onApplicationDisconnected";
-    const std::string RDKSHELL_EVENT_APPLICATION_TERMINATED = "onApplicationTerminated";
-    const std::string RDKSHELL_EVENT_APPLICATION_FIRST_FRAME = "onApplicationFirstFrame";
-    const std::string RDKSHELL_EVENT_APPLICATION_SUSPENDED = "onApplicationSuspended";
-    const std::string RDKSHELL_EVENT_APPLICATION_RESUMED = "onApplicationResumed";
-    const std::string RDKSHELL_EVENT_APPLICATION_ACTIVATED = "onApplicationActivated";
-    const std::string RDKSHELL_EVENT_USER_INACTIVE = "onUserInactive";
-    const std::string RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING = "onDeviceLowRamWarning";
-    const std::string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING = "onDeviceCriticallyLowRamWarning";
-    const std::string RDKSHELL_EVENT_DEVICE_LOW_RAM_WARNING_CLEARED = "onDeviceLowRamWarningCleared";
-    const std::string RDKSHELL_EVENT_DEVICE_CRITICALLY_LOW_RAM_WARNING_CLEARED = "onDeviceCriticallyLowRamWarningCleared";
-    const std::string RDKSHELL_EVENT_ANIMATION = "onAnimation";
-    const std::string RDKSHELL_EVENT_EASTER_EGG = "onEasterEgg";
-    const std::string RDKSHELL_EVENT_POWER_KEY = "onPowerKey";
-    const std::string RDKSHELL_EVENT_KEY = "onKeyEvent";
-    const std::string RDKSHELL_EVENT_SIZE_CHANGE_COMPLETE = "onSizeChangeComplete";
-   enum LogLevel {
-        Debug,
-        Information,
-        Warn,
-        Error,
-        Fatal
-    };
-
-    class Logger
-    {
-        public:
-            static void log(LogLevel level, const char* format, ...){return;}
-            static void logLevel(std::string& level)
-           {
-                   std::cout << "getcall" << std::endl;
-                   level = sLogLevel;
-           }
-            static void enableFlushing(bool enable){return;}
-            static bool isFlushingEnabled(){return true;}
-       private:
-            static LogLevel sLogLevel;
-            static bool sFlushingEnabled;
-    };
-
-    static const char* logLevelStrings[] =
-    {
-      "DEBUG",
-      "INFO",
-      "WARN",
-      "ERROR",
-      "FATAL"
-    };
-
-    static const int numLogLevels = sizeof(logLevelStrings)/sizeof(logLevelStrings[0]);
 
    struct RdkShellEasterEggKeyDetails
     {
@@ -247,38 +195,113 @@ namespace RdkShell
         std::string api;
     };
 
-    class EasterEgg
+    class EasterEgg;
+
+
+    class rdkcomp
     {
+            public:
+                    virtual bool systemRam(uint32_t& freeKb, uint32_t& totalKb, uint32_t& availableKb, uint32_t& usedSwapKb) = 0;
+                    virtual void setMemoryMonitor(std::map<std::string, RdkShellData> &configuration) = 0;
+                    virtual void enableFlushing(bool enable) = 0;
+                    virtual bool isFlushingEnabled() = 0;
+                    virtual void addEasterEgg(std::vector<RdkShellEasterEggKeyDetails>& details, std::string name, uint32_t timeout, std::string actionJson) = 0;
+                    virtual void removeEasterEgg(std::string name) = 0;
+                    virtual void getEasterEggs(std::vector<RdkShellEasterEggDetails>& easterEggs) = 0;
+                    virtual void initialize() = 0;
+                    virtual void update() = 0;
+                    virtual void draw() = 0;
+                    virtual void deinitialize() = 0;
+                    virtual double microseconds() = 0;
+                    virtual double milliseconds() = 0;
+                    virtual double seconds() = 0;
+    };
+
+
+    class Logger
+    {
+        public:
+	  static Logger& getInstance()
+          {
+           static Logger instance;
+           return instance;
+          }
+
+          rdkcomp* impl;
+            static void enableFlushing(bool enable)
+            {
+		getInstance().impl->enableFlushing(enable);
+	    }
+            static bool isFlushingEnabled()
+	    {
+	        return getInstance().impl->isFlushingEnabled();
+	    }
     };
 
     class rdk
     {
       public:
-      static void populateEasterEggDetails(){return;}
-      static void checkEasterEggs(uint32_t keyCode, uint32_t flags, double time){return;}
-      static void resolveWaitingEasterEggs(){return;}
-      static void addEasterEgg(std::vector<RdkShellEasterEggKeyDetails>& details, std::string name, uint32_t timeout, std::string actionJson){return;}
-      static void removeEasterEgg(std::string name){return;}
-      static void getEasterEggs(std::vector<RdkShellEasterEggDetails>& easterEggs){return;}
-      static void initialize(){return;}
-      static void run(){return;}
-      static void update(){return;}
-      static void draw(){return;}
-      static void deinitialize(){return;}
-      static double seconds(){return 0.0;}
-      static double milliseconds(){return 0.0;}
-      static double microseconds(){return 0.0;}
-      static bool systemRam(uint32_t& freeKb, uint32_t& totalKb, uint32_t& availableKb, uint32_t& usedSwapKb){return true;}
-      static void setMemoryMonitor(std::map<std::string, RdkShellData> &configuration){return;}
+	  static rdk& getInstance()
+          {
+           static rdk instance;
+           return instance;
+          }
+
+          rdkcomp* impl;
+
+          static void addEasterEgg(std::vector<RdkShellEasterEggKeyDetails>& details, std::string name, uint32_t timeout, std::string actionJson)
+	  {
+		  getInstance().impl->addEasterEgg(details, name, timeout, actionJson);
+	  }
+          static void removeEasterEgg(std::string name)
+	  {
+		  getInstance().impl->removeEasterEgg(name);
+	  }
+          static void getEasterEggs(std::vector<RdkShellEasterEggDetails>& easterEggs)
+	  {
+		  getInstance().impl->getEasterEggs(easterEggs);
+	  }
+          static void initialize()
+	  {
+		  getInstance().impl->initialize();
+	  }
+          static void update()
+	  {
+		  getInstance().impl->update();
+	  }
+          static void draw()
+	  {
+		  getInstance().impl->draw();
+	  }
+          static void deinitialize()
+	  {
+		  getInstance().impl->deinitialize();
+	  }
+          static double seconds()
+	  {
+		  return getInstance().impl->seconds();
+	  }
+          static double milliseconds()
+	  {
+		  return getInstance().impl->milliseconds();
+	  }
+          static double microseconds()
+	  {
+		  return getInstance().impl->microseconds();
+	  }
+          static bool systemRam(uint32_t& freeKb, uint32_t& totalKb, uint32_t& availableKb, uint32_t& usedSwapKb)
+	  {
+		  return getInstance().impl->systemRam(freeKb, totalKb, availableKb, usedSwapKb);
+	  }
+          static void setMemoryMonitor(std::map<std::string, RdkShellData> &configuration)
+	  {
+		  getInstance().impl->setMemoryMonitor(configuration);
+	  }
     };
-    constexpr auto populateEasterEggDetails = &rdk::populateEasterEggDetails;
-    constexpr auto checkEasterEggs = &rdk::checkEasterEggs;
-    constexpr auto resolveWaitingEasterEggs = &rdk::resolveWaitingEasterEggs;
     constexpr auto addEasterEgg = &rdk::addEasterEgg;
     constexpr auto removeEasterEgg = &rdk::removeEasterEgg;
     constexpr auto getEasterEggs = &rdk::getEasterEggs;
     constexpr auto initialize = &rdk::initialize;
-    constexpr auto run = &rdk::run;
     constexpr auto deinitialize = &rdk::deinitialize;
     constexpr auto update = &rdk::update;
     constexpr auto draw = &rdk::draw;
@@ -293,13 +316,6 @@ namespace RdkShell
     #define RDKSHELL_APPLICATION_MIME_TYPE_HTML "application/html"
     #define RDKSHELL_APPLICATION_MIME_TYPE_LIGHTNING "application/lightning"
 
-    enum class ApplicationState
-    {
-        Unknown,
-        Running,
-        Suspended,
-        Stopped
-    };
 
 
   class RdkCompositor;
@@ -348,6 +364,40 @@ namespace RdkShell
      virtual bool getLogLevel(std::string& level) = 0;
      virtual bool enableKeyRepeats(bool enable) = 0;
      virtual bool getKeyRepeatsEnabled(bool& enable) = 0;
+     virtual bool screenShot(uint8_t* &data, uint32_t &size) = 0;
+     virtual bool getLastKeyPress(uint32_t &keyCode, uint32_t &modifiers, uint64_t &timestampInSeconds) = 0;
+     virtual bool getVirtualDisplayEnabled(const std::string& client, bool &enabled) = 0;
+     virtual bool enableVirtualDisplay(const std::string& client, const bool enable) = 0;
+     virtual bool isSurfaceModeEnabled() = 0;
+     virtual bool getTopmost(std::string& client) = 0;
+     virtual bool setTopmost(const std::string& client, bool topmost, bool focus = false) = 0;
+     virtual bool showFullScreenImage(std::string file) = 0;
+     virtual bool hideFullScreenImage() = 0;
+     virtual bool showWatermark() = 0;
+     virtual bool hideWatermark() = 0;
+     virtual bool showSplashScreen(uint32_t displayTimeInSeconds) = 0;
+     virtual bool hideSplashScreen() = 0;
+     virtual bool setMimeType(const std::string& client, const std::string& mimeType) = 0;
+     virtual bool getMimeType(const std::string& client, std::string& mimeType) = 0;
+     virtual bool launchApplication(const std::string& client, const std::string& uri, const std::string& mimeType, bool topmost = false, bool focus = false) = 0;
+     virtual bool suspendApplication(const std::string& client) = 0;
+     virtual bool resumeApplication(const std::string& client) = 0;
+     virtual void setEventListener(std::shared_ptr<RdkShellEventListener> listener) = 0;
+     virtual void resetInactivityTime() = 0;
+     virtual bool removeListener(const std::string& client, std::shared_ptr<RdkShellEventListener> listener) = 0;
+     virtual bool addListener(const std::string& client, std::shared_ptr<RdkShellEventListener> listener) = 0;
+     virtual bool addAnimation(const std::string& client, double duration, std::map<std::string, RdkShellData> &animationProperties) = 0;
+     virtual bool removeAnimation(const std::string& client) = 0;
+     virtual bool createDisplay(const std::string& client, const std::string& displayName, uint32_t displayWidth=0, uint32_t displayHeight=0,
+                bool virtualDisplayEnabled=false, uint32_t virtualWidth=0, uint32_t virtualHeight=0, bool topmost = false, bool focus = false , bool autodestroy = true) = 0;
+     virtual bool generateKey(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::string virtualKey="") = 0;
+     virtual bool addKeyMetadataListener(const std::string& client) = 0;
+     virtual bool removeNativeKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags) = 0;
+     virtual bool addNativeKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::map<std::string, RdkShellData> &listenerProperties) = 0;
+     virtual bool addKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::map<std::string, RdkShellData> &listenerProperties) = 0;
+     virtual bool addKeyIntercept(const std::string& client, const uint32_t& keyCode, const uint32_t& flags) = 0;
+     virtual bool kill(const std::string& client) = 0;
+     virtual void setInactivityInterval(const double minutes) = 0;
   };
 
 
@@ -362,11 +412,11 @@ namespace RdkShell
           }
 
 	  CompControl* impl;
+	   
 	    static bool setVisibility(const std::string& client, const bool visible)
 	    {
                return getInstance().impl->setVisibility(client, visible);
              }
-            static void initialize() {return;}
             static bool moveToFront(const std::string& client)
             {
                return getInstance().impl->moveToFront(client);
@@ -387,22 +437,38 @@ namespace RdkShell
 	    {
 		return getInstance().impl->getFocused(client);
 	    }
-            static bool kill(const std::string& client){return true;}
-            static bool addKeyIntercept(const std::string& client, const uint32_t& keyCode, const uint32_t& flags){return true;}
+            static bool kill(const std::string& client)
+	    {
+		    return getInstance().impl->kill(client);
+	    }
+            static bool addKeyIntercept(const std::string& client, const uint32_t& keyCode, const uint32_t& flags)
+	    {
+		    return getInstance().impl->addKeyIntercept(client, keyCode, flags);
+	    }
             static bool removeKeyIntercept(const std::string& client, const uint32_t& keyCode, const uint32_t& flags)
 	    {
                 return getInstance().impl->removeKeyIntercept(client, keyCode, flags);
 	    }
-            static bool addKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::map<std::string, RdkShellData> &listenerProperties){return true;}
-            static bool addNativeKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::map<std::string, RdkShellData> &listenerProperties){return true;}
+            static bool addKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::map<std::string, RdkShellData> &listenerProperties)
+	    {
+		    return getInstance().impl->addKeyListener(client, keyCode, flags, listenerProperties);
+	    }
+            static bool addNativeKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::map<std::string, RdkShellData> &listenerProperties)
+	    {
+		    return getInstance().impl->addNativeKeyListener(client, keyCode, flags, listenerProperties);
+	    }
             static bool removeKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags)
 	    {
 		    return getInstance().impl->removeKeyListener(client, keyCode, flags);
 	    }
-            static bool removeAllKeyListeners(){return true;}
-            static bool removeAllKeyIntercepts(){return true;}
-            static bool removeNativeKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags){return true;}
-            static bool addKeyMetadataListener(const std::string& client){return true;}
+            static bool removeNativeKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags)
+	    {
+		    return getInstance().impl->removeNativeKeyListener(client, keyCode, flags);
+	    }
+            static bool addKeyMetadataListener(const std::string& client)
+	    {
+		    return getInstance().impl->addKeyMetadataListener(client);
+	    }
             static bool removeKeyMetadataListener(const std::string& client)
             {
 		    return getInstance().impl->removeKeyMetadataListener(client);
@@ -411,7 +477,10 @@ namespace RdkShell
 	    {
 		    return getInstance().impl->injectKey(keyCode, flags);
 	    }
-            static bool generateKey(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::string virtualKey=""){return true;}
+            static bool generateKey(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::string virtualKey="")
+	    {
+		    return getInstance().impl->generateKey(client, keyCode, flags, virtualKey);
+	    }
             static bool getScreenResolution(uint32_t &width, uint32_t &height)
 	    {
 		    return getInstance().impl->getScreenResolution(width,height);
@@ -468,38 +537,87 @@ namespace RdkShell
 	    {
                  return getInstance().impl->scaleToFit(client,x,y,width,height);
 	    }
-            static void onKeyPress(uint32_t keycode, uint32_t flags, uint64_t metadata, bool physicalKeyPress=true){return;}
-            static void onKeyRelease(uint32_t keycode, uint32_t flags, uint64_t metadata, bool physicalKeyPress=true){return;}
-            static void onPointerMotion(uint32_t x, uint32_t y){return;}
-            static void onPointerButtonPress(uint32_t keyCode, uint32_t x, uint32_t y){return;}
-            static void onPointerButtonRelease(uint32_t keyCode, uint32_t x, uint32_t y){return;}
             static bool createDisplay(const std::string& client, const std::string& displayName, uint32_t displayWidth=0, uint32_t displayHeight=0,
-                bool virtualDisplayEnabled=false, uint32_t virtualWidth=0, uint32_t virtualHeight=0, bool topmost = false, bool focus = false , bool autodestroy = true){return true;}
-            static bool addAnimation(const std::string& client, double duration, std::map<std::string, RdkShellData> &animationProperties){return true;}
-            static bool removeAnimation(const std::string& client){return true;}
-            static bool addListener(const std::string& client, std::shared_ptr<RdkShellEventListener> listener){return true;}
-            static bool removeListener(const std::string& client, std::shared_ptr<RdkShellEventListener> listener){return true;}
-            static bool onEvent(RdkCompositor* eventCompositor, const std::string& eventName){return true;}
-            static void enableInactivityReporting(const bool enable){return;}
-            static void setInactivityInterval(const double minutes){return;}
-            static void resetInactivityTime(){return;}
-            static double getInactivityTimeInMinutes(){return 0.0;}
-            static void setEventListener(std::shared_ptr<RdkShellEventListener> listener){return;}
-            static std::shared_ptr<RdkCompositor> getCompositor(const std::string& displayName){return NULL;}
-            static bool launchApplication(const std::string& client, const std::string& uri, const std::string& mimeType, bool topmost = false, bool focus = false){return true;}
-            static bool suspendApplication(const std::string& client){return true;}
-            static bool resumeApplication(const std::string& client){return true;}
-            static bool closeApplication(const std::string& client){return true;}
-            static bool getMimeType(const std::string& client, std::string& mimeType){return true;}
-            static bool setMimeType(const std::string& client, const std::string& mimeType){return true;}
-            static bool hideSplashScreen(){return true;}
-            static bool showSplashScreen(uint32_t displayTimeInSeconds){return true;}
-            static bool hideWatermark(){return true;}
-            static bool showWatermark(){return true;}
-            static bool hideFullScreenImage(){return true;}
-            static bool showFullScreenImage(std::string file){return true;}
-            static bool draw(){return true;}
-            static bool update(){return true;}
+                bool virtualDisplayEnabled=false, uint32_t virtualWidth=0, uint32_t virtualHeight=0, bool topmost = false, bool focus = false , bool autodestroy = true)
+	    {
+                 return getInstance().impl->createDisplay(client, displayName, displayWidth, displayHeight, virtualDisplayEnabled, virtualWidth, virtualHeight, topmost, focus, autodestroy);
+	    }
+            static bool addAnimation(const std::string& client, double duration, std::map<std::string, RdkShellData> &animationProperties)
+	    {
+		    return getInstance().impl->addAnimation(client, duration, animationProperties);
+	    }
+            static bool removeAnimation(const std::string& client)
+	    {
+		    return getInstance().impl->removeAnimation(client);
+	    }
+            static bool addListener(const std::string& client, std::shared_ptr<RdkShellEventListener> listener)
+	    {
+		    return getInstance().impl->addListener(client, listener);
+	    }
+            static bool removeListener(const std::string& client, std::shared_ptr<RdkShellEventListener> listener)
+	    {
+		    return getInstance().impl->removeListener(client, listener);
+	    }
+            static void enableInactivityReporting(const bool enable)
+	    {
+		    getInstance().impl->enableInactivityReporting(enable);
+	    }
+            static void setInactivityInterval(const double minutes)
+	    {
+		    getInstance().impl->setInactivityInterval(minutes);
+	    }
+            static void resetInactivityTime()
+	    {
+		    getInstance().impl->resetInactivityTime();
+	    }
+            static void setEventListener(std::shared_ptr<RdkShellEventListener> listener)
+	    {
+		    getInstance().impl->setEventListener(listener);
+	    }
+            static bool launchApplication(const std::string& client, const std::string& uri, const std::string& mimeType, bool topmost = false, bool focus = false)
+	    {
+		    return getInstance().impl->launchApplication(client, uri, mimeType, topmost, focus);
+	    }
+            static bool suspendApplication(const std::string& client)
+	    {
+		    return getInstance().impl->suspendApplication(client);
+	    }
+            static bool resumeApplication(const std::string& client)
+	    {
+		    return getInstance().impl->resumeApplication(client);
+	    }
+            static bool getMimeType(const std::string& client, std::string& mimeType)
+	    {
+		    return getInstance().impl->getMimeType(client, mimeType);
+	    }
+            static bool setMimeType(const std::string& client, const std::string& mimeType)
+	    {
+		    return getInstance().impl->setMimeType(client, mimeType);
+	    }
+            static bool hideSplashScreen()
+	    {
+		    return getInstance().impl->hideSplashScreen();
+	    }
+            static bool showSplashScreen(uint32_t displayTimeInSeconds)
+	    {
+		    return getInstance().impl->showSplashScreen(displayTimeInSeconds);
+	    }
+            static bool hideWatermark()
+	    {
+		    return getInstance().impl->hideWatermark();
+	    }
+            static bool showWatermark()
+	    {
+		    return getInstance().impl->showWatermark();
+	    }
+            static bool hideFullScreenImage()
+	    {
+		    return getInstance().impl->hideFullScreenImage();
+	    }
+            static bool showFullScreenImage(std::string file)
+	    {
+		    return getInstance().impl->showFullScreenImage(file);
+	    }
             static bool setLogLevel(const std::string level)
             {
 		    return getInstance().impl->setLogLevel(level);
@@ -508,10 +626,18 @@ namespace RdkShell
             {
                     return getInstance().impl->getLogLevel(level);
             }
-            static bool setTopmost(const std::string& client, bool topmost, bool focus = false){return true;}
-            static bool getTopmost(std::string& client){return true;}
-            static bool sendEvent(const std::string& eventName, std::vector<std::map<std::string, RdkShellData>>& data){return true;}
-            static bool isSurfaceModeEnabled(){return true;}
+            static bool setTopmost(const std::string& client, bool topmost, bool focus = false)
+	    {
+		    return getInstance().impl->setTopmost(client, topmost, focus);
+	    }
+            static bool getTopmost(std::string& client)
+	    {
+		    return getInstance().impl->getTopmost(client);
+	    }
+            static bool isSurfaceModeEnabled()
+	    {
+		    return getInstance().impl->isSurfaceModeEnabled();
+	    }
             static bool enableKeyRepeats(bool enable)
 	    {
 		    return getInstance().impl->enableKeyRepeats(enable);
@@ -528,19 +654,26 @@ namespace RdkShell
             {
 		    return getInstance().impl->setVirtualResolution(client, virtualWidth, virtualHeight);
             }
-            static bool enableVirtualDisplay(const std::string& client, const bool enable){return true;}
-            static bool getVirtualDisplayEnabled(const std::string& client, bool &enabled){return true;}
-            static bool getLastKeyPress(uint32_t &keyCode, uint32_t &modifiers, uint64_t &timestampInSeconds){return true;}
+            static bool enableVirtualDisplay(const std::string& client, const bool enable)
+            {
+		    return getInstance().impl->enableVirtualDisplay(client, enable);
+	    }
+            static bool getVirtualDisplayEnabled(const std::string& client, bool &enabled)
+            {
+		    return getInstance().impl->getVirtualDisplayEnabled(client, enabled);
+	    }
+            static bool getLastKeyPress(uint32_t &keyCode, uint32_t &modifiers, uint64_t &timestampInSeconds)
+	    {
+		    return getInstance().impl->getLastKeyPress(keyCode, modifiers, timestampInSeconds);
+	    }
             static bool ignoreKeyInputs(bool ignore)
 	    {
                  return getInstance().impl->ignoreKeyInputs(ignore);
 	    }
-            static bool updateWatermarkImage(uint32_t imageId, int32_t key, int32_t imageSize){return true;}
-            static bool createWatermarkImage(uint32_t imageId, uint32_t zorder=0){return true;}
-            static bool deleteWatermarkImage(uint32_t imageId){return true;}
-            static bool adjustWatermarkImage(uint32_t imageId, uint32_t zorder){return true;}
-            static bool alwaysShowWatermarkImageOnTop(bool show=false){return true;}
-            static bool screenShot(uint8_t* &data, uint32_t &size){return true;}
+            static bool screenShot(uint8_t* &data, uint32_t &size)
+	    {
+		    return getInstance().impl->screenShot(data, size);
+	    }
             static bool enableInputEvents(const std::string& client, bool enable)
 	    {
 		    return getInstance().impl->enableInputEvents(client, enable);
@@ -563,7 +696,7 @@ namespace RdkShell
             }
             static void setKeyRepeatConfig(bool enabled, int32_t initialDelay, int32_t repeatInterval)
 	    {
-		    return getInstance().impl->setKeyRepeatConfig(enabled, initialDelay, repeatInterval);
+		    getInstance().impl->setKeyRepeatConfig(enabled, initialDelay, repeatInterval);
 	    }
             static bool setAVBlocked(std::string callsign, bool blockAV)
 	    {
@@ -581,4 +714,5 @@ namespace RdkShell
 
 
 }
+
 
