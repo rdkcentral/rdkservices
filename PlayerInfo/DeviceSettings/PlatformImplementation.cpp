@@ -117,7 +117,8 @@ private:
 public:
     PlayerInfoImplementation()
     {
-        gst_init(0, nullptr);
+        //currently gstreamer is not used. This init causes crash during reactivation of PlayerInfo plugin
+        //gst_init(0, nullptr);
         UpdateAudioCodecInfo();
         UpdateVideoCodecInfo();
         Utils::IARM::init();
