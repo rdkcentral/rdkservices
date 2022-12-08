@@ -34,7 +34,7 @@
 // Methods
 #define TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS "setReportProfileStatus"
 #define TELEMETRY_METHOD_LOG_APPLICATION_EVENT "logApplicationEvent"
-#define TELEMETRY_METHOD_UPLOAD_LOGS "uploadLogs"
+#define TELEMETRY_METHOD_UPLOAD_REPORT "uploadReport"
 
 #define TELEMETRY_METHOD_EVT_ON_REPORT_UPLOAD "onReportUpload"
 
@@ -83,7 +83,7 @@ namespace WPEFramework
 
             Register(TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS, &Telemetry::setReportProfileStatus, this);
             Register(TELEMETRY_METHOD_LOG_APPLICATION_EVENT, &Telemetry::logApplicationEvent, this);
-            Register(TELEMETRY_METHOD_UPLOAD_LOGS, &Telemetry::uploadLogs, this);
+            Register(TELEMETRY_METHOD_UPLOAD_REPORT, &Telemetry::uploadReport, this);
 
             Utils::Telemetry::init();
         }
@@ -256,11 +256,15 @@ namespace WPEFramework
                 else
                 {
                     LOGERR("No 'UPLOAD_STATUS' value");
+                    Telemetry::_instance->onReportUploadStatus("No 'UPLOAD_STATUS' value");
                 }
             }
             else
             {
-                LOGERR("Call failed with %d error", error);
+                std::stringstream str;
+                str << "Call failed with " << error << " error"; 
+                LOGERR("%s", str.str().c_str());
+                Telemetry::_instance->onReportUploadStatus(str.str().c_str());
             }
         }
 
@@ -273,7 +277,7 @@ namespace WPEFramework
         }
 
 #endif
-        uint32_t Telemetry::uploadLogs(const JsonObject& parameters, JsonObject& response)
+        uint32_t Telemetry::uploadReport(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
 #ifdef HAS_RBUS

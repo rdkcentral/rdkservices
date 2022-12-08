@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <cjson/cJSON.h>
 #include <string>
 #include <atomic>
 
@@ -33,6 +32,21 @@
 //#define USE_NETLINK
 #define MAX_IP_ADDRESS_LEN 46
 #define NETSRVMGR_INTERFACES_MAX 16
+#define MAX_ENDPOINTS 5
+#define MAX_ENDPOINT_SIZE 260 // 253 + 1 + 5 + 1 (domain name max length + ':' + port number max chars + '\0')
+#define MAX_HOST_NAME_LEN 128
+
+typedef enum _NetworkManager_EventId_t {
+    IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
+    IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_CONTROL_PERSISTENCE,
+    IARM_BUS_NETWORK_MANAGER_EVENT_WIFI_INTERFACE_STATE,
+    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS,
+    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS,
+    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS,
+    IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE,
+    IARM_BUS_NETWORK_MANAGER_MAX,
+} IARM_Bus_NetworkManager_EventId_t;
+
 
 typedef struct {
     char name[16];
@@ -68,6 +82,49 @@ typedef struct {
     bool isSupported;
     NetworkManager_GetIPSettings_ErrorCode_t errCode;
 } IARM_BUS_NetSrvMgr_Iface_Settings_t;
+
+typedef struct
+{
+    unsigned char size;
+    char          endpoints[MAX_ENDPOINTS][MAX_ENDPOINT_SIZE];
+} IARM_BUS_NetSrvMgr_Iface_TestEndpoints_t;
+
+typedef struct {
+    char interface[16];
+    char gateway[MAX_IP_ADDRESS_LEN];
+} IARM_BUS_NetSrvMgr_DefaultRoute_t;
+
+typedef struct {
+    char interface[16];
+    bool status;
+} IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t;
+
+typedef IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t;
+typedef IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t;
+
+typedef struct {
+    char interface[16];
+    char ip_address[MAX_IP_ADDRESS_LEN];
+    bool is_ipv6;
+    bool acquired;
+} IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t;
+
+typedef struct {
+    char oldInterface[16];
+    char newInterface[16];
+} IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t;
+
+typedef struct
+{
+    char server[MAX_HOST_NAME_LEN];
+    uint16_t port;
+    bool ipv6;
+    char interface[16];
+    uint16_t bind_timeout;
+    uint16_t cache_timeout;
+    bool sync;
+    char public_ip[MAX_IP_ADDRESS_LEN];
+} IARM_BUS_NetSrvMgr_Iface_StunRequest_t;
 
 namespace WPEFramework {
     namespace Plugin {

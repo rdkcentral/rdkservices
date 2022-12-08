@@ -14,52 +14,34 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-set(PLUGIN_NAME DataCapture)
+set(PLUGIN_NAME HdmiCecSource)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
-set(PLUGIN_DATACAPTURE_STARTUPORDER "" CACHE STRING "To configure startup order of DataCapture plugin")
+set(PLUGIN_HDMICECSOURCE_STARTUPORDER "" CACHE STRING "To configure startup order of HdmiCecSource plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
-        socket_adaptor.cpp
-        DataCapture.cpp
+        HdmiCecSource.cpp
         Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
+find_package(DS)
+find_package(IARMBus)
+find_package(CEC)
+
+target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS} ../helpers)
+target_include_directories(${MODULE_NAME} PRIVATE ${CEC_INCLUDE_DIRS})
+target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
+
+target_link_libraries(${MODULE_NAME} PUBLIC ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${CEC_LIBRARIES} ${DS_LIBRARIES} )
+
 if (NOT RDK_SERVICES_TEST)
-    target_compile_options(${MODULE_NAME} PRIVATE -Wno-error)
+    target_compile_options(${MODULE_NAME} PRIVATE -Wno-error=deprecated)
 endif ()
-
-find_package(Curl)
-
-target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
-
-find_package(AC)
-if (AC_FOUND)
-    find_package(IARMBus)
-    add_definitions(-DAC_FOUND)
-    target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
-    target_include_directories(${MODULE_NAME} PRIVATE ${AC_INCLUDE_DIRS})
-    target_link_libraries(${MODULE_NAME}
-            PRIVATE
-            ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-            ${CURL_LIBRARY}
-            ${IARMBUS_LIBRARIES}
-            ${AC_LIBRARIES}
-            )
-
-else(AC_FOUND)
-    target_link_libraries(${MODULE_NAME}
-            PRIVATE
-            ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-            ${CURL_LIBRARY}
-            )
-endif(AC_FOUND)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

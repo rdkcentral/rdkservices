@@ -16,41 +16,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.8] - 2022-11-16
-### Fixed
-- Send MAINTENANCE_ERROR event from stopMaintenance()
-
-## [1.0.7] - 2022-10-07
-### Fixed
-- Fixed race condition in MM while checking for network connectivity"
-
-## [1.0.6] - 2022-10-04
-### Fixed
-- Fixed warnings that are treated as errors with "-Wall -Werror"
-
-## [1.0.5] - 2022-09-16
-### Fixed
-- Missing security token
-
-## [1.0.4] - 2022-09-07
-### Fixed
-- Use Controller via COM-RPC instead of JSON-RPC
-
-## [1.0.3]
-### Fixed
-- Optimize include
-
-## [1.0.2] - 2022-08-12
-### Fixed
-- Fixed std::terminate crash in Maintenance Manager with startMaintenance API.
-
-## [1.0.1] - 2022-08-12
-### Fixed
-- Fixed std::terminate crash in Maintenance Manager with stopMaintenance API.
-
-## [1.0.0] - 2022-05-11
+## [1.0.0]
 ### Added
-- Add CHANGELOG
+- Renaming Hdmicec_2 to HdmiCecSource and initializing the HdmiCecSource plugin.
 
 ### Change
 - Reset API version to 1.0.0
