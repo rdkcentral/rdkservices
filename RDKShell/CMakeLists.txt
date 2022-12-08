@@ -44,10 +44,18 @@ target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NA
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${IARMBUS_INCLUDE_DIRS} )
 
+set_source_files_properties(RDKShell.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
+
 set(RDKSHELL_INCLUDES $ENV{RDKSHELL_INCLUDES})
 separate_arguments(RDKSHELL_INCLUDES)
 include_directories(BEFORE ${RDKSHELL_INCLUDES})
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lrdkshell ${PLUGIN_RDKSHELL_EXTRA_LIBRARIES} trower-base64)
+
+option(RDKSHELL_TEST_MODE "RDKSHELL TEST MODE" OFF)
+if(RDKSHELL_TEST_MODE)
+ target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${PLUGIN_RDKSHELL_EXTRA_LIBRARIES})
+else()
+ target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lrdkshell ${PLUGIN_RDKSHELL_EXTRA_LIBRARIES} trower-base64)
+endif()
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
