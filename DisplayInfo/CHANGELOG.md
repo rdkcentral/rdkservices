@@ -17,7 +17,7 @@ All notable changes to this RDK Service will be documented in this file.
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
 ## [1.0.2] - 2022-12-09
-### Syncup
+### Changed
 - Syncup of changes from Metro version, Includes below changes:
   Nexus removed from the repo and added CMake to fetch from the Nexus repo
   RPI update to use ExtendedDisplayIdentification class
