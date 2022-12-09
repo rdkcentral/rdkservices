@@ -57,7 +57,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 3
+#define API_VERSION_NUMBER_PATCH 4
 
 enum {
 	HDMICEC_EVENT_DEVICE_ADDED=0,
@@ -854,6 +854,10 @@ namespace WPEFramework
 	bool HdmiCec::pingDeviceUpdateList (int idev)
 	{
 		bool isConnected = false;
+		//self ping is not required
+		if ((unsigned int)idev == logicalAddress){
+			return isConnected;
+		}
 		if(!HdmiCec::_instance)
 		{
 			LOGERR("HdmiCec::_instance not existing");
