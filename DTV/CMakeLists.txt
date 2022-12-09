@@ -17,10 +17,12 @@
 
 set(PLUGIN_NAME DTV)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+set(PLUGIN_IMPLEMENTATION ${MODULE_NAME}Implementation)
 
 set(PLUGIN_DTV_AUTOSTART "true" CACHE STRING "Automatically start DTV plugin")
 set(PLUGIN_DTV_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
-set(PLUGIN_DTV_STARTUPORDER "" CACHE STRING "To configure startup order of DTV plugin")
+set(PLUGIN_DTV_SUBTITLES "false" CACHE STRING "Defines whether DVB subtitles are decoded")
+set(PLUGIN_DTV_TELETEXT "false" CACHE STRING "Defines whether EBU teletext is decoded")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -28,6 +30,9 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(DTVKit REQUIRED)
+
+find_path(DTVKIT_INCLUDE_DIR NAMES techtype.h HINTS /usr/include/dtvkit/inc)
+message(STATUS "DTVKit include: ${DTVKIT_INCLUDE_DIR}")
 
 find_library(LIBNXCLIENT_LIBRARY NAMES nxclient)
 message(STATUS "BCM nxclient: ${LIBNXCLIENT_LIBRARY}")
@@ -42,31 +47,45 @@ endif()
 
 add_library(${MODULE_NAME} SHARED 
     DTV.cpp
-    DTVJsonRpc.cpp
     Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
-find_path(DTVKIT_INCLUDE_DIR NAMES techtype.h HINTS /usr/include/dtvkit/inc)
-message(STATUS "DTVKit include: ${DTVKIT_INCLUDE_DIR}")
+target_link_libraries(${MODULE_NAME} 
+    PRIVATE
+        CompileSettingsDebug::CompileSettingsDebug
+        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
+
+install(TARGETS ${MODULE_NAME} 
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
+
+add_library(${PLUGIN_IMPLEMENTATION} SHARED 
+    DTVImpl.cpp
+    Module.cpp)
 
 include_directories(
+   ../helpers
    ${DTVKIT_INCLUDE_DIR}
    ${DTVKIT_INCLUDE_DIR}/../dvb/inc
    ${DTVKIT_INCLUDE_DIR}/../midware/stb/inc
    ${DTVKIT_INCLUDE_DIR}/../platform/inc)
 
-target_link_libraries(${MODULE_NAME} 
+set_target_properties(${PLUGIN_IMPLEMENTATION} PROPERTIES
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED YES)
+
+target_link_libraries(${PLUGIN_IMPLEMENTATION} 
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${NAMESPACE}Definitions::${NAMESPACE}Definitions
         -Wl,--start-group ${DTVKIT_LIBRARIES} -Wl,--end-group
         -Wl,--start-group ${TARGET_LIBRARIES} -Wl,--end-group)
 
-install(TARGETS ${MODULE_NAME} 
+install(TARGETS ${PLUGIN_IMPLEMENTATION} 
     DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
 
 write_config(${PLUGIN_NAME})
+
