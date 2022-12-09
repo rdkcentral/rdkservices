@@ -33,27 +33,6 @@ namespace Plugin {
 
     ControlSettings* ControlSettings::_instance = nullptr;
 
-    static void tvVideoFormatChangeHandler(tvVideoHDRFormat_t format, void *userData)
-    {
-        printf("tvVideoFormatChangeHandler format:%d \n",format);
-        ControlSettings *obj = (ControlSettings *)userData;
-        if(obj)obj->NotifyVideoFormatChange(format);
-    }
-
-    static void tvVideoResolutionChangeHandler(tvResolutionParam_t resolution, void *userData)
-    {
-        printf("tvVideoResolutionChangeHandler resolution:%d\n",resolution.resolutionValue);
-        ControlSettings *obj = (ControlSettings *)userData;
-        if(obj)obj->NotifyVideoResolutionChange(resolution);
-    }
-
-    static void tvVideoFrameRateChangeHandler(tvVideoFrameRate_t frameRate, void *userData)
-    {
-        printf("tvVideoFrameRateChangeHandler format:%d \n",frameRate);
-        ControlSettings *obj = (ControlSettings *)userData;
-        if(obj)obj->NotifyVideoFrameRateChange(frameRate);
-    }
-
     static JsonArray getSupportedVideoFormat(void)
     {
         JsonArray supportedHdrFormat;
@@ -277,14 +256,7 @@ namespace Plugin {
 
         }
 
-        tvVideoFormatCallbackData callbackData = {this,tvVideoFormatChangeHandler};
-        RegisterVideoFormatChangeCB(callbackData);
-
-        tvVideoResolutionCallbackData RescallbackData = {this,tvVideoResolutionChangeHandler};
-        RegisterVideoResolutionChangeCB(RescallbackData);
-
-        tvVideoFrameRateCallbackData FpscallbackData = {this,tvVideoFrameRateChangeHandler};
-        RegisterVideoFrameRateChangeCB(FpscallbackData);
+        LOGINFO("NO CALL BACK REGISTERED \n");
 
 	instance->Initialize();
 
@@ -436,14 +408,6 @@ namespace Plugin {
         }
     }
     
-    void ControlSettings::NotifyVideoFormatChange(tvVideoHDRFormat_t format)
-    {
-        JsonObject response;
-        response["currentVideoFormat"] = getVideoFormatTypeToString(format);
-        response["supportedVideoFormat"] = getSupportedVideoFormat();
-        sendNotify("videoFormatChanged", response);
-    }
-
     uint32_t ControlSettings::getVideoFormat(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
@@ -462,14 +426,6 @@ namespace Plugin {
         }
     }
 
-    void ControlSettings::NotifyVideoResolutionChange(tvResolutionParam_t resolution)
-    {
-        JsonObject response;
-        response["currentVideoResolution"] = getVideoResolutionTypeToString(resolution);
-        response["supportedVideoResolution"] = getSupportedVideoResolution();
-        sendNotify("videoResolutionChanged", response);
-    }
-
     uint32_t ControlSettings::getVideoResolution(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
@@ -486,14 +442,6 @@ namespace Plugin {
             LOGINFO("Exit: getVideoResolution :%d   success \n",videoResolution.resolutionValue);
             returnResponse(true);
         }
-    }
-
-     void ControlSettings::NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate)
-    {
-        JsonObject response;
-        response["currentVideoFrameRate"] = getVideoFrameRateTypeToString(frameRate);
-        response["supportedVideoFrameRate"] = getSupportedVideoFrameRate();
-        sendNotify("videoFrameRateChanged", response);
     }
 
     uint32_t ControlSettings::getVideoFrameRate(const JsonObject& parameters, JsonObject& response)

@@ -74,9 +74,6 @@ namespace Plugin {
         ~ControlSettings();
         static ControlSettings* _instance;
         static ControlSettings* getInstance() { return ControlSettings::_instance; }
-	void NotifyVideoFormatChange(tvVideoHDRFormat_t format);
-        void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
-        void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
 	tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
         tvError_t getUserSelectedAspectRatio (tvDisplayMode_t* mode);
 	tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all");
