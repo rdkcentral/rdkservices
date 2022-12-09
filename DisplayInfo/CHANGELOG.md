@@ -18,7 +18,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.0.2] - 2022-12-09
 ### Syncup
-- Syncup of changes from Metro version
+- Syncup of changes from Metro version, Includes below changes:
+  Nexus removed from the repo and added CMake to fetch from the Nexus repo
+  RPI update to use ExtendedDisplayIdentification class
+  Linux libDRM based generic implementation added
+  DisplayInfo implementation cleanup and deinit implementation improvement
 
 ## [1.0.1] - 2022-10-04
 ### Fixed
