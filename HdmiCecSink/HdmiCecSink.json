@@ -84,7 +84,68 @@
            "summary": "Whether device list is printed",
            "type": "boolean",
            "example": true
-        }
+        },
+		"keyCodeMapping": [{
+					"Remote Action": "VOLUME_UP",
+					"keyCode": "0X41"
+				}, {
+					"Remote Action": "VOLUME_DOWN",
+					"keyCode": "0X42"
+				}, {
+					"Remote Action": "MUTE",
+					"keyCode": "0X43"
+				}, {
+					"Remote Action": "UP",
+					"keyCode": "0X01"
+				}, {
+					"Remote Action": "DOWN",
+					"keyCode": "0X02"
+				}, {
+					"Remote Action": "LEFT",
+					"keyCode": "0X03"
+				}, {
+					"Remote Action": "RIGHT",
+					"keyCode": "0X0"
+				}, {
+					"Remote Action": "SELECT",
+					"keyCode": "0X00"
+				}, {
+					"Remote Action": "HOME",
+					"keyCode": "0X09"
+				}, {
+					"Remote Action": "BACK",
+					"keyCode": "0X0D"
+				}, {
+					"Remote Action": "NUMBER_0",
+					"keyCode": "0X20"
+				}, {
+					"Remote Action": "NUMBER_1",
+					"keyCode": "0X21"
+				}, {
+					"Remote Action": "NUMBER_2",
+					"keyCode": "0X22"
+				}, {
+					"Remote Action": "NUMBER_3",
+					"keyCode": "0X23"
+				}, {
+					"Remote Action": "NUMBER_4",
+					"keyCode": "0X24"
+				}, {
+					"Remote Action": "NUMBER_5",
+					"keyCode": "0X25"
+				}, {
+					"Remote Action": "NUMBER_6",
+					"keyCode": "0X26"
+				}, {
+					"Remote Action": "NUMBER_7",
+					"keyCode": "0X27"
+				}, {
+					"Remote Action": "NUMBER_8",
+					"keyCode": "0X28"
+				}, {
+					"Remote Action": "NUMBER_9",
+					"keyCode": "0X29"
+				}]
     },
     "methods": {
         "getActiveRoute": {
@@ -404,7 +465,8 @@
                     "keyCode":{
                         "summary":"The key code for the pressed key",
                         "type": "integer",
-                        "example": 65
+                        "example": 65,
+						"$ref": "#/definitions/keyCodeMapping"
                     }
                 },
                 "required": [
