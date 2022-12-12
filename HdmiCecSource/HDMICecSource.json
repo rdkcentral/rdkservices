@@ -2,9 +2,9 @@
     "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
-        "title": "HdmiCec_2 API", 
-        "class": "HdmiCec_2", 
-        "description": "The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. The HdmiCec_2 plugin is meant to be used on the source devices where an application relies on the Thunder plugin to handle protocol related messaging. The plugin also provides API's and events to implement the CEC use cases."
+        "title": "HdmiCecSource API", 
+        "class": "HdmiCecSource", 
+        "description": "The `HdmiCecSource` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. The HdmiCecSource plugin is meant to be used on the source devices where an application relies on the Thunder plugin to handle protocol related messaging. The plugin also provides API's and events to implement the CEC use cases."
     },
     "common": {
         "$ref": "../common/common.json"

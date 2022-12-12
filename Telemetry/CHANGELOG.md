@@ -18,7 +18,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.1.0] - 2022-10-21
 ### Added
-- Added uploadLogs call (triggers processing and uploading of telemetry report for legacy Xconf based configuration)
+- Added uploadReport call (triggers processing and uploading of telemetry report for legacy Xconf based configuration)
 
 ## [1.0.0] - 2022-05-11
 ### Added

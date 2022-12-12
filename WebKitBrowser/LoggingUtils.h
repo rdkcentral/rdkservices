@@ -2,7 +2,7 @@
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2020 RDK Management
+ * Copyright 2022 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #pragma once
 
-#ifndef MODULE_NAME
-#define MODULE_NAME Plugin_SecurityAgent
-#endif
+#include <core/Portability.h>
 
-#include <plugins/plugins.h>
+namespace WPEFramework {
+namespace Plugin {
 
-#undef EXTERNAL
-#define EXTERNAL
+bool RedirectAllLogsToService(const string& target_service);
+
+}
+}

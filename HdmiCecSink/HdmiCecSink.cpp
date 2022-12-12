@@ -321,6 +321,10 @@ namespace WPEFramework
 	     updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isOSDNameUpdated;
 	     LOGINFO("updateStatus %d\n",updateStatus);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.osdName);
+	     if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry > 0 &&
+			HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequested == CECDeviceParams::REQUEST_OSD_NAME) {
+	         HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
+	     }
              if(!updateStatus)
 	     HdmiCecSink::_instance->sendDeviceUpdateInfo(header.from.toInt());
        }
@@ -360,7 +364,10 @@ namespace WPEFramework
 	     LOGINFO("updateDeviceTypeStatus %d updatePAStatus %d \n",updateDeviceTypeStatus,updatePAStatus);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.physicalAddress);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.deviceType);
-	     HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
+	     if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry > 0 &&
+			HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequested == CECDeviceParams::REQUEST_PHISICAL_ADDRESS) {
+	         HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
+	     }
 	     HdmiCecSink::_instance->updateDeviceChain(header.from, msg.physicalAddress);
 	     if (!updateDeviceTypeStatus || !updatePAStatus)
              HdmiCecSink::_instance->sendDeviceUpdateInfo(header.from.toInt());
@@ -2470,7 +2477,12 @@ namespace WPEFramework
 
 					case CECDeviceParams::REQUEST_OSD_NAME :	
 					{
-						_instance->deviceList[logicalAddress].update(OSDName("NA"));
+						if ( _instance->deviceList[logicalAddress].m_isRequestRetry++ >= HDMICECSINK_REQUEST_MAX_RETRY )
+						{
+							LOGINFO("Max retry for REQUEST_OSD_NAME = %d", _instance->deviceList[logicalAddress].m_isRequestRetry);
+							_instance->deviceList[logicalAddress].update(OSDName("NA"));
+							_instance->deviceList[logicalAddress].m_isRequestRetry = 0;
+						}
 					}
 						break;
 
