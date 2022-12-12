@@ -305,7 +305,7 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
 
-            if (threadStop() == -1);
+            if (threadStop() == -1)
                 LOGWARN("Monitoring is already disabled");
 
             delete m_monitorParams;
