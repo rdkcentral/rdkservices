@@ -14,7 +14,7 @@ namespace WPEFramework {
         static std::map<std::string, std::map<IARM_EventId_t, IARM_EventHandler_t>> _registered_iarm_handlers;
 
         static void _generic_iarm_handler(const char *owner, IARM_EventId_t eventId, void *data, size_t len) {
-            std::lock_guard<std::mutex> lock(AbstractPluginWithApiLock::getApiLock());
+            std::lock_guard<std::recursive_mutex> lock(AbstractPluginWithApiLock::getApiLock());
             // we can't be in IARM handler thread & API request thread at the same time, so
             // it's safe to use AbstractPluginWithApiLock's isThreadUsingLockedApi here
             isThreadUsingLockedApi = true;
@@ -40,6 +40,7 @@ namespace WPEFramework {
 
             // we are providing IARM_Bus_RegisterEventHandler as new static member (libiarm provides standalone function)
             static IARM_Result_t IARM_Bus_RegisterEventHandler(const char *ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
+                std::lock_guard<std::recursive_mutex> lock(AbstractPluginWithApiLock::getApiLock());
                 if (_registered_iarm_handlers[ownerName].count(eventId)) {
                     LOGERR("double registration for %s / %d ; previous handler will be overriden", ownerName, eventId);
                 }
@@ -53,8 +54,16 @@ namespace WPEFramework {
 
             // we are providing IARM_Bus_UnRegisterEventHandler as new static member (libiarm provides standalone function)
             static IARM_Result_t IARM_Bus_UnRegisterEventHandler(const char *ownerName, IARM_EventId_t eventId) {
+                std::lock_guard<std::recursive_mutex> lock(AbstractPluginWithApiLock::getApiLock());
                 _registered_iarm_handlers[ownerName].erase(eventId);
                 return ::IARM_Bus_UnRegisterEventHandler(ownerName, eventId);
+            }
+
+            // we are providing IARM_Bus_RemoveEventHandler as new static member (libiarm provides standalone function)
+            static IARM_Result_t IARM_Bus_RemoveEventHandler(const char *ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
+                std::lock_guard<std::recursive_mutex> lock(AbstractPluginWithApiLock::getApiLock());
+                _registered_iarm_handlers[ownerName].erase(eventId);
+                return ::IARM_Bus_RemoveEventHandler(ownerName, eventId, _generic_iarm_handler);
             }
         };
     } // Plugin

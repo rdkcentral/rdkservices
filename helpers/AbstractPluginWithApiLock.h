@@ -25,7 +25,7 @@ namespace WPEFramework {
             getFunctionToCall(const std::string& debugname, const METHOD& method, REALOBJECT* objectPtr) {
                 return [debugname, method](REALOBJECT *obj, const WPEFramework::Core::JSON::VariantContainer& in, WPEFramework::Core::JSON::VariantContainer& out) -> uint32_t {
                     isThreadUsingLockedApi = true;
-                    std::lock_guard<std::mutex> lock(getApiLock());
+                    std::lock_guard<std::recursive_mutex> lock(getApiLock());
                     LOGINFO("calling with lock: %s\n", debugname.c_str());
                     uint32_t ret;
                     try {
@@ -104,8 +104,8 @@ namespace WPEFramework {
             };
 
             /* note this will be shared by all subclasses (normally we have 1 plugin per lib, so that's enough) */
-            static std::mutex& getApiLock() {
-                static std::mutex apiLock;
+            static std::recursive_mutex& getApiLock() {
+                static std::recursive_mutex apiLock;
                 return apiLock;
             }
         };
