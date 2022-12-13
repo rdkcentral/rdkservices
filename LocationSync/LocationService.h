@@ -53,7 +53,7 @@ namespace Plugin {
         typedef Web::WebLinkType<Core::SocketStream, Web::Response, Web::Request, Core::ProxyPoolType<Web::Response>&> BaseClass;
 
     public:
-        LocationService(Core::IDispatchType<void>* update);
+        LocationService(Core::IDispatch* update);
         ~LocationService() override;
 
     public:
