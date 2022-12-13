@@ -50,7 +50,6 @@ protected:
     }
     virtual ~ActivityMonitorTest() override
     {
-        IarmBus::getInstance().impl = nullptr;
         plugin->Deinitialize(nullptr);
     }
 };
@@ -63,50 +62,24 @@ TEST_F(ActivityMonitorTest, registeredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getAllMemoryUsage")));
 }
 
-TEST_F(ActivityMonitorTest, disableMonitoring)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("disableMonitoring"), _T("{}"), response));
-    EXPECT_EQ(response, _T("{\"success\":true}"));
-}
-
 TEST_F(ActivityMonitorTest, enableMonitoringEmptyConfig)
 {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("enableMonitoring"), _T("{\"config\":[],\"memoryIntervalSeconds\":\"0\", \"cpuIntervalSeconds\":\"0\"}"), response));
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("enableMonitoring"), _T("{\"config\":[{\"appPid\": 6763, \"memoryThresholdMB\": 10,\"cpuThresholdPercent\": 50,\"cpuThresholdSeconds\": 2}],\"memoryIntervalSeconds\":\"0\", \"cpuIntervalSeconds\":\"0\"}"), response));
 }
 
-class ActivityMonitorMemoryUsageTest : public ActivityMonitorTest
+TEST_F(ActivityMonitorTest, getAllMemoryUsage)
 {
-protected:
-    IarmBusImplMock iarmBusImplMock;
-    ActivityMonitorMemoryUsageTest() : ActivityMonitorTest()
-    {
-        //Add version info
-        std::ofstream fileVer("/version.txt");
-        fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\nSDK_VERSION=17.3\nMEDIARITE=8.3.53\nYOCTO_VERSION=dunfell\n";
-        fileVer.close();
+    //Add version info
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\n";
+    fileVer.close();
 
-        //Add Apps registry file
-        Core::File fileApps(regFile);
-        fileApps.Create();
-        fileApps.Write(regFileData, sizeof(regFileData));
-    }
+    //Add Apps registry file
+    Core::File fileApps(regFile);
+    fileApps.Create();
+    fileApps.Write(regFileData, sizeof(regFileData));
 
-    virtual ~ActivityMonitorMemoryUsageTest() override
-    {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-        // Clear file contents
-        std::ofstream fileVer("/version.txt");
-        fileVer.close();
-
-        // Delete Apps registry file
-        Core::File fileApps(regFile);
-        fileApps.Destroy();
-    }
-};
-
-TEST_F(ActivityMonitorMemoryUsageTest, getAllMemoryUsage)
-{
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAllMemoryUsage"), _T(""), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{"
                                                   "\"freeMemoryMB\":[0-9]+,"
@@ -119,26 +92,35 @@ TEST_F(ActivityMonitorMemoryUsageTest, getAllMemoryUsage)
                                                   "\"success\":true"
                                                   "\\}"));
 
+    // Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+
+    // Delete Apps registry file
+    fileApps.Destroy();
 }
 
-class ActivityMonitorEventTest : public ActivityMonitorMemoryUsageTest {
+class ActivityMonitorEventTest : public ActivityMonitorTest {
 protected:
     ServiceMock service;
     Core::JSONRPC::Message message;
     FactoriesImplementation factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
+    IarmBusImplMock iarmBusImplMock;
 
     ActivityMonitorEventTest()
-        : ActivityMonitorMemoryUsageTest()
+        : ActivityMonitorTest()
     {
+        IarmBus::getInstance().impl = &iarmBusImplMock;
         PluginHost::IFactories::Assign(&factoriesImplementation);
 
         dispatcher = static_cast<PluginHost::IDispatcher*>(
-            plugin->QueryInterface(PluginHost::IDispatcher::ID));
+        plugin->QueryInterface(PluginHost::IDispatcher::ID));
         dispatcher->Activate(&service);
     }
     virtual ~ActivityMonitorEventTest() override
     {
+        IarmBus::getInstance().impl = nullptr;
         dispatcher->Deactivate();
         dispatcher->Release();
 
@@ -148,6 +130,16 @@ protected:
 
 TEST_F(ActivityMonitorEventTest, enableMonitoringWithConfig)
 {
+    //Add version info
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\n";
+    fileVer.close();
+
+    //Add Apps registry file
+    Core::File fileApps(regFile);
+    fileApps.Create();
+    fileApps.Write(regFileData, sizeof(regFileData));
+
     Core::Event memoryThresholdEvent(false, true);
     Core::Event cpuThresholdEvent(false, true);
     handler.Subscribe(0, _T("onMemoryThreshold"), _T("org.rdk.ActivityMonitor"), message);
@@ -216,4 +208,11 @@ TEST_F(ActivityMonitorEventTest, enableMonitoringWithConfig)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("disableMonitoring"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
+
+    // Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+
+    // Delete Apps registry file
+    fileApps.Destroy();
 }
