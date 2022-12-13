@@ -175,16 +175,24 @@ namespace WPEFramework {
             const std::string & type = parameters["source_type"].String();
             if("qam" == type)
             {
-                LOGINFO("Initializing QAM support.");
-                set_env_variables();
-                if(0 != mediaplayer::initialize(QAM, true, true))
+                if(player_state::PLATFORM_INITIALIZED <= m_player_state)
                 {
-                    LOGERR("Could not initialize QAM support");
+                    LOGINFO("QAM is already initialized.");
+                    success = true;
                 }
                 else
                 {
-                    m_player_state = player_state::PLATFORM_INITIALIZED;
-                    success = true;
+                    LOGINFO("Initializing QAM support.");
+                    set_env_variables();
+                    if(0 != mediaplayer::initialize(QAM, true, true))
+                    {
+                        LOGERR("Could not initialize QAM support");
+                    }
+                    else
+                    {
+                        m_player_state = player_state::PLATFORM_INITIALIZED;
+                        success = true;
+                    }
                 }
             }
             else
