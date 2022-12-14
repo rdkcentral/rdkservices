@@ -32,6 +32,12 @@ add_library(${MODULE_NAME} SHARED
         impl/WifiManagerScan.cpp
         impl/WifiManagerEvents.cpp)
 
+set_source_files_properties(
+        WifiManager.cpp
+        impl/WifiManagerConnect.cpp
+        impl/WifiManagerScan.cpp
+        PROPERTIES COMPILE_FLAGS "-fexceptions")
+
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
