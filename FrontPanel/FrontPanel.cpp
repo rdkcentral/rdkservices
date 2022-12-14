@@ -644,7 +644,7 @@ namespace WPEFramework
 #ifdef CLOCK_BRIGHTNESS_ENABLED
             try
             {
-		indicatorInfo = getFrontPanelIndicatorInfo(device::FrontPanelConfig::getInstance().getTextDisplay(0));
+		        indicatorInfo = getFrontPanelIndicatorInfo(device::FrontPanelConfig::getInstance().getTextDisplay(0));
                 returnResult[CLOCK_LED] = indicatorInfo;
             }
             catch (...)

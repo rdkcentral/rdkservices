@@ -300,7 +300,7 @@ namespace WPEFramework
         {
             try
             {
-                clockBrightness = device::FrontPanelTextDisplay::getInstance("Text").getTextBrightness();
+                clockBrightness =  device::FrontPanelTextDisplay::getInstance("Text").getTextBrightness();
             }
             catch (...)
             {
@@ -631,7 +631,7 @@ namespace WPEFramework
 
         void CFrontPanel::startBlinkTimer(int numberOfBlinkRepeats)
         {
-            LOGWARN("startBlinkTimer numberOfBlinkRepeats: %d m_blinkList.length : %d", numberOfBlinkRepeats,(int) m_blinkList.size());
+            LOGWARN("startBlinkTimer numberOfBlinkRepeats: %d m_blinkList.length : %zu", numberOfBlinkRepeats, m_blinkList.size());
             stopBlinkTimer();
             m_numberOfBlinks = 0;
             m_isBlinking = true;
