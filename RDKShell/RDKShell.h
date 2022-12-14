@@ -399,6 +399,9 @@ namespace WPEFramework {
 
               private:
                   virtual void StateChange(PluginHost::IShell* shell);
+                  virtual void  Activated(const string& callSign,  PluginHost::IShell* plugin);
+                  virtual void  Deactivated(const string& callSign,  PluginHost::IShell* plugin);
+                  virtual void  Unavailable(const string& callSign,  PluginHost::IShell* plugin);
 
               private:
                   RDKShell& mShell;
