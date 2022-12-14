@@ -18,6 +18,7 @@
 set(PLUGIN_NAME DisplaySettings)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_DISPLAYSETTINGS_AUTOSTART "false" CACHE STRING "Automatically start DisplaySettings plugin")
 set(PLUGIN_DISPLAYSETTINGS_STARTUPORDER "" CACHE STRING "To configure startup order of DisplaySettings plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
