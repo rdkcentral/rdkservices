@@ -153,7 +153,8 @@ jobs:
           headers/rdk/ds
           headers/rdk/iarmbus
           headers/rdk/iarmmgrs-hal
-          headers/ccec/drivers &&
+          headers/ccec/drivers
+          headers/network &&
           cd headers &&
           touch
           audiocapturemgr/audiocapturemgr_iarm.h
@@ -183,6 +184,8 @@ jobs:
           rdk/iarmmgrs-hal/mfrMgr.h
           rdk/iarmmgrs-hal/pwrMgr.h
           rdk/iarmmgrs-hal/sysMgr.h
+          network/wifiSrvMgrIarmIf.h
+          network/netsrvmgrIarm.h
           framebuffer-api.h
           libudev.h
           rfcapi.h
@@ -202,6 +205,7 @@ jobs:
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmbus
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmmgrs-hal
           -I ${{github.workspace}}/rdkservices/Tests/headers/ccec/drivers
+          -I ${{github.workspace}}/rdkservices/Tests/headers/network
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/FrameBuffer.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Iarm.h
@@ -242,6 +246,8 @@ jobs:
           -DRDK_SERVICES_TEST=ON
           -DPLUGIN_HDMIINPUT=ON
           -DPLUGIN_HDCPPROFILE=ON
+          -DPLUGIN_NETWORK=ON
+          -DPLUGIN_WIFIMANAGER=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build rdkservices
@@ -252,6 +258,9 @@ jobs:
 
       - name: Install valgrind
         run: sudo apt update && sudo apt install -y valgrind
+
+      - name: Install traceroute
+        run: sudo apt update && sudo apt install -y traceroute
 
       - name: Set up files
         run: >
