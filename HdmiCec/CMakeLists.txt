@@ -18,6 +18,7 @@
 set(PLUGIN_NAME HdmiCec)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_HDMICEC_AUTOSTART "false" CACHE STRING "Automatically start HdmiCec plugin")
 set(PLUGIN_HDMICEC_STARTUPORDER "" CACHE STRING "To configure startup order of HdmiCec plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
