@@ -815,6 +815,19 @@ namespace Plugin {
 
                 _adminLock.Unlock();
             }
+
+            void Activated (const string& callsign, PluginHost::IShell* service) override
+            {
+                StateChange(service);
+            }
+            void Deactivated (const string& callsign, PluginHost::IShell* service) override
+            {
+                StateChange(service);
+            }
+            void Unavailable(const string&, PluginHost::IShell*) override
+            {
+            }
+
             void Snapshot(Core::JSON::ArrayType<Monitor::Data>& snapshot)
             {
                 _adminLock.Lock();
