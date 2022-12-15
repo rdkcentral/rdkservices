@@ -244,9 +244,6 @@ jobs:
           &&
           cmake --install build/rdkservices
 
-      - name: Install traceroute
-        run: sudo apt update && sudo apt install -y traceroute
-
       - name: Set up files
         run: >
           sudo mkdir -p -m 777
