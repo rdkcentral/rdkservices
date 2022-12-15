@@ -243,6 +243,7 @@ jobs:
           -DPLUGIN_NETWORK=ON
           -DPLUGIN_WIFIMANAGER=ON
           -DPLUGIN_WAREHOUSE=ON
+          -DPLUGIN_ACTIVITYMONITOR=ON
           -DDS_FOUND=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
