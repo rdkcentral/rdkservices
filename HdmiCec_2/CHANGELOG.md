@@ -16,9 +16,13 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.5] - 2022-11-28
+## [1.0.6] - 2022-12-15
 ### Fixed
 - Treat warnings as errors for unit tests workflow
+
+## [1.0.5] - 2022-12-09
+### Fixed
+- Self ping removed
 
 ## [1.0.4] - 2022-11-22
 ### Fixed

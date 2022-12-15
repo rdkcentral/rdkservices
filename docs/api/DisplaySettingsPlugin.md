@@ -2,7 +2,7 @@
 <a name="DisplaySettings_Plugin"></a>
 # DisplaySettings Plugin
 
-**Version: [1.0.13](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/CHANGELOG.md)**
+**Version: [1.0.16](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/CHANGELOG.md)**
 
 A org.rdk.DisplaySettings plugin for Thunder framework.
 
@@ -559,7 +559,7 @@ This method takes no parameters.
 | result.colorSpace | integer | The color space. Possible values: `0` (dsDISPLAY_COLORSPACE_UNKNOWN), `1` (sDISPLAY_COLORSPACE_RGB, `2` (dsDISPLAY_COLORSPACE_YCbCr422), `3` (dsDISPLAY_COLORSPACE_YCbCr444), `4` (dsDISPLAY_COLORSPACE_YCbCr420), `5` (dsDISPLAY_COLORSPACE_AUTO) |
 | result.colorDepth | integer | The color depth. The value that is returned from `dsGetCurrentOutputSettings` |
 | result.matrixCoefficients | integer | matrix coefficients. Possible values: `0` (dsDISPLAY_MATRIXCOEFFICIENT_UNKNOWN), `1` (dsDISPLAY_MATRIXCOEFFICIENT_BT_709), `2` (dsDISPLAY_MATRIXCOEFFICIENT_BT_470_2_BG), `3` (dsDISPLAY_MATRIXCOEFFICIENT_SMPTE_170M), `4` (dsDISPLAY_MATRIXCOEFFICIENT_XvYCC_709), `5` (dsDISPLAY_MATRIXCOEFFICIENT_eXvYCC_601), `6` (dsDISPLAY_MATRIXCOEFFICIENT_BT_2020_NCL), `7` (dsDISPLAY_MATRIXCOEFFICIENT_BT_2020_CL) |
-| result.videoEOTF | integer | HDR standard. Possible values: `0x0` (dsHDRSTANDARD_NONE), `0x01` (dsHDRSTANDARD_HDR10), `0x02` (dsHDRSTANDARD_HLG), `0x04` (dsHDRSTANDARD_DolbyVision), `0x08` (dsHDRSTANDARD_TechnicolorPrime), `0x80` (dsHDRSTANDARD_Invalid) |
+| result.videoEOTF | integer | HDR standard. Possible values: `0x0` (dsHDRSTANDARD_NONE), `0x01` (dsHDRSTANDARD_HDR10), `0x02` (dsHDRSTANDARD_HLG), `0x04` (dsHDRSTANDARD_DolbyVision), `0x08` (dsHDRSTANDARD_TechnicolorPrime), `0x10` (dsHDRSTANDARD_HDR10PLUS), `0x20` (dsHDRSTANDARD_SDR), `0x80` (dsHDRSTANDARD_Invalid) |
 | result?.quantizationRange | integer | <sup>*(optional)*</sup> The supported quantization range |
 | result.success | boolean | Whether the request succeeded |
 
@@ -1391,7 +1391,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.standards | array | A string [] of HDR capabilities. Possible values: `none`, `HDR10`, `Dolby Vision`, `Technicolor Prime` |
+| result.standards | array | A string [] of HDR capabilities. Possible values: `none`, `HDR10`, `HDR10PLUS`, `Dolby Vision`, `Technicolor Prime`, `SDR` |
 | result.standards[#] | string |  |
 | result.supportsHDR | boolean | Indicates support for HDR |
 | result.success | boolean | Whether the request succeeded |
@@ -2007,11 +2007,13 @@ No Events
 ## *getTVHDRCapabilities*
 
 Gets HDR capabilities supported by the TV. The following values (OR-ed value) are possible:  
-* 0 - HDRSTANDARD_NONE  
-* 1 - HDRSTANDARD_HDR10  
-* 2 - HDRSTANDARD_HLG  
-* 4 - HDRSTANDARD_DolbyVision  
-* 8 - HDRSTANDARD_TechnicolorPrime.
+* 0x0 - HDRSTANDARD_NONE  
+* 0x1 - HDRSTANDARD_HDR10  
+* 0x2 - HDRSTANDARD_HLG  
+* 0x4 - HDRSTANDARD_DolbyVision  
+* 0x8 - HDRSTANDARD_TechnicolorPrime. 
+* 0x10 - HDRSTANDARD_HDR10PLUS  
+* 0x20 - HDRSTANDARD_SDR.
 
 ### Events
 
@@ -2072,7 +2074,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.standards | array | A string [] of HDR capabilities. Possible values: `none`, `HDR10`, `Dolby Vision`, `Technicolor Prime` |
+| result.standards | array | A string [] of HDR capabilities. Possible values: `none`, `HDR10`, `HDR10PLUS`, `Dolby Vision`, `Technicolor Prime`, `SDR` |
 | result.standards[#] | string |  |
 | result.supportsHDR | boolean | Indicates support for HDR |
 | result.success | boolean | Whether the request succeeded |
@@ -2148,7 +2150,7 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "supportedVideoFormat": [
-            "`SDR`, `HDR10`, `HLG`, `DV`, `Technicolor Prime`"
+            "`SDR`, `HDR10`, `HDR10PLUS`, `HLG`, `DV`, `Technicolor Prime`"
         ],
         "currentVideoFormat": "SDR",
         "success": true
@@ -4402,7 +4404,7 @@ Triggered when the video format of connected video port changes and returns the 
     "method": "client.events.videoFormatChanged",
     "params": {
         "supportedVideoFormat": [
-            "`SDR`, `HDR10`, `HLG`, `DV`, `Technicolor Prime`"
+            "`SDR`, `HDR10`, `HDR10PLUS`, `HLG`, `DV`, `Technicolor Prime`"
         ],
         "currentVideoFormat": "SDR"
     }
