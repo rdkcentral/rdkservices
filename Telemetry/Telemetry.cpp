@@ -173,7 +173,10 @@ namespace WPEFramework
             Telemetry::_instance = nullptr;
 #ifdef HAS_RBUS
             if (RBUS_ERROR_SUCCESS == rbusHandleStatus)
+            {
                 rbus_close(rbusHandle);
+                rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
+            }
 #endif
         }
 
@@ -249,14 +252,13 @@ namespace WPEFramework
                 if(uploadStatus)
                 {
                     if (Telemetry::_instance)
-                    {
                         Telemetry::_instance->onReportUploadStatus(rbusValue_GetString(uploadStatus, NULL));
-                    }
                 }
                 else
                 {
                     LOGERR("No 'UPLOAD_STATUS' value");
-                    Telemetry::_instance->onReportUploadStatus("No 'UPLOAD_STATUS' value");
+                    if (Telemetry::_instance)
+                        Telemetry::_instance->onReportUploadStatus("No 'UPLOAD_STATUS' value");
                 }
             }
             else
@@ -264,7 +266,8 @@ namespace WPEFramework
                 std::stringstream str;
                 str << "Call failed with " << error << " error"; 
                 LOGERR("%s", str.str().c_str());
-                Telemetry::_instance->onReportUploadStatus(str.str().c_str());
+                if (Telemetry::_instance)
+                    Telemetry::_instance->onReportUploadStatus(str.str().c_str());
             }
         }
 

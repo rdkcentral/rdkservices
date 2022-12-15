@@ -8,7 +8,7 @@ on:
 
 env:
   BUILD_TYPE: Debug
-  THUNDER_REF: "R2-v1.12"
+  THUNDER_REF: "a87b48eca1e76c3e6f03d689e6302b1fb090b52c"
   INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
 
 jobs:
@@ -211,6 +211,7 @@ jobs:
           -DUSE_FRAMEBUFFER_SCREENCAPTURE
           -DHAS_API_SYSTEM
           -DHAS_API_POWERSTATE
+          -DHAS_RBUS
           -DENABLE_DEVICE_MANUFACTURER_INFO"
           -DCOMCAST_CONFIG=OFF
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
@@ -242,15 +243,13 @@ jobs:
           -DPLUGIN_NETWORK=ON
           -DPLUGIN_WIFIMANAGER=ON
           -DPLUGIN_WAREHOUSE=ON
+          -DPLUGIN_ACTIVITYMONITOR=ON
           -DDS_FOUND=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
           &&
           cmake --install build/rdkservices
-
-      - name: Install traceroute
-        run: sudo apt update && sudo apt install -y traceroute
 
       - name: Set up files
         run: >
