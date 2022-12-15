@@ -3268,8 +3268,9 @@ Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard 
 
 ### Events
 
-No Events
-
+| Event | Description |
+| :-------- | :-------- |
+| [onTerritoryChanged](#onTerritoryChanged) | Triggered when territory is set |
 ### Parameters
 
 | Name | Type | Description |
@@ -3320,8 +3321,9 @@ Sets the system time zone. See `getTimeZones` to get a list of available timezon
 
 ### Events
 
-No Events
-
+| Event | Description |
+| :-------- | :-------- |
+| [onTimeZoneDSTChanged](#onTimeZoneDSTChanged) | Triggered when device time zone changed |
 ### Parameters
 
 | Name | Type | Description |
@@ -3530,6 +3532,8 @@ SystemServices interface events:
 | [onSystemModeChanged](#onSystemModeChanged) | Triggered when the device operating mode changes |
 | [onSystemPowerStateChanged](#onSystemPowerStateChanged) | Triggered when the power manager detects a device power state change |
 | [onTemperatureThresholdChanged](#onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
+| [onTerritoryChanged](#onTerritoryChanged) | Triggered when the device territory changed |
+| [onTimeZoneDSTChanged](#onTimeZoneDSTChanged) | Triggered when device time zone changed |
 
 
 <a name="onFirmwarePendingReboot"></a>
@@ -3813,6 +3817,62 @@ Triggered when the device temperature changes beyond the `WARN` or `MAX` limits 
         "thresholdType": "MAX",
         "exceeded": true,
         "temperature": "48.000000"
+    }
+}
+```
+
+<a name="onTerritoryChanged"></a>
+## *onTerritoryChanged*
+
+Triggered when the device territory changed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.oldTerritory | string |  old territory |
+| params.newTerritory | string |  new territory |
+| params.oldRegion | string | old region |
+| params.newRegion | string | new region |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onTerritoryChanged",
+    "params": {
+        "oldTerritory": "GBR",
+        "newTerritory": "USA",
+        "oldRegion": "GB-ENG",
+        "newRegion": "US-NY"
+    }
+}
+```
+
+<a name="onTimeZoneDSTChanged"></a>
+## *onTimeZoneDSTChanged*
+
+Triggered when device time zone changed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.oldTimeZone | string |  old time zone |
+| params.newTimeZone | string |  new time zone |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onTimeZoneDSTChanged",
+    "params": {
+        "oldTimeZone": "America/New_York",
+        "newTimeZone": "Europe/London"
     }
 }
 ```

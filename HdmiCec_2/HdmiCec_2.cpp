@@ -57,11 +57,11 @@
 #define HDMICEC_EVENT_ON_STANDBY_MSG_RECEIVED "standbyMessageReceived"
 #define DEV_TYPE_TUNER 1
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
-#define ABORT_REASON_ID 4
+#define ABORT_REASON_ID 5
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 5
+#define API_VERSION_NUMBER_PATCH 6
 
 enum {
 	HDMICEC2_EVENT_DEVICE_ADDED=0,
@@ -1424,6 +1424,10 @@ namespace WPEFramework
 	bool HdmiCec_2::pingDeviceUpdateList (int idev)
 	{
 		bool isConnected = false;
+		//self ping is not required
+		if (idev == logicalAddress.toInt()){
+		        return isConnected;
+		}
 		if(!HdmiCec_2::_instance)
 		{
 			LOGERR("HdmiCec_2::_instance not existing");
