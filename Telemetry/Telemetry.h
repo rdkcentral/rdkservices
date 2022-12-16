@@ -48,6 +48,7 @@ namespace WPEFramework {
             //Begin methods
             uint32_t setReportProfileStatus(const JsonObject& parameters, JsonObject& response);
             uint32_t logApplicationEvent(const JsonObject& parameters, JsonObject& response);
+            uint32_t uploadReport(const JsonObject& parameters, JsonObject& response);
             //End methods
 
         public:
@@ -62,6 +63,9 @@ namespace WPEFramework {
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             END_INTERFACE_MAP
 
+#ifdef HAS_RBUS
+            void onReportUploadStatus(const char* status);
+#endif
         public:
             static Telemetry* _instance;
         private:
