@@ -143,6 +143,8 @@
             }
         },
         "getFrontPanelLights": {
+            "deprecated" : true,
+            "referenceUrl" : " https://rdkcentral.github.io/rdkservices/#/api/LEDControlPlugin?id=getSupportedLEDStates",
             "summary": "Returns a list of supported Front Panel LEDs and their properties",
             "result": {
                 "type": "object",
@@ -235,6 +237,8 @@
             }
         },
         "powerLedOff": {
+            "deprecated" : true,
+            "referenceUrl" : " https://rdkcentral.github.io/rdkservices/#/api/LEDControlPlugin?id=setLEDState",
             "summary": "Switches the specified LED off",
             "params": {
                 "type":"object",
@@ -252,6 +256,8 @@
             }
         },
         "powerLedOn": {
+            "deprecated" : true,
+            "referenceUrl" : " https://rdkcentral.github.io/rdkservices/#/api/LEDControlPlugin?id=setLEDState",
             "summary": "Switches the specified LED indicator on. The LED must be powered on prior to setting its brightness.",
             "params": {
                 "type":"object",
@@ -286,6 +292,8 @@
             }
         },
         "setBlink": {
+            "deprecated" : true,
+            "referenceUrl" : " https://rdkcentral.github.io/rdkservices/#/api/LEDControlPlugin?id=setLEDState",
             "summary": "Sets a blinking pattern for a particular LED indicator.  \n**Note:** This API does not currently work nor does it provide a meaningful error status.",
             "params": {
                 "type":"object",
@@ -351,6 +359,8 @@
             }
         },
         "setBrightness": {
+            "deprecated" : true,
+            "referenceUrl" : " https://rdkcentral.github.io/rdkservices/#/api/LEDControlPlugin?id=setLEDState",
             "summary": "Sets the brightness of the specified LED indicator. If no indicator is specified, then FrontPanel all indicators are set.",
             "params": {
                 "type":"object",
@@ -371,6 +381,8 @@
             }
         },
         "setClockBrightness": {
+            "deprecated" : true,
+            "referenceUrl" : " https://rdkcentral.github.io/rdkservices/#/api/LEDControlPlugin?id=setLEDState",
             "summary": "Sets the clock brightness",
             "params": {
                 "type":"object",
@@ -388,6 +400,8 @@
             }
         },
         "setClockTestPattern": {
+            "deprecated" : true,
+            "referenceUrl" : " https://rdkcentral.github.io/rdkservices/#/api/LEDControlPlugin?id=setLEDState",
             "summary": "Allows you to set a test pattern on the STB clock (`88 88`)",
             "params": {
                 "type":"object",
