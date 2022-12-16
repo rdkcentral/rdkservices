@@ -33,7 +33,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/common/result"        
+                "$ref": "#/common/result"
             }
         },
         "logApplicationEvent": {
@@ -58,7 +58,49 @@
                 ]
             },
             "result": {
-                "$ref": "#/common/result"        
+                "$ref": "#/common/result"
+            }
+        },
+        "uploadReport": {
+            "summary": "Triggers processing and uploading of telemetry report for legacy Xconf based configuration",
+            "events": {
+                "onReportUpload" : "Triggered by callback from Telemetry after report uploading"
+            },
+
+            "result": {
+                "$ref": "#/common/results/void"
+            },
+            "errors": [
+                {
+                    "description": "RBus call report uploading failed",
+                    "$ref": "#/common/errors/rpccallfailed"
+                },
+                {
+                    "description": "Failed to open RBus handle",
+                    "$ref": "#/common/errors/openingfailed"
+                },
+                {
+                    "description": "Built with no support for RBus",
+                    "$ref": "#/common/errors/notexist"
+                }
+            ]
+        }
+    },
+    "events":{
+        "onReportUpload": {
+            "summary": "Triggered by callback from Telemetry after report uploading",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "telemetryUploadStatus":{
+                        "summary": "Indicates if the upload was successful",
+                        "type": "string",
+                        "example": "UPLOAD_SUCCESS"
+                    }
+                },
+                "required": [
+                    "telemetryUploadStatus"
+                ]
             }
         }
     }

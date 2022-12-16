@@ -6,6 +6,7 @@
 #include "RfcApiMock.h"
 #include "ServiceMock.h"
 #include "TelemetryMock.h"
+#include "RBusMock.h"
 
 namespace {
 const string profileFN = _T("/tmp/DefaultProfile.json");
@@ -66,10 +67,26 @@ protected:
     }
 };
 
+class TelemetryRBusTest : public TelemetryTest {
+protected:
+    RBusApiImplMock rBusApiImplMock;
+
+    TelemetryRBusTest()
+        : TelemetryTest()
+    {
+        RBusApi::getInstance().impl = &rBusApiImplMock;
+    }
+    virtual ~TelemetryRBusTest() override
+    {
+        RBusApi::getInstance().impl = nullptr;
+    }
+};
+
 TEST_F(TelemetryTest, RegisteredMethods)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setReportProfileStatus")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("logApplicationEvent")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadReport")));
 }
 
 TEST_F(TelemetryRfcTest, InitializeDefaultProfile)
