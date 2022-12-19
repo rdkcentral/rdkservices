@@ -14,7 +14,7 @@ env:
 jobs:
   unit-tests:
     name: Build and run unit tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Set up cache
@@ -251,15 +251,13 @@ jobs:
           -DPLUGIN_NETWORK=ON
           -DPLUGIN_WIFIMANAGER=ON
           -DPLUGIN_WAREHOUSE=ON
+          -DPLUGIN_ACTIVITYMONITOR=ON
           -DDS_FOUND=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
           &&
           cmake --install build/rdkservices
-
-      - name: Install traceroute
-        run: sudo apt update && sudo apt install -y traceroute
 
       - name: Set up files
         run: >

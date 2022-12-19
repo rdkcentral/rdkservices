@@ -68,6 +68,7 @@ include_directories(../LocationSync
         ../Network
 	../WifiManager
         ../Warehouse
+        ../ActivityMonitor
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -93,6 +94,7 @@ link_directories(../LocationSync
 	../WifiManager
         ../FrontPanel
         ../Warehouse
+        ../ActivityMonitor
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -119,10 +121,11 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}HdmiInput
         ${NAMESPACE}HdcpProfile
         ${NAMESPACE}TraceControl
-	      ${NAMESPACE}Network
+        ${NAMESPACE}Network
         ${NAMESPACE}WifiManager
 	${NAMESPACE}FrontPanel
         ${NAMESPACE}Warehouse
+        ${NAMESPACE}ActivityMonitor
         )
 
 target_include_directories(${PROJECT_NAME}
