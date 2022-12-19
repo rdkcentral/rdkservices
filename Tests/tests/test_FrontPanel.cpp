@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "FrontPanel.h"
+#include "frontpanel.h"
 
 #include "FactoriesImplementation.h"
 
@@ -9,8 +10,6 @@
 #include "FrontPanelConfigMock.h"
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
-
-#include "dsMgr.h"
 
 using namespace WPEFramework;
 
@@ -35,6 +34,7 @@ protected:
     FrontPanelIndicatorImplMock frontPanelIndicatorImplMock;
     FrontPanelIndicatorImplMock frontPanelIndicatorImplStringMock;
     FrontPanelIndicatorImplMock frontPanelIndicatorImplIntMock;
+    FrontPanelIndicatorColorImplMock frontPanelIndicatorColorImplMock;
     FrontPanelTextDisplayImplMock frontPanelTextDisplayImplStringMock;
     FrontPanelTextDisplayImplMock frontPanelTextDisplayImplMock;
     FrontPanelTextDisplayImplMock frontPanelTextDisplayImplIntMock;
@@ -43,23 +43,26 @@ protected:
         : FrontPanelTest()
     {
         device::FrontPanelIndicator::getInstance().impl = &frontPanelIndicatorImplMock;
-	device::FrontPanelIndicator::getInstance("Power").impl = &frontPanelIndicatorImplStringMock;
+	    device::FrontPanelIndicator::getInstance("Power").impl = &frontPanelIndicatorImplStringMock;
         device::FrontPanelIndicator::getInstance(0).impl = &frontPanelIndicatorImplIntMock;
-	device::FrontPanelTextDisplay::getInstance("Text").impl = &frontPanelTextDisplayImplStringMock;
-	device::FrontPanelTextDisplay::getInstance(0).impl = &frontPanelTextDisplayImplIntMock;
-	device::FrontPanelConfig::getInstance().impl = &frontPanelConfigImplMock;
+        device::FrontPanelIndicator::Color::getInstance("white").colorImpl = &frontPanelIndicatorColorImplMock;
+	    device::FrontPanelTextDisplay::getInstance("Text").impl = &frontPanelTextDisplayImplStringMock;
+	    device::FrontPanelTextDisplay::getInstance(0).impl = &frontPanelTextDisplayImplIntMock;
+	    device::FrontPanelConfig::getInstance().impl = &frontPanelConfigImplMock;
         device::FrontPanelTextDisplay::getInstance().impl = &frontPanelTextDisplayImplMock;
 
     }
     virtual ~FrontPanelDsTest() override
     {
         device::FrontPanelIndicator::getInstance().impl = nullptr;
-	device::FrontPanelIndicator::getInstance("Power").impl = nullptr;
-	device::FrontPanelTextDisplay::getInstance("Text").impl = nullptr;
-	device::FrontPanelConfig::getInstance().impl = nullptr;
+	    device::FrontPanelIndicator::getInstance("Power").impl = nullptr;
+	    device::FrontPanelTextDisplay::getInstance("Text").impl = nullptr;
+	    device::FrontPanelConfig::getInstance().impl = nullptr;
         device::FrontPanelTextDisplay::getInstance().impl = nullptr;
-	device::FrontPanelTextDisplay::getInstance(0).impl = nullptr;
+	    device::FrontPanelTextDisplay::getInstance(0).impl = nullptr;
         device::FrontPanelIndicator::getInstance(0).impl = nullptr;
+        device::FrontPanelIndicator::Color::getInstance("white").colorImpl = nullptr;
+
 
     }
 };
@@ -70,15 +73,31 @@ protected:
     IARM_EventHandler_t dsPanelEventHandler;
     FrontPanelConfigImplMock frontPanelConfigImplMock;
     FrontPanelIndicatorImplMock frontPanelIndicatorImplMock;
-    IARM_EventHandler_t dsFrontPanelModeChange;
+    FrontPanelTextDisplayImplMock frontPanelTextDisplayImplStringMock;
 
+    IARM_EventHandler_t dsFrontPanelModeChange;
 
     FrontPanelInitializedTest()
         : FrontPanelTest()
     {
+
+        //Needs to be run before plugin start for fpindicators to get set.
+        device::FrontPanelIndicator indicatorList;
+        indicatorList.impl = &frontPanelIndicatorImplMock;
+    
+
+        ON_CALL(frontPanelConfigImplMock, getIndicators())
+            .WillByDefault(::testing::Return(device::List<device::FrontPanelIndicator>({ indicatorList })));
+
+
+    
+
+    
         IarmBus::getInstance().impl = &iarmBusImplMock;
         device::FrontPanelConfig::getInstance().impl = &frontPanelConfigImplMock;
         device::FrontPanelIndicator::getInstance().impl = &frontPanelIndicatorImplMock;
+        device::FrontPanelTextDisplay::getInstance("Text").impl = &frontPanelTextDisplayImplStringMock;
+
 
         ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
@@ -91,14 +110,19 @@ protected:
                     return IARM_RESULT_SUCCESS;
                 }));
 
+
+        
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
     }
     virtual ~FrontPanelInitializedTest() override
     {
         device::FrontPanelConfig::getInstance().impl = nullptr;
         device::FrontPanelIndicator::getInstance().impl = nullptr;
+        device::FrontPanelTextDisplay::getInstance("Text").impl = nullptr;
 
-	plugin->Deinitialize(nullptr);
+
+	    plugin->Deinitialize(nullptr);
+        Plugin::CFrontPanel::instance()->Deinitialize();
    
         IarmBus::getInstance().impl = nullptr;
     }
@@ -134,9 +158,12 @@ class FrontPanelInitializedEventDsTest : public FrontPanelInitializedEventTest {
 protected:
     FrontPanelIndicatorImplMock frontPanelIndicatorImplStringMock;
     FrontPanelIndicatorImplMock frontPanelIndicatorImplIntMock;
-    FrontPanelTextDisplayImplMock frontPanelTextDisplayImplStringMock;
+    FrontPanelIndicatorColorImplMock frontPanelIndicatorColorImplMock;
     FrontPanelTextDisplayImplMock frontPanelTextDisplayImplMock;
     FrontPanelTextDisplayImplMock frontPanelTextDisplayImplIntMock;
+
+    
+
 
 
     FrontPanelInitializedEventDsTest()
@@ -144,19 +171,21 @@ protected:
     {
         device::FrontPanelIndicator::getInstance("Power").impl = &frontPanelIndicatorImplStringMock;
         device::FrontPanelIndicator::getInstance(0).impl = &frontPanelIndicatorImplIntMock;
-        device::FrontPanelTextDisplay::getInstance("Text").impl = &frontPanelTextDisplayImplStringMock;
         device::FrontPanelTextDisplay::getInstance(0).impl = &frontPanelTextDisplayImplIntMock;
         device::FrontPanelTextDisplay::getInstance().impl = &frontPanelTextDisplayImplMock;
+        device::FrontPanelIndicator::Color::getInstance("white").colorImpl = &frontPanelIndicatorColorImplMock;
+        
 	
     }
 
     virtual ~FrontPanelInitializedEventDsTest() override
     {
         device::FrontPanelIndicator::getInstance("Power").impl = nullptr;
-        device::FrontPanelTextDisplay::getInstance("Text").impl = nullptr;
         device::FrontPanelTextDisplay::getInstance().impl = nullptr;
-	device::FrontPanelTextDisplay::getInstance(0).impl = nullptr;
+	    device::FrontPanelTextDisplay::getInstance(0).impl = nullptr;
         device::FrontPanelIndicator::getInstance(0).impl = nullptr;
+        device::FrontPanelIndicator::Color::getInstance("white").colorImpl = nullptr;
+
 
     }
 };
@@ -179,40 +208,91 @@ TEST_F(FrontPanelTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setClockTestPattern")));
 }
 
-TEST_F(FrontPanelDsTest, setBrightnessWIndex)
+TEST_F(FrontPanelInitializedEventDsTest, setBrightnessWIndex)
 {
+    ON_CALL(frontPanelIndicatorImplMock, getName())
+        .WillByDefault(::testing::Return("Power"));
+
+    EXPECT_CALL(frontPanelIndicatorImplStringMock, setBrightness(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](int brightness) {
+                EXPECT_EQ(brightness, 1);
+            }));
     ON_CALL(frontPanelIndicatorImplStringMock, setBrightness(::testing::_, ::testing::_))
         .WillByDefault(::testing::Return());
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBrightness"), _T("{\"brightness\": 1,\"index\": \"power_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
-TEST_F(FrontPanelDsTest, setBrightnessClock)
+TEST_F(FrontPanelInitializedEventDsTest, setBrightnessClock)
 {
-    ON_CALL(frontPanelTextDisplayImplStringMock, setTextBrightness(::testing::_))
-        .WillByDefault(::testing::Return());
+
+    //setting powermode
+
+    FrontPanelIndicatorImplMock frontPanelIndicatorMock;
+    device::FrontPanelIndicator indicatorList;
+    indicatorList.impl = &frontPanelIndicatorMock;
+    ON_CALL(frontPanelConfigImplMock, getIndicators())
+        .WillByDefault(::testing::Return(device::List<device::FrontPanelIndicator>({indicatorList})));
+    ON_CALL(frontPanelIndicatorMock, getName())
+        .WillByDefault(::testing::Return("red"));
+
+    ASSERT_TRUE(dsFrontPanelModeChange != nullptr);
+
+    IARM_Bus_PWRMgr_EventData_t eventData;
+    eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
+    eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+
+    handler.Subscribe(0, _T("powerModeChange"), _T("client.events.powerModeChange"), message);
+
+    dsFrontPanelModeChange(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
+    
+    EXPECT_CALL(frontPanelTextDisplayImplStringMock, setTextBrightness(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](int brightness) {
+                EXPECT_EQ(brightness, 1);
+            }));
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBrightness"), _T("{\"brightness\": 1,\"index\": \"clock_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
-TEST_F(FrontPanelDsTest, setBrightness)
+TEST_F(FrontPanelInitializedEventDsTest, setBrightness)
 {
-    ON_CALL(frontPanelIndicatorImplStringMock, setBrightness(::testing::_, ::testing::_))
-        .WillByDefault(::testing::Return());
+
+    
+    
+    ON_CALL(frontPanelIndicatorImplMock, getName())
+        .WillByDefault(::testing::Return("Power"));
+
+    EXPECT_CALL(frontPanelIndicatorImplStringMock, setBrightness(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](int brightness) {
+                EXPECT_EQ(brightness, 1);
+            }));
+       
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBrightness"), _T("{\"brightness\": 1}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
-TEST_F(FrontPanelDsTest, setBrightnessFalse)
+
+TEST_F(FrontPanelInitializedEventDsTest, setBrightnessFalse)
 {
+    
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setBrightness"), _T("{}"), response));
     EXPECT_EQ(response, string(""));
 }
-TEST_F(FrontPanelDsTest, setBrightnessNeg1)
+TEST_F(FrontPanelInitializedEventDsTest, setBrightnessNeg1)
 {
+
+
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setBrightness"), _T("{\"brightness\": -1}"), response));
     EXPECT_EQ(response, string(""));
 }
 
-TEST_F(FrontPanelDsTest, getBrightnessWIndex)
+TEST_F(FrontPanelInitializedEventDsTest, getBrightnessWIndex)
 {
     ON_CALL(frontPanelIndicatorImplStringMock, getBrightness())
         .WillByDefault(::testing::Return(50));
@@ -220,7 +300,7 @@ TEST_F(FrontPanelDsTest, getBrightnessWIndex)
     EXPECT_EQ(response, string("{\"brightness\":50,\"success\":true}"));
 }
 
-TEST_F(FrontPanelDsTest, getBrightnessOtherName)
+TEST_F(FrontPanelInitializedEventDsTest, getBrightnessOtherName)
 {
     ON_CALL(frontPanelIndicatorImplStringMock, getBrightness())
         .WillByDefault(::testing::Return(50));
@@ -228,7 +308,7 @@ TEST_F(FrontPanelDsTest, getBrightnessOtherName)
     EXPECT_EQ(response, string("{\"brightness\":50,\"success\":true}"));
 }
 
-TEST_F(FrontPanelDsTest, getBrightnessWIndexClock)
+TEST_F(FrontPanelInitializedEventDsTest, getBrightnessWIndexClock)
 {
     ON_CALL(frontPanelTextDisplayImplStringMock, getTextBrightness())
         .WillByDefault(::testing::Return(50));
@@ -238,16 +318,15 @@ TEST_F(FrontPanelDsTest, getBrightnessWIndexClock)
 }
 
 
-TEST_F(FrontPanelDsTest, getBrightness)
+TEST_F(FrontPanelInitializedEventDsTest, getBrightness)
 {
+
     ON_CALL(frontPanelIndicatorImplStringMock, getBrightness())
-        .WillByDefault(::testing::Return(50));
-    ON_CALL(frontPanelTextDisplayImplStringMock, getTextBrightness())
         .WillByDefault(::testing::Return(50));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBrightness"), _T(""), response));
     EXPECT_EQ(response, string("{\"brightness\":50,\"success\":true}"));
 }
-TEST_F(FrontPanelDsTest, getClockBrightness)
+TEST_F(FrontPanelInitializedEventDsTest, getClockBrightness)
 {
     ON_CALL(frontPanelTextDisplayImplStringMock, getTextBrightness())
         .WillByDefault(::testing::Return(50));
@@ -255,26 +334,55 @@ TEST_F(FrontPanelDsTest, getClockBrightness)
     EXPECT_EQ(response, string("{\"brightness\":50,\"success\":true}"));
 }
 
-TEST_F(FrontPanelDsTest, setClockBrightness)
+TEST_F(FrontPanelInitializedEventDsTest, setClockBrightness)
 {
-    ON_CALL(frontPanelTextDisplayImplStringMock, setTextBrightness(::testing::_))
-        .WillByDefault(::testing::Return());
+
+    //setting powermode
+
+    FrontPanelIndicatorImplMock frontPanelIndicatorMock;
+    device::FrontPanelIndicator indicatorList;
+    indicatorList.impl = &frontPanelIndicatorMock;
+    ON_CALL(frontPanelConfigImplMock, getIndicators())
+        .WillByDefault(::testing::Return(device::List<device::FrontPanelIndicator>({indicatorList})));
+    ON_CALL(frontPanelIndicatorMock, getName())
+        .WillByDefault(::testing::Return("red"));
+
+    ASSERT_TRUE(dsFrontPanelModeChange != nullptr);
+
+    IARM_Bus_PWRMgr_EventData_t eventData;
+    eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
+    eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+
+    handler.Subscribe(0, _T("powerModeChange"), _T("client.events.powerModeChange"), message);
+
+    dsFrontPanelModeChange(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
+
+    EXPECT_CALL(frontPanelTextDisplayImplStringMock, setTextBrightness(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](int brightness) {
+                EXPECT_EQ(brightness, 1);
+            }));
+      
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setClockBrightness"), _T("{\"brightness\": 1}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
-TEST_F(FrontPanelDsTest, setClockBrightnessInvalid)
+TEST_F(FrontPanelInitializedEventDsTest, setClockBrightnessInvalid)
 {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setClockBrightness"), _T("{\"brightness\": -1}"), response));
     EXPECT_EQ(response, string(""));
 }
 
-TEST_F(FrontPanelDsTest, getFrontPanelLights)
+TEST_F(FrontPanelInitializedEventDsTest, getFrontPanelLights)
 {
     FrontPanelIndicatorImplMock frontPanelIndicatorMock;
 
     device::FrontPanelIndicator indicatorList;
     indicatorList.impl = &frontPanelIndicatorMock;
+
+    
+
     ON_CALL(frontPanelConfigImplMock, getIndicators())
         .WillByDefault(::testing::Return(device::List<device::FrontPanelIndicator>({ indicatorList })));
 
@@ -296,6 +404,8 @@ TEST_F(FrontPanelDsTest, getFrontPanelLights)
         .WillByDefault(::testing::Return(device::List<device::FrontPanelTextDisplay>({ displayList })));
     ON_CALL(frontPanelTextDisplayMock, getName())
         .WillByDefault(::testing::Return("Text"));
+    ON_CALL(frontPanelIndicatorColorImplMock, getName())
+        .WillByDefault(::testing::Return("white"));
 
    
 	int test = 0;
@@ -310,10 +420,10 @@ TEST_F(FrontPanelDsTest, getFrontPanelLights)
         .WillByDefault(::testing::Return("Power"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFrontPanelLights"), _T(""), response));
-    EXPECT_EQ(response, string("{\"supportedLights\":[\"power_led\",\"clock_led\"],\"supportedLightsInfo\":{\"power_led\":{\"range\":\"boolean\",\"min\":0,\"max\":2,\"colors\":[\"white\"],\"colorMode\":0},\"clock_led\":{\"range\":\"boolean\",\"min\":0,\"max\":2,\"colors\":[\"white\"],\"colorMode\":0}},\"success\":true}"));
+    EXPECT_EQ(response, string("{\"supportedLights\":[\"power_led\",\"clock_led\"],\"supportedLightsInfo\":{\"power_led\":{\"range\":\"boolean\",\"min\":0,\"max\":2,\"colorMode\":0},\"clock_led\":{\"range\":\"boolean\",\"min\":0,\"max\":2,\"colorMode\":0}},\"success\":true}"));
 }
 
-TEST_F(FrontPanelDsTest, getPreferences)
+TEST_F(FrontPanelInitializedEventDsTest, getPreferences)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPreferences"), _T("{\"preferences\":{\"test\": true}}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
@@ -321,7 +431,7 @@ TEST_F(FrontPanelDsTest, getPreferences)
     EXPECT_EQ(response, string("{\"preferences\":{\"test\":true},\"success\":true}"));
 }
 
-TEST_F(FrontPanelDsTest, is24HourClock)
+TEST_F(FrontPanelInitializedEventDsTest, is24HourClock)
 {   
     device::FrontPanelTextDisplay displayList;
     displayList.impl = &frontPanelTextDisplayImplStringMock;
@@ -345,25 +455,40 @@ TEST_F(FrontPanelDsTest, is24HourClock)
 
 }
 
-TEST_F(FrontPanelDsTest, powerLedOffPower)
+TEST_F(FrontPanelInitializedEventDsTest, powerLedOffPower)
 {
-    ON_CALL(frontPanelTextDisplayImplStringMock, setTextBrightness(::testing::_))
-        .WillByDefault(::testing::Return());
+
+
+    EXPECT_CALL(frontPanelIndicatorImplStringMock, setState(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](bool state) {
+                EXPECT_EQ(state, false);
+            }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("powerLedOff"), _T("{\"index\": \"power_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
-TEST_F(FrontPanelDsTest, powerLedOffData)
+TEST_F(FrontPanelInitializedEventDsTest, powerLedOffData)
 {
-    ON_CALL(frontPanelIndicatorImplStringMock, setState(::testing::_))
-        .WillByDefault(::testing::Return());
+
+    EXPECT_CALL(frontPanelIndicatorImplStringMock, setState(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](bool state) {
+                EXPECT_EQ(state, false);
+            }));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("powerLedOff"), _T("{\"index\": \"data_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
-TEST_F(FrontPanelDsTest, powerLedOffRecord)
+TEST_F(FrontPanelInitializedEventDsTest, powerLedOffRecord)
 {
-    ON_CALL(frontPanelIndicatorImplStringMock, setState(::testing::_))
-        .WillByDefault(::testing::Return());
+    EXPECT_CALL(frontPanelIndicatorImplStringMock, setState(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](bool state) {
+                EXPECT_EQ(state, false);
+            }));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("powerLedOff"), _T("{\"index\": \"record_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
@@ -419,7 +544,7 @@ FrontPanelIndicatorImplMock frontPanelIndicatorMock;
 
 }
 
-TEST_F(FrontPanelDsTest, set24HourClock)
+TEST_F(FrontPanelInitializedEventDsTest, set24HourClock)
 {
     device::FrontPanelTextDisplay displayList;
     displayList.impl = &frontPanelTextDisplayImplStringMock;
@@ -439,7 +564,7 @@ TEST_F(FrontPanelDsTest, set24HourClock)
 
 }
 
-TEST_F(FrontPanelDsTest, setBlink)
+TEST_F(FrontPanelInitializedEventDsTest, setBlink)
 {
 
     ON_CALL(frontPanelIndicatorImplStringMock, getBrightness())
@@ -452,7 +577,7 @@ TEST_F(FrontPanelDsTest, setBlink)
        	EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
-TEST_F(FrontPanelDsTest, setClockTestPattern)
+TEST_F(FrontPanelInitializedEventDsTest, setClockTestPattern)
 {
     device::FrontPanelTextDisplay displayList;
     displayList.impl = &frontPanelTextDisplayImplStringMock;
@@ -474,11 +599,29 @@ TEST_F(FrontPanelDsTest, setClockTestPattern)
 
 }
 
-TEST_F(FrontPanelDsTest, setLED)
+TEST_F(FrontPanelInitializedEventDsTest, setLEDMode1)
 {
-    ON_CALL(frontPanelTextDisplayImplStringMock, setColor())
-        .WillByDefault(::testing::Return());
+    EXPECT_CALL(frontPanelIndicatorImplStringMock, setColor(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](device::FrontPanelIndicator::Color color, bool persist) {
+                //Takes a new instance of color, and always false bool. Nothing to really check here.
+            }));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setLED"), _T("{\"ledIndicator\": \"power_led\", \"brightness\": 50, \"color\": \"red\", \"red\": 0, \"green\": 0, \"blue\":0}"), response));
+
+        EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(FrontPanelInitializedEventDsTest, setLEDMode2)
+{
+
+    EXPECT_CALL(frontPanelIndicatorImplStringMock, setColor(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](device::FrontPanelIndicator::Color color) {
+                //Takes a new instance of color, nothing much to check
+            }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setLED"), _T("{\"ledIndicator\": \"power_led\", \"brightness\": 50, \"red\": 0, \"green\": 0, \"blue\":0}"), response));
 
         EXPECT_EQ(response, string("{\"success\":true}"));
 }

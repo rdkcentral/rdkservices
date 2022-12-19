@@ -92,7 +92,6 @@ link_directories(../LocationSync
         ../Network
 	../WifiManager
         ../FrontPanel
-
         ../Warehouse
         )
 

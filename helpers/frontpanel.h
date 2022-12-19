@@ -99,6 +99,7 @@ namespace WPEFramework
         {
         public:
             static CFrontPanel* instance();
+            void Deinitialize();
             bool start();
             bool stop();
             std::string getLastError();
@@ -106,6 +107,7 @@ namespace WPEFramework
             void removeEventObserver(FrontPanel* o);
             bool setBrightness(int fp_brighness);
             int getBrightness();
+
 #ifdef CLOCK_BRIGHTNESS_ENABLED
             bool setClockBrightness(int brightness);
             int getClockBrightness();
@@ -139,6 +141,7 @@ namespace WPEFramework
             bool m_isBlinking;
             std::vector<FrontPanelBlinkInfo> m_blinkList;
             std::list<FrontPanel*> observers_;
+            
 
             std::string lastError_;
             FrontPanelHelper* mFrontPanelHelper;

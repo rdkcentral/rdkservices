@@ -88,7 +88,7 @@ namespace
 
     string svc2iarm(const string &name)
     {
-	const char *s = name.c_str();
+	    const char *s = name.c_str();
 
         int i = 0;
         while (name_mappings[i].SvcManagerName)

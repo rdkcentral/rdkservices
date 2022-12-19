@@ -8,7 +8,7 @@ on:
 
 env:
   BUILD_TYPE: Debug
-  THUNDER_REF: "R2-v1.12"
+  THUNDER_REF: "a87b48eca1e76c3e6f03d689e6302b1fb090b52c"
   INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
 
 jobs:
@@ -66,7 +66,7 @@ jobs:
 
       - name: Checkout Thunder
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.2.0
         with:
           repository: rdkcentral/Thunder
           path: Thunder
@@ -101,7 +101,7 @@ jobs:
 
       - name: Checkout ThunderInterfaces
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.2.0
         with:
           repository: rdkcentral/ThunderInterfaces
           path: ThunderInterfaces
@@ -207,6 +207,7 @@ jobs:
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
           -DUSE_IARMBUS
+          -DUSE_DS
           -DENABLE_SYSTEM_GET_STORE_DEMO_LINK
           -DENABLE_DEEP_SLEEP
           -DENABLE_SET_WAKEUP_SRC_CONFIG
