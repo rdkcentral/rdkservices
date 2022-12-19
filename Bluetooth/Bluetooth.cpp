@@ -897,30 +897,18 @@ namespace WPEFramework
                     break;
 
                 case BTRMGR_EVENT_DEVICE_CONNECTION_COMPLETE:
-                case BTRMGR_EVENT_DEVICE_DISCONNECT_COMPLETE: /* Allow only AudioIn/Out & HID Connection Event propogation to XRE for now */
-                    if ((eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_WEARABLE_HEADSET)   ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HANDSFREE)          ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_LOUDSPEAKER)        ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HEADPHONES)         ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_PORTABLE_AUDIO)     ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_CAR_AUDIO)          ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HIFI_AUDIO_DEVICE)  ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_SMARTPHONE)         ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_TABLET)             ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HID)                ){
+                case BTRMGR_EVENT_DEVICE_DISCONNECT_COMPLETE:
+                    LOGINFO ("Received %s Event from BTRMgr", C_STR(STATUS_CONNECTION_CHANGE));
+                    params["newStatus"] = STATUS_CONNECTION_CHANGE;
+                    params["deviceID"] = std::to_string(eventMsg.m_pairedDevice.m_deviceHandle);
+                    params["name"] = string(eventMsg.m_pairedDevice.m_name);
+                    params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_pairedDevice.m_deviceType);
+                    params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
+                    params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice ? true : false;
+                    params["paired"] = true;
+                    params["connected"] = eventMsg.m_pairedDevice.m_isConnected ? true : false;
 
-                        LOGINFO ("Received %s Event from BTRMgr", C_STR(STATUS_CONNECTION_CHANGE));
-                        params["newStatus"] = STATUS_CONNECTION_CHANGE;
-                        params["deviceID"] = std::to_string(eventMsg.m_pairedDevice.m_deviceHandle);
-                        params["name"] = string(eventMsg.m_pairedDevice.m_name);
-                        params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_pairedDevice.m_deviceType);
-                        params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
-                        params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice ? true : false;
-                        params["paired"] = true;
-                        params["connected"] = eventMsg.m_pairedDevice.m_isConnected ? true : false;
-
-                        eventId = EVT_STATUS_CHANGED;
-                    }
+                    eventId = EVT_STATUS_CHANGED;
                     break;
 
                 case BTRMGR_EVENT_DEVICE_DISCOVERY_STARTED:
@@ -985,30 +973,17 @@ namespace WPEFramework
                     break;
 
                 case BTRMGR_EVENT_DEVICE_CONNECTION_FAILED:
-                case BTRMGR_EVENT_DEVICE_DISCONNECT_FAILED: /* Allow only AudioIn/Out & HID Connection Event propogation to XRE for now */
-                    if ((eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_WEARABLE_HEADSET)   ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HANDSFREE)          ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_LOUDSPEAKER)        ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HEADPHONES)         ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_PORTABLE_AUDIO)     ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_CAR_AUDIO)          ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HIFI_AUDIO_DEVICE)  ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_SMARTPHONE)         ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_TABLET)             ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HID)                ){
+                    LOGERR("Received %s Event from BTRMgr", C_STR(STATUS_CONNECTION_FAILED));
+                    params["newStatus"] = STATUS_CONNECTION_FAILED;
+                    params["deviceID"] = std::to_string(eventMsg.m_pairedDevice.m_deviceHandle);
+                    params["name"] = string(eventMsg.m_pairedDevice.m_name);
+                    params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_pairedDevice.m_deviceType);
+                    params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
+                    params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice ? true : false;
+                    params["paired"] = true;
+                    params["connected"] = eventMsg.m_pairedDevice.m_isConnected ? true : false;
 
-                        LOGERR("Received %s Event from BTRMgr", C_STR(STATUS_CONNECTION_FAILED));
-                        params["newStatus"] = STATUS_CONNECTION_FAILED;
-                        params["deviceID"] = std::to_string(eventMsg.m_pairedDevice.m_deviceHandle);
-                        params["name"] = string(eventMsg.m_pairedDevice.m_name);
-                        params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_pairedDevice.m_deviceType);
-                        params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
-                        params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice ? true : false;
-                        params["paired"] = true;
-                        params["connected"] = eventMsg.m_pairedDevice.m_isConnected ? true : false;
-
-                        eventId = EVT_REQUEST_FAILED;
-                    }
+                    eventId = EVT_REQUEST_FAILED;
                     break;
 
                 case BTRMGR_EVENT_RECEIVED_EXTERNAL_CONNECT_REQUEST:

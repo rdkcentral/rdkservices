@@ -321,6 +321,10 @@ namespace WPEFramework
 	     updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isOSDNameUpdated;
 	     LOGINFO("updateStatus %d\n",updateStatus);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.osdName);
+	     if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry > 0 &&
+			HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequested == CECDeviceParams::REQUEST_OSD_NAME) {
+	         HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
+	     }
              if(!updateStatus)
 	     HdmiCecSink::_instance->sendDeviceUpdateInfo(header.from.toInt());
        }
@@ -360,7 +364,10 @@ namespace WPEFramework
 	     LOGINFO("updateDeviceTypeStatus %d updatePAStatus %d \n",updateDeviceTypeStatus,updatePAStatus);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.physicalAddress);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.deviceType);
-	     HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
+	     if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry > 0 &&
+			HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequested == CECDeviceParams::REQUEST_PHISICAL_ADDRESS) {
+	         HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
+	     }
 	     HdmiCecSink::_instance->updateDeviceChain(header.from, msg.physicalAddress);
 	     if (!updateDeviceTypeStatus || !updatePAStatus)
              HdmiCecSink::_instance->sendDeviceUpdateInfo(header.from.toInt());
@@ -577,27 +584,12 @@ namespace WPEFramework
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
            m_sendKeyEventThreadExit = false;
-           try {
-               if (m_sendKeyEventThread.get().joinable()) {
-	           m_sendKeyEventThread.get().join();
-	       }
-               m_sendKeyEventThread = Utils::ThreadRAII(std::thread(threadSendKeyEvent));
-
-           }catch (const std::system_error& e) {
-               LOGERR("exception in creating threadSendKeyEvent %s", e.what());
-           }
+           m_sendKeyEventThread = std::thread(threadSendKeyEvent);
            
            m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
            m_semSignaltoArcRoutingThread.acquire();
-           try {
-               if (m_arcRoutingThread.get().joinable()) {
-	           m_arcRoutingThread.get().join();
-	       }
-               m_arcRoutingThread = Utils::ThreadRAII(std::thread(threadArcRouting));
+           m_arcRoutingThread = std::thread(threadArcRouting);
 
-           }catch (const std::system_error& e) {
-               LOGERR("exception in creating threadArcRouting %s", e.what());
-           }
 
            m_arcStartStopTimer.connect( std::bind( &HdmiCecSink::arcStartStopTimerFunction, this ) );
            m_arcStartStopTimer.setSingleShot(true);
@@ -682,6 +674,19 @@ namespace WPEFramework
 
             m_semSignaltoArcRoutingThread.release();
 
+            try
+	    {
+		if (m_arcRoutingThread.joinable())
+			m_arcRoutingThread.join();
+	    }
+	    catch(const std::system_error& e)
+	    {
+		LOGERR("system_error exception in thread join %s", e.what());
+	    }
+	    catch(const std::exception& e)
+	    {
+		LOGERR("exception in thread join %s", e.what());
+	    }
 
 	    {
 	        m_sendKeyEventThreadExit = true;
@@ -689,6 +694,20 @@ namespace WPEFramework
                 m_sendKeyEventThreadRun = true;
                 m_sendKeyCV.notify_one();
             }
+
+	    try
+	    {
+            if (m_sendKeyEventThread.joinable())
+                m_sendKeyEventThread.join();
+	    }
+	    catch(const std::system_error& e)
+	    {
+		    LOGERR("system_error exception in thread join %s", e.what());
+	    }
+	    catch(const std::exception& e)
+	    {
+		    LOGERR("exception in thread join %s", e.what());
+	    }
 
             HdmiCecSink::_instance = nullptr;
             DeinitializeIARM();
@@ -2458,7 +2477,12 @@ namespace WPEFramework
 
 					case CECDeviceParams::REQUEST_OSD_NAME :	
 					{
-						_instance->deviceList[logicalAddress].update(OSDName("NA"));
+						if ( _instance->deviceList[logicalAddress].m_isRequestRetry++ >= HDMICECSINK_REQUEST_MAX_RETRY )
+						{
+							LOGINFO("Max retry for REQUEST_OSD_NAME = %d", _instance->deviceList[logicalAddress].m_isRequestRetry);
+							_instance->deviceList[logicalAddress].update(OSDName("NA"));
+							_instance->deviceList[logicalAddress].m_isRequestRetry = 0;
+						}
 					}
 						break;
 
@@ -2692,7 +2716,6 @@ namespace WPEFramework
 					LOGINFO("Thread is going to Exit m_pollThreadExit %d\n", _instance->m_pollThreadExit );
 
 			}
-		        LOGINFO("%s: Thread exited", __FUNCTION__);
         }
 
         void HdmiCecSink::allocateLAforTV()
@@ -2796,16 +2819,7 @@ namespace WPEFramework
 			    m_pollThreadState = POLL_THREAD_STATE_POLL;
                             m_pollNextState = POLL_THREAD_STATE_NONE;
                             m_pollThreadExit = false;
-               try {
-                   if (m_pollThread.get().joinable()) {
-	               m_pollThread.get().join();
-	           }
-                   m_pollThread = Utils::ThreadRAII(std::thread(threadRun));
-
-               }catch (const std::system_error& e) {
-                   LOGERR("exception in creating threadRun %s", e.what());
-               }
-
+				m_pollThread = std::thread(threadRun);
             }
             cecEnableStatus = true;
 
@@ -2842,6 +2856,23 @@ namespace WPEFramework
 		LOGWARN("Stop Thread %p", smConnection );
 		m_pollThreadExit = true;
 		m_ThreadExitCV.notify_one();
+
+		try
+		{
+			if (m_pollThread.joinable())
+			{
+				LOGWARN("Join Thread %p", smConnection );
+				m_pollThread.join();
+			}
+		}
+		catch(const std::system_error& e)
+		{
+			LOGERR("system_error exception in thread join %s", e.what());
+		}
+		catch(const std::exception& e)
+		{
+			LOGERR("exception in thread join %s", e.what());
+		}
 
                 m_pollThreadState = POLL_THREAD_STATE_NONE;
                 m_pollNextState = POLL_THREAD_STATE_NONE;
@@ -3091,7 +3122,6 @@ namespace WPEFramework
 			    }
 
             }//while(!_instance->m_sendKeyEventThreadExit)
-            LOGINFO("%s: Thread exited", __FUNCTION__);
         }//threadSendKeyEvent
 
 
@@ -3163,7 +3193,6 @@ namespace WPEFramework
 	             break;
 	          }
             }//while(1)
-            LOGINFO("%s: Thread exited", __FUNCTION__);
         }//threadArcRouting
   
         void HdmiCecSink::Send_Request_Arc_Initiation_Message()

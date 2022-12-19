@@ -74,6 +74,10 @@ WK_EXPORT void WKPreferencesSetPageCacheEnabled(WKPreferencesRef preferences, bo
 #include <libsoup/soup.h>
 #endif
 
+#if defined(ENABLE_LOGGING_UTILS)
+#include "LoggingUtils.h"
+#endif
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -538,6 +542,7 @@ static GSourceFuncs _handlerIntervention =
                 , CookieAcceptPolicy()
                 , EnvironmentVariables()
                 , ContentFilter()
+                , LoggingTarget()
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -602,6 +607,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("cookieacceptpolicy"), &CookieAcceptPolicy);
                 Add(_T("environmentvariables"), &EnvironmentVariables);
                 Add(_T("contentfilter"), &ContentFilter);
+                Add(_T("loggingtarget"), &LoggingTarget);
             }
             ~Config()
             {
@@ -671,6 +677,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::EnumType<HTTPCookieAcceptPolicyType> CookieAcceptPolicy;
             Core::JSON::ArrayType<EnvironmentVariable> EnvironmentVariables;
             Core::JSON::String ContentFilter;
+            Core::JSON::String LoggingTarget;
         };
 
         class HangDetector
@@ -2115,6 +2122,14 @@ static GSourceFuncs _handlerIntervention =
                 return (Core::ERROR_INCOMPLETE_CONFIG);
             }
 
+            #if defined(ENABLE_LOGGING_UTILS)
+            if (!_config.LoggingTarget.Value().empty()) {
+                if (!RedirectAllLogsToService(_config.LoggingTarget.Value())) {
+                    SYSLOG(Logging::Error, (_T("Could not redirect logs to %s"), _config.LoggingTarget.Value().c_str()));
+                }
+            }
+            #endif
+
             bool environmentOverride(WebKitBrowser::EnvironmentOverride(_config.EnvironmentOverride.Value()));
 
             if ((environmentOverride == false) || (Core::SystemInfo::GetEnvironment(_T("WPE_WEBKIT_URL"), _URL) == false)) {
@@ -2733,6 +2748,7 @@ static GSourceFuncs _handlerIntervention =
             webkit_settings_set_enable_mediasource(preferences, TRUE);
             webkit_settings_set_enable_media_stream(preferences, TRUE);
             webkit_settings_set_enable_page_cache(preferences, FALSE);
+            webkit_settings_set_enable_directory_upload(preferences, FALSE);
 
             // Turn on/off WebGL
             webkit_settings_set_enable_webgl(preferences, _config.WebGLEnabled.Value());
@@ -2760,6 +2776,9 @@ static GSourceFuncs _handlerIntervention =
 
             if (_config.UserAgent.IsSet() == true && _config.UserAgent.Value().empty() == false) {
                 webkit_settings_set_user_agent(preferences, _config.UserAgent.Value().c_str());
+            } else {
+                webkit_settings_set_user_agent_with_application_details(preferences, "WPE", "1.0");
+                _config.UserAgent = webkit_settings_get_user_agent(preferences);
             }
 
             webkit_settings_set_enable_html5_database(preferences, _config.IndexedDBEnabled.Value());

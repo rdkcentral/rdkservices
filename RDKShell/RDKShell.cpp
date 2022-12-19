@@ -787,6 +787,34 @@ namespace WPEFramework {
             return displayName;
         }
 
+        static bool ignoreResidentAppLaunch(bool activated=false)
+        {
+             bool ignoreLaunch = false;
+             if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
+             {
+                 // not first launch
+                 if (sResidentAppFirstActivated)
+                 {
+                     if(sFactoryAppLaunchStatus != NOTLAUNCHED)
+                     {
+                         ignoreLaunch = true;
+                     }
+                 }
+                 else
+                 {
+                    if (activated)
+                    {
+                         sResidentAppFirstActivated = true;
+                     }
+                     if (sFactoryModeStart)
+                     {
+                         ignoreLaunch = true;
+                     }
+                 }
+             }
+            return ignoreLaunch;
+        }
+
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
             if (service)
@@ -815,9 +843,15 @@ namespace WPEFramework {
                    if (serviceConfig.HasLabel("clientidentifier"))
                    {
                        std::string clientidentifier = serviceConfig["clientidentifier"].String();
-                       if (!isClientExists(service->Callsign()))
+                       std::string serviceCallsign = service->Callsign();
+                       if ((serviceCallsign == RESIDENTAPP_CALLSIGN) && ignoreResidentAppLaunch())
                        {
-                           std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(service->Callsign(), clientidentifier);
+                           std::cout << "Resident app activation early !!! " << std::endl;
+                           return;
+                       }
+                       if (!isClientExists(serviceCallsign))
+                       {
+                           std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(serviceCallsign, clientidentifier);
                            gRdkShellMutex.lock();
                            gCreateDisplayRequests.push_back(request);
                            gRdkShellMutex.unlock();
@@ -830,9 +864,9 @@ namespace WPEFramework {
                        std::string className = service->ClassName();
                        PluginData pluginData;
                        pluginData.mClassName = className;
-                       if (gActivePluginsData.find(service->Callsign()) == gActivePluginsData.end())
+                       if (gActivePluginsData.find(serviceCallsign) == gActivePluginsData.end())
                        {
-                           gActivePluginsData[service->Callsign()] = pluginData;
+                           gActivePluginsData[serviceCallsign] = pluginData;
                        }
                        gPluginDataMutex.unlock();
                    }
@@ -849,41 +883,17 @@ namespace WPEFramework {
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == RESIDENTAPP_CALLSIGN)
                 {
-                    if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
+                    bool ignoreLaunch = ignoreResidentAppLaunch(true);
+                    if (ignoreLaunch)
                     {
-                        // not first launch
-                        if (sResidentAppFirstActivated)
-                        {
-                            if(sFactoryAppLaunchStatus != NOTLAUNCHED)
-                            {
-                                std::cout << "deactivating resident app as factory app launch in progress or completed" << std::endl;
-                                RDKShellApiRequest apiRequest;
-                                apiRequest.mName = "deactivateresidentapp";
-                                RDKShell* rdkshellPlugin = RDKShell::_instance;
-                                rdkshellPlugin->launchRequestThread(apiRequest);
-                            }
-                        }
-                        else
-                        {
-                            sResidentAppFirstActivated = true;
-                            if (sFactoryModeStart || mShell.checkForBootupFactoryAppLaunch()) //checking once again to make sure this condition not received before factory app launch
-                            {
-                                std::cout << "deactivating resident app as factory mode on start is set" << std::endl;
-                                RDKShellApiRequest apiRequest;
-                                apiRequest.mName = "deactivateresidentapp";
-                                RDKShell* rdkshellPlugin = RDKShell::_instance;
-                                rdkshellPlugin->launchRequestThread(apiRequest);
-                                if (false == sFactoryModeStart)
-                                {
-                                  // reached scenario where persistent store loaded late and conditions matched
-                                  sFactoryModeStart = true;
-                                  JsonObject request, response;
-                                  std::cout << "about to launch factory app\n";
-                                  request["resetagingtime"] = "true";
-                                  getThunderControllerClient("org.rdk.RDKShell.1")->Invoke<JsonObject, JsonObject>(1, "launchFactoryApp", request, response);
-                                }
-                            }
-                        }
+                         std::cout << "deactivating resident app as factory mode is set" << std::endl;
+                         JsonObject destroyRequest;
+                         destroyRequest["callsign"] = "ResidentApp";
+                         RDKShellApiRequest apiRequest;
+                         apiRequest.mName = "destroy";
+                         apiRequest.mRequest = destroyRequest;
+                         RDKShell* rdkshellPlugin = RDKShell::_instance;
+                         rdkshellPlugin->launchRequestThread(apiRequest);
                     }
                 }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == PERSISTENT_STORE_CALLSIGN && !sPersistentStoreFirstActivated)
@@ -1255,6 +1265,10 @@ namespace WPEFramework {
                         subSystems->Release();
                         if (sFactoryModeStart) 
                         {
+                            if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
+		            {
+                                CompositorController::setVisibility("ResidentApp", false);
+			    }
                             JsonObject request, response;
                             std::cout << "about to launch factory app on start without persistent store wait\n";
                             gRdkShellMutex.unlock();
@@ -1282,6 +1296,60 @@ namespace WPEFramework {
                   const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
                   double startFrameTime = RdkShell::microseconds();
                   gRdkShellMutex.lock();
+                  if (!sPersistentStorePreLaunchChecked)
+                  {
+                      if (!sPersistentStoreFirstActivated)
+                      {
+                          PluginHost::IShell::state state;
+                          getServiceState(mCurrentService, PERSISTENT_STORE_CALLSIGN, state);
+                          if (state == PluginHost::IShell::state::ACTIVATED) {
+                              sPersistentStoreFirstActivated = true;
+                          }
+                      }
+                      sPersistentStorePreLaunchChecked = true;
+                  }
+
+                  if (waitForPersistentStore && !sPersistentStoreWaitProcessed && sPersistentStoreFirstActivated)
+                  {
+                    PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
+                    RDKShell* rdkshellPlugin = RDKShell::_instance;
+                    if (subSystems != nullptr)
+                    {
+                        if ((nullptr != rdkshellPlugin) && rdkshellPlugin->checkForBootupFactoryAppLaunch())
+                        {
+                            sFactoryModeStart = true;
+                        }
+                        std::cout << "setting platform and graphics after wait\n";
+                        subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
+                        subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
+                        subSystems->Release();
+                    }
+                    sPersistentStoreWaitProcessed = true;
+                    if (sFactoryModeStart)
+                    {
+                        JsonObject request, response;
+                        std::cout << "About to launch factory app after persistent store wait\n";
+                        if (sFactoryModeBlockResidentApp && !sForceResidentAppLaunch)
+		        {
+                            CompositorController::setVisibility("ResidentApp", false);
+                        }
+                        gRdkShellMutex.unlock();
+                        if (sFactoryModeBlockResidentApp)
+                        {
+                            request["nokillresapp"] = "true";
+                        }
+                        request["resetagingtime"] = "true";
+                        RDKShellApiRequest apiRequest;
+                        apiRequest.mName = "launchFactoryApp";
+                        apiRequest.mRequest = request;
+                        rdkshellPlugin->launchRequestThread(apiRequest);
+                        gRdkShellMutex.lock();
+                    }
+                    else
+                    {
+                        std::cout << "Not launching factory app as conditions not matched\n";
+                    }
+                  }
                   while (gCreateDisplayRequests.size() > 0)
                   {
 		      std::shared_ptr<CreateDisplayRequest> request = gCreateDisplayRequests.front();
@@ -1327,56 +1395,6 @@ namespace WPEFramework {
                     CompositorController::showSplashScreen(gSplashScreenDisplayTime);
                     gSplashScreenDisplayTime = 0;
                     receivedShowSplashScreenRequest = false;
-                  }
-                  if (!sPersistentStorePreLaunchChecked)
-                  {
-                      if (!sPersistentStoreFirstActivated)
-                      {
-                          PluginHost::IShell::state state;
-                          getServiceState(mCurrentService, PERSISTENT_STORE_CALLSIGN, state);
-                          if (state == PluginHost::IShell::state::ACTIVATED) {
-                              sPersistentStoreFirstActivated = true;
-                          }
-                      }
-                      sPersistentStorePreLaunchChecked = true;
-                  }
-
-                  if (waitForPersistentStore && !sPersistentStoreWaitProcessed && sPersistentStoreFirstActivated)
-                  {
-                    PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
-                    RDKShell* rdkshellPlugin = RDKShell::_instance;
-                    if (subSystems != nullptr)
-                    {
-                        if ((nullptr != rdkshellPlugin) && rdkshellPlugin->checkForBootupFactoryAppLaunch())
-                        {
-                            sFactoryModeStart = true;
-                        }
-                        std::cout << "setting platform and graphics after wait\n";
-                        subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
-                        subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
-                        subSystems->Release();
-                    }
-                    sPersistentStoreWaitProcessed = true;
-                    if (sFactoryModeStart)
-                    {
-                        JsonObject request, response;
-                        std::cout << "about to launch factory app after persistent store wait\n";
-                        gRdkShellMutex.unlock();
-                        if (sFactoryModeBlockResidentApp)
-                        {
-                            request["nokillresapp"] = "true";
-                        }
-                        request["resetagingtime"] = "true";
-                        RDKShellApiRequest apiRequest;
-                        apiRequest.mName = "launchFactoryApp";
-                        apiRequest.mRequest = request;
-                        rdkshellPlugin->launchRequestThread(apiRequest);
-                        gRdkShellMutex.lock();
-                    }
-                    else
-                    {
-                        std::cout << "not launching factory app as conditions not matched\n";
-                    }
                   }
                   RdkShell::draw();
                   if (needsScreenshot)
@@ -4078,6 +4096,7 @@ namespace WPEFramework {
             if (result)
             {
                 const string callsign = parameters["callsign"].String();
+		setVisibility(callsign, false);
                 bool isApplicationBeingLaunched = false;
 		gLaunchDestroyMutex.lock();
                 if (gLaunchApplications.find(callsign) != gLaunchApplications.end())
@@ -4820,11 +4839,13 @@ namespace WPEFramework {
                     destroyRequest["callsign"] = "ResidentApp";
                     destroyWrapper(destroyRequest, destroyResponse);
                 }
-                JsonObject launchRequest;
+                JsonObject launchRequest, configuration;
                 launchRequest["callsign"] = "factoryapp";
                 launchRequest["type"] = "ResidentApp";
                 launchRequest["uri"] = std::string(factoryAppUrl);
+                configuration["uri"] = launchRequest["uri"];
                 launchRequest["focused"] = true;
+                launchRequest["configuration"] = configuration;
                 std::cout << "launching " << launchRequest["callsign"].String().c_str() << std::endl;
                 launchWrapper(launchRequest, response);
                 bool launchFactoryResult = response.HasLabel("success")?response["success"].Boolean():false;

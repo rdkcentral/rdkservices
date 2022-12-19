@@ -78,8 +78,8 @@ using namespace std;
 #define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 11
+#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_PATCH 12
 
 static bool isCecArcRoutingThreadEnabled = false;
 static bool isCecEnabled = false;
@@ -1826,9 +1826,11 @@ namespace WPEFramework {
 
             if(!capabilities)hdrCapabilities.Add("none");
             if(capabilities & dsHDRSTANDARD_HDR10)hdrCapabilities.Add("HDR10");
+            if(capabilities & dsHDRSTANDARD_HDR10PLUS)hdrCapabilities.Add("HDR10PLUS");
 	    if(capabilities & dsHDRSTANDARD_HLG)hdrCapabilities.Add("HLG");
             if(capabilities & dsHDRSTANDARD_DolbyVision)hdrCapabilities.Add("Dolby Vision");
             if(capabilities & dsHDRSTANDARD_TechnicolorPrime)hdrCapabilities.Add("Technicolor Prime");
+            if(capabilities & dsHDRSTANDARD_SDR)hdrCapabilities.Add("SDR");
 
             if(capabilities)
             {
@@ -1871,9 +1873,11 @@ namespace WPEFramework {
 
             if(!capabilities)hdrCapabilities.Add("none");
             if(capabilities & dsHDRSTANDARD_HDR10)hdrCapabilities.Add("HDR10");
+            if(capabilities & dsHDRSTANDARD_HDR10PLUS)hdrCapabilities.Add("HDR10PLUS");
 	    if(capabilities & dsHDRSTANDARD_HLG)hdrCapabilities.Add("HLG");
             if(capabilities & dsHDRSTANDARD_DolbyVision)hdrCapabilities.Add("Dolby Vision");
             if(capabilities & dsHDRSTANDARD_TechnicolorPrime)hdrCapabilities.Add("Technicolor Prime");
+            if(capabilities & dsHDRSTANDARD_SDR)hdrCapabilities.Add("SDR");
 
             if(capabilities)
             {
@@ -3760,30 +3764,66 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getSinkAtmosCapability (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
             LOGINFOMETHOD();
-			bool success = true;
-			dsATMOSCapability_t atmosCapability;
+            bool success = true;
+            bool isValidAudioPort =  false;
+            dsATMOSCapability_t atmosCapability;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "NULL";
             try
             {
-                if (device::Host::getInstance().isHDMIOutPortPresent())
+                if(audioPort != "NULL") {
+                    device::List<device::AudioOutputPort> aPorts = device::Host::getInstance().getAudioOutputPorts();
+                    for (size_t i = 0; i < aPorts.size(); i++)
+                    {
+                        device::AudioOutputPort port = aPorts.at(i);
+                        if(audioPort == port.getName()) {
+                            isValidAudioPort = true;
+                            break;
+                        }
+                    }
+
+                    if(isValidAudioPort != true) {
+                         success = false;
+                         LOGERR("getSinkAtmosCapability failure: Unsupported Audio Port!!!\n");
+                         returnResponse(success);
+                    }
+		}
+
+                if (device::Host::getInstance().isHDMIOutPortPresent()) //STB
                 {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                    if(isValidAudioPort) {
+                        aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                    }
                     if (aPort.isConnected()) {
                         aPort.getSinkDeviceAtmosCapability (atmosCapability);
                         response["atmos_capability"] = (int)atmosCapability;
                     }
                     else {
-                        LOGERR("getSinkAtmosCapability failure: HDMI0 not connected!\n");
+                        LOGERR("getSinkAtmosCapability failure: %s not connected!\n", aPort.getName().c_str());
                         success = false;
                     }
                 }
-                else {
-                    device::Host::getInstance().getSinkDeviceAtmosCapability (atmosCapability);
-                    response["atmos_capability"] = (int)atmosCapability;
+                else { //TV
+                    if(isValidAudioPort) {
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                        if ( (aPort.getName() == "HDMI_ARC0" && aPort.isConnected() && m_arcAudioEnabled == true) || (aPort.getName() != "HDMI_ARC0" && aPort.isConnected()) )  {
+                            aPort.getSinkDeviceAtmosCapability (atmosCapability);
+                            response["atmos_capability"] = (int)atmosCapability;
+                        }
+                        else {
+                            LOGERR("getSinkAtmosCapability failure: %s not connected!\n", audioPort.c_str());
+                            success = false;
+                        }
+                    }
+                    else {
+                        device::Host::getInstance().getSinkDeviceAtmosCapability (atmosCapability);
+                        response["atmos_capability"] = (int)atmosCapability;
+                    }
                 }
             }
             catch(const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                LOG_DEVICE_EXCEPTION1(audioPort);
                 success = false;
             }
             returnResponse(success);
@@ -4204,7 +4244,7 @@ namespace WPEFramework {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
 
                     aPort.getSupportedARCTypes(&types);
-                    if((aPort.isConnected()) && (m_hdmiCecAudioDeviceDetected)) {
+                    if((aPort.isConnected()) && (m_hdmiCecAudioDeviceDetected || m_hdmiInAudioDeviceConnected)) {
                         LOGINFO("DisplaySettings::setEnableAudioPort Configuring User set Audio mode before starting ARC/eARC Playback...\n");
                         if(aPort.getStereoAuto() == true) {
                             if(types & dsAUDIOARCSUPPORT_eARC) {
@@ -5550,11 +5590,12 @@ namespace WPEFramework {
                 return videoFormats;
             }
 
-            videoFormats.Add("SDR");
             if(capabilities & dsHDRSTANDARD_HDR10)videoFormats.Add("HDR10");
             if(capabilities & dsHDRSTANDARD_HLG)videoFormats.Add("HLG");
             if(capabilities & dsHDRSTANDARD_DolbyVision)videoFormats.Add("DV");
             if(capabilities & dsHDRSTANDARD_TechnicolorPrime)videoFormats.Add("Technicolor Prime");
+            if(capabilities & dsHDRSTANDARD_HDR10PLUS)videoFormats.Add("HDR10PLUS");
+            if(capabilities & dsHDRSTANDARD_SDR)videoFormats.Add("SDR");
             for (uint32_t i = 0; i < videoFormats.Length(); i++)
             {
                LOGINFO("capabilities: %s", videoFormats[i].String().c_str());
@@ -5567,13 +5608,17 @@ namespace WPEFramework {
             const char *strValue = "NONE";
             switch (format)
             {
-                case dsHDRSTANDARD_NONE:
+                case dsHDRSTANDARD_SDR:
                     LOGINFO("Video Format: SDR\n");
                     strValue = "SDR";
                     break;
                 case dsHDRSTANDARD_HDR10:
                     LOGINFO("Video Format: HDR10\n");
                     strValue = "HDR10";
+                    break;
+                case dsHDRSTANDARD_HDR10PLUS:
+                    LOGINFO("Video Format: HDR10PLUS\n");
+                    strValue = "HDR10PLUS";
                     break;
                 case dsHDRSTANDARD_HLG:
                     LOGINFO("Video Format: HLG\n");
@@ -5598,10 +5643,14 @@ namespace WPEFramework {
 	dsHDRStandard_t DisplaySettings::getVideoFormatTypeFromString(const char *strFormat)
         {
            dsHDRStandard_t mode = dsHDRSTANDARD_NONE;
-            if(strcmp(strFormat,"SDR")== 0 || strcmp(strFormat,"NONE")== 0 )
+            if(strcmp(strFormat,"SDR")== 0 )
+                    mode = dsHDRSTANDARD_SDR;
+            else if(strcmp(strFormat,"NONE")== 0)
                     mode = dsHDRSTANDARD_NONE;
             else if(strcmp(strFormat,"HDR10")== 0)
                     mode = dsHDRSTANDARD_HDR10;
+            else if(strcmp(strFormat,"HDR10PLUS")== 0)
+                    mode = dsHDRSTANDARD_HDR10PLUS;
             else if(strcmp(strFormat,"DV")== 0)
                     mode = dsHDRSTANDARD_DolbyVision;
             else if(strcmp(strFormat,"HLG")== 0)
