@@ -76,7 +76,7 @@ namespace OCDM {
             {
                 return (IsOperational() ? 1 : 0);
             }
-            virtual const bool IsOperational() const
+            virtual bool IsOperational() const
             {
                 return _main.IsActive();
             }
@@ -163,7 +163,7 @@ namespace Plugin {
 
         _opencdmi->Deinitialize(service);
         RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
-        uint32_t result = _opencdmi->Release();
+        VARIABLE_IS_NOT_USED uint32_t result = _opencdmi->Release();
         ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
         PluginHost::ISubSystem* subSystem = service->SubSystems();

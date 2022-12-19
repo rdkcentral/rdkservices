@@ -28,6 +28,7 @@
 // DRM engines.
 #include <interfaces/IDRM.h>
 #include <interfaces/IContentDecryption.h>
+#include <interfaces/IOCDM.h>
 
 extern "C" {
 
@@ -108,8 +109,8 @@ namespace Plugin {
 
         public:
             ExternalAccess(
-                const Core::NodeId& source, 
-                ::OCDM::IAccessorOCDM* parentInterface, 
+                const Core::NodeId& source,
+                Exchange::IAccessorOCDM* parentInterface,
                 const Core::ProxyType<RPC::InvokeServer> & engine)
                 : RPC::Communicator(source, _T(""), Core::ProxyType<Core::IIPCServer>(engine))
                 , _parentInterface(parentInterface)
@@ -123,12 +124,12 @@ namespace Plugin {
             }
 
         private:
-            virtual void* Aquire(const string& className, const uint32_t interfaceId, const uint32_t versionId)
+            virtual void* Aquire(const string&, const uint32_t interfaceId, const uint32_t versionId)
             {
                 void* result = nullptr;
 
                 // Currently we only support version 1 of the IRPCLink :-)
-                if (((versionId == 1) || (versionId == static_cast<uint32_t>(~0))) && ((interfaceId == ::OCDM::IAccessorOCDM::ID) || (interfaceId == Core::IUnknown::ID))) {
+                if (((versionId == 1) || (versionId == static_cast<uint32_t>(~0))) && ((interfaceId == Exchange::IAccessorOCDM::ID) || (interfaceId == Core::IUnknown::ID))) {
                     // Reference count our parent
                     _parentInterface->AddRef();
                     TRACE(Trace::Information, ("OCDM interface aquired => %p", this));
@@ -139,10 +140,10 @@ namespace Plugin {
             }
 
         private:
-            ::OCDM::IAccessorOCDM* _parentInterface;
+            Exchange::IAccessorOCDM* _parentInterface;
         };
 
-        class AccessorOCDM : public ::OCDM::IAccessorOCDM {
+        class AccessorOCDM : public Exchange::IAccessorOCDM {
         private:
             AccessorOCDM() = delete;
             AccessorOCDM(const AccessorOCDM&) = delete;
@@ -229,13 +230,13 @@ namespace Plugin {
             };
 
             // IMediaKeys defines the MediaKeys interface.
-            class SessionImplementation : public ::OCDM::ISession, public ::OCDM::ISessionExt {
+            class SessionImplementation : public Exchange::ISession, public Exchange::ISessionExt {
             private:
                 SessionImplementation() = delete;
                 SessionImplementation(const SessionImplementation&) = delete;
                 SessionImplementation& operator=(const SessionImplementation&) = delete;
 
-                class DataExchange : public ::OCDM::DataExchange, public Core::Thread {
+                class DataExchange : public Exchange::DataExchange, public Core::Thread {
                 private:
                     DataExchange() = delete;
                     DataExchange(const DataExchange&) = delete;
@@ -243,7 +244,7 @@ namespace Plugin {
 
                 public:
                     DataExchange(CDMi::IMediaKeySession* mediaKeys, const string& name, const uint32_t defaultSize)
-                        : ::OCDM::DataExchange(name, defaultSize)
+                        :  Exchange::DataExchange(name, defaultSize)
                         , Core::Thread(Core::Thread::DefaultStackSize(), _T("DRMSessionThread"))
                         , _mediaKeys(mediaKeys)
                         , _mediaKeysExt(dynamic_cast<CDMi::IMediaKeySessionExt*>(mediaKeys))
@@ -255,7 +256,7 @@ namespace Plugin {
                     }
                     ~DataExchange()
                     {
-                        TRACE(Trace::Information, (_T("Destructing buffer server side: %p - %s"), this, ::OCDM::DataExchange::Name().c_str()));
+                        TRACE(Trace::Information, (_T("Destructing buffer server side: %p - %s"), this, Exchange::DataExchange::Name().c_str()));
                         // Make sure the thread reaches a HALT.. We are done.
                         Core::Thread::Stop();
 
@@ -279,29 +280,45 @@ namespace Plugin {
                             if (IsRunning() == true) {
                                 uint8_t keyIdLength = 0;
                                 const uint8_t* keyIdData = KeyId(keyIdLength);
+                                uint8_t *payloadBuffer = Buffer();
+                                CDMi::EncryptionPattern pattern = {0, 0};
+                                EncPattern(pattern.encrypted_blocks,pattern.clear_blocks);
 
-                                int cr = _mediaKeys->Decrypt(
-                                    _sessionKey,
-                                    _sessionKeyLength,
-                                    nullptr, //subsamples
-                                    0, //number of subsamples
-                                    IVKey(),
-                                    IVKeyLength(),
-                                    Buffer(),
-                                    BytesWritten(),
-                                    &clearContentSize,
-                                    &clearContent,
-                                    keyIdLength,
-                                    keyIdData,
-                                    InitWithLast15());
+                                int cr = 0;
+                                REPORT_DURATION_WARNING(
+                                    {
+                                    cr = _mediaKeys->Decrypt(
+                                        _sessionKey,
+                                        _sessionKeyLength,
+                                        static_cast<CDMi::EncryptionScheme>(EncScheme()),
+                                        pattern,
+                                        IVKey(),
+                                        IVKeyLength(),
+                                        payloadBuffer,
+                                        BytesWritten(),
+                                        &clearContentSize,
+                                        &clearContent,
+                                        keyIdLength,
+                                        keyIdData,
+                                        InitWithLast15());
+                                    },
+                                    WarningReporting::TooLongDecrypt
+                                );
+
+
                                 if ((cr == 0) && (clearContentSize != 0)) {
                                     if (clearContentSize != BytesWritten()) {
                                         TRACE(Trace::Information, (_T("Returned clear sample size (%d) differs from encrypted buffer size (%d)"), clearContentSize, BytesWritten()));
                                         Size(clearContentSize);
                                     }
 
-                                    // Adjust the buffer on our sied (this process) on what we will write back
-                                    SetBuffer(0, clearContentSize, clearContent);
+                                    if(payloadBuffer != clearContent) {
+                                        // This wasn't a case of in-place decryption. So, make sure the decrypted buffer is copied to memory mapped file and released
+                                        // Adjust the buffer on our side (this process) on what we will write back
+                                        SetBuffer(0, clearContentSize, clearContent);
+                                        //Lets release the clear content buffer
+                                        _mediaKeys->ReleaseClearContent(nullptr, 0,clearContentSize,clearContent);
+                                    }
                                 }
 
                                 // Store the status we have for the other side.
@@ -330,7 +347,7 @@ namespace Plugin {
                     Sink& operator=(const Sink&) = delete;
 
                 public:
-                    Sink(SessionImplementation* parent, ::OCDM::ISession::ICallback* callback)
+                    Sink(SessionImplementation* parent, Exchange::ISession::ICallback* callback)
                         : _parent(*parent)
                         , _callback(callback)
                     {
@@ -368,7 +385,7 @@ namespace Plugin {
                         TRACE(Trace::Information, ("OnKeyError(%d,%s)", f_nError, errorMessage));
                         if (_callback != nullptr) {
                             std::string message(errorMessage, strlen(errorMessage));
-                            _callback->OnError(f_nError, (::OCDM::OCDM_RESULT)f_crSysError, message);
+                            _callback->OnError(f_nError, (Exchange::OCDM_RESULT)f_crSysError, message);
                         }
                     }
 
@@ -377,27 +394,27 @@ namespace Plugin {
                     {
                         ASSERT (buffer != nullptr);
 
-                        ::OCDM::ISession::KeyStatus key;
-                        CommonEncryptionData::KeyId keyId(CommonEncryptionData::COMMON, buffer, length);
+                        Exchange::ISession::KeyStatus key;
+                        CommonEncryptionData::KeyId keyId(static_cast<CommonEncryptionData::systemType>(0), buffer, length);
 
                         TRACE(Trace::Information, ("OnKeyStatusUpdate(%s)", keyMessage));
 
                         if (::strcmp(keyMessage, "KeyUsable") == 0)
-                            key = ::OCDM::ISession::Usable;
+                            key = Exchange::ISession::Usable;
                         else if (::strcmp(keyMessage, "KeyReleased") == 0)
-                            key = ::OCDM::ISession::Released;
+                            key = Exchange::ISession::Released;
                         else if (::strcmp(keyMessage, "KeyExpired") == 0)
-                            key = ::OCDM::ISession::Expired;
+                            key = Exchange::ISession::Expired;
                         else if (::strcmp(keyMessage, "KeyOutputRestricted") == 0)
-                            key = ::OCDM::ISession::OutputRestricted;
+                            key = Exchange::ISession::OutputRestricted;
                         else if (::strcmp(keyMessage, "KeyOutputDownscaled") == 0)
-                            key = ::OCDM::ISession::OutputDownscaled;
+                            key = Exchange::ISession::OutputDownscaled;
                         else if (::strcmp(keyMessage, "SEC_RESULT_HW_FAILURE") == 0)
-                            key = ::OCDM::ISession::HWError;
+                            key = Exchange::ISession::HWError;
                         else if (::strcmp(keyMessage, "KeyOutputRestrictedHDCP22") == 0)
-                            key = ::OCDM::ISession::OutputRestrictedHDCP22;
+                            key = Exchange::ISession::OutputRestrictedHDCP22;
                         else
-                            key = ::OCDM::ISession::InternalError;
+                            key = Exchange::ISession::InternalError;
 
                         const CommonEncryptionData::KeyId* updated = _parent._cencData.UpdateKeyStatus(key, keyId);
 
@@ -407,7 +424,7 @@ namespace Plugin {
                             _callback->OnKeyStatusUpdate(updated->Id(), updated->Length(), key);
                         }
                     }
-                    void Revoke(::OCDM::ISession::ICallback* callback)
+                    void Revoke(Exchange::ISession::ICallback* callback)
                     {
                         if ((_callback != nullptr) && (_callback == callback)) {
                             _callback->Release();
@@ -424,7 +441,7 @@ namespace Plugin {
 
                 private:
                     SessionImplementation& _parent;
-                    ::OCDM::ISession::ICallback* _callback;
+                    Exchange::ISession::ICallback* _callback;
                 };
 
             public:
@@ -435,7 +452,7 @@ namespace Plugin {
                     AccessorOCDM* parent,
                     const std::string keySystem,
                     CDMi::IMediaKeySession* mediaKeySession,
-                    ::OCDM::ISession::ICallback* callback,
+                    Exchange::ISession::ICallback* callback,
                     const CommonEncryptionData* sessionData)
                     : _parent(*parent)
                     , _refCount(1)
@@ -460,7 +477,7 @@ namespace Plugin {
                     AccessorOCDM* parent,
                     const std::string keySystem,
                     CDMi::IMediaKeySessionExt* mediaKeySession,
-                    ::OCDM::ISession::ICallback* callback,
+                    Exchange::ISession::ICallback* callback,
                     const CommonEncryptionData* sessionData)
                     : _parent(*parent)
                     , _refCount(1)
@@ -506,7 +523,7 @@ namespace Plugin {
                 {
                     return ((keySystem == _keySystem) && (_cencData.IsSupported(keyIds) == true));
                 }
-                inline bool HasKeyId(const OCDM::KeyId& keyId) const
+                inline bool HasKeyId(const Exchange::KeyId& keyId) const
                 {
                     return (_cencData.HasKeyId(keyId));
                 }
@@ -520,19 +537,19 @@ namespace Plugin {
                     return _mediaKeySession->GetMetadata();
                 }
 
-                virtual ::OCDM::ISession::KeyStatus Status() const override
+                virtual Exchange::ISession::KeyStatus Status() const override
                 {
                     return (_cencData.Status());
                 }
 
-                ::OCDM::ISession::KeyStatus Status(const uint8_t keyId[], const uint8_t length) const override
+                Exchange::ISession::KeyStatus Status(const uint8_t keyId[], const uint8_t length) const override
                 {
                     return (_cencData.Status(CommonEncryptionData::KeyId(static_cast<CommonEncryptionData::systemType>(0), keyId, length)));
                 }
 
-                ::OCDM::OCDM_RESULT CreateSessionBuffer(std::string& bufferID) override {
+                Exchange::OCDM_RESULT CreateSessionBuffer(std::string& bufferID) override {
 
-                    ::OCDM::OCDM_RESULT result = ::OCDM::OCDM_SUCCESS;
+                    Exchange::OCDM_RESULT result = Exchange::OCDM_SUCCESS;
                     _adminLock.Lock();
                     if( _buffer == nullptr ) {
 
@@ -540,10 +557,11 @@ namespace Plugin {
                         {
                             _buffer = new DataExchange(_mediaKeySession, bufferID, _parent.DefaultSize());
                             _adminLock.Unlock();
+                            
                             TRACE(Trace::Information, ("Server::Session::CreateSessionBuffer(%s,%s,%s) => %p", _keySystem.c_str(), _sessionId.c_str(), BufferId().c_str(), this));
                         } else {
                             _adminLock.Unlock();
-                            result = ::OCDM::OCDM_INVALID_DECRYPT_BUFFER;
+                            result = Exchange::OCDM_INVALID_DECRYPT_BUFFER;
                             bufferID.clear();
                             TRACE(Trace::Error, ("Failed to create buffer for Server::Session::CreateSessionBuffer(%s,%s) => %p", _keySystem.c_str(), _sessionId.c_str(), this));
                         }
@@ -551,7 +569,7 @@ namespace Plugin {
                         _adminLock.Unlock();
                         TRACE(Trace::Information, ("Buffer already created Server::Session::CreateSessionBuffer(%s,%s,%s) => %p", _keySystem.c_str(), _sessionId.c_str(), BufferId().c_str(), this));
                         bufferID = _buffer->Name();
-                        result = ::OCDM::OCDM_S_FALSE;
+                        result = Exchange::OCDM_S_FALSE;
                     }
 
                     return result;
@@ -574,10 +592,10 @@ namespace Plugin {
                 }
 
                 // Loads the data stored for the specified session into the cdm object
-                virtual ::OCDM::OCDM_RESULT Load() override
+                virtual Exchange::OCDM_RESULT Load() override
                 {
                     TRACE(Trace::Information, ("Load()"));
-                    return (::OCDM::OCDM_RESULT)(_mediaKeySession->Load());
+                    return (Exchange::OCDM_RESULT)(_mediaKeySession->Load());
                 }
 
                 // Process a key message response.
@@ -588,10 +606,10 @@ namespace Plugin {
                 }
 
                 //Removes all license(s) and key(s) associated with the session
-                virtual ::OCDM::OCDM_RESULT Remove() override
+                virtual Exchange::OCDM_RESULT Remove() override
                 {
                     TRACE(Trace::Information, ("Remove()"));
-                    return (::OCDM::OCDM_RESULT)(_mediaKeySession->Remove());
+                    return (Exchange::OCDM_RESULT)(_mediaKeySession->Remove());
                 }
 
                 //We are done with the Session, close what we can..
@@ -607,7 +625,7 @@ namespace Plugin {
                     _mediaKeySession->ResetOutputProtection();
                 }
 
-                virtual void Revoke(OCDM::ISession::ICallback* callback) override
+                virtual void Revoke(Exchange::ISession::ICallback* callback) override
                 {
                     _sink.Revoke(callback);
                 }
@@ -617,39 +635,42 @@ namespace Plugin {
                     return _mediaKeySessionExt->GetSessionIdExt();
                 }
 
-                virtual OCDM::OCDM_RESULT SetDrmHeader(const uint8_t drmHeader[], uint32_t drmHeaderLength) override
+                virtual Exchange::OCDM_RESULT SetDrmHeader(const uint8_t drmHeader[], uint16_t drmHeaderLength) override
                 {
-                    return (OCDM::OCDM_RESULT)_mediaKeySessionExt->SetDrmHeader(drmHeader, drmHeaderLength);
+                    return (Exchange::OCDM_RESULT)_mediaKeySessionExt->SetDrmHeader(drmHeader, drmHeaderLength);
                 }
 
-                virtual OCDM::OCDM_RESULT GetChallengeDataExt(uint8_t* challenge, uint32_t& challengeSize, uint32_t isLDL) override
+                virtual Exchange::OCDM_RESULT GetChallengeDataExt(uint8_t* challenge, uint16_t& challengeSize, uint32_t isLDL) override
                 {
-                    return (OCDM::OCDM_RESULT)_mediaKeySessionExt->GetChallengeDataExt(challenge, challengeSize, isLDL);
+                    uint32_t resultSize = challengeSize;
+                    Exchange::OCDM_RESULT outcome = static_cast<Exchange::OCDM_RESULT>(_mediaKeySessionExt->GetChallengeDataExt(challenge, resultSize, isLDL));
+                    challengeSize = (resultSize & 0xFFFF);
+                    return (outcome);
                 }
 
-                virtual OCDM::OCDM_RESULT CancelChallengeDataExt() override
+                virtual Exchange::OCDM_RESULT CancelChallengeDataExt() override
                 {
-                    return (OCDM::OCDM_RESULT)_mediaKeySessionExt->CancelChallengeDataExt();
+                    return (Exchange::OCDM_RESULT)_mediaKeySessionExt->CancelChallengeDataExt();
                 }
 
-                virtual OCDM::OCDM_RESULT StoreLicenseData(const uint8_t licenseData[], uint32_t licenseDataSize, unsigned char* secureStopId) override
+                virtual Exchange::OCDM_RESULT StoreLicenseData(const uint8_t licenseData[], uint16_t licenseDataSize, unsigned char* secureStopId) override
                 {
-                    return (OCDM::OCDM_RESULT)_mediaKeySessionExt->StoreLicenseData(licenseData, licenseDataSize, secureStopId);
+                    return (Exchange::OCDM_RESULT)_mediaKeySessionExt->StoreLicenseData(licenseData, licenseDataSize, secureStopId);
                 }
 
-                virtual OCDM::OCDM_RESULT SelectKeyId(const uint8_t keyLength, const uint8_t keyId[]) override
+                virtual Exchange::OCDM_RESULT SelectKeyId(const uint8_t keyLength, const uint8_t keyId[]) override
                 {
-                    return (OCDM::OCDM_RESULT)_mediaKeySessionExt->SelectKeyId(keyLength, keyId);
+                    return (Exchange::OCDM_RESULT)_mediaKeySessionExt->SelectKeyId(keyLength, keyId);
                 }
 
-                virtual OCDM::OCDM_RESULT CleanDecryptContext() override
+                virtual Exchange::OCDM_RESULT CleanDecryptContext() override
                 {
-                    return (OCDM::OCDM_RESULT)_mediaKeySessionExt->CleanDecryptContext();
+                    return (Exchange::OCDM_RESULT)_mediaKeySessionExt->CleanDecryptContext();
                 }
 
                 BEGIN_INTERFACE_MAP(Session)
-                INTERFACE_ENTRY(::OCDM::ISession)
-                INTERFACE_RELAY(::OCDM::ISessionExt, _mediaKeySessionExt)
+                INTERFACE_ENTRY(Exchange::ISession)
+                INTERFACE_RELAY(Exchange::ISessionExt, _mediaKeySessionExt)
                 END_INTERFACE_MAP
 
             private:
@@ -687,20 +708,20 @@ namespace Plugin {
                 const std::string& mimeType) const override
             {
 
-                return (_parent.IsTypeSupported(keySystem, mimeType) ? 0 : 1);
+                return (_parent.IsTypeSupported(keySystem, mimeType) ? true : false);
             }
 
-            virtual OCDM::OCDM_RESULT Metadata(
+            virtual Exchange::OCDM_RESULT Metadata(
                 const std::string& keySystem,
                 std::string& metadata) const override
             {
-                OCDM::OCDM_RESULT result = OCDM::OCDM_KEYSYSTEM_NOT_SUPPORTED;
+                Exchange::OCDM_RESULT result = Exchange::OCDM_KEYSYSTEM_NOT_SUPPORTED;
                 metadata.clear();
 
                 CDMi::IMediaKeys* system = _parent.KeySystem(keySystem);
                 if (system != nullptr) {
                     metadata = system->GetMetadata();
-                    result = OCDM::OCDM_SUCCESS;
+                    result = Exchange::OCDM_SUCCESS;
                 }
 
                 return result;
@@ -711,7 +732,7 @@ namespace Plugin {
             }
 
             // Create a MediaKeySession using the supplied init data and CDM data.
-            virtual OCDM::OCDM_RESULT CreateSession(
+            virtual Exchange::OCDM_RESULT CreateSession(
                 const std::string& keySystem,
                 const int32_t licenseType,
                 const std::string& initDataType,
@@ -719,9 +740,9 @@ namespace Plugin {
                 const uint16_t initDataLength,
                 const uint8_t* CDMData,
                 const uint16_t CDMDataLength,
-                ::OCDM::ISession::ICallback* callback,
+                Exchange::ISession::ICallback* callback,
                 std::string& sessionId,
-                ::OCDM::ISession*& session) override
+                Exchange::ISession*& session) override
             {
                  CDMi::IMediaKeys *system = _parent.KeySystem(keySystem);
 
@@ -733,13 +754,13 @@ namespace Plugin {
 
                      // OKe we got a buffer machanism to transfer the raw data, now create
                      // the session.
-                     if (system->CreateMediaKeySession(keySystem, licenseType, 
-                                        initDataType.c_str(), initData, initDataLength, 
+                     if (system->CreateMediaKeySession(keySystem, licenseType,
+                                        initDataType.c_str(), initData, initDataLength,
                                         CDMData, CDMDataLength, &sessionInterface) == 0)
                      {
                          if (sessionInterface != nullptr)
                          {
-                                 SessionImplementation *newEntry = 
+                                 SessionImplementation *newEntry =
                                     Core::Service<SessionImplementation>::Create<SessionImplementation>(this,
                                                  keySystem, sessionInterface,
                                                 callback, &keyIds);
@@ -750,13 +771,13 @@ namespace Plugin {
                                  _adminLock.Lock();
 
                                  _sessionList.push_front(newEntry);
-                                
+
                                 if(false == keyIds.IsEmpty())
                                 {
                                     CommonEncryptionData::Iterator index(keyIds.Keys());
                                     while (index.Next() == true) {
                                         const CommonEncryptionData::KeyId& entry(index.Current());
-                                        callback->OnKeyStatusUpdate( entry.Id(), entry.Length(), ::OCDM::ISession::StatusPending);
+                                        callback->OnKeyStatusUpdate( entry.Id(), entry.Length(), Exchange::ISession::StatusPending);
                                     }
                                 }
                                 _adminLock.Unlock();
@@ -768,22 +789,22 @@ namespace Plugin {
                      TRACE(Trace::Error, (_T("Could not create a DRM session! [%d]"), __LINE__));
                  }
 
-                 return (session != nullptr ? ::OCDM::OCDM_RESULT::OCDM_SUCCESS : ::OCDM::OCDM_RESULT::OCDM_S_FALSE);
+                 return (session != nullptr ? Exchange::OCDM_RESULT::OCDM_SUCCESS : Exchange::OCDM_RESULT::OCDM_S_FALSE);
             }
 
             // Set Server Certificate
-            virtual ::OCDM::OCDM_RESULT SetServerCertificate(
+            virtual Exchange::OCDM_RESULT SetServerCertificate(
                 const std::string& keySystem,
                 const uint8_t* serverCertificate,
                 const uint16_t serverCertificateLength) override
             {
 
                 CDMi::IMediaKeys* system = _parent.KeySystem(keySystem);
-                ::OCDM::OCDM_RESULT result = ::OCDM::OCDM_RESULT::OCDM_S_FALSE;
+                Exchange::OCDM_RESULT result = Exchange::OCDM_RESULT::OCDM_S_FALSE;
 
                 if (system != nullptr) {
                     TRACE(Trace::Information, ("Set ServerCertificate()"));
-                    result = static_cast<::OCDM::OCDM_RESULT>(system->SetServerCertificate(serverCertificate, serverCertificateLength));
+                    result = static_cast<Exchange::OCDM_RESULT>(system->SetServerCertificate(serverCertificate, serverCertificateLength));
                 } else {
                     TRACE(Trace::Error, (_T("Could not set the Server Certificates for system: %s"), keySystem.c_str()));
                 }
@@ -794,9 +815,9 @@ namespace Plugin {
             {
                 CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
                 if (systemExt) {
-                    return (OCDM::OCDM_RESULT)systemExt->GetDrmSystemTime();
+                    return (Exchange::OCDM_RESULT)systemExt->GetDrmSystemTime();
                 }
-                return ::OCDM::OCDM_RESULT::OCDM_S_FALSE;
+                return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
 
             std::string GetVersionExt(const std::string& keySystem) const override
@@ -826,13 +847,13 @@ namespace Plugin {
                 return false;
             }
 
-            OCDM::OCDM_RESULT EnableSecureStop(const std::string& keySystem, bool enable) override
+            Exchange::OCDM_RESULT EnableSecureStop(const std::string& keySystem, bool enable) override
             {
                 CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
                 if (systemExt) {
-                    return (OCDM::OCDM_RESULT)systemExt->EnableSecureStop(enable);
+                    return (Exchange::OCDM_RESULT)systemExt->EnableSecureStop(enable);
                 }
-                return ::OCDM::OCDM_RESULT::OCDM_S_FALSE;
+                return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
 
             uint32_t ResetSecureStops(const std::string& keySystem) override
@@ -844,7 +865,7 @@ namespace Plugin {
                 return 0;
             }
 
-            OCDM::OCDM_RESULT GetSecureStopIds(
+            Exchange::OCDM_RESULT GetSecureStopIds(
                 const std::string& keySystem,
                 unsigned char Ids[],
                 uint16_t idsLength,
@@ -852,89 +873,89 @@ namespace Plugin {
             {
                 CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
                 if (systemExt) {
-                    return (OCDM::OCDM_RESULT)systemExt->GetSecureStopIds(Ids, idsLength, count);
+                    return (Exchange::OCDM_RESULT)systemExt->GetSecureStopIds(Ids, idsLength, count);
                 }
-                return ::OCDM::OCDM_RESULT::OCDM_S_FALSE;
+                return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
 
-            OCDM::OCDM_RESULT GetSecureStop(
+            Exchange::OCDM_RESULT GetSecureStop(
                 const std::string& keySystem,
                 const unsigned char sessionID[],
-                uint32_t sessionIDLength,
+                uint16_t sessionIDLength,
                 unsigned char* rawData,
-                uint16_t& rawSize)
+                uint16_t& rawSize) override
             {
                 CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
                 if (systemExt) {
-                    return (OCDM::OCDM_RESULT)systemExt->GetSecureStop(sessionID, sessionIDLength, rawData, rawSize);
+                    return (Exchange::OCDM_RESULT)systemExt->GetSecureStop(sessionID, sessionIDLength, rawData, rawSize);
                 }
-                return ::OCDM::OCDM_RESULT::OCDM_S_FALSE;
+                return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
 
-            OCDM::OCDM_RESULT CommitSecureStop(
+            Exchange::OCDM_RESULT CommitSecureStop(
                 const std::string& keySystem,
                 const unsigned char sessionID[],
-                uint32_t sessionIDLength,
+                uint16_t sessionIDLength,
                 const unsigned char serverResponse[],
-                uint32_t serverResponseLength)
+                uint16_t serverResponseLength)
             {
                 CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
                 if (systemExt) {
-                    return (OCDM::OCDM_RESULT)systemExt->CommitSecureStop(sessionID, sessionIDLength, serverResponse, serverResponseLength);
+                    return (Exchange::OCDM_RESULT)systemExt->CommitSecureStop(sessionID, sessionIDLength, serverResponse, serverResponseLength);
                 }
-                return ::OCDM::OCDM_RESULT::OCDM_S_FALSE;
+                return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
 
-            OCDM::OCDM_RESULT DeleteKeyStore(const std::string& keySystem) override
+            Exchange::OCDM_RESULT DeleteKeyStore(const std::string& keySystem) override
             {
                 CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
                 if (systemExt) {
-                    return (OCDM::OCDM_RESULT)systemExt->DeleteKeyStore();
+                    return (Exchange::OCDM_RESULT)systemExt->DeleteKeyStore();
                 }
-                return ::OCDM::OCDM_RESULT::OCDM_S_FALSE;
+                return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
 
-            OCDM::OCDM_RESULT DeleteSecureStore(const std::string& keySystem) override
+            Exchange::OCDM_RESULT DeleteSecureStore(const std::string& keySystem) override
             {
                 CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
                 if (systemExt) {
-                    return (OCDM::OCDM_RESULT)systemExt->DeleteSecureStore();
+                    return (Exchange::OCDM_RESULT)systemExt->DeleteSecureStore();
                 }
-                return ::OCDM::OCDM_RESULT::OCDM_S_FALSE;
+                return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
 
-            OCDM::OCDM_RESULT GetKeyStoreHash(
+            Exchange::OCDM_RESULT GetKeyStoreHash(
                 const std::string& keySystem,
                 uint8_t keyStoreHash[],
-                uint32_t keyStoreHashLength) override
+                uint16_t keyStoreHashLength) override
             {
                 CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
                 if (systemExt) {
-                    return (OCDM::OCDM_RESULT)systemExt->GetSecureStoreHash(keyStoreHash, keyStoreHashLength);
+                    return (Exchange::OCDM_RESULT)systemExt->GetSecureStoreHash(keyStoreHash, keyStoreHashLength);
                 }
-                return ::OCDM::OCDM_RESULT::OCDM_S_FALSE;
+                return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
 
-            OCDM::OCDM_RESULT GetSecureStoreHash(
+            Exchange::OCDM_RESULT GetSecureStoreHash(
                 const std::string& keySystem,
                 uint8_t secureStoreHash[],
-                uint32_t secureStoreHashLength) override
+                uint16_t secureStoreHashLength) override
             {
                 CDMi::IMediaKeysExt* systemExt = dynamic_cast<CDMi::IMediaKeysExt*>(_parent.KeySystem(keySystem));
                 if (systemExt) {
-                    return (OCDM::OCDM_RESULT)systemExt->GetSecureStoreHash(secureStoreHash, secureStoreHashLength);
+                    return (Exchange::OCDM_RESULT)systemExt->GetSecureStoreHash(secureStoreHash, secureStoreHashLength);
                 }
-                return ::OCDM::OCDM_RESULT::OCDM_S_FALSE;
+                return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
 
             BEGIN_INTERFACE_MAP(AccessorOCDM)
-            INTERFACE_ENTRY(::OCDM::IAccessorOCDM)
+            INTERFACE_ENTRY(Exchange::IAccessorOCDM)
             END_INTERFACE_MAP
 
         private:
-            ::OCDM::ISession* FindSession(const CommonEncryptionData& keyIds, const string& keySystem) const
+            Exchange::ISession* FindSession(const CommonEncryptionData& keyIds, const string& keySystem) const
             {
-                ::OCDM::ISession* result = nullptr;
+                Exchange::ISession* result = nullptr;
 
                 std::list<SessionImplementation*>::const_iterator index(_sessionList.begin());
 
@@ -1083,6 +1104,7 @@ namespace Plugin {
         {
             TRACE(Trace::Information, (_T("Constructing OCDMImplementation Service: %p"), this));
         }
+
         virtual ~OCDMImplementation()
         {
             if (_service != nullptr) {
@@ -1105,7 +1127,6 @@ namespace Plugin {
 
             // On activation subscribe, on deactivation un-subscribe
             PluginHost::ISubSystem* subSystem = service->SubSystems();
-
             ASSERT(subSystem != nullptr);
 
             // Start loading the configured factories
@@ -1185,7 +1206,7 @@ namespace Plugin {
                 SYSLOG(Logging::Startup, (_T("No DRM factories specified. OCDM can not service any DRM requests.")));
             }
 
-            _entryPoint = Core::Service<AccessorOCDM>::Create<::OCDM::IAccessorOCDM>(this, config.SharePath.Value(), config.ShareSize.Value());
+            _entryPoint = Core::Service<AccessorOCDM>::Create<Exchange::IAccessorOCDM>(this, config.SharePath.Value(), config.ShareSize.Value());
             Core::ProxyType<RPC::InvokeServer> server = Core::ProxyType<RPC::InvokeServer>::Create(&Core::IWorkerPool::Instance());
             _service = new ExternalAccess(Core::NodeId(config.Connector.Value().c_str()), _entryPoint, server);
 
@@ -1210,9 +1231,12 @@ namespace Plugin {
                     }
                 }
             }
+
             return (result);
         }
+
         void Deinitialize(PluginHost::IShell* service) override {
+
             std::map<const string, SystemFactory>::iterator factory(_systemToFactory.begin());
 
             std::list<CDMi::ISystemFactory*> deinitialized;
@@ -1220,15 +1244,17 @@ namespace Plugin {
             while (factory != _systemToFactory.end()) {
                 std::list<CDMi::ISystemFactory*>::iterator index(std::find(deinitialized.begin(), deinitialized.end(), factory->second.Factory));
 
-                if(index == deinitialized.end()){ 
+                if(index == deinitialized.end()){
                     TRACE(Trace::Information, (_T("Deinitializing factory(%p) for key system %s"), factory->second.Factory, factory->second.Factory->KeySystem()));
                     factory->second.Factory->Deinitialize(service);
                     deinitialized.push_back(factory->second.Factory);
                 }
-                
+
                 factory++;
             }
+
         }
+
         virtual uint32_t Reset()
         {
             return (Core::ERROR_NONE);
@@ -1352,7 +1378,6 @@ namespace Plugin {
                 index++;
             }
         }
-
     public:
         // -------------------------------------------------------------------------------------------------------------
         // IDecryption methods
@@ -1378,7 +1403,7 @@ namespace Plugin {
             blacklist.insert(std::pair<const std::string, std::vector<std::string>>(system, elements));
         }
 
-        ::OCDM::IAccessorOCDM* _entryPoint;
+        Exchange::IAccessorOCDM* _entryPoint;
         ExternalAccess* _service;
         bool _compliant;
         std::map<const std::string, SystemFactory> _systemToFactory;
