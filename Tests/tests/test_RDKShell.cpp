@@ -309,12 +309,6 @@ TEST_F(RDKShellTest, resumeApplication)
 }
 
 
-TEST_F(RDKShellTest, getScreenShot)
-{
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getScreenshot"), _T("{}"), response));
-	EXPECT_EQ(response, _T("{\"success\":true}"));
-}
-
 TEST_F(RDKShellTest, GraphicsFrameRate)
 {
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getGraphicsFrameRate"), _T("{}"), response));

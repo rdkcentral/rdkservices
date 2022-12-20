@@ -19,7 +19,7 @@ public:
      MOCK_METHOD(bool, keyCodeFromWayland, (uint32_t waylandKeyCode, uint32_t waylandFlags, uint32_t &mappedKeyCode, uint32_t &mappedFlags), (override));
 };
 
-class RdkShellApiImplMock : public RdkShell::RdkShellApiImpl()
+class RdkShellApiImplMock : public RdkShell::RdkShellApiImpl
 {
 	public:
 		RdkShellApiImplMock() : RdkShell::RdkShellApiImpl()
