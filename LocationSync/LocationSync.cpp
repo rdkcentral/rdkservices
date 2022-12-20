@@ -18,12 +18,55 @@
  */
  
 #include "LocationSync.h"
+#include <memory>
+#include "libIBus.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
 
+#define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
+#define IARM_BUS_NETSRVMGR_API_isConnectedToInternet "isConnectedToInternet"
+
 namespace WPEFramework {
+namespace Utils {
+    struct IARM {
+        static bool init() {
+            IARM_Result_t res;
+            bool result = false;
+            if (isConnected()) {
+                TRACE_GLOBAL(Trace::Information, (_T("IARM already connected")));
+                result = true;
+            } else {
+                res = IARM_Bus_Init(NAME);
+                TRACE_GLOBAL(Trace::Information, (_T("IARM_Bus_Init: %d"), res));
+                if (res == IARM_RESULT_SUCCESS || res == IARM_RESULT_INVALID_STATE /* already inited or connected */) {
+                    res = IARM_Bus_Connect();
+                    TRACE_GLOBAL(Trace::Information, (_T("IARM_Bus_Connect: %d"), res));
+                    if (res == IARM_RESULT_SUCCESS ||
+                        res == IARM_RESULT_INVALID_STATE /* already connected or not inited */) {
+                        result = isConnected();
+                    } else {
+                        TRACE_GLOBAL(Trace::Fatal, (_T("IARM_Bus_Connect failure: %d"), res));
+                    }
+                } else {
+                    TRACE_GLOBAL(Trace::Fatal, (_T("IARM_Bus_Init failure: %d"), res));
+                }
+            }
+            return result;
+        }
+
+        static bool isConnected()
+        {
+            IARM_Result_t res;
+            int isRegistered = 0;
+            res = IARM_Bus_IsConnected(NAME, &isRegistered);
+            TRACE_GLOBAL(Trace::Fatal, (_T("IARM_Bus_IsConnected: %d (%d)"), res, isRegistered));
+            return (isRegistered == 1);
+        }
+        static constexpr const char* NAME = "Thunder_Plugins";
+    };
+}
 namespace Plugin {
 
     SERVICE_REGISTRATION(LocationSync, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
@@ -37,10 +80,15 @@ namespace Plugin {
     LocationSync::LocationSync()
         : _skipURL(0)
         , _source()
+        , _interval(0)
+        , _retries(0)
         , _sink(this)
         , _service(nullptr)
+        , _networkReady(false)
+        , _iarmConnected(false)
     {
         RegisterAll();
+        _netControlTimer.connect(std::bind(&LocationSync::onNetControlTimer, this));
     }
 #ifdef __WINDOWS__
 #pragma warning(default : 4355)
@@ -57,13 +105,33 @@ namespace Plugin {
         Config config;
         config.FromString(service->ConfigLine());
         string version = service->Version();
+        _iarmConnected = Utils::IARM::init();
+        if (!_iarmConnected)
+        {
+            TRACE(Trace::Fatal, (_T("IARM bus is not available. Preliminary reachability check will not be performed\n")));
+        }
 
         if (LocationService::IsSupported(config.Source.Value()) == Core::ERROR_NONE) {
             _skipURL = static_cast<uint16_t>(service->WebPrefix().length());
             _source = config.Source.Value();
-            _service = service;
+            _interval = config.Interval.Value();
+            _retries = config.Retries.Value();
+            ASSERT(service != nullptr);
+            ASSERT(_service == nullptr);
+	    _service = service;
 
             _sink.Initialize(config.Source.Value(), config.Interval.Value(), config.Retries.Value());
+	    _service->AddRef();
+            TRACE(Trace::Information, (_T("Starting netcontrol timer. Source: %s, interval: %d, retries: %d, network check every %d ms")
+                    , _source.c_str()
+                    , _interval
+                    , _retries
+                    , _interval * 1000
+            ));
+            if(_netControlTimer.isActive()) {
+                _netControlTimer.stop();
+            }
+            _netControlTimer.start(_interval * 1000);	    
         } else {
             result = _T("URL for retrieving location is incorrect !!!");
         }
@@ -75,8 +143,12 @@ namespace Plugin {
     void LocationSync::Deinitialize(PluginHost::IShell* service VARIABLE_IS_NOT_USED) /* override */
     {
         ASSERT(_service == service);
-
-        _sink.Deinitialize();
+        _service->Release();
+        _service = nullptr;
+        if(_netControlTimer.isActive()) {
+            _netControlTimer.stop();
+        }
+	_sink.Deinitialize();
     }
 
     string LocationSync::Information() const /* override */
@@ -163,6 +235,117 @@ namespace Plugin {
             }
         }
     }
+    void LocationSync::onNetControlTimer()
+    {
+        static uint8_t remainingAttempts = _retries;
+        bool networkReachable = getConnectivity();
+        remainingAttempts--;
+        TRACE(Trace::Information, (_T("Network is %s"), networkReachable ? "REACHABLE" : "UNREACHABLE"));
+        if (!_iarmConnected || networkReachable || remainingAttempts <= 0)
+        {
+            _netControlTimer.stop();
+            TRACE(Trace::Information, (_T("Network reachability monitoring stopped.")));
+            TRACE(Trace::Information, (_T("Proceeding with LocationService init.")));
+            _sink.Initialize(_source, _interval, _retries);
+        } else {
+            TRACE(Trace::Information, (_T("Doing one more reachability check in %d sec, remaining attempts: %d"), _interval, remainingAttempts));
+        }
+    }
+    bool LocationSync::getConnectivity()
+    {
+        bool result = false;
+        IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+        /* check if plugin active */
+        auto network = _service->QueryInterfaceByCallsign<PluginHost::IDispatcher>("org.rdk.Network");
+        if (network == nullptr) {
+            TRACE(Trace::Fatal, _T(("Network plugin is not activated \n")));
+            result = false;
+        } else {
+            network->Release();
+            retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*) &result, sizeof(result));
+            TRACE(Trace::Information, (_T("%s :: isConnected = %d \n"), __FUNCTION__, result));
+            if (IARM_RESULT_SUCCESS != retVal)
+            {
+                TRACE(Trace::Fatal, (_T("Call to %s for %s failed\n"), IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet));
+            }
+        }
+        return result;
+    }
 
+    // TIMER
+    Timer::Timer() :
+            baseTimer(64 * 1024, "ThunderPluginBaseTimer")
+            , m_timerJob(this)
+            , m_isActive(false)
+            , m_isSingleShot(false)
+            , m_intervalInMs(-1)
+    {}
+
+    Timer::~Timer()
+    {
+        stop();
+    }
+
+    bool Timer::isActive()
+    {
+        return m_isActive;
+    }
+
+    void Timer::stop()
+    {
+        baseTimer.Revoke(m_timerJob);
+        m_isActive = false;
+    }
+
+    void Timer::start()
+    {
+        baseTimer.Revoke(m_timerJob);
+        baseTimer.Schedule(Core::Time::Now().Add(m_intervalInMs), m_timerJob);
+        m_isActive = true;
+    }
+
+    void Timer::start(int msec)
+    {
+        setInterval(msec);
+        start();
+    }
+
+    void Timer::setSingleShot(bool val)
+    {
+        m_isSingleShot = val;
+    }
+
+    void Timer::setInterval(int msec)
+    {
+        m_intervalInMs = msec;
+    }
+
+    void Timer::connect(std::function< void() > callback)
+    {
+        onTimeoutCallback = callback;
+    }
+
+    void Timer::Timed()
+    {
+        if(onTimeoutCallback != nullptr) {
+            onTimeoutCallback();
+        }
+        // stop in case of a single shot call; start again if it has not been stopped
+        if (m_isActive) {
+            if(m_isSingleShot) {
+                stop();
+            } else{
+                start();
+            }
+        }
+    }
+
+    uint64_t TimerJob::Timed(const uint64_t scheduledTime)
+    {
+        if(m_timer) {
+            m_timer->Timed();
+        }
+        return 0;
+    }
 } // namespace Plugin
 } // namespace WPEFramework
