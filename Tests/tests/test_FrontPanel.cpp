@@ -3,6 +3,9 @@
 #include "FrontPanel.h"
 #include "frontpanel.h"
 
+//required to set initDone to 0, so we reset values in CFrontPanel instance.
+#include "frontpanel.cpp"
+
 #include "FactoriesImplementation.h"
 
 #include "FrontPanelMock.h"
@@ -122,8 +125,9 @@ protected:
 
 
 	    plugin->Deinitialize(nullptr);
-        Plugin::CFrontPanel::instance()->Deinitialize();
-   
+        //Clearing out out of scope variables, and setting initDone to 0.
+        Plugin::initDone = 0;
+        Plugin::fpIndicators.clear();
         IarmBus::getInstance().impl = nullptr;
     }
 };
