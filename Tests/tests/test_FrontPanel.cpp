@@ -494,9 +494,8 @@ TEST_F(FrontPanelInitializedEventDsTest, powerLedOffRecord)
 
 TEST_F(FrontPanelInitializedEventDsTest, powerLedOnPower)
 {
+FrontPanelIndicatorImplMock frontPanelIndicatorMock;
 
-    //required to set the return for frontPanelIndiciators
-    FrontPanelIndicatorImplMock frontPanelIndicatorMock;
     device::FrontPanelIndicator indicatorList;
     indicatorList.impl = &frontPanelIndicatorMock;
     ON_CALL(frontPanelConfigImplMock, getIndicators())
@@ -504,8 +503,9 @@ TEST_F(FrontPanelInitializedEventDsTest, powerLedOnPower)
     ON_CALL(frontPanelIndicatorMock, getName())
         .WillByDefault(::testing::Return("red"));
 
-    //setting the powerstate to on, which powerLedOn uses.
     ASSERT_TRUE(dsFrontPanelModeChange != nullptr);
+
+
     IARM_Bus_PWRMgr_EventData_t eventData;
     eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
     eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
@@ -523,7 +523,7 @@ TEST_F(FrontPanelInitializedEventDsTest, powerLedOnPower)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("powerLedOn"), _T("{\"index\": \"data_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
-    //setting the powerstate to off, which powerLedOn uses.
+
     eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_OFF;
     eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
 
@@ -536,7 +536,7 @@ TEST_F(FrontPanelInitializedEventDsTest, powerLedOnPower)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("powerLedOn"), _T("{\"index\": \"record_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
-    
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("powerLedOn"), _T("{\"index\": \"data_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
@@ -574,6 +574,13 @@ TEST_F(FrontPanelInitializedEventDsTest, setBlink)
         .WillByDefault(::testing::Return(50));
     ON_CALL(frontPanelTextDisplayImplStringMock, getTextBrightness())
         .WillByDefault(::testing::Return(50));
+
+    EXPECT_CALL(frontPanelIndicatorImplStringMock, setColor(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](device::FrontPanelIndicator::Color color, bool persist) {
+                //Takes a new instance of color, and always false bool. Nothing to really check here.
+            }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlink"), _T("{\"blinkInfo\": {\"ledIndicator\": \"power_led\", \"iterations\": 10, \"pattern\": [{\"brightness\": 50, \"duration\": 100, \"color\": \"red\", \"red\": 0, \"green\":0, \"blue\":0}]}}"), response));
    
