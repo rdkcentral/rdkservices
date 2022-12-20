@@ -4,14 +4,14 @@
 
 #include "rdkshell.h"
 
-class shellImplMock : public shell{
+class RDKShellImplMock : public RDKShellImpl{
 public:
-      shellImplMock()
-	      : shell()
+      RDKShellImplMock()
+	      : RDKShellImpl()
      {
 
      }
-     virtual ~shellImplMock() = default;
+     virtual ~RDKShellImplMock() = default;
      MOCK_METHOD(size_t, b64_get_encoded_buffer_size, ( const size_t decoded_size ), (override));
      MOCK_METHOD(size_t, b64url_get_encoded_buffer_size, ( const size_t decoded_size ), (override));
      MOCK_METHOD(void, b64_encode, ( const uint8_t *input, const size_t input_size, uint8_t *output ), (override));
@@ -19,14 +19,34 @@ public:
      MOCK_METHOD(bool, keyCodeFromWayland, (uint32_t waylandKeyCode, uint32_t waylandFlags, uint32_t &mappedKeyCode, uint32_t &mappedFlags), (override));
 };
 
-class aImplMock : public RdkShell::rdkcomp
+class RdkShellApiImplMock : public RdkShell::RdkShellApiImpl()
 {
 	public:
-		aImplMock() : RdkShell::rdkcomp()
+		RdkShellApiImplMock() : RdkShell::RdkShellApiImpl()
 	{
-
+            ON_CALL(*this, seconds())
+            .WillByDefault(::testing::Invoke(
+                [](){
+		     timespec ts;
+                     clock_gettime(CLOCK_MONOTONIC, &ts);
+                     return ts.tv_sec + ((double)ts.tv_nsec/1000000000);
+                }));
+	     ON_CALL(*this, milliseconds())
+	     .WillByDefault(::testing::Invoke(
+                [](){
+                     timespec ts;
+                     clock_gettime(CLOCK_MONOTONIC, &ts);
+		     return ((double)(ts.tv_sec * 1000) + ((double)ts.tv_nsec/1000000));
+                }));
+	     ON_CALL(*this, microseconds())
+             .WillByDefault(::testing::Invoke(
+                [](){
+                     timespec ts;
+                     clock_gettime(CLOCK_MONOTONIC, &ts);
+		     return ((double)(ts.tv_sec * 1000000) + ((double)ts.tv_nsec/1000));
+                }));
 	}
-        virtual ~aImplMock() = default;
+        virtual ~RdkShellApiImplMock() = default;
 	MOCK_METHOD(bool, systemRam, (uint32_t& freeKb, uint32_t& totalKb, uint32_t& availableKb, uint32_t& usedSwapKb), (override));
 	MOCK_METHOD(void, setMemoryMonitor, ((std::map<std::string, RdkShell::RdkShellData> &configuration)), (override));
 	MOCK_METHOD(void, enableFlushing, (bool enable), (override));
@@ -70,10 +90,10 @@ class RdkShellEventImplMock : public RdkShell::RdkShellEvent
     MOCK_METHOD(void, onEasterEgg, (const std::string& name, const std::string& actionJson), (override));
 }; 
 
-class RdkShellApiImplMock : public RdkShell::CompControl {
+class CompositorImplMock : public RdkShell::Compositor {
 public:
-    RdkShellApiImplMock()
-	    : RdkShell::CompControl()
+    CompositorImplMock()
+	    : RdkShell::Compositor()
     {
 	    EXPECT_CALL(*this, isErmEnabled())
 		    .Times(::testing::AnyNumber())
@@ -130,9 +150,17 @@ public:
 		 [](std::string& client){
 		   return true;
 		 }));
+	    ON_CALL(*this, getMimeType(::testing::_, ::testing::_))
+		 .WillByDefault(::testing::Invoke(
+		 [&](const string& client, string& mimeType){
+		    mimeType = RDKSHELL_APPLICATION_MIME_TYPE_NATIVE;
+		    return true;
+		 }));
+	    ON_CALL(*this, getBounds(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+                 .WillByDefault(::testing::Return(true));
 
     }
-    virtual ~RdkShellApiImplMock() = default;
+    virtual ~CompositorImplMock() = default;
 
     MOCK_METHOD(bool, setLogLevel, (const std::string level), (override));
     MOCK_METHOD(bool, isErmEnabled, (), (override));

@@ -9,12 +9,12 @@
 #define RDKSHELL_FLAGS_CONTROL      16
 #define RDKSHELL_FLAGS_ALT          32
 
-class shell {
+class RDKShellImpl {
 public:
-    shell()
+    RDKShellImpl()
     {
     }
-    virtual ~shell() = default;
+    virtual ~RDKShellImpl() = default;
     virtual size_t b64_get_encoded_buffer_size( const size_t decoded_size ) = 0;
     virtual size_t b64url_get_encoded_buffer_size( const size_t decoded_size ) = 0;
     virtual void b64_encode( const uint8_t *input, const size_t input_size, uint8_t *output ) = 0;
@@ -22,16 +22,16 @@ public:
     virtual bool keyCodeFromWayland(uint32_t waylandKeyCode, uint32_t waylandFlags, uint32_t &mappedKeyCode, uint32_t &mappedFlags) = 0;
 };
 
-class Shell {
+class RDKShell {
 public:
 
-    static Shell& getInstance()
+    static RDKShell& getInstance()
     {
-        static Shell instance;
+        static RDKShell instance;
         return instance;
     }
 
-    shell* impl;
+    RDKShellImpl* impl;
 
     static size_t b64_get_encoded_buffer_size( const size_t decoded_size )
     {
@@ -57,11 +57,11 @@ public:
     }
 
 };
-constexpr auto b64_get_encoded_buffer_size = &Shell::b64_get_encoded_buffer_size;
-constexpr auto b64url_get_encoded_buffer_size = &Shell::b64url_get_encoded_buffer_size;
-constexpr auto b64_encode = &Shell::b64_encode;
-constexpr auto logMilestone = &Shell::logMilestone;
-constexpr auto keyCodeFromWayland = &Shell::keyCodeFromWayland;
+constexpr auto b64_get_encoded_buffer_size = &RDKShell::b64_get_encoded_buffer_size;
+constexpr auto b64url_get_encoded_buffer_size = &RDKShell::b64url_get_encoded_buffer_size;
+constexpr auto b64_encode = &RDKShell::b64_encode;
+constexpr auto logMilestone = &RDKShell::logMilestone;
+constexpr auto keyCodeFromWayland = &RDKShell::keyCodeFromWayland;
 namespace RdkShell
 {
     class RdkShellEvent
@@ -192,7 +192,7 @@ namespace RdkShell
     class EasterEgg;
 
 
-    class rdkcomp
+    class RdkShellApiImpl
     {
             public:
                     virtual bool systemRam(uint32_t& freeKb, uint32_t& totalKb, uint32_t& availableKb, uint32_t& usedSwapKb) = 0;
@@ -221,7 +221,7 @@ namespace RdkShell
            return instance;
           }
 
-          rdkcomp* impl;
+            RdkShellApiImpl* impl;
             static void enableFlushing(bool enable)
             {
 		getInstance().impl->enableFlushing(enable);
@@ -232,16 +232,16 @@ namespace RdkShell
 	    }
     };
 
-    class rdk
+    class RdkShellApi
     {
       public:
-	  static rdk& getInstance()
+	  static RdkShellApi& getInstance()
           {
-           static rdk instance;
+           static RdkShellApi instance;
            return instance;
           }
 
-          rdkcomp* impl;
+          RdkShellApiImpl* impl;
 
           static void addEasterEgg(std::vector<RdkShellEasterEggKeyDetails>& details, std::string name, uint32_t timeout, std::string actionJson)
 	  {
@@ -292,18 +292,18 @@ namespace RdkShell
 		  getInstance().impl->setMemoryMonitor(configuration);
 	  }
     };
-    constexpr auto addEasterEgg = &rdk::addEasterEgg;
-    constexpr auto removeEasterEgg = &rdk::removeEasterEgg;
-    constexpr auto getEasterEggs = &rdk::getEasterEggs;
-    constexpr auto initialize = &rdk::initialize;
-    constexpr auto deinitialize = &rdk::deinitialize;
-    constexpr auto update = &rdk::update;
-    constexpr auto draw = &rdk::draw;
-    constexpr auto seconds = &rdk::seconds;
-    constexpr auto milliseconds = &rdk::milliseconds;
-    constexpr auto microseconds = &rdk::microseconds;
-    constexpr auto systemRam = &rdk::systemRam;
-    constexpr auto setMemoryMonitor = &rdk::setMemoryMonitor;
+    constexpr auto addEasterEgg = &RdkShellApi::addEasterEgg;
+    constexpr auto removeEasterEgg = &RdkShellApi::removeEasterEgg;
+    constexpr auto getEasterEggs = &RdkShellApi::getEasterEggs;
+    constexpr auto initialize = &RdkShellApi::initialize;
+    constexpr auto deinitialize = &RdkShellApi::deinitialize;
+    constexpr auto update = &RdkShellApi::update;
+    constexpr auto draw = &RdkShellApi::draw;
+    constexpr auto seconds = &RdkShellApi::seconds;
+    constexpr auto milliseconds = &RdkShellApi::milliseconds;
+    constexpr auto microseconds = &RdkShellApi::microseconds;
+    constexpr auto systemRam = &RdkShellApi::systemRam;
+    constexpr auto setMemoryMonitor = &RdkShellApi::setMemoryMonitor;
 
     #define RDKSHELL_APPLICATION_MIME_TYPE_NATIVE "application/native"
     #define RDKSHELL_APPLICATION_MIME_TYPE_DAC_NATIVE "application/dac.native"
@@ -314,7 +314,7 @@ namespace RdkShell
 
   class RdkCompositor;
 
-  class CompControl
+  class Compositor
   {
     public:
      virtual bool setLogLevel(const std::string level) = 0;
@@ -405,7 +405,7 @@ namespace RdkShell
            return instance;
           }
 
-	  CompControl* impl;
+	    Compositor* impl;
 	   
 	    static bool setVisibility(const std::string& client, const bool visible)
 	    {
