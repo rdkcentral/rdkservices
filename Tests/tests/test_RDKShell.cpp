@@ -155,7 +155,7 @@ TEST_F(RDKShellTest, enableInputEvents)
 
 TEST_F(RDKShellTest, setMemoryMonitor)
 {
-    ON_CALL(amock, setMemoryMonitor(::testing::_))
+    ON_CALL(rdkshellapimock, setMemoryMonitor(::testing::_))
                 .WillByDefault(::testing::Invoke(
                 [](std::map<std::string, RdkShell::RdkShellData> &configuration){
                 }));
@@ -234,7 +234,7 @@ TEST_F(RDKShellTest, resetinactivity)
 
 TEST_F(RDKShellTest, launchApplication)
 {
-	XPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("launchApplication"), _T("{}"), response));
+	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("launchApplication"), _T("{}"), response));
 	ON_CALL(compositormock, launchApplication(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
 		.WillByDefault(::testing::Invoke(
 		[](const std::string& client, const std::string& uri, const std::string& mimeType, bool topmost, bool focus){
