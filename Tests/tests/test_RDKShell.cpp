@@ -840,10 +840,6 @@ TEST_F(RDKShellTest, Opacity)
 					                                               "\"opacity\": 100}"), response));
 }
 
-TEST_F(RDKShellTest, kill)
-{
-        EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("kill"), _T("{}"), response));
-}
 
 TEST_F(RDKShellTest, setFocus)
 {
