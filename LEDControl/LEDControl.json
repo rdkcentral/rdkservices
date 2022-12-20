@@ -1,0 +1,79 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "LEDControl API",
+        "class": "LEDControl",
+        "description": "The `LEDControl` plugin allows you to control leds in the device front panel. The plugin provides API's and events to implement the LED use cases."
+    },
+    "common": {
+        "$ref": "../common/common.json"
+    },
+    "definitions": {
+        "supportedLEDStates": {
+            "summary": "Returns all the led states returned by the platform.",
+            "type":"string array",
+            "example": "[\"ACTIVE\",\"STANDBY\",\"WPS_CONNECTING\",\"WPS_CONNECTED\",\"WPS_ERROR\",\"FACTORY_RESET\",\"USB_UPGRADE\",\"DOWNLOAD_ERROR\"]"
+        },
+        "state": {
+            "summary": "Indicates a platform supported led state",
+            "type":"string",
+            "example": "ACTIVE"
+        }
+    },
+    "methods": {
+        "getSupportedLEDStates": {
+            "summary": "Returns all the platform supported led states.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "supportedLEDStates": {
+                        "$ref": "#/definitions/supportedLEDStates"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "supportedLEDStates",
+                    "success"
+                ]
+            }
+        },
+        "getLEDState": {
+            "summary": "Returns current led state of the device.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "$ref": "#/definitions/state"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "state",
+                    "success"
+                ]
+            }
+        },
+        "setLEDState":{
+            "summary": "Change the device led state to one mentioned in the argument",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "state":{
+                        "$ref": "#/definitions/state"
+                    }
+                },
+                "required": [
+                    "state"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        }
+    }
+}
