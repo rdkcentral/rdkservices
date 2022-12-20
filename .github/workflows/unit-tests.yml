@@ -8,7 +8,7 @@ on:
 
 env:
   BUILD_TYPE: Debug
-  THUNDER_REF: "a87b48eca1e76c3e6f03d689e6302b1fb090b52c"
+  THUNDER_REF: "0731e67a8c9dea37a728201c9d19df5fbdfcbfe5"
   INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
 
 jobs:
@@ -45,7 +45,7 @@ jobs:
             !install/usr/lib/pkgconfig/gtest.pc
             !install/usr/lib/pkgconfig/gtest_main.pc
             !install/usr/lib/wpeframework/plugins
-          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-3
+          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-2
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -71,13 +71,6 @@ jobs:
           repository: rdkcentral/Thunder
           path: Thunder
           ref: ${{env.THUNDER_REF}}
-
-      - name: Install core/FileObserver.h
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          cd Thunder
-          git fetch https://github.com/npoltorapavlo/Thunder.git 0e1fbb73f6bb89de62b1d181c89128358603f772
-          git cherry-pick -n FETCH_HEAD
 
       - name: Build Thunder
         if: steps.cache.outputs.cache-hit != 'true'
