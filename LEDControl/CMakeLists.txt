@@ -15,26 +15,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME ActivityMonitor)
+set(PLUGIN_NAME LEDControl)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
-set(PLUGIN_ACTIVITYMONITOR_STARTUPORDER "" CACHE STRING "To configure startup order of ActivityMonitor plugin")
+set(PLUGIN_LEDCONTROL_STARTUPORDER "" CACHE STRING "To configure startup order of LEDControl plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
-        ActivityMonitor.cpp
+        LEDControl.cpp
         Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
-target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS} ../helpers)
-set_source_files_properties(ActivityMonitor.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
+target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})
+find_package(DS)
+if (DS_FOUND)
+    find_package(IARMBus)
+    add_definitions(-DDS_FOUND)
+    target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
+    target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
+    target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${OEMHAL_LIBRARIES} -lpthread -lglib-2.0 -ldbus-1 ${IARMBUS_LIBRARIES})
+#    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${DS_LIBRARIES})
+else (DS_FOUND)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
+endif(DS_FOUND)
 
+#target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
