@@ -34,7 +34,6 @@ set(PLUGIN_DISPLAYINFO_MODE "Off" CACHE STRING "Set DisplayInfo plugin mode, con
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
-find_package(${NAMESPACE}SecurityUtil REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(BCM_HOST QUIET)
 find_package(NEXUS QUIET)
@@ -59,7 +58,6 @@ target_link_libraries(${MODULE_NAME}
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${NAMESPACE}SecurityUtil::${NAMESPACE}SecurityUtil
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
 
 if (PLUGIN_DISPLAYINFO_BCM_VERSION_MAJOR)
