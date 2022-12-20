@@ -147,7 +147,7 @@ namespace Plugin {
 
                 while (dir.Next()) {
                     Core::File file(dir.Current());
-                    if (file.Open(true) == true) {
+                    if ((file.IsDirectory() == false) && (file.Open(true) == true)) {
                         _acl.Load(file);
                     }
                 }
