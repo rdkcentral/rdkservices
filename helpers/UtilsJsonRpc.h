@@ -23,25 +23,33 @@
     if (!param.HasLabel(name)) \
     { \
         LOGERR("No argument '%s'", name); \
-        returnResponse(false); \
+        response["success"] = false; \
+        LOGTRACEMETHODFIN(); \
+        return WPEFramework::Core::ERROR_BAD_REQUEST; \
     }
 #define returnIfStringParamNotFound(param, name) \
     if (!param.HasLabel(name) || param[name].Content() != WPEFramework::Core::JSON::Variant::type::STRING) \
     {\
         LOGERR("No argument '%s' or it has incorrect type", name); \
-        returnResponse(false); \
+        response["success"] = false; \
+        LOGTRACEMETHODFIN(); \
+        return WPEFramework::Core::ERROR_BAD_REQUEST; \
     }
 #define returnIfBooleanParamNotFound(param, name) \
     if (!param.HasLabel(name) || param[name].Content() != WPEFramework::Core::JSON::Variant::type::BOOLEAN) \
     { \
         LOGERR("No argument '%s' or it has incorrect type", name); \
-        returnResponse(false); \
+        response["success"] = false; \
+        LOGTRACEMETHODFIN(); \
+        return WPEFramework::Core::ERROR_BAD_REQUEST; \
     }
 #define returnIfNumberParamNotFound(param, name) \
     if (!param.HasLabel(name) || param[name].Content() != WPEFramework::Core::JSON::Variant::type::NUMBER) \
     { \
         LOGERR("No argument '%s' or it has incorrect type", name); \
-        returnResponse(false); \
+        response["success"] = false; \
+        LOGTRACEMETHODFIN(); \
+        return WPEFramework::Core::ERROR_BAD_REQUEST; \
     }
 
 /**

@@ -461,6 +461,8 @@ private:
             {"video/x-h264, profile=(string)high", Exchange::IPlayerProperties::VideoCodec::VIDEO_H264},
             {"video/x-h265", Exchange::IPlayerProperties::VideoCodec::VIDEO_H265},
             {"video/mpeg, mpegversion=(int){1,2}, systemstream=(boolean)false", Exchange::IPlayerProperties::VideoCodec::VIDEO_MPEG},
+            {"video/mpeg, mpegversion=(int)2, systemstream=(boolean)false", Exchange::IPlayerProperties::VideoCodec::VIDEO_MPEG2},
+            {"video/mpeg, mpegversion=(int)4, systemstream=(boolean)false", Exchange::IPlayerProperties::VideoCodec::VIDEO_MPEG4},
             {"video/x-vp8", Exchange::IPlayerProperties::VideoCodec::VIDEO_VP8},
             {"video/x-vp9", Exchange::IPlayerProperties::VideoCodec::VIDEO_VP9},
             {"video/x-vp10", Exchange::IPlayerProperties::VideoCodec::VIDEO_VP10}
