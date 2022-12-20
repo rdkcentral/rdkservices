@@ -552,7 +552,7 @@ TEST_F(RDKShellTest, keyRepeat)
                 EXPECT_EQ(enable, true);
                 return true;
                 }));
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableKeyRepeats"), _T("{\"enable\": \"true\"}"), response));
+	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableKeyRepeats"), _T("{\"enable\":true}"), response));
 	EXPECT_EQ(response, _T("{\"success\":true}"));
 	ON_CALL(compositormock, getKeyRepeatsEnabled(::testing::_))
             .WillByDefault(::testing::Invoke(
