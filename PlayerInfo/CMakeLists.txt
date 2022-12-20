@@ -55,22 +55,6 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}SecurityUtil::${NAMESPACE}SecurityUtil
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 
-find_package(CURL)
-if (CURL_FOUND)
-	target_link_libraries(${MODULE_NAME} PRIVATE ${CURL_LIBRARIES})
-else (CURL_FOUND)
-        message ("Curl/libcurl required.")
-endif (CURL_FOUND)
-
-find_package(RFC)
-if (RFC_FOUND)
-	message(${RFC_LIBRARIES})
-	target_link_libraries(${MODULE_NAME} PRIVATE ${RFC_LIBRARIES})
-else (RFC_FOUND)
-	message ("RFC lib required.")
-endif (RFC_FOUND)
-
-
 find_package(GSTREAMER REQUIRED)
 if (GSTREAMER_FOUND)
     target_link_libraries(${MODULE_NAME}
