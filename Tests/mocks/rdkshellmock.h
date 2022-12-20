@@ -158,6 +158,11 @@ public:
 		 }));
 	    ON_CALL(*this, getBounds(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
                  .WillByDefault(::testing::Return(true));
+	    ON_CALL(*this, setEventListener(::testing::_))
+                    .WillByDefault(::testing::Invoke(
+                   [&](std::shared_ptr<RdkShell::RdkShellEventListener> listener){
+                      RdkShell::gRdkShellEventListener = listener;
+                   }));
 
     }
     virtual ~CompositorImplMock() = default;

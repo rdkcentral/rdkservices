@@ -64,6 +64,8 @@ constexpr auto logMilestone = &RDKShell::logMilestone;
 constexpr auto keyCodeFromWayland = &RDKShell::keyCodeFromWayland;
 namespace RdkShell
 {
+    class RdkShellEventListener;
+    extern std::shared_ptr<RdkShellEventListener> gRdkShellEventListener;
     class RdkShellEvent
     {
        public:
