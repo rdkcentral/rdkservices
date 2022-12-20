@@ -494,8 +494,9 @@ TEST_F(FrontPanelInitializedEventDsTest, powerLedOffRecord)
 
 TEST_F(FrontPanelInitializedEventDsTest, powerLedOnPower)
 {
-FrontPanelIndicatorImplMock frontPanelIndicatorMock;
 
+    //required to set the return for frontPanelIndiciators
+    FrontPanelIndicatorImplMock frontPanelIndicatorMock;
     device::FrontPanelIndicator indicatorList;
     indicatorList.impl = &frontPanelIndicatorMock;
     ON_CALL(frontPanelConfigImplMock, getIndicators())
@@ -503,9 +504,8 @@ FrontPanelIndicatorImplMock frontPanelIndicatorMock;
     ON_CALL(frontPanelIndicatorMock, getName())
         .WillByDefault(::testing::Return("red"));
 
+    //setting the powerstate to on, which powerLedOn uses.
     ASSERT_TRUE(dsFrontPanelModeChange != nullptr);
-
-
     IARM_Bus_PWRMgr_EventData_t eventData;
     eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
     eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
@@ -523,7 +523,7 @@ FrontPanelIndicatorImplMock frontPanelIndicatorMock;
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("powerLedOn"), _T("{\"index\": \"data_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
-
+    //setting the powerstate to off, which powerLedOn uses.
     eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_OFF;
     eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
 
@@ -536,7 +536,7 @@ FrontPanelIndicatorImplMock frontPanelIndicatorMock;
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("powerLedOn"), _T("{\"index\": \"record_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
-
+    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("powerLedOn"), _T("{\"index\": \"data_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 

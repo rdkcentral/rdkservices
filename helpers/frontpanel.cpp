@@ -506,7 +506,8 @@ namespace WPEFramework
             bool success = false;
             string ledIndicator = svc2iarm(parameters["ledIndicator"].String());
             int brightness = -1;
-	    if (parameters.HasLabel("brightness"))
+	    
+        if (parameters.HasLabel("brightness"))
                 //brightness = properties["brightness"].Number();
                 getNumberParameter("brightness", brightness);
 
