@@ -8,7 +8,7 @@ on:
 
 env:
   BUILD_TYPE: Debug
-  THUNDER_REF: "a87b48eca1e76c3e6f03d689e6302b1fb090b52c"
+  THUNDER_REF: "R2-v1.12"
   INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
 
 jobs:
@@ -66,7 +66,7 @@ jobs:
 
       - name: Checkout Thunder
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v3
         with:
           repository: rdkcentral/Thunder
           path: Thunder
@@ -101,7 +101,7 @@ jobs:
 
       - name: Checkout ThunderInterfaces
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v3
         with:
           repository: rdkcentral/ThunderInterfaces
           path: ThunderInterfaces

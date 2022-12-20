@@ -219,8 +219,7 @@ TEST_F(FrontPanelInitializedEventDsTest, setBrightnessWIndex)
             [&](int brightness) {
                 EXPECT_EQ(brightness, 1);
             }));
-    ON_CALL(frontPanelIndicatorImplStringMock, setBrightness(::testing::_, ::testing::_))
-        .WillByDefault(::testing::Return());
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBrightness"), _T("{\"brightness\": 1,\"index\": \"power_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
@@ -556,8 +555,12 @@ TEST_F(FrontPanelInitializedEventDsTest, set24HourClock)
         .WillByDefault(::testing::ReturnRef(displayList));
     ON_CALL(frontPanelTextDisplayImplStringMock, getCurrentTimeFormat())
         .WillByDefault(::testing::Return(dsFPD_TIME_24_HOUR));
-    ON_CALL(frontPanelTextDisplayImplStringMock, setTimeFormat(::testing::_))
-        .WillByDefault(::testing::Return());
+    EXPECT_CALL(frontPanelTextDisplayImplStringMock, setTimeFormat(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const int iTimeFormat) {
+                EXPECT_EQ(iTimeFormat, dsFPD_TIME_24_HOUR);
+            }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("set24HourClock"), _T("{\"is24Hour\": true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
