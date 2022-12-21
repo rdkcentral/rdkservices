@@ -52,7 +52,7 @@ namespace Plugin {
                     syslog(LOG_NOTICE, "[%s]: %s\n", time.c_str(), information->Data());
                 } else {
                     string time(Core::Time::Now().ToRFC1123(true));
-                    syslog(LOG_NOTICE, "[%s]:[%s:%d] %s: %s\n", time.c_str(), Core::FileNameOnly(fileName), lineNumber, information->Category(), information->Data());
+                    syslog(LOG_NOTICE, "[%s]:[%s]:[%s:%d]: %s: %s\n", time.c_str(), information->Module(), Core::FileNameOnly(fileName), lineNumber, information->Category(), information->Data());
                 }
             } else
 #endif
@@ -62,7 +62,7 @@ namespace Plugin {
                     printf("[%s]: %s\n", time.c_str(), information->Data());
                 } else {
                     string time(Core::Time::Now().ToRFC1123(true));
-                    printf("[%s]:[%s:%d] %s: %s\n", time.c_str(), Core::FileNameOnly(fileName), lineNumber, information->Category(), information->Data());
+                    printf("[%s]:[%s]:[%s:%d] %s: %s\n", time.c_str(), information->Module(), Core::FileNameOnly(fileName), lineNumber, information->Category(), information->Data());
                 }
             }
         }
