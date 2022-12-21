@@ -189,18 +189,6 @@ TEST_F(RDKShellTest, getClients)
     "}"));	
 }
 
-TEST_F(RDKShellTest, getAvailableTypes)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAvailableTypes"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"types\":[],\"success\":true}"));
-}
-
-TEST_F(RDKShellTest, getState)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getState"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"state\":[],\"success\":true}"));
-}
-
 TEST_F(RDKShellTest, keyRepeatConfig)
 {
    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("keyRepeatConfig"), _T("{}"), response));
