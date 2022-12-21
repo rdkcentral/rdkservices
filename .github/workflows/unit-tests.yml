@@ -8,7 +8,7 @@ on:
 
 env:
   BUILD_TYPE: Debug
-  THUNDER_REF: "R2-v1.12"
+  THUNDER_REF: "0731e67a8c9dea37a728201c9d19df5fbdfcbfe5"
   INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
 
 jobs:
