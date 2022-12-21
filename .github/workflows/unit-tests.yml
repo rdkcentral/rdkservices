@@ -10,6 +10,7 @@ env:
   BUILD_TYPE: Debug
   THUNDER_REF: "0731e67a8c9dea37a728201c9d19df5fbdfcbfe5"
   INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
+  LLVM: true
 
 jobs:
   unit-tests:
@@ -62,7 +63,7 @@ jobs:
         run: >
           sudo apt update
           &&
-          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov
+          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang
 
       - name: Checkout Thunder
         if: steps.cache.outputs.cache-hit != 'true'
@@ -182,6 +183,7 @@ jobs:
           cmake
           -S "${{github.workspace}}/rdkservices"
           -B build/rdkservices
+          -DCMAKE_TOOLCHAIN_FILE="${{github.workspace}}/rdkservices/Tests/llvm.cmake"
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCMAKE_CXX_FLAGS="
@@ -285,6 +287,7 @@ jobs:
           RdkServicesTest
 
       - name: Run unit tests with valgrind
+        if: ${{ !env.LLVM }}
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
@@ -298,6 +301,7 @@ jobs:
           RdkServicesTest
 
       - name: Generate coverage
+        if: ${{ !env.LLVM }}
         run: >
           lcov -c
           -o coverage.info
@@ -319,7 +323,7 @@ jobs:
           filtered_coverage.info
 
       - name: Upload artifacts
-        if: ${{ !env.ACT }}
+        if: ${{ !env.ACT && !env.LLVM }}
         uses: actions/upload-artifact@v3
         with:
           name: artifacts
