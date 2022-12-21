@@ -27,6 +27,8 @@ find_package(PkgConfig)
 
 find_library(DS_LIBRARIES NAMES ds)
 find_library(DSHAL_LIBRARIES NAMES dshalcli)
+find_library(OEMHAL_LIBRARIES NAMES ds-hal)
+find_library(IARMBUS_LIBRARIES NAMES IARMBus)
 find_path(DS_INCLUDE_DIRS NAMES manager.hpp PATH_SUFFIXES rdk/ds)
 find_path(DSHAL_INCLUDE_DIRS NAMES dsTypes.h PATH_SUFFIXES rdk/ds-hal)
 find_path(DSRPC_INCLUDE_DIRS NAMES dsMgr.h PATH_SUFFIXES rdk/ds-rpc)
