@@ -157,9 +157,11 @@ namespace Plugin {
             subSystem->Set(PluginHost::ISubSystem::LOCATION, _sink.Location());
             subSystem->Release();
 
+#ifndef DISABLE_GEOGRAPHY_TIMEZONE
             if ((_sink.Location() != nullptr) && (_sink.Location()->TimeZone().empty() == false)) {
                 Core::SystemInfo::SetEnvironment(_T("TZ"), _sink.Location()->TimeZone());
                 event_locationchange();
+#endif
             }
         }
     }
