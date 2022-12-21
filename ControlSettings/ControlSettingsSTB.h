@@ -22,13 +22,8 @@
 
 #include "string.h"
 
-#include "tvTypes.h"
-#include "tvLog.h"
-#include "tvSettings.h"
 #include <pthread.h>
 #include "Module.h"
-#include "tvTypes.h"
-#include "tvError.h"
 
 #include "ControlSettingsCommon.h"
 #include "libIARM.h"
@@ -52,12 +47,13 @@ class ControlSettingsSTB : public PluginHost::IPlugin, public PluginHost::JSONRP
     public:
 	ControlSettingsSTB();
 	~ControlSettingsSTB();
-        ControlSettingsSTB *instance;
+        static ControlSettingsSTB *instance;
         void Initialize();
         void Deinitialize();
-    
-    protected:
+	static ControlSettingsSTB* getInstance() { return instance; }
         static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 };
 
 }//namespace Plugin

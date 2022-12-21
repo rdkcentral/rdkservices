@@ -37,6 +37,9 @@
 #include "iarmUtil.h"
 #include "UtilsLogging.h"
 #include "UtilsJsonRpc.h"
+#include "dsError.h"
+#include "dsMgr.h"
+#include "hdmiIn.hpp"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -113,18 +116,30 @@ class ControlSettingsTV : public PluginHost::IPlugin, public PluginHost::JSONRPC
         DECLARE_JSON_RPC_METHOD(enableWBMode )
         DECLARE_JSON_RPC_METHOD(setBacklightFade )
 
+        DECLARE_JSON_RPC_METHOD(getAspectRatio2)
+        DECLARE_JSON_RPC_METHOD(setAspectRatio2)
+        DECLARE_JSON_RPC_METHOD(resetAspectRatio)
+        DECLARE_JSON_RPC_METHOD(getVideoFormat)
+        DECLARE_JSON_RPC_METHOD(getVideoFrameRate)
+        DECLARE_JSON_RPC_METHOD(getVideoResolution)
 
     public:
+        int m_currentHdmiInResoluton;
+        int m_videoZoomMode;
+        bool m_isDisabledHdmiIn4KZoom;
         char rfc_caller_id[RFC_BUFF_MAX];
         ControlSettingsTV();
         ~ControlSettingsTV();
-        ControlSettingsTV *instance;
+        static ControlSettingsTV *instance;
         void Initialize();
         void Deinitialize();
-        virtual  tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all")=0;
 
-
-    protected:
+	static ControlSettingsTV* getInstance() { return instance; }
+	tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
+        tvError_t getUserSelectedAspectRatio (tvDisplayMode_t* mode);
+        tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all");
+	static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 };
 

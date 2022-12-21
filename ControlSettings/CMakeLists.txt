@@ -43,12 +43,17 @@ include_directories(${STAGING_INCDIR}/rdk/ds-hal)
 include_directories(${STAGING_INCDIR}/rdk/ds-rpc)
 include_directories(${STAGING_INCDIR}/rdk/ds)
 
-
+if (CONTROLSETTINGS_TV)
 add_library(${MODULE_NAME} SHARED
     ControlSettingsTV.cpp 
+    ControlSettings.cpp
+    Module.cpp)
+else()
+add_library(${MODULE_NAME} SHARED
     ControlSettingsSTB.cpp
     ControlSettings.cpp
     Module.cpp)
+endif()
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11

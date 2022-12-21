@@ -26,21 +26,11 @@
 #include "libIBus.h"
 #include "iarmUtil.h"
 
-#include "dsError.h"
-#include "dsMgr.h"
-#include "hdmiIn.hpp"
-
 #include <iostream>
 
-#include "tvTypes.h"
-#include "tvLog.h"
-#include "tvSettings.h"
 #include <pthread.h>
 #include "Module.h"
-#include "tvTypes.h"
-#include "tvError.h"
 
-#include "tr181api.h"
 #include <sys/stat.h>
 #include <vector>
 #include "ControlSettingsTV.h"
@@ -72,23 +62,13 @@ namespace Plugin {
    public:
         ControlSettings();
         ~ControlSettings();
-        static ControlSettings* _instance;
-        static ControlSettings* getInstance() { return ControlSettings::_instance; }
-	tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
-        tvError_t getUserSelectedAspectRatio (tvDisplayMode_t* mode);
-	tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all");
 
     private:
         uint8_t _skipURL;
-        int m_currentHdmiInResoluton;
-        int m_videoZoomMode;
-        bool m_isDisabledHdmiIn4KZoom;
 	void InitializeIARM();
         void DeinitializeIARM();
         bool isIARMConnected();
         bool IARMinit();
-        static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
     public:
         //   IPlugin methods

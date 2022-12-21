@@ -25,6 +25,8 @@
 namespace WPEFramework {
 namespace Plugin {
 
+    ControlSettingsSTB* ControlSettingsSTB::instance = nullptr;
+
     ControlSettingsSTB::ControlSettingsSTB():PluginHost::JSONRPC()
     {
         LOGINFO("Entry\n"); 
@@ -60,6 +62,17 @@ namespace Plugin {
         LOGINFO("Exit %s\n",__FUNCTION__);
     }
 
+    void ControlSettingsSTB::dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    {
+        LOGINFO("Entry %s\n",__FUNCTION__);
+        LOGINFO("Exit %s\n",__FUNCTION__);
+    }
+
+    void ControlSettingsSTB::dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    {
+        LOGINFO("Entry %s\n",__FUNCTION__);
+        LOGINFO("Exit %s\n",__FUNCTION__);
+    }
     uint32_t ControlSettingsSTB::getVolume(const JsonObject& parameters, JsonObject& response)
     {
 
