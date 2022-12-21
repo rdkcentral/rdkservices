@@ -363,7 +363,7 @@ namespace Plugin {
         }
         setDefaultAspectRatio();
 
-       LOGINFO("Exit\n" );
+        LOGINFO("Exit\n" );
     }
 
     void ControlSettingsTV::Deinitialize()

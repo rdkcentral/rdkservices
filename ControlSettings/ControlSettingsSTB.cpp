@@ -32,8 +32,10 @@ namespace Plugin {
         LOGINFO("Entry\n"); 
         instance = this;
         CreateHandler({ 2 });
+
         registerMethod("getVolume", &ControlSettingsSTB::getVolume, this );
         registerMethod("setVolume", &ControlSettingsSTB::setVolume, this);
+
         LOGINFO("Exit\n");
     }
     
