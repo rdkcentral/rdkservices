@@ -2260,6 +2260,12 @@ namespace WPEFramework {
 						populateResponseWithError(SysSrv_FileAccessFailed, response);
 						resp = false;
 					}
+
+#ifdef DISABLE_GEOGRAPHY_TIMEZONE
+                    std::string tzenv = ":";
+                    tzenv += timeZone;
+                    Core::SystemInfo::SetEnvironment(_T("TZ"), tzenv.c_str());
+#endif
 				}
 			} catch (...) {
 				LOGERR("catch block : parameters[\"timeZone\"]...");
