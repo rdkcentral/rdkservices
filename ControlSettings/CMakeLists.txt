@@ -73,7 +73,6 @@ target_link_libraries(${MODULE_NAME}
     PRIVATE
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 
-target_link_libraries(${MODULE_NAME} "-lglib-2.0 -lpthread -lIARMBus -ltvsettings-hal -ltr181api -lds")
 
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/wpeframework/plugins)
