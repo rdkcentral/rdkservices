@@ -2236,31 +2236,43 @@ namespace WPEFramework {
 				if (timeZone.empty() || (timeZone == "null")) {
 					LOGERR("Empty timeZone received.");
 				} else {
-					if (!dirExists(dir)) {
-						std::string command = "mkdir -p " + dir + " \0";
-						Utils::cRunScript(command.c_str());
-					} else {
-						//Do nothing//
-					}
-					std::string oldTimeZoneDST = getTimeZoneDSTHelper();
+					int pos = timeZone.find("/");
+					std::string path =ZONEINFO_DIR;
+					path += "/";
+					std::string country = timeZone.substr(0,pos);
+					std::string city = path+timeZone;
+					if( dirExists(path+country)  && Utils::fileExists(city.c_str()) ) 
+					{
+						if (!dirExists(dir)) {
+							std::string command = "mkdir -p " + dir + " \0";
+							Utils::cRunScript(command.c_str());
+						} else {
+							//Do nothing//
+						}
+						std::string oldTimeZoneDST = getTimeZoneDSTHelper();
 
-					FILE *f = fopen(TZ_FILE, "w");
-					if (f) {
-						if (timeZone.size() != fwrite(timeZone.c_str(), 1, timeZone.size(), f))
-							LOGERR("Failed to write %s", TZ_FILE);
+						FILE *f = fopen(TZ_FILE, "w");
+						if (f) {
+							if (timeZone.size() != fwrite(timeZone.c_str(), 1, timeZone.size(), f))
+								LOGERR("Failed to write %s", TZ_FILE);
 
-						fflush(f);
-						fsync(fileno(f));
-						fclose(f);
-						if (SystemServices::_instance)
-							SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone);
-						resp = true;
-					} else {
-						LOGERR("Unable to open %s file.\n", TZ_FILE);
-						populateResponseWithError(SysSrv_FileAccessFailed, response);
-						resp = false;
+							fflush(f);
+							fsync(fileno(f));
+							fclose(f);
+							if (SystemServices::_instance)
+								SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone);
+							resp = true;
+						} else {
+							LOGERR("Unable to open %s file.\n", TZ_FILE);
+							populateResponseWithError(SysSrv_FileAccessFailed, response);
+							resp = false;
+						}
+						else{
+							LOGERR("Invalid timeZone  %s . \n", timeZone.c_str());
+							populateResponseWithError(SysSrv_FileNotPresent, response);
+							resp = false;
+						}
 					}
-				}
 			} catch (...) {
 				LOGERR("catch block : parameters[\"timeZone\"]...");
 			}
