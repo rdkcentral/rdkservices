@@ -2,7 +2,7 @@
 <a name="Telemetry_Plugin"></a>
 # Telemetry Plugin
 
-**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/Telemetry/CHANGELOG.md)**
+**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/Telemetry/CHANGELOG.md)**
 
 A org.rdk.Telemetry plugin for Thunder framework.
 
@@ -12,6 +12,7 @@ A org.rdk.Telemetry plugin for Thunder framework.
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
+- [Notifications](#Notifications)
 
 <a name="Abbreviation,_Acronyms_and_Terms"></a>
 # Abbreviation, Acronyms and Terms
@@ -48,6 +49,7 @@ Telemtry interface methods:
 | :-------- | :-------- |
 | [setReportProfileStatus](#setReportProfileStatus) | Sets the status of telemetry reporting |
 | [logApplicationEvent](#logApplicationEvent) | Logs an application event |
+| [uploadReport](#uploadReport) | Triggers processing and uploading of telemetry report for legacy Xconf based configuration |
 
 
 <a name="setReportProfileStatus"></a>
@@ -148,6 +150,94 @@ No Events
     "id": 42,
     "result": {
         "success": true
+    }
+}
+```
+
+<a name="uploadReport"></a>
+## *uploadReport*
+
+Triggers processing and uploading of telemetry report for legacy Xconf based configuration.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onReportUpload](#onReportUpload) | Triggered by callback from Telemetry after report uploading |
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | null | Always null |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 25 | ```ERROR_RPC_CALL_FAILED``` | RBus call report uploading failed |
+| 6 | ```ERROR_OPENING_FAILED``` | Failed to open RBus handle |
+| 43 | ```ERROR_NOT_EXIST``` | Built with no support for RBus |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Telemetry.uploadReport"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": null
+}
+```
+
+<a name="Notifications"></a>
+# Notifications
+
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
+
+The following events are provided by the org.rdk.Telemetry plugin:
+
+Telemtry interface events:
+
+| Event | Description |
+| :-------- | :-------- |
+| [onReportUpload](#onReportUpload) | Triggered by callback from Telemetry after report uploading |
+
+
+<a name="onReportUpload"></a>
+## *onReportUpload*
+
+Triggered by callback from Telemetry after report uploading.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.telemetryUploadStatus | string | Indicates if the upload was successful |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onReportUpload",
+    "params": {
+        "telemetryUploadStatus": "UPLOAD_SUCCESS"
     }
 }
 ```
