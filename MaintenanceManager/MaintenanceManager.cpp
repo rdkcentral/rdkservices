@@ -631,6 +631,7 @@ namespace WPEFramework {
             MaintenanceManager::g_lastSuccessful_maint_time="";
             MaintenanceManager::g_task_status=0;
             MaintenanceManager::m_abort_flag=false;
+            MaintenanceManager::g_unsolicited_complete = false;
 
             /* we post just to tell that we are in idle at this moment */
             m_statusMutex.lock();
@@ -862,6 +863,9 @@ namespace WPEFramework {
                         LOGINFO("Thread joined successfully\n");
                     }
 
+                    if (!g_unsolicited_complete) {
+                        g_unsolicited_complete = true;
+                    }
                     MaintenanceManager::_instance->onMaintenanceStatusChange(notify_status);
                 }
                 else {
@@ -1202,7 +1206,7 @@ namespace WPEFramework {
                     /* only one maintenance at a time */
                     /* Lock so that m_notify_status will not be updated  further */
                     m_statusMutex.lock();
-                    if ( MAINTENANCE_STARTED != m_notify_status  ){
+                    if ( MAINTENANCE_STARTED != m_notify_status && g_unsolicited_complete ){
 
                         /*reset the status to 0*/
                         g_task_status=0;
