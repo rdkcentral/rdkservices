@@ -14,7 +14,7 @@ env:
 jobs:
   unit-tests:
     name: Build and run unit tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Set up cache
