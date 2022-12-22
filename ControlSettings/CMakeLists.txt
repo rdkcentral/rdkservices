@@ -48,11 +48,13 @@ add_library(${MODULE_NAME} SHARED
     ControlSettingsTV.cpp 
     ControlSettings.cpp
     Module.cpp)
+target_link_libraries(${MODULE_NAME} "-lglib-2.0 -lpthread -lIARMBus -ltvsettings-hal -ltr181api -lds")
 else()
 add_library(${MODULE_NAME} SHARED
     ControlSettingsSTB.cpp
     ControlSettings.cpp
     Module.cpp)
+target_link_libraries(${MODULE_NAME} "-lglib-2.0 -lpthread -lIARMBus -lds")
 endif()
 
 set_target_properties(${MODULE_NAME} PROPERTIES
