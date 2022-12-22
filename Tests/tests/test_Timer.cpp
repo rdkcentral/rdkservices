@@ -62,7 +62,7 @@ protected:
     }
 };
 
-class TimerInitializedEventTest : public TimerInitializedTest {
+/*class TimerInitializedEventTest : public TimerInitializedTest {
 protected:
     ServiceMock service;
     Core::JSONRPC::Message message;
@@ -85,7 +85,7 @@ protected:
 
         PluginHost::IFactories::Assign(nullptr);
     }
-};
+};*/
 
 TEST_F(TimerTest, registeredMethods)
 {

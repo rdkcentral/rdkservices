@@ -85,7 +85,7 @@ protected:
     }
 };
 
-class FrameRateDsTest : public FrameRateTest {
+/*class FrameRateDsTest : public FrameRateTest {
 protected:
     HostImplMock hostImplMock;
     VideoDeviceMock videoDeviceMock;
@@ -104,7 +104,7 @@ protected:
     {
         device::Host::getInstance().impl = nullptr;
     }
-};
+};*/
 
 TEST_F(FrameRateTest, RegisteredMethods)
 {
