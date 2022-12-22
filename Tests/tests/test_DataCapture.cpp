@@ -19,8 +19,8 @@
 
 #include <gtest/gtest.h>
 
-#include <future>
-#include <thread>
+/*#include <future>
+#include <thread>*/
 
 #include "DataCapture.h"
 #include "FactoriesImplementation.h"
@@ -31,7 +31,7 @@ namespace {
 const std::string iarmName = _T("Thunder_Plugins");
 constexpr const char answer[16] = "TESTING STREAM!";
 
-void runSocket(std::promise<bool> ready, const std::string& fileName)
+/*void runSocket(std::promise<bool> ready, const std::string& fileName)
 {
     auto sd = socket(AF_UNIX, SOCK_STREAM, 0);
 
@@ -82,7 +82,7 @@ void runServer(std::promise<bool> ready)
 
     close(connection);
     close(sockfd);
-}
+}*/
 }
 
 using testing::_;
