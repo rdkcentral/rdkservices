@@ -71,6 +71,32 @@ include_directories(../LocationSync
         ../ActivityMonitor
         ../FrontPanel
         )
+link_directories(../LocationSync
+        ../PersistentStore
+        ../SecurityAgent
+        ../DeviceIdentification
+        ../DeviceDiagnostics
+        ../FrameRate
+        ../AVInput
+        ../Telemetry
+        ../ScreenCapture
+        ../DataCapture
+        ../UsbAccess
+        ../Timer
+        ../LoggingPreferences
+        ../SystemServices
+        ../UserPreferences
+        ../Messenger
+        ../DeviceInfo
+        ../HdmiInput
+        ../HdcpProfile
+        ../TraceControl
+        ../Network
+	../WifiManager
+        ../Warehouse
+        ../ActivityMonitor
+	../FrontPanel
+        )
 
 target_link_libraries(${PROJECT_NAME}
         gmock_main

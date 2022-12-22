@@ -525,12 +525,6 @@ FrontPanelIndicatorImplMock frontPanelIndicatorMock;
                 EXPECT_EQ(state, true);
             }));
 
- /*   EXPECT_CALL(frontPanelIndicatorImplStringMock, setState(::testing::_))
-        .WillRepeatedly(::testing::Invoke(
-            [&](bool state) {
-                EXPECT_EQ(state, true);
-            }));*/
-
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("powerLedOn"), _T("{\"index\": \"power_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
