@@ -25,19 +25,12 @@
 #include "SystemInfo.h"
 #include "WorkerPoolImplementation.h"
 
+#include <fstream>
+
 using namespace WPEFramework;
 
 namespace {
-const string payload = _T("http://localhost");
-const string tokenPrefix = _T("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aHR0cDovL2xvY2FsaG9zdA.");
-const string envEndPoint = _T("SECURITYAGENT_PATH");
-const string expectedEndPoint = _T("/tmp/token");
 const string callSign = _T("SecurityAgent");
-const string webPrefix = _T("/Service/SecurityAgent");
-const string persistentPath = _T("/tmp/");
-const string dataPath = _T("/tmp/");
-const string volatilePath = _T("/tmp/");
-const string proxyStubPath = _T("install/usr/lib/wpeframework/proxystubs");
 }
 
 class SecurityAgentTest : public ::testing::Test {
@@ -47,6 +40,8 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
+    Core::Sink<SystemInfo> subSystem;
+    ServiceMock service;
 
     SecurityAgentTest()
         : workerPool(Core::ProxyType<WorkerPoolImplementation>::Create(
@@ -55,6 +50,28 @@ protected:
         , handler(*plugin)
         , connection(1, 0)
     {
+        ON_CALL(service, ConfigLine())
+            .WillByDefault(::testing::Return("{}"));
+        ON_CALL(service, WebPrefix())
+            .WillByDefault(::testing::Return(_T("/Service/SecurityAgent")));
+        ON_CALL(service, SubSystems())
+            .WillByDefault(::testing::Invoke(
+                [&]() {
+                    PluginHost::ISubSystem* result = (&subSystem);
+                    result->AddRef();
+                    return result;
+                }));
+        ON_CALL(service, PersistentPath())
+            .WillByDefault(::testing::Return(_T("/tmp/")));
+        ON_CALL(service, DataPath())
+            .WillByDefault(::testing::Return(_T("/tmp/")));
+        ON_CALL(service, VolatilePath())
+            .WillByDefault(::testing::Return(_T("/tmp/")));
+        ON_CALL(service, ProxyStubPath())
+            .WillByDefault(::testing::Return(_T("install/usr/lib/wpeframework/proxystubs")));
+        ON_CALL(service, Callsign())
+            .WillByDefault(::testing::Return(callSign));
+
         Core::IWorkerPool::Assign(&(*workerPool));
 
         workerPool->Run();
@@ -68,64 +85,36 @@ protected:
     }
 };
 
-class SecurityAgentInitializedTest : public SecurityAgentTest {
-protected:
-    Core::Sink<SystemInfo> subSystem;
-    ServiceMock service;
-
-    SecurityAgentInitializedTest()
-        : SecurityAgentTest()
-    {
-        ON_CALL(service, ConfigLine())
-            .WillByDefault(::testing::Return("{}"));
-        ON_CALL(service, WebPrefix())
-            .WillByDefault(::testing::Return(webPrefix));
-        ON_CALL(service, SubSystems())
-            .WillByDefault(::testing::Invoke(
-                [&]() {
-                    PluginHost::ISubSystem* result = (&subSystem);
-                    result->AddRef();
-                    return result;
-                }));
-        ON_CALL(service, PersistentPath())
-            .WillByDefault(::testing::Return(persistentPath));
-        ON_CALL(service, DataPath())
-            .WillByDefault(::testing::Return(dataPath));
-        ON_CALL(service, VolatilePath())
-            .WillByDefault(::testing::Return(volatilePath));
-        ON_CALL(service, ProxyStubPath())
-            .WillByDefault(::testing::Return(proxyStubPath));
-        ON_CALL(service, Callsign())
-            .WillByDefault(::testing::Return(callSign));
-
-        EXPECT_EQ(string(""), plugin->Initialize(&service));
-    }
-    virtual ~SecurityAgentInitializedTest() override
-    {
-        plugin->Deinitialize(&service);
-    }
-};
-
-TEST_F(SecurityAgentInitializedTest, validate)
+TEST_F(SecurityAgentTest, validate)
 {
+    const string payload = _T("{\"url\":\"http://localhost\"}");
+
     string token;
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("validate")));
     EXPECT_EQ(Core::ERROR_NONE, plugin->CreateToken(static_cast<uint16_t>(payload.length()), reinterpret_cast<const uint8_t*>(payload.c_str()), token));
 
-    EXPECT_EQ(0, token.rfind(tokenPrefix, 0));
+    EXPECT_THAT(token, ::testing::MatchesRegex("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\\.eyJ1cmwiOiJodHRwOi8vbG9jYWxob3N0In0\\..*"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("validate"), "{\"token\":\"" + token + "\"}", response));
     EXPECT_EQ(response, _T("{\"valid\":true}"));
+
+    plugin->Deinitialize(&service);
 }
 
-TEST_F(SecurityAgentInitializedTest, rpcCom)
+TEST_F(SecurityAgentTest, rpcCom)
 {
+    const string payload = _T("{\"url\":\"http://localhost\"}");
+
     string token;
     string endPoint;
 
-    EXPECT_TRUE(Core::SystemInfo::GetEnvironment(envEndPoint.c_str(), endPoint));
-    EXPECT_EQ(endPoint, expectedEndPoint);
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    EXPECT_TRUE(Core::SystemInfo::GetEnvironment(_T("SECURITYAGENT_PATH"), endPoint));
+    EXPECT_EQ(endPoint, _T("/tmp/token"));
 
     auto engine = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
     auto client = Core::ProxyType<RPC::CommunicatorClient>::Create(
@@ -139,7 +128,7 @@ TEST_F(SecurityAgentInitializedTest, rpcCom)
 
     EXPECT_EQ(Core::ERROR_NONE, interface->CreateToken(static_cast<uint16_t>(payload.length()), reinterpret_cast<const uint8_t*>(payload.c_str()), token));
 
-    EXPECT_EQ(0, token.rfind(tokenPrefix, 0));
+    EXPECT_THAT(token, ::testing::MatchesRegex("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\\.eyJ1cmwiOiJodHRwOi8vbG9jYWxob3N0In0\\..*"));
 
     interface->Release();
 
@@ -160,4 +149,121 @@ TEST_F(SecurityAgentInitializedTest, rpcCom)
 
     client.Release();
     engine.Release();
+
+    plugin->Deinitialize(&service);
+}
+
+TEST_F(SecurityAgentTest, acl)
+{
+    const string payload = _T("{\"url\":\"http://example.com\"}");
+
+    std::ofstream file("/tmp/acl.json");
+    file
+        << "{\n"
+           "  \"assign\": [\n"
+           "    {\n"
+           "      \"url\": \"*://example.com\",\n"
+           "      \"role\": \"example\"\n"
+           "    }\n"
+           "  ],\n"
+           "  \"roles\": {\n"
+           "    \"example\": {\n"
+           "      \"default\": \"blocked\",\n"
+           "      \"DeviceInfo\": {\n"
+           "        \"default\": \"allowed\",\n"
+           "        \"methods\": [ \"register\", \"unregister\" ]\n"
+           "      }\n"
+           "    }\n"
+           "  }\n"
+           "}";
+    file.close();
+
+    ON_CALL(service, ConfigLine())
+        .WillByDefault(::testing::Return(_T("{\"acl\":\"acl.json\"}")));
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    PluginHost::IAuthenticate* interface = static_cast<PluginHost::IAuthenticate*>(
+        plugin->QueryInterface(PluginHost::IAuthenticate::ID));
+    ASSERT_TRUE(interface != nullptr);
+
+    string token;
+    EXPECT_EQ(Core::ERROR_NONE, interface->CreateToken(static_cast<uint16_t>(payload.length()), reinterpret_cast<const uint8_t*>(payload.c_str()), token));
+    PluginHost::ISecurity* security = interface->Officer(token);
+    ASSERT_TRUE(security != nullptr);
+
+    EXPECT_EQ(payload, security->Token());
+
+    Core::JSONRPC::Message message;
+    message.Designator = _T("Uknkown.method");
+    EXPECT_FALSE(security->Allowed(message));
+    message.Designator = _T("DeviceInfo.systeminfo");
+    EXPECT_TRUE(security->Allowed(message));
+    message.Designator = _T("DeviceInfo.register");
+    EXPECT_FALSE(security->Allowed(message));
+
+    security->Release();
+
+    interface->Release();
+
+    plugin->Deinitialize(&service);
+}
+
+TEST_F(SecurityAgentTest, aclForDACApps)
+{
+    const string payload = _T("{\"url\":\"example\",\"type\":\"dac\"}");
+
+    Core::Directory dir(_T("/tmp/dac"));
+
+    EXPECT_TRUE(dir.Destroy(false));
+    ASSERT_TRUE(dir.CreatePath());
+
+    ON_CALL(service, ConfigLine())
+        .WillByDefault(::testing::Return(_T("{\"dac\":\"/tmp/dac\"}")));
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    PluginHost::IAuthenticate* interface = static_cast<PluginHost::IAuthenticate*>(
+        plugin->QueryInterface(PluginHost::IAuthenticate::ID));
+    ASSERT_TRUE(interface != nullptr);
+
+    string token;
+    EXPECT_EQ(Core::ERROR_NONE, interface->CreateToken(static_cast<uint16_t>(payload.length()), reinterpret_cast<const uint8_t*>(payload.c_str()), token));
+    PluginHost::ISecurity* security = interface->Officer(token);
+    ASSERT_TRUE(security != nullptr);
+
+    EXPECT_EQ(payload, security->Token());
+
+    Core::JSONRPC::Message message;
+    message.Designator = _T("DeviceInfo.systeminfo");
+    EXPECT_FALSE(security->Allowed(message));
+
+    std::ofstream file("/tmp/dac/example");
+    file
+        << "{\n"
+           "  \"assign\": [\n"
+           "    {\n"
+           "      \"url\": \"example\",\n"
+           "      \"role\": \"example\"\n"
+           "    }\n"
+           "  ],\n"
+           "  \"roles\": {\n"
+           "    \"example\": {\n"
+           "      \"default\": \"blocked\",\n"
+           "      \"DeviceInfo\": {\n"
+           "        \"default\": \"allowed\"\n"
+           "      }\n"
+           "    }\n"
+           "  }\n"
+           "}";
+    file.close();
+    // Wait up to 1s
+    for (int i = 0, retry = 20; ((i < retry) && (!security->Allowed(message))); i++) {
+        SleepMs(50);
+    }
+    EXPECT_TRUE(security->Allowed(message));
+
+    security->Release();
+
+    interface->Release();
+
+    plugin->Deinitialize(&service);
 }
