@@ -299,6 +299,23 @@ namespace Plugin {
         }
         LOGWARN("ControlSettingsPlugins: ControlSettings Initialize m_currentHdmiInResoluton:%d m_mod:%d", m_currentHdmiInResoluton, m_videoZoomMode);
 
+        ret = tvInit();
+
+        if(ret != tvERROR_NONE) {
+            LOGERR("Platform Init failed, ret: %s \n", getErrorString(ret).c_str());
+
+        }
+        else{
+            LOGINFO("Platform Init successful...\n");
+            ret = tvSD3toCriSyncInit();
+            if(ret != tvERROR_NONE) {
+                LOGERR(" SD3 <->cri_data sync failed, ret: %s \n", getErrorString(ret).c_str());
+            }
+            else {
+                LOGERR(" SD3 <->cri_data sync success, ret: %s \n", getErrorString(ret).c_str());
+            }
+
+        }
 
        LocatePQSettingsFile(rfc_caller_id);
 
@@ -369,6 +386,17 @@ namespace Plugin {
     void ControlSettingsTV::Deinitialize()
     {
        LOGINFO("Entry\n");
+
+       tvError_t ret = tvERROR_NONE;
+       ret = tvTerm();
+
+       if(ret != tvERROR_NONE) {
+           LOGERR("Platform De-Init failed");
+       }
+       else{
+           LOGINFO("Platform De-Init successful... \n");
+       }
+
        LOGINFO("Exit\n");
     }
 

@@ -54,26 +54,6 @@ namespace Plugin {
 	ASSERT(service != nullptr);
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
 
-        tvError_t ret = tvERROR_NONE;
-
-        ret = tvInit();
-
-        if(ret != tvERROR_NONE) {
-            LOGERR("Platform Init failed, ret: %s \n", getErrorString(ret).c_str());
-
-        }
-        else{
-            LOGINFO("Platform Init successful...\n");
-            ret = tvSD3toCriSyncInit();
-            if(ret != tvERROR_NONE) {
-                LOGERR(" SD3 <->cri_data sync failed, ret: %s \n", getErrorString(ret).c_str());
-            }
-            else {
-                LOGERR(" SD3 <->cri_data sync success, ret: %s \n", getErrorString(ret).c_str());
-            }
-
-        }
-
 	DEVICE_TYPE::getInstance()->Initialize();
 
 	LOGINFO("Exit\n");
@@ -83,16 +63,6 @@ namespace Plugin {
     void ControlSettings::Deinitialize(PluginHost::IShell* service)
     {
         LOGINFO();
-        tvError_t ret = tvERROR_NONE;
-        ret = tvTerm();
-
-        if(ret != tvERROR_NONE) {
-            LOGERR("Platform De-Init failed");
-        }
-        else{
-            LOGINFO("Platform De-Init successful... \n");
-        }
-        DeinitializeIARM();
 
 	DEVICE_TYPE::getInstance()->Deinitialize();
     }

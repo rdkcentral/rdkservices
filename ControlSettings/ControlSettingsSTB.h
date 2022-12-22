@@ -32,6 +32,10 @@
 #include "iarmUtil.h"
 #include "UtilsLogging.h"
 #include "UtilsJsonRpc.h"
+#include "dsError.h"
+#include "dsMgr.h"
+#include "hdmiIn.hpp"
+
 
 namespace WPEFramework {
 namespace Plugin {
