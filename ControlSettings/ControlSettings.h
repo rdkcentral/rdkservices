@@ -33,12 +33,13 @@
 
 #include <sys/stat.h>
 #include <vector>
-#include "ControlSettingsTV.h"
-#include "ControlSettingsSTB.h"
 
 //Default ControlSettingsSTB
 #ifndef DEVICE_TYPE
 #define DEVICE_TYPE ControlSettingsSTB
+#include "ControlSettingsSTB.h"
+#else
+#include "ControlSettingsTV.h"
 #endif
 
 namespace WPEFramework {
