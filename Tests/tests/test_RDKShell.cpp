@@ -153,18 +153,6 @@ TEST_F(RDKShellTest, enableInputEvents)
                                                                                 "}"), response));
 }
 
-TEST_F(RDKShellTest, setMemoryMonitor)
-{
-    ON_CALL(rdkshellapimock, setMemoryMonitor(::testing::_))
-                .WillByDefault(::testing::Invoke(
-                [](std::map<std::string, RdkShell::RdkShellData> &configuration){
-                }));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMemoryMonitor"), _T("{\"enable\": true,"
-                                                                                             "\"interval\": 300,"
-											     "\"lowRam\": 128,"
-                                                                                             "\"criticallyLowRam\": 64}"), response));
-}
-
 TEST_F(RDKShellTest, getClients)
 {
       ON_CALL(compositormock, getClients(::testing::_))
@@ -360,10 +348,6 @@ TEST_F(RDKShellTest, visibility)
     EXPECT_EQ(response, string("{\"visible\":true,\"success\":true}"));
 }
 
-TEST_F(RDKShellTest, getSystemResource)
-{
-   EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSystemResourceInfo"), _T("{}"), response));
-}
 TEST_F(RDKShellTest, getSystemMemory)
 {
     EXPECT_CALL(rdkshellapimock, systemRam(::testing::_, ::testing::_, ::testing::_, ::testing::_))
