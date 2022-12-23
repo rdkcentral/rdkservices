@@ -8,8 +8,6 @@
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
 
-#include "dsMgr.h"
-
 using namespace WPEFramework;
 
 class HdmiInputTest : public ::testing::Test {
@@ -183,8 +181,11 @@ TEST_F(HdmiInputDsTest, writeEDIDEmpty)
     EXPECT_EQ(response, string(""));
 }
 
-
-TEST_F(HdmiInputDsTest, writeEDID)
+/**
+ * not clear what this verifies
+ * API returns success but what it does and whether it works is not tested
+ */
+TEST_F(HdmiInputDsTest, DISABLED_writeEDID)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("writeEDID"), _T("{\"deviceId\": 0, \"message\": \"message\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
@@ -261,13 +262,21 @@ TEST_F(HdmiInputDsTest, setEdidVersionInvalid)
     EXPECT_EQ(response, string(""));
 }
 
-TEST_F(HdmiInputDsTest, setEdidVersion14)
+/**
+ * not clear what this verifies
+ * API returns success but what it does and whether it works is not tested
+ */
+TEST_F(HdmiInputDsTest, DISABLED_setEdidVersion14)
 {
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("setEdidVersion"), _T("{\"portId\": \"0\", \"edidVersion\":\"HDMI1.4\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
-TEST_F(HdmiInputDsTest, setEdidVersion20)
+/**
+ * not clear what this verifies
+ * API returns success but what it does and whether it works is not tested
+ */
+TEST_F(HdmiInputDsTest, DISABLED_setEdidVersion20)
 {
     EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("setEdidVersion"), _T("{\"portId\": \"0\", \"edidVersion\":\"HDMI2.0\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
@@ -310,14 +319,22 @@ TEST_F(HdmiInputDsTest, startHdmiInputInvalid)
     EXPECT_EQ(response, string(""));
 }
 
-TEST_F(HdmiInputDsTest, startHdmiInput)
+/**
+ * not clear what this verifies
+ * API returns success but what it does and whether it works is not tested
+ */
+TEST_F(HdmiInputDsTest, DISABLED_startHdmiInput)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startHdmiInput"), _T("{\"portId\": \"0\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}")); 
 }
 
 
-TEST_F(HdmiInputDsTest, stopHdmiInput)
+/**
+ * not clear what this verifies
+ * API returns success but what it does and whether it works is not tested
+ */
+TEST_F(HdmiInputDsTest, DISABLED_stopHdmiInput)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("stopHdmiInput"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":true}")); 
@@ -329,7 +346,11 @@ TEST_F(HdmiInputDsTest, setVideoRectangleInvalid)
     EXPECT_EQ(response, string("")); 
 }
 
-TEST_F(HdmiInputDsTest, setVideoRectangle)
+/**
+ * not clear what this verifies
+ * API returns success but what it does and whether it works is not tested
+ */
+TEST_F(HdmiInputDsTest, DISABLED_setVideoRectangle)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVideoRectangle"), _T("{\"x\": 0,\"y\": 0,\"w\": 1920,\"h\": 1080}"), response));
     EXPECT_EQ(response, string("{\"success\":true}")); 

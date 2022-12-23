@@ -27,8 +27,6 @@
 #include "SystemInfo.h"
 #include "WorkerPoolImplementation.h"
 
-#include <future>
-
 using namespace WPEFramework;
 
 namespace {

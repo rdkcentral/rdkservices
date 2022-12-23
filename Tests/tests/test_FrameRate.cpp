@@ -7,7 +7,6 @@
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
 #include "VideoDeviceMock.h"
-#include "dsMgr.h"
 
 using namespace WPEFramework;
 
@@ -85,7 +84,7 @@ protected:
     }
 };
 
-/*class FrameRateDsTest : public FrameRateTest {
+class FrameRateDsTest : public FrameRateTest {
 protected:
     HostImplMock hostImplMock;
     VideoDeviceMock videoDeviceMock;
@@ -104,7 +103,7 @@ protected:
     {
         device::Host::getInstance().impl = nullptr;
     }
-};*/
+};
 
 TEST_F(FrameRateTest, RegisteredMethods)
 {
@@ -118,7 +117,11 @@ TEST_F(FrameRateTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setDisplayFrameRate")));
 }
 
-TEST_F(FrameRateTest, setCollectionFrequency_startFpsCollection_stopFpsCollection_updateFps)
+/**
+ * not clear what this verifies
+ * API returns success but what it does and whether it works is not tested
+ */
+TEST_F(FrameRateTest, DISABLED_setCollectionFrequency_startFpsCollection_stopFpsCollection_updateFps)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setCollectionFrequency"), _T("{\"frequency\":1000}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
@@ -133,7 +136,7 @@ TEST_F(FrameRateTest, setCollectionFrequency_startFpsCollection_stopFpsCollectio
 /**
  * Segmentation fault without valgrind
  */
-/*TEST_F(FrameRateDsTest, setFrmMode)
+TEST_F(FrameRateDsTest, DISABLED_setFrmMode)
 {
     ON_CALL(videoDeviceMock, setFRFMode(::testing::_))
         .WillByDefault(::testing::Invoke(
@@ -146,7 +149,10 @@ TEST_F(FrameRateTest, setCollectionFrequency_startFpsCollection_stopFpsCollectio
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
-TEST_F(FrameRateDsTest, getFrmMode)
+/**
+ * Segmentation fault without valgrind
+ */
+TEST_F(FrameRateDsTest, DISABLED_getFrmMode)
 {
     ON_CALL(videoDeviceMock, getFRFMode(::testing::_))
         .WillByDefault(::testing::Invoke(
@@ -159,7 +165,10 @@ TEST_F(FrameRateDsTest, getFrmMode)
     EXPECT_EQ(response, string("{\"auto-frm-mode\":0,\"success\":true}"));
 }
 
-TEST_F(FrameRateDsTest, setDisplayFrameRate)
+/**
+ * Segmentation fault without valgrind
+ */
+TEST_F(FrameRateDsTest, DISABLED_setDisplayFrameRate)
 {
     ON_CALL(videoDeviceMock, setDisplayframerate(::testing::_))
         .WillByDefault(::testing::Invoke(
@@ -172,7 +181,10 @@ TEST_F(FrameRateDsTest, setDisplayFrameRate)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
-TEST_F(FrameRateDsTest, getDisplayFrameRate)
+/**
+ * Segmentation fault without valgrind
+ */
+TEST_F(FrameRateDsTest, DISABLED_getDisplayFrameRate)
 {
     ON_CALL(videoDeviceMock, getCurrentDisframerate(::testing::_))
         .WillByDefault(::testing::Invoke(
@@ -184,7 +196,7 @@ TEST_F(FrameRateDsTest, getDisplayFrameRate)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDisplayFrameRate"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"framerate\":\"3840x2160px48\",\"success\":true}"));
-}*/
+}
 
 TEST_F(FrameRateInitializedEventTest, onDisplayFrameRateChanging)
 {

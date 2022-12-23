@@ -10,8 +10,6 @@
 #include "VideoOutputPortTypeMock.h"
 #include "VideoResolutionMock.h"
 
-#include "exception.hpp"
-
 using namespace WPEFramework;
 
 class DeviceVideoCapabilitiesTest : public ::testing::Test {

@@ -19,8 +19,8 @@
 
 #include <gtest/gtest.h>
 
-/*#include <future>
-#include <thread>*/
+#include <future>
+#include <thread>
 
 #include "DataCapture.h"
 #include "FactoriesImplementation.h"
@@ -31,7 +31,7 @@ namespace {
 const std::string iarmName = _T("Thunder_Plugins");
 constexpr const char answer[16] = "TESTING STREAM!";
 
-/*void runSocket(std::promise<bool> ready, const std::string& fileName)
+void runSocket(std::promise<bool> ready, const std::string& fileName)
 {
     auto sd = socket(AF_UNIX, SOCK_STREAM, 0);
 
@@ -82,7 +82,7 @@ void runServer(std::promise<bool> ready)
 
     close(connection);
     close(sockfd);
-}*/
+}
 }
 
 using testing::_;
@@ -167,7 +167,7 @@ protected:
     virtual ~DataCaptureInitializedEnableAudioCaptureTest() override = default;
 };
 
-/*class DataCaptureInitializedEnableAudioCaptureEventTest : public DataCaptureInitializedEnableAudioCaptureTest {
+class DataCaptureInitializedEnableAudioCaptureEventTest : public DataCaptureInitializedEnableAudioCaptureTest {
 protected:
     ServiceMock service_;
     Core::JSONRPC::Message message_;
@@ -190,7 +190,7 @@ protected:
 
         PluginHost::IFactories::Assign(nullptr);
     }
-};*/
+};
 
 TEST_F(DataCaptureTest, ShouldRegisterMethod)
 {
@@ -205,7 +205,11 @@ TEST_F(DataCaptureTest, ShouldReturnErrorWhenParamsAreEmpty)
     EXPECT_EQ(Core::ERROR_GENERAL, handler_.Invoke(connection_, _T("getAudioClip"), _T(""), response));
 }
 
-TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOnAudioCapture)
+/**
+ * not clear what this verifies
+ * API returns success but what it does and whether it works is not tested
+ */
+TEST_F(DataCaptureInitializedEnableAudioCaptureTest, DISABLED_ShouldTurnOnAudioCapture)
 {
     ON_CALL(iarmBusImplMock_, IARM_Bus_Call)
         .WillByDefault(
@@ -226,7 +230,11 @@ TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOnAudioCapture)
     EXPECT_EQ(response, _T("{\"error\":0,\"success\":true}"));
 }
 
-TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOffAudioCapture)
+/**
+ * not clear what this verifies
+ * API returns success but what it does and whether it works is not tested
+ */
+TEST_F(DataCaptureInitializedEnableAudioCaptureTest, DISABLED_ShouldTurnOffAudioCapture)
 {
     ON_CALL(iarmBusImplMock_, IARM_Bus_Call)
         .WillByDefault(
@@ -255,7 +263,7 @@ TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOffAudioCapture)
 2022-12-22T13:10:14.1256178Z   string("{" "\"jsonrpc\":\"2.0\"," "\"method\":\"org.rdk.dataCapture.onAudioClipReady\"," "\"params\":{\"fileName\":\"dataLocator123\",\"status\":true,\"message\":\"Success\"}" "}")
 2022-12-22T13:10:14.1257672Z     Which is: "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.dataCapture.onAudioClipReady\",\"params\":{\"fileName\":\"dataLocator123\",\"status\":true,\"message\":\"Success\"}}"
  */
-/*TEST_F(DataCaptureInitializedEnableAudioCaptureEventTest, ShouldUploadData)
+TEST_F(DataCaptureInitializedEnableAudioCaptureEventTest, DISABLED_ShouldUploadData)
 {
     constexpr const char dataLocator[] = "dataLocator123";
     constexpr const char owner[] = "DataCaptureTest";
@@ -316,4 +324,4 @@ TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOffAudioCapture)
 
     serverThread.join();
     socketThread.join();
-}*/
+}

@@ -386,99 +386,114 @@ TEST_F(NetworkTest, setIPSettings)
     EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
 }
 
-//TEST_F(NetworkTest, trace)
-//{
-//    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
-//        .Times(::testing::AnyNumber())
-//        .WillRepeatedly(
-//            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-//                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
-//                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_getDefaultInterface)));
-//
-//                auto param = static_cast<IARM_BUS_NetSrvMgr_DefaultRoute_t *>(arg);
-//                memcpy(&param->interface, "eth0", sizeof("eth0"));
-//                memcpy(&param->gateway, "45.57.221.20", sizeof("45.57.221.20"));
-//
-//                return IARM_RESULT_SUCCESS;
-//            });
-//    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDefaultInterface"), _T("{}"), response));
-//    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("trace"), _T("{\"endpoint\":\"45.57.221.20\", \"packets\":5}"), response));
-//	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
-//}
-//
-//TEST_F(NetworkTest, traceNamedEndpoint)
-//{
-//	EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
-//        .Times(::testing::AnyNumber())
-//        .WillRepeatedly(
-//            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-//                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
-//                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_getDefaultInterface)));
-//
-//                auto param = static_cast<IARM_BUS_NetSrvMgr_DefaultRoute_t *>(arg);
-//                memcpy(&param->interface, "eth0", sizeof("eth0"));
-//				memcpy(&param->gateway, "45.57.221.20", sizeof("45.57.221.20"));
-//
-//                return IARM_RESULT_SUCCESS;
-//            });
-//    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDefaultInterface"), _T("{}"), response));
-//    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("traceNamedEndpoint"), _T("{\"endpointName\": \"CMTS\", \"packets\": 5}"), response));
-//    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
-//}
+/**
+ * relies on external program and real network
+ */
+TEST_F(NetworkTest, DISABLED_trace)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_getDefaultInterface)));
 
-TEST_F(NetworkTest, getNamedEndpoints)
+                auto param = static_cast<IARM_BUS_NetSrvMgr_DefaultRoute_t *>(arg);
+                memcpy(&param->interface, "eth0", sizeof("eth0"));
+                memcpy(&param->gateway, "45.57.221.20", sizeof("45.57.221.20"));
+
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDefaultInterface"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("trace"), _T("{\"endpoint\":\"45.57.221.20\", \"packets\":5}"), response));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
+}
+
+/**
+ * relies on external program and real network
+ */
+TEST_F(NetworkTest, DISABLED_traceNamedEndpoint)
+{
+	EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_getDefaultInterface)));
+
+                auto param = static_cast<IARM_BUS_NetSrvMgr_DefaultRoute_t *>(arg);
+                memcpy(&param->interface, "eth0", sizeof("eth0"));
+				memcpy(&param->gateway, "45.57.221.20", sizeof("45.57.221.20"));
+
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDefaultInterface"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("traceNamedEndpoint"), _T("{\"endpointName\": \"CMTS\", \"packets\": 5}"), response));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
+}
+
+/**
+ * not clear what this verifies and why endpoints is CMTS
+ */
+TEST_F(NetworkTest, DISABLED_getNamedEndpoints)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getNamedEndpoints"), _T("{}"), response));
 	EXPECT_EQ(response, string("{\"endpoints\":[\"CMTS\"],\"success\":true}"));
 }
 
-//TEST_F(NetworkTest, pingNamedEndpoint)
-//{
-//	EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
-//        .Times(::testing::AnyNumber())
-//        .WillRepeatedly(
-//            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-//                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
-//                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_getDefaultInterface)));
-//
-//                auto param = static_cast<IARM_BUS_NetSrvMgr_DefaultRoute_t *>(arg);
-//                memcpy(&param->interface, "eth0", sizeof("eth0"));
-//                memcpy(&param->gateway, "127.0.0.1", sizeof("127.0.0.1"));
-//
-//                return IARM_RESULT_SUCCESS;
-//            });
-//    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDefaultInterface"), _T("{}"), response));
-//    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("pingNamedEndpoint"), _T("{\"endpointName\": \"CMTS\", \"packets\": 5, \"guid\": \"...\"}"), response));
-//   	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"target\":\"127.0.0.1\"")));
-//	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
-//	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"packetsTransmitted\":5")));
-//	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"packetsReceived\":5")));
-//	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"packetLoss\":\" 0\"")));
-//}
-//
-//TEST_F(NetworkTest, ping)
-//{
-//	EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
-//        .Times(::testing::AnyNumber())
-//        .WillRepeatedly(
-//            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-//                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
-//                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_getDefaultInterface)));
-//
-//                auto param = static_cast<IARM_BUS_NetSrvMgr_DefaultRoute_t *>(arg);
-//                memcpy(&param->interface, "eth0", sizeof("eth0"));
-//                memcpy(&param->gateway, "192.168.1.1", sizeof("192.168.1.1"));
-//
-//                return IARM_RESULT_SUCCESS;
-//            });
-//    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDefaultInterface"), _T("{}"), response));
-//    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("ping"), _T("{\"endpoint\": \"127.0.0.1\", \"packets\": 5, \"guid\": \"...\"}"), response));
-//    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"target\":\"127.0.0.1\"")));
-//    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
-//    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"packetsTransmitted\":5")));
-//    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"packetsReceived\":5")));
-//    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"packetLoss\":\" 0\"")));
-//}
+/**
+ * relies on external program and real network
+ */
+TEST_F(NetworkTest, DISABLED_pingNamedEndpoint)
+{
+	EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_getDefaultInterface)));
+
+                auto param = static_cast<IARM_BUS_NetSrvMgr_DefaultRoute_t *>(arg);
+                memcpy(&param->interface, "eth0", sizeof("eth0"));
+                memcpy(&param->gateway, "127.0.0.1", sizeof("127.0.0.1"));
+
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDefaultInterface"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("pingNamedEndpoint"), _T("{\"endpointName\": \"CMTS\", \"packets\": 5, \"guid\": \"...\"}"), response));
+   	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"target\":\"127.0.0.1\"")));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"packetsTransmitted\":5")));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"packetsReceived\":5")));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"packetLoss\":\" 0\"")));
+}
+
+/**
+ * relies on external program and real network
+ */
+TEST_F(NetworkTest, DISABLED_ping)
+{
+	EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_getDefaultInterface)));
+
+                auto param = static_cast<IARM_BUS_NetSrvMgr_DefaultRoute_t *>(arg);
+                memcpy(&param->interface, "eth0", sizeof("eth0"));
+                memcpy(&param->gateway, "192.168.1.1", sizeof("192.168.1.1"));
+
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDefaultInterface"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("ping"), _T("{\"endpoint\": \"127.0.0.1\", \"packets\": 5, \"guid\": \"...\"}"), response));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"target\":\"127.0.0.1\"")));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"packetsTransmitted\":5")));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"packetsReceived\":5")));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"packetLoss\":\" 0\"")));
+}
 
 TEST_F(NetworkTest, getQuirks)
 {

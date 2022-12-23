@@ -39,7 +39,7 @@ protected:
     }
 };
 
-/*class TraceControlJsonRpcInitializedTest : public TraceControlJsonRpcTest {
+class TraceControlJsonRpcInitializedTest : public TraceControlJsonRpcTest {
 protected:
     ServiceMock service;
     COMLinkMock comLinkMock;
@@ -67,7 +67,7 @@ protected:
     {
         plugin->Deinitialize(&service);
     }
-};*/
+};
 
 TEST_F(TraceControlJsonRpcTest, registeredMethods)
 {
@@ -82,7 +82,7 @@ TEST_F(TraceControlJsonRpcTest, registeredMethods)
 2022-12-22T12:54:08.4645592Z            Actual: never called - unsatisfied and active
 2022-12-22T12:54:08.4645786Z [  FAILED  ] TraceControlJsonRpcInitializedTest.jsonRpc (4 ms)
  */
-/*TEST_F(TraceControlJsonRpcInitializedTest, jsonRpc)
+TEST_F(TraceControlJsonRpcInitializedTest, DISABLED_jsonRpc)
 {
     EXPECT_CALL(wrapsImplMock, syslog(::testing::_, ::testing::_, ::testing::_))
         .WillOnce(::testing::Return());
@@ -122,7 +122,7 @@ TEST_F(TraceControlJsonRpcTest, registeredMethods)
 
     //Log some trace data and verify the output format
     TRACE(Trace::Information, (_T("Test1")));
-}*/
+}
 
 /**
  * fails without valgrind
@@ -131,7 +131,7 @@ TEST_F(TraceControlJsonRpcTest, registeredMethods)
 2022-12-22T12:54:08.4661458Z            Actual: never called - unsatisfied and active
 2022-12-22T12:54:08.4661670Z [  FAILED  ] TraceControlJsonRpcInitializedTest.syslogFormat (5 ms)
  */
-/*TEST_F(TraceControlJsonRpcInitializedTest, syslogFormat)
+TEST_F(TraceControlJsonRpcInitializedTest, DISABLED_syslogFormat)
 {
     EXPECT_CALL(wrapsImplMock, syslog(::testing::_, ::testing::_, ::testing::_))
         .WillOnce(::testing::Invoke(
@@ -147,4 +147,4 @@ TEST_F(TraceControlJsonRpcTest, registeredMethods)
 
     //Log some trace data and verify the output format
     TRACE(Trace::Information, (_T("Test2")));
-}*/
+}

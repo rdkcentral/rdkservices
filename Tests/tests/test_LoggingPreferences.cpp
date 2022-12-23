@@ -17,14 +17,13 @@
  * limitations under the License.
  **/
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "LoggingPreferences.h"
 
 #include "FactoriesImplementation.h"
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
-#include "sysMgr.h"
 
 using namespace WPEFramework;
 

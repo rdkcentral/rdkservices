@@ -9,9 +9,7 @@
 #include "VideoOutputPortMock.h"
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
-#include "dsMgr.h"
-#include "dsDisplay.h"
-#include "pwrMgr.h"
+
 using namespace WPEFramework;
 
 class HDCPProfileTest : public ::testing::Test {

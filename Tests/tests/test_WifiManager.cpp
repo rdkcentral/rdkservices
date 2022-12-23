@@ -297,13 +297,21 @@ TEST_F(WifiManagerTest, SignalThresholdChangeEnabled)
     plugin->Deinitialize(&service);
 }
 
-TEST_F(WifiManagerTest, getSupportedSecurityModes)
+/**
+ * not clear what this verifies
+ * API returns success but what it does and whether it works is not tested
+ */
+TEST_F(WifiManagerTest, DISABLED_getSupportedSecurityModes)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSupportedSecurityModes"), _T("{}"), response));
     EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
 }
 
-TEST_F(WifiManagerTest, getQuirks)
+/**
+ * not clear what this verifies
+ * API returns success but what it does and whether it works is not tested
+ */
+TEST_F(WifiManagerTest, DISABLED_getQuirks)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getQuirks"), _T("{}"), response));
     EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));

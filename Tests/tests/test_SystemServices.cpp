@@ -29,9 +29,6 @@
 #include "SleepModeMock.h"
 #include "WrapsMock.h"
 
-#include "deepSleepMgr.h"
-#include "exception.hpp"
-
 #include <fstream>
 
 using namespace WPEFramework;

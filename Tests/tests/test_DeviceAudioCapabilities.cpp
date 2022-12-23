@@ -7,8 +7,6 @@
 #include "IarmBusMock.h"
 #include "ManagerMock.h"
 
-#include "exception.hpp"
-
 using namespace WPEFramework;
 
 class DeviceAudioCapabilitiesTest : public ::testing::Test {

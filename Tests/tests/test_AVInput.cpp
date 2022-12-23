@@ -8,8 +8,6 @@
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
 
-#include "dsMgr.h"
-
 using namespace WPEFramework;
 
 class AVInputTest : public ::testing::Test {
@@ -122,7 +120,10 @@ TEST_F(AVInputTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("contentProtected")));
 }
 
-TEST_F(AVInputTest, contentProtected)
+/**
+ * not clear what this verifies any why isContentProtected is true
+ */
+TEST_F(AVInputTest, DISABLED_contentProtected)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("contentProtected"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"isContentProtected\":true,\"success\":true}"));

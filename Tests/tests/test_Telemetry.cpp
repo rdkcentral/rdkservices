@@ -106,7 +106,10 @@ TEST_F(TelemetryTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadReport")));
 }
 
-TEST_F(TelemetryRfcTest, InitializeDefaultProfile)
+/**
+ * not clear what this verifies and why expecting setRFCParameter
+ */
+TEST_F(TelemetryRfcTest, DISABLED_InitializeDefaultProfile)
 {
     ON_CALL(service, ConfigLine())
         .WillByDefault(
@@ -136,7 +139,10 @@ TEST_F(TelemetryRfcTest, InitializeDefaultProfile)
     plugin->Deinitialize(nullptr);
 }
 
-TEST_F(TelemetryRfcTest, InitializeDefaultProfileRFCFailure)
+/**
+ * not clear what this verifies and why expecting setRFCParameter
+ */
+TEST_F(TelemetryRfcTest, DISABLED_InitializeDefaultProfileRFCFailure)
 {
     ON_CALL(service, ConfigLine())
         .WillByDefault(
@@ -161,7 +167,11 @@ TEST_F(TelemetryRfcTest, InitializeDefaultProfileRFCFailure)
     plugin->Deinitialize(nullptr);
 }
 
-TEST_F(TelemetryTest, InitializeZeroSizeDefaultProfile)
+/**
+ * not clear what this verifies
+ * Initialize succeeds but what it does and whether it works is not tested
+ */
+TEST_F(TelemetryTest, DISABLED_InitializeZeroSizeDefaultProfile)
 {
     ON_CALL(service, ConfigLine())
         .WillByDefault(
@@ -179,7 +189,11 @@ TEST_F(TelemetryTest, InitializeZeroSizeDefaultProfile)
     plugin->Deinitialize(nullptr);
 }
 
-TEST_F(TelemetryTest, InitializePersistentFolder)
+/**
+ * not clear what this verifies
+ * Initialize succeeds but what it does and whether it works is not tested
+ */
+TEST_F(TelemetryTest, DISABLED_InitializePersistentFolder)
 {
     ON_CALL(service, ConfigLine())
         .WillByDefault(
