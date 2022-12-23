@@ -8,10 +8,8 @@ Install [act](https://github.com/nektos/act) and docker:
 
 ```shell script
 curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
-sudo apt remove docker docker-engine docker.io
 sudo apt update
 sudo apt -y install docker.io
-sudo snap install docker
 ```
 
 ##### macOS #####
