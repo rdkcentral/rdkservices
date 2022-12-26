@@ -259,6 +259,16 @@ jobs:
           &&
           cmake --install build/rdkservices
 
+      - name: List files
+        run: >
+          ls -l
+          "${{github.workspace}}/install/usr/bin/RdkServicesTest"
+          "${{github.workspace}}/install/usr/lib/wpeframework/plugins/"
+          &&
+          du -hs
+          "${{github.workspace}}/install/usr/bin/RdkServicesTest"
+          "${{github.workspace}}/install/usr/lib/wpeframework/plugins/"
+
       - name: Set up files
         run: >
           sudo mkdir -p -m 777
