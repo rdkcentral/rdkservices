@@ -22,6 +22,10 @@ jobs:
         exclude:
           - compiler: clang
             coverage: with-coverage
+          - compiler: clang
+            coverage: without-coverage
+          - compiler: gcc
+            coverage: without-coverage
 
     steps:
       - name: Set up cache
