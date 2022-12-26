@@ -293,7 +293,6 @@ jobs:
           RdkServicesTest
 
       - name: Run unit tests with valgrind
-        if: ${{ matrix.compiler == 'gcc' }}
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
