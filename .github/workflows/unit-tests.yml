@@ -10,12 +10,14 @@ env:
   BUILD_TYPE: Debug
   THUNDER_REF: "0731e67a8c9dea37a728201c9d19df5fbdfcbfe5"
   INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
-  LLVM: true
 
 jobs:
   unit-tests:
     name: Build and run unit tests
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [ gcc, clang ]
 
     steps:
       - name: Set up cache
@@ -178,12 +180,16 @@ jobs:
           rbus.h
           telemetry_busmessage_sender.h
 
+      - name: Set env
+        if: ${{ matrix.compiler == 'clang' }}
+        run: echo "TOOLCHAIN_FILE=${{github.workspace}}/rdkservices/Tests/llvm.cmake" >> $GITHUB_ENV
+
       - name: Build rdkservices
         run: >
           cmake
           -S "${{github.workspace}}/rdkservices"
           -B build/rdkservices
-          -DCMAKE_TOOLCHAIN_FILE="${{github.workspace}}/rdkservices/Tests/llvm.cmake"
+          -DCMAKE_TOOLCHAIN_FILE="${{ env.TOOLCHAIN_FILE }}"
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCMAKE_CXX_FLAGS="
@@ -287,7 +293,7 @@ jobs:
           RdkServicesTest
 
       - name: Run unit tests with valgrind
-        if: ${{ !env.LLVM }}
+        if: ${{ matrix.compiler == 'gcc' }}
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
@@ -301,7 +307,7 @@ jobs:
           RdkServicesTest
 
       - name: Generate coverage
-        if: ${{ !env.LLVM }}
+        if: ${{ matrix.compiler == 'gcc' }}
         run: >
           lcov -c
           -o coverage.info
@@ -323,7 +329,7 @@ jobs:
           filtered_coverage.info
 
       - name: Upload artifacts
-        if: ${{ !env.ACT && !env.LLVM }}
+        if: ${{ !env.ACT && matrix.compiler == 'gcc' }}
         uses: actions/upload-artifact@v3
         with:
           name: artifacts
