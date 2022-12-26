@@ -18,6 +18,10 @@ jobs:
     strategy:
       matrix:
         compiler: [ gcc, clang ]
+        coverage: [ with-coverage, without-coverage ]
+        exclude:
+          - compiler: clang
+            coverage: with-coverage
 
     steps:
       - name: Set up cache
@@ -180,9 +184,13 @@ jobs:
           rbus.h
           telemetry_busmessage_sender.h
 
-      - name: Set env
+      - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
-        run: echo "TOOLCHAIN_FILE=${{github.workspace}}/rdkservices/Tests/llvm.cmake" >> $GITHUB_ENV
+        run: echo "TOOLCHAIN_FILE=${{github.workspace}}/rdkservices/Tests/clang.cmake" >> $GITHUB_ENV
+
+      - name: Set gcc/with-coverage toolchain
+        if: ${{ matrix.compiler == 'gcc' && matrix.coverage == 'with-coverage' }}
+        run: echo "TOOLCHAIN_FILE=${{github.workspace}}/rdkservices/Tests/gcc-with-coverage.cmake" >> $GITHUB_ENV
 
       - name: Build rdkservices
         run: >
@@ -207,7 +215,6 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
-          --coverage
           -Wall -Werror
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
@@ -316,7 +323,7 @@ jobs:
           RdkServicesTest
 
       - name: Generate coverage
-        if: ${{ matrix.compiler == 'gcc' }}
+        if: ${{ matrix.coverage == 'with-coverage' }}
         run: >
           lcov -c
           -o coverage.info
@@ -338,10 +345,11 @@ jobs:
           filtered_coverage.info
 
       - name: Upload artifacts
-        if: ${{ !env.ACT && matrix.compiler == 'gcc' }}
+        if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v3
         with:
           name: artifacts
           path: |
             coverage/
             valgrind_log
+          if-no-files-found: warn
