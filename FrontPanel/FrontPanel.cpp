@@ -88,13 +88,15 @@ namespace
 
     string svc2iarm(const string &name)
     {
-        const char *s = name.c_str();
+	    const char *s = name.c_str();
 
         int i = 0;
         while (name_mappings[i].SvcManagerName)
         {
-            if (strcmp(s, name_mappings[i].SvcManagerName) == 0)
+
+            if (strcmp(s, name_mappings[i].SvcManagerName) == 0){
                 return name_mappings[i].IArmBusName;
+	    }
             i++;
         }
         return name;
@@ -120,7 +122,7 @@ namespace
         int levels=0, min=0, max=0;
         JsonObject indicatorInfo;
         string range;
-
+	
         indicator.getBrightnessLevels(levels, min, max);
         range = (levels <=2)?"boolean":"int";
         indicatorInfo["range"] = range;
@@ -195,15 +197,21 @@ namespace WPEFramework
             Register(METHOD_FP_IS_24_HOUR_CLOCK, &FrontPanel::is24HourClockWrapper, this);
             Register(METHOD_FP_SET_CLOCKTESTPATTERN, &FrontPanel::setClockTestPatternWrapper, this);
 
-            InitializeIARM();
-
-            CFrontPanel::instance()->start();
-            CFrontPanel::instance()->addEventObserver(this);
-            loadPreferences();
+            
         }
 
         FrontPanel::~FrontPanel()
         {
+        }
+	const string FrontPanel::Initialize(PluginHost::IShell * /* service */)
+        {
+            FrontPanel::_instance = this;
+            InitializeIARM();
+	    CFrontPanel::instance()->start();
+            CFrontPanel::instance()->addEventObserver(this);
+            loadPreferences();
+
+            return (string());
         }
 
         void FrontPanel::Deinitialize(PluginHost::IShell* /* service */)
@@ -257,7 +265,7 @@ namespace WPEFramework
            }
         }
 
-        void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)
+        void setResponseArray(JsonObject& response, const char* key, const std::vector<std::string>& items)
         {
             JsonArray arr;
             for (auto& i : items) arr.Add(JsonValue(i));
@@ -304,7 +312,7 @@ namespace WPEFramework
                 /* frontpanel_3 */
                 if (parameters.HasLabel("index"))
                 {
-                    string fp_ind;
+		    string fp_ind;
                     fp_ind = svc2iarm(parameters["index"].String());
                     LOGWARN("FP calling setBrightness of %s", fp_ind.c_str());
 
@@ -391,6 +399,7 @@ namespace WPEFramework
                     try
                     {
                         brightness = device::FrontPanelIndicator::getInstance(fp_ind.c_str()).getBrightness();
+			
                     }
                     catch (...)
                     {
@@ -635,7 +644,7 @@ namespace WPEFramework
 #ifdef CLOCK_BRIGHTNESS_ENABLED
             try
             {
-                indicatorInfo = getFrontPanelIndicatorInfo(device::FrontPanelConfig::getInstance().getTextDisplay(0));
+		        indicatorInfo = getFrontPanelIndicatorInfo(device::FrontPanelConfig::getInstance().getTextDisplay(0));
                 returnResult[CLOCK_LED] = indicatorInfo;
             }
             catch (...)
@@ -653,7 +662,8 @@ namespace WPEFramework
 
             LOGWARN("sending getFrontPanelLights");
             setResponseArray(response, "supportedLights", getFrontPanelLights());
-            response["supportedLightsInfo"] = getFrontPanelLightsInfo();
+
+	    response["supportedLightsInfo"] = getFrontPanelLightsInfo();
             returnResponse(true);
         }
 
@@ -857,7 +867,7 @@ namespace WPEFramework
         uint32_t FrontPanel::setLEDWrapper(const JsonObject& parameters, JsonObject& response)
         {
             bool success = false;
-
+	    
             /*if (parameters.HasLabel("properties"))
             {
                 JsonObject properties = parameters["properties"].Object();
@@ -871,8 +881,11 @@ namespace WPEFramework
         {
             bool success = false;
 
+
+
             if (parameters.HasLabel("blinkInfo"))
             {
+
                 JsonObject blinkInfo = parameters["blinkInfo"].Object();
                 setBlink(blinkInfo);
                 success = true;
