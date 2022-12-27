@@ -173,6 +173,9 @@ jobs:
           rdk/ds/videoOutputPortConfig.hpp
           rdk/ds/videoOutputPortType.hpp
           rdk/ds/videoResolution.hpp
+          rdk/ds/frontPanelIndicator.hpp
+          rdk/ds/frontPanelConfig.hpp
+          rdk/ds/frontPanelTextDisplay.hpp
           rdk/iarmbus/libIARM.h
           rdk/iarmbus/libIBus.h
           rdk/iarmbus/libIBusDaemon.h
@@ -223,6 +226,7 @@ jobs:
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
           -DUSE_IARMBUS
+          -DUSE_DS
           -DENABLE_SYSTEM_GET_STORE_DEMO_LINK
           -DENABLE_DEEP_SLEEP
           -DENABLE_SET_WAKEUP_SRC_CONFIG
@@ -230,6 +234,7 @@ jobs:
           -DUSE_FRAMEBUFFER_SCREENCAPTURE
           -DHAS_API_SYSTEM
           -DHAS_API_POWERSTATE
+          -DCLOCK_BRIGHTNESS_ENABLED
           -DHAS_RBUS
           -DENABLE_DEVICE_MANUFACTURER_INFO"
           -DCOMCAST_CONFIG=OFF
@@ -238,6 +243,8 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
+          -DDS_FOUND=ON
+          -DHAS_FRONT_PANEL=ON
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
           -DPLUGIN_LOCATIONSYNC=ON
@@ -257,6 +264,7 @@ jobs:
           -DPLUGIN_SYSTEMSERVICES=ON
           -DRDK_SERVICES_TEST=ON
           -DPLUGIN_HDMIINPUT=ON
+          -DPLUGIN_FRONTPANEL=ON
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_TRACECONTROL=ON
           -DPLUGIN_NETWORK=ON
@@ -324,6 +332,7 @@ jobs:
           --show-reachable=yes
           --track-fds=yes
           --fair-sched=try
+          --track-origins=yes
           RdkServicesTest
 
       - name: Generate coverage
