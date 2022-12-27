@@ -78,7 +78,6 @@ namespace WPEFramework {
             virtual void onError(ErrorCode code) override;
             virtual void onSSIDsChanged() override;
             virtual void onWifiSignalThresholdChanged(float signalStrength, const std::string &strength) override;
-            virtual void stopSignalThresholdThread() override;
             virtual void onAvailableSSIDs(JsonObject const& ssids) override;
             //End events
 
