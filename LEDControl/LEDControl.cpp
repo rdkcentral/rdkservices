@@ -205,15 +205,11 @@ namespace WPEFramework
 
                     default :
                         LOGERR("Unsupported LEDState %d", state);
-                        response["error"] = "Invaid parameter. Unsupported LED state";
-                        response["success"] = false;
                         LOGTRACEMETHODFIN();
                         return WPEFramework::Core::ERROR_BAD_REQUEST;
                     }
                 } else {
                     LOGERR("dsFPGetLEDState returned error %d", err);
-                    response["error"] = "Underlying device settings api failed";
-                    response["success"] = false;
                     LOGTRACEMETHODFIN();
                     return WPEFramework::Core::ERROR_ILLEGAL_STATE;
                 }
@@ -221,8 +217,6 @@ namespace WPEFramework
             catch(...)
             {
                 LOGERR("Exception in dsFPGetLEDState");
-                response["error"] = "Underlying device settings api crashed";
-                response["success"] = false;
                 LOGTRACEMETHODFIN();
                 return WPEFramework::Core::ERROR_ILLEGAL_STATE;
             }
@@ -273,8 +267,6 @@ namespace WPEFramework
                 } else {
                     //Invalid parameter
                     LOGERR("UNKNOWN state : %s", strLedState.c_str());
-                    response["error"] = "invalid parameter";
-                    response["success"] = false;
                     LOGTRACEMETHODFIN();
                     return WPEFramework::Core::ERROR_BAD_REQUEST;
                 }
@@ -285,8 +277,6 @@ namespace WPEFramework
                         success = true;
                     } else {
                         LOGERR("dsFPSetLEDState returned error %d", err);
-                        response["error"] = "Underlying device settings api failed";
-                        response["success"] = false;
                         LOGTRACEMETHODFIN();
                         return WPEFramework::Core::ERROR_ILLEGAL_STATE;
                     }
@@ -295,8 +285,6 @@ namespace WPEFramework
             catch (...)
             {
                 LOGERR("Exception in dsFPSetLEDState");
-                response["error"] = "Underlying device settings api failed";
-                response["success"] = false;
                 LOGTRACEMETHODFIN();
                 return WPEFramework::Core::ERROR_ILLEGAL_STATE;
             }
