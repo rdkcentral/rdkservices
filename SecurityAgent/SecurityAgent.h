@@ -24,8 +24,6 @@
 
 #include <interfaces/json/JsonData_SecurityAgent.h>
 
-#include <core/FileObserver.h>
-
 namespace WPEFramework {
 namespace Plugin {
 
@@ -92,13 +90,11 @@ namespace Plugin {
         public:
             Config()
                 : Core::JSON::Container()
-                , ACL()
+                , ACL(_T("acl.json"))
                 , Connector()
-                , DAC()
             {
                 Add(_T("acl"), &ACL);
                 Add(_T("connector"), &Connector);
-                Add(_T("dac"), &DAC);
             }
             ~Config()
             {
@@ -107,55 +103,6 @@ namespace Plugin {
         public:
             Core::JSON::String ACL;
             Core::JSON::String Connector;
-            Core::JSON::String DAC;
-        };
-
-    public:
-        enum tokentype {
-            DAC
-        };
-
-    private:
-        class Payload : public Core::JSON::Container {
-        private:
-            Payload(const Payload&) = delete;
-            Payload& operator=(const Payload&) = delete;
-
-        public:
-            Payload()
-                : Core::JSON::Container()
-                , Type()
-            {
-                Add(_T("type"), &Type);
-            }
-            ~Payload() = default;
-
-        public:
-            Core::JSON::EnumType<tokentype> Type;
-        };
-
-        class DirectoryCallback : public Core::FileSystemMonitor::ICallback {
-        public:
-            DirectoryCallback(const string& dir, AccessControlList& acl)
-                : _dir(dir)
-                , _acl(acl)
-            {
-            }
-            void Updated() override
-            {
-                Core::Directory dir(_dir.c_str());
-
-                while (dir.Next()) {
-                    Core::File file(dir.Current());
-                    if ((file.IsDirectory() == false) && (file.Open(true) == true)) {
-                        _acl.Load(file);
-                    }
-                }
-            }
-
-        private:
-            string _dir;
-            AccessControlList& _acl;
         };
 
     public:
@@ -218,9 +165,6 @@ namespace Plugin {
         std::unique_ptr<TokenDispatcher> _dispatcher; 
         Core::ProxyType<RPC::InvokeServer> _engine;
         string _servicePrefix;
-        string _dacDir;
-        AccessControlList _dac;
-        Core::ProxyType<DirectoryCallback> _dacDirCallback;
     };
 
 } // namespace Plugin
