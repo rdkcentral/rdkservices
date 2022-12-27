@@ -34,7 +34,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 5
+#define API_VERSION_NUMBER_PATCH 6
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
@@ -496,8 +496,11 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 {
                     response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
                     m_stbIpCache = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
-                    m_useStbIPCache = true;
                     result = true;
+                    if (!m_stbIpCache.empty())
+                    {
+                        m_useStbIPCache = true;
+                    }
                 }
                 else
                 {
