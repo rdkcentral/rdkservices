@@ -80,7 +80,7 @@ namespace Plugin {
     private:
         string _token;
         Payload _context;
-        const AccessControlList* _accessControlList;
+        const AccessControlList::Filter* _accessControlList;
         string _servicePrefix;
     };
 }
