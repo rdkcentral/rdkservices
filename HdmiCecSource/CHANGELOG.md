@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.1] - 2022-12-31
+### Fixed
+- Updated documentation for sendKeyEvent thunder API.
+
 ## [1.0.0]
 ### Added
 - Renaming Hdmicec_2 to HdmiCecSource and initializing the HdmiCecSource plugin.
