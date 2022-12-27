@@ -2227,6 +2227,7 @@ namespace WPEFramework {
         uint32_t SystemServices::setTimeZoneDST(const JsonObject& parameters,
                 JsonObject& response)
 	{
+		LOGERR("Entered to setTimeZoneDST");
 		bool resp = false;
 		if (parameters.HasLabel("timeZone")) {
 			std::string dir = dirnameOf(TZ_FILE);
