@@ -33,7 +33,7 @@
 /* Helper Functions */
 using namespace std;
 
-std::map<int, std::string> ErrCodeMap = {
+static const std::map<int, std::string> ErrCodeMap = {
     {SysSrv_OK, "Processed Successfully"},
     {SysSrv_MethodNotFound, "Method not found"},
     {SysSrv_MissingKeyValues, "Missing required key/value(s)"},
