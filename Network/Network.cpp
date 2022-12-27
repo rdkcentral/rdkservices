@@ -496,8 +496,11 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 {
                     response["ip"] = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
                     m_stbIpCache = string(param.activeIfaceIpaddr, MAX_IP_ADDRESS_LEN - 1);
-                    m_useStbIPCache = true;
                     result = true;
+                    if (!m_stbIpCache.empty())
+                    {
+                        m_useStbIPCache = true;
+                    }
                 }
                 else
                 {
