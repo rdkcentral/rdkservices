@@ -176,6 +176,7 @@ jobs:
           rdk/ds/frontPanelIndicator.hpp
           rdk/ds/frontPanelConfig.hpp
           rdk/ds/frontPanelTextDisplay.hpp
+		  rdk/ds/motionDetection.hpp
           rdk/iarmbus/libIARM.h
           rdk/iarmbus/libIBus.h
           rdk/iarmbus/libIBusDaemon.h
@@ -190,6 +191,7 @@ jobs:
           rfcapi.h
           rbus.h
           telemetry_busmessage_sender.h
+		  motionDetector.hpp
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
@@ -272,6 +274,7 @@ jobs:
           -DPLUGIN_WAREHOUSE=ON
           -DPLUGIN_ACTIVITYMONITOR=ON
           -DDS_FOUND=ON
+          -DPLUGIN_MOTION_DETECTION=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8

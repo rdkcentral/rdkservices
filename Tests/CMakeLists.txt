@@ -70,6 +70,7 @@ include_directories(../LocationSync
         ../Warehouse
         ../ActivityMonitor
         ../FrontPanel
+		../MotionDetection
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -96,6 +97,7 @@ link_directories(../LocationSync
         ../Warehouse
         ../ActivityMonitor
 	../FrontPanel
+        ../MotionDetection
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -127,6 +129,7 @@ target_link_libraries(${PROJECT_NAME}
 	${NAMESPACE}FrontPanel
         ${NAMESPACE}Warehouse
         ${NAMESPACE}ActivityMonitor
+        ${NAMESPACE}MotionDetection
         )
 
 target_include_directories(${PROJECT_NAME}
