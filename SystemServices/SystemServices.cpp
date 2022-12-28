@@ -2234,10 +2234,15 @@ namespace WPEFramework {
 			std::string timeZone = "";
 			try {
 				timeZone = parameters["timeZone"].String();
+				int pos = timeZone.find("/");
 				if (timeZone.empty() || (timeZone == "null")) {
 					LOGERR("Empty timeZone received.");
-				} else {
-					int pos = timeZone.find("/");
+				}
+				else if( (pos == string::npos) ||  ( (pos != string::npos) &&  (pos+1 == timeZone.length())  )   )
+				{
+					LOGERR("Invalid timeZone  Only Country received : %s . \n", timeZone.c_str());
+				}
+				else {
 					std::string path =ZONEINFO_DIR;
 					path += "/";
 					std::string country = timeZone.substr(0,pos);
