@@ -125,7 +125,6 @@ target_link_libraries(${PROJECT_NAME}
       	${NAMESPACE}Network
         ${NAMESPACE}WifiManager
         ${NAMESPACE}Warehouse
-        ${NAMESPACE}Network
         ${NAMESPACE}ActivityMonitor
         ${NAMESPACE}RDKShell
         )
