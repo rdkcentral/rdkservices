@@ -57,7 +57,9 @@ namespace Plugin {
         , _accessControlList(nullptr)
         , _servicePrefix(servicePrefix)
     {
-        _context.URL = _token;
+        if (_context.FromString(_token) == false) {
+            _context.URL = _token;
+        }
 
         if ( (_context.URL.IsSet() == true) && (acl != nullptr) ) {
             _accessControlList = acl->FilterMapFromURL(_context.URL.Value());
