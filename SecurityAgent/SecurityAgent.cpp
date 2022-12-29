@@ -100,11 +100,8 @@ namespace Plugin {
 
         _skipURL = static_cast<uint8_t>(webPrefix.length());
         _servicePrefix = webPrefix.substr(0, webPrefix.find(callsign));
-        Core::File aclFile("/opt/thunder_acl.json", true);
-        
-        if (aclFile.Exists() == false) {
-            aclFile = "/etc/thunder_acl.json";
-        }
+        Core::File aclFile(service->PersistentPath() + config.ACL.Value(), true);
+
         PluginHost::ISubSystem* subSystem = service->SubSystems();
 
         if (aclFile.Exists() == false) {
