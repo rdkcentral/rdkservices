@@ -32,8 +32,6 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 
-target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
-
 target_link_libraries(${MODULE_NAME}
         PRIVATE
         ${NAMESPACE}Protocols::${NAMESPACE}Protocols

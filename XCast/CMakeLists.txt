@@ -18,6 +18,7 @@
 set(PLUGIN_NAME XCast)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_XCAST_AUTOSTART "false" CACHE STRING "Automatically start XCast plugin")
 set(PLUGIN_XCAST_STARTUPORDER "" CACHE STRING "To configure startup order of XCast plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)

@@ -5,7 +5,6 @@
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
 
-#include "dsMgr.h"
 using namespace WPEFramework;
 
 class CompositeInputTest : public ::testing::Test {
@@ -21,13 +20,9 @@ protected:
         , handler(*(plugin))
         , connection(1, 0)
     {
-    	std::cout<< "CompositeInputTest constructor-1"<< std::endl;
-	    //IarmBus::getInstance().impl = &iarmBusImplMock;
-    	std::cout<< "CompositeInputTest constructor-2"<< std::endl;
     }
     virtual ~CompositeInputTest() 
     {
-	    //IarmBus::getInstance().impl = nullptr;
     }
 };
 
@@ -38,7 +33,6 @@ protected:
     CompositeInputDsTest()
         : CompositeInputTest()
     {
-    	std::cout<< "CompositeInputDsTest constructor"<< std::endl;
         device::CompositeInput::getInstance().impl = &compositeInputImplMock;
     }
     virtual ~CompositeInputDsTest() override
@@ -132,7 +126,6 @@ protected:
 
 TEST_F(CompositeInputTest, RegisteredMethods)
 {
-    std::cout<< "com step1"<< std::endl;
  
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCompositeInputDevices")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("startCompositeInput")));
@@ -159,13 +152,6 @@ TEST_F(CompositeInputDsTest, startCompositeInputInvalid)
 TEST_F(CompositeInputDsTest, startCompositeInput)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startCompositeInput"), _T("{\"portId\": \"0\"}"), response));
-    EXPECT_EQ(response, string("{\"success\":true}"));
-}
-
-
-TEST_F(CompositeInputDsTest, stopCompositeInput)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("stopCompositeInput"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 

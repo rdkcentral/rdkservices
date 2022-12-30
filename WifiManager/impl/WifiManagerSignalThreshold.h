@@ -48,6 +48,7 @@ namespace WPEFramework {
             uint32_t setSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response);
             void setSignalThresholdChangeEnabled(bool enable);
             uint32_t isSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response) const;
+            void stopSignalThresholdThread();
 
         private:
             void setSignalThresholdChangeEnabled(bool enabled, int interval);
