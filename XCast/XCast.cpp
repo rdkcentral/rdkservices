@@ -144,7 +144,7 @@ void XCast::DeinitializeIARM()
      if (Utils::IARM::isConnected())
      {
          IARM_Result_t res;
-         IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
+         IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerModeChange) );
      }
      Unregister(METHOD_GET_API_VERSION_NUMBER);
      Unregister(METHOD_ON_APPLICATION_STATE_CHANGED);
@@ -164,13 +164,9 @@ void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *dat
              LOGINFO("Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d -- > %d\r",
                      param->data.state.curState, param->data.state.newState);
             m_powerState = param->data.state.newState;
-            if(m_standbyBehavior == false)
-            {
-                if(m_xcastEnable && ( m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON))
-                    _rtConnector->enableCastService(m_friendlyName,true);
-                else
-                    _rtConnector->enableCastService(m_friendlyName,false);
-            }
+            LOGWARN("creating worker thread for threadPowerModeChangeEvent m_powerState :%d",m_powerState);
+            std::thread powerModeChangeThread = std::thread(threadPowerModeChangeEvent);
+            powerModeChangeThread.detach();
          }
     }
 }
@@ -1034,6 +1030,19 @@ bool XCast::checkRFCServiceStatus()
     
     return XCast::isCastEnabled;
 }
+
+void XCast::threadPowerModeChangeEvent(void)
+{
+    LOGINFO(" threadPowerModeChangeEvent m_standbyBehavior:%d , m_powerState:%d ",m_standbyBehavior,m_powerState);
+    if(m_standbyBehavior == false)
+    {
+        if(m_xcastEnable && ( m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON))
+              _rtConnector->enableCastService(m_friendlyName,true);
+        else
+             _rtConnector->enableCastService(m_friendlyName,false);
+    }
+}
+
 
 } // namespace Plugin
 } // namespace WPEFramework

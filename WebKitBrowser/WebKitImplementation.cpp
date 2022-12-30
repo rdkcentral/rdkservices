@@ -788,6 +788,7 @@ static GSourceFuncs _handlerIntervention =
             , _httpCookieAcceptPolicy(WEBKIT_COOKIE_POLICY_ACCEPT_NO_THIRD_PARTY)
             , _webprocessPID(-1)
             , _extensionPath()
+            , _ignoreLoadFinishedOnce(false)
 #else
             , _view()
             , _page()
@@ -2548,6 +2549,10 @@ static GSourceFuncs _handlerIntervention =
         static void loadChangedCallback(WebKitWebView* webView, WebKitLoadEvent loadEvent, WebKitImplementation* browser)
         {
             if (loadEvent == WEBKIT_LOAD_FINISHED) {
+                if (browser->_ignoreLoadFinishedOnce) {
+                    browser->_ignoreLoadFinishedOnce = false;
+                    return;
+                }
                 browser->OnLoadFinished(Core::ToString(webkit_web_view_get_uri(webView)));
             }
         }
@@ -2555,9 +2560,10 @@ static GSourceFuncs _handlerIntervention =
         {
             string message(string("{ \"url\": \"") + failingURI + string("\", \"Error message\": \"") + error->message + string("\", \"loadEvent\":") + Core::NumberType<uint32_t>(loadEvent).Text() + string(" }"));
             SYSLOG(Trace::Information, (_T("LoadFailed: %s"), message.c_str()));
-            if (g_error_matches(error, WEBKIT_NETWORK_ERROR, WEBKIT_NETWORK_ERROR_CANCELLED)
-                || (loadEvent == WEBKIT_LOAD_FINISHED))
+            if (g_error_matches(error, WEBKIT_NETWORK_ERROR, WEBKIT_NETWORK_ERROR_CANCELLED)) {
+                browser->_ignoreLoadFinishedOnce = true;
                 return;
+            }
             browser->OnLoadFailed();
         }
         static void webProcessTerminatedCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitWebProcessTerminationReason reason)
@@ -2776,6 +2782,9 @@ static GSourceFuncs _handlerIntervention =
 
             if (_config.UserAgent.IsSet() == true && _config.UserAgent.Value().empty() == false) {
                 webkit_settings_set_user_agent(preferences, _config.UserAgent.Value().c_str());
+            } else {
+                webkit_settings_set_user_agent_with_application_details(preferences, "WPE", "1.0");
+                _config.UserAgent = webkit_settings_get_user_agent(preferences);
             }
 
             webkit_settings_set_enable_html5_database(preferences, _config.IndexedDBEnabled.Value());
@@ -3335,6 +3344,7 @@ static GSourceFuncs _handlerIntervention =
         WebKitCookieAcceptPolicy _httpCookieAcceptPolicy;
         pid_t _webprocessPID;
         string _extensionPath;
+        bool _ignoreLoadFinishedOnce;
 #else
         WKViewRef _view;
         WKPageRef _page;
