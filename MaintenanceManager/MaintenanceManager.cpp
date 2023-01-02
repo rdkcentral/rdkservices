@@ -292,6 +292,9 @@ namespace WPEFramework {
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 m_statusMutex.unlock();
                 LOGINFO("Maintenance is exiting as device is not connected to internet.");
+		if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete){
+                    g_unsolicited_complete = true;
+		}
                 return;
             }
 
@@ -823,6 +826,7 @@ namespace WPEFramework {
                 }
                 else{
                     LOGINFO("Ignoring/Unknown Maintenance Status!!");
+                    m_statusMutex.unlock();
                     return;
                 }
 
@@ -863,7 +867,7 @@ namespace WPEFramework {
                         LOGINFO("Thread joined successfully\n");
                     }
 
-                    if (!g_unsolicited_complete) {
+                    if ( g_maintenance_type == UNSOLICITED_MAINTENANCE && !g_unsolicited_complete) {
                         g_unsolicited_complete = true;
                     }
                     MaintenanceManager::_instance->onMaintenanceStatusChange(notify_status);
