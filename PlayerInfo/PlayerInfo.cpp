@@ -64,7 +64,7 @@ namespace Plugin {
         // change to "register" the sink for these events !!! So do it ahead of instantiation.
         _service->Register(&_notification);
 
-        _player = service->Root<Exchange::IPlayerProperties>(_connectionId, 6000, _T("PlayerInfoImplementation"));
+        _player = service->Root<Exchange::IPlayerProperties>(_connectionId, 2000, _T("PlayerInfoImplementation"));
         if (_player != nullptr) {
 
             if ((_player->AudioCodecs(_audioCodecs) == Core::ERROR_NONE) && (_audioCodecs != nullptr)) {
