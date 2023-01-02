@@ -292,7 +292,7 @@ namespace WPEFramework {
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 m_statusMutex.unlock();
                 LOGINFO("Maintenance is exiting as device is not connected to internet.");
-		if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
+		if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete){
                     g_unsolicited_complete = true;
 		}
                 return;
