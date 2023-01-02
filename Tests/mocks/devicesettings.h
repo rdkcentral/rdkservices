@@ -434,14 +434,9 @@ typedef struct _dsFPDColorConfig_t{
 #define MOTION_DETECTION_SENSITIVITY_IDENTIFIERS 3
 #define SENSITIVITY_MODE_INT                     1
 #define SENSITIVITY_MODE_LEVELS                  2
-#define STR_SENSITIVITY_LOW                      "high"
+#define STR_SENSITIVITY_LOW                      "low"
 #define STR_SENSITIVITY_MEDIUM                   "medium"
 #define STR_SENSITIVITY_HIGH                     "high"
-#define STR_SENSITIVITY_1                        "medium"
-#define STR_SENSITIVITY_2                        "medium"
-#define STR_SENSITIVITY_3                        "60"
-#define STR_SENSITIVITY_4                        "80"
-#define STR_SENSITIVITY_5                        "low"
 #define STR_SENSITIVITY_MIN                      "0"
 #define STR_SENSITIVITY_MAX                      "100"
 #define STR_SENSITIVITY_STEP                     "20"
@@ -456,12 +451,8 @@ typedef struct _dsFPDColorConfig_t{
 #define MOTION_DETECTOR                          "FP_MD"
 #define MOTION_DETECTOR_TYPE                     "PID"
 #define MOTION_DETECTION_DESCRIPTION             "The only motion detector"
-#define MOTION_DETECTION_MAX_MODE                1
-#define MOTION_DETECTION_MAX_SENSITIVITY         7
 #define MOTION_DETECTION_ANGLE                   74
 #define MOTION_DETECTION_DISTANCE                6000
-#define TIME_00_00                                    0
-#define TIME_24_00                                    86400
 
 typedef enum _MOTION_DETECTION_Result_t {
     MOTION_DETECTION_RESULT_SUCCESS,
@@ -478,30 +469,6 @@ typedef enum _MOTION_DETECTION_Mode_t {
     MOTION_DETECTION_SENSITIVITY_Mode_0, // No Motion Detected
     MOTION_DETECTION_SENSITIVITY_Mode_1, // Motion Detected
 } MOTION_DETECTION_Mode_t;
-
-typedef enum _MOTION_DETECTION_Sensitivity_t {
-    MOTION_DETECTION_SENSITIVITY_LOW,
-    MOTION_DETECTION_SENSITIVITY_MEDIUM,
-    MOTION_DETECTION_SENSITIVITY_HIGH,
-    MOTION_DETECTION_SENSITIVITY_SENSITIVITY_1,
-    MOTION_DETECTION_SENSITIVITY_SENSITIVITY_2,
-    MOTION_DETECTION_SENSITIVITY_SENSITIVITY_3,
-    MOTION_DETECTION_SENSITIVITY_SENSITIVITY_4,
-    MOTION_DETECTION_SENSITIVITY_SENSITIVITY_5
-} MOTION_DETECTION_Sensitivity_t;
-
-typedef enum _MOTION_DETECTION_PIDEventType_t {
-    MOTION_DETECTION_MOTION_DETECTED,
-    MOTION_DETECTION_MOTION_DISAPEARED,
-    MOTION_DETECTION_IDLE_TIMEOUT
-} MOTION_DETECTION_PIDEventType_t;
-
-typedef enum MOTION_DETECTION_PIRConfiguration
-{
-    MOTION_DETECTION_PIR_OFF,
-    MOTION_DETECTION_NO_MOTION_TIMER,
-    MOTION_DETECTION_MOTION_DETECTION,
-} PIRConfiguration;
 
 typedef struct _MOTION_DETECTION_EventMessage_t {
     char m_eventType;

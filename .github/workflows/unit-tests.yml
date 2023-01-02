@@ -191,7 +191,7 @@ jobs:
           rfcapi.h
           rbus.h
           telemetry_busmessage_sender.h
-		  motionDetector.hpp
+		  motionDetector.h
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
