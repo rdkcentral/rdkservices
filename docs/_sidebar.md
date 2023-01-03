@@ -1,19 +1,6 @@
 <!-- markdownlint-disable-next-line first-line-heading -->
 - [**Home**](/homepage.md)
-- [**User Guide**](/README)
-  - Introduction
-  - [RDK Services Overview](userguide/intro.md)
-  - [RDK Abbreviation, Acronyms and Terms](userguide/aat.md)
-  - Get Started
-  - [Quick Start](userguide/quick-start.md)
-  - [Discovering Services](userguide/discover.md)
-  - [Starting Services](userguide/start.md)
-  - [Invoking Services](userguide/invoke.md)
-  - [Using Events](userguide/events.md)
-  - Develop Clients
-  - [Overview of Clients](userguide/clients.md)
-  - [Creating ThunderJS Clients](userguide/thunderjs.md)
-  - [Creating Native Clients](userguide/native.md)
+- [**User Guide**](userguide/intro.md)
 - [**API Reference**](/README)
   - [ActivityMonitor](api/ActivityMonitorPlugin.md)
   - [AVInput](api/AVInputPlugin.md)
