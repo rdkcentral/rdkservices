@@ -27,9 +27,6 @@
 #include <rtError.h>
 #include "RtNotifier.h"
 #include "XCastCommon.h"
-
-#include "XCastSystemRemoteObject.h"
-
 using namespace std;
 
 
@@ -83,7 +80,6 @@ public:
     
     void setService(RtNotifier * service){
         m_observer = service;
-        m_xcast_system_remote_object->setService(service);
     }
 private:
     //Internal methods
@@ -96,9 +92,6 @@ private:
     // Boolean event thread exit condition
     bool m_runEventThread;
     bool m_IsDefaultDynamicAppListEnabled;
-
-    XCastSystemRemoteObjectReferenceWrapper m_xcast_system_remote_object;
-
     // Member function to handle RT messages.
     void processRtMessages();
     bool IsAppEnabled(char* strAppName);

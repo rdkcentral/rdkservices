@@ -26,9 +26,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 add_library(${MODULE_NAME} SHARED
         XCast.cpp
         Module.cpp
-        RtXcastConnector.cpp
-        XCastSystemRemoteObject.cpp
-        )
+        RtXcastConnector.cpp)
 
 find_package(RFC)
 find_package(IARMBus)

@@ -35,8 +35,6 @@ public:
             virtual void onXcastApplicationHideRequest(string appName, string appID)=0;
             virtual void onXcastApplicationResumeRequest(string appName, string appID)=0;
             virtual void onXcastApplicationStateRequest(string appName, string appID)=0;
-
-            virtual bool onXcastSystemApplicationSleepRequest(string key) = 0;
 };
 #endif
 
