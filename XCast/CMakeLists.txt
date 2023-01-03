@@ -28,7 +28,7 @@ add_library(${MODULE_NAME} SHARED
         Module.cpp
         RtXcastConnector.cpp
         XCastSystemRemoteObject.cpp
-        ../helpers/powerstate.cpp)
+        )
 
 find_package(RFC)
 find_package(IARMBus)
