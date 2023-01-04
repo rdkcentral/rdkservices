@@ -1,12 +1,12 @@
 //
-// generated automatically from "ILgiTextToSpeech.h"
+// generated automatically from "ITextToSpeech.h"
 //
 // implements RPC proxy stubs for:
-//   - class ILgiTextToSpeech
-//   - class ILgiTextToSpeech::INotification
+//   - class ITextToSpeech
+//   - class ITextToSpeech::INotification
 //
 
-#include "ILgiTextToSpeech.h"
+#include "ITextToSpeech.h"
 #include "Module.h"
 
 namespace WPEFramework {
@@ -20,12 +20,12 @@ namespace ProxyStubs {
     // -----------------------------------------------------------------
 
     //
-    // ILgiTextToSpeech interface stub definitions
+    // ITextToSpeech interface stub definitions
     //
     // Methods:
     //  (0) virtual uint32_t Configure(PluginHost::IShell*) = 0
-    //  (1) virtual void Register(ILgiTextToSpeech::INotification*) = 0
-    //  (2) virtual void Unregister(ILgiTextToSpeech::INotification*) = 0
+    //  (1) virtual void Register(ITextToSpeech::INotification*) = 0
+    //  (2) virtual void Unregister(ITextToSpeech::INotification*) = 0
     //  (3) virtual uint32_t Enable(const string&, string&) = 0
     //  (4) virtual uint32_t ListVoices(const string&, string&) = 0
     //  (5) virtual uint32_t SetConfiguration(const string&, string&) = 0
@@ -39,7 +39,7 @@ namespace ProxyStubs {
     //  (13) virtual uint32_t GetSpeechState(const string&, string&) = 0
     //
 
-    ProxyStub::MethodHandler LgiTextToSpeechStubMethods[] = {
+    ProxyStub::MethodHandler TextToSpeechStubMethods[] = {
         // virtual uint32_t Configure(PluginHost::IShell*) = 0
         //
         [](Core::ProxyType<Core::IPCChannel>& channel, Core::ProxyType<RPC::InvokeMessage>& message) {
@@ -63,8 +63,8 @@ namespace ProxyStubs {
             RPC::Data::Frame::Writer writer(message->Response().Writer());
 
             // call implementation
-            ILgiTextToSpeech* implementation = reinterpret_cast<ILgiTextToSpeech*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech implementation pointer");
+            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
             const uint32_t output = implementation->Configure(param0_proxy);
             writer.Number<const uint32_t>(output);
 
@@ -73,7 +73,7 @@ namespace ProxyStubs {
             }
         },
 
-        // virtual void Register(ILgiTextToSpeech::INotification*) = 0
+        // virtual void Register(ITextToSpeech::INotification*) = 0
         //
         [](Core::ProxyType<Core::IPCChannel>& channel, Core::ProxyType<RPC::InvokeMessage>& message) {
             RPC::Data::Input& input(message->Parameters());
@@ -81,20 +81,20 @@ namespace ProxyStubs {
             // read parameters
             RPC::Data::Frame::Reader reader(input.Reader());
             RPC::instance_id param0 = reader.Number<RPC::instance_id>();
-            ILgiTextToSpeech::INotification* param0_proxy = nullptr;
+            ITextToSpeech::INotification* param0_proxy = nullptr;
             ProxyStub::UnknownProxy* param0_proxy_inst = nullptr;
             if (param0 != 0) {
                 param0_proxy_inst = RPC::Administrator::Instance().ProxyInstance(channel, param0, false, param0_proxy);
-                ASSERT((param0_proxy_inst != nullptr) && (param0_proxy != nullptr) && "Failed to get instance of ILgiTextToSpeech::INotification proxy");
+                ASSERT((param0_proxy_inst != nullptr) && (param0_proxy != nullptr) && "Failed to get instance of ITextToSpeech::INotification proxy");
 
                 if ((param0_proxy_inst == nullptr) || (param0_proxy == nullptr)) {
-                    TRACE_L1("Failed to get instance of ILgiTextToSpeech::INotification proxy");
+                    TRACE_L1("Failed to get instance of ITextToSpeech::INotification proxy");
                 }
             }
 
             // call implementation
-            ILgiTextToSpeech* implementation = reinterpret_cast<ILgiTextToSpeech*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech implementation pointer");
+            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
             implementation->Register(param0_proxy);
 
             if (param0_proxy_inst != nullptr) {
@@ -102,7 +102,7 @@ namespace ProxyStubs {
             }
         },
 
-        // virtual void Unregister(ILgiTextToSpeech::INotification*) = 0
+        // virtual void Unregister(ITextToSpeech::INotification*) = 0
         //
         [](Core::ProxyType<Core::IPCChannel>& channel, Core::ProxyType<RPC::InvokeMessage>& message) {
             RPC::Data::Input& input(message->Parameters());
@@ -110,20 +110,20 @@ namespace ProxyStubs {
             // read parameters
             RPC::Data::Frame::Reader reader(input.Reader());
             RPC::instance_id param0 = reader.Number<RPC::instance_id>();
-            ILgiTextToSpeech::INotification* param0_proxy = nullptr;
+            ITextToSpeech::INotification* param0_proxy = nullptr;
             ProxyStub::UnknownProxy* param0_proxy_inst = nullptr;
             if (param0 != 0) {
                 param0_proxy_inst = RPC::Administrator::Instance().ProxyInstance(channel, param0, false, param0_proxy);
-                ASSERT((param0_proxy_inst != nullptr) && (param0_proxy != nullptr) && "Failed to get instance of ILgiTextToSpeech::INotification proxy");
+                ASSERT((param0_proxy_inst != nullptr) && (param0_proxy != nullptr) && "Failed to get instance of ITextToSpeech::INotification proxy");
 
                 if ((param0_proxy_inst == nullptr) || (param0_proxy == nullptr)) {
-                    TRACE_L1("Failed to get instance of ILgiTextToSpeech::INotification proxy");
+                    TRACE_L1("Failed to get instance of ITextToSpeech::INotification proxy");
                 }
             }
 
             // call implementation
-            ILgiTextToSpeech* implementation = reinterpret_cast<ILgiTextToSpeech*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech implementation pointer");
+            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
             implementation->Unregister(param0_proxy);
 
             if (param0_proxy_inst != nullptr) {
@@ -142,8 +142,8 @@ namespace ProxyStubs {
             string param1{}; // storage
 
             // call implementation
-            ILgiTextToSpeech* implementation = reinterpret_cast<ILgiTextToSpeech*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech implementation pointer");
+            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
             const uint32_t output = implementation->Enable(param0, param1);
 
             // write return values
@@ -163,8 +163,8 @@ namespace ProxyStubs {
             string param1{}; // storage
 
             // call implementation
-            ILgiTextToSpeech* implementation = reinterpret_cast<ILgiTextToSpeech*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech implementation pointer");
+            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
             const uint32_t output = implementation->ListVoices(param0, param1);
 
             // write return values
@@ -184,8 +184,8 @@ namespace ProxyStubs {
             string param1{}; // storage
 
             // call implementation
-            ILgiTextToSpeech* implementation = reinterpret_cast<ILgiTextToSpeech*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech implementation pointer");
+            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
             const uint32_t output = implementation->SetConfiguration(param0, param1);
 
             // write return values
@@ -205,8 +205,8 @@ namespace ProxyStubs {
             string param1{}; // storage
 
             // call implementation
-            ILgiTextToSpeech* implementation = reinterpret_cast<ILgiTextToSpeech*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech implementation pointer");
+            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
             const uint32_t output = implementation->GetConfiguration(param0, param1);
 
             // write return values
@@ -226,8 +226,8 @@ namespace ProxyStubs {
             string param1{}; // storage
 
             // call implementation
-            ILgiTextToSpeech* implementation = reinterpret_cast<ILgiTextToSpeech*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech implementation pointer");
+            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
             const uint32_t output = implementation->IsEnabled(param0, param1);
 
             // write return values
@@ -247,8 +247,8 @@ namespace ProxyStubs {
             string param1{}; // storage
 
             // call implementation
-            ILgiTextToSpeech* implementation = reinterpret_cast<ILgiTextToSpeech*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech implementation pointer");
+            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
             const uint32_t output = implementation->Speak(param0, param1);
 
             // write return values
@@ -268,8 +268,8 @@ namespace ProxyStubs {
             string param1{}; // storage
 
             // call implementation
-            ILgiTextToSpeech* implementation = reinterpret_cast<ILgiTextToSpeech*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech implementation pointer");
+            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
             const uint32_t output = implementation->Cancel(param0, param1);
 
             // write return values
@@ -289,8 +289,8 @@ namespace ProxyStubs {
             string param1{}; // storage
 
             // call implementation
-            ILgiTextToSpeech* implementation = reinterpret_cast<ILgiTextToSpeech*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech implementation pointer");
+            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
             const uint32_t output = implementation->Pause(param0, param1);
 
             // write return values
@@ -310,8 +310,8 @@ namespace ProxyStubs {
             string param1{}; // storage
 
             // call implementation
-            ILgiTextToSpeech* implementation = reinterpret_cast<ILgiTextToSpeech*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech implementation pointer");
+            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
             const uint32_t output = implementation->Resume(param0, param1);
 
             // write return values
@@ -331,8 +331,8 @@ namespace ProxyStubs {
             string param1{}; // storage
 
             // call implementation
-            ILgiTextToSpeech* implementation = reinterpret_cast<ILgiTextToSpeech*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech implementation pointer");
+            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
             const uint32_t output = implementation->IsSpeaking(param0, param1);
 
             // write return values
@@ -352,8 +352,8 @@ namespace ProxyStubs {
             string param1{}; // storage
 
             // call implementation
-            ILgiTextToSpeech* implementation = reinterpret_cast<ILgiTextToSpeech*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech implementation pointer");
+            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
             const uint32_t output = implementation->GetSpeechState(param0, param1);
 
             // write return values
@@ -363,10 +363,10 @@ namespace ProxyStubs {
         },
 
         nullptr
-    }; // LgiTextToSpeechStubMethods[]
+    }; // TextToSpeechStubMethods[]
 
     //
-    // ILgiTextToSpeech::INotification interface stub definitions
+    // ITextToSpeech::INotification interface stub definitions
     //
     // Methods:
     //  (0) virtual void StateChanged(const string&) = 0
@@ -382,7 +382,7 @@ namespace ProxyStubs {
     //  (10) virtual void SpeechComplete(const string&) = 0
     //
 
-    ProxyStub::MethodHandler LgiTextToSpeechNotificationStubMethods[] = {
+    ProxyStub::MethodHandler TextToSpeechNotificationStubMethods[] = {
         // virtual void StateChanged(const string&) = 0
         //
         [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
@@ -393,8 +393,8 @@ namespace ProxyStubs {
             const string param0 = reader.Text();
 
             // call implementation
-            ILgiTextToSpeech::INotification* implementation = reinterpret_cast<ILgiTextToSpeech::INotification*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech::INotification implementation pointer");
+            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
             implementation->StateChanged(param0);
         },
 
@@ -408,8 +408,8 @@ namespace ProxyStubs {
             const string param0 = reader.Text();
 
             // call implementation
-            ILgiTextToSpeech::INotification* implementation = reinterpret_cast<ILgiTextToSpeech::INotification*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech::INotification implementation pointer");
+            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
             implementation->VoiceChanged(param0);
         },
 
@@ -423,8 +423,8 @@ namespace ProxyStubs {
             const string param0 = reader.Text();
 
             // call implementation
-            ILgiTextToSpeech::INotification* implementation = reinterpret_cast<ILgiTextToSpeech::INotification*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech::INotification implementation pointer");
+            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
             implementation->WillSpeak(param0);
         },
 
@@ -438,8 +438,8 @@ namespace ProxyStubs {
             const string param0 = reader.Text();
 
             // call implementation
-            ILgiTextToSpeech::INotification* implementation = reinterpret_cast<ILgiTextToSpeech::INotification*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech::INotification implementation pointer");
+            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
             implementation->SpeechStart(param0);
         },
 
@@ -453,8 +453,8 @@ namespace ProxyStubs {
             const string param0 = reader.Text();
 
             // call implementation
-            ILgiTextToSpeech::INotification* implementation = reinterpret_cast<ILgiTextToSpeech::INotification*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech::INotification implementation pointer");
+            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
             implementation->SpeechPause(param0);
         },
 
@@ -468,8 +468,8 @@ namespace ProxyStubs {
             const string param0 = reader.Text();
 
             // call implementation
-            ILgiTextToSpeech::INotification* implementation = reinterpret_cast<ILgiTextToSpeech::INotification*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech::INotification implementation pointer");
+            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
             implementation->SpeechResume(param0);
         },
 
@@ -483,8 +483,8 @@ namespace ProxyStubs {
             const string param0 = reader.Text();
 
             // call implementation
-            ILgiTextToSpeech::INotification* implementation = reinterpret_cast<ILgiTextToSpeech::INotification*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech::INotification implementation pointer");
+            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
             implementation->SpeechCancelled(param0);
         },
 
@@ -498,8 +498,8 @@ namespace ProxyStubs {
             const string param0 = reader.Text();
 
             // call implementation
-            ILgiTextToSpeech::INotification* implementation = reinterpret_cast<ILgiTextToSpeech::INotification*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech::INotification implementation pointer");
+            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
             implementation->SpeechInterrupted(param0);
         },
 
@@ -513,8 +513,8 @@ namespace ProxyStubs {
             const string param0 = reader.Text();
 
             // call implementation
-            ILgiTextToSpeech::INotification* implementation = reinterpret_cast<ILgiTextToSpeech::INotification*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech::INotification implementation pointer");
+            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
             implementation->NetworkError(param0);
         },
 
@@ -528,8 +528,8 @@ namespace ProxyStubs {
             const string param0 = reader.Text();
 
             // call implementation
-            ILgiTextToSpeech::INotification* implementation = reinterpret_cast<ILgiTextToSpeech::INotification*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech::INotification implementation pointer");
+            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
             implementation->PlaybackError(param0);
         },
 
@@ -543,25 +543,25 @@ namespace ProxyStubs {
             const string param0 = reader.Text();
 
             // call implementation
-            ILgiTextToSpeech::INotification* implementation = reinterpret_cast<ILgiTextToSpeech::INotification*>(input.Implementation());
-            ASSERT((implementation != nullptr) && "Null ILgiTextToSpeech::INotification implementation pointer");
+            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
             implementation->SpeechComplete(param0);
         },
 
         nullptr
-    }; // LgiTextToSpeechNotificationStubMethods[]
+    }; // TextToSpeechNotificationStubMethods[]
 
     // -----------------------------------------------------------------
     // PROXY
     // -----------------------------------------------------------------
 
     //
-    // ILgiTextToSpeech interface proxy definitions
+    // ITextToSpeech interface proxy definitions
     //
     // Methods:
     //  (0) virtual uint32_t Configure(PluginHost::IShell*) = 0
-    //  (1) virtual void Register(ILgiTextToSpeech::INotification*) = 0
-    //  (2) virtual void Unregister(ILgiTextToSpeech::INotification*) = 0
+    //  (1) virtual void Register(ITextToSpeech::INotification*) = 0
+    //  (2) virtual void Unregister(ITextToSpeech::INotification*) = 0
     //  (3) virtual uint32_t Enable(const string&, string&) = 0
     //  (4) virtual uint32_t ListVoices(const string&, string&) = 0
     //  (5) virtual uint32_t SetConfiguration(const string&, string&) = 0
@@ -575,9 +575,9 @@ namespace ProxyStubs {
     //  (13) virtual uint32_t GetSpeechState(const string&, string&) = 0
     //
 
-    class LgiTextToSpeechProxy final : public ProxyStub::UnknownProxyType<ILgiTextToSpeech> {
+    class TextToSpeechProxy final : public ProxyStub::UnknownProxyType<ITextToSpeech> {
     public:
-        LgiTextToSpeechProxy(const Core::ProxyType<Core::IPCChannel>& channel, RPC::instance_id implementation, const bool otherSideInformed)
+        TextToSpeechProxy(const Core::ProxyType<Core::IPCChannel>& channel, RPC::instance_id implementation, const bool otherSideInformed)
             : BaseClass(channel, implementation, otherSideInformed)
         {
         }
@@ -603,13 +603,13 @@ namespace ProxyStubs {
             return output;
         }
 
-        void Register(ILgiTextToSpeech::INotification* param0) override
+        void Register(ITextToSpeech::INotification* param0) override
         {
             IPCMessage newMessage(BaseClass::Message(1));
 
             // write parameters
             RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
-            writer.Number<RPC::instance_id>(RPC::instance_cast<ILgiTextToSpeech::INotification*>(param0));
+            writer.Number<RPC::instance_id>(RPC::instance_cast<ITextToSpeech::INotification*>(param0));
 
             // invoke the method handler
             if (Invoke(newMessage) == Core::ERROR_NONE) {
@@ -619,13 +619,13 @@ namespace ProxyStubs {
             }
         }
 
-        void Unregister(ILgiTextToSpeech::INotification* param0) override
+        void Unregister(ITextToSpeech::INotification* param0) override
         {
             IPCMessage newMessage(BaseClass::Message(2));
 
             // write parameters
             RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
-            writer.Number<RPC::instance_id>(RPC::instance_cast<ILgiTextToSpeech::INotification*>(param0));
+            writer.Number<RPC::instance_id>(RPC::instance_cast<ITextToSpeech::INotification*>(param0));
 
             // invoke the method handler
             if (Invoke(newMessage) == Core::ERROR_NONE) {
@@ -854,10 +854,10 @@ namespace ProxyStubs {
 
             return output;
         }
-    }; // class LgiTextToSpeechProxy
+    }; // class TextToSpeechProxy
 
     //
-    // ILgiTextToSpeech::INotification interface proxy definitions
+    // ITextToSpeech::INotification interface proxy definitions
     //
     // Methods:
     //  (0) virtual void StateChanged(const string&) = 0
@@ -873,9 +873,9 @@ namespace ProxyStubs {
     //  (10) virtual void SpeechComplete(const string&) = 0
     //
 
-    class LgiTextToSpeechNotificationProxy final : public ProxyStub::UnknownProxyType<ILgiTextToSpeech::INotification> {
+    class TextToSpeechNotificationProxy final : public ProxyStub::UnknownProxyType<ITextToSpeech::INotification> {
     public:
-        LgiTextToSpeechNotificationProxy(const Core::ProxyType<Core::IPCChannel>& channel, RPC::instance_id implementation, const bool otherSideInformed)
+        TextToSpeechNotificationProxy(const Core::ProxyType<Core::IPCChannel>& channel, RPC::instance_id implementation, const bool otherSideInformed)
             : BaseClass(channel, implementation, otherSideInformed)
         {
         }
@@ -1011,7 +1011,7 @@ namespace ProxyStubs {
             // invoke the method handler
             Invoke(newMessage);
         }
-    }; // class LgiTextToSpeechNotificationProxy
+    }; // class TextToSpeechNotificationProxy
 
     // -----------------------------------------------------------------
     // REGISTRATION
@@ -1019,20 +1019,20 @@ namespace ProxyStubs {
 
     namespace {
 
-        typedef ProxyStub::UnknownStubType<ILgiTextToSpeech, LgiTextToSpeechStubMethods> LgiTextToSpeechStub;
-        typedef ProxyStub::UnknownStubType<ILgiTextToSpeech::INotification, LgiTextToSpeechNotificationStubMethods> LgiTextToSpeechNotificationStub;
+        typedef ProxyStub::UnknownStubType<ITextToSpeech, TextToSpeechStubMethods> TextToSpeechStub;
+        typedef ProxyStub::UnknownStubType<ITextToSpeech::INotification, TextToSpeechNotificationStubMethods> TextToSpeechNotificationStub;
 
         static class Instantiation {
         public:
             Instantiation()
             {
-                RPC::Administrator::Instance().Announce<ILgiTextToSpeech, LgiTextToSpeechProxy, LgiTextToSpeechStub>();
-                RPC::Administrator::Instance().Announce<ILgiTextToSpeech::INotification, LgiTextToSpeechNotificationProxy, LgiTextToSpeechNotificationStub>();
+                RPC::Administrator::Instance().Announce<ITextToSpeech, TextToSpeechProxy, TextToSpeechStub>();
+                RPC::Administrator::Instance().Announce<ITextToSpeech::INotification, TextToSpeechNotificationProxy, TextToSpeechNotificationStub>();
             }
             ~Instantiation()
             {
-                RPC::Administrator::Instance().Recall<ILgiTextToSpeech>();
-                RPC::Administrator::Instance().Recall<ILgiTextToSpeech::INotification>();
+                RPC::Administrator::Instance().Recall<ITextToSpeech>();
+                RPC::Administrator::Instance().Recall<ITextToSpeech::INotification>();
             }
         } ProxyStubRegistration;
 

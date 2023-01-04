@@ -17,31 +17,31 @@
  * limitations under the License.
  */
 
-#include "LgiTextToSpeech.h"
+#include "TextToSpeech.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsUnused.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-    void LgiTextToSpeech::RegisterAll()
+    void TextToSpeech::RegisterAll()
     {
-        Register("enabletts", &LgiTextToSpeech::Enable, this);
-        Register("listvoices", &LgiTextToSpeech::ListVoices, this);
-        Register("setttsconfiguration", &LgiTextToSpeech::SetConfiguration, this);
-        Register("getttsconfiguration", &LgiTextToSpeech::GetConfiguration, this);
-        Register("isttsenabled", &LgiTextToSpeech::IsEnabled, this);
-        Register("speak", &LgiTextToSpeech::Speak, this);
-        Register("cancel", &LgiTextToSpeech::Cancel, this);
-        Register("pause", &LgiTextToSpeech::Pause, this);
-        Register("resume", &LgiTextToSpeech::Resume, this);
-        Register("isspeaking", &LgiTextToSpeech::IsSpeaking, this);
-        Register("getspeechstate", &LgiTextToSpeech::GetSpeechState, this);
-        Register("setACL", &LgiTextToSpeech::SetACL, this);
-        Register("getapiversion", &LgiTextToSpeech::getapiversion, this);
+        Register("enabletts", &TextToSpeech::Enable, this);
+        Register("listvoices", &TextToSpeech::ListVoices, this);
+        Register("setttsconfiguration", &TextToSpeech::SetConfiguration, this);
+        Register("getttsconfiguration", &TextToSpeech::GetConfiguration, this);
+        Register("isttsenabled", &TextToSpeech::IsEnabled, this);
+        Register("speak", &TextToSpeech::Speak, this);
+        Register("cancel", &TextToSpeech::Cancel, this);
+        Register("pause", &TextToSpeech::Pause, this);
+        Register("resume", &TextToSpeech::Resume, this);
+        Register("isspeaking", &TextToSpeech::IsSpeaking, this);
+        Register("getspeechstate", &TextToSpeech::GetSpeechState, this);
+        Register("setACL", &TextToSpeech::SetACL, this);
+        Register("getapiversion", &TextToSpeech::getapiversion, this);
     }
     
-    bool LgiTextToSpeech::AddToAccessList(const string &key,const string &value)
+    bool TextToSpeech::AddToAccessList(const string &key,const string &value)
     {
         std::map<std::string,std::string>::iterator itr;
         itr = m_AccessList.find(key);
@@ -59,7 +59,7 @@ namespace Plugin {
         }
     }   
 
-    bool LgiTextToSpeech::HasAccess(const string &method,string &app)
+    bool TextToSpeech::HasAccess(const string &method,string &app)
     {
         std::map<std::string,std::string>::iterator itr;
         itr = m_AccessList.find(method);
@@ -85,7 +85,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t LgiTextToSpeech::SetACL(const JsonObject& parameters, JsonObject& response)
+    uint32_t TextToSpeech::SetACL(const JsonObject& parameters, JsonObject& response)
     {
         CHECK_TTS_PARAMETER_RETURN_ON_FAIL("accesslist");
         TTSLOG_INFO("SetACL request:%s\n",parameters["accesslist"].String().c_str());
@@ -110,7 +110,7 @@ namespace Plugin {
         returnResponse(true);
     }
 
-    uint32_t LgiTextToSpeech::Enable(const JsonObject& parameters, JsonObject& response)
+    uint32_t TextToSpeech::Enable(const JsonObject& parameters, JsonObject& response)
     {
         if(_tts) {
             string params, result;
@@ -122,7 +122,7 @@ namespace Plugin {
         return Core::ERROR_NONE;
     }
 
-    uint32_t LgiTextToSpeech::ListVoices(const JsonObject& parameters, JsonObject& response)
+    uint32_t TextToSpeech::ListVoices(const JsonObject& parameters, JsonObject& response)
     {
         if(_tts) {
             string params, result;
@@ -134,7 +134,7 @@ namespace Plugin {
         return Core::ERROR_NONE;
     }
 
-    uint32_t LgiTextToSpeech::SetConfiguration(const JsonObject& parameters, JsonObject& response)
+    uint32_t TextToSpeech::SetConfiguration(const JsonObject& parameters, JsonObject& response)
     {
         if(_tts) {
             string params, result;
@@ -146,7 +146,7 @@ namespace Plugin {
         return Core::ERROR_NONE;
     }
 
-    uint32_t LgiTextToSpeech::GetConfiguration(const JsonObject& parameters, JsonObject& response)
+    uint32_t TextToSpeech::GetConfiguration(const JsonObject& parameters, JsonObject& response)
     {
         if(_tts) {
             string result;
@@ -157,7 +157,7 @@ namespace Plugin {
         return Core::ERROR_NONE;
     }
 
-    uint32_t LgiTextToSpeech::IsEnabled(const JsonObject& parameters ,JsonObject& response)
+    uint32_t TextToSpeech::IsEnabled(const JsonObject& parameters ,JsonObject& response)
     {
         if(_tts) {
             string result;
@@ -168,7 +168,7 @@ namespace Plugin {
         return Core::ERROR_NONE;
     }
 
-    uint32_t LgiTextToSpeech::Speak(const JsonObject& parameters, JsonObject& response)
+    uint32_t TextToSpeech::Speak(const JsonObject& parameters, JsonObject& response)
     {
         std::string callsign = parameters["callsign"].String();
         // if setACL() not called,  we ignore speak's callsign parameter
@@ -188,7 +188,7 @@ namespace Plugin {
         returnResponse(false);
     }
 
-    uint32_t LgiTextToSpeech::Cancel(const JsonObject& parameters, JsonObject& response)
+    uint32_t TextToSpeech::Cancel(const JsonObject& parameters, JsonObject& response)
     {
         if(_tts) {
             string params, result;
@@ -201,7 +201,7 @@ namespace Plugin {
     }
 
 
-    uint32_t LgiTextToSpeech::Pause(const JsonObject& parameters, JsonObject& response)
+    uint32_t TextToSpeech::Pause(const JsonObject& parameters, JsonObject& response)
     {
         if(_tts) {
             string params, result;
@@ -213,7 +213,7 @@ namespace Plugin {
         return Core::ERROR_NONE;
     }
 
-    uint32_t LgiTextToSpeech::Resume(const JsonObject& parameters, JsonObject& response)
+    uint32_t TextToSpeech::Resume(const JsonObject& parameters, JsonObject& response)
     {
         if(_tts) {
             string params, result;
@@ -225,7 +225,7 @@ namespace Plugin {
         return Core::ERROR_NONE;
     }
 
-    uint32_t LgiTextToSpeech::IsSpeaking(const JsonObject& parameters, JsonObject& response)
+    uint32_t TextToSpeech::IsSpeaking(const JsonObject& parameters, JsonObject& response)
     {
         if(_tts) {
             string params, result;
@@ -237,7 +237,7 @@ namespace Plugin {
         return Core::ERROR_NONE;
     }
 
-    uint32_t LgiTextToSpeech::GetSpeechState(const JsonObject& parameters, JsonObject& response)
+    uint32_t TextToSpeech::GetSpeechState(const JsonObject& parameters, JsonObject& response)
     {
         if(_tts) {
             string params, result;
@@ -249,7 +249,7 @@ namespace Plugin {
         return Core::ERROR_NONE;
     }
 
-    uint32_t LgiTextToSpeech::getapiversion(const JsonObject& parameters, JsonObject& response)
+    uint32_t TextToSpeech::getapiversion(const JsonObject& parameters, JsonObject& response)
     {
         UNUSED(parameters);
 
@@ -258,7 +258,7 @@ namespace Plugin {
         returnResponse(true);
     }
 
-    void LgiTextToSpeech::dispatchJsonEvent(const char *event, const string &data)
+    void TextToSpeech::dispatchJsonEvent(const char *event, const string &data)
     {
         TTSLOG_WARNING("Notify %s %s", event, data.c_str());
         JsonObject params;

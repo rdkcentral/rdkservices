@@ -1,6 +1,6 @@
 
-#ifndef __ILGITEXTTOSPEECH_H
-#define __ILGITEXTTOSPEECH_H
+#ifndef __ITEXTTOSPEECH_H
+#define __ITEXTTOSPEECH_H
 
 #include "Module.h"
 #include <interfaces/Ids.h>
@@ -8,11 +8,11 @@
 namespace WPEFramework {
 namespace Exchange {
 
-    struct EXTERNAL ILgiTextToSpeech : virtual public Core::IUnknown {
+    struct EXTERNAL ITextToSpeech : virtual public Core::IUnknown {
         enum { ID = ID_BROWSER + 0x10000 };
 
         struct INotification : virtual public Core::IUnknown {
-            enum { ID = ILgiTextToSpeech::ID + 1};
+            enum { ID = ITextToSpeech::ID + 1};
 
             virtual ~INotification() {}
 
@@ -29,7 +29,7 @@ namespace Exchange {
             virtual void SpeechComplete(const string &data) = 0;
         };
 
-        virtual ~ILgiTextToSpeech() {}
+        virtual ~ITextToSpeech() {}
 
         virtual uint32_t Configure(PluginHost::IShell* service) = 0;
         virtual void Register(INotification* sink) = 0;
@@ -52,5 +52,5 @@ namespace Exchange {
 } // Exchange
 } // WPEFramework
 
-#endif //__ILGITEXTTOSPEECH_H
+#endif //__ITEXTTOSPEECH_H
 
