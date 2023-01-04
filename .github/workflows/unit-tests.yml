@@ -239,6 +239,8 @@ jobs:
           -DPLUGIN_NETWORK=ON
           -DPLUGIN_WIFIMANAGER=ON
           -DPLUGIN_TRACECONTROL=ON
+          -DPLUGIN_WAREHOUSE=ON
+          -DDS_FOUND=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
@@ -254,6 +256,7 @@ jobs:
           /opt/secure/persistent
           /opt/secure/persistent/System
           /opt/logs
+          /lib/rdk
           &&
           sudo touch
           /opt/standbyReason.txt
