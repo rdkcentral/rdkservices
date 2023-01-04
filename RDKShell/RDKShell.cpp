@@ -51,7 +51,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 8
+#define API_VERSION_NUMBER_PATCH 10
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -1292,6 +1292,56 @@ namespace WPEFramework {
                   const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
                   double startFrameTime = RdkShell::microseconds();
                   gRdkShellMutex.lock();
+                  if (!sPersistentStorePreLaunchChecked)
+                  {
+                      if (!sPersistentStoreFirstActivated)
+                      {
+                          PluginHost::IShell::state state;
+                          getServiceState(mCurrentService, PERSISTENT_STORE_CALLSIGN, state);
+                          if (state == PluginHost::IShell::state::ACTIVATED) {
+                              sPersistentStoreFirstActivated = true;
+                          }
+                      }
+                      sPersistentStorePreLaunchChecked = true;
+                  }
+
+                  if (waitForPersistentStore && !sPersistentStoreWaitProcessed && sPersistentStoreFirstActivated)
+                  {
+                    PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
+                    RDKShell* rdkshellPlugin = RDKShell::_instance;
+                    if (subSystems != nullptr)
+                    {
+                        if ((nullptr != rdkshellPlugin) && rdkshellPlugin->checkForBootupFactoryAppLaunch())
+                        {
+                            sFactoryModeStart = true;
+                        }
+                        std::cout << "setting platform and graphics after wait\n";
+                        subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
+                        subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
+                        subSystems->Release();
+                    }
+                    sPersistentStoreWaitProcessed = true;
+                    if (sFactoryModeStart)
+                    {
+                        JsonObject request, response;
+                        std::cout << "About to launch factory app after persistent store wait\n";
+                        gRdkShellMutex.unlock();
+                        if (sFactoryModeBlockResidentApp)
+                        {
+                            request["nokillresapp"] = "true";
+                        }
+                        request["resetagingtime"] = "true";
+                        RDKShellApiRequest apiRequest;
+                        apiRequest.mName = "launchFactoryApp";
+                        apiRequest.mRequest = request;
+                        rdkshellPlugin->launchRequestThread(apiRequest);
+                        gRdkShellMutex.lock();
+                    }
+                    else
+                    {
+                        std::cout << "Not launching factory app as conditions not matched\n";
+                    }
+                  }
                   while (gCreateDisplayRequests.size() > 0)
                   {
 		      std::shared_ptr<CreateDisplayRequest> request = gCreateDisplayRequests.front();
@@ -1337,56 +1387,6 @@ namespace WPEFramework {
                     CompositorController::showSplashScreen(gSplashScreenDisplayTime);
                     gSplashScreenDisplayTime = 0;
                     receivedShowSplashScreenRequest = false;
-                  }
-                  if (!sPersistentStorePreLaunchChecked)
-                  {
-                      if (!sPersistentStoreFirstActivated)
-                      {
-                          PluginHost::IShell::state state;
-                          getServiceState(mCurrentService, PERSISTENT_STORE_CALLSIGN, state);
-                          if (state == PluginHost::IShell::state::ACTIVATED) {
-                              sPersistentStoreFirstActivated = true;
-                          }
-                      }
-                      sPersistentStorePreLaunchChecked = true;
-                  }
-
-                  if (waitForPersistentStore && !sPersistentStoreWaitProcessed && sPersistentStoreFirstActivated)
-                  {
-                    PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
-                    RDKShell* rdkshellPlugin = RDKShell::_instance;
-                    if (subSystems != nullptr)
-                    {
-                        if ((nullptr != rdkshellPlugin) && rdkshellPlugin->checkForBootupFactoryAppLaunch())
-                        {
-                            sFactoryModeStart = true;
-                        }
-                        std::cout << "setting platform and graphics after wait\n";
-                        subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
-                        subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
-                        subSystems->Release();
-                    }
-                    sPersistentStoreWaitProcessed = true;
-                    if (sFactoryModeStart)
-                    {
-                        JsonObject request, response;
-                        std::cout << "about to launch factory app after persistent store wait\n";
-                        gRdkShellMutex.unlock();
-                        if (sFactoryModeBlockResidentApp)
-                        {
-                            request["nokillresapp"] = "true";
-                        }
-                        request["resetagingtime"] = "true";
-                        RDKShellApiRequest apiRequest;
-                        apiRequest.mName = "launchFactoryApp";
-                        apiRequest.mRequest = request;
-                        rdkshellPlugin->launchRequestThread(apiRequest);
-                        gRdkShellMutex.lock();
-                    }
-                    else
-                    {
-                        std::cout << "not launching factory app as conditions not matched\n";
-                    }
                   }
                   RdkShell::draw();
                   if (needsScreenshot)
