@@ -490,6 +490,15 @@ namespace WPEFramework {
                 setMode(mode, response);
             }
 
+#ifdef DISABLE_GEOGRAPHY_TIMEZONE
+            std::string timeZone = getTimeZoneDSTHelper();
+
+            if (!timeZone.empty()) {
+                std::string tzenv = ":";
+                tzenv += timeZone;
+                Core::SystemInfo::SetEnvironment(_T("TZ"), tzenv.c_str());
+            }
+#endif
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
