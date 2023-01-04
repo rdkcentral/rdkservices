@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-#include "LgiTextToSpeechImplementation.h"
+#include "TextToSpeechImplementation.h"
 #include <sys/prctl.h>
 #include "UtilsJsonRpc.h"
 #include <mutex>
@@ -39,17 +39,17 @@
 namespace WPEFramework {
 namespace Plugin {
 
-    SERVICE_REGISTRATION(LgiTextToSpeechImplementation, TTS_MAJOR_VERSION, TTS_MINOR_VERSION);
+    SERVICE_REGISTRATION(TextToSpeechImplementation, TTS_MAJOR_VERSION, TTS_MINOR_VERSION);
 
-    TTS::TTSManager* LgiTextToSpeechImplementation::_ttsManager = NULL;
+    TTS::TTSManager* TextToSpeechImplementation::_ttsManager = NULL;
 
-    LgiTextToSpeechImplementation::LgiTextToSpeechImplementation() : _adminLock()
+    TextToSpeechImplementation::TextToSpeechImplementation() : _adminLock()
     {
         if(!_ttsManager)
             _ttsManager = TTS::TTSManager::create(this);
     }
 
-    LgiTextToSpeechImplementation::~LgiTextToSpeechImplementation()
+    TextToSpeechImplementation::~TextToSpeechImplementation()
     {
         if(_ttsManager) {
             delete _ttsManager;
@@ -57,7 +57,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t LgiTextToSpeechImplementation::Configure(PluginHost::IShell* service)
+    uint32_t TextToSpeechImplementation::Configure(PluginHost::IShell* service)
     {
         if(!_ttsManager)
             return 0;
@@ -105,7 +105,7 @@ namespace Plugin {
         return 0;
     }
 
-    void LgiTextToSpeechImplementation::Register(Exchange::ILgiTextToSpeech::INotification* sink)
+    void TextToSpeechImplementation::Register(Exchange::ITextToSpeech::INotification* sink)
     {
         _adminLock.Lock();
 
@@ -120,11 +120,11 @@ namespace Plugin {
         TRACE_L1("Registered a sink on the browser %p", sink);
     }
 
-    void LgiTextToSpeechImplementation::Unregister(Exchange::ILgiTextToSpeech::INotification* sink)
+    void TextToSpeechImplementation::Unregister(Exchange::ITextToSpeech::INotification* sink)
     {
         _adminLock.Lock();
 
-        std::list<Exchange::ILgiTextToSpeech::INotification*>::iterator index(std::find(_notificationClients.begin(), _notificationClients.end(), sink));
+        std::list<Exchange::ITextToSpeech::INotification*>::iterator index(std::find(_notificationClients.begin(), _notificationClients.end(), sink));
 
         // Make sure you do not unregister something you did not register !!!
         ASSERT(index != _notificationClients.end());
@@ -138,7 +138,7 @@ namespace Plugin {
         _adminLock.Unlock();
     }
 
-    uint32_t LgiTextToSpeechImplementation::Enable(const string &input, string &output)
+    uint32_t TextToSpeechImplementation::Enable(const string &input, string &output)
     {
         CONVERT_PARAMETERS_TOJSON();
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
@@ -154,7 +154,7 @@ namespace Plugin {
         returnResponse(status == TTS::TTS_OK);
     }
 
-    uint32_t LgiTextToSpeechImplementation::ListVoices(const string &input, string &output)
+    uint32_t TextToSpeechImplementation::ListVoices(const string &input, string &output)
     {
         CONVERT_PARAMETERS_TOJSON();
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
@@ -174,7 +174,7 @@ namespace Plugin {
         returnResponse(status == TTS::TTS_OK);
     }
 
-    uint32_t LgiTextToSpeechImplementation::SetConfiguration(const string &input, string &output)
+    uint32_t TextToSpeechImplementation::SetConfiguration(const string &input, string &output)
     {
         CONVERT_PARAMETERS_TOJSON();
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
@@ -220,7 +220,7 @@ namespace Plugin {
         returnResponse(status == TTS::TTS_OK);
     }
 
-    uint32_t LgiTextToSpeechImplementation::GetConfiguration(const string &input, string &output)
+    uint32_t TextToSpeechImplementation::GetConfiguration(const string &input, string &output)
     {
         CONVERT_PARAMETERS_TOJSON();
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
@@ -245,7 +245,7 @@ namespace Plugin {
         returnResponse(status == TTS::TTS_OK);
     }
 
-    uint32_t LgiTextToSpeechImplementation::IsEnabled(const string &input, string &output)
+    uint32_t TextToSpeechImplementation::IsEnabled(const string &input, string &output)
     {
         CONVERT_PARAMETERS_TOJSON();
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
@@ -269,7 +269,7 @@ namespace Plugin {
         return ++counter;
     }
 
-    uint32_t LgiTextToSpeechImplementation::Speak(const string &input, string &output)
+    uint32_t TextToSpeechImplementation::Speak(const string &input, string &output)
     {
         CONVERT_PARAMETERS_TOJSON();
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
@@ -291,7 +291,7 @@ namespace Plugin {
         returnResponse(status == TTS::TTS_OK);
     }
 
-    uint32_t LgiTextToSpeechImplementation::Cancel(const string &input, string &output)
+    uint32_t TextToSpeechImplementation::Cancel(const string &input, string &output)
     {
         CONVERT_PARAMETERS_TOJSON();
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
@@ -308,7 +308,7 @@ namespace Plugin {
     }
 
 
-    uint32_t LgiTextToSpeechImplementation::Pause(const string &input, string &output)
+    uint32_t TextToSpeechImplementation::Pause(const string &input, string &output)
     {
         CONVERT_PARAMETERS_TOJSON();
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
@@ -324,7 +324,7 @@ namespace Plugin {
         returnResponse(status == TTS::TTS_OK);
     }
 
-    uint32_t LgiTextToSpeechImplementation::Resume(const string &input, string &output)
+    uint32_t TextToSpeechImplementation::Resume(const string &input, string &output)
     {
         CONVERT_PARAMETERS_TOJSON();
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
@@ -340,7 +340,7 @@ namespace Plugin {
         returnResponse(status == TTS::TTS_OK);
     }
 
-    uint32_t LgiTextToSpeechImplementation::IsSpeaking(const string &input, string &output)
+    uint32_t TextToSpeechImplementation::IsSpeaking(const string &input, string &output)
     {
         CONVERT_PARAMETERS_TOJSON();
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
@@ -358,7 +358,7 @@ namespace Plugin {
         returnResponse(status == TTS::TTS_OK);
     }
 
-    uint32_t LgiTextToSpeechImplementation::GetSpeechState(const string &input, string &output)
+    uint32_t TextToSpeechImplementation::GetSpeechState(const string &input, string &output)
     {
         CONVERT_PARAMETERS_TOJSON();
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
@@ -378,7 +378,7 @@ namespace Plugin {
         returnResponse(status == TTS::TTS_OK);
     }
 
-    void LgiTextToSpeechImplementation::setResponseArray(JsonObject& response, const char* key, const std::vector<std::string>& items)
+    void TextToSpeechImplementation::setResponseArray(JsonObject& response, const char* key, const std::vector<std::string>& items)
     {
         JsonArray arr;
         for(auto& i : items) arr.Add(JsonValue(i));
@@ -386,18 +386,18 @@ namespace Plugin {
         response[key] = arr;
     }
 
-    void LgiTextToSpeechImplementation::dispatchEvent(Event event, JsonObject &params)
+    void TextToSpeechImplementation::dispatchEvent(Event event, JsonObject &params)
     {
         string data;
         params.ToString(data);
         Core::IWorkerPool::Instance().Submit(Job::Create(this, event, data));
     }
 
-    void LgiTextToSpeechImplementation::Dispatch(Event event, string data)
+    void TextToSpeechImplementation::Dispatch(Event event, string data)
     {
         _adminLock.Lock();
 
-        std::list<Exchange::ILgiTextToSpeech::INotification*>::iterator index(_notificationClients.begin());
+        std::list<Exchange::ITextToSpeech::INotification*>::iterator index(_notificationClients.begin());
 
         while (index != _notificationClients.end()) {
             switch(event) {
@@ -420,21 +420,21 @@ namespace Plugin {
 
     }
 
-    void LgiTextToSpeechImplementation::onTTSStateChanged(bool state)
+    void TextToSpeechImplementation::onTTSStateChanged(bool state)
     {
         JsonObject params;
         params["state"] = JsonValue((bool)state);
         dispatchEvent(STATE_CHANGED, params);
     }
 
-    void LgiTextToSpeechImplementation::onVoiceChanged(std::string voice)
+    void TextToSpeechImplementation::onVoiceChanged(std::string voice)
     {
         JsonObject params;
         params["voice"] = voice;
         dispatchEvent(VOICE_CHANGED, params);
     }
 
-    void LgiTextToSpeechImplementation::onWillSpeak(TTS::SpeechData &data)
+    void TextToSpeechImplementation::onWillSpeak(TTS::SpeechData &data)
     {
         JsonObject params;
         params["speechid"]  = JsonValue((int)data.id);
@@ -442,7 +442,7 @@ namespace Plugin {
         dispatchEvent(WILL_SPEAK, params);
     }
 
-    void LgiTextToSpeechImplementation::onSpeechStart(TTS::SpeechData &data)
+    void TextToSpeechImplementation::onSpeechStart(TTS::SpeechData &data)
     {
         JsonObject params;
         params["speechid"]  = JsonValue((int)data.id);
@@ -450,21 +450,21 @@ namespace Plugin {
         dispatchEvent(SPEECH_START, params);
     }
 
-    void LgiTextToSpeechImplementation::onSpeechPause(uint32_t speechId)
+    void TextToSpeechImplementation::onSpeechPause(uint32_t speechId)
     {
         JsonObject params;
         params["speechid"]  = JsonValue((int)speechId);
         dispatchEvent(SPEECH_PAUSE, params);
     }
 
-    void LgiTextToSpeechImplementation::onSpeechResume(uint32_t speechId)
+    void TextToSpeechImplementation::onSpeechResume(uint32_t speechId)
     {
         JsonObject params;
         params["speechid"]  = JsonValue((int)speechId);
         dispatchEvent(SPEECH_RESUME, params);
     }
 
-    void LgiTextToSpeechImplementation::onSpeechCancelled(std::vector<uint32_t> speechIds)
+    void TextToSpeechImplementation::onSpeechCancelled(std::vector<uint32_t> speechIds)
     {
         std::stringstream ss;
         for(auto it = speechIds.begin(); it != speechIds.end(); ++it)
@@ -478,28 +478,28 @@ namespace Plugin {
         dispatchEvent(SPEECH_CANCEL, params);
     }
 
-    void LgiTextToSpeechImplementation::onSpeechInterrupted(uint32_t speechId)
+    void TextToSpeechImplementation::onSpeechInterrupted(uint32_t speechId)
     {
         JsonObject params;
         params["speechid"]  = JsonValue((int)speechId);
         dispatchEvent(SPEECH_INTERRUPT, params);
     }
 
-    void LgiTextToSpeechImplementation::onNetworkError(uint32_t speechId)
+    void TextToSpeechImplementation::onNetworkError(uint32_t speechId)
     {
         JsonObject params;
         params["speechid"]  = JsonValue((int)speechId);
         dispatchEvent(NETWORK_ERROR, params);
     }
 
-    void LgiTextToSpeechImplementation::onPlaybackError(uint32_t speechId)
+    void TextToSpeechImplementation::onPlaybackError(uint32_t speechId)
     {
         JsonObject params;
         params["speechid"]  = JsonValue((int)speechId);
         dispatchEvent(PLAYBACK_ERROR, params);
     }
 
-    void LgiTextToSpeechImplementation::onSpeechComplete(TTS::SpeechData &data)
+    void TextToSpeechImplementation::onSpeechComplete(TTS::SpeechData &data)
     {
         JsonObject params;
         params["speechid"]  = JsonValue((int)data.id);

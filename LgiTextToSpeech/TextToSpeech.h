@@ -18,14 +18,14 @@
  */
 
 /**
- * @file LgiTextToSpeech.h
+ * @file TextToSpeech.h
  * @brief Thunder Plugin based Implementation for TTS service API's (RDK-27957).
  */
 
 /**
   @mainpage Text To Speech (TTS)
 
-  <b>LgiTextToSpeech</b> TTS Thunder Service provides APIs for the arbitrators
+  <b>TextToSpeech</b> TTS Thunder Service provides APIs for the arbitrators
   * (ex: Native application such as Cobalt) to use TTS resource.
   */
 
@@ -34,22 +34,22 @@
 #include "Module.h"
 #include "tracing/Logging.h"
 
-#include "LgiTextToSpeechImplementation.h"
+#include "TextToSpeechImplementation.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-    class LgiTextToSpeech: public PluginHost::IPlugin, public PluginHost::JSONRPC {
+    class TextToSpeech: public PluginHost::IPlugin, public PluginHost::JSONRPC {
     public:
         class Notification : public RPC::IRemoteConnection::INotification,
-                             public Exchange::ILgiTextToSpeech::INotification {
+                             public Exchange::ITextToSpeech::INotification {
             private:
                 Notification() = delete;
                 Notification(const Notification&) = delete;
                 Notification& operator=(const Notification&) = delete;
 
             public:
-                explicit Notification(LgiTextToSpeech* parent)
+                explicit Notification(TextToSpeech* parent)
                     : _parent(*parent) {
                     ASSERT(parent != nullptr);
                 }
@@ -104,41 +104,41 @@ namespace Plugin {
 
                 virtual void Activated(RPC::IRemoteConnection* /* connection */) final
                 {
-                    TTSLOG_WARNING("LgiTextToSpeech::Notification::Activated - %p", this);
+                    TTSLOG_WARNING("TextToSpeech::Notification::Activated - %p", this);
                 }
 
                 virtual void Deactivated(RPC::IRemoteConnection* connection) final
                 {
-                    TTSLOG_WARNING("LgiTextToSpeech::Notification::Deactivated - %p", this);
+                    TTSLOG_WARNING("TextToSpeech::Notification::Deactivated - %p", this);
                     _parent.Deactivated(connection);
                 }
 
                 BEGIN_INTERFACE_MAP(Notification)
-                INTERFACE_ENTRY(Exchange::ILgiTextToSpeech::INotification)
+                INTERFACE_ENTRY(Exchange::ITextToSpeech::INotification)
                 INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
                 END_INTERFACE_MAP
 
             private:
-                    LgiTextToSpeech& _parent;
+                    TextToSpeech& _parent;
         };
 
-        BEGIN_INTERFACE_MAP(LgiTextToSpeech)
+        BEGIN_INTERFACE_MAP(TextToSpeech)
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
-        INTERFACE_AGGREGATE(Exchange::ILgiTextToSpeech, _tts)
+        INTERFACE_AGGREGATE(Exchange::ITextToSpeech, _tts)
         END_INTERFACE_MAP
 
     public:
-        LgiTextToSpeech();
-        virtual ~LgiTextToSpeech();
+        TextToSpeech();
+        virtual ~TextToSpeech();
         virtual const string Initialize(PluginHost::IShell* service) override;
         virtual void Deinitialize(PluginHost::IShell* service) override;
         virtual string Information() const override { return {}; }
 
     private:
         // We do not allow this plugin to be copied !!
-        LgiTextToSpeech(const LgiTextToSpeech&) = delete;
-        LgiTextToSpeech& operator=(const LgiTextToSpeech&) = delete;
+        TextToSpeech(const TextToSpeech&) = delete;
+        TextToSpeech& operator=(const TextToSpeech&) = delete;
 
         void RegisterAll();
         bool AddToAccessList(const string &key,const string &value);
@@ -172,7 +172,7 @@ namespace Plugin {
         uint8_t _skipURL{};
         uint32_t _connectionId{};
         PluginHost::IShell* _service{};
-        Exchange::ILgiTextToSpeech* _tts{};
+        Exchange::ITextToSpeech* _tts{};
         Core::Sink<Notification> _notification;
         uint32_t _apiVersionNumber;
         bool m_AclCalled;

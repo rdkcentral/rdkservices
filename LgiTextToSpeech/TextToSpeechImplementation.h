@@ -23,7 +23,7 @@
 #include <interfaces/Ids.h>
 #include "tracing/Logging.h"
 
-#include "ILgiTextToSpeech.h"
+#include "ITextToSpeech.h"
 #include "impl/TTSManager.h"
 #include "impl/TTSConfiguration.h"
 #include <vector>
@@ -31,7 +31,7 @@
 namespace WPEFramework {
 namespace Plugin {
 
-    class LgiTextToSpeechImplementation : public Exchange::ILgiTextToSpeech, public TTS::TTSEventCallback {
+    class TextToSpeechImplementation : public Exchange::ITextToSpeech, public TTS::TTSEventCallback {
     public:
         enum Event {
                 STATE_CHANGED,
@@ -49,7 +49,7 @@ namespace Plugin {
 
         class EXTERNAL Job : public Core::IDispatch {
         protected:
-             Job(LgiTextToSpeechImplementation *tts, Event event, string &data)
+             Job(TextToSpeechImplementation *tts, Event event, string &data)
                 : _tts(tts)
                 , _event(event)
                 , _data(data) {
@@ -69,7 +69,7 @@ namespace Plugin {
             }
 
        public:
-            static Core::ProxyType<Core::IDispatch> Create(LgiTextToSpeechImplementation *tts, Event event, string data) {
+            static Core::ProxyType<Core::IDispatch> Create(TextToSpeechImplementation *tts, Event event, string data) {
                 return (Core::proxy_cast<Core::IDispatch>(Core::ProxyType<Job>::Create(tts, event, data)));
             }
 
@@ -78,15 +78,15 @@ namespace Plugin {
             }
 
         private:
-            LgiTextToSpeechImplementation *_tts;
+            TextToSpeechImplementation *_tts;
             const Event _event;
             const string _data;
         };
 
     public:
         // We do not allow this plugin to be copied !!
-        LgiTextToSpeechImplementation(const LgiTextToSpeechImplementation&) = delete;
-        LgiTextToSpeechImplementation& operator=(const LgiTextToSpeechImplementation&) = delete;
+        TextToSpeechImplementation(const TextToSpeechImplementation&) = delete;
+        TextToSpeechImplementation& operator=(const TextToSpeechImplementation&) = delete;
 
         virtual uint32_t Configure(PluginHost::IShell* service);
         virtual void Register(INotification* sink) override ;
@@ -116,21 +116,21 @@ namespace Plugin {
         virtual void onPlaybackError(uint32_t speechId) override ;
         virtual void onSpeechComplete(TTS::SpeechData &data) override ;
 
-        BEGIN_INTERFACE_MAP(LgiTextToSpeechImplementation)
-        INTERFACE_ENTRY(Exchange::ILgiTextToSpeech)
+        BEGIN_INTERFACE_MAP(TextToSpeechImplementation)
+        INTERFACE_ENTRY(Exchange::ITextToSpeech)
         END_INTERFACE_MAP
 
     private:
         static TTS::TTSManager* _ttsManager;
         mutable Core::CriticalSection _adminLock;
-        std::list<Exchange::ILgiTextToSpeech::INotification*> _notificationClients;
+        std::list<Exchange::ITextToSpeech::INotification*> _notificationClients;
 
         void dispatchEvent(Event, JsonObject &params);
         void Dispatch(Event event, string data);
 
     public:
-        LgiTextToSpeechImplementation();
-        virtual ~LgiTextToSpeechImplementation();
+        TextToSpeechImplementation();
+        virtual ~TextToSpeechImplementation();
         void setResponseArray(JsonObject& response, const char* key, const std::vector<std::string>& items);
 
         friend class Job;

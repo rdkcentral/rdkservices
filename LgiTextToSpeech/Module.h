@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME LgiTextToSpeech 
+#define MODULE_NAME TextToSpeech 
 #endif
 
 #include <plugins/plugins.h>

@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-#include "LgiTextToSpeech.h"
+#include "TextToSpeech.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
@@ -28,7 +28,7 @@ namespace WPEFramework {
 
 namespace {
 
-    static Plugin::Metadata<Plugin::LgiTextToSpeech> metadata(
+    static Plugin::Metadata<Plugin::TextToSpeech> metadata(
         // Version (Major, Minor, Patch)
         API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
         // Preconditions
@@ -43,11 +43,11 @@ namespace {
 namespace Plugin {
 
     /*
-     *Register LgiTextToSpeech module as wpeframework plugin
+     *Register TextToSpeech module as wpeframework plugin
      **/
-    SERVICE_REGISTRATION(LgiTextToSpeech, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
+    SERVICE_REGISTRATION(TextToSpeech, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
-    const string LgiTextToSpeech::Initialize(PluginHost::IShell* service)
+    const string TextToSpeech::Initialize(PluginHost::IShell* service)
     {
         ASSERT(_service == nullptr);
 
@@ -57,7 +57,7 @@ namespace Plugin {
 
         _service->Register(&_notification);
 
-        _tts = _service->Root<Exchange::ILgiTextToSpeech>(_connectionId, 5000, _T("LgiTextToSpeechImplementation"));
+        _tts = _service->Root<Exchange::ITextToSpeech>(_connectionId, 5000, _T("TextToSpeechImplementation"));
 
         std::string message;
         if(_tts != nullptr) {
@@ -67,7 +67,7 @@ namespace Plugin {
             _tts->Register(&_notification);
             RegisterAll();
         } else {
-            message = _T("LgiTextToSpeech could not be instantiated.");
+            message = _T("TextToSpeech could not be instantiated.");
             _service->Unregister(&_notification);
             _service = nullptr;
         }
@@ -75,7 +75,7 @@ namespace Plugin {
         return message;
     }
 
-    void LgiTextToSpeech::Deinitialize(PluginHost::IShell* service)
+    void TextToSpeech::Deinitialize(PluginHost::IShell* service)
     {
         ASSERT(_service == service);
         ASSERT(_tts != nullptr);
@@ -88,7 +88,7 @@ namespace Plugin {
 
         if(_tts->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
             ASSERT(_connectionId != 0);
-            TRACE_L1("LgiTextToSpeech Plugin is not properly destructed. %d", _connectionId);
+            TRACE_L1("TextToSpeech Plugin is not properly destructed. %d", _connectionId);
 
             RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
 
@@ -106,7 +106,7 @@ namespace Plugin {
         m_AclCalled = false;
     }
 
-    LgiTextToSpeech::LgiTextToSpeech()
+    TextToSpeech::TextToSpeech()
             : PluginHost::JSONRPC()
             , _notification(this)
             , _apiVersionNumber(API_VERSION_NUMBER)
@@ -114,15 +114,15 @@ namespace Plugin {
     {
     }
 
-    LgiTextToSpeech::~LgiTextToSpeech()
+    TextToSpeech::~TextToSpeech()
     {
     }
 
-    void LgiTextToSpeech::Deactivated(RPC::IRemoteConnection* connection)
+    void TextToSpeech::Deactivated(RPC::IRemoteConnection* connection)
     {
         if (connection->Id() == _connectionId) {
             ASSERT(_service != nullptr);
-            TTSLOG_WARNING("LgiTextToSpeech::Deactivated - %p", this);
+            TTSLOG_WARNING("TextToSpeech::Deactivated - %p", this);
             Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service, PluginHost::IShell::DEACTIVATED, PluginHost::IShell::FAILURE));
         }
     }

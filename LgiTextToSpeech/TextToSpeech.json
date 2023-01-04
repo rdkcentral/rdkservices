@@ -2,9 +2,9 @@
     "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
-        "title": "LgiTextToSpeech API",
-        "class": "LgiTextToSpeech",
-        "description": "The `LgiTextToSpeech` plugin provides text-to-speech (TTS) functionality (Voice Guidance & Speech Synthesis) for the client application."
+        "title": "TextToSpeech API",
+        "class": "TextToSpeech",
+        "description": "The `TextToSpeech` plugin provides text-to-speech (TTS) functionality (Voice Guidance & Speech Synthesis) for the client application."
     },
     "common": {
         "$ref": "../common/common.json"
