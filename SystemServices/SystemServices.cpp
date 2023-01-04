@@ -2232,7 +2232,7 @@ namespace WPEFramework {
 			std::string timeZone = "";
 			try {
 				timeZone = parameters["timeZone"].String();
-				int pos = timeZone.find("/");
+				size_t pos = timeZone.find("/");
 				if (timeZone.empty() || (timeZone == "null")) {
 					LOGERR("Empty timeZone received.");
 				}
@@ -2271,12 +2271,13 @@ namespace WPEFramework {
 							populateResponseWithError(SysSrv_FileAccessFailed, response);
 							resp = false;
 						}
-						else{
-							LOGERR("Invalid timeZone  %s received. Timezone not supported in TZ Database. \n", timeZone.c_str());
-							populateResponseWithError(SysSrv_FileNotPresent, response);
-							resp = false;
-						}
 					}
+					else{
+						LOGERR("Invalid timeZone  %s received. Timezone not supported in TZ Database. \n", timeZone.c_str());
+						populateResponseWithError(SysSrv_FileNotPresent, response);
+						resp = false;
+					}
+				}
 			} catch (...) {
 				LOGERR("catch block : parameters[\"timeZone\"]...");
 			}
