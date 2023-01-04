@@ -139,6 +139,7 @@ namespace WPEFramework
             bool m_isBlinking;
             std::vector<FrontPanelBlinkInfo> m_blinkList;
             std::list<FrontPanel*> observers_;
+            
 
             std::string lastError_;
             FrontPanelHelper* mFrontPanelHelper;
