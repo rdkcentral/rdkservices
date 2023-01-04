@@ -20,16 +20,16 @@ All notable changes to this RDK Service will be documented in this file.
 ### Fixed
 - Treat warnings as errors for unit tests workflow
 
-## [1.0.7] - 2022-10-21
+## [1.1.7] - 2022-10-21
 ### Fixed
 - Fix uploadLogs API "(HTTP) 405 Method Not Allowed"
 
-## [1.0.6] - 2022-10-18
+## [1.1.6] - 2022-10-18
 ### Changed
 - API access on all versions of the handler
 - Remove initialization steps from constructor
 
-## [1.0.5] - 2022-10-14
+## [1.1.5] - 2022-10-14
 ### Changed
 - Updated changes for new power manager.
 

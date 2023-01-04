@@ -162,14 +162,6 @@ namespace WPEFramework
             registerMethod(WAREHOUSE_METHOD_IS_CLEAN, &Warehouse::isCleanWrapper, this);
             registerMethod(WAREHOUSE_METHOD_EXECUTE_HARDWARE_TEST, &Warehouse::executeHardwareTestWrapper, this);
             registerMethod(WAREHOUSE_METHOD_GET_HARDWARE_TEST_RESULTS, &Warehouse::getHardwareTestResultsWrapper, this);
-            {
-                RFC_ParamData_t param = {0};
-                WDMP_STATUS status = getRFCParameter(NULL, RFC_PWRMGR2, &param);
-                if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
-                {
-                    m_isPwrMgr2RFCEnabled = true;
-                }
-            }
         }
 
         Warehouse::~Warehouse()
@@ -182,6 +174,12 @@ namespace WPEFramework
             InitializeIARM();
             LOGWARN ("Warehouse::Initialize finished line:%d", __LINE__);
             // On success return empty, to indicate there is no error text.
+            RFC_ParamData_t param = {0};
+            WDMP_STATUS status = getRFCParameter(NULL, RFC_PWRMGR2, &param);
+            if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+            {
+                m_isPwrMgr2RFCEnabled = true;
+            }
             return (string());
         }
 
