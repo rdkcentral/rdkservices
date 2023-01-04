@@ -218,7 +218,7 @@ int main(int argc, char *argv[]) {
 
     if (NULL == remoteObject) {
         cout << endl << "TTS Thunder Plugin call sign is " << TTSSRV_CALLSIGN << endl;
-
+        #if 0
         unsigned char buffer[MAX_STRING_LENGTH] = {0};
         int res = GetSecurityToken(MAX_STRING_LENGTH,buffer);
 
@@ -228,6 +228,9 @@ int main(int argc, char *argv[]) {
             string query = "token=" + sToken;
             remoteObject = make_shared<WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>>(TTSSRV_CALLSIGN, "", false, query);
         }
+         #endif
+        string query;  //change for lama
+        remoteObject = make_shared<WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>>(TTSSRV_CALLSIGN, "", false, query);
         if (NULL == remoteObject) {
             LOGERR("JSONRPC::Client initialization failed");
             return -1;
