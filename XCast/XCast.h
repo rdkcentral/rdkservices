@@ -124,6 +124,7 @@ private:
      */
     static bool checkRFCServiceStatus();
     static void powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+    static void threadPowerModeChangeEvent(void);
 };
 } // namespace Plugin
 } // namespace WPEFramework
