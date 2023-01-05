@@ -149,20 +149,10 @@ namespace WPEFramework {
 			// The expectation is that the JavaScript service opens up a connection to us, so we can forward the 
 			// incomming requests, to be handled by the Service.
 			if (_javascriptService == 0) {
-				/*
-				Web::ProtocolsArray protocols = channel.Protocols();
-				if (std::find(protocols.begin(), protocols.end(), string(_T("json"))) != protocols.end()) {
+				if (channel.Protocol().find("json") != string::npos) {
 					_javascriptService = channel.Id();
 					assigned = true;
 				}
-				*/
-
-				//TODO: probably this condition should be applied
-				//if (channel.State == PluginHost::Channel::ChannelState.JSON)
-				//{
-					_javascriptService = channel.Id();
-					assigned = true;
-				//}
 			}
 			return(assigned);
 		}
