@@ -219,3 +219,65 @@ TEST(JSONTest, solidus_JSON_String_FromString_Escaped)
     jsonString.ToString(cString);
     EXPECT_EQ(exampleEscapedQuoted, cString);
 }
+
+class Payload : public Core::JSON::Container {
+public:
+    Payload()
+        : Core::JSON::Container()
+    {
+        Add(_T("url"), &URL);
+    }
+
+    Core::JSON::String URL;
+};
+
+TEST(JSONTest, JSONContainerFromString)
+{
+    const string example = _T("http://example.com");
+    const string exampleContainer = _T("{\"url\":\"http://example.com\"}");
+    Payload payload;
+    EXPECT_TRUE(payload.FromString(exampleContainer));
+    EXPECT_TRUE(payload.URL.IsSet());
+    EXPECT_EQ(example, payload.URL.Value());
+}
+
+TEST(JSONTest, JSONContainerFromStringEmpty)
+{
+    const string example = _T("");
+    const string exampleContainer = _T("{}");
+    Payload payload;
+    EXPECT_FALSE(payload.FromString(exampleContainer));
+    EXPECT_FALSE(payload.URL.IsSet());
+    EXPECT_EQ(example, payload.URL.Value());
+}
+
+TEST(JSONTest, JSONContainerFromStringExtra)
+{
+    const string example = _T("http://example.com");
+    const string exampleContainer = _T("{\"url\":\"http://example.com\",\"hash\":\"7c35a3ce607a14953f070f0f83b5d74c2296ef93\"}");
+    Payload payload;
+    EXPECT_TRUE(payload.FromString(exampleContainer));
+    EXPECT_TRUE(payload.URL.IsSet());
+    EXPECT_EQ(example, payload.URL.Value());
+}
+
+TEST(JSONTest, JSONContainerFromStringDifferent)
+{
+    const string example = _T("");
+    const string exampleContainer = _T("{\"hash\":\"7c35a3ce607a14953f070f0f83b5d74c2296ef93\"}");
+    Payload payload;
+    EXPECT_TRUE(payload.FromString(exampleContainer));
+    EXPECT_FALSE(payload.URL.IsSet());
+    EXPECT_EQ(example, payload.URL.Value());
+}
+
+TEST(JSONTest, JSONContainerFromStringWrong)
+{
+    const string example = _T("http://example.com");
+    Payload payload;
+    EXPECT_FALSE(payload.FromString(example));
+    EXPECT_FALSE(payload.URL.IsSet());
+    payload.URL = example;
+    EXPECT_TRUE(payload.URL.IsSet());
+    EXPECT_EQ(example, payload.URL.Value());
+}
