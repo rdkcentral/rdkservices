@@ -275,8 +275,8 @@ namespace WPEFramework {
             bool InternalMessage(const string& message, const string& parameters);
 
             bool HasMethodSupport(const VersionMap::const_iterator& index, const string& method) const {
-                bool result = true;
-/*
+                bool result = false;
+
                 if (index != _supportedVersions.cend()) {
                     result = (std::find(index->second.cbegin(), index->second.cend(), method) != index->second.cend());
                 }
@@ -288,7 +288,6 @@ namespace WPEFramework {
                         index++;
                     }
                 }
-*/
                 return (result);
             }
             state Destination(const string& designator, string& handler) const
