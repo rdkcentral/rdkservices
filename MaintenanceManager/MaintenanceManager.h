@@ -130,6 +130,7 @@ namespace WPEFramework {
                 bool m_abort_flag;
 
                 uint16_t g_task_status;
+                bool g_unsolicited_complete;
 
                 std::mutex  m_callMutex;
                 std::mutex  m_statusMutex;
