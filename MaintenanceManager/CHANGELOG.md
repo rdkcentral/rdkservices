@@ -20,7 +20,7 @@ All notable changes to this RDK Service will be documented in this file.
 ### Fixed
 - Fixed deadlock in Maintenance Manager code
 
-## [1.0.11] - 2023-01-18
+## [1.0.11] - 2023-01-10
 ### Fixed
 - Fixed locking issues in iarmEventHandler
 
