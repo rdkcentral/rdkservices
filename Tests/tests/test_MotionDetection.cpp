@@ -71,9 +71,10 @@ TEST_F(MotionDetectionTest, RegisteredMethods)
 
 TEST_F(MotionDetectionEventTest, getMotionDetectors)
 {
-          ON_CALL(motionDetectionImplMock, MOTION_DETECTION_GetMotionDetectors(::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](MOTION_DETECTION_CurrentSensorSettings_t *pSensorStatus) {
+		EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_GetMotionDetectors(::testing::_))
+			.Times(1)
+			.WillOnce(::testing::Invoke(   
+				[](MOTION_DETECTION_CurrentSensorSettings_t *pSensorStatus) {
                 pSensorStatus = (MOTION_DETECTION_CurrentSensorSettings_t *)malloc(sizeof(MOTION_DETECTION_CurrentSensorSettings_t));
                 memset(pSensorStatus, 0, sizeof(MOTION_DETECTION_CurrentSensorSettings_t));
 
@@ -97,9 +98,10 @@ TEST_F(MotionDetectionEventTest, getMotionDetectors)
 
 TEST_F(MotionDetectionEventTest, armmotiondetected)
 {
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_ArmMotionDetector(::testing::_,::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](MOTION_DETECTION_Mode_t mode,std::string index) {
+	EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_ArmMotionDetector(::testing::_,::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
+		[](MOTION_DETECTION_Mode_t mode,std::string index) {
                 return MOTION_DETECTION_RESULT_SUCCESS;
             }));
 
@@ -109,22 +111,22 @@ TEST_F(MotionDetectionEventTest, armmotiondetected)
 
 TEST_F(MotionDetectionEventTest, armmotiondetectedInvalid)
 {
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_ArmMotionDetector(::testing::_,::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](MOTION_DETECTION_Mode_t mode, std::string index) {
+    EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_ArmMotionDetector(::testing::_,::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
+		[](MOTION_DETECTION_Mode_t mode, std::string index) {
                 return MOTION_DETECTION_RESULT_INDEX_ERROR;
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("arm"), _T("{\"index\":\"FP_MD\"}"), response));
-    EXPECT_EQ(response,  string(""));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("arm"), _T("{\"mode\":\"0\" }"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("arm"), _T("{ \"index\":\"FP_MD\",\"mode\":\"10\"}"), response));
     EXPECT_EQ(response,  string(""));
 }
 
 TEST_F(MotionDetectionEventTest, disarm)
 {
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_DisarmMotionDetector(::testing::_))
-        .WillByDefault(::testing::Invoke(
+	EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_DisarmMotionDetector(::testing::_))
+		.Times(1)
+		.WillOnce(::testing::Invoke(
             [](std::string index) {
                 return MOTION_DETECTION_RESULT_SUCCESS;
             }));
@@ -135,31 +137,23 @@ TEST_F(MotionDetectionEventTest, disarm)
 
 TEST_F(MotionDetectionEventTest, disarmInvalid)
 {
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_DisarmMotionDetector(::testing::_))
-        .WillByDefault(::testing::Invoke(
+	EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_DisarmMotionDetector(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
             [](std::string index) {
                 return MOTION_DETECTION_RESULT_INDEX_ERROR;
             }));
 
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("disarm"), _T("{\"index\":\"FP_XX\"}"), response));
-    EXPECT_EQ(response,  string(""));
-
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_DisarmMotionDetector(::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](std::string index) {
-                return MOTION_DETECTION_RESULT_INDEX_ERROR;
-            }));
-
-
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("disarm"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("disarm"), _T("{\"index\":\"FP_MD\"}"), response));
     EXPECT_EQ(response,  string(""));
 }
 
 TEST_F(MotionDetectionEventTest, isarmed)
 {
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_IsMotionDetectorArmed(::testing::_,::testing::_))
-        .WillByDefault(::testing::Invoke(
+	EXPECT_CALL(motionDetectionImplMock,MOTION_DETECTION_IsMotionDetectorArmed(::testing::_,::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
             [](std::string index, bool *isArmed) {
                 *isArmed = false;
                 return MOTION_DETECTION_RESULT_SUCCESS;
@@ -172,21 +166,23 @@ TEST_F(MotionDetectionEventTest, isarmed)
 
 TEST_F(MotionDetectionEventTest, isarmedInvalid)
 {
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_IsMotionDetectorArmed(::testing::_,::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](std::string index, bool *isArmed) {
+    EXPECT_CALL(motionDetectionImplMock,MOTION_DETECTION_IsMotionDetectorArmed(::testing::_,::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
+			[](std::string index, bool *isArmed) {
                 return MOTION_DETECTION_RESULT_INDEX_ERROR;
             }));
 
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("isarmed"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("isarmed"), _T("{\"index\"=\"FP_MD\"}"), response));
     EXPECT_EQ(response, string(""));
 }
 
 TEST_F(MotionDetectionEventTest, setNoMotionPeriod)
 {
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_SetNoMotionPeriod(::testing::_,::testing::_))
-        .WillByDefault(::testing::Invoke(
+	EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_SetNoMotionPeriod(::testing::_,::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
             [](std::string index, unsigned int period) {
                 return MOTION_DETECTION_RESULT_SUCCESS;
             }));
@@ -198,22 +194,24 @@ TEST_F(MotionDetectionEventTest, setNoMotionPeriod)
 
 TEST_F(MotionDetectionEventTest, setNoMotionPeriodInvalid)
 {
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_SetNoMotionPeriod(::testing::_,::testing::_))
-        .WillByDefault(::testing::Invoke(
+	EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_SetNoMotionPeriod(::testing::_,::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
             [](std::string index, unsigned int period) {
                 return MOTION_DETECTION_RESULT_INDEX_ERROR;
             }));
 
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setNoMotionPeriod"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setNoMotionPeriod"), _T("{\"index\":\"FP_MD\",\"period\":\"10\"}"), response));
     EXPECT_EQ(response, string(""));
 }
 
 TEST_F(MotionDetectionEventTest, getNoMotionPeriod)
 {
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_GetNoMotionPeriod(::testing::_,::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](std::string index, unsigned int *noMotionPeriod) {
+	EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_GetNoMotionPeriod(::testing::_,::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(          
+			[](std::string index, unsigned int *noMotionPeriod) {
                 *noMotionPeriod =(unsigned int)10;
                 return MOTION_DETECTION_RESULT_SUCCESS;
             }));
@@ -224,8 +222,9 @@ TEST_F(MotionDetectionEventTest, getNoMotionPeriod)
 
 TEST_F(MotionDetectionEventTest, getNoMotionPeriodInvalid)
 {
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_GetNoMotionPeriod(::testing::_,::testing::_))
-        .WillByDefault(::testing::Invoke(
+	EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_GetNoMotionPeriod(::testing::_,::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
             [](std::string index, unsigned int *noMotionPeriod) {
                 return MOTION_DETECTION_RESULT_INDEX_ERROR;
             }));
@@ -236,8 +235,9 @@ TEST_F(MotionDetectionEventTest, getNoMotionPeriodInvalid)
 
 TEST_F(MotionDetectionEventTest, setSensitivity)
 {
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_SetSensitivity(::testing::_,::testing::_,::testing::_))
-        .WillByDefault(::testing::Invoke(
+	EXPECT_CALL(motionDetectionImplMock,MOTION_DETECTION_SetSensitivity(::testing::_,::testing::_,::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
             [](std::string index, std::string sensitivity, int inferredMode) {
                 return MOTION_DETECTION_RESULT_SUCCESS;
             }));
@@ -255,8 +255,9 @@ TEST_F(MotionDetectionEventTest, setSensitivityInvalid)
 
 TEST_F(MotionDetectionEventTest, getSensitivity)
 {
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_GetSensitivity(::testing::_,::testing::_,::testing::_))
-        .WillByDefault(::testing::Invoke(
+	 EXPECT_CALL(motionDetectionImplMock,MOTION_DETECTION_GetSensitivity(::testing::_,::testing::_,::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
             [](std::string index, char** sensitivity, int* currentMode) {
                 *currentMode = 1;
                 *sensitivity = (char *)malloc(sizeof(STR_SENSITIVITY_HIGH));
@@ -271,13 +272,14 @@ TEST_F(MotionDetectionEventTest, getSensitivity)
 
 TEST_F(MotionDetectionEventTest, getSensitivityInvalid)
 {
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_GetSensitivity(::testing::_,::testing::_,::testing::_))
-        .WillByDefault(::testing::Invoke(
+     EXPECT_CALL(motionDetectionImplMock,MOTION_DETECTION_GetSensitivity(::testing::_,::testing::_,::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
             [](std::string index, char** sensitivity, int* currentMode) {
                 return MOTION_DETECTION_RESULT_INDEX_ERROR;
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSensitivity"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSensitivity"), _T("{\"index\":\"FP_MD\"}"), response));
     EXPECT_EQ(response,  string(""));
 }
 
@@ -294,8 +296,9 @@ TEST_F(MotionDetectionEventTest, getLastMotionEventElapsedTime)
 
 TEST_F(MotionDetectionEventTest, setMotionEventsActivePeriod)
 {
-    ON_CALL(motionDetectionImplMock, MOTION_DETECTION_SetActivePeriod(::testing::_,::testing::_))
-        .WillByDefault(::testing::Invoke(
+	EXPECT_CALL(motionDetectionImplMock,MOTION_DETECTION_SetActivePeriod(::testing::_,::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
             [](std::string index, MOTION_DETECTION_TimeRange_t timeSet) {
                 return MOTION_DETECTION_RESULT_SUCCESS;
             }));
