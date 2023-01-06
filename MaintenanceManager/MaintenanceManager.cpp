@@ -66,7 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 10
+#define API_VERSION_NUMBER_PATCH 11
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -822,6 +822,7 @@ namespace WPEFramework {
                 }
                 else{
                     LOGINFO("Ignoring/Unknown Maintenance Status!!");
+                    m_statusMutex.unlock();
                     return;
                 }
 
