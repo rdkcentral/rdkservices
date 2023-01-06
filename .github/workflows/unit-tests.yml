@@ -176,7 +176,6 @@ jobs:
           rdk/ds/frontPanelIndicator.hpp
           rdk/ds/frontPanelConfig.hpp
           rdk/ds/frontPanelTextDisplay.hpp
-		  rdk/ds/motionDetection.hpp
           rdk/iarmbus/libIARM.h
           rdk/iarmbus/libIBus.h
           rdk/iarmbus/libIBusDaemon.h
@@ -218,6 +217,7 @@ jobs:
           -I ${{github.workspace}}/rdkservices/Tests/headers/ccec/drivers
           -I ${{github.workspace}}/rdkservices/Tests/headers/network
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/MotionDetection.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/FrameBuffer.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Iarm.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Rfc.h

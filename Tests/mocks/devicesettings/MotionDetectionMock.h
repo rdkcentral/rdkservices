@@ -2,7 +2,6 @@
 
 #include <gmock/gmock.h>
 
-#include "motionDetection.hpp"
 
 class MotionDetectionImplMock : public MotionDetectionImpl {
 public:
