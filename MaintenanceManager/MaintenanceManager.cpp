@@ -66,7 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 13
+#define API_VERSION_NUMBER_PATCH 14
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -1294,6 +1294,8 @@ namespace WPEFramework {
 
             bool task_status[4]={false};
             bool result=false;
+	    bool rdkvfwrfc=false;
+	    string rdkvfw="rdkvfwupgrader";
 
                 /* run only when the maintenance status is MAINTENANCE_STARTED */
                 m_statusMutex.lock();
@@ -1312,6 +1314,13 @@ namespace WPEFramework {
                     task_status[2] = task_status_FWDLD->second;
                     task_status[3] = task_status_LOGUPLD->second;
 
+		    /*Read rfc firmware upgrader and if rfc is true add rdkvfwupgrader to script_names[i].c_str() and rfc is false no need any change*/
+                    rdkvfwrfc = readRFC(TR181_RDKVFWUPGRADER);
+		    if (rdkvfwrfc == true) {
+                        //Update script_names[2].c_str() Which is deviceInitiated.sh value to rdkvfwupgrader
+			script_names[2].swap(rdkvfw);
+		        LOGINFO(" %s rdkvfw rfc is true so script_names change to\n",script_names[2].c_str());
+		    }
                     for (i=0;i<4;i++)
                         LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
                     for (i=0;i<4;i++){

@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.14] - 2023-02-13
+### Fixed
+- rdkvfwupgrader support during stop maintenance
+
 ## [1.0.13] - 2023-01-30
 ### Fixed
 - Allow to set OptOut value when maintenance is in progress
