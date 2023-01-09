@@ -10,13 +10,16 @@
 
 using namespace std;
 using namespace WPEFramework;
+
+using ::testing::NiceMock;
+
 extern "C" FILE* __real_popen(const char* command, const char* type);
 
 class NetworkTestBase : public ::testing::Test {
 public:
 
-    WrapsImplMock wrapsImplMock;
-    IarmBusImplMock iarmBusImplMock;
+    NiceMock<WrapsImplMock> wrapsImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
 
     NetworkTestBase()
     {
