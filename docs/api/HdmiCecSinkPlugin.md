@@ -2,7 +2,7 @@
 <a name="HdmiCecSinkPlugin"></a>
 # HdmiCecSinkPlugin
 
-**Version: [1.0.8](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCecSink/CHANGELOG.md)**
+**Version: [1.0.9](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCecSink/CHANGELOG.md)**
 
 A org.rdk.HdmiCecSink plugin for Thunder framework.
 
@@ -694,7 +694,7 @@ No Events
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.logicalAddress | integer | Logical address of the device |
-| params.keyCode | integer | The key code for the pressed key |
+| params.keyCode | integer | The key code for the pressed key. Possible values : `0x41` (VOLUME_UP), `0x42` (VOLUME_DOWN), `0x43` (MUTE), `0x01` (UP), `0x02` (DOWN), `0x03` (LEFT), `0x04` (RIGHT), `0x00` (SELECT), `0x09` (HOME), `0x0D` (BACK), `0x20` (NUMBER_0), `0x21` (NUMBER_1), `0x22` (NUMBER_2), `0x23` (NUMBER_3), `0x24` (NUMBER_4), `0x25` (NUMBER_5), `0x26` (NUMBER_6), `0x27` (NUMBER_7), `0x28` (NUMBER_8), `0x29` (NUMBER_9) |
 
 ### Result
 
