@@ -140,6 +140,10 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AV_BLOCKED_APPS
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE = "getGraphicsFrameRate";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE = "setGraphicsFrameRate";
+#ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_CHECKPOINT = "checkpoint";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_RESTORE = "restore";
+#endif
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -161,6 +165,10 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LO
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onEasterEgg";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_WILL_DESTROY = "onWillDestroy";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE = "onScreenshotComplete";
+#ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_CHECKPOINTED = "onCheckpointed";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_RESTORED = "onRestored";
+#endif
 
 using namespace std;
 using namespace RdkShell;
@@ -570,6 +578,9 @@ namespace WPEFramework {
         std::map<std::string, bool> gLaunchApplications;
         std::map<std::string, AppLastExitReason> gApplicationsExitReason;
         std::map<std::string, std::string> gPluginDisplayNameMap;
+        #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+        MemCheckpointRestoreClient gMemCheckpointRestoreClient;
+        #endif
         
         uint32_t getKeyFlag(std::string modifier)
         {
@@ -953,6 +964,11 @@ namespace WPEFramework {
                     }
                     
                     gPluginDataMutex.lock();
+
+                    #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+                    gMemCheckpointRestoreClient.removeFromProcessed(service->Callsign());
+                    #endif
+
                     std::map<std::string, PluginData>::iterator pluginToRemove = gActivePluginsData.find(service->Callsign());
                     if (pluginToRemove != gActivePluginsData.end())
                     {
@@ -980,6 +996,314 @@ namespace WPEFramework {
                 }
             }
         }
+
+#ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+
+        static void ProcessName(const uint32_t pid, TCHAR buffer[], const uint32_t maxLength)
+        {
+            ASSERT(maxLength > 0);
+
+            if (maxLength > 0)
+            {
+                char procpath[48];
+                int fd;
+
+                snprintf(procpath, sizeof(procpath), "/proc/%u/comm", pid);
+
+                if ((fd = open(procpath, O_RDONLY)) > 0)
+                {
+                    ssize_t size;
+                    if ((size = read(fd, buffer, maxLength - 1)) > 0)
+                    {
+                        if (buffer[size - 1] == '\n')
+                        {
+                            buffer[size - 1] = '\0';
+                        }
+                        else
+                        {
+                            buffer[size] = '\0';
+                        }
+                    }
+                    else
+                    {
+                        buffer[0] = '\0';
+                    }
+
+                    close(fd);
+                }
+                else
+                {
+                    buffer[0] = '\0';
+                }
+            }
+        }
+
+        static pid_t FindPid(const string& name)
+        {
+            DIR *dp;
+            struct dirent *ep;
+
+            pid_t retPid = -1;
+
+            dp = opendir("/proc");
+            if (dp != nullptr)
+            {
+                while (nullptr != (ep = readdir(dp)))
+                {
+                    pid_t pid;
+                    char *endptr;
+
+                    pid = strtol(ep->d_name, &endptr, 10);
+
+                    if ('\0' == endptr[0])
+                    {
+                        // We have a valid PID, Find, the parent of this process..
+                        TCHAR buffer[512];
+                        ProcessName(pid, buffer, sizeof(buffer));
+                        if(name == buffer)
+                        {
+                            retPid = pid;
+                            break;
+                        }
+                    }
+                }
+
+                (void)closedir(dp);
+            }
+
+            return retPid;
+        }
+
+        bool MemCheckpointRestoreClient::checkpoint(const std::string &callSign, uint32_t timeoutMs)
+        {
+            bool isCheckpointAllowed = false;
+
+            mProcessedAppsLock.lock();
+            if(mProcessedApps.find(callSign) == mProcessedApps.end())
+            {
+                //App not processed
+                isCheckpointAllowed = true;
+            }
+            else if(mProcessedApps[callSign] == MemCheckpointRestoreClient::RESTORING)
+            {
+                //App being processeed, then shedule checkpoint only if restore is ongoing
+                isCheckpointAllowed = true;
+            }
+
+            if(isCheckpointAllowed)
+            {
+                mProcessedApps[callSign] = MemCheckpointRestoreClient::CHECKPOINTING;
+            }
+
+            mProcessedAppsLock.unlock();
+
+            if(isCheckpointAllowed)
+            {
+                LOGINFO("Launching Checkpoint Thread for %s", callSign.c_str());
+                launchRequestThread(MemCheckpointRestoreClient::MEMCR_CHECKPOINT, callSign, timeoutMs);
+                return true;
+            }
+
+            LOGWARN("Checkpoint not allowed for %s", callSign.c_str());
+            return false;
+        }
+
+        bool MemCheckpointRestoreClient::restore(const std::string &callSign, uint32_t timeoutMs)
+        {
+            bool isRestoreAllowed = false;
+
+            mProcessedAppsLock.lock();
+            if(mProcessedApps.find(callSign) != mProcessedApps.end()
+                && (mProcessedApps[callSign] == MemCheckpointRestoreClient::CHECKPOINTING
+                        || mProcessedApps[callSign] == MemCheckpointRestoreClient::CHECKPOINTED))
+            {
+                //Apps checkpoint ongoing or already checkpointed
+                isRestoreAllowed = true;
+                mProcessedApps[callSign] = MemCheckpointRestoreClient::RESTORING;
+            }
+
+            mProcessedAppsLock.unlock();
+
+            if(isRestoreAllowed)
+            {
+                LOGINFO("Launching Restore Thread for %s", callSign.c_str());
+                launchRequestThread(MemCheckpointRestoreClient::MEMCR_RESTORE, callSign, timeoutMs);
+                return true;
+            }
+
+            LOGWARN("Restore not allowed for %s", callSign.c_str());
+            return false;
+        }
+
+        bool MemCheckpointRestoreClient::getState(const std::string &callSign, ProcessedAppState &state)
+        {
+            bool status = false;
+            mProcessedAppsLock.lock();
+            if(mProcessedApps.find(callSign) != mProcessedApps.end())
+            {
+                state = mProcessedApps[callSign];
+                status = true;
+            }
+            mProcessedAppsLock.unlock();
+            return status;
+        }
+
+        bool MemCheckpointRestoreClient::isProcessed(const std::string &callSign)
+        {
+            bool isProcessed = false;
+            mProcessedAppsLock.lock();
+            isProcessed = (mProcessedApps.find(callSign) != mProcessedApps.end());
+            mProcessedAppsLock.unlock();
+
+            return isProcessed;
+        }
+
+        void MemCheckpointRestoreClient::removeFromProcessed(const std::string &callSign)
+        {
+            mProcessedAppsLock.lock();
+            if(mProcessedApps.find(callSign) != mProcessedApps.end())
+            {
+                mProcessedApps.erase(callSign);
+            }
+            mProcessedAppsLock.unlock();
+        }
+
+
+        void MemCheckpointRestoreClient::launchRequestThread(
+            MemCheckpointRestoreClient::ServerRequestCode cmd,
+            const std::string &callSign,
+            uint32_t timeoutMs)
+        {
+            std::thread requestsThread =
+                std::thread([=]()
+                {
+                    bool success = false;
+                    std::string errorMsg;
+
+                    std::list<uint32_t> processPids;
+                    pid_t procPid = FindPid(callSign);
+
+                    if (procPid > 0)
+                    {
+                        LOGINFO("Pid found for %s: %d", callSign.c_str(), procPid);
+
+                        MemCheckpointRestoreClient::ServerRequest req = {
+                            .reqCode = cmd,
+                            .pid = procPid,
+                            .timeout = WATCHDOG_TIMEOUT_SEC};
+
+                        MemCheckpointRestoreClient::ServerResponse resp;
+
+                        success = sendRcvCmd(req, resp, timeoutMs);
+                        if (!success)
+                        {
+                            errorMsg = std::to_string(static_cast<int>(resp.respCode));
+                        }
+                    }
+                    else
+                    {
+                        LOGWARN("Pid not found for %s", callSign.c_str());
+                        errorMsg = "Process not found";
+                        success = false;
+                    }
+
+                    JsonObject params;
+                    params["callsign"] = callSign;
+                    params["success"] = success;
+                    if (!success)
+                    {
+                        params["message"] = errorMsg;
+                        removeFromProcessed(callSign);
+                    }
+
+                    if (cmd == MemCheckpointRestoreClient::MEMCR_CHECKPOINT)
+                    {
+                        mProcessedAppsLock.lock();
+                        if(success && mProcessedApps.find(callSign) != mProcessedApps.end()
+                            && mProcessedApps[callSign] == MemCheckpointRestoreClient::CHECKPOINTING)
+                        {
+                            mProcessedApps[callSign] = MemCheckpointRestoreClient::CHECKPOINTED;
+                        }
+                        mProcessedAppsLock.unlock();
+
+                        RDKShell* rdkshellPlugin = RDKShell::_instance;
+                        rdkshellPlugin->notify(RDKShell::RDKSHELL_EVENT_ON_CHECKPOINTED, params);
+                    }
+                    else if (cmd == MemCheckpointRestoreClient::MEMCR_RESTORE)
+                    {
+                        mProcessedAppsLock.lock();
+                        if(success && mProcessedApps.find(callSign) != mProcessedApps.end()
+                            && mProcessedApps[callSign] == MemCheckpointRestoreClient::RESTORING)
+                        {
+                            mProcessedApps.erase(callSign);
+                        }
+                        mProcessedAppsLock.unlock();
+                        
+                        RDKShell* rdkshellPlugin = RDKShell::_instance;
+                        rdkshellPlugin->notify(RDKShell::RDKSHELL_EVENT_ON_RESTORED, params);
+                    }
+                });
+            requestsThread.detach();
+        }
+
+        bool MemCheckpointRestoreClient::sendRcvCmd(
+            MemCheckpointRestoreClient::ServerRequest &cmd,
+            MemCheckpointRestoreClient::ServerResponse &resp,
+            uint32_t timeoutMs)
+        {
+            int cd;
+            int ret;
+            struct sockaddr_un addr = {0};
+            resp.respCode = MemCheckpointRestoreClient::ServerResponseCode::MEMCR_ERROR;
+
+            cd = socket(PF_UNIX, SOCK_STREAM, 0);
+            if (cd < 0)
+            {
+                LOGWARN("Socket create failed: %d", cd);
+                return false;
+            }
+
+            struct timeval rcvTimeout;
+            rcvTimeout.tv_sec = timeoutMs/1000;
+            rcvTimeout.tv_usec = (timeoutMs%1000)*1000;
+
+            setsockopt(cd, SOL_SOCKET, SO_RCVTIMEO, &rcvTimeout, sizeof(rcvTimeout));
+
+            addr.sun_family = PF_UNIX;
+            snprintf(addr.sun_path, sizeof(addr.sun_path),
+                MemCheckpointRestoreClient::MEMCR_SERVER_SOCKET.c_str());
+
+            ret = connect(cd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un));
+            if (ret < 0)
+            {
+                LOGWARN("Socket connect failed: %d with %s", ret,
+                    MemCheckpointRestoreClient::MEMCR_SERVER_SOCKET.c_str());
+                close(cd);
+                return false;
+            }
+
+            ret = write(cd, &cmd, sizeof(cmd));
+            if (ret != sizeof(cmd))
+            {
+                LOGWARN("Socket write failed: ret %d", ret);
+                close(cd);
+                return false;
+            }
+
+            ret = read(cd, &resp, sizeof(resp));
+            if(ret != sizeof(resp))
+            {
+                LOGWARN("Socket read failed: ret %d", ret);
+                close(cd);
+                return false;
+            }
+
+            close(cd);
+
+            return (resp.respCode == MemCheckpointRestoreClient::ServerResponseCode::MEMCR_OK);
+        }
+
+#endif
 
         bool RDKShell::ScreenCapture::Capture(ICapture::IStore& storer)
         {
@@ -1103,6 +1427,10 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE, &RDKShell::setGraphicsFrameRateWrapper, this);
             Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
             Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
+            #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+            Register(RDKSHELL_METHOD_CHECKPOINT, &RDKShell::checkpointWrapper, this);
+            Register(RDKSHELL_METHOD_RESTORE, &RDKShell::restoreWrapper, this);
+            #endif
       	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -2095,7 +2423,28 @@ namespace WPEFramework {
                 getMimeType(client, mimeType);
 
                 // Kill the display
-                result = kill(client);
+                #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+                if(gMemCheckpointRestoreClient.isProcessed(client))
+                {
+                    std::cout << client << " process is checkpointed, killing with SIGKILL" << std::endl;
+                    pid_t procPid = FindPid(client);
+                    if(procPid > 0)
+                    {
+                        ::kill(procPid, SIGKILL);
+                        result = true;
+                        std::cout << client << " process killed" << std::endl;
+                    }
+                    else
+                    {
+                        result = false;
+                    }
+                }
+                else
+                #endif
+                {
+                    result = kill(client);
+                }
+
                 if (!result)
                 {
                     response["message"] = "failed to kill client";
@@ -3314,6 +3663,15 @@ namespace WPEFramework {
                     response["message"] = "failed to launch application due to active destroy request";
                     returnResponse(false);
                 }
+
+                #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+                if(gMemCheckpointRestoreClient.isProcessed(appCallsign))
+                {
+                    response["message"] = "failed to launch application due to active mem checkpoint/restore request";
+                    returnResponse(false);
+                }
+                #endif
+
                 RDKShellLaunchType launchType = RDKShellLaunchType::UNKNOWN;
                 const string callsign = parameters["callsign"].String();
                 const string callsignWithVersion = callsign + ".1";
@@ -4041,6 +4399,17 @@ namespace WPEFramework {
 		    response["message"] = "failed to suspend application";
                     returnResponse(result);
             	}
+
+                #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+                if(gMemCheckpointRestoreClient.isProcessed(client))
+                {
+                    std::cout << "ignoring suspend for " << client << " as it is being checkpointed/restored " << std::endl;
+                    result=false;
+                    response["message"] = "failed to suspend application";
+                    returnResponse(result);
+                }
+                #endif
+
                 gDestroyMutex.lock();
                 PluginHost::IStateControl* stateControl(mCurrentService->QueryInterfaceByCallsign<PluginHost::IStateControl>(callsign));
                 if (stateControl)
@@ -4108,7 +4477,28 @@ namespace WPEFramework {
                 }
                 std::cout << "destroying " << callsign << std::endl;
                 gDestroyMutex.lock();
-                uint32_t status = deactivate(mCurrentService, callsign);
+                uint32_t status;
+                #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+                if(gMemCheckpointRestoreClient.isProcessed(callsign))
+                {
+                    std::cout << callsign << " process is checkpointed, killing with SIGKILL" << std::endl;
+                    pid_t procPid = FindPid(callsign);
+                    if(procPid > 0)
+                    {
+                        ::kill(procPid, SIGKILL);
+                        status = 0;
+                        std::cout << callsign << " process killed" << std::endl;
+                    }
+                    else
+                    {
+                        status = 1;
+                    }
+                }
+                else
+                #endif
+                {
+                    status = deactivate(mCurrentService, callsign);
+                }
                 gDestroyMutex.unlock();
                 if (status > 0)
                 {
@@ -4601,63 +4991,74 @@ namespace WPEFramework {
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
             auto thunderController = getThunderControllerClient();
-            thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
+
+            gPluginDataMutex.lock();
+            std::map<std::string, PluginData> currentActivePluginsData(gActivePluginsData);
+            gPluginDataMutex.unlock();
 
             JsonArray stateArray;
-            for (uint16_t i = 0; i < joResult.Length(); i++)
+
+            for(auto iter = currentActivePluginsData.begin(); iter != currentActivePluginsData.end(); ++iter)
             {
-                PluginHost::MetaData::Service service = joResult[i];
-                if (service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATED &&
-                    service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATION &&
-                    service.JSONState != PluginHost::MetaData::Service::state::PRECONDITION)
+                std::string callsign(iter->first);
+                WPEFramework::Core::JSON::String stateString;
+                WPEFramework::Core::JSON::String urlString;
+                uint32_t stateStatus(0);
+                uint32_t urlStatus(0);
+
+                #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+                if(gMemCheckpointRestoreClient.isProcessed(callsign))
                 {
-                    std::string configLine;
-                    service.Configuration.ToString(configLine);
-                    if (!configLine.empty())
+                    stateString = "checkpointed";
+                    stateStatus = 0;
+                    urlStatus = 1;
+                }
+                else
+                #endif
+                {
+                    Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
+                    thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method, callsign, joResult);
+
+                    PluginHost::MetaData::Service service = joResult[0];
+                    if (service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATED &&
+                        service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATION &&
+                        service.JSONState != PluginHost::MetaData::Service::state::PRECONDITION)
                     {
-                        JsonObject serviceConfig = JsonObject(configLine.c_str());
-                        if (serviceConfig.HasLabel("clientidentifier"))
+                        const string callsignWithVersion = callsign + ".1";
+                        auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
+                        stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                        if(stateStatus == 0)
                         {
-                            std::string callsign;
-                            service.Callsign.ToString(callsign);
-                            callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
-
-                            WPEFramework::Core::JSON::String stateString;
-                            const string callsignWithVersion = callsign + ".1";
-                            auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
-                            uint32_t stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
-
-                            if (stateStatus == 0)
-                            {
-                                WPEFramework::Core::JSON::String urlString;
-                                uint32_t urlStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
-
-                                JsonObject typeObject;
-                                typeObject["callsign"] = callsign;
-                                typeObject["state"] = stateString.Value();
-                                if (urlStatus == 0)
-                                {
-                                    typeObject["uri"] = urlString.Value();
-                                }
-                                else
-                                {
-                                    typeObject["uri"] = "";
-                                }
-                                gExitReasonMutex.lock();
-                                if (gApplicationsExitReason.find(callsign) != gApplicationsExitReason.end())
-                                {
-                                    typeObject["lastExitReason"] = (int)gApplicationsExitReason[callsign];
-                                }
-                                else
-                                {
-                                    typeObject["lastExitReason"] = (int)AppLastExitReason::UNDEFINED;
-                                }
-                                gExitReasonMutex.unlock();
-
-                                stateArray.Add(typeObject);
-                            }
+                            urlStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url", urlString);
                         }
                     }
+                }
+
+                if (stateStatus == 0)
+                {
+                    JsonObject typeObject;
+                    typeObject["callsign"] = callsign;
+                    typeObject["state"] = stateString.Value();
+                    if (urlStatus == 0)
+                    {
+                        typeObject["uri"] = urlString.Value();
+                    }
+                    else
+                    {
+                        typeObject["uri"] = "";
+                    }
+                    gExitReasonMutex.lock();
+                    if (gApplicationsExitReason.find(callsign) != gApplicationsExitReason.end())
+                    {
+                        typeObject["lastExitReason"] = (int)gApplicationsExitReason[callsign];
+                    }
+                    else
+                    {
+                        typeObject["lastExitReason"] = (int)AppLastExitReason::UNDEFINED;
+                    }
+                    gExitReasonMutex.unlock();
+
+                    stateArray.Add(typeObject);
                 }
             }
             response["state"] = stateArray;
@@ -4694,7 +5095,6 @@ namespace WPEFramework {
             string method = "status";
             Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
             auto thunderController = getThunderControllerClient();
-            thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method.c_str(), joResult);
 
             /*std::cout << "DEACTIVATED: " << PluginHost::MetaData::Service::state::DEACTIVATED << std::endl;
                     std::cout << "DEACTIVATION: " << PluginHost::MetaData::Service::state::DEACTIVATION << std::endl;
@@ -4705,35 +5105,47 @@ namespace WPEFramework {
                     std::cout << "SUSPENDED: " << PluginHost::MetaData::Service::state::SUSPENDED << std::endl;
                     std::cout << "RESUMED: " << PluginHost::MetaData::Service::state::RESUMED << std::endl;*/
 
+            gPluginDataMutex.lock();
+            std::map<std::string, PluginData> currentActivePluginsData(gActivePluginsData);
+            gPluginDataMutex.unlock();
+
             JsonArray stateArray;
-            for (uint16_t i = 0; i < joResult.Length(); i++)
+
+            for(auto iter = currentActivePluginsData.begin(); iter != currentActivePluginsData.end(); ++iter)
             {
-                PluginHost::MetaData::Service service = joResult[i];
-                if (service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATED &&
-                    service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATION &&
-                    service.JSONState != PluginHost::MetaData::Service::state::PRECONDITION)
+                std::string callsign(iter->first);
+                WPEFramework::Core::JSON::String stateString;
+                uint32_t stateStatus(0);
+                #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+                if(gMemCheckpointRestoreClient.isProcessed(callsign))
                 {
-                    std::string configLine;
-                    service.Configuration.ToString(configLine);
-                    if (!configLine.empty())
+                    stateStatus = 0;
+                }
+                else
+                #endif
+                {
+                    Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
+                    thunderController->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(RDKSHELL_THUNDER_TIMEOUT, method, callsign, joResult);
+
+                    PluginHost::MetaData::Service service = joResult[0];
+                    if (service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATED &&
+                        service.JSONState != PluginHost::MetaData::Service::state::DEACTIVATION &&
+                        service.JSONState != PluginHost::MetaData::Service::state::PRECONDITION)
                     {
-                        JsonObject serviceConfig = JsonObject(configLine.c_str());
-                        if (serviceConfig.HasLabel("clientidentifier"))
+                        const string callsignWithVersion = callsign + ".1";
+                        auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
+                        stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+
+                        if (stateStatus == 0)
                         {
-                            std::string callsign;
-                            service.Callsign.ToString(callsign);
-                            callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
-
-                            WPEFramework::Core::JSON::String stateString;
-                            const string callsignWithVersion = callsign + ".1";
-                            uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
-
-                            if (stateStatus == 0)
-                            {
-                                result = pluginMemoryUsage(callsign, memoryInfo);
-                            }
+                            result = pluginMemoryUsage(callsign, memoryInfo);
                         }
                     }
+                }
+
+                if (stateStatus == 0)
+                {
+                    result = pluginMemoryUsage(callsign, memoryInfo);
                 }
             }
 
@@ -5734,6 +6146,81 @@ namespace WPEFramework {
             }
             returnResponse(status);
         }
+#ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+        uint32_t RDKShell::checkpointWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool status = false;
+            if (parameters.HasLabel("callsign"))
+            {
+                std::string callsign = parameters["callsign"].String();
+                bool isApplicationBeingDestroyed = false;
+
+                gLaunchDestroyMutex.lock();
+                if (gDestroyApplications.find(callsign) != gDestroyApplications.end())
+                {
+                    isApplicationBeingDestroyed = true;
+                }
+                if (gExternalDestroyApplications.find(callsign) != gExternalDestroyApplications.end())
+                {
+                    isApplicationBeingDestroyed = true;
+                }
+                gLaunchDestroyMutex.unlock();
+
+                if (isApplicationBeingDestroyed)
+                {
+                    std::cout << "ignoring checkpoint for " << callsign << " as it is being destroyed " << std::endl;
+                    status = false;
+                    response["message"] = "failed to checkpoint application, is being destroyed";
+                    returnResponse(status);
+                }
+
+                MemCheckpointRestoreClient::ProcessedAppState memcrAppState;
+                bool memcrStatus = gMemCheckpointRestoreClient.getState(callsign, memcrAppState);
+                if(memcrStatus == false)
+                {
+                    //App should be responsive
+                    WPEFramework::Core::JSON::String stateString;
+                    const string callsignWithVersion = callsign + ".1";
+
+                    uint32_t stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+
+                    if (stateStatus == 0 && stateString != "suspended")
+                    {
+                        std::cout << "ignoring checkpoint for " << callsign << " as it is not suspended " << std::endl;
+                        status = false;
+                        response["message"] = "failed to checkpoint application, not suspended";
+                        returnResponse(status);
+                    }
+                }
+                else if(memcrAppState != MemCheckpointRestoreClient::RESTORING)
+                {
+                    std::cout << "ignoring checkpoint for " << callsign << " as it is checkpointing or already checkpointed " << std::endl;
+                    status = false;
+                    response["message"] = "failed to checkpoint application, is checkpointing or already checkpointed";
+                    returnResponse(status);
+                }
+
+                status = gMemCheckpointRestoreClient.checkpoint(callsign, RDKSHELL_THUNDER_TIMEOUT);
+            }
+
+            returnResponse(status);
+        }
+
+        uint32_t RDKShell::restoreWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool status = false;
+            if (parameters.HasLabel("callsign"))
+            {
+                std::string callsign = parameters["callsign"].String();
+                status = gMemCheckpointRestoreClient.restore(callsign, RDKSHELL_THUNDER_TIMEOUT);
+            }
+
+            returnResponse(status);
+        }
+#endif
+
 
         // Registered methods end
 
@@ -6779,7 +7266,11 @@ namespace WPEFramework {
             Exchange::IMemory* pluginMemoryInterface(mCurrentService->QueryInterfaceByCallsign<Exchange::IMemory>(callsign.c_str()));
             memoryDetails["callsign"] = callsign;
             memoryDetails["ram"] = -1;
-            if (nullptr != pluginMemoryInterface)
+            if (
+        #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+                (gMemCheckpointRestoreClient.isProcessed(callsign) == false) &&
+        #endif
+                nullptr != pluginMemoryInterface)
             {
                 memoryDetails["ram"] = pluginMemoryInterface->Resident()/1024;
             }

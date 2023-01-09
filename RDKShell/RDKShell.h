@@ -142,6 +142,8 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_KEY_REPEAT_CONFIG;
             static const string RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE;
             static const string RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE;
+            static const string RDKSHELL_METHOD_CHECKPOINT;
+            static const string RDKSHELL_METHOD_RESTORE;
 
             // events
             static const string RDKSHELL_EVENT_ON_USER_INACTIVITY;
@@ -164,6 +166,8 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_EASTER_EGG;
             static const string RDKSHELL_EVENT_ON_WILL_DESTROY;
             static const string RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE;
+            static const string RDKSHELL_EVENT_ON_CHECKPOINTED;
+            static const string RDKSHELL_EVENT_ON_RESTORED;
 
             void notify(const std::string& event, const JsonObject& parameters);
             void pluginEventHandler(const JsonObject& parameters);
@@ -258,6 +262,10 @@ namespace WPEFramework {
             uint32_t keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
+            #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+            uint32_t checkpointWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t restoreWrapper(const JsonObject& parameters, JsonObject& response);
+            #endif
 
         private/*internal methods*/:
             RDKShell(const RDKShell&) = delete;
@@ -462,6 +470,62 @@ namespace WPEFramework {
                 RDKShell& mRDKShell;
                 bool mLaunchEnabled;
         };
+
+        #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
+
+        class MemCheckpointRestoreClient
+        {
+        public:
+            enum ProcessedAppState
+            {
+                CHECKPOINTING,
+                CHECKPOINTED,
+                RESTORING
+            };
+
+            bool checkpoint(const std::string &callSign, uint32_t timeouteMs);
+            bool restore(const std::string &callSign, uint32_t timeouteMs);
+            bool getState(const std::string &callSign, ProcessedAppState &state);
+            bool isProcessed(const std::string &callSign);
+            void removeFromProcessed(const std::string &callSign);
+
+        private /*types and const*/:
+            enum ServerRequestCode
+            {
+                MEMCR_CHECKPOINT = 100,
+                MEMCR_RESTORE
+            };
+
+            enum ServerResponseCode
+            {
+                MEMCR_OK = 0,
+                MEMCR_ERROR = -1
+            };
+
+            struct ServerRequest
+            {
+                ServerRequestCode reqCode;
+                pid_t pid;
+                int timeout;
+            } __attribute__((packed));
+
+            struct ServerResponse
+            {
+                ServerResponseCode respCode;
+            } __attribute__((packed));
+
+            const string MEMCR_SERVER_SOCKET = "/tmp/memcrservice";
+            const int WATCHDOG_TIMEOUT_SEC = 10;
+
+        private /*methods*/:
+            void launchRequestThread(ServerRequestCode request, const std::string &callSign, uint32_t timeouteMs);
+            bool sendRcvCmd(ServerRequest &cmd, ServerResponse &resp, uint32_t timeouteMs);
+
+        private /*members*/:
+            std::mutex mProcessedAppsLock;
+            std::map<std::string, ProcessedAppState> mProcessedApps;
+        };
+        #endif
 
     } // namespace Plugin
 } // namespace WPEFramework
