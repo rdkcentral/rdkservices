@@ -121,6 +121,10 @@ add_definitions (-DENABLE_SYSTEM_15)
 add_definitions (-DENABLE_SYSTEM_16)
 add_definitions (-DENABLE_SYSTEM_17)
 
+if (DISABLE_GEOGRAPHY_TIMEZONE)
+    add_definitions (-DDISABLE_GEOGRAPHY_TIMEZONE)
+endif()
+
 add_definitions (-DPLUGIN_STATEOBSERVER)
 option(PLUGIN_STATEOBSERVER "PLUGIN_STATEOBSERVER" ON)
 
