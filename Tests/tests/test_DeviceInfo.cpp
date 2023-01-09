@@ -8,9 +8,11 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class DeviceInfoTest : public ::testing::Test {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
     Core::ProxyType<Plugin::DeviceInfoImplementation> deviceInfoImplementation;
     Exchange::IDeviceInfo* interface;
 
