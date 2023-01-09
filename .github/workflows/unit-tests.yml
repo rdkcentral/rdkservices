@@ -11,6 +11,9 @@ env:
   THUNDER_REF: "39c82df24c7b4a4a10663cf527a3b289e7c1ceae"
   INTERFACES_REF: "8d3bd0ddd187c6104543699041ec53e1e186d49a"
 
+  # Refs for 22Q4_sprint
+  THUNDER_REF: "a87b48eca1e76c3e6f03d689e6302b1fb090b52c"
+  INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
 
 jobs:
   unit-tests:
