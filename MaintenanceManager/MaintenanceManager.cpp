@@ -822,6 +822,7 @@ namespace WPEFramework {
                 }
                 else{
                     LOGINFO("Ignoring/Unknown Maintenance Status!!");
+                    m_statusMutex.unlock();
                     return;
                 }
 
