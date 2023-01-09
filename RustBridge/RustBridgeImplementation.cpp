@@ -294,8 +294,7 @@ namespace WPEFramework {
 					
 					searchPath.push_back(framework->DataPath());
 					searchPath.push_back(framework->PersistentPath());
-					searchPath.push_back(framework->SystemPath());
-					searchPath.push_back(framework->PluginPath());
+					searchPath.push_back(framework->SystemRootPath());
 					searchPath.push_back(framework->VolatilePath());
 					
 					_callback = callback;
