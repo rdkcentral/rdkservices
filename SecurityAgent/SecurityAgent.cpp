@@ -187,9 +187,7 @@ namespace Plugin {
 
     /* virtual */ uint32_t SecurityAgent::CreateToken(const uint16_t length, const uint8_t buffer[], string& token)
     {
-        string strBuffer;
-        strBuffer.assign(reinterpret_cast<const char*>(buffer),length);
-        SYSLOG(Logging::Notification, (_T("Creating Token for %s"), strBuffer.c_str()));
+        SYSLOG(Logging::Notification, (_T("Creating Token for %.*s"), length, buffer));
 
         // Generate the token from the buffer coming in...
         auto newToken = JWTFactory::Instance().Element();
