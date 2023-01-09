@@ -8,6 +8,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 namespace {
 const string callSign = _T("TraceControl");
 const string webPrefix = _T("/Service/TraceControl");
@@ -36,9 +38,9 @@ protected:
 
 class TraceControlWebInitializedTest : public TraceControlWebTest {
 protected:
-    FactoriesImplementation factoriesImplementation;
-    ServiceMock service;
-    COMLinkMock comLinkMock;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    NiceMock<ServiceMock> service;
+    NiceMock<COMLinkMock> comLinkMock;
 
     TraceControlWebInitializedTest()
         : TraceControlWebTest()
