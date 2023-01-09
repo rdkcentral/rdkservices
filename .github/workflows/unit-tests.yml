@@ -12,7 +12,7 @@ env:
   BUILD_TYPE: Debug
 
   # Refs for 22Q4_sprint
-  THUNDER_REF: "R2-v1.12"
+  THUNDER_REF: "a87b48eca1e76c3e6f03d689e6302b1fb090b52c"
   INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
 
 jobs:

@@ -20,7 +20,7 @@ namespace WPEFramework {
             isThreadUsingLockedApi = true;
             try {
                 if (_registered_iarm_handlers[owner].count(eventId)) {
-                    LOGINFO("handling IARM handler under lock: %s/%d len:%d\n",owner, eventId, len);
+                    LOGINFO("handling IARM handler under lock: %s/%d len:%zu",owner, eventId, len);
                     _registered_iarm_handlers[owner][eventId](owner, eventId, data, len);
                 } else {
                     LOGERR("missing handler for %s / %d", owner, eventId);
