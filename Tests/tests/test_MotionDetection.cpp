@@ -230,7 +230,7 @@ TEST_F(MotionDetectionEventTest, getNoMotionPeriodInvalid)
                 return MOTION_DETECTION_RESULT_INDEX_ERROR;
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getNoMotionPeriod"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getNoMotionPeriod"), _T("{\"index\"=\"FP_MD\"}"), response));
     EXPECT_EQ(response,  string(""));
 }
 
