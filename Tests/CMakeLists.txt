@@ -67,6 +67,7 @@ include_directories(../LocationSync
         ../TraceControl
         ../Warehouse
         ../ActivityMonitor
+        ../MotionDetection
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -91,6 +92,7 @@ link_directories(../LocationSync
         ../TraceControl
         ../Warehouse
         ../ActivityMonitor
+        ../MotionDetection
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -119,6 +121,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}TraceControl
         ${NAMESPACE}Warehouse
         ${NAMESPACE}ActivityMonitor
+        ${NAMESPACE}MotionDetection
         )
 
 target_include_directories(${PROJECT_NAME}
