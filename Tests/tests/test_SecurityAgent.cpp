@@ -27,6 +27,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 namespace {
 const string payload = _T("http://localhost");
 const string tokenPrefix = _T("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aHR0cDovL2xvY2FsaG9zdA.");
@@ -70,8 +72,8 @@ protected:
 
 class SecurityAgentInitializedTest : public SecurityAgentTest {
 protected:
-    Core::Sink<SystemInfo> subSystem;
-    ServiceMock service;
+    Core::Sink<NiceMock<SystemInfo>> subSystem;
+    NiceMock<ServiceMock> service;
 
     SecurityAgentInitializedTest()
         : SecurityAgentTest()

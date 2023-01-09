@@ -28,6 +28,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class LoggingPreferencesTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::LoggingPreferences> plugin;
@@ -46,7 +48,7 @@ protected:
 
 class LoggingPreferencesInitializedTest : public LoggingPreferencesTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
 
     LoggingPreferencesInitializedTest()
         : LoggingPreferencesTest()
@@ -65,9 +67,9 @@ protected:
 
 class LoggingPreferencesInitializedEventTest : public LoggingPreferencesInitializedTest {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
     LoggingPreferencesInitializedEventTest()

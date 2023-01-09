@@ -12,6 +12,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class HdmiInputTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::HdmiInput> plugin;
@@ -32,7 +34,7 @@ protected:
 
 class HdmiInputDsTest : public HdmiInputTest {
 protected:
-    HdmiInputImplMock hdmiInputImplMock;
+    NiceMock<HdmiInputImplMock> hdmiInputImplMock;
 
     HdmiInputDsTest()
         : HdmiInputTest()
@@ -47,7 +49,7 @@ protected:
 
 class HdmiInputInitializedTest : public HdmiInputTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
     IARM_EventHandler_t dsHdmiEventHandler;
     IARM_EventHandler_t dsHdmiStatusEventHandler;
     IARM_EventHandler_t dsHdmiSignalStatusEventHandler;
@@ -98,9 +100,9 @@ protected:
 
 class HdmiInputInitializedEventTest : public HdmiInputInitializedTest {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
     HdmiInputInitializedEventTest()
@@ -124,7 +126,7 @@ protected:
 
 class HdmiInputInitializedEventDsTest : public HdmiInputInitializedEventTest {
 protected:
-    HdmiInputImplMock hdmiInputImplMock;
+    NiceMock<HdmiInputImplMock> hdmiInputImplMock;
 
     HdmiInputInitializedEventDsTest()
         : HdmiInputInitializedEventTest()
