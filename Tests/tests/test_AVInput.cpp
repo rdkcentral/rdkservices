@@ -6,6 +6,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class AVInputTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::AVInput> plugin;
@@ -24,7 +26,7 @@ protected:
 
 class AVInputDsTest : public AVInputTest {
 protected:
-    HdmiInputImplMock hdmiInputImplMock;
+    NiceMock<HdmiInputImplMock> hdmiInputImplMock;
 
     AVInputDsTest()
         : AVInputTest()

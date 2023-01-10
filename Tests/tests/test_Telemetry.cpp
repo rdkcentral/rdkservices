@@ -16,6 +16,8 @@ const uint8_t profileContent[] = "{\"profile\":\"default\"}";
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class T2Test : public ::testing::Test {
 protected:
     TelemetryApiImplMock telemetryApiImplMock;
@@ -35,7 +37,7 @@ protected:
 
 class TelemetryTest : public T2Test {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
     Core::ProxyType<Plugin::Telemetry> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;

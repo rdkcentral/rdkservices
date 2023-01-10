@@ -7,6 +7,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 namespace {
 // Make Subscribe/Unsubscribe public
 class Messenger : public Plugin::Messenger {
@@ -45,7 +47,7 @@ protected:
 
 class MessengerInitializedTest : public MessengerTest {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
 
     MessengerInitializedTest()
         : MessengerTest()
@@ -63,7 +65,7 @@ protected:
 
 class MessengerInitializedEventTest : public MessengerInitializedTest {
 protected:
-    FactoriesImplementation factoriesImplementation;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
     Core::JSONRPC::Message message;
     PluginHost::IDispatcher* dispatcher;
 
