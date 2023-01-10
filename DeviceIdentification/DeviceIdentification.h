@@ -20,7 +20,6 @@
 #pragma once
 
 #include "Module.h"
-#include <interfaces/IDeviceIdentification.h>
 #include <interfaces/json/JsonData_DeviceIdentification.h>
 
 namespace WPEFramework {
