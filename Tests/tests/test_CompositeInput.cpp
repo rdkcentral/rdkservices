@@ -151,6 +151,13 @@ TEST_F(CompositeInputDsTest, startCompositeInputInvalid)
 
 TEST_F(CompositeInputDsTest, startCompositeInput)
 {
+	EXPECT_CALL(compositeInputImplMock, selectPort(::testing::_))
+    .Times(1)
+    .WillOnce(::testing::Invoke(
+        [](int8_t Port) {
+
+        }));
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startCompositeInput"), _T("{\"portId\": \"0\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
