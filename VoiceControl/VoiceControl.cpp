@@ -279,6 +279,14 @@ namespace WPEFramework {
             string                          jsonParams;
             bool                            bSuccess = true;
 
+            if (!parameters.IsSet())
+            {
+                // There are NO parameters. We will treat this as a fatal error. Exit now.
+                LOGERR("ERROR - there are no parameters indicating what to set!");
+                response["success"] = false;
+                returnResponse(false);
+            }
+
             // Just pass through the input parameters, without understanding or checking them.
             parameters.ToString(jsonParams);
 
@@ -339,6 +347,14 @@ namespace WPEFramework {
             IARM_Result_t                   res;
             string                          jsonParams;
             bool                            bSuccess = true;
+
+            if (!parameters.IsSet())
+            {
+                // There are NO parameters. We will treat this as a fatal error. Exit now.
+                LOGERR("ERROR - there are no parameters indicating what to set!");
+                response["success"] = false;
+                returnResponse(false);
+            }
 
             // Just pass through the input parameters, without understanding or checking them.
             parameters.ToString(jsonParams);
