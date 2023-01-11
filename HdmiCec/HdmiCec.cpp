@@ -82,7 +82,7 @@ static bool isDeviceActiveSource = false;
 #elif defined(HAS_PERSISTENT_IN_FLASH)
 #define CEC_SETTING_ENABLED_FILE "/opt/persistent/ds/cecData.json"
 #else
-#define CEC_SETTING_ENABLED_FILE "/opt/ds/cecData.json"
+#define CEC_SETTING_ENABLED_FILE "/etc/WPEFramework/plugins/HdmiCecConfig.json"
 #endif
 
 #define CEC_SETTING_ENABLED "cecEnabled"
