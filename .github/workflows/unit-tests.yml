@@ -264,6 +264,7 @@ jobs:
           -DPLUGIN_ACTIVITYMONITOR=ON
           -DDS_FOUND=ON
           -DPLUGIN_MOTION_DETECTION=ON
+          -DPLUGIN_COMPOSITEINPUT=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
