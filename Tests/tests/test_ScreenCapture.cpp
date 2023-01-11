@@ -8,6 +8,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class ScreenCaptureTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::ScreenCapture> plugin;
@@ -26,9 +28,9 @@ protected:
 
 class ScreenCaptureEventTest : public ScreenCaptureTest {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
     ScreenCaptureEventTest()
@@ -55,7 +57,7 @@ protected:
 
 class ScreenCaptureFrameBufferTest : public ScreenCaptureEventTest {
 protected:
-    FrameBufferApiImplMock frameBufferApiImplMock;
+    NiceMock<FrameBufferApiImplMock> frameBufferApiImplMock;
 
     ScreenCaptureFrameBufferTest()
         : ScreenCaptureEventTest()
@@ -122,18 +124,12 @@ TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
 
     EXPECT_CALL(frameBufferApiImplMock, fbGetFramebuffer(::testing::_))
         .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&](FBContext* fbctx) {
-                return frameBuffer;
-            }));
+        .WillOnce(::testing::Return(frameBuffer));
 
     EXPECT_CALL(frameBufferApiImplMock, fbDestroy(::testing::_))
         .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&](FBContext* fbctx) {
-            	return ErrNone;
-            }));
-            
+        .WillOnce(::testing::Return(ErrNone));
+
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -150,7 +146,6 @@ TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
                 return Core::ERROR_NONE;
             }));
 
-    
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     ASSERT_TRUE(sockfd != -1);
     sockaddr_in sockaddr;

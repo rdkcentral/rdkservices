@@ -108,7 +108,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}AVInput
         ${NAMESPACE}ScreenCapture
         ${NAMESPACE}Telemetry
-        ${NAMESPACE}ScreenCapture
         ${NAMESPACE}UsbAccess
         ${NAMESPACE}Timer
         ${NAMESPACE}LoggingPreferences
