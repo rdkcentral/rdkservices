@@ -259,7 +259,8 @@ jobs:
           /opt/secure/reboot
           /opt/secure/persistent
           /opt/secure/persistent/System
-          /opt/logs /lib/rdk &&
+          /opt/logs
+          /lib/rdk
           &&
           sudo touch
           /opt/standbyReason.txt
