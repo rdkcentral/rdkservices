@@ -30,6 +30,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class WarehouseTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::Warehouse> plugin;
@@ -52,9 +54,9 @@ protected:
 
 class WarehouseInitializedTest : public WarehouseTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
-    RfcApiImplMock rfcApiImplMock;
-    WrapsImplMock wrapsImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
+    NiceMock<RfcApiImplMock> rfcApiImplMock;
+    NiceMock<WrapsImplMock> wrapsImplMock;
     IARM_EventHandler_t whMgrStatusChangeEventsHandler;
 
     WarehouseInitializedTest()
@@ -85,9 +87,9 @@ protected:
 
 class WarehouseEventTest : public WarehouseInitializedTest {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
     WarehouseEventTest()

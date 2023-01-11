@@ -15,6 +15,17 @@ jobs:
   unit-tests:
     name: Build and run unit tests
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [ gcc, clang ]
+        coverage: [ with-coverage, without-coverage ]
+        exclude:
+          - compiler: clang
+            coverage: with-coverage
+          - compiler: clang
+            coverage: without-coverage
+          - compiler: gcc
+            coverage: without-coverage
 
     steps:
       - name: Set up cache
@@ -62,7 +73,7 @@ jobs:
         run: >
           sudo apt update
           &&
-          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov
+          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang
 
       - name: Checkout Thunder
         if: steps.cache.outputs.cache-hit != 'true'
@@ -177,11 +188,20 @@ jobs:
           rbus.h
           telemetry_busmessage_sender.h
 
+      - name: Set clang toolchain
+        if: ${{ matrix.compiler == 'clang' }}
+        run: echo "TOOLCHAIN_FILE=${{github.workspace}}/rdkservices/Tests/clang.cmake" >> $GITHUB_ENV
+
+      - name: Set gcc/with-coverage toolchain
+        if: ${{ matrix.compiler == 'gcc' && matrix.coverage == 'with-coverage' && !env.ACT }}
+        run: echo "TOOLCHAIN_FILE=${{github.workspace}}/rdkservices/Tests/gcc-with-coverage.cmake" >> $GITHUB_ENV
+
       - name: Build rdkservices
         run: >
           cmake
           -S "${{github.workspace}}/rdkservices"
           -B build/rdkservices
+          -DCMAKE_TOOLCHAIN_FILE="${{ env.TOOLCHAIN_FILE }}"
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCMAKE_CXX_FLAGS="
@@ -199,7 +219,6 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
-          --coverage
           -Wall -Werror
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
@@ -250,9 +269,6 @@ jobs:
           &&
           cmake --install build/rdkservices
 
-      - name: Install traceroute
-        run: sudo apt update && sudo apt install -y traceroute
-
       - name: Set up files
         run: >
           sudo mkdir -p -m 777
@@ -280,7 +296,14 @@ jobs:
           /etc/authService.conf
           /version.txt
 
-      - name: Run unit tests
+      - name: Run unit tests without valgrind
+        run: >
+          PATH=${{github.workspace}}/install/usr/bin:${PATH}
+          LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
+          RdkServicesTest
+
+      - name: Run unit tests with valgrind
+        if: ${{ !env.ACT }}
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
@@ -294,6 +317,7 @@ jobs:
           RdkServicesTest
 
       - name: Generate coverage
+        if: ${{ matrix.coverage == 'with-coverage' && !env.ACT }}
         run: >
           lcov -c
           -o coverage.info
@@ -322,3 +346,4 @@ jobs:
           path: |
             coverage/
             valgrind_log
+          if-no-files-found: warn
