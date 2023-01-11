@@ -6,10 +6,11 @@
 #include "ServiceMock.h"
 
 using namespace WPEFramework;
+using ::testing::NiceMock;
 
 class CompositeInputTest : public ::testing::Test {
 protected:
-	IarmBusImplMock iarmBusImplMock;
+	NiceMock<IarmBusImplMock> iarmBusImplMock;
     Core::ProxyType<Plugin::CompositeInput> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
@@ -28,7 +29,7 @@ protected:
 
 class CompositeInputDsTest : public CompositeInputTest {
 protected:
-    CompositeInputImplMock compositeInputImplMock;
+	NiceMock<CompositeInputImplMock> compositeInputImplMock;
 
     CompositeInputDsTest()
         : CompositeInputTest()
@@ -43,7 +44,7 @@ protected:
 
 class CompositeInputInitializedTest : public CompositeInputTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
     IARM_EventHandler_t dsCompositeEventHandler;
     IARM_EventHandler_t dsCompositeStatusEventHandler;
     IARM_EventHandler_t dsCompositeSignalStatusEventHandler;
@@ -84,9 +85,9 @@ protected:
 
 class CompositeInputInitializedEventTest : public CompositeInputInitializedTest {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
     CompositeInputInitializedEventTest()
@@ -110,7 +111,7 @@ protected:
 
 class CompositeInputInitializedEventDsTest : public CompositeInputInitializedEventTest {
 protected:
-    CompositeInputImplMock compositeInputImplMock;
+    NiceMock<CompositeInputImplMock> compositeInputImplMock;
 
     CompositeInputInitializedEventDsTest()
         : CompositeInputInitializedEventTest()
