@@ -187,6 +187,7 @@ jobs:
           rfcapi.h
           rbus.h
           telemetry_busmessage_sender.h
+          motionDetector.h
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
@@ -219,6 +220,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/MotionDetection.h
           -Wall -Werror
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
@@ -261,6 +263,8 @@ jobs:
           -DPLUGIN_WAREHOUSE=ON
           -DPLUGIN_ACTIVITYMONITOR=ON
           -DDS_FOUND=ON
+          -DPLUGIN_MOTION_DETECTION=ON
+          -DPLUGIN_COMPOSITEINPUT=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
