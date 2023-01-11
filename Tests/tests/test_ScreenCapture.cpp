@@ -92,19 +92,9 @@ TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
                 return ErrNone;
             }));
 
-    EXPECT_CALL(frameBufferApiImplMock, fbInit(::testing::_, ::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&](FBContext* fbctx, VncServerFramebufferAPI* server, void* serverctx) {
-                if (nullptr != server)
-                {
-                    server->framebufferUpdateReady(&fbcontext);
-                    server->framebufferDetailsChanged(&fbcontext, nullptr, 1280, 720, 5120, nullptr);
-                    server->paletteChanged(&fbcontext, nullptr);
-                    server->logMsg(&fbcontext, "msg");
-                }
-                return ErrNone;
-            }));
+    ON_CALL(frameBufferApiImplMock, fbInit(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(
+            ::testing::Return(ErrNone));
 
     ON_CALL(frameBufferApiImplMock, fbGetPixelFormat(::testing::_))
         .WillByDefault(
