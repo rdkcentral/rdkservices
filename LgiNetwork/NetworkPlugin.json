@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "NetworkPlugin",
+      "callsign": "org.rdk.Network",
+      "locator": "libWPEFrameworkNetwork.so",
+      "status": "production",
+      "description": "The `Network` plugin allows you to manage network interfaces on a set-top box."
+    },
+    "interface": {
+      "$ref": "Network.json#"
+    }
+}
