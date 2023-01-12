@@ -187,13 +187,14 @@ jobs:
           rfcapi.h
           rbus.h
           telemetry_busmessage_sender.h
+          motionDetector.h
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
         run: echo "TOOLCHAIN_FILE=${{github.workspace}}/rdkservices/Tests/clang.cmake" >> $GITHUB_ENV
 
       - name: Set gcc/with-coverage toolchain
-        if: ${{ matrix.compiler == 'gcc' && matrix.coverage == 'with-coverage' }}
+        if: ${{ matrix.compiler == 'gcc' && matrix.coverage == 'with-coverage' && !env.ACT }}
         run: echo "TOOLCHAIN_FILE=${{github.workspace}}/rdkservices/Tests/gcc-with-coverage.cmake" >> $GITHUB_ENV
 
       - name: Build rdkservices
@@ -219,6 +220,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/MotionDetection.h
           -Wall -Werror
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
@@ -261,6 +263,8 @@ jobs:
           -DPLUGIN_WAREHOUSE=ON
           -DPLUGIN_ACTIVITYMONITOR=ON
           -DDS_FOUND=ON
+          -DPLUGIN_MOTION_DETECTION=ON
+          -DPLUGIN_COMPOSITEINPUT=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
@@ -301,6 +305,7 @@ jobs:
           RdkServicesTest
 
       - name: Run unit tests with valgrind
+        if: ${{ !env.ACT }}
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
@@ -314,7 +319,7 @@ jobs:
           RdkServicesTest
 
       - name: Generate coverage
-        if: ${{ matrix.coverage == 'with-coverage' }}
+        if: ${{ matrix.coverage == 'with-coverage' && !env.ACT }}
         run: >
           lcov -c
           -o coverage.info

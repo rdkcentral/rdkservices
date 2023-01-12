@@ -11,6 +11,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class FrameRateTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::FrameRate> plugin;
@@ -29,7 +31,7 @@ protected:
 
 class FrameRateInitializedTest : public FrameRateTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
     IARM_EventHandler_t handlerOnDisplayFrameRateChanging;
     IARM_EventHandler_t handlerOnDisplayFrameRateChanged;
 
@@ -62,9 +64,9 @@ protected:
 
 class FrameRateInitializedEventTest : public FrameRateInitializedTest {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
     FrameRateInitializedEventTest()

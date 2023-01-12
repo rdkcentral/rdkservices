@@ -11,6 +11,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 namespace {
 const string webPrefix = _T("/Service/DeviceInfo");
 }
@@ -43,11 +45,11 @@ protected:
 
 class DeviceInfoWebInitializedTest : public DeviceInfoWebTest {
 protected:
-    FactoriesImplementation factoriesImplementation;
-    IarmBusImplMock iarmBusImplMock;
-    ManagerImplMock managerImplMock;
-    ServiceMock service;
-    Core::Sink<SystemInfo> subSystem;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
+    NiceMock<ManagerImplMock> managerImplMock;
+    NiceMock<ServiceMock> service;
+    Core::Sink<NiceMock<SystemInfo>> subSystem;
 
     DeviceInfoWebInitializedTest()
         : DeviceInfoWebTest()
