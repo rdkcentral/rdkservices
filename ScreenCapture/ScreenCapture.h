@@ -24,7 +24,24 @@
 
 #include "Module.h"
 
+#ifdef PLATFORM_BROADCOM
+#define USE_BROADCOM_SCREENCAPTURE 1
+#endif
+
+#ifdef PLATFORM_INTEL
+#define USE_INTEL_SCREENCAPTURE 1
+#endif
+
+#ifdef HAS_FRAMEBUFFER_API_HEADER
+#define USE_FRAMEBUFFER_SCREENCAPTURE 1
+#endif
+
 #if defined(PLATFORM_AMLOGIC)
+#define USE_AMLOGIC_SCREENCAPTURE 1
+#endif
+
+
+#if defined(USE_AMLOGIC_SCREENCAPTURE)
 #include <interfaces/ICapture.h>
 #endif
 
@@ -34,7 +51,7 @@ namespace WPEFramework {
 
         class ScreenCapture;
 
-#if defined(PLATFORM_AMLOGIC)
+#if defined(USE_AMLOGIC_SCREENCAPTURE)
         struct ScreenCaptureStore: public Exchange::ICapture::IStore {
             ScreenCaptureStore(WPEFramework::Plugin::ScreenCapture* sc) : m_screenCapture(sc) {}
             ScreenCaptureStore(const ScreenCaptureStore& copy) : m_screenCapture(copy.m_screenCapture) { }
@@ -91,7 +108,7 @@ namespace WPEFramework {
             uint32_t uploadScreenCapture(const JsonObject& parameters, JsonObject& response);
             //End methods
 
-            #ifdef PLATFORM_BROADCOM
+            #ifdef  USE_BROADCOM_SCREENCAPTURE
             bool getScreenshotNexus(std::vector<unsigned char> &png_data);
             bool joinNexus();
             #endif
@@ -100,7 +117,7 @@ namespace WPEFramework {
             bool getScreenshotIntel(std::vector<unsigned char> &png_data);
             #endif
 
-            #ifdef HAS_FRAMEBUFFER_API_HEADER
+            #ifdef USE_FRAMEBUFFER_SCREENCAPTURE
             bool getScreenshotRealtek(std::vector<unsigned char> &png_data);
             #endif
 
@@ -121,13 +138,13 @@ namespace WPEFramework {
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             END_INTERFACE_MAP
 
-#if defined(PLATFORM_AMLOGIC)
+#if defined(USE_AMLOGIC_SCREENCAPTURE)
             void onScreenCaptureData(const unsigned char* buffer, const unsigned int width, const unsigned int height);
 #endif
         private:
             std::mutex m_callMutex;
 
-#if defined(PLATFORM_AMLOGIC)
+#if defined(USE_AMLOGIC_SCREENCAPTURE)
             PluginHost::IPlugin *m_RDKShellRef;
             Exchange::ICapture *m_captureRef;
             ScreenCaptureStore m_screenCaptureStore;
@@ -137,7 +154,7 @@ namespace WPEFramework {
             std::string url;
             std::string callGUID;
 
-            #ifdef PLATFORM_BROADCOM
+            #ifdef  USE_BROADCOM_SCREENCAPTURE
             bool inNexus;
             #endif
 
