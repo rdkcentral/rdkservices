@@ -218,24 +218,33 @@ namespace WPEFramework {
 	    bool sendHdmiCecSinkAudioDevicePowerOn();
 	    bool getHdmiCecSinkCecEnableStatus();
 	    bool getHdmiCecSinkAudioDeviceConnectedStatus();
-	    static void  cecArcRoutingThread();
+
 	    void onTimer();
 	    void stopCecTimeAndUnsubscribeEvent();
             void checkAudioDeviceDetectionTimer();
+	    void checkArcDeviceConnected();
+	    void checkSADUpdate();
+	    void checkAudioDevicePowerStatusTimer();
 
 	    TpTimer m_timer;
             TpTimer m_AudioDeviceDetectTimer;
+	    TpTimer m_SADDetectionTimer;
+	    TpTimer m_ArcDetectionTimer;
+	    TpTimer m_AudioDevicePowerOnStatusTimer;
             bool m_subscribed;
             std::mutex m_callMutex;
+            std::mutex m_SadMutex;
 	    std::thread m_arcRoutingThread;
 	    std::mutex m_arcRoutingStateMutex;
+	    std::mutex m_ArcDisableMutex;
 	    bool m_cecArcRoutingThreadRun; 
 	    std::condition_variable arcRoutingCV;
 	    bool m_hdmiInAudioDeviceConnected;
-        bool m_arcAudioEnabled;
+            bool m_arcEarcAudioEnabled;
             bool m_arcPendingSADRequest;   
             bool m_isPwrMgr2RFCEnabled;
 	    bool m_hdmiCecAudioDeviceDetected;
+	    dsAudioARCTypes_t m_hdmiInAudioDeviceType;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
             static IARM_Bus_PWRMgr_PowerState_t m_powerState;
@@ -255,9 +264,46 @@ namespace WPEFramework {
                 AUDIO_DEVICE_POWER_STATE_ON,
             };
 
+	    enum {
+		AUDIO_DEVICE_SAD_UNKNOWN,
+		AUDIO_DEVICE_SAD_REQUESTED,
+		AUDIO_DEVICE_SAD_RECEIVED,
+		AUDIO_DEVICE_SAD_UPDATED,
+		AUDIO_DEVICE_SAD_CLEARED
+	    };
+
+	    enum {
+		AVR_POWER_STATE_ON,
+		AVR_POWER_STATE_STANDBY,
+		AVR_POWER_STATE_IN_TRANSITION
+	    };
+           typedef enum {
+		SEND_AUDIO_DEVICE_POWERON_MSG = 1,
+		REQUEST_SHORT_AUDIO_DESCRIPTOR,
+		REQUEST_AUDIO_DEVICE_POWER_STATUS,
+		SEND_REQUEST_ARC_INITIATION,
+		SEND_REQUEST_ARC_TERMINATION,
+		} msg_t;
+
+	   typedef struct sendMsgInfo {
+                   int msg;
+                   void *param;
+                } SendMsgInfo;
+
+	    void sendMsgToQueue(msg_t msg, void *param);
+            bool m_sendMsgThreadExit;
+            bool m_sendMsgThreadRun;
+
+	    static void  sendMsgThread();
+            std::thread m_sendMsgThread;
+            std::mutex m_sendMsgMutex;
+	    std::queue<SendMsgInfo> m_sendMsgQueue;
+            std::condition_variable m_sendMsgCV;
+
             int m_hdmiInAudioDevicePowerState;
             int m_currentArcRoutingState;
-
+            int m_AudioDeviceSADState;
+	    bool m_requestSad;
             PluginHost::IShell* m_service;
 
         public:
