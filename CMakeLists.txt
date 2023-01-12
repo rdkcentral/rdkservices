@@ -86,6 +86,10 @@ if(PLUGIN_HOMENETWORKING)
     add_subdirectory(HomeNetworking)
 endif()
 
+if(PLUGIN_LGINETWORK)
+    add_subdirectory(LgiNetwork)
+endif()
+
 if(PLUGIN_NETWORK)
     add_subdirectory(Network)
 endif()
