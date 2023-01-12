@@ -157,15 +157,14 @@ namespace Plugin {
             int len = readlink(availableLink.c_str(), targetPath, sizeof(targetPath));
             if(len == -1)
             {
-            	LOGINFO("readlink error");
+            	LOGWARN("readlink error");
             }
             else
             {
                 targetPath[len] = '\0';
-                LOGINFO("target path : %s", targetPath);
                 if(incomingPath.compare(string(targetPath)) == 0)
                 {
-                    LOGINFO("Symlink already exists");
+                    LOGWARN("Symlink already exists");
                     bLinkExists = true;
                 }
             }
@@ -247,7 +246,6 @@ namespace Plugin {
             {
                 absPath = joinPaths(*paths.begin(), pathParam);
             }
-            LOGINFO("Srikanth - absPath2 = %s", absPath.c_str());
             result = getFileList(absPath, files, REGEX_FILE, true);
         }
 
@@ -313,7 +311,6 @@ namespace Plugin {
                     if(it.compare(pathParam) == 0)
                     {
                         int nUsbNum = nextAvailableNumber(m_CreatedLinkIds);
-                        LOGINFO("USB Link num = %d", nUsbNum);
                         baseURL = baseURL + std::to_string(nUsbNum);    //Add number suffix
                         result = createLink(it, LINK_PATH+std::to_string(nUsbNum));
 						if (result)
@@ -343,7 +340,6 @@ namespace Plugin {
         if (parameters.HasLabel("baseURL"))
             urlParam = parameters["baseURL"].String();
 
-        LOGINFO("Clearing path: %s", urlParam.c_str());
         if(urlParam.empty() || (urlParam.compare(LINK_URL_HTTP)) == 0)
         {
             result = clearLink(LINK_PATH);
@@ -352,10 +348,8 @@ namespace Plugin {
         {
             //Validate incoming path
             std::smatch match;
-            LOGINFO("Path param = %s", urlParam.c_str());
             if (regex_search(urlParam, match, std::regex("http://localhost:50050/usbdrive[0-9]+")) &&  match.size() >= 1) {
                 nUsbNum = std::stoi(urlParam.substr(urlParam.find_last_not_of("0123456789") + 1));
-                LOGINFO("USB num = %d", nUsbNum);
                 result = clearLink(LINK_PATH+std::to_string(nUsbNum));
                 if (result)
                     m_CreatedLinkIds.erase(nUsbNum);
@@ -365,7 +359,6 @@ namespace Plugin {
         if (!result)
             response["error"] = "could not remove symlink";
 
-        LOGINFO("nUsbNum = %d", nUsbNum);
         returnResponse(result);
     }
 
@@ -481,7 +474,6 @@ namespace Plugin {
     {
         ArchiveLogsError error = ScriptError;
 
-        LOGINFO("Inside achivelogs");
         string usbFilePath;
         std::list<string> paths;
         getMounted(paths);
@@ -513,10 +505,8 @@ namespace Plugin {
             }
 
             error = NoUSB;
-            LOGINFO("Test log");
             if(!usbPath.empty())
             {
-                LOGINFO("usbPath = %s", usbPath.c_str());
                 string script = (ARCHIVE_LOGS_SCRIPT + " " + usbPath);
                 FILE* fp = popen(script.c_str(), "r");
                 if (NULL != fp) {
@@ -526,7 +516,6 @@ namespace Plugin {
                         usbFilePath = buf; //Capture file path returned by the script
                         //Remove /n character at the end
                         usbFilePath.erase(std::remove(usbFilePath.begin(), usbFilePath.end(), '\n'), usbFilePath.end());
-                        LOGINFO("buf = %s", usbFilePath.c_str());
                     }
                 }
                 else {
