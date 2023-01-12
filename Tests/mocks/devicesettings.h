@@ -633,6 +633,8 @@ class SleepMode;
 class SleepModeImpl {
 public:
     virtual ~SleepModeImpl() = default;
+    virtual SleepMode & getInstanceById(int id) = 0;
+    virtual SleepMode & getInstanceByName(const std::string &name) = 0;
     virtual List<SleepMode> getSleepModes() = 0;
     virtual const std::string& toString() const = 0;
 };
@@ -647,14 +649,14 @@ public:
         return instance;
     }
 
-    static SleepMode& getInstance(int)
+    static SleepMode& getInstance(int id)
     {
-        return getInstance();
+        return getInstance().impl->getInstanceById(id);
     }
 
-    static SleepMode& getInstance(const std::string&)
+    static SleepMode& getInstance(const std::string &name)
     {
-        return getInstance();
+        return getInstance().impl->getInstanceByName(name);
     }
 
     List<SleepMode> getSleepModes()
@@ -892,8 +894,6 @@ public:
     {
         return getInstance().impl->DeInitialize();
     }
-
-    static bool IsInitialized;
 };
 }
 
@@ -984,37 +984,59 @@ public:
 }
 
 namespace device {
-class FrontPanelIndicator;
-class FrontPanelIndicatorImpl {
-public:
-    virtual ~FrontPanelIndicatorImpl() = default;
-    virtual void setState(const bool bState) const = 0;
-    virtual const std::string & getName() const = 0;
-    virtual void setBrightness(const int &brightness, const bool toPersist = true);
-    virtual int getBrightness();
-};
-
 class FrontPanelIndicator {
 public:
-    FrontPanelIndicatorImpl* impl;
-    class Color{
-        public:
-            virtual ~Color() {};
-
-            static Color & getInstance(int id)
-            {
-                static Color instance;
-                return instance;
-            }
-            static Color & getInstance(const std::string &name)
-            {
-                return getInstance(0);
-            }
+    class Color;
+    class ColorImpl {
+    public:
+        virtual ~ColorImpl() = default;
+        virtual const Color& getInstanceById(int id) = 0;
+        virtual const Color& getInstanceByName(const std::string& name) = 0;
     };
-    static FrontPanelIndicator& getInstance(const std::string&)
+
+    class Color {
+    public:
+        static Color& getInstance()
+        {
+            static Color instance;
+            return instance;
+        }
+
+        ColorImpl* impl;
+
+        static const Color& getInstance(int id)
+        {
+            return getInstance().impl->getInstanceById(id);
+        }
+        static const Color& getInstance(const std::string& name)
+        {
+            return getInstance().impl->getInstanceByName(name);
+        }
+    };
+
+    static FrontPanelIndicator& getInstance()
     {
         static FrontPanelIndicator instance;
         return instance;
+    }
+
+    class FrontPanelIndicatorImpl {
+    public:
+        virtual ~FrontPanelIndicatorImpl() = default;
+        virtual FrontPanelIndicator& getInstance(const std::string& name) = 0;
+        virtual void setState(const bool bState) const = 0;
+        virtual const std::string& getName() const = 0;
+        virtual void setBrightness(const int& brightness, const bool toPersist) = 0;
+        virtual int getBrightness() = 0;
+        virtual void setColor(const Color& newColor, bool toPersist) = 0;
+        virtual void setColor(const uint32_t color, const bool toPersist) = 0;
+    };
+
+    FrontPanelIndicatorImpl* impl;
+
+    static FrontPanelIndicator& getInstance(const std::string& name)
+    {
+        return getInstance().impl->getInstance(name);
     }
 
     void setState(const bool bState) const
@@ -1036,26 +1058,36 @@ public:
     }
     void setColor(const Color & newColor,bool toPersist = true)
     {
+        return impl->setColor(newColor, toPersist);
     }
     void setColor(const uint32_t color,const bool toPersist = true)
     {
+        return impl->setColor(color, toPersist);
     }
 };
 
-class FrontPanelTextDisplay
-{
+class FrontPanelTextDisplay;
+class FrontPanelTextDisplayImpl {
+public:
+    virtual ~FrontPanelTextDisplayImpl() = default;
+    virtual int getCurrentTimeFormat() = 0;
+    virtual void setTimeFormat(const int iTimeFormat) = 0;
+};
+
+class FrontPanelTextDisplay {
 public:
     static const int kModeClock12Hr = dsFPD_TIME_12_HOUR;
     static const int kModeClock24Hr = dsFPD_TIME_24_HOUR;
 
-    virtual ~FrontPanelTextDisplay() = default;
+    FrontPanelTextDisplayImpl* impl;
 
     int getCurrentTimeFormat()
     {
-        return kModeClock12Hr;
+        return impl->getCurrentTimeFormat();
     }
     void setTimeFormat(const int iTimeFormat)
     {
+        impl->setTimeFormat(iTimeFormat);
     }
 };
 
@@ -1063,7 +1095,8 @@ class FrontPanelConfig;
 class FrontPanelConfigImpl {
 public:
     virtual ~FrontPanelConfigImpl() = default;
-    virtual List<FrontPanelIndicator> getIndicators();
+    virtual List<FrontPanelIndicator> getIndicators() = 0;
+    virtual FrontPanelTextDisplay& getTextDisplay(const std::string &name) = 0;
 };
 
 class FrontPanelConfig {
@@ -1081,8 +1114,7 @@ public:
     }
     FrontPanelTextDisplay& getTextDisplay(const std::string &name)
     {
-        static FrontPanelTextDisplay instance;
-        return instance;
+        return impl->getTextDisplay(name);
     }
 };
 
