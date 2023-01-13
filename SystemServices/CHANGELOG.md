@@ -15,6 +15,9 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+## [1.0.10] - 2023-01-13
+### Fixed
+- Fix for setTimeZoneDST API to avoid invalid input 
 
 ## [1.0.9] - 2023-01-10
 ### Fixed
@@ -24,16 +27,16 @@ All notable changes to this RDK Service will be documented in this file.
 ### Fixed
 - Treat warnings as errors for unit tests workflow
 
-## [1.0.7] - 2022-10-21
+## [1.1.7] - 2022-10-21
 ### Fixed
 - Fix uploadLogs API "(HTTP) 405 Method Not Allowed"
 
-## [1.0.6] - 2022-10-18
+## [1.1.6] - 2022-10-18
 ### Changed
 - API access on all versions of the handler
 - Remove initialization steps from constructor
 
-## [1.0.5] - 2022-10-14
+## [1.1.5] - 2022-10-14
 ### Changed
 - Updated changes for new power manager.
 

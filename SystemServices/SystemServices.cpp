@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 9
+#define API_VERSION_NUMBER_PATCH 10
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -2232,31 +2232,49 @@ namespace WPEFramework {
 			std::string timeZone = "";
 			try {
 				timeZone = parameters["timeZone"].String();
+				size_t pos = timeZone.find("/");
 				if (timeZone.empty() || (timeZone == "null")) {
 					LOGERR("Empty timeZone received.");
-				} else {
-					if (!dirExists(dir)) {
-						std::string command = "mkdir -p " + dir + " \0";
-						Utils::cRunScript(command.c_str());
-					} else {
-						//Do nothing//
+				}
+				else if( (pos == string::npos) ||  ( (pos != string::npos) &&  (pos+1 == timeZone.length())  )   )
+				{
+					LOGERR("Invalid timezone format received : %s . Timezone should be in Olson format  Ex : America/New_York .  \n", timeZone.c_str());
+				}
+				else {
+					std::string path =ZONEINFO_DIR;
+					path += "/";
+					std::string country = timeZone.substr(0,pos);
+					std::string city = path+timeZone;
+					if( dirExists(path+country)  && Utils::fileExists(city.c_str()) ) 
+					{
+						if (!dirExists(dir)) {
+							std::string command = "mkdir -p " + dir + " \0";
+							Utils::cRunScript(command.c_str());
+						} else {
+							//Do nothing//
+						}
+						std::string oldTimeZoneDST = getTimeZoneDSTHelper();
+
+						FILE *f = fopen(TZ_FILE, "w");
+						if (f) {
+							if (timeZone.size() != fwrite(timeZone.c_str(), 1, timeZone.size(), f))
+								LOGERR("Failed to write %s", TZ_FILE);
+
+							fflush(f);
+							fsync(fileno(f));
+							fclose(f);
+							if (SystemServices::_instance)
+								SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone);
+							resp = true;
+						} else {
+							LOGERR("Unable to open %s file.\n", TZ_FILE);
+							populateResponseWithError(SysSrv_FileAccessFailed, response);
+							resp = false;
+						}
 					}
-					std::string oldTimeZoneDST = getTimeZoneDSTHelper();
-
-					FILE *f = fopen(TZ_FILE, "w");
-					if (f) {
-						if (timeZone.size() != fwrite(timeZone.c_str(), 1, timeZone.size(), f))
-							LOGERR("Failed to write %s", TZ_FILE);
-
-						fflush(f);
-						fsync(fileno(f));
-						fclose(f);
-						if (SystemServices::_instance)
-							SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone);
-						resp = true;
-					} else {
-						LOGERR("Unable to open %s file.\n", TZ_FILE);
-						populateResponseWithError(SysSrv_FileAccessFailed, response);
+					else{
+						LOGERR("Invalid timeZone  %s received. Timezone not supported in TZ Database. \n", timeZone.c_str());
+						populateResponseWithError(SysSrv_FileNotPresent, response);
 						resp = false;
 					}
 				}
