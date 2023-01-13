@@ -227,8 +227,10 @@ jobs:
           -DENABLE_DEEP_SLEEP
           -DENABLE_SET_WAKEUP_SRC_CONFIG
           -DENABLE_THERMAL_PROTECTION
+          -DUSE_FRAMEBUFFER_SCREENCAPTURE
           -DHAS_API_SYSTEM
           -DHAS_API_POWERSTATE
+          -DHAS_RBUS
           -DENABLE_DEVICE_MANUFACTURER_INFO"
           -DCOMCAST_CONFIG=OFF
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
@@ -246,6 +248,7 @@ jobs:
           -DPLUGIN_FRAMERATE=ON
           -DPLUGIN_AVINPUT=ON
           -DPLUGIN_TELEMETRY=ON
+          -DPLUGIN_SCREENCAPTURE=ON
           -DPLUGIN_USBACCESS=ON
           -DPLUGIN_LOGGINGPREFERENCES=ON
           -DPLUGIN_USERPREFERENCES=ON
@@ -257,6 +260,10 @@ jobs:
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_NETWORK=ON
           -DPLUGIN_WIFIMANAGER=ON
+          -DPLUGIN_TRACECONTROL=ON
+          -DPLUGIN_WAREHOUSE=ON
+          -DPLUGIN_ACTIVITYMONITOR=ON
+          -DDS_FOUND=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
@@ -272,6 +279,7 @@ jobs:
           /opt/secure/persistent
           /opt/secure/persistent/System
           /opt/logs
+          /lib/rdk
           &&
           sudo touch
           /opt/standbyReason.txt

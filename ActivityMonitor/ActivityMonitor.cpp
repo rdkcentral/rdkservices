@@ -305,7 +305,7 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
 
-            if (threadStop() == -1);
+            if (threadStop() == -1)
                 LOGWARN("Monitoring is already disabled");
 
             delete m_monitorParams;
@@ -398,7 +398,7 @@ namespace WPEFramework
                         LOGWARN("Unexpected variant type");
                 }
 
-                LOGINFO("Loaded registry, %d entries", registry.size());
+                LOGINFO("Loaded registry, %zu entries", registry.size());
             }
             else
                 LOGERR("Didn't find registry data");
@@ -420,6 +420,7 @@ namespace WPEFramework
             if (NULL == fgets(buf.data(), buf.size(), f))
             {
                 LOGERR("Failed to read stat, buffer is too small");
+                fclose(f);
                 return 0;
             }
 
@@ -692,6 +693,7 @@ namespace WPEFramework
                 ppids.push_back(ppid);
                 cpuUsage.push_back(cpuTicks);
             }
+            closedir(d);
 
             std::map <unsigned int, unsigned int> pidMap;
             for (unsigned int n = 0; n < pids.size(); n++)
