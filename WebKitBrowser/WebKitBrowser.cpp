@@ -290,7 +290,7 @@ namespace Plugin {
 
     void WebKitBrowser::LoadFinished(const string& URL, int32_t code)
     {
-        string message(string("{ \"url\": \"") + URL + string("\", \"loaded\":true, \"httpstatus\":") + Core::NumberType<int32_t>(code).Text() + string(" }"));
+        string message(string("{ \"url\": \"") + URL + string("\", \"loaded\":true") + string(" }"));
         TRACE(Trace::Information, (_T("LoadFinished: %s"), message.c_str()));
         _service->Notify(message);
         Exchange::JWebBrowser::Event::LoadFinished(*this, URL, code);

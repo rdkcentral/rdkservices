@@ -1962,8 +1962,6 @@ static GSourceFuncs _handlerIntervention =
         {
             _adminLock.Lock();
 
-            _URL = URL;
-
             std::list<Exchange::IWebBrowser::INotification*>::iterator index(_notificationClients.begin());
             {
                 while (index != _notificationClients.end()) {
