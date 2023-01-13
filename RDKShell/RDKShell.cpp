@@ -1078,7 +1078,7 @@ namespace WPEFramework {
         {
             bool isCheckpointAllowed = false;
 
-            mProcessedAppsLock.lock();
+            MemCheckpointRestoreClient::Lock lock(mProcessedAppsLock);
             if(mProcessedApps.find(callSign) == mProcessedApps.end())
             {
                 //App not processed
@@ -1093,9 +1093,10 @@ namespace WPEFramework {
             if(isCheckpointAllowed)
             {
                 mProcessedApps[callSign] = MemCheckpointRestoreClient::CHECKPOINTING;
+                mProcessedAppsChanged.notify_one();
             }
 
-            mProcessedAppsLock.unlock();
+            lock.unlock();
 
             if(isCheckpointAllowed)
             {
@@ -1112,7 +1113,7 @@ namespace WPEFramework {
         {
             bool isRestoreAllowed = false;
 
-            mProcessedAppsLock.lock();
+            MemCheckpointRestoreClient::Lock lock(mProcessedAppsLock);
             if(mProcessedApps.find(callSign) != mProcessedApps.end()
                 && (mProcessedApps[callSign] == MemCheckpointRestoreClient::CHECKPOINTING
                         || mProcessedApps[callSign] == MemCheckpointRestoreClient::CHECKPOINTED))
@@ -1120,9 +1121,10 @@ namespace WPEFramework {
                 //Apps checkpoint ongoing or already checkpointed
                 isRestoreAllowed = true;
                 mProcessedApps[callSign] = MemCheckpointRestoreClient::RESTORING;
+                mProcessedAppsChanged.notify_one();
             }
 
-            mProcessedAppsLock.unlock();
+            lock.unlock();
 
             if(isRestoreAllowed)
             {
@@ -1138,36 +1140,49 @@ namespace WPEFramework {
         bool MemCheckpointRestoreClient::getState(const std::string &callSign, ProcessedAppState &state)
         {
             bool status = false;
-            mProcessedAppsLock.lock();
+            MemCheckpointRestoreClient::Lock lock(mProcessedAppsLock);
             if(mProcessedApps.find(callSign) != mProcessedApps.end())
             {
                 state = mProcessedApps[callSign];
                 status = true;
             }
-            mProcessedAppsLock.unlock();
             return status;
         }
 
         bool MemCheckpointRestoreClient::isProcessed(const std::string &callSign)
         {
             bool isProcessed = false;
-            mProcessedAppsLock.lock();
+            MemCheckpointRestoreClient::Lock lock(mProcessedAppsLock);
             isProcessed = (mProcessedApps.find(callSign) != mProcessedApps.end());
-            mProcessedAppsLock.unlock();
 
             return isProcessed;
         }
 
         void MemCheckpointRestoreClient::removeFromProcessed(const std::string &callSign)
         {
-            mProcessedAppsLock.lock();
+            MemCheckpointRestoreClient::Lock lock(mProcessedAppsLock);
             if(mProcessedApps.find(callSign) != mProcessedApps.end())
             {
                 mProcessedApps.erase(callSign);
+                mProcessedAppsChanged.notify_one();
             }
-            mProcessedAppsLock.unlock();
         }
 
+        bool MemCheckpointRestoreClient::isRemovedFromProcessed(const std::string &callSign, uint32_t waitTimeMs)
+        {
+            bool isRemoved = false;
+            MemCheckpointRestoreClient::Lock lock(mProcessedAppsLock);
+            while ( (isRemoved = (mProcessedApps.find(callSign) == mProcessedApps.end())) == false)
+            {
+                if(mProcessedAppsChanged.wait_for(lock, std::chrono::milliseconds(waitTimeMs))
+                     == std::cv_status::timeout)
+                {
+                    break;
+                }
+            }
+
+            return isRemoved;
+        }
 
         void MemCheckpointRestoreClient::launchRequestThread(
             MemCheckpointRestoreClient::ServerRequestCode cmd,
@@ -1218,26 +1233,28 @@ namespace WPEFramework {
 
                     if (cmd == MemCheckpointRestoreClient::MEMCR_CHECKPOINT)
                     {
-                        mProcessedAppsLock.lock();
+                        MemCheckpointRestoreClient::Lock lock(mProcessedAppsLock);
                         if(success && mProcessedApps.find(callSign) != mProcessedApps.end()
                             && mProcessedApps[callSign] == MemCheckpointRestoreClient::CHECKPOINTING)
                         {
                             mProcessedApps[callSign] = MemCheckpointRestoreClient::CHECKPOINTED;
+                            mProcessedAppsChanged.notify_one();
                         }
-                        mProcessedAppsLock.unlock();
+                        lock.unlock();
 
                         RDKShell* rdkshellPlugin = RDKShell::_instance;
                         rdkshellPlugin->notify(RDKShell::RDKSHELL_EVENT_ON_CHECKPOINTED, params);
                     }
                     else if (cmd == MemCheckpointRestoreClient::MEMCR_RESTORE)
                     {
-                        mProcessedAppsLock.lock();
+                        MemCheckpointRestoreClient::Lock lock(mProcessedAppsLock);
                         if(success && mProcessedApps.find(callSign) != mProcessedApps.end()
                             && mProcessedApps[callSign] == MemCheckpointRestoreClient::RESTORING)
                         {
                             mProcessedApps.erase(callSign);
+                            mProcessedAppsChanged.notify_one();
                         }
-                        mProcessedAppsLock.unlock();
+                        lock.unlock();
                         
                         RDKShell* rdkshellPlugin = RDKShell::_instance;
                         rdkshellPlugin->notify(RDKShell::RDKSHELL_EVENT_ON_RESTORED, params);
@@ -4477,7 +4494,7 @@ namespace WPEFramework {
                 }
                 std::cout << "destroying " << callsign << std::endl;
                 gDestroyMutex.lock();
-                uint32_t status;
+                uint32_t status = 1;
                 #ifdef RDKSHELL_MEM_CHECKPOINT_RESTORE
                 if(gMemCheckpointRestoreClient.isProcessed(callsign))
                 {
@@ -4486,12 +4503,11 @@ namespace WPEFramework {
                     if(procPid > 0)
                     {
                         ::kill(procPid, SIGKILL);
-                        status = 0;
-                        std::cout << callsign << " process killed" << std::endl;
-                    }
-                    else
-                    {
-                        status = 1;
+                        if(gMemCheckpointRestoreClient.isRemovedFromProcessed(callsign, RDKSHELL_THUNDER_TIMEOUT))
+                        {
+                            status = 0;
+                            std::cout << callsign << " process destroyed" << std::endl;
+                        }
                     }
                 }
                 else

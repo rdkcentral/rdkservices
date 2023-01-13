@@ -26,6 +26,7 @@
 #include <rdkshell/linuxkeys.h>
 #include <interfaces/ICapture.h>
 #include "tptimer.h"
+#include <condition_variable>
 
 namespace WPEFramework {
 
@@ -488,6 +489,7 @@ namespace WPEFramework {
             bool getState(const std::string &callSign, ProcessedAppState &state);
             bool isProcessed(const std::string &callSign);
             void removeFromProcessed(const std::string &callSign);
+            bool isRemovedFromProcessed(const std::string &callSign, uint32_t waitTimeMs);
 
         private /*types and const*/:
             enum ServerRequestCode
@@ -517,6 +519,8 @@ namespace WPEFramework {
             const string MEMCR_SERVER_SOCKET = "/tmp/memcrservice";
             const int WATCHDOG_TIMEOUT_SEC = 10;
 
+            typedef std::unique_lock<std::mutex> Lock;
+
         private /*methods*/:
             void launchRequestThread(ServerRequestCode request, const std::string &callSign, uint32_t timeouteMs);
             bool sendRcvCmd(ServerRequest &cmd, ServerResponse &resp, uint32_t timeouteMs);
@@ -524,6 +528,7 @@ namespace WPEFramework {
         private /*members*/:
             std::mutex mProcessedAppsLock;
             std::map<std::string, ProcessedAppState> mProcessedApps;
+            std::condition_variable mProcessedAppsChanged;
         };
         #endif
 
