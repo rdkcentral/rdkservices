@@ -8,6 +8,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class WifiManagerTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::WifiManager> plugin;
@@ -16,7 +18,7 @@ protected:
     string response;
     Core::JSONRPC::Message message;
     WrapsImplMock wrapsImplMock;
-    IarmBusImplMock iarmBusImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
 
     WifiManagerTest()
         : plugin(Core::ProxyType<Plugin::WifiManager>::Create())
