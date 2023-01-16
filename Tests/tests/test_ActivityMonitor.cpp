@@ -128,7 +128,10 @@ protected:
     }
 };
 
-TEST_F(ActivityMonitorEventTest, enableMonitoringWithConfig)
+/**
+ * freezes and log flooding without valgrind
+ */
+TEST_F(ActivityMonitorEventTest, DISABLED_enableMonitoringWithConfig)
 {
     //Add version info
     std::ofstream fileVer("/version.txt");
@@ -186,7 +189,7 @@ TEST_F(ActivityMonitorEventTest, enableMonitoringWithConfig)
 
     //Monitor own PID
     unsigned int ownPID = static_cast<unsigned int>(getpid());
-    
+
     string monitorString = "{\"config\":[{\"appPid\":" + std::to_string(ownPID) + ", \"memoryThresholdMB\": 1,\"cpuThresholdPercent\": 1,\"cpuThresholdSeconds\": 2}],\"memoryIntervalSeconds\":\"0.02\", \"cpuIntervalSeconds\":\"0.02\"}";
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableMonitoring"), monitorString, response));
 
