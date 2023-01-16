@@ -36,6 +36,8 @@ public:
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class PersistentStoreTest : public ::testing::Test {
 protected:
     Core::ProxyType<PersistentStoreMock> plugin;
@@ -54,7 +56,7 @@ protected:
 
 class PersistentStoreInitializedTest : public PersistentStoreTest {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
 
     PersistentStoreInitializedTest()
         : PersistentStoreTest()
@@ -81,7 +83,7 @@ protected:
 class PersistentStoreInitializedEventTest : public PersistentStoreInitializedTest {
 protected:
     Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
     PersistentStoreInitializedEventTest()
