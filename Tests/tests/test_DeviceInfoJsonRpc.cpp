@@ -18,6 +18,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 namespace {
 const string webPrefix = _T("/Service/DeviceInfo");
 }
@@ -40,10 +42,10 @@ protected:
 
 class DeviceInfoJsonRpcInitializedTest : public DeviceInfoJsonRpcTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
-    ManagerImplMock managerImplMock;
-    ServiceMock service;
-    Core::Sink<SystemInfo> subSystem;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
+    NiceMock<ManagerImplMock> managerImplMock;
+    NiceMock<ServiceMock> service;
+    Core::Sink<NiceMock<SystemInfo>> subSystem;
 
     DeviceInfoJsonRpcInitializedTest()
         : DeviceInfoJsonRpcTest()
@@ -76,7 +78,7 @@ protected:
 
 class DeviceInfoJsonRpcInitializedDsTest : public DeviceInfoJsonRpcInitializedTest {
 protected:
-    HostImplMock hostImplMock;
+    NiceMock<HostImplMock> hostImplMock;
 
     DeviceInfoJsonRpcInitializedDsTest()
         : DeviceInfoJsonRpcInitializedTest()
@@ -91,7 +93,7 @@ protected:
 
 class DeviceInfoJsonRpcInitializedDsVideoOutputTest : public DeviceInfoJsonRpcInitializedDsTest {
 protected:
-    VideoOutputPortConfigImplMock videoOutputPortConfigImplMock;
+    NiceMock<VideoOutputPortConfigImplMock> videoOutputPortConfigImplMock;
 
     DeviceInfoJsonRpcInitializedDsVideoOutputTest()
         : DeviceInfoJsonRpcInitializedDsTest()
@@ -210,7 +212,7 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, devicetype)
 
 TEST_F(DeviceInfoJsonRpcInitializedDsTest, supportedaudioports)
 {
-    AudioOutputPortMock audioOutputPortMock;
+    NiceMock<AudioOutputPortMock> audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
     audioOutputPort.impl = &audioOutputPortMock;
     string audioPort(_T("HDMI0"));
@@ -226,7 +228,7 @@ TEST_F(DeviceInfoJsonRpcInitializedDsTest, supportedaudioports)
 
 TEST_F(DeviceInfoJsonRpcInitializedDsTest, supportedvideodisplays)
 {
-    VideoOutputPortMock videoOutputPortMock;
+    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
     videoOutputPort.impl = &videoOutputPortMock;
     string videoPort(_T("HDMI0"));
@@ -254,10 +256,10 @@ TEST_F(DeviceInfoJsonRpcInitializedDsTest, hostedid)
 
 TEST_F(DeviceInfoJsonRpcInitializedDsTest, defaultresolution)
 {
-    VideoOutputPortMock videoOutputPortMock;
+    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
     videoOutputPort.impl = &videoOutputPortMock;
-    VideoResolutionMock videoResolutionMock;
+    NiceMock<VideoResolutionMock> videoResolutionMock;
     device::VideoResolution videoResolution;
     videoResolution.impl = &videoResolutionMock;
     string videoPort(_T("HDMI0"));
@@ -278,13 +280,13 @@ TEST_F(DeviceInfoJsonRpcInitializedDsTest, defaultresolution)
 
 TEST_F(DeviceInfoJsonRpcInitializedDsVideoOutputTest, supportedresolutions)
 {
-    VideoOutputPortMock videoOutputPortMock;
+    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
     videoOutputPort.impl = &videoOutputPortMock;
-    VideoOutputPortTypeMock videoOutputPortTypeMock;
+    NiceMock<VideoOutputPortTypeMock> videoOutputPortTypeMock;
     device::VideoOutputPortType videoOutputPortType;
     videoOutputPortType.impl = &videoOutputPortTypeMock;
-    VideoResolutionMock videoResolutionMock;
+    NiceMock<VideoResolutionMock> videoResolutionMock;
     device::VideoResolution videoResolution;
     videoResolution.impl = &videoResolutionMock;
     string videoPort(_T("HDMI0"));
@@ -311,7 +313,7 @@ TEST_F(DeviceInfoJsonRpcInitializedDsVideoOutputTest, supportedresolutions)
 
 TEST_F(DeviceInfoJsonRpcInitializedDsVideoOutputTest, supportedhdcp)
 {
-    VideoOutputPortMock videoOutputPortMock;
+    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
     videoOutputPort.impl = &videoOutputPortMock;
     string videoPort(_T("HDMI0"));
@@ -329,7 +331,7 @@ TEST_F(DeviceInfoJsonRpcInitializedDsVideoOutputTest, supportedhdcp)
 
 TEST_F(DeviceInfoJsonRpcInitializedDsTest, audiocapabilities)
 {
-    AudioOutputPortMock audioOutputPortMock;
+    NiceMock<AudioOutputPortMock> audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
     audioOutputPort.impl = &audioOutputPortMock;
     string audioPort(_T("HDMI0"));
@@ -352,7 +354,7 @@ TEST_F(DeviceInfoJsonRpcInitializedDsTest, audiocapabilities)
 
 TEST_F(DeviceInfoJsonRpcInitializedDsTest, ms12capabilities)
 {
-    AudioOutputPortMock audioOutputPortMock;
+    NiceMock<AudioOutputPortMock> audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
     audioOutputPort.impl = &audioOutputPortMock;
     string audioPort(_T("HDMI0"));
@@ -375,7 +377,7 @@ TEST_F(DeviceInfoJsonRpcInitializedDsTest, ms12capabilities)
 
 TEST_F(DeviceInfoJsonRpcInitializedDsTest, supportedms12audioprofiles)
 {
-    AudioOutputPortMock audioOutputPortMock;
+    NiceMock<AudioOutputPortMock> audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
     audioOutputPort.impl = &audioOutputPortMock;
     string audioPort(_T("HDMI0"));

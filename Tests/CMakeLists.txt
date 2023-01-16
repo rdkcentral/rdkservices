@@ -51,6 +51,7 @@ include_directories(../LocationSync
         ../FrameRate
         ../AVInput
         ../Telemetry
+        ../ScreenCapture
         ../DataCapture
         ../UsbAccess
         ../Timer
@@ -67,6 +68,8 @@ include_directories(../LocationSync
         ../TraceControl
         ../Warehouse
         ../ActivityMonitor
+        ../MotionDetection
+        ../CompositeInput
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -76,6 +79,7 @@ link_directories(../LocationSync
         ../FrameRate
         ../AVInput
         ../Telemetry
+        ../ScreenCapture
         ../DataCapture
         ../UsbAccess
         ../Timer
@@ -91,6 +95,8 @@ link_directories(../LocationSync
         ../TraceControl
         ../Warehouse
         ../ActivityMonitor
+        ../MotionDetection
+        ../CompositeInput
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -104,6 +110,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}DeviceIdentification
         ${NAMESPACE}FrameRate
         ${NAMESPACE}AVInput
+        ${NAMESPACE}ScreenCapture
         ${NAMESPACE}Telemetry
         ${NAMESPACE}UsbAccess
         ${NAMESPACE}Timer
@@ -119,6 +126,8 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}TraceControl
         ${NAMESPACE}Warehouse
         ${NAMESPACE}ActivityMonitor
+        ${NAMESPACE}MotionDetection
+        ${NAMESPACE}CompositeInput
         )
 
 target_include_directories(${PROJECT_NAME}

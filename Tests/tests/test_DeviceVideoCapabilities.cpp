@@ -14,9 +14,11 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class DeviceVideoCapabilitiesTest : public ::testing::Test {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
     ManagerImplMock managerImplMock;
     Core::ProxyType<Plugin::DeviceVideoCapabilities> deviceVideoCapabilities;
     Exchange::IDeviceVideoCapabilities* interface;
@@ -56,8 +58,8 @@ protected:
 
 class DeviceVideoCapabilitiesDsTest : public DeviceVideoCapabilitiesTest {
 protected:
-    HostImplMock hostImplMock;
-    VideoOutputPortConfigImplMock videoOutputPortConfigImplMock;
+    NiceMock<HostImplMock> hostImplMock;
+    NiceMock<VideoOutputPortConfigImplMock> videoOutputPortConfigImplMock;
 
     DeviceVideoCapabilitiesDsTest()
         : DeviceVideoCapabilitiesTest()
@@ -74,7 +76,7 @@ protected:
 
 TEST_F(DeviceVideoCapabilitiesDsTest, SupportedVideoDisplays)
 {
-    VideoOutputPortMock videoOutputPortMock;
+    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
     videoOutputPort.impl = &videoOutputPortMock;
     RPC::IStringIterator* supportedVideoDisplays = nullptr;
@@ -110,10 +112,10 @@ TEST_F(DeviceVideoCapabilitiesDsTest, HostEDID)
 
 TEST_F(DeviceVideoCapabilitiesDsTest, DefaultResolution_noParam)
 {
-    VideoOutputPortMock videoOutputPortMock;
+    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
     videoOutputPort.impl = &videoOutputPortMock;
-    VideoResolutionMock videoResolutionMock;
+    NiceMock<VideoResolutionMock> videoResolutionMock;
     device::VideoResolution videoResolution;
     videoResolution.impl = &videoResolutionMock;
     string videoPort(_T("HDMI0"));
@@ -135,13 +137,13 @@ TEST_F(DeviceVideoCapabilitiesDsTest, DefaultResolution_noParam)
 
 TEST_F(DeviceVideoCapabilitiesDsTest, SupportedResolutions_noParam)
 {
-    VideoOutputPortMock videoOutputPortMock;
+    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
     videoOutputPort.impl = &videoOutputPortMock;
-    VideoOutputPortTypeMock videoOutputPortTypeMock;
+    NiceMock<VideoOutputPortTypeMock> videoOutputPortTypeMock;
     device::VideoOutputPortType videoOutputPortType;
     videoOutputPortType.impl = &videoOutputPortTypeMock;
-    VideoResolutionMock videoResolutionMock;
+    NiceMock<VideoResolutionMock> videoResolutionMock;
     device::VideoResolution videoResolution;
     videoResolution.impl = &videoResolutionMock;
     RPC::IStringIterator* supportedResolutions = nullptr;
@@ -174,7 +176,7 @@ TEST_F(DeviceVideoCapabilitiesDsTest, SupportedResolutions_noParam)
 
 TEST_F(DeviceVideoCapabilitiesDsTest, SupportedHdcp_noParam)
 {
-    VideoOutputPortMock videoOutputPortMock;
+    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
     videoOutputPort.impl = &videoOutputPortMock;
     string videoPort(_T("HDMI0"));
