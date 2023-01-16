@@ -57,6 +57,7 @@ docker exec -it <container name> /bin/bash
    - Having more constraints than necessary is bad.
      If a test over-specifies, it doesn’t leave enough freedom to the implementation.
      Use `ON_CALL` by default, and only use `EXPECT_CALL` when intend to verify that the call is made.
+     Suppress GMOCK WARNING-s with NiceMock.
 
 4. Before review:
    - Enable [ClangFormat](./.clang-format) and make sure the tests code is formatted.
