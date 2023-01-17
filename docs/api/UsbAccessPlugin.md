@@ -70,7 +70,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.baseURL | string | baseURL refers to the web server URL returned by createLink API that points to the symbolic link. If no parameter is given, then http://localhost:50050/usbdrive will be cleared |
+| params?.baseURL | string | <sup>*(optional)*</sup> baseURL refers to the web server URL returned by createLink API that points to the symbolic link. If no parameter is given, then http://localhost:50050/usbdrive will be cleared |
 
 ### Result
 
@@ -122,7 +122,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.path | string | Path refers to the root folder of the mounted USB Drive as returned by getMounted API. If no parameter is given, then the first USB drive returned by getMounted API will be used |
+| params?.path | string | <sup>*(optional)*</sup> path refers to the root folder of the mounted USB Drive as returned by getMounted API. If no parameter is given, then the first USB drive returned by getMounted API will be used |
 
 ### Result
 
@@ -390,7 +390,7 @@ Compresses and uploads device logs into attached USB drive from /opt/logs with a
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.path | string | Path refers to the root folder of the mounted USB Drive as returned by getMounted API. If no parameter is given, then the first USB drive returned by getMounted API will be used |
+| params?.path | string | <sup>*(optional)*</sup> path refers to the root folder of the mounted USB Drive as returned by getMounted API. If no parameter is given, then the first USB drive returned by getMounted API will be used |
 
 ### Result
 

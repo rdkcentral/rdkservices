@@ -22,9 +22,9 @@
                         "summary": "baseURL refers to the web server URL returned by createLink API that points to the symbolic link. If no parameter is given, then http://localhost:50050/usbdrive will be cleared",
                         "type":"string",
                         "example": "http:\/\/localhost:50050\/usbdrive"
-                    },
-                    "required": []
-                }
+                    }
+                },
+                "required": []
             },
             "result": {
                 "type": "object",
