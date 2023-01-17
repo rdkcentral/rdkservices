@@ -69,7 +69,8 @@ No Events
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | string |  |
+| params | object |  |
+| params.baseURL | string | baseURL refers to the web server URL returned by createLink API that points to the symbolic link. If no parameter is given, then http://localhost:50050/usbdrive will be cleared |
 
 ### Result
 
@@ -88,7 +89,9 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.UsbAccess.clearLink",
-    "params": "..."
+    "params": {
+        "baseURL": "http://localhost:50050/usbdrive"
+    }
 }
 ```
 
@@ -118,7 +121,8 @@ No Events
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | string |  |
+| params | object |  |
+| params.path | string | Path refers to the root folder of the mounted USB Drive as returned by getMounted API. If no parameter is given, then the first USB drive returned by getMounted API will be used |
 
 ### Result
 
@@ -138,7 +142,9 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.UsbAccess.createLink",
-    "params": "..."
+    "params": {
+        "path": "/run/media/sda1"
+    }
 }
 ```
 
@@ -383,7 +389,8 @@ Compresses and uploads device logs into attached USB drive from /opt/logs with a
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | string |  |
+| params | object |  |
+| params.path | string | Path refers to the root folder of the mounted USB Drive as returned by getMounted API. If no parameter is given, then the first USB drive returned by getMounted API will be used |
 
 ### Result
 
@@ -401,7 +408,9 @@ Compresses and uploads device logs into attached USB drive from /opt/logs with a
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.UsbAccess.ArchiveLogs",
-    "params": "..."
+    "params": {
+        "path": "/run/media/sda1"
+    }
 }
 ```
 

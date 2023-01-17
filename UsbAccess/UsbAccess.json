@@ -16,7 +16,7 @@
         "clearLink": {
             "summary": "Clears or removes the symbolic link created by the `createLink` method.",
             "params": {
-                "type":"string",
+                "type":"object",
                 "properties": {
                     "baseURL": {
                         "summary": "baseURL refers to the web server URL returned by createLink API that points to the symbolic link. If no parameter is given, then http://localhost:50050/usbdrive will be cleared",
@@ -45,7 +45,7 @@
         "createLink": {
             "summary": "Creates a symbolic link to the root folder of the USB drive. If called, and a link already exists, then it errors out. Symbolic link has read-only access. Use the name `usbdrive`.",
             "params": {
-                "type":"string",
+                "type":"object",
                 "properties": {
                     "path": {
                         "summary": "Path refers to the root folder of the mounted USB Drive as returned by getMounted API. If no parameter is given, then the first USB drive returned by getMounted API will be used",
@@ -216,7 +216,7 @@
                 "onArchiveLogs" : "Triggered to archive the device logs and returns the status of the archive"
             },
             "params": {
-                "type":"string",
+                "type":"object",
                 "properties": {
                     "path": {
                         "summary": "Path refers to the root folder of the mounted USB Drive as returned by getMounted API. If no parameter is given, then the first USB drive returned by getMounted API will be used",
