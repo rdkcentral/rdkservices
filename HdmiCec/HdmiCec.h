@@ -218,7 +218,16 @@ namespace WPEFramework {
             void onMessage(const char *message);
             static void threadRun();
             static void threadUpdateCheck();
-
+#ifdef HDMICEC_SEND_ACTIVE_SOURCE_COMMAND
+            static void cbCecDeviceReady(const char * owner, IARM_EventId_t eventId, void * data, size_t len);
+            static void dsRxSenseEventHandler(const char * owner, IARM_EventId_t eventId, void * data, size_t len);
+            void sendActiveSourceCommand();
+            void onDeviceReady();
+            void onRxSenseOn();
+            void setupActiveSource();
+            bool isPowerStateOn();
+            bool isDisplayConnected();
+#endif
         };
 	} // namespace Plugin
 } // namespace WPEFramework

@@ -22,6 +22,12 @@
 
 #include "ccec/Connection.hpp"
 #include "ccec/CECFrame.hpp"
+#ifdef HDMICEC_SEND_ACTIVE_SOURCE_COMMAND
+#include "ccec/MessageEncoder.hpp"
+#include "rdk/iarmmgrs-hal/pwrMgr.h"
+#include "manager.hpp"
+#include "exception.hpp"
+#endif
 #include "host.hpp"
 #include "ccec/host/RDK.hpp"
 
@@ -176,7 +182,9 @@ namespace WPEFramework
         {
             HdmiCec::_instance = this;
             InitializeIARM();
-
+#ifdef HDMICEC_SEND_ACTIVE_SOURCE_COMMAND
+            device::Manager::Initialize();
+#endif
             Register(HDMICEC_METHOD_SET_ENABLED, &HdmiCec::setEnabledWrapper, this);
             Register(HDMICEC_METHOD_GET_ENABLED, &HdmiCec::getEnabledWrapper, this);
             Register(HDMICEC_METHOD_GET_CEC_ADDRESSES, &HdmiCec::getCECAddressesWrapper, this);
@@ -203,6 +211,9 @@ namespace WPEFramework
 
         HdmiCec::~HdmiCec()
         {
+#ifdef HDMICEC_SEND_ACTIVE_SOURCE_COMMAND
+            device::Manager::DeInitialize();
+#endif
         }
 
         void HdmiCec::Deinitialize(PluginHost::IShell* /* service */)
@@ -233,6 +244,10 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
+#ifdef HDMICEC_SEND_ACTIVE_SOURCE_COMMAND
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DEVICEREADY, cbCecDeviceReady) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_RX_SENSE, dsRxSenseEventHandler) );
+#endif
             }
         }
 
@@ -245,6 +260,10 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
+#ifdef HDMICEC_SEND_ACTIVE_SOURCE_COMMAND
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DEVICEREADY, cbCecDeviceReady) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_RX_SENSE, dsRxSenseEventHandler) );
+#endif
             }
         }
 
@@ -345,6 +364,16 @@ namespace WPEFramework
                 getPhysicalAddress();
                 getLogicalAddress();
             }
+#ifdef HDMICEC_SEND_ACTIVE_SOURCE_COMMAND
+            else
+            {
+                if (isDeviceActiveSource)
+                {
+                    isDeviceActiveSource = false;
+                    sendActiveSourceEvent();
+                }
+            }
+#endif
             return;
         }
 
@@ -509,6 +538,13 @@ namespace WPEFramework
 
             }
             cecEnableStatus = true;
+#ifdef HDMICEC_SEND_ACTIVE_SOURCE_COMMAND
+            if (isPowerStateOn() && isDisplayConnected())
+            {
+                LOGINFO("Power state is On, Display connected send Active Source");
+                sendActiveSourceCommand();
+            }
+#endif
             return;
         }
 
@@ -780,21 +816,33 @@ namespace WPEFramework
         //  Frame.hexDump();
             Frame.getBuffer(&input_frameBuf,&length);
 
-            if(length >=2)
+            if (length >= 2)
             {
-                 if(input_frameBuf[1] == ROUTING_CHANGE || input_frameBuf[1] == ROUTING_INFORMATION || input_frameBuf[1] == ACTIVE_SOURCE || input_frameBuf[1] == SET_STREAM_PATH)
-                 {
-		     int paIndex = (input_frameBuf[1]==ROUTING_CHANGE) ? 4: 2;
-                     unsigned int tempPhyAddres = ( ((input_frameBuf[paIndex] >> 4 & 0x0f) <<24) |((input_frameBuf[paIndex]  & 0x0f) <<16) |
-                                                    ((input_frameBuf[paIndex+1] >> 4 & 0x0f) <<8) | (input_frameBuf[paIndex+1]  & 0x0f));
+                if (input_frameBuf[1] == ROUTING_CHANGE || input_frameBuf[1] == ROUTING_INFORMATION || input_frameBuf[1] == ACTIVE_SOURCE || input_frameBuf[1] == SET_STREAM_PATH)
+                {
+                    int paIndex = (input_frameBuf[1] == ROUTING_CHANGE) ? 4 : 2;
+                    unsigned int tempPhyAddres = (((input_frameBuf[paIndex] >> 4 & 0x0f) << 24) | ((input_frameBuf[paIndex] & 0x0f) << 16) |
+                                                  ((input_frameBuf[paIndex + 1] >> 4 & 0x0f) << 8) | (input_frameBuf[paIndex + 1] & 0x0f));
 
-		     if(physicalAddress != tempPhyAddres)
-                         isDeviceActiveSource = false;
-		     else
-                         isDeviceActiveSource = true;
-                     HdmiCec::_instance->sendActiveSourceEvent();
-                     LOGINFO("Active Source Event : Device Physical Address :%x Physical Address from message :%x isDeviceActiveSource status :%d   ",physicalAddress,tempPhyAddres,isDeviceActiveSource);
-                 }
+                    if (physicalAddress != tempPhyAddres)
+                    {
+                        if (isDeviceActiveSource)
+                        {
+                            isDeviceActiveSource = false;
+                            LOGINFO("Active Source Event : Device Physical Address :%x Physical Address from message :%x isDeviceActiveSource status :%d   ", physicalAddress, tempPhyAddres, isDeviceActiveSource);
+                            HdmiCec::_instance->sendActiveSourceEvent();
+                        }
+                     }
+                     else
+                     {
+                        if (!isDeviceActiveSource)
+                        {
+                            isDeviceActiveSource = true;
+                            LOGINFO("Active Source Event : Device Physical Address :%x Physical Address from message :%x isDeviceActiveSource status :%d   ", physicalAddress, tempPhyAddres, isDeviceActiveSource);
+                            HdmiCec::_instance->sendActiveSourceEvent();
+                        }
+                     }
+                }
             }
 
             std::vector <char> buf;
@@ -1109,6 +1157,162 @@ namespace WPEFramework
 		pthread_mutex_unlock(&(_instance->m_lockUpdate));
                 LOGINFO("%s: Thread exited", __FUNCTION__);
 	}
+
+#ifdef HDMICEC_SEND_ACTIVE_SOURCE_COMMAND
+        void HdmiCec::dsRxSenseEventHandler(const char * owner, IARM_EventId_t eventId, void * data, size_t len)
+        {
+            if(!HdmiCec::_instance) {
+                return;
+            }
+            if (IARM_BUS_DSMGR_EVENT_RX_SENSE == eventId) {
+                IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                if(eventData->data.hdmi_rxsense.status == dsDISPLAY_RXSENSE_ON) {
+                    LOGINFO("dsDISPLAY_RXSENSE_ON");
+                    HdmiCec::_instance->onRxSenseOn();
+                } else if(eventData->data.hdmi_rxsense.status == dsDISPLAY_RXSENSE_OFF) {
+                    LOGINFO("dsDISPLAY_RXSENSE_OFF");
+                }
+            }
+        }
+
+        void HdmiCec::cbCecDeviceReady(const char * owner, IARM_EventId_t eventId, void * data, size_t len)
+        {
+            if(!HdmiCec::_instance) {
+                return;
+            }
+
+            if (IARM_BUS_CECMGR_EVENT_DEVICEREADY == eventId)
+            {
+                IARM_Bus_CECMgr_DeviceReady_Param_t * eventData = (IARM_Bus_CECMgr_DeviceReady_Param_t *)data;
+                LOGINFO("Device ready callback ready: %d, logAddr: %d", eventData->isReady, eventData->logicalAddress);
+                if (eventData->isReady) {
+                    HdmiCec::_instance->onDeviceReady();
+                }
+            }
+        }
+
+        void HdmiCec::onRxSenseOn()
+        {
+            setupActiveSource();
+        }
+
+        void HdmiCec::onDeviceReady()
+        {
+            setupActiveSource();
+        }
+
+        void HdmiCec::setupActiveSource()
+        {
+            if (isDeviceActiveSource)
+            {
+                LOGINFO("Device is already active source");
+                return;
+            }
+            if (isPowerStateOn() && isDisplayConnected())
+            {
+                LOGINFO("Power state is On, Display connected, send Active Source");
+                sendActiveSourceCommand();
+            }
+        }
+
+        bool HdmiCec::isDisplayConnected()
+        {
+            bool connected = false;
+            try
+            {
+                std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+                device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
+                connected = vPort.isDisplayConnected();
+            }
+            catch (const device::Exception& err)
+            {
+                TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+                LOGINFO("return false");
+                return false;
+            }
+            LOGINFO("return connected: %d", connected);
+            return connected;
+        }
+
+        bool HdmiCec::isPowerStateOn()
+        {
+            bool result = false;
+            IARM_Bus_PWRMgr_PowerState_t ps;
+            IARM_Result_t res;
+            IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+
+            res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState, (void *)&param, sizeof(param));
+            if (res == IARM_RESULT_SUCCESS)
+            {
+                ps = param.curState;
+                result = (ps == IARM_BUS_PWRMGR_POWERSTATE_ON);
+                LOGWARN("power state: %d result: %d", ps, result);
+            }
+            else
+            {
+                LOGWARN("GetPowerState failed");
+            }
+
+            return result;
+        }
+
+        void HdmiCec::sendActiveSourceCommand()
+        {
+            if (!cecSettingEnabled || !cecEnableStatus)
+            {
+                LOGERR("not anabled cecSettingEnabled: %d cecEnableStatus: %d", cecSettingEnabled, cecEnableStatus);
+                return;
+            }
+
+            bool sended = false;
+            int cnt = 0;
+            while (sended == false && cnt < 3)
+            {
+                unsigned int logicalAddress = 0xF;
+                unsigned int physicalAddress = 0x0F0F0F0F;
+                try {
+                    LibCCEC::getInstance().getPhysicalAddress(&physicalAddress);
+                    logicalAddress = LibCCEC::getInstance().getLogicalAddress(DEV_TYPE_TUNER);
+                } catch (const std::exception& e) {
+                    LOGWARN("exception while getting addreses");
+                    break;
+                }
+
+                if (physicalAddress == 0x0F0F0F0F)
+                {
+                    LOGERR("invalid physical address: %08X", physicalAddress);
+                    break;
+                }
+                if (logicalAddress <=0 || logicalAddress > 0x0e) { // assume not tv (0) and sth. between 1 and e (reserved)
+                    LOGERR("invalid logical address: %u", logicalAddress);
+                    break;
+                }
+                CECFrame frame = MessageEncoder().encode(
+                                 Header(LogicalAddress(logicalAddress), LogicalAddress(0xF)),
+                                 ActiveSource(PhysicalAddress((physicalAddress & 0x0f000000) >> 24,
+                                                              (physicalAddress & 0x0f0000) >> 16,
+                                                              (physicalAddress & 0x0f00) >> 8,
+                                                              (physicalAddress & 0x0f))));
+                cnt++;
+                try {
+                    LOGERR("sending cnt: %d", cnt);
+                    smConnection->send(frame, 50, Throw_e());
+                    sended = true;
+                } catch (Exception ex) {
+                    LOGERR("excepion while AS sending cnt: %d", cnt);
+                    usleep(50000);
+                }
+            }
+            if (sended)
+            {
+                if (!isDeviceActiveSource)
+                {
+                    isDeviceActiveSource = true;
+                    sendActiveSourceEvent();
+                }
+            }
+        }
+#endif
 
     } // namespace Plugin
 } // namespace WPEFramework
