@@ -29,6 +29,8 @@ if(COMCAST_CONFIG)
 endif()
 
 option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
+option(PLUGIN_UNIFIEDPLAYER "Include Unified Player plugin" ON)
+option(PLUGIN_UNIFIEDCASMANAGEMENT "Include Unified CAS Management plugin" ON)
 
 # Library installation section
 string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
@@ -338,6 +340,10 @@ endif()
 
 if(PLUGIN_UNIFIEDCASMANAGEMENT)
     add_subdirectory(UnifiedCASManagement)
+endif()
+
+if (PLUGIN_UNIFIEDPLAYER)
+    add_subdirectory(UnifiedPlayer)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
