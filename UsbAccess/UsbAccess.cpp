@@ -150,7 +150,7 @@ namespace Plugin {
         }
 
         //Returns if the incomingPath already has existing link
-        bool isSymlinkExists(string& availableLink, string& incomingPath)
+        bool isSymlinkExists(const string& availableLink, const string& incomingPath)
         {
             bool bLinkExists = false;
             char targetPath[256];
@@ -274,48 +274,55 @@ namespace Plugin {
         bool result = false;
 
         std::list<string> paths;
-        string baseURL = LINK_URL_HTTP;
+        getMounted(paths);
 
+        string baseURL = LINK_URL_HTTP;
 		string pathParam;
 		if (parameters.HasLabel("path"))
 			pathParam = parameters["path"].String();
+        else if(!paths.empty())
+            pathParam = *paths.begin();
 
 		bool bLinkExists = false;
-
-        //Loop through all the existing IDs and set bLinkExists to true, if it already has the link
-        for(auto itr : m_CreatedLinkIds)
+        if (!paths.empty())
         {
-            string linkPath = LINK_PATH+std::to_string(itr);
-			bLinkExists = isSymlinkExists(linkPath, pathParam);
-			if(bLinkExists)
-				break;
-		}
-
-        getMounted(paths);
-        if (!paths.empty() && (!bLinkExists))
-        {
-            string pathParam;
-            if (parameters.HasLabel("path"))
-                pathParam = parameters["path"].String();
-
-            //For the first usb drive, create link with out number suffix
-            if( pathParam.empty() || ((*paths.begin()).compare(pathParam)) == 0 )
-            {
-                result = createLink(*paths.begin(), LINK_PATH);
-            }
-            else
-            {
-                //Loop through all the paths for exact match and create link
-                for(auto const& it : paths)
+            // Check the symlink already exists with first usbdrive
+            if(isSymlinkExists(LINK_PATH, pathParam))
+                bLinkExists = true;
+            else {
+                //Loop through all the existing IDs and set bLinkExists to true, if it already has the link
+                for(auto itr : m_CreatedLinkIds)
                 {
-                    if(it.compare(pathParam) == 0)
-                    {
-                        int nUsbNum = nextAvailableNumber(m_CreatedLinkIds);
-                        baseURL = baseURL + std::to_string(nUsbNum);    //Add number suffix
-                        result = createLink(it, LINK_PATH+std::to_string(nUsbNum));
-						if (result)
-							m_CreatedLinkIds.insert(nUsbNum);
+                    string linkPath = LINK_PATH+std::to_string(itr);
+                    bLinkExists = isSymlinkExists(linkPath, pathParam);
+                    if(bLinkExists) {
+                        baseURL = baseURL + std::to_string(itr);
                         break;
+                    }
+                }
+            }
+
+            if(!bLinkExists)
+            {
+                //For the first usb drive, create link with out number suffix
+                if((*paths.begin()).compare(pathParam) == 0 )
+                {
+                    result = createLink(*paths.begin(), LINK_PATH);
+                }
+                else
+                {
+                    //Loop through all the paths for exact match and create link
+                    for(auto const& it : paths)
+                    {
+                        if(it.compare(pathParam) == 0)
+                        {
+                            int nUsbNum = nextAvailableNumber(m_CreatedLinkIds);
+                            baseURL = baseURL + std::to_string(nUsbNum);    //Add number suffix
+                            result = createLink(it, LINK_PATH+std::to_string(nUsbNum));
+                            if (result)
+                                m_CreatedLinkIds.insert(nUsbNum);
+                            break;
+                        }
                     }
                 }
             }
@@ -323,6 +330,8 @@ namespace Plugin {
 
         if (result)
 	        response["baseURL"] = baseURL;
+        else if (bLinkExists)
+            response["error"] = "symlink already exists: " + baseURL;
         else
             response["error"] = "could not create symlink";
 
