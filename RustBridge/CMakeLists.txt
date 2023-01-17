@@ -1,7 +1,7 @@
 # If not stated otherwise in this file or this component's LICENSE file the
 # following copyright and licenses apply:
 #
-# Copyright 2020 RDK Management
+# Copyright 2022 Metrological
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,27 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME SecurityAgent)
+set(PLUGIN_NAME RustBridge)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
-
-set(PLUGIN_SECURITYAGENT_STARTUPORDER "" CACHE STRING "To configure startup order of SecurityAgent plugin")
-set(PLUGIN_SECURITYAGENT_ACL_FILE_NAME "acl.json" CACHE STRING "SecurityAgent ACL file name")
-set(PLUGIN_SECURITYAGENT_DAC_FOLDER "" CACHE STRING "Folder with ACL files for DAC apps")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
-find_library(SECAPI NAMES ${SECAPI_LIB})
-if (SECAPI)
-    set(SECAPI_RELATED_SOURCES SecapiToken.cpp)
-endif()
-
-add_library(${MODULE_NAME} SHARED 
-    AccessControlList.cpp
-    SecurityAgent.cpp
-    SecurityContext.cpp
-    SecurityAgentJsonRpc.cpp
-    ${SECAPI_RELATED_SOURCES}
+add_library(${MODULE_NAME} SHARED
+    RustBridge.cpp
+	RustBridgeImplementation.cpp
     Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -45,12 +33,8 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 target_link_libraries(${MODULE_NAME} 
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
-        ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
-
-if (SECAPI)
-    target_link_libraries(${MODULE_NAME} PRIVATE ${SECAPI_LIB})
-    add_definitions(-DENABLE_SECAPI)
-endif()
+        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}Protocols::${NAMESPACE}Protocols)
 
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

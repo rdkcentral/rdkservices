@@ -29,6 +29,7 @@ if(COMCAST_CONFIG)
 endif()
 
 option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
+option(PLUGIN_RUSTBRIDGE "Include RustBridge plugin" OFF)
 
 # Library installation section
 string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
@@ -66,6 +67,9 @@ if(PLUGIN_VOICECONTROL)
     add_subdirectory(VoiceControl)
 endif()
 
+if(PLUGIN_RUSTBRIDGE)
+    add_subdirectory(RustBridge)
+endif()
 
 if(PLUGIN_SYSTEMSERVICES)
     add_subdirectory(SystemServices)
