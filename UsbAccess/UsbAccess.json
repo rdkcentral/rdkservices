@@ -22,7 +22,8 @@
                         "summary": "baseURL refers to the web server URL returned by createLink API that points to the symbolic link. If no parameter is given, then http://localhost:50050/usbdrive will be cleared",
                         "type":"string",
                         "example": "http:\/\/localhost:50050\/usbdrive"
-                    }
+                    },
+                    "required": []
                 }
             },
             "result": {
@@ -48,11 +49,12 @@
                 "type":"object",
                 "properties": {
                     "path": {
-                        "summary": "Path refers to the root folder of the mounted USB Drive as returned by getMounted API. If no parameter is given, then the first USB drive returned by getMounted API will be used",
+                        "summary": "path refers to the root folder of the mounted USB Drive as returned by getMounted API. If no parameter is given, then the first USB drive returned by getMounted API will be used",
                         "type":"string",
                         "example": "\/run\/media\/sda1"
                     }
-                }
+                },
+                "required": []
             },
             "result": {
                 "type": "object",
@@ -219,11 +221,12 @@
                 "type":"object",
                 "properties": {
                     "path": {
-                        "summary": "Path refers to the root folder of the mounted USB Drive as returned by getMounted API. If no parameter is given, then the first USB drive returned by getMounted API will be used",
+                        "summary": "path refers to the root folder of the mounted USB Drive as returned by getMounted API. If no parameter is given, then the first USB drive returned by getMounted API will be used",
                         "type":"string",
                         "example": "\/run\/media\/sda1"
                     }
-                }
+                },
+                "required": []
             },
             "result":{
                 "type":"object",
