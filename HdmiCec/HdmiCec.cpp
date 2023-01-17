@@ -461,7 +461,7 @@ namespace WPEFramework
 
             char c;
             IARM_Result_t retVal = IARM_RESULT_SUCCESS;
-            retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_API_isAvailable, (void *)&c, sizeof(c), 1000);
+            retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_API_isAvailable, (void *)&c, sizeof(c), 15000);
             if(retVal != IARM_RESULT_SUCCESS) {
                 LOGINFO("CECMGR is not available. Failed to enable HdmiCec Plugin");
                 cecEnableStatus = false;
