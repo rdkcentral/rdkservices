@@ -173,6 +173,9 @@ jobs:
           rdk/ds/videoOutputPortConfig.hpp
           rdk/ds/videoOutputPortType.hpp
           rdk/ds/videoResolution.hpp
+          rdk/ds/frontPanelIndicator.hpp
+          rdk/ds/frontPanelConfig.hpp
+          rdk/ds/frontPanelTextDisplay.hpp
           rdk/iarmbus/libIARM.h
           rdk/iarmbus/libIBus.h
           rdk/iarmbus/libIBusDaemon.h
@@ -225,6 +228,7 @@ jobs:
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
           -DUSE_IARMBUS
+          -DUSE_DS
           -DENABLE_SYSTEM_GET_STORE_DEMO_LINK
           -DENABLE_DEEP_SLEEP
           -DENABLE_SET_WAKEUP_SRC_CONFIG
@@ -232,6 +236,7 @@ jobs:
           -DUSE_FRAMEBUFFER_SCREENCAPTURE
           -DHAS_API_SYSTEM
           -DHAS_API_POWERSTATE
+          -DCLOCK_BRIGHTNESS_ENABLED
           -DENABLE_DEVICE_MANUFACTURER_INFO"
           -DCOMCAST_CONFIG=OFF
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
@@ -267,6 +272,7 @@ jobs:
           -DDS_FOUND=ON
           -DPLUGIN_MOTION_DETECTION=ON
           -DPLUGIN_COMPOSITEINPUT=ON
+          -DHAS_FRONT_PANEL=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
