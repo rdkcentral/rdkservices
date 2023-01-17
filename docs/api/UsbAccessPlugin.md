@@ -67,7 +67,9 @@ No Events
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | string |  |
 
 ### Result
 
@@ -85,7 +87,8 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.clearLink"
+    "method": "org.rdk.UsbAccess.clearLink",
+    "params": "..."
 }
 ```
 
@@ -113,7 +116,9 @@ No Events
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | string |  |
 
 ### Result
 
@@ -132,7 +137,8 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.createLink"
+    "method": "org.rdk.UsbAccess.createLink",
+    "params": "..."
 }
 ```
 
@@ -145,7 +151,7 @@ This method takes no parameters.
     "result": {
         "baseURL": "http://localhost/usbdrive",
         "success": true,
-        "error": "could not create symlink"
+        "error": "could not create symlink OR symlink already exists: http://localhost/usbdrive"
     }
 }
 ```
@@ -214,7 +220,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.path | string | <sup>*(optional)*</sup> The directory name for which the contents are listed. If no value is specified, then the contents of the root folder is listed |
+| params?.path | string | <sup>*(optional)*</sup> The directory name for which the contents are listed. It supports relative and absolute paths. Any path names starting with / will be checked to see if starts with any of the root folder mounted paths returned by getMounted API. If it matches, it will be considered absolute path and used to retrieve the list of files. If path starting with / doesn't match any of the root folder mounted paths returned by getMounted API, then it is considered relative path from the root folder of the first USB drive returned by getMounted API. If no value is specified, then the contents of the root folder of the first USB drive returned by getMounted API are listed |
 
 ### Result
 
@@ -238,7 +244,7 @@ No Events
     "id": 42,
     "method": "org.rdk.UsbAccess.getFileList",
     "params": {
-        "path": "..."
+        "path": "/run/media/sda1/logs/PreviousLogs"
     }
 }
 ```
@@ -375,7 +381,9 @@ Compresses and uploads device logs into attached USB drive from /opt/logs with a
 | [onArchiveLogs](#onArchiveLogs) | Triggered to archive the device logs and returns the status of the archive |
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | string |  |
 
 ### Result
 
@@ -392,7 +400,8 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.ArchiveLogs"
+    "method": "org.rdk.UsbAccess.ArchiveLogs",
+    "params": "..."
 }
 ```
 
@@ -461,6 +470,7 @@ Triggered to archive the device logs and returns the status of the archive.
 | params | object |  |
 | params.error | string | Specifies the status of upload logs (must be one of the following: *script error*, *none*, *Locked*, *No USB*, *Writing Error*) |
 | params.success | boolean | Whether the request succeeded |
+| params.path | string | Absolute path on the USB drive where the log is archived. On errors, it's set to empty string ("") |
 
 ### Example
 
@@ -470,7 +480,8 @@ Triggered to archive the device logs and returns the status of the archive.
     "method": "client.events.onArchiveLogs",
     "params": {
         "error": "none",
-        "success": true
+        "success": true,
+        "path": "/run/media/sda1/Log/5C3400F15492_Logs_12-05-22-10-41PM.tgz"
     }
 }
 ```
