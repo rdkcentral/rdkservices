@@ -8,6 +8,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 namespace {
 const string testArchitecture = _T("testArchitecture");
 const string testChipset = _T("testChipset");
@@ -61,9 +63,9 @@ protected:
 
 class DeviceIdentificationInitializedTest : public DeviceIdentificationTest {
 protected:
-    Core::Sink<SystemInfo> subSystem;
-    ServiceMock service;
-    COMLinkMock comLinkMock;
+    Core::Sink<NiceMock<SystemInfo>> subSystem;
+    NiceMock<ServiceMock> service;
+    NiceMock<COMLinkMock> comLinkMock;
 
     DeviceIdentificationInitializedTest()
         : DeviceIdentificationTest()

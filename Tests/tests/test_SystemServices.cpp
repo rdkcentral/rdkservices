@@ -36,16 +36,18 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class SystemServicesTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::SystemServices> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
-    RfcApiImplMock rfcApiImplMock;
-    WrapsImplMock wrapsImplMock;
-    IarmBusImplMock iarmBusImplMock;
-    HostImplMock hostImplMock;
+    NiceMock<RfcApiImplMock> rfcApiImplMock;
+    NiceMock<WrapsImplMock> wrapsImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
+    NiceMock<HostImplMock> hostImplMock;
 
     SystemServicesTest()
         : plugin(Core::ProxyType<Plugin::SystemServices>::Create())
@@ -69,9 +71,9 @@ protected:
 
 class SystemServicesEventTest : public SystemServicesTest {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
     SystemServicesEventTest()
@@ -603,6 +605,16 @@ TEST_F(SystemServicesTest, getNetworkStandbyMode)
 
 TEST_F(SystemServicesTest, setPreferredStandbyMode)
 {
+    device::SleepMode mode;
+    NiceMock<SleepModeMock> sleepModeMock;
+    device::SleepMode::getInstance().impl = &sleepModeMock;
+
+    ON_CALL(sleepModeMock, getInstanceByName)
+        .WillByDefault(::testing::Invoke(
+            [&](const std::string& name) -> device::SleepMode& {
+                EXPECT_EQ(name, "LIGHT_SLEEP");
+                return mode;
+            }));
     EXPECT_CALL(hostImplMock, setPreferredSleepMode)
         .Times(2)
         .WillOnce(::testing::Return(0))
@@ -620,7 +632,7 @@ TEST_F(SystemServicesTest, setPreferredStandbyMode)
 TEST_F(SystemServicesTest, getPreferredStandbyMode)
 {
     device::SleepMode mode;
-    SleepModeMock sleepModeMock;
+    NiceMock<SleepModeMock> sleepModeMock;
     mode.impl = &sleepModeMock;
     string sleepModeString(_T("DEEP_SLEEP"));
 
@@ -644,7 +656,7 @@ TEST_F(SystemServicesTest, getPreferredStandbyMode)
 TEST_F(SystemServicesTest, getAvailableStandbyModes)
 {
     device::SleepMode mode;
-    SleepModeMock sleepModeMock;
+    NiceMock<SleepModeMock> sleepModeMock;
     mode.impl = &sleepModeMock;
     string sleepModeString(_T("DEEP_SLEEP"));
 
@@ -1058,8 +1070,8 @@ TEST_F(SystemServicesTest, getStoreDemoLink)
 
 TEST_F(SystemServicesTest, deletePersistentPath)
 {
-    ServiceMock service;
-    ServiceMock amazonService;
+    NiceMock<ServiceMock> service;
+    NiceMock<ServiceMock> amazonService;
     string amazonPersistentPath(_T("/tmp/amazonPersistentPath"));
 
     EXPECT_EQ(string(""), plugin->Initialize(&service));

@@ -11,9 +11,11 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class DeviceAudioCapabilitiesTest : public ::testing::Test {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
     ManagerImplMock managerImplMock;
     Core::ProxyType<Plugin::DeviceAudioCapabilities> deviceAudioCapabilities;
     Exchange::IDeviceAudioCapabilities* interface;
@@ -54,7 +56,7 @@ protected:
 
 class DeviceAudioCapabilitiesDsTest : public DeviceAudioCapabilitiesTest {
 protected:
-    HostImplMock hostImplMock;
+    NiceMock<HostImplMock> hostImplMock;
 
     DeviceAudioCapabilitiesDsTest()
         : DeviceAudioCapabilitiesTest()
@@ -69,7 +71,7 @@ protected:
 
 TEST_F(DeviceAudioCapabilitiesDsTest, SupportedAudioPorts)
 {
-    AudioOutputPortMock audioOutputPortMock;
+    NiceMock<AudioOutputPortMock> audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
     audioOutputPort.impl = &audioOutputPortMock;
     RPC::IStringIterator* supportedAudioPorts = nullptr;
@@ -91,7 +93,7 @@ TEST_F(DeviceAudioCapabilitiesDsTest, SupportedAudioPorts)
 
 TEST_F(DeviceAudioCapabilitiesDsTest, AudioCapabilities_noParam)
 {
-    AudioOutputPortMock audioOutputPortMock;
+    NiceMock<AudioOutputPortMock> audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
     audioOutputPort.impl = &audioOutputPortMock;
     Exchange::IDeviceAudioCapabilities::IAudioCapabilityIterator* audioCapabilities = nullptr;
@@ -122,7 +124,7 @@ TEST_F(DeviceAudioCapabilitiesDsTest, AudioCapabilities_noParam)
 
 TEST_F(DeviceAudioCapabilitiesDsTest, MS12Capabilities_noParam)
 {
-    AudioOutputPortMock audioOutputPortMock;
+    NiceMock<AudioOutputPortMock> audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
     audioOutputPort.impl = &audioOutputPortMock;
     Exchange::IDeviceAudioCapabilities::IMS12CapabilityIterator* ms12Capabilities = nullptr;
@@ -153,7 +155,7 @@ TEST_F(DeviceAudioCapabilitiesDsTest, MS12Capabilities_noParam)
 
 TEST_F(DeviceAudioCapabilitiesDsTest, SupportedMS12AudioProfiles_noParam)
 {
-    AudioOutputPortMock audioOutputPortMock;
+    NiceMock<AudioOutputPortMock> audioOutputPortMock;
     device::AudioOutputPort audioOutputPort;
     audioOutputPort.impl = &audioOutputPortMock;
     RPC::IStringIterator* supportedMS12AudioProfiles = nullptr;

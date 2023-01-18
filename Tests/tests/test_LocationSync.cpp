@@ -31,6 +31,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 namespace {
 const string webPrefix = _T("/Service/LocationSync");
 }
@@ -46,9 +48,9 @@ public:
 class LocationSyncTest : public ::testing::Test {
 protected:
     Core::ProxyType<WorkerPoolImplementation> workerPool;
-    FactoriesImplementation factoriesImplementation;
-    ServiceMock service;
-    Core::Sink<SystemInfoMock> subSystem;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    NiceMock<ServiceMock> service;
+    Core::Sink<NiceMock<SystemInfoMock>> subSystem;
     Core::ProxyType<Plugin::LocationSync> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
