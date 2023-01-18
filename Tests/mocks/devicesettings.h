@@ -1071,8 +1071,6 @@ namespace device{
 
 		void getBrightnessLevels(int &levels,int &min,int &max) const
 		{	
-    {
-		{	
         	return impl->getBrightnessLevels( levels, min, max);
     	}
 
