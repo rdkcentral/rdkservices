@@ -14,6 +14,8 @@
 #include "pwrMgr.h"
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class HDCPProfileTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::HdcpProfile> plugin;
@@ -34,8 +36,8 @@ protected:
 
 class HDCPProfileDsTest : public HDCPProfileTest {
 protected:
-    HostImplMock hostImplMock;
-    VideoOutputPortConfigImplMock videoOutputPortConfigImplMock;
+    NiceMock<HostImplMock> hostImplMock;
+    NiceMock<VideoOutputPortConfigImplMock> videoOutputPortConfigImplMock;
 
     HDCPProfileDsTest()
         : HDCPProfileTest()
@@ -52,9 +54,9 @@ protected:
 
 class HDCPProfileEventTest : public HDCPProfileDsTest {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
     HDCPProfileEventTest()
@@ -78,7 +80,7 @@ protected:
 
 class HDCPProfileEventIarmTest : public HDCPProfileEventTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
     ManagerImplMock managerImplMock;
     IARM_EventHandler_t dsHdmiEventHandler;
 
@@ -123,7 +125,7 @@ TEST_F(HDCPProfileTest, RegisteredMethods)
 
 TEST_F(HDCPProfileDsTest, getHDCPStatus_isConnected_false)
 {
-    VideoOutputPortMock videoOutputPortMock;
+    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
     videoOutputPort.impl = &videoOutputPortMock;
 
@@ -165,7 +167,7 @@ TEST_F(HDCPProfileDsTest, getHDCPStatus_isConnected_false)
 
 TEST_F(HDCPProfileDsTest, getHDCPStatus_isConnected_true)
 {
-    VideoOutputPortMock videoOutputPortMock;
+    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
     videoOutputPort.impl = &videoOutputPortMock;
 
@@ -207,7 +209,7 @@ TEST_F(HDCPProfileDsTest, getHDCPStatus_isConnected_true)
 
 TEST_F(HDCPProfileDsTest, getSettopHDCPSupport_Hdcp_v1x)
 {
-    VideoOutputPortMock videoOutputPortMock;
+    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
     videoOutputPort.impl = &videoOutputPortMock;
 
@@ -231,7 +233,7 @@ TEST_F(HDCPProfileDsTest, getSettopHDCPSupport_Hdcp_v1x)
 
 TEST_F(HDCPProfileDsTest, getSettopHDCPSupport_Hdcp_v2x)
 {
-    VideoOutputPortMock videoOutputPortMock;
+    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
     videoOutputPort.impl = &videoOutputPortMock;
 
@@ -259,7 +261,7 @@ TEST_F(HDCPProfileEventIarmTest, onDisplayConnectionChanged)
 
     Core::Event onDisplayConnectionChanged(false, true);
 
-    VideoOutputPortMock videoOutputPortMock;
+    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
     videoOutputPort.impl = &videoOutputPortMock;
 
@@ -330,7 +332,7 @@ TEST_F(HDCPProfileEventIarmTest, onHdmiOutputHDCPStatusEvent)
 
     Core::Event onDisplayConnectionChanged(false, true);
 
-    VideoOutputPortMock videoOutputPortMock;
+    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
     videoOutputPort.impl = &videoOutputPortMock;
 
