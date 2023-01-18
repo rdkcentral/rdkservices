@@ -566,6 +566,11 @@
                                     "type": "number",
                                     "example": 1.0
                                 },
+                                "duration": {
+                                    "summary":"The amount of time between key press and key release events",
+                                    "type": "number",
+                                    "example": 1.0
+                                },
                                 "callsign": {
                                     "$ref": "#/definitions/callsign"
                                 },
