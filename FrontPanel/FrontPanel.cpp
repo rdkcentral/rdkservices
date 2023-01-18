@@ -204,7 +204,7 @@ namespace WPEFramework
         {
             FrontPanel::_instance = this;
             InitializeIARM();
-	        CFrontPanel::instance()->start();
+	    CFrontPanel::instance()->start();
             CFrontPanel::instance()->addEventObserver(this);
             loadPreferences();
 
