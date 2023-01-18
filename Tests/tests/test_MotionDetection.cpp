@@ -10,6 +10,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+
 class MotionDetectionTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::MotionDetection> plugin;
@@ -29,7 +31,7 @@ protected:
 class MotionDetectionEventTest : public MotionDetectionTest {
 protected:
 
-    MotionDetectionImplMock motionDetectionImplMock;
+    NiceMock<MotionDetectionImplMock> motionDetectionImplMock;
 
     MotionDetectionEventTest()
         : MotionDetectionTest()
