@@ -206,10 +206,10 @@ TEST_F(FrontPanelInitializedEventDsTest, setBrightnessWIndex)
         .WillByDefault(::testing::Return("Power"));
 
 
-    EXPECT_CALL(indicatorMock, setBrightness(::testing::_))
+    EXPECT_CALL(indicatorMock, setBrightness(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&](int brightness) {
+            [&](int brightness, bool toPersist) {
                 EXPECT_EQ(brightness, 1);
             }));
 
@@ -282,10 +282,10 @@ TEST_F(FrontPanelInitializedEventDsTest, setBrightness)
     ON_CALL(frontPanelIndicatorImplMock, getName())
         .WillByDefault(::testing::Return("Power"));
 
-    EXPECT_CALL(indicatorMock, setBrightness(::testing::_))
+    EXPECT_CALL(indicatorMock, setBrightness(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&](int brightness) {
+            [&](int brightness, bool toPersist) {
                 EXPECT_EQ(brightness, 1);
             }));
        
@@ -712,7 +712,7 @@ TEST_F(FrontPanelInitializedEventDsTest, setBlink)
     EXPECT_CALL(indicatorMock, setColorInt(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&](unsigned int color, bool persist) {
+            [&](uint32_t color, bool persist) {
                 
                 EXPECT_EQ(color, 131586);
             }));
@@ -781,10 +781,10 @@ TEST_F(FrontPanelInitializedEventDsTest, setLEDMode1)
     ON_CALL(frontPanelIndicatorImplMock, getName())
         .WillByDefault(::testing::Return("Power"));
             
-    EXPECT_CALL(indicatorMock, setColorInt(::testing::_))
+    EXPECT_CALL(indicatorMock, setColorInt(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&](unsigned int color) {
+            [&](uint32_t color, bool toPersist) {
                 EXPECT_EQ(color, 0);
             }));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setLED"), _T("{\"ledIndicator\": \"power_led\", \"brightness\": 50, \"red\": 0, \"green\": 0, \"blue\":0}"), response));
@@ -806,10 +806,10 @@ TEST_F(FrontPanelInitializedEventDsTest, setLEDMode2)
             }));
     
 
-    EXPECT_CALL(indicatorMock, setColorInt(::testing::_))
+    EXPECT_CALL(indicatorMock, setColorInt(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&](unsigned int color) {
+            [&](uint32_t color, bool toPersist) {
                 EXPECT_EQ(color, 66051);
             }));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setLED"), _T("{\"ledIndicator\": \"power_led\", \"brightness\": 50, \"red\": 1, \"green\": 2, \"blue\":3}"), response));

@@ -1042,15 +1042,12 @@ public:
 	virtual ~FrontPanelIndicatorImpl() = default;
         virtual FrontPanelIndicator& getInstanceInt(int id) = 0;
         virtual FrontPanelIndicator& getInstanceString(const std::string& name) = 0;
-	virtual void setState(const bool &bState) const = 0;
+	virtual void setState(const bool bState) const = 0;
         virtual std::string getName() const = 0;
         virtual void setBrightness(const int brightness, const bool toPersist) const = 0;
-	virtual void setBrightness(const int brightness) const = 0;
 	virtual int getBrightness() const = 0;
-	virtual void setColor(Color color) const = 0;
-        virtual void setColor(Color color, const bool toPersist) const = 0;
-        virtual void setColorInt(unsigned int color) const = 0;
-        virtual void setColorInt(unsigned int color, const bool toPersist) const = 0;
+        virtual void setColor(Color newColor, const bool toPersist) const = 0;
+        virtual void setColorInt(uint32_t newColor, const bool toPersist) const = 0;
         virtual void getBrightnessLevels(int &levels,int &min,int &max) const = 0;
 	virtual int getColorMode() const = 0;
 	virtual std::string getColorName() const = 0;
@@ -1068,7 +1065,7 @@ public:
     	return getInstance().impl->getInstanceString(name);
     }
 	
-    void setState(const bool &bState)
+    void setState(const bool bState) const
     {
         return impl->setState(bState);
     }
@@ -1076,33 +1073,21 @@ public:
     {
         return impl->getName();
     }
-    void setBrightness(const int brightness, const bool toPersist)
+    void setBrightness(const int brightness, const bool toPersist = true)
     {
 	return impl->setBrightness(brightness, toPersist);
-    }
-    void setBrightness(const int brightness)
-    {
-        return impl->setBrightness(brightness);
     }
     int getBrightness() const
     {
 	return impl->getBrightness();
     }
-    void setColor(Color color, const bool toPersist)
+    void setColor(Color newColor, const bool toPersist = true)
     {
-	return impl->setColor(color, toPersist);
+	return impl->setColor(newColor, toPersist);
     }
-    void setColor(Color color)
+    void setColor(uint32_t newColor, const bool toPersist = true)
     {
-        return impl->setColor(color);
-    }
-    void setColor(unsigned int color)
-    {
-        return impl->setColorInt(color);
-    }
-    void setColor(unsigned int color, const bool toPersist)
-    {
-        return impl->setColorInt(color, toPersist);
+        return impl->setColorInt(newColor, toPersist);
     }
     void getBrightnessLevels(int &levels,int &min,int &max) const
     {	
@@ -1135,8 +1120,8 @@ public:
 };
 class FrontPanelTextDisplay : public FrontPanelIndicator{
 public:
-    static const int kModeClock24Hr = dsFPD_TIME_12_HOUR;
-    static const int kModeClock12Hr = dsFPD_TIME_24_HOUR;
+    static const int kModeClock12Hr = dsFPD_TIME_12_HOUR;
+    static const int kModeClock24Hr = dsFPD_TIME_24_HOUR;
 
     FrontPanelTextDisplayImpl* impl;
 
