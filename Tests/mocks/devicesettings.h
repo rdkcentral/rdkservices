@@ -1127,6 +1127,14 @@ public:
 
     FrontPanelTextDisplayImpl* impl;
 
+    int getCurrentTimeFormat() const
+    {
+	return impl->getCurrentTimeFormat();
+    }
+    void setTimeFormat(const int iTimeFormat)
+    {
+	return impl->setTimeFormat(iTimeFormat);
+    }
     static FrontPanelTextDisplay& getInstance(const std::string& name)
     {
     	return getInstance().impl->getInstanceByName(name);
@@ -1143,14 +1151,6 @@ public:
     void setText(const std::string text)
     {
 	return impl->setText(text);
-    }
-    int getCurrentTimeFormat() const
-    {
-	return impl->getCurrentTimeFormat();
-    }
-    void setTimeFormat(const int iTimeFormat)
-    {
-	return impl->setTimeFormat(iTimeFormat);
     }
     std::string getName()
     {
