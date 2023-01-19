@@ -91,10 +91,6 @@ protected:
 
         ON_CALL(frontPanelConfigImplMock, getIndicators())
             .WillByDefault(::testing::Return(device::List<device::FrontPanelIndicator>({ indicatorList })));
-
-
-    
-
     
         IarmBus::getInstance().impl = &iarmBusImplMock;
         device::FrontPanelConfig::getInstance().impl = &frontPanelConfigImplMock;
@@ -113,8 +109,6 @@ protected:
                     return IARM_RESULT_SUCCESS;
                 }));
 
-
-        
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
     }
     virtual ~FrontPanelInitializedTest() override
@@ -163,25 +157,15 @@ protected:
 
     ColorMock colorImplMock;
 
-    
-
-
-
     FrontPanelInitializedEventDsTest()
         : FrontPanelInitializedEventTest()
     {
-
-        device::FrontPanelIndicator::Color::getInstance().impl = &colorImplMock;
-        
-	
+        device::FrontPanelIndicator::Color::getInstance().impl = &colorImplMock;   
     }
 
     virtual ~FrontPanelInitializedEventDsTest() override
     {
-
         device::FrontPanelIndicator::Color::getInstance().impl = nullptr;
-
-
     }
 };
 
@@ -725,14 +709,15 @@ TEST_F(FrontPanelInitializedEventDsTest, setBlink)
     ON_CALL(indicatorMock, getName())
         .WillByDefault(::testing::Return("Power"));
 
-    EXPECT_CALL(indicatorMock, setColor(::testing::_, ::testing::_))
+    EXPECT_CALL(indicatorMock, setColorInt(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&](device::FrontPanelIndicator::Color color, bool persist) {
-                EXPECT_EQ(dsFPD_COLOR_WHITE, color.returnWhite());
+            [&](unsigned int color, bool persist) {
+                
+                EXPECT_EQ(color, 131586);
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlink"), _T("{\"blinkInfo\": {\"ledIndicator\": \"power_led\", \"iterations\": 10, \"pattern\": [{\"brightness\": 50, \"duration\": 100, \"red\": 0, \"green\":0, \"blue\":0}]}}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlink"), _T("{\"blinkInfo\": {\"ledIndicator\": \"power_led\", \"iterations\": 10, \"pattern\": [{\"brightness\": 50, \"duration\": 100, \"red\": 2, \"green\":2, \"blue\":2}]}}"), response));
    
        	EXPECT_EQ(response, string("{\"success\":true}"));
 }
@@ -796,11 +781,11 @@ TEST_F(FrontPanelInitializedEventDsTest, setLEDMode1)
     ON_CALL(frontPanelIndicatorImplMock, getName())
         .WillByDefault(::testing::Return("Power"));
             
-    EXPECT_CALL(indicatorMock, setColor(::testing::_))
+    EXPECT_CALL(indicatorMock, setColorInt(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&](device::FrontPanelIndicator::Color color) {
-                EXPECT_EQ(dsFPD_COLOR_WHITE, color.returnWhite());
+            [&](unsigned int color) {
+                EXPECT_EQ(color, 0);
             }));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setLED"), _T("{\"ledIndicator\": \"power_led\", \"brightness\": 50, \"red\": 0, \"green\": 0, \"blue\":0}"), response));
 
@@ -819,14 +804,15 @@ TEST_F(FrontPanelInitializedEventDsTest, setLEDMode2)
                 EXPECT_EQ("Power", name);
                 return device::FrontPanelIndicator::getInstance();
             }));
+    
 
-    EXPECT_CALL(indicatorMock, setColor(::testing::_))
+    EXPECT_CALL(indicatorMock, setColorInt(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&](device::FrontPanelIndicator::Color color) {
-                EXPECT_EQ(dsFPD_COLOR_WHITE, color.returnWhite());
+            [&](unsigned int color) {
+                EXPECT_EQ(color, 66051);
             }));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setLED"), _T("{\"ledIndicator\": \"power_led\", \"brightness\": 50, \"red\": 0, \"green\": 0, \"blue\":0}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setLED"), _T("{\"ledIndicator\": \"power_led\", \"brightness\": 50, \"red\": 1, \"green\": 2, \"blue\":3}"), response));
 
         EXPECT_EQ(response, string("{\"success\":true}"));
 }
