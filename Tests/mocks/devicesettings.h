@@ -1037,7 +1037,7 @@ public:
         return instance;
     }
 
-    class FrontPanelIndicatorImpl{
+    class FrontPanelIndicatorImpl {
     public:
 	virtual ~FrontPanelIndicatorImpl() = default;
         virtual FrontPanelIndicator& getInstanceInt(int id) = 0;
@@ -1068,17 +1068,13 @@ public:
     	return getInstance().impl->getInstanceString(name);
     }
 	
-    void getBrightnessLevels(int &levels,int &min,int &max) const
-    {	
-    	return impl->getBrightnessLevels( levels, min, max);
-    }
-    List<Color> getSupportedColors()
+    void setState(const bool &bState)
     {
-	return impl->getSupportedColors();
+        return impl->setState(bState);
     }
-    int getColorMode() const
+    std::string getName() const
     {
-        return impl->getColorMode();
+        return impl->getName();
     }
     void setBrightness(const int brightness, const bool toPersist)
     {
@@ -1091,10 +1087,6 @@ public:
     int getBrightness() const
     {
 	return impl->getBrightness();
-    }
-    void setState(const bool &bState)
-    {
-        return impl->setState(bState);
     }
     void setColor(Color color, const bool toPersist)
     {
@@ -1112,9 +1104,17 @@ public:
     {
         return impl->setColorInt(color, toPersist);
     }
-    std::string getName() const
+    void getBrightnessLevels(int &levels,int &min,int &max) const
+    {	
+    	return impl->getBrightnessLevels( levels, min, max);
+    }
+    List<Color> getSupportedColors()
     {
-        return impl->getName();
+	return impl->getSupportedColors();
+    }
+    int getColorMode() const
+    {
+        return impl->getColorMode();
     }
 };
 
@@ -1135,8 +1135,8 @@ public:
 };
 class FrontPanelTextDisplay : public FrontPanelIndicator{
 public:
-    static const int kModeClock24Hr = dsFPD_TIME_24_HOUR;
-    static const int kModeClock12Hr = dsFPD_TIME_12_HOUR;
+    static const int kModeClock24Hr = dsFPD_TIME_12_HOUR;
+    static const int kModeClock12Hr = dsFPD_TIME_24_HOUR;
 
     FrontPanelTextDisplayImpl* impl;
 
@@ -1209,13 +1209,13 @@ public:
     {
         return impl->getIndicators();
     }
-    List<FrontPanelTextDisplay> getTextDisplays()
-    {
-        return impl->getTextDisplays();
-    }
     FrontPanelTextDisplay& getTextDisplay(const std::string name) const
     {
         return impl->getTextDisplay(name);
+    }
+    List<FrontPanelTextDisplay> getTextDisplays()
+    {
+        return impl->getTextDisplays();
     }
     FrontPanelTextDisplay& getTextDisplay(int id) 
     {
