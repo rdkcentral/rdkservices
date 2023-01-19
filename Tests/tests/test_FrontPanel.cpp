@@ -39,7 +39,7 @@ protected:
     ColorMock colorImplMock;
     FrontPanelTextDisplayMock frontPanelTextDisplayImplMock;
     FrontPanelTextDisplayMock frontPanelTextDisplayImplIntMock;
-    FrontPanelConfigImplMock frontPanelConfigImplMock;
+    FrontPanelConfigMock frontPanelConfigImplMock;
     FrontPanelDsTest()
         : FrontPanelTest()
     {
@@ -62,7 +62,7 @@ class FrontPanelInitializedTest : public FrontPanelTest {
 protected:
     IarmBusImplMock iarmBusImplMock;
     IARM_EventHandler_t dsPanelEventHandler;
-    FrontPanelConfigImplMock frontPanelConfigImplMock;
+    FrontPanelConfigMock frontPanelConfigImplMock;
     FrontPanelIndicatorMock frontPanelIndicatorImplMock;
     FrontPanelTextDisplayMock frontPanelTextDisplayImplMock;
 
