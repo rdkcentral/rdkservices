@@ -81,7 +81,6 @@ public:
     {
         return getInstance().impl->IARM_Bus_RegisterCall(methodName, handler);
     }
-
     static IARM_Result_t IARM_Bus_Call_with_IPCTimeout(const char *ownerName,  const char *methodName, void *arg, size_t argLen, int timeout)
     {
         return getInstance().impl->IARM_Bus_Call_with_IPCTimeout(ownerName, methodName, arg, argLen, timeout);
@@ -116,6 +115,30 @@ typedef enum _IARM_Bus_Daemon_SysMode_t {
     IARM_BUS_SYS_MODE_WAREHOUSE
 } IARM_Bus_Daemon_SysMode_t;
 
+typedef enum _CECMgr_EventId_t {
+        IARM_BUS_CECMGR_EVENT_SEND,
+        IARM_BUS_CECMGR_EVENT_RECV,
+        IARM_BUS_CECMGR_EVENT_ENABLE,
+        IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,
+        IARM_BUS_CECMGR_EVENT_MAX,
+        IARM_BUS_CECMGR_EVENT_STATUS_UPDATED
+} IARM_Bus_CECMgr_EventId_t;
+
+typedef struct _IARM_Bus_CECMgr_Status_Updated_Param_t
+{
+        int logicalAddress;
+}IARM_Bus_CECMgr_Status_Updated_Param_t;
+
+#define IARM_BUS_CECMGR_NAME "CECMgr"
+#define IARM_BUS_CECMGR_MAX_DATA_LENGTH 62
+#define IARM_BUS_CECMGR_API_Enable "enable"
+#define IARM_BUS_CECMGR_Send "Send"
+#define IARM_BUS_CECMGR_GetLogicalAddress "GetLogicalAddress"
+#define IARM_BUS_CECMGR_AddLogicalAddress "AddLogicalAddress"
+#define IARM_BUS_CECMGR_GetPhysicalAddress "GetPHysicalAddress"
+#define IARM_BUS_CECMGR_API_isAvailable "isAvailable"
+
+
 #define IARMBUS_AUDIOCAPTUREMGR_NAME "audiocapturemgr"
 #define IARMBUS_AUDIOCAPTUREMGR_REQUEST_SAMPLE "requestSample"
 
@@ -128,6 +151,10 @@ typedef enum _IARM_Bus_Daemon_SysMode_t {
 #define IARMBUS_AUDIOCAPTUREMGR_GET_OUTPUT_PROPS "getOutputProperties"
 #define IARMBUS_AUDIOCAPTUREMGR_SET_AUDIO_PROPERTIES "setAudioProperties"
 #define IARMBUS_AUDIOCAPTUREMGR_SET_OUTPUT_PROPERTIES "setOutputProperties"
+
+#define IARM_BUS_DSMGR_API_dsHdmiInGetNumberOfInputs    "dsHdmiInGetNumberOfInputs"
+#define IARM_BUS_DSMGR_API_dsHdmiInGetStatus            "dsHdmiInGetStatus"
+#define IARM_BUS_DSMGR_API_dsGetHDMIARCPortId  "dsGetHDMIARCPortId"
 
 #define AUDIOCAPTUREMGR_FILENAME_PREFIX "audio_sample"
 #define AUDIOCAPTUREMGR_FILE_PATH "/opt/"
@@ -661,69 +688,66 @@ typedef enum _DSMgr_EventId_t {
     IARM_BUS_DSMGR_EVENT_MAX, /*!< Max Event  */
 } IARM_Bus_DSMgr_EventId_t;
 
-
 /* ############################# wifiSrvMgrIarmIf.h ################################# */
 
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
 
-#define SSID_SIZE 	33
-#define BSSID_BUFF 	20
+#define SSID_SIZE 33
+#define BSSID_BUFF 20
 #define PASSPHRASE_BUFF 385
-#define MAX_SSIDLIST_BUF (48*1024)
+#define MAX_SSIDLIST_BUF (48 * 1024)
 /*IARM Interface for wifiManager_2 */
-#define IARM_BUS_WIFI_MGR_API_getAvailableSSIDs             "getAvailableSSIDs"             /**< Retrieve array of strings representing SSIDs */
-#define IARM_BUS_WIFI_MGR_API_getAvailableSSIDsWithName     "getAvailableSSIDsWithName"     /**< Retrieve array of strings representing SSIDs info for a specific SSID and band */
-#define IARM_BUS_WIFI_MGR_API_getAvailableSSIDsAsync        "getAvailableSSIDsAsync"        /**< Retrieve array of strings representing SSIDs */
-#define IARM_BUS_WIFI_MGR_API_getAvailableSSIDsAsyncIncr    "getAvailableSSIDsAsyncIncr"    /**< Retrieve array of strings representing SSIDs in an incremental way */
-#define IARM_BUS_WIFI_MGR_API_stopProgressiveWifiScanning   "stopProgressiveWifiScanning"   /**< Stop any in-progress wifi progressive scanning thread */
-#define IARM_BUS_WIFI_MGR_API_getCurrentState               "getCurrentState"               /**< Retrieve current state */
-#define IARM_BUS_WIFI_MGR_API_getConnectedSSID              "getConnectedSSID"              /**< Return properties of the currently connected SSID */
-#define IARM_BUS_WIFI_MGR_API_cancelWPSPairing              "cancelWPSPairing"              /**< Cancel in-progress WPS */
-#define IARM_BUS_WIFI_MGR_API_getPairedSSID                 "getPairedSSID"                 /**< Return paired SSID as a string */
-#define IARM_BUS_WIFI_MGR_API_setEnabled                    "setEnabled"                    /**< Enable wifi adapter on the box */
-#define IARM_BUS_WIFI_MGR_API_connect                       "connect"                       /**< Connect with given or saved SSID and passphrase */
-#define IARM_BUS_WIFI_MGR_API_initiateWPSPairing            "initiateWPSPairing"            /**< Initiate connection via WPS */
-#define IARM_BUS_WIFI_MGR_API_initiateWPSPairing2           "initiateWPSPairing2"           /**< Initiate connection via WPS via either Push Button or PIN */
-#define IARM_BUS_WIFI_MGR_API_saveSSID                      "saveSSID"                      /**< Save SSID and passphrase */
-#define IARM_BUS_WIFI_MGR_API_clearSSID                     "clearSSID"                     /**< Clear given SSID */
-#define IARM_BUS_WIFI_MGR_API_disconnectSSID                "disconnectSSID"                /**< Disconnect from current SSID */
-#define IARM_BUS_WIFI_MGR_API_getPairedSSID                 "getPairedSSID"                 /**< Get paired SSID */
-#define IARM_BUS_WIFI_MGR_API_isPaired                      "isPaired"                      /**< Retrieve the paired status */
-#define IARM_BUS_WIFI_MGR_API_getLNFState                   "getLNFState"                   /**< Retrieve the LNF state */
-#define IARM_BUS_WIFI_MGR_API_isStopLNFWhileDisconnected    "isStopLNFWhileDisconnected"    /**< Check if LNF is stopped */
-#define IARM_BUS_WIFI_MGR_API_getConnectionType             "getConnectionType"             /**< Get connection type the current state */
-#define IARM_BUS_WIFI_MGR_API_getSwitchToPrivateResults     "getSwitchToPrivateResults"     /**< Get all switch to private results */
-#define IARM_BUS_WIFI_MGR_API_isAutoSwitchToPrivateEnabled  "isAutoSwitchToPrivateEnabled"  /**< Inform whether switch to private is enabled */
-#define IARM_BUS_WIFI_MGR_API_getPairedSSIDInfo             "getPairedSSIDInfo"             /**< Get last paired ssid info */
-
+#define IARM_BUS_WIFI_MGR_API_getAvailableSSIDs "getAvailableSSIDs" /**< Retrieve array of strings representing SSIDs */
+#define IARM_BUS_WIFI_MGR_API_getAvailableSSIDsWithName "getAvailableSSIDsWithName" /**< Retrieve array of strings representing SSIDs info for a specific SSID and band */
+#define IARM_BUS_WIFI_MGR_API_getAvailableSSIDsAsync "getAvailableSSIDsAsync" /**< Retrieve array of strings representing SSIDs */
+#define IARM_BUS_WIFI_MGR_API_getAvailableSSIDsAsyncIncr "getAvailableSSIDsAsyncIncr" /**< Retrieve array of strings representing SSIDs in an incremental way */
+#define IARM_BUS_WIFI_MGR_API_stopProgressiveWifiScanning "stopProgressiveWifiScanning" /**< Stop any in-progress wifi progressive scanning thread */
+#define IARM_BUS_WIFI_MGR_API_getCurrentState "getCurrentState" /**< Retrieve current state */
+#define IARM_BUS_WIFI_MGR_API_getConnectedSSID "getConnectedSSID" /**< Return properties of the currently connected SSID */
+#define IARM_BUS_WIFI_MGR_API_cancelWPSPairing "cancelWPSPairing" /**< Cancel in-progress WPS */
+#define IARM_BUS_WIFI_MGR_API_getPairedSSID "getPairedSSID" /**< Return paired SSID as a string */
+#define IARM_BUS_WIFI_MGR_API_setEnabled "setEnabled" /**< Enable wifi adapter on the box */
+#define IARM_BUS_WIFI_MGR_API_connect "connect" /**< Connect with given or saved SSID and passphrase */
+#define IARM_BUS_WIFI_MGR_API_initiateWPSPairing "initiateWPSPairing" /**< Initiate connection via WPS */
+#define IARM_BUS_WIFI_MGR_API_initiateWPSPairing2 "initiateWPSPairing2" /**< Initiate connection via WPS via either Push Button or PIN */
+#define IARM_BUS_WIFI_MGR_API_saveSSID "saveSSID" /**< Save SSID and passphrase */
+#define IARM_BUS_WIFI_MGR_API_clearSSID "clearSSID" /**< Clear given SSID */
+#define IARM_BUS_WIFI_MGR_API_disconnectSSID "disconnectSSID" /**< Disconnect from current SSID */
+#define IARM_BUS_WIFI_MGR_API_getPairedSSID "getPairedSSID" /**< Get paired SSID */
+#define IARM_BUS_WIFI_MGR_API_isPaired "isPaired" /**< Retrieve the paired status */
+#define IARM_BUS_WIFI_MGR_API_getLNFState "getLNFState" /**< Retrieve the LNF state */
+#define IARM_BUS_WIFI_MGR_API_isStopLNFWhileDisconnected "isStopLNFWhileDisconnected" /**< Check if LNF is stopped */
+#define IARM_BUS_WIFI_MGR_API_getConnectionType "getConnectionType" /**< Get connection type the current state */
+#define IARM_BUS_WIFI_MGR_API_getSwitchToPrivateResults "getSwitchToPrivateResults" /**< Get all switch to private results */
+#define IARM_BUS_WIFI_MGR_API_isAutoSwitchToPrivateEnabled "isAutoSwitchToPrivateEnabled" /**< Inform whether switch to private is enabled */
+#define IARM_BUS_WIFI_MGR_API_getPairedSSIDInfo "getPairedSSIDInfo" /**< Get last paired ssid info */
 
 /*! Event states associated with WiFi connection  */
 typedef enum _WiFiStatusCode_t {
-    WIFI_UNINSTALLED,        /**< The device was in an installed state, and was uninstalled */
-    WIFI_DISABLED,           /**< The device is installed (or was just installed) and has not yet been enabled */
-    WIFI_DISCONNECTED,       /**< The device is not connected to a network */
-    WIFI_PAIRING,            /**< The device is not connected to a network, but not yet connecting to a network */
-    WIFI_CONNECTING,         /**< The device is attempting to connect to a network */
-    WIFI_CONNECTED,          /**< The device is successfully connected to a network */
-    WIFI_FAILED              /**< The device has encountered an unrecoverable error with the wifi adapter */
+    WIFI_UNINSTALLED, /**< The device was in an installed state, and was uninstalled */
+    WIFI_DISABLED, /**< The device is installed (or was just installed) and has not yet been enabled */
+    WIFI_DISCONNECTED, /**< The device is not connected to a network */
+    WIFI_PAIRING, /**< The device is not connected to a network, but not yet connecting to a network */
+    WIFI_CONNECTING, /**< The device is attempting to connect to a network */
+    WIFI_CONNECTED, /**< The device is successfully connected to a network */
+    WIFI_FAILED /**< The device has encountered an unrecoverable error with the wifi adapter */
 } WiFiStatusCode_t;
 
 /*! Error code: A recoverable, unexpected error occurred,
  * as defined by one of the following values */
 typedef enum _WiFiErrorCode_t {
-    WIFI_SSID_CHANGED,              /**< The SSID of the network changed */
-    WIFI_CONNECTION_LOST,           /**< The connection to the network was lost */
-    WIFI_CONNECTION_FAILED,         /**< The connection failed for an unknown reason */
-    WIFI_CONNECTION_INTERRUPTED,    /**< The connection was interrupted */
-    WIFI_INVALID_CREDENTIALS,       /**< The connection failed due to invalid credentials */
-    WIFI_NO_SSID,                   /**< The SSID does not exist */
-    WIFI_UNKNOWN,                   /**< Any other error */
-    WIFI_AUTH_FAILED                /**< The connection failed due to auth failure */
+    WIFI_SSID_CHANGED, /**< The SSID of the network changed */
+    WIFI_CONNECTION_LOST, /**< The connection to the network was lost */
+    WIFI_CONNECTION_FAILED, /**< The connection failed for an unknown reason */
+    WIFI_CONNECTION_INTERRUPTED, /**< The connection was interrupted */
+    WIFI_INVALID_CREDENTIALS, /**< The connection failed due to invalid credentials */
+    WIFI_NO_SSID, /**< The SSID does not exist */
+    WIFI_UNKNOWN, /**< Any other error */
+    WIFI_AUTH_FAILED /**< The connection failed due to auth failure */
 } WiFiErrorCode_t;
 
 /*! Supported values are NONE - 0, WPA - 1, WEP - 2*/
-typedef enum _SsidSecurity
-{
+typedef enum _SsidSecurity {
     NET_WIFI_SECURITY_NONE = 0,
     NET_WIFI_SECURITY_WEP_64,
     NET_WIFI_SECURITY_WEP_128,
@@ -742,29 +766,26 @@ typedef enum _SsidSecurity
     NET_WIFI_SECURITY_NOT_SUPPORTED = 99,
 } SsidSecurity;
 
-typedef struct _WiFiConnection
-{
+typedef struct _WiFiConnection {
     char ssid[SSID_SIZE];
     char passphrase[PASSPHRASE_BUFF];
     SsidSecurity security_mode;
 } WiFiConnection;
 
-typedef struct _WiFiConnectedSSIDInfo
-{
-    char ssid[SSID_SIZE];     /**< The name of connected SSID. */
-    char bssid[BSSID_BUFF];   /**< The the Basic Service Set ID (mac address). */
-    int securityMode;         /**< Current WiFi Security Mode used for connection. */
-    int  frequency;                    /**< The Frequency wt which the client is connected to. */
-    float rate;               /**< The Physical data rate in Mbps */
-    float noise;              /**< The average noise strength in dBm. */
-    float signalStrength;     /**< The RSSI value in dBm. */
+typedef struct _WiFiConnectedSSIDInfo {
+    char ssid[SSID_SIZE]; /**< The name of connected SSID. */
+    char bssid[BSSID_BUFF]; /**< The the Basic Service Set ID (mac address). */
+    int securityMode; /**< Current WiFi Security Mode used for connection. */
+    int frequency; /**< The Frequency wt which the client is connected to. */
+    float rate; /**< The Physical data rate in Mbps */
+    float noise; /**< The average noise strength in dBm. */
+    float signalStrength; /**< The RSSI value in dBm. */
 
 } WiFiConnectedSSIDInfo_t;
 
-typedef struct _WiFiPairedSSIDInfo
-{
-    char ssid[SSID_SIZE];      /**< The name of connected SSID. */
-    char bssid[BSSID_BUFF];    /**< The the Basic Service Set ID (mac address). */
+typedef struct _WiFiPairedSSIDInfo {
+    char ssid[SSID_SIZE]; /**< The name of connected SSID. */
+    char bssid[BSSID_BUFF]; /**< The the Basic Service Set ID (mac address). */
 } WiFiPairedSSIDInfo_t;
 
 /*! Get/Set Data associated with WiFi Service Manager */
@@ -781,13 +802,11 @@ typedef struct _IARM_Bus_WiFiSrvMgr_Param_t {
         struct getPairedSSID {
             char ssid[SSID_SIZE];
         } getPairedSSID;
-        bool isPaired;
     } data;
     bool status;
 } IARM_Bus_WiFiSrvMgr_Param_t;
 
-typedef struct _IARM_Bus_WiFiSrvMgr_WPS_Parameters_t
-{
+typedef struct _IARM_Bus_WiFiSrvMgr_WPS_Parameters_t {
     bool pbc;
     char pin[9];
     bool status;
@@ -816,7 +835,7 @@ typedef enum _IARM_Bus_NMgr_WiFi_EventId_t {
     IARM_BUS_WIFI_MGR_EVENT_onSSIDsChanged,
     IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs,
     IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDsIncr,
-    IARM_BUS_WIFI_MGR_EVENT_MAX,           		/*!< Maximum event id*/
+    IARM_BUS_WIFI_MGR_EVENT_MAX, /*!< Maximum event id*/
 } IARM_Bus_NMgr_WiFi_EventId_t;
 
 /* ############################## Network Manager ####################### */
@@ -848,16 +867,16 @@ typedef enum _IARM_Bus_NMgr_WiFi_EventId_t {
 
 /* Netsrvmgr Based Macros & Structures */
 typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
-   union {
+    union {
         char activeIface[INTERFACE_SIZE];
         char allNetworkInterfaces[INTERFACE_LIST];
         char setInterface[INTERFACE_SIZE];
-	char activeIfaceIpaddr[MAX_IP_ADDRESS_LEN];
-	};
-   char interfaceCount;
-   bool isInterfaceEnabled;
-   bool persist;
-   char ipfamily[MAX_IP_FAMILY_SIZE];
+        char activeIfaceIpaddr[MAX_IP_ADDRESS_LEN];
+    };
+    char interfaceCount;
+    bool isInterfaceEnabled;
+    bool persist;
+    char ipfamily[MAX_IP_FAMILY_SIZE];
 } IARM_BUS_NetSrvMgr_Iface_EventData_t;
 
 #define IARM_BUS_SYSMGR_API_RunScript "RunScript"

@@ -126,6 +126,14 @@ static const char *eventString[] = {
         "reportAudioDevicePowerStatus"
 };
 	
+enum {
+    V_RESERVED_0,
+    V_RESERVED_1,
+    V_RESERVED_2,
+    V_RESERVED_3,
+    V_1_3a,
+    V_1_4,
+};
 
 #define CEC_SETTING_ENABLED_FILE "/opt/persistent/ds/cecData_2.json"
 #define CEC_SETTING_OTP_ENABLED "cecOTPEnabled"
@@ -133,7 +141,7 @@ static const char *eventString[] = {
 #define CEC_SETTING_OSD_NAME "cecOSDName"
 #define CEC_SETTING_VENDOR_ID "cecVendorId"
 
-static vector<uint8_t> defaultVendorId = {0x00,0x19,0xFB};
+static std::vector<uint8_t> defaultVendorId = {0x00,0x19,0xFB};
 static VendorID appVendorId = {defaultVendorId.at(0),defaultVendorId.at(1),defaultVendorId.at(2)};
 static VendorID lgVendorId = {0x00,0xE0,0x91};
 static PhysicalAddress physical_addr = {0x0F,0x0F,0x0F,0x0F};
@@ -141,8 +149,8 @@ static LogicalAddress logicalAddress = 0xF;
 static Language defaultLanguage = "eng";
 static OSDName osdName = "TV Box";
 static int32_t powerState = DEVICE_POWER_STATE_OFF;
-static vector<uint8_t> formatid = {0,0};
-static vector<uint8_t> audioFormatCode = { SAD_FMT_CODE_ENHANCED_AC3,SAD_FMT_CODE_AC3 };
+static std::vector<uint8_t> formatid = {0,0};
+static std::vector<uint8_t> audioFormatCode = { SAD_FMT_CODE_ENHANCED_AC3,SAD_FMT_CODE_AC3 };
 static uint8_t numberofdescriptor = 2;
 static int32_t HdmiArcPortID = -1;
 
@@ -1314,7 +1322,7 @@ namespace WPEFramework
                 std::string id = parameters["activePath"].String();
 				PhysicalAddress phy_addr = PhysicalAddress(id);
 
-				LOGINFO("Addr = %s, length = %d", id.c_str(), id.length());
+				LOGINFO("Addr = %s, length = %ld", id.c_str(), id.length());
 
 				setStreamPath(phy_addr);
 				returnResponse(true);
@@ -1527,7 +1535,7 @@ namespace WPEFramework
 			m_SendKeyQueue.push(keyInfo);
                         m_sendKeyEventThreadRun = true;
 			m_sendKeyCV.notify_one();
-			LOGINFO("Post send key press event to queue size:%d \n",m_SendKeyQueue.size());
+			LOGINFO("Post send key press event to queue size:%ld \n",m_SendKeyQueue.size());
 			returnResponse(true);
 		}
 	   uint32_t HdmiCecSink::sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response)
@@ -2573,13 +2581,13 @@ namespace WPEFramework
 					if ( disconnected.size() ){
 						for( unsigned int i=0; i< disconnected.size(); i++ )
 						{
-							LOGWARN("Disconnected Devices [%d]", disconnected.size());
+							LOGWARN("Disconnected Devices [%ld]", disconnected.size());
 							_instance->removeDevice(disconnected[i]);
 						}
 					}
 
 					if (connected.size()) {
-						LOGWARN("Connected Devices [%d]", connected.size());
+						LOGWARN("Connected Devices [%ld]", connected.size());
 						for( unsigned int i=0; i< connected.size(); i++ )
 						{
 							_instance->addDevice(connected[i]);
@@ -3101,7 +3109,7 @@ namespace WPEFramework
                     keyInfo = _instance->m_SendKeyQueue.front();
                     _instance->m_SendKeyQueue.pop();
 
-                LOGINFO("sendRemoteKeyThread : logical addr:0x%x keyCode: 0x%x  queue size :%d \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
+                LOGINFO("sendRemoteKeyThread : logical addr:0x%x keyCode: 0x%x  queue size :%ld \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
 			    _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
 			    _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
 			    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )

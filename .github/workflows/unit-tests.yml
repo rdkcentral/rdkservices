@@ -148,6 +148,9 @@ jobs:
           headers/rdk/iarmbus
           headers/rdk/iarmmgrs-hal
           headers/ccec/drivers
+		  headers/ccec/drivers/iarmbus
+          headers/ccec/host
+          headers/websocket
           headers/network
           &&
           cd headers
@@ -180,6 +183,16 @@ jobs:
           rdk/iarmmgrs-hal/mfrMgr.h
           rdk/iarmmgrs-hal/pwrMgr.h
           rdk/iarmmgrs-hal/sysMgr.h
+		  ccec/FrameListener.hpp
+          ccec/Connection.hpp
+          ccec/Assert.hpp
+          ccec/Messages.hpp
+          ccec/MessageDecoder.hpp
+          ccec/MessageProcessor.hpp
+          ccec/CECFrame.hpp
+          ccec/MessageEncoder.hpp
+          ccec/host/RDK.hpp
+          ccec/drivers/iarmbus/CecIARMBusMgr.h
           network/wifiSrvMgrIarmIf.h
           network/netsrvmgrIarm.h
           framebuffer-api.h
@@ -188,6 +201,8 @@ jobs:
           rbus.h
           telemetry_busmessage_sender.h
           motionDetector.h
+		  dsRpc.h
+          websocket/URL.h
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
@@ -221,6 +236,12 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/MotionDetection.h
+		  -include ${{github.workspace}}/rdkservices/Tests/mocks/CECFrame.hpp
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/Operand.hpp
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/Operands.hpp
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/CCEC.hpp
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/Exception.hpp
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/Util.hpp
           -Wall -Werror
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
@@ -268,6 +289,8 @@ jobs:
           -DDS_FOUND=ON
           -DPLUGIN_MOTION_DETECTION=ON
           -DPLUGIN_COMPOSITEINPUT=ON
+		  -DCMAKE_DISABLE_FIND_PACKAGE_CEC=ON
+		  -DPLUGIN_HDMICECSINK=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
