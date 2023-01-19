@@ -2016,7 +2016,7 @@ static GSourceFuncs _handlerIntervention =
 
             _adminLock.Unlock();
         }
-        void OnLoadFailed()
+        void OnLoadFailed(const string _URL)
         {
             _adminLock.Lock();
 
@@ -2564,7 +2564,7 @@ static GSourceFuncs _handlerIntervention =
                 browser->_ignoreLoadFinishedOnce = true;
                 return;
             }
-            browser->OnLoadFailed();
+            browser->OnLoadFailed(failingURI);
         }
         static void webProcessTerminatedCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitWebProcessTerminationReason reason)
         {
