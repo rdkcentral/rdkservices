@@ -1038,25 +1038,27 @@ public:
     }
 
     class FrontPanelIndicatorImpl{
-	public:
-	    virtual ~FrontPanelIndicatorImpl() = default;
-            virtual FrontPanelIndicator& getInstanceInt(int id) = 0;
-            virtual FrontPanelIndicator& getInstanceString(const std::string& name) = 0;
-	    virtual void setState(const bool &enable) const = 0;
-            virtual std::string getName() const = 0;
-            virtual void setBrightness(const int brightness, bool persist) const = 0;
-	    virtual void setBrightness(const int brightness) const = 0;
-	    virtual int getBrightness() const = 0;
-	    virtual void setColor(Color color) const = 0;
-            virtual void setColor(Color color, bool persist) const = 0;
-            virtual void setColorInt(unsigned int color) const = 0;
-            virtual void setColorInt(unsigned int color, bool persist) const = 0;
-            virtual void getBrightnessLevels(int &levels,int &min,int &max) const = 0;
-	    virtual int getColorMode() const = 0;
-	    virtual std::string getColorName() const = 0;
-	    virtual List<Color> getSupportedColors() const =0;
+    public:
+	virtual ~FrontPanelIndicatorImpl() = default;
+        virtual FrontPanelIndicator& getInstanceInt(int id) = 0;
+        virtual FrontPanelIndicator& getInstanceString(const std::string& name) = 0;
+	virtual void setState(const bool &enable) const = 0;
+        virtual std::string getName() const = 0;
+        virtual void setBrightness(const int brightness, bool persist) const = 0;
+	virtual void setBrightness(const int brightness) const = 0;
+	virtual int getBrightness() const = 0;
+	virtual void setColor(Color color) const = 0;
+        virtual void setColor(Color color, bool persist) const = 0;
+        virtual void setColorInt(unsigned int color) const = 0;
+        virtual void setColorInt(unsigned int color, bool persist) const = 0;
+        virtual void getBrightnessLevels(int &levels,int &min,int &max) const = 0;
+	virtual int getColorMode() const = 0;
+	virtual std::string getColorName() const = 0;
+	virtual List<Color> getSupportedColors() const =0;
     };
+	
     FrontPanelIndicatorImpl* impl;
+	
     static FrontPanelIndicator& getInstance(int id)
     {
         return getInstance().impl->getInstanceInt(id);
@@ -1205,7 +1207,7 @@ public:
     }
     List<FrontPanelIndicator> getIndicators()
     {
-	return impl->getIndicators();
+        return impl->getIndicators();
     }
     List<FrontPanelTextDisplay> getTextDisplays()
     {
