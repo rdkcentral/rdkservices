@@ -45,8 +45,8 @@ namespace Plugin {
 
     TextToSpeechImplementation::TextToSpeechImplementation() : _adminLock()
     {
-        if(!_ttsManager)
-            _ttsManager = TTS::TTSManager::create(this);
+        // we can't create _ttsManager yet as it will immediately call Dispatch() on this object
+        // before it gets the change to finish construction; it will be created in ::Configure
     }
 
     TextToSpeechImplementation::~TextToSpeechImplementation()
@@ -60,7 +60,7 @@ namespace Plugin {
     uint32_t TextToSpeechImplementation::Configure(PluginHost::IShell* service)
     {
         if(!_ttsManager)
-            return 0;
+            _ttsManager = TTS::TTSManager::create(this);
 
         JsonObject config;
         config.FromString(service->ConfigLine());
