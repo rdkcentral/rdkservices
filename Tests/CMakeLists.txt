@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
         ${TESTS}
         mocks/thunder/Module.cpp
         mocks/Wraps.cpp
+	mocks/rdkshell.cpp
         )
 
 set_source_files_properties(
@@ -66,9 +67,10 @@ include_directories(../LocationSync
         ../HdcpProfile
         ../TraceControl
         ../Network
-	../WifiManager
+       	../WifiManager
         ../Warehouse
         ../ActivityMonitor
+        ../RDKShell
         ../FrontPanel
         )
 link_directories(../LocationSync
@@ -92,10 +94,11 @@ link_directories(../LocationSync
         ../HdcpProfile
         ../TraceControl
         ../Network
-	../WifiManager
+	      ../WifiManager
         ../Warehouse
         ../ActivityMonitor
-	../FrontPanel
+        ../RDKShell
+	      ../FrontPanel
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -122,11 +125,12 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}HdmiInput
         ${NAMESPACE}HdcpProfile
         ${NAMESPACE}TraceControl
-        ${NAMESPACE}Network
+      	${NAMESPACE}Network
         ${NAMESPACE}WifiManager
-	${NAMESPACE}FrontPanel
+	      ${NAMESPACE}FrontPanel
         ${NAMESPACE}Warehouse
         ${NAMESPACE}ActivityMonitor
+        ${NAMESPACE}RDKShell
         )
 
 target_include_directories(${PROJECT_NAME}

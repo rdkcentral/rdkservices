@@ -8,7 +8,7 @@ on:
 
 env:
   BUILD_TYPE: Debug
-  THUNDER_REF: "R2-v1.12"
+  THUNDER_REF: "0731e67a8c9dea37a728201c9d19df5fbdfcbfe5"
   INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
 
 jobs:
@@ -149,6 +149,7 @@ jobs:
           headers/rdk/iarmmgrs-hal
           headers/ccec/drivers
           headers/network
+          headers/rdkshell
           &&
           cd headers
           &&
@@ -185,11 +186,20 @@ jobs:
           rdk/iarmmgrs-hal/sysMgr.h
           network/wifiSrvMgrIarmIf.h
           network/netsrvmgrIarm.h
+          rdkshell/rdkshellevents.h
+          rdkshell/rdkshell.h
+          rdkshell/compositorcontroller.h
+          rdkshell/logger.h
+          rdkshell/eastereggs.h
+          rdkshell/application.h
+          rdkshell/linuxkeys.h
           framebuffer-api.h
           libudev.h
           rfcapi.h
           rbus.h
           telemetry_busmessage_sender.h
+          rdk_logger_milestone.h
+          base64.h
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
@@ -215,6 +225,7 @@ jobs:
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmmgrs-hal
           -I ${{github.workspace}}/rdkservices/Tests/headers/ccec/drivers
           -I ${{github.workspace}}/rdkservices/Tests/headers/network
+          -I ${{github.workspace}}/rdkservices/Tests/headers/rdkshell
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/FrameBuffer.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Iarm.h
@@ -222,6 +233,8 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/rdkshell.h
+          --coverage
           -Wall -Werror
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
@@ -238,6 +251,7 @@ jobs:
           -DHAS_RBUS
           -DENABLE_DEVICE_MANUFACTURER_INFO"
           -DCOMCAST_CONFIG=OFF
+          -DRDKSHELL_TEST_MODE=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
@@ -272,6 +286,7 @@ jobs:
           -DPLUGIN_WAREHOUSE=ON
           -DPLUGIN_ACTIVITYMONITOR=ON
           -DDS_FOUND=ON
+          -DPLUGIN_RDKSHELL=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
