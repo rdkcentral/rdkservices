@@ -12,6 +12,7 @@
 #include "ConnectionMock.h"
 #include "LogicalAddressMock.h"
 #include "ActiveSourceMock.h"
+#include "DeviceTypeMock.h"
 using namespace WPEFramework;
 
 class HdmiCecTest : public ::testing::Test {
@@ -33,22 +34,32 @@ class HdmiCecDsTest : public HdmiCecTest {
 protected:
     LibCCECImplMock libCCECImplMock;
     ConnectionImplMock connectionImplMock;
+    LogicalAddressImplMock logicalAddressMock;
+    DeviceTypeMock deviceTypeMock;
     HdmiCecDsTest()
         : HdmiCecTest()
     {
         LibCCEC::getInstance().impl = &libCCECImplMock;
-	Connection::getInstance().impl =  &connectionImplMock;
+	    Connection::getInstance().impl =  &connectionImplMock;
+        LogicalAddress::getInstance().impl = &logicalAddressMock;
+        DeviceType::getInstance().impl = &deviceTypeMock;
     }
     virtual ~HdmiCecDsTest() override
     {
         LibCCEC::getInstance().impl = nullptr;
         Connection::getInstance().impl =  nullptr;
+        LogicalAddress::getInstance().impl = nullptr;
+        DeviceType::getInstance().impl = nullptr;
     }
 };
 
 class HdmiCecInitializedTest : public HdmiCecTest {
 protected:
     IarmBusImplMock iarmBusImplMock;
+    ConnectionImplMock connectionImplMock;
+    LogicalAddressImplMock logicalAddressMock;
+    DeviceTypeMock deviceTypeMock;
+
     IARM_EventHandler_t dsHdmiCecEventHandler;
     IARM_EventHandler_t dsHdmiEventHandler;
  
@@ -56,6 +67,10 @@ protected:
         : HdmiCecTest()
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
+        Connection::getInstance().impl = &connectionImplMock;
+        LogicalAddress::getInstance().impl = &logicalAddressMock;
+        DeviceType::getInstance().impl = &deviceTypeMock;
+
 
         ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
@@ -85,6 +100,10 @@ protected:
         EXPECT_EQ(response, string("{\"success\":true}"));
 		
 	sleep(2);
+        Connection::getInstance().impl = nullptr;
+        LogicalAddress::getInstance().impl = nullptr;
+        DeviceType::getInstance().impl = nullptr;
+
 
         plugin->Deinitialize(nullptr);
 
@@ -118,14 +137,12 @@ protected:
 class HdmiCecInitializedEventDsTest : public HdmiCecInitializedEventTest {
 protected:
     LibCCECImplMock libCCECImplMock;
-    ConnectionImplMock connectionImplMock;
         
      
     HdmiCecInitializedEventDsTest()
         : HdmiCecInitializedEventTest()
     {
         LibCCEC::getInstance().impl = &libCCECImplMock;
-        Connection::getInstance().impl = &connectionImplMock;
 	
 
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
@@ -137,7 +154,6 @@ protected:
     virtual ~HdmiCecInitializedEventDsTest() override
     {
         LibCCEC::getInstance().impl = nullptr;
-	Connection::getInstance().impl = nullptr;
 
     }
 };

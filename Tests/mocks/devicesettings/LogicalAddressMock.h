@@ -10,6 +10,7 @@ public:
 
     MOCK_METHOD(int, toInt, (), (const, override));
     MOCK_METHOD(int, getType, (), (const, override));
+    MOCK_METHOD(std::string, toString, (), (const, override));
     
 };
 

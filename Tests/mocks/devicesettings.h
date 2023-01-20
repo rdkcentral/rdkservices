@@ -1196,6 +1196,7 @@ class LogicalAddressImpl{
 	public:
 		virtual int toInt() const = 0;
 		virtual int getType() const = 0;
+        virtual std::string toString() const = 0;
 
 };
 class LogicalAddress{
@@ -1228,19 +1229,30 @@ class LogicalAddress{
 
 		LogicalAddress(int addr = UNREGISTERED){};
 
-		CECBytesImpl* impl;
+        static LogicalAddress& getInstance()
+    	{
+                static LogicalAddress instance;
+       	        return instance;
+	    }
+
+        LogicalAddressImpl* impl;
+
 		const std::string toString(void) const {
-			return "1";
-                }
-		LogicalAddressImpl* implLog;
+			return getInstance().impl->toString();
+        }
 		int toInt(void) const{
-			return 1;
+			return getInstance().impl->toInt();
 		}
 		int getType(void) const {
-			return 1;
+			return getInstance().impl->getType();
 		}
 
 
+
+};
+class DeviceTypeImpl{
+	public:
+		virtual std::string toString() const = 0;
 
 };
 class DeviceType
@@ -1261,11 +1273,19 @@ class DeviceType
 			VIDEO_PROCESSOR,
 		};
 		DeviceType(int type) {};
+        DeviceType(){};
 
-		CECBytesImpl* impl;
-                const std::string toString() const {
-			return "1";
-                }
+        static DeviceType& getInstance()
+    	{
+            static DeviceType instance;
+       	    return instance;
+	    }
+
+		DeviceTypeImpl* impl;
+        std::string toString(void)
+        {
+			return getInstance().impl->toString();
+        }
 
 };
 class PhysicalAddressImpl{
@@ -1444,23 +1464,23 @@ class Connection{
         };
 
 	void open(void){
-		return;
+		return getInstance().impl->open();
 	}
 	void close(void){
-		return;
+		return getInstance().impl->close();
 	}
 	void addFrameListener(FrameListener *listener){
-		return;
+		return getInstance().impl->addFrameListener(listener);
 	}
 	void removeFrameListener(FrameListener *listener){
-		return;
+		return getInstance().impl->removeFrameListener(listener);
 	}
 	void sendAsync(const CECFrame &frame){
-		return;
+		return getInstance().impl->sendAsync(frame);
 	}
 	void ping(const LogicalAddress &from, const LogicalAddress &to, const Throw_e &doThrow){
-		return;
-	}
+        return getInstance().impl->ping(from, to, doThrow);
+    }
 
 
 
