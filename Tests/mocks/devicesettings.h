@@ -1178,9 +1178,9 @@ class FrontPanelConfig;
 class FrontPanelConfigImpl {
 public:
     virtual ~FrontPanelConfigImpl() = default;
-    virtual List<FrontPanelIndicator> getIndicators() = 0;
+    virtual List<FrontPanelIndicator> getIndicators() const = 0;
     virtual FrontPanelTextDisplay& getTextDisplay() const = 0;
-    virtual FrontPanelTextDisplay& getTextDisplay(const std::string &name) = 0;
+    virtual FrontPanelTextDisplay& getTextDisplay(const std::string &name) const = 0;
     virtual List<FrontPanelTextDisplay> getTextDisplays() const = 0;
     virtual FrontPanelTextDisplay& getTextDisplay(int id) const = 0;
 };
