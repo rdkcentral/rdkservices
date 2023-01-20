@@ -2016,14 +2016,14 @@ static GSourceFuncs _handlerIntervention =
 
             _adminLock.Unlock();
         }
-        void OnLoadFailed(const string _URL)
+        void OnLoadFailed(const string URL)
         {
             _adminLock.Lock();
 
             std::list<Exchange::IWebBrowser::INotification*>::iterator index(_notificationClients.begin());
 
             while (index != _notificationClients.end()) {
-                (*index)->LoadFailed(_URL);
+                (*index)->LoadFailed(URL);
                 index++;
             }
 
@@ -3552,7 +3552,7 @@ static GSourceFuncs _handlerIntervention =
             return;
 
         WebKitImplementation* browser = const_cast<WebKitImplementation*>(static_cast<const WebKitImplementation*>(clientInfo));
-        browser->OnLoadFailed();
+        browser->OnLoadFailed(url);
     }
 
     /* static */ void webProcessDidCrash(WKPageRef, const void*)
