@@ -42,7 +42,7 @@ docker exec -it <container name> /bin/bash
  For the queries on syntax please refer to the [Workflow syntax for GitHub Actions](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions).
 
 2. External dependencies need to be mocked.
- For each external header, add one into the [unit-tests.yml](../.github/workflows/unit-tests.yml) (preserve the original path parts, if needed).
+ For each external header, add one into the [tests.cmake](../tests.cmake) (preserve the original path parts, if needed).
  For each external declaration, add one into the [mocks folder](./mocks).
  For the queries on mocks please refer to the [gMock Cookbook](http://google.github.io/googletest/gmock_cook_book.html).
 
