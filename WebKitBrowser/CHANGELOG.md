@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.10] - 2023-03-03
+### Added
+- Config entry to enable WebAudio
+
 ## [1.1.9] - 2023-03-01
 ### Fixed
 - Verify source frame of response before reading http status code
