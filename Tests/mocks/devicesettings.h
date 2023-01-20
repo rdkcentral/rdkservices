@@ -420,6 +420,15 @@ typedef enum _dsDisplayEvent_t {
     dsDISPLAY_HDCPPROTOCOL_CHANGE, //!< HDCP Protocol Version Change event
     dsDISPLAY_EVENT_MAX
 } dsDisplayEvent_t;
+typedef uint32_t dsFPDColor_t;
+#define dsFPDColor_Make(R8,G8,B8) (((R8)<< 8)|((G8)<<8)|((B8) ))
+#define dsFPD_COLOR_WHITE dsFPDColor_Make(0xFF, 0xFF, 0xFF)
+
+typedef struct _dsFPDColorConfig_t{
+	int id;
+	dsFPDColor_t color;
+}dsFPDColorConfig_t;
+
 
 namespace device {
 
@@ -983,108 +992,248 @@ public:
 
 }
 
-namespace device {
-class FrontPanelIndicator;
-class FrontPanelIndicatorImpl {
-public:
-    virtual ~FrontPanelIndicatorImpl() = default;
-    virtual void setState(const bool bState) const = 0;
-    virtual const std::string & getName() const = 0;
-    virtual void setBrightness(const int &brightness, const bool toPersist = true);
-    virtual int getBrightness();
-};
+namespace device{
 
-class FrontPanelIndicator {
-public:
-    FrontPanelIndicatorImpl* impl;
-    class Color{
-        public:
-            virtual ~Color() {};
+        class FrontPanelIndicatorImpl;
 
-            static Color & getInstance(int id)
-            {
-                static Color instance;
-                return instance;
-            }
-            static Color & getInstance(const std::string &name)
-            {
-                return getInstance(0);
-            }
-    };
-    static FrontPanelIndicator& getInstance(const std::string&)
-    {
-        static FrontPanelIndicator instance;
-        return instance;
-    }
+        class FrontPanelIndicatorColorImpl{
+            public:
+		            virtual ~FrontPanelIndicatorColorImpl() = default;
+        			virtual std::string getName() const = 0;
 
-    void setState(const bool bState) const
-    {
-        return impl->setState(bState);
-    }
 
-    const std::string & getName() const
-    {
-        return impl->getName();
-    }
-    void setBrightness(const int &brightness, const bool toPersist = true)
-    {
-        return impl->setBrightness(brightness, toPersist);
-    }
-    int getBrightness()
-    {
-        return impl->getBrightness();
-    }
-    void setColor(const Color & newColor,bool toPersist = true)
-    {
-    }
-    void setColor(const uint32_t color,const bool toPersist = true)
-    {
-    }
-};
+        };
+        
+        class FrontPanelIndicator{
+		public:
+		class Color {
+                	public:
+			            FrontPanelIndicatorColorImpl* colorImpl;
+                	    static const int kWhite = dsFPD_COLOR_WHITE;
+                	    static Color& getInstance(int id)
+			            {
+				            static Color instance;
+				            return instance;
+			            }
+                	    static Color& getInstance(const std::string)
+			            {
+                                static Color instance;
+                                return instance;
+                        }
 
-class FrontPanelTextDisplay
-{
-public:
-    static const int kModeClock12Hr = dsFPD_TIME_12_HOUR;
-    static const int kModeClock24Hr = dsFPD_TIME_24_HOUR;
+                	Color(int id){
+			}
+			Color(){
+			}
+        	        
+			
+			std::string getName() const
+			{
+				return colorImpl->getName();
+			}
+			virtual ~Color(){};
+	        };
+		FrontPanelIndicatorImpl* impl;
+		static FrontPanelIndicator& getInstance(int id)
+    		{
+        		static FrontPanelIndicator instance;
+        		return instance;
+    		}
+		static FrontPanelIndicator& getInstance(const std::string&)
+                {
+                        //static FrontPanelIndicator instance;
+                        return getInstance();
+                }
+		static FrontPanelIndicator& getInstance()
+		{
+			static FrontPanelIndicator instance;
+			return instance;
+		}
 
-    virtual ~FrontPanelTextDisplay() = default;
+		void getBrightnessLevels(int &levels,int &min,int &max) const;
+		List<Color> getSupportedColors();
+		int getColorMode() const;
+		void setBrightness(const int brightness, bool persist);
+		void setBrightness(const int brightness);
+		int getBrightness() const;
+		void setState(const bool &enable);
+		void setColor(Color color, bool persist);
+		void setColor(Color color);
+		std::string getName() const;
 
-    int getCurrentTimeFormat()
-    {
-        return kModeClock12Hr;
-    }
-    void setTimeFormat(const int iTimeFormat)
-    {
-    }
-};
+	
+	};
 
-class FrontPanelConfig;
-class FrontPanelConfigImpl {
-public:
-    virtual ~FrontPanelConfigImpl() = default;
-    virtual List<FrontPanelIndicator> getIndicators();
-};
+    class FrontPanelIndicatorImpl{
+		public:
+		virtual ~FrontPanelIndicatorImpl() = default;
+		virtual	void getBrightnessLevels(int &levels,int &min,int &max) const = 0;
+		virtual int getColorMode() const = 0;
+		virtual void setBrightness(const int brightness, bool persist) const = 0;
+		virtual void setBrightness(const int brightness) const = 0;
+		virtual int getBrightness() const = 0;
+		virtual std::string getName() const = 0;
+		virtual std::string getColorName() const = 0;
+		virtual void setState(const bool &enable) const = 0;
+		virtual void setColor(FrontPanelIndicator::Color color) const = 0;
+        virtual void setColor(FrontPanelIndicator::Color color, bool persist) const = 0;
+        virtual List<FrontPanelIndicator::Color> getSupportedColors() const =0;
+		
+        };
 
-class FrontPanelConfig {
-public:
-    FrontPanelConfigImpl* impl;
+        inline void FrontPanelIndicator::getBrightnessLevels(int &levels,int &min,int &max) const
+		{	
+        	return impl->getBrightnessLevels( levels, min, max);
+    	}
 
-    static FrontPanelConfig& getInstance()
-    {
-        static FrontPanelConfig instance;
-        return instance;
-    }
-    List<FrontPanelIndicator> getIndicators()
-    {
-        return impl->getIndicators();
-    }
-    FrontPanelTextDisplay& getTextDisplay(const std::string &name)
-    {
-        static FrontPanelTextDisplay instance;
-        return instance;
-    }
-};
+        inline List<FrontPanelIndicator::Color> FrontPanelIndicator::getSupportedColors()
+		{
+			return impl->getSupportedColors();
+		}
+		inline int FrontPanelIndicator::getColorMode() const
+                {
+                        return impl->getColorMode();
+                }
+		inline void FrontPanelIndicator::setBrightness(const int brightness, bool persist)
+                {
+			
+                       return impl->setBrightness(brightness, persist);
+                }
+		inline void FrontPanelIndicator::setBrightness(const int brightness)
+                {
+                        
+                        return impl->setBrightness(brightness);
+		
+                }
+		inline int FrontPanelIndicator::getBrightness() const
+                {
+			
+			return impl->getBrightness();
+                }
+		inline void FrontPanelIndicator::setState(const bool &enable){
 
+                        return impl->setState(enable);
+                }
+		inline void FrontPanelIndicator::setColor(Color color, bool persist){
+			return impl->setColor(color, persist);
+			
+		}
+		inline void FrontPanelIndicator::setColor(Color color){
+                 	return impl->setColor(color);
+			
+ 		}
+		inline std::string FrontPanelIndicator::getName() const{
+                        return impl->getName();
+                }
+
+    
+}
+
+
+
+namespace device{
+	class FrontPanelTextDisplayImpl : public device::FrontPanelIndicatorImpl{
+		public:
+			virtual ~FrontPanelTextDisplayImpl() = default;
+			virtual void setText(const std::string text) const = 0;
+			virtual int getCurrentTimeFormat() const = 0;
+			virtual void setTimeFormat(const int iTimeFormat) const = 0;
+			virtual std::string getName() const = 0;
+			virtual void setMode(int mode) const = 0;
+			virtual int getTextBrightness() const = 0;
+			virtual void setTextBrightness(const int brightness) const = 0;
+			virtual void getBrightnessLevels(int &levels,int &min,int &max) const = 0;
+	};
+	class FrontPanelTextDisplay : public device::FrontPanelIndicator{
+	public:
+		FrontPanelTextDisplayImpl* impl;
+		static FrontPanelTextDisplay& getInstance(const std::string&)
+                {
+                        static FrontPanelTextDisplay instance;
+                        return instance;
+                }
+		static FrontPanelTextDisplay& getInstance(int count)
+                {
+                        static FrontPanelTextDisplay instance;
+                        return instance;
+                }
+
+		static FrontPanelTextDisplay& getInstance()
+                {
+                        static FrontPanelTextDisplay instance;
+                        return instance;
+                }
+
+		void setText(const std::string text)
+		{
+			return impl->setText(text);
+		}
+		int getCurrentTimeFormat() const
+		{
+			return impl->getCurrentTimeFormat();
+		}
+		void setTimeFormat(const int iTimeFormat){
+			return impl->setTimeFormat(iTimeFormat);
+		}
+		std::string getName(){
+			return impl->getName();
+		}
+		void setMode(int mode){
+                        return impl->setMode(mode);
+                }
+		int getTextBrightness() const{
+                        return impl->getTextBrightness();
+                }
+		void setTextBrightness(const int brightness) const{
+                        return impl->setTextBrightness(brightness);
+                }
+		
+		void getBrightnessLevels(int &levels,int &min,int &max) const
+                {
+                        return impl->getBrightnessLevels( levels, min, max);
+                }
+
+		static const int kModeClock24Hr = dsFPD_TIME_24_HOUR;
+		static const int kModeClock12Hr = dsFPD_TIME_12_HOUR;
+
+	};
+}
+namespace device{
+        class FrontPanelConfigImpl{
+        	public:
+			virtual ~FrontPanelConfigImpl() = default;
+			virtual List<device::FrontPanelIndicator> getIndicators() const = 0;
+			virtual device::FrontPanelTextDisplay& getTextDisplay(std::string name) const = 0;
+			virtual List<device::FrontPanelTextDisplay> getTextDisplays() const = 0;
+			virtual device::FrontPanelTextDisplay& getTextDisplay(int id) const = 0;
+			virtual device::FrontPanelTextDisplay& getTextDisplay() const = 0;
+
+	};
+        class FrontPanelConfig{
+		public:
+		static FrontPanelConfig& getInstance()
+                {
+                        static FrontPanelConfig instance;
+                        return instance;
+                }
+		FrontPanelConfigImpl* impl;
+		List<device::FrontPanelIndicator> getIndicators(){
+			return impl->getIndicators();
+		}
+		List<device::FrontPanelTextDisplay> getTextDisplays(){
+                        return impl->getTextDisplays();
+                }
+
+		device::FrontPanelTextDisplay& getTextDisplay(std::string name) const{
+                        return impl->getTextDisplay(name);
+                }
+		device::FrontPanelTextDisplay& getTextDisplay(int id) {
+                        return impl->getTextDisplay(id);
+                }
+		device::FrontPanelTextDisplay& getTextDisplay() const{
+                        return impl->getTextDisplay();
+                }
+
+        };
 }
 
