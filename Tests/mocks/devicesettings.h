@@ -1015,11 +1015,11 @@ public:
         ColorImpl* impl;
 
         static const Color& getInstance(int id)
-{
+        {
             return getInstance().impl->getInstanceById(id);
-}
+        }
         static const Color& getInstance(const std::string& name)
-{
+        {
             return getInstance().impl->getInstanceByName(name);
         }
         static const int kWhite = dsFPD_COLOR_WHITE;
