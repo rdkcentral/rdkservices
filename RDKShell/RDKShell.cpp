@@ -33,6 +33,7 @@
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
 #include <interfaces/IStore.h>
+#include <interfaces/IStoreCache.h>
 #include <rdkshell/logger.h>
 #include <plugins/System.h>
 #include <rdkshell/eastereggs.h>
@@ -306,13 +307,17 @@ namespace WPEFramework {
             {
                 uint32_t result;
                 auto interface = shell->QueryInterfaceByCallsign<Exchange::IStore>(PERSISTENT_STORE_CALLSIGN);
-                if (interface == nullptr) {
+		auto storeInterface = shell->QueryInterfaceByCallsign<Exchange::IStoreCache>(PERSISTENT_STORE_CALLSIGN);
+                if (interface == nullptr || storeInterface == nullptr) {
                     result = Core::ERROR_UNAVAILABLE;
                     std::cout << "no IStore" << std::endl;
                 } else {
                     result = interface->SetValue(ns, key, value);
                     std::cout << "IStore status " << result << " for set " << key << std::endl;
+		    result = storeInterface->FlushCache();
+		    std::cout << "flushCache status " << result << std::endl;
                     interface->Release();
+		    storeInterface->Release();
                 }
                 return result;
             }
