@@ -41,8 +41,6 @@ string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
 # for writing pc and config files
 include(CmakeHelperFunctions)
 
-get_directory_property(SEVICES_DEFINES COMPILE_DEFINITIONS)
-
 if(PLUGIN_PACKAGER)
     add_subdirectory(Packager)
 endif()
@@ -111,7 +109,7 @@ if(PLUGIN_DATACAPTURE)
     add_subdirectory(DataCapture)
 endif()
 
-if(SEVICES_DEFINES MATCHES "HAS_FRONT_PANEL")
+if(HAS_FRONT_PANEL)
     add_subdirectory(FrontPanel)
 endif()
 
