@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.6] - 2022-12-13
+### Fixed
+- Fixed empty IP Address value being returned.
+
 ## [1.0.5] - 2022-12-13
 ### Added
 - Added Network plugin unitTest cases.
