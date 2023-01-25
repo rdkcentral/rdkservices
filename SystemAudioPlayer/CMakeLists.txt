@@ -56,8 +56,14 @@ elseif (BUILD_REALTEK)
         PRIVATE
             impl/realtek/SoC_abstraction.cpp
     )
+elseif (BUILD_BROADCOM)
+    target_sources(${MODULE_NAME}
+        PRIVATE
+            impl/broadcom/SoC_abstraction.cpp
+    )
 endif()
 
+target_include_directories(${MODULE_NAME} PRIVATE ./)
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers/WebSockets)
 target_include_directories(${MODULE_NAME} PRIVATE ${GSTREAMER_INCLUDES})

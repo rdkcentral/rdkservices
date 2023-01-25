@@ -417,6 +417,8 @@ bool RtXcastConnector::IsDynamicAppListEnabled()
     }
 
     LOGINFO(" IsDynamicAppListEnabled enabled ? %d , call value %d ", ret, wdmpStatus);
+#else
+    ret = true;
 #endif //RFC_ENABLED
 
     return ret;
@@ -438,8 +440,9 @@ bool RtXcastConnector::IsAppEnabled(char* strAppName)
             ret = true;
         }
     }
-
     LOGINFO(" IsAppEnabled for %s enabled ? %d , call value %d ", strAppName, ret, wdmpStatus);
+#else
+    ret = true;
 #endif //RFC_ENABLED
 
     return ret;
