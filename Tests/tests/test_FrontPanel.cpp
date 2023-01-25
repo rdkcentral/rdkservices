@@ -115,8 +115,7 @@ protected:
 
 	    plugin->Deinitialize(nullptr);
         //Clearing out out of scope variables, and setting initDone to 0.
-        Plugin::initDone = 0;
-        Plugin::fpIndicators.clear();
+        Plugin::CFrontPanel::initDone = 0;
         IarmBus::getInstance().impl = nullptr;
     }
 };
