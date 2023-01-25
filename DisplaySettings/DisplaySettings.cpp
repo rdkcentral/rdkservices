@@ -96,7 +96,7 @@ using namespace std;
 
 long getElapsedTimeMs(struct timespec *start, struct timespec *stop)
 {
-  struct timespec elapsed = {};
+    struct timespec elapsed = {};
     if ((stop->tv_nsec - start->tv_nsec) < 0)
     {
         elapsed.tv_sec = stop->tv_sec - start->tv_sec - 1;
