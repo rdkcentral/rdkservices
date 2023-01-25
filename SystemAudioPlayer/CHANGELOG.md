@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.4] - 2023-01-25
+### Added
+- Added Support for Broadcom Platform
+
 ## [1.0.3] - 2022-10-04
 ### Fixed
 - Fixed warnings that are treated as errors with "-Wall -Werror"

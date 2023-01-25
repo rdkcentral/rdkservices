@@ -204,8 +204,10 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
         return;
     }
      // create soc specific elements..generic elements
+#if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
     GstElement *convert = gst_element_factory_make("audioconvert", NULL);
     GstElement *resample = gst_element_factory_make("audioresample", NULL);
+#endif
 #if defined(PLATFORM_AMLOGIC)
     m_audioSink = gst_element_factory_make("amlhalasink", NULL);
     m_audioVolume = m_audioSink;
@@ -225,6 +227,9 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
     gst_caps_unref(audiocaps);
     g_object_set(G_OBJECT(m_audioSink), "media-tunnel",  FALSE, NULL);
     g_object_set(G_OBJECT(m_audioSink), "audio-service",  TRUE, NULL);
+#elif defined(PLATFORM_BROADCOM)
+    m_audioSink = gst_element_factory_make("brcmpcmsink", NULL);
+    m_audioVolume = m_audioSink;
 #else
     m_audioSink = gst_element_factory_make("autoaudiosink", NULL); 
 #endif 
@@ -360,6 +365,9 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
         #elif defined(PLATFORM_REALTEK)
         gst_bin_add_many(GST_BIN(m_pipeline), m_source, wavparser, convert, resample,audiofilter,m_audioVolume,m_audioSink, NULL);
         result = gst_element_link_many (m_source,wavparser,convert,resample,audiofilter,m_audioVolume,m_audioSink,NULL);
+        #elif defined(PLATFORM_BROADCOM)
+        gst_bin_add_many(GST_BIN(m_pipeline), m_source, wavparser, m_audioSink, NULL);
+        result = gst_element_link_many (m_source,wavparser,m_audioSink,NULL);
         #endif
     }
 
@@ -395,6 +403,10 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
         GstElement *decodebin = gst_element_factory_make("avdec_mp3", NULL);
         gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, convert, resample, audiofilter, decodebin, m_audioSink, m_audioVolume, NULL);
         gst_element_link_many (m_source, parser, decodebin, convert, resample, audiofilter, m_audioVolume, m_audioSink, NULL);
+        #elif defined(PLATFORM_BROADCOM)
+        GstElement *decodebin = gst_element_factory_make("brcmmp3decoder", NULL);
+        gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, decodebin, m_audioSink, NULL);
+        gst_element_link_many (m_source, parser, decodebin, m_audioSink, NULL);
         #endif
     }
 
@@ -964,6 +976,8 @@ void AudioPlayer::setVolume( int thisVol)
     }
 #elif defined(PLATFORM_REALTEK)
     g_object_set(G_OBJECT(m_audioVolume), "volume", (double) 4.0 * (thisVol/100), NULL);
+#elif defined(PLATFORM_BROADCOM)
+    g_object_set(G_OBJECT(m_audioVolume), "volume", (double)thisVol/100, NULL);
 #endif
     return;
 }
