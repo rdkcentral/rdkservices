@@ -2,7 +2,7 @@
 <a name="Player_Info_Plugin"></a>
 # Player Info Plugin
 
-**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/PlayerInfo/CHANGELOG.md)**
+**Version: [1.0.3](https://github.com/rdkcentral/rdkservices/blob/main/PlayerInfo/CHANGELOG.md)**
 
 A PlayerInfo plugin for Thunder framework.
 
@@ -177,7 +177,7 @@ No Events
 | (property).audio | array |  |
 | (property).audio[#] | string | Audio Codec supported by the platform (must be one of the following: *Undefined*, *AAC*, *AC3*, *AC3Plus*, *DTS*, *MPEG1*, *MPEG2*, *MPEG3*, *MPEG4*, *OPUS*, *VorbisOGG*, *WAV*) |
 | (property).video | array |  |
-| (property).video[#] | string | Video Codec supported by the platform (must be one of the following: *Undefined*, *H263*, *H264*, *H265*, *H26510*, *MPEG*, *VP8*, *VP9*, *VP10*) |
+| (property).video[#] | string | Video Codec supported by the platform (must be one of the following: *Undefined*, *H263*, *H264*, *H265*, *H26510*, *MPEG*, *MPEG2*, *MPEG4*, *VP8*, *VP9*, *VP10*) |
 
 ### Example
 
