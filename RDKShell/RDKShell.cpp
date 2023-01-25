@@ -33,6 +33,7 @@
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
 #include <interfaces/IStore.h>
+#include <interfaces/IStoreCache.h>
 #include <rdkshell/logger.h>
 #include <plugins/System.h>
 #include <rdkshell/eastereggs.h>
@@ -51,7 +52,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 10
+#define API_VERSION_NUMBER_PATCH 11
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -306,13 +307,17 @@ namespace WPEFramework {
             {
                 uint32_t result;
                 auto interface = shell->QueryInterfaceByCallsign<Exchange::IStore>(PERSISTENT_STORE_CALLSIGN);
-                if (interface == nullptr) {
+		auto storeInterface = shell->QueryInterfaceByCallsign<Exchange::IStoreCache>(PERSISTENT_STORE_CALLSIGN);
+                if (interface == nullptr || storeInterface == nullptr) {
                     result = Core::ERROR_UNAVAILABLE;
                     std::cout << "no IStore" << std::endl;
                 } else {
                     result = interface->SetValue(ns, key, value);
                     std::cout << "IStore status " << result << " for set " << key << std::endl;
+		    result = storeInterface->FlushCache();
+		    std::cout << "flushCache status " << result << std::endl;
                     interface->Release();
+		    storeInterface->Release();
                 }
                 return result;
             }
