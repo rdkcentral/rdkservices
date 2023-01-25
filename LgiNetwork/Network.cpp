@@ -925,7 +925,11 @@ namespace WPEFramework
         void Network::onInterfaceEnabledStatusChanged(string interface, bool enabled)
         {
             JsonObject params;
+#ifdef LGINET_STRICT_IFACE_NAMES
+            params["interface"] = getTypeOfInterface(interface);
+#else
             params["interface"] = interface;
+#endif
             params["enabled"] = enabled;
             sendNotify("onInterfaceStatusChanged", params);
         }
