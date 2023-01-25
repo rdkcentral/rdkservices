@@ -51,7 +51,7 @@
 #include "UtilsString.h"
 #include "UtilsisValidInt.h"
 #include "dsRpc.h"
-
+#include <math.h>
 using namespace std;
 
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
@@ -83,6 +83,33 @@ using namespace std;
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 16
+
+#define PLUGIN_PROFILE_START() \
+    struct timespec start; \
+    struct timespec stop; \
+    clock_gettime(CLOCK_MONOTONIC, &start);\
+	LOGINFO("%s: Entry\n",__FUNCTION__);
+
+#define PLUGIN_PROFILE_END() \
+    clock_gettime(CLOCK_MONOTONIC, &stop); \
+    LOGINFO("%s : Exit Time: %ldms\n", __FUNCTION__, getElapsedTimeMs(&start, &stop));
+
+long getElapsedTimeMs(struct timespec *start, struct timespec *stop)
+{
+  struct timespec elapsed = {};
+    if ((stop->tv_nsec - start->tv_nsec) < 0)
+    {
+        elapsed.tv_sec = stop->tv_sec - start->tv_sec - 1;
+        elapsed.tv_nsec = stop->tv_nsec - start->tv_nsec + 1000000000;
+    }
+    else
+    {
+        elapsed.tv_sec = stop->tv_sec - start->tv_sec;
+        elapsed.tv_nsec = stop->tv_nsec - start->tv_nsec;
+    }
+    return (elapsed.tv_sec*1000 + lround(elapsed.tv_nsec/1e6));
+}
+
 
 static bool isCecEnabled = false;
 static int  hdmiArcPortId = -1;
@@ -227,6 +254,7 @@ namespace WPEFramework {
             : PluginHost::JSONRPC()
         {
             LOGINFO("ctor");
+	    PLUGIN_PROFILE_START();
             DisplaySettings::_instance = this;
             m_client = nullptr;
 
@@ -340,6 +368,7 @@ namespace WPEFramework {
 	    m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UNKNOWN;// maintains the SAD state
 	    m_sendMsgThreadExit = false;
 	   // m_AudioSentPoweronmsg = false;
+	   PLUGIN_PROFILE_END();
         }
 
         DisplaySettings::~DisplaySettings()
@@ -349,6 +378,7 @@ namespace WPEFramework {
 
         void DisplaySettings::AudioPortsReInitialize()
         {
+	    PLUGIN_PROFILE_START();
             LOGINFO("Entering DisplaySettings::AudioPortsReInitialize");
             try
             {
@@ -364,11 +394,13 @@ namespace WPEFramework {
                 LOGWARN("Audio Port : AudioPortsReInitialize failed\n");
                 LOG_DEVICE_EXCEPTION0();
             }
+	    PLUGIN_PROFILE_END();
         }
      
         void DisplaySettings::InitAudioPorts() 
         {   //sample servicemanager response: {"success":true,"supportedAudioPorts":["HDMI0"]}
             //LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             LOGINFO("Entering DisplaySettings::InitAudioPorts");
             uint32_t ret = Core::ERROR_NONE;
             try
@@ -499,10 +531,12 @@ namespace WPEFramework {
                 LOGWARN("Audio Port : InitAudioPorts failed\n");
                 LOG_DEVICE_EXCEPTION0();
             }
+	    PLUGIN_PROFILE_END();
         }
 
         const string DisplaySettings::Initialize(PluginHost::IShell* service)
         {
+	    PLUGIN_PROFILE_START();
             ASSERT(service != nullptr);
             ASSERT(m_service == nullptr);
 
@@ -528,11 +562,13 @@ namespace WPEFramework {
             }
             LOGWARN ("DisplaySettings::Initialize completes line:%d", __LINE__);
             // On success return empty, to indicate there is no error text.
+	    PLUGIN_PROFILE_END();
             return (string());
         }
 
         void DisplaySettings::Deinitialize(PluginHost::IShell* service)
         {
+	   PLUGIN_PROFILE_START();
 	   LOGINFO("Enetering DisplaySettings::Deinitialize");
 	   {
 		std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_sendMsgMutex);
@@ -563,10 +599,12 @@ namespace WPEFramework {
 
             m_service->Release();
             m_service = nullptr;
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::InitializeIARM()
         {
+	    PLUGIN_PROFILE_START();
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -613,10 +651,12 @@ namespace WPEFramework {
             {
                 LOGINFO("device::Manager::Initialize failed");
             }
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::DeinitializeIARM()
         {
+	    PLUGIN_PROFILE_START();
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
@@ -650,18 +690,22 @@ namespace WPEFramework {
             {
                 LOGINFO("device::Manager::DeInitialize failed");
             }
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::ResolutionPreChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
+	    PLUGIN_PROFILE_START();
             if(DisplaySettings::_instance)
             {
                 DisplaySettings::_instance->resolutionPreChange();
             }
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::ResolutionPostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
+	    PLUGIN_PROFILE_START();
             int dw = 1280;
             int dh = 720;
 
@@ -681,10 +725,12 @@ namespace WPEFramework {
             {
                 DisplaySettings::_instance->resolutionChanged(dw, dh);
             }
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::DisplResolutionHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
+	    PLUGIN_PROFILE_START();
             //TODO(MROLLINS) Receiver has this whole thing guarded by #ifndef HEADLESS_GW
             if (strcmp(owner,IARM_BUS_DSMGR_NAME) == 0)
             {
@@ -742,10 +788,12 @@ namespace WPEFramework {
                     break;
                 }
             }
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
+	    PLUGIN_PROFILE_START();
             switch (eventId)
             {
             case IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG :
@@ -846,11 +894,12 @@ namespace WPEFramework {
                 //do nothing
                 break;
             }
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::formatUpdateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-
+	    PLUGIN_PROFILE_START();
 	    LOGINFO("%s \n", __FUNCTION__);
             switch (eventId) {
                 case IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE:
@@ -879,10 +928,12 @@ namespace WPEFramework {
 		    LOGERR("Invalid event ID\n");
 		    break;
            }
+	    PLUGIN_PROFILE_END();
         }
         
         void DisplaySettings::audioPortStateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
+	    PLUGIN_PROFILE_START();
             dsAudioPortState_t audioPortState = dsAUDIOPORT_STATE_UNINITIALIZED;
             LOGINFO("%s \n", __FUNCTION__);
             switch (eventId) {
@@ -908,11 +959,12 @@ namespace WPEFramework {
                   LOGERR("Invalid event ID\n");
                   break;
            }  
+	   PLUGIN_PROFILE_END();
         }  
 
         void DisplaySettings::dsSettingsChangeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-
+	    PLUGIN_PROFILE_START();
             LOGINFO("%s \n", __FUNCTION__);
             if (data == NULL) {
                 LOGERR("data is NULL, return !!!\n");
@@ -965,10 +1017,12 @@ namespace WPEFramework {
                     LOGERR("Unhandled Event... \n");
                     break;
            }
+	   PLUGIN_PROFILE_END();
         }
 
         void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)
         {
+	    PLUGIN_PROFILE_START();
             JsonArray arr;
             for(auto& i : items) arr.Add(JsonValue(i));
 
@@ -976,23 +1030,27 @@ namespace WPEFramework {
 
             string json;
             response.ToString(json);
+	    PLUGIN_PROFILE_END();
         }
 
         //Begin methods
         uint32_t DisplaySettings::getConnectedVideoDisplays(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response: {"connectedVideoDisplays":["HDMI0"],"success":true}
             //this                          : {"connectedVideoDisplays":["HDMI0"]}
+	    PLUGIN_PROFILE_START();
             LOGINFOMETHOD();
 
             vector<string> connectedVideoDisplays;
             getConnectedVideoDisplaysHelper(connectedVideoDisplays);
             setResponseArray(response, "connectedVideoDisplays", connectedVideoDisplays);
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getConnectedAudioPorts(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response: {"success":true,"connectedAudioPorts":["HDMI0"]}
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             vector<string> connectedAudioPorts;
             try
             {
@@ -1016,11 +1074,13 @@ namespace WPEFramework {
             }
             setResponseArray(response, "connectedAudioPorts", connectedAudioPorts);
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getSupportedResolutions(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"supportedResolutions":["720p","1080i","1080p60"]}
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
             string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : strVideoPort;
             vector<string> supportedResolutions;
@@ -1040,11 +1100,13 @@ namespace WPEFramework {
             }
             setResponseArray(response, "supportedResolutions", supportedResolutions);
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getSupportedVideoDisplays(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response: {"supportedVideoDisplays":["HDMI0"],"success":true}
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             vector<string> supportedVideoDisplays;
             try
             {
@@ -1062,11 +1124,13 @@ namespace WPEFramework {
             }
             setResponseArray(response, "supportedVideoDisplays", supportedVideoDisplays);
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getSupportedTvResolutions(const JsonObject& parameters, JsonObject& response)
-        {   //sample servicemanager response:{"success":true,"supportedTvResolutions":["480i","480p","576i","720p","1080i","1080p"]}
+        {   //sample servicemanaer response:{"success":true,"supportedTvResolutions":["480i","480p","576i","720p","1080i","1080p"]}
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
             string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : strVideoPort;
             vector<string> supportedTvResolutions;
@@ -1101,11 +1165,13 @@ namespace WPEFramework {
             }
             setResponseArray(response, "supportedTvResolutions", supportedTvResolutions);
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getSupportedSettopResolutions(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"supportedSettopResolutions":["720p","1080i","1080p60"]}
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             vector<string> supportedSettopResolutions;
             try
             {
@@ -1130,11 +1196,14 @@ namespace WPEFramework {
             }
             setResponseArray(response, "supportedSettopResolutions", supportedSettopResolutions);
             returnResponse(true);
-        }
+	    PLUGIN_PROFILE_END();
+	}
+
 
         uint32_t DisplaySettings::getSupportedAudioPorts(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response: {"success":true,"supportedAudioPorts":["HDMI0"]}
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             vector<string> supportedAudioPorts;
             try
             {
@@ -1152,11 +1221,13 @@ namespace WPEFramework {
             }
             setResponseArray(response, "supportedAudioPorts", supportedAudioPorts);
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getSupportedAudioModes(const JsonObject& parameters, JsonObject& response)
         {   //sample response: {"success":true,"supportedAudioModes":["STEREO","PASSTHRU","AUTO (Dolby Digital 5.1)"]}
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "";
             vector<string> supportedAudioModes;
             try
@@ -1227,11 +1298,13 @@ namespace WPEFramework {
             }
             setResponseArray(response, "supportedAudioModes", supportedAudioModes);
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getZoomSetting(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             string zoomSetting = "unknown";
 
             bool success = true;
@@ -1257,12 +1330,13 @@ namespace WPEFramework {
 #endif
             response["zoomSetting"] = zoomSetting;
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setZoomSetting(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
-
+	    PLUGIN_PROFILE_START();
             returnIfParamNotFound(parameters, "zoomSetting");
             string zoomSetting = parameters["zoomSetting"].String();
 
@@ -1288,11 +1362,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getCurrentResolution(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"resolution":"720p"}
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
             string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : strVideoPort;
             bool success = true;
@@ -1307,11 +1383,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setCurrentResolution(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             returnIfParamNotFound(parameters, "videoDisplay");
             returnIfParamNotFound(parameters, "resolution");
 
@@ -1338,11 +1416,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getSoundMode(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"soundMode":"AUTO (Dolby Digital 5.1)"}
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             string audioPort = parameters["audioPort"].String();//empty value will browse all ports
 
             if (!checkPortName(audioPort))
@@ -1488,11 +1568,13 @@ namespace WPEFramework {
 #endif
             response["soundMode"] = modeString;
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setSoundMode(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             string audioPort = parameters["audioPort"].String();//missing or empty string and we will set all ports
 
             returnIfParamNotFound(parameters, "soundMode");
@@ -1681,13 +1763,14 @@ namespace WPEFramework {
             //ServiceManager::getInstance()->saveSetting(this, SETTING_DISPLAY_SERVICE_SOUND_MODE, soundMode);
 
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::readEDID(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response: {"EDID":"AP///////wBSYgYCAQEBAQEXAQOAoFp4CvCdo1VJmyYPR0ovzgCBgIvAAQEBAQEBAQEBAQEBAjqAGHE4LUBYLEUAQIRjAAAeZiFQsFEAGzBAcDYAQIRjAAAeAAAA/ABUT1NISUJBLVRWCiAgAAAA/QAXSw9EDwAKICAgICAgAbECAytxSpABAgMEBQYHICImCQcHEQcYgwEAAGwDDAAQADgtwBUVHx/jBQMBAR2AGHEcFiBYLCUAQIRjAACeAR0AclHQHiBuKFUAQIRjAAAejArQiiDgLRAQPpYAsIRDAAAYjAqgFFHwFgAmfEMAsIRDAACYAAAAAAAAAAAAAAAA9w=="
             //sample this thunder plugin    : {"EDID":"AP///////wBSYgYCAQEBAQEXAQOAoFp4CvCdo1VJmyYPR0ovzgCBgIvAAQEBAQEBAQEBAQEBAjqAGHE4LUBYLEUAQIRjAAAeZiFQsFEAGzBAcDYAQIRjAAAeAAAA/ABUT1NISUJBLVRWCiAgAAAA/QAXSw9EDwAKICAgICAgAbECAytxSpABAgMEBQYHICImCQcHEQcYgwEAAGwDDAAQADgtwBUVHx/jBQMBAR2AGHEcFiBYLCUAQIRjAACeAR0AclHQHiBuKFUAQIRjAAAejArQiiDgLRAQPpYAsIRDAAAYjAqgFFHwFgAmfEMAsIRDAACYAAAAAAAAAAAAAAAA9w"}
             LOGINFOMETHOD();
-
+	    PLUGIN_PROFILE_START();
             bool success = true;
             vector<uint8_t> edidVec({'u','n','k','n','o','w','n' });
             try
@@ -1722,12 +1805,13 @@ namespace WPEFramework {
             }
 
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::readHostEDID(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
-
+	    PLUGIN_PROFILE_START();
             vector<uint8_t> edidVec({'u','n','k','n','o','w','n' });
             try
             {
@@ -1749,12 +1833,13 @@ namespace WPEFramework {
             Core::ToString((uint8_t*)&edidVec[0], size, true, base64String);
             response["EDID"] = base64String;
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getActiveInput(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
-
+	    PLUGIN_PROFILE_START();
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
             string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : strVideoPort;
             bool active = true;
@@ -1771,12 +1856,13 @@ namespace WPEFramework {
             }
             response["activeInput"] = JsonValue(active);
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getTvHDRSupport(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"standards":["none"],"supportsHDR":false}
             LOGINFOMETHOD();
-
+	    PLUGIN_PROFILE_START();
             JsonArray hdrCapabilities;
             int capabilities = dsHDRSTANDARD_NONE;
 
@@ -1814,12 +1900,13 @@ namespace WPEFramework {
                LOGINFO("capabilities: %s", hdrCapabilities[i].String().c_str());
             }
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getSettopHDRSupport(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"standards":["HDR10"],"supportsHDR":true}
             LOGINFOMETHOD();
-
+	    PLUGIN_PROFILE_START();
             JsonArray hdrCapabilities;
             int capabilities = dsHDRSTANDARD_NONE;
 
@@ -1861,11 +1948,12 @@ namespace WPEFramework {
                LOGINFO("capabilities: %s", hdrCapabilities[i].String().c_str());
             }
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
         uint32_t DisplaySettings::getSettopAudioCapabilities(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"AudioCapabilities":["ATMOS","DOLBY DIGITAL","DOLBYDIGITAL PLUS","MS12"]}
             LOGINFOMETHOD();
-
+	    PLUGIN_PROFILE_START();
             JsonArray audioCapabilities;
             int capabilities = dsAUDIOSUPPORT_NONE;
 
@@ -1894,12 +1982,13 @@ namespace WPEFramework {
                LOGINFO("capabilities: %s", audioCapabilities[i].String().c_str());
             }
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getSettopMS12Capabilities(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"MS12Capabilities":["Dolby Volume","Inteligent Equalizer","Dialogue Enhancer"]}
             LOGINFOMETHOD();
-
+	    PLUGIN_PROFILE_START();
             JsonArray ms12Capabilities;
             int capabilities = dsMS12SUPPORT_NONE;
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
@@ -1924,11 +2013,13 @@ namespace WPEFramework {
                LOGINFO("capabilities: %s", ms12Capabilities[i].String().c_str());
             }
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setVideoPortStatusInStandby(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
 
             returnIfParamNotFound(parameters, "portName");
             string portname = parameters["portName"].String();
@@ -1972,12 +2063,13 @@ namespace WPEFramework {
                 }
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getVideoPortStatusInStandby(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-
+	    PLUGIN_PROFILE_START();
             returnIfParamNotFound(parameters, "portName");
             string portname = parameters["portName"].String();
 
@@ -2030,11 +2122,13 @@ namespace WPEFramework {
 
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getCurrentOutputSettings(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
 
             bool success = true;
             try
@@ -2066,11 +2160,13 @@ namespace WPEFramework {
 
             LOGINFO("Leaving_ DisplaySettings::%s\n", __FUNCTION__);
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getVolumeLeveller(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
 
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
@@ -2094,12 +2190,13 @@ namespace WPEFramework {
                         response["level"] = 0;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getVolumeLeveller2(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
-
+		PLUGIN_PROFILE_START();
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
                 dsVolumeLeveller_t leveller;
@@ -2122,10 +2219,12 @@ namespace WPEFramework {
                         response["level"] = 0;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::audioFormatToString(dsAudioFormat_t audioFormat, JsonObject & response)
         {
+	    PLUGIN_PROFILE_START();
             std::vector<string> supportedAudioFormat = {"NONE", "PCM", "AAC","VORBIS","WMA", "DOLBY AC3", "DOLBY EAC3",
                                                          "DOLBY AC4", "DOLBY MAT", "DOLBY TRUEHD",
                                                          "DOLBY EAC3 ATMOS","DOLBY TRUEHD ATMOS",
@@ -2179,11 +2278,13 @@ namespace WPEFramework {
                        break;
             }
             setResponseArray(response, "supportedAudioFormat", supportedAudioFormat);
+	    PLUGIN_PROFILE_END();
 	}
 
         uint32_t DisplaySettings::getAudioFormat(const JsonObject& parameters, JsonObject& response)
         {
              LOGINFOMETHOD();
+	     PLUGIN_PROFILE_START();
 	     bool success = true;
              dsAudioFormat_t audioFormat = dsAUDIO_FORMAT_NONE;
              try
@@ -2200,55 +2301,69 @@ namespace WPEFramework {
 		 audioFormatToString(dsAUDIO_FORMAT_NONE, response);
              }
 	     returnResponse(success);
+	     PLUGIN_PROFILE_END();
         }
 
 	void DisplaySettings::notifyAudioFormatChange(dsAudioFormat_t audioFormat)
 	{
+	     PLUGIN_PROFILE_START();
 	     JsonObject params;
 	     audioFormatToString(audioFormat, params);
              sendNotify("audioFormatChanged", params);
+	     PLUGIN_PROFILE_END();
 	}
 
 	void DisplaySettings::notifyVideoFormatChange(dsHDRStandard_t videoFormat)
 	{
+	    PLUGIN_PROFILE_START();
             JsonObject params;
             params["currentVideoFormat"] = getVideoFormatTypeToString(videoFormat);
 
             params["supportedVideoFormat"] = getSupportedVideoFormats();
             sendNotify("videoFormatChanged", params);
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::notifyAssociatedAudioMixingChange(bool mixing)
         {
+	     PLUGIN_PROFILE_START();
              JsonObject params;
              params["mixing"] = mixing;
              sendNotify("associatedAudioMixingChanged", params);
+	     PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::notifyFaderControlChange(bool mixerbalance)
         {
+	     PLUGIN_PROFILE_START();
              JsonObject params;
              params["mixerBalance"] = mixerbalance;
              sendNotify("faderControlChanged", params);
+	     PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::notifyPrimaryLanguageChange(std::string pLang)
         {
+	     PLUGIN_PROFILE_START();
              JsonObject params;
              params["primaryLanguage"] = pLang;
              sendNotify("primaryLanguageChanged", params);
+	     PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::notifySecondaryLanguageChange(std::string sLang)
         {
+	     PLUGIN_PROFILE_START();
              JsonObject params;
              params["secondaryLanguage"] = sLang;
              sendNotify("secondaryLanguageChanged", params);
+	     PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getBassEnhancer(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
                 int boost = 0;
@@ -2274,11 +2389,13 @@ namespace WPEFramework {
                         response["enable"] = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::isSurroundDecoderEnabled(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 bool success = true;
                 bool surroundDecoderEnable = false;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
@@ -2303,11 +2420,13 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getGain (const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             bool success = true;
             float gain = 0;
 
@@ -2324,11 +2443,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getMuted (const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             bool success = true;
             bool muted = false;
 
@@ -2345,11 +2466,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getVolumeLevel (const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             bool success = true;
             float level = 0;
 
@@ -2366,11 +2489,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getDRCMode(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 bool success = true;
                 int mode = 0;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
@@ -2394,11 +2519,13 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getSurroundVirtualizer(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
                 dsSurroundVirtualizer_t virtualizer;
@@ -2424,11 +2551,13 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
                 dsSurroundVirtualizer_t virtualizer;
@@ -2457,11 +2586,13 @@ namespace WPEFramework {
 
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 	
         uint32_t DisplaySettings::getMISteering(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 bool success = true;
                 bool enable = false;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
@@ -2485,11 +2616,13 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setVolumeLeveller(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 returnIfParamNotFound(parameters, "level");
                 string sVolumeLeveller = parameters["level"].String();
                 dsVolumeLeveller_t VolumeLeveller;
@@ -2524,11 +2657,13 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setVolumeLeveller2(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 returnIfParamNotFound(parameters, "mode");
 		string sMode = parameters["mode"].String();
                 string sLevel = parameters["level"].String();
@@ -2573,12 +2708,14 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
 
         uint32_t DisplaySettings::enableSurroundDecoder(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 returnIfParamNotFound(parameters, "surroundDecoderEnable");
                 string sEnableSurroundDecoder = parameters["surroundDecoderEnable"].String();
                 bool enableSurroundDecoder = false;
@@ -2601,11 +2738,13 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setBassEnhancer(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 returnIfParamNotFound(parameters, "bassBoost");
                 string sBassBoost = parameters["bassBoost"].String();
                 int bassBoost = 0;
@@ -2633,11 +2772,13 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setSurroundVirtualizer(const JsonObject& parameters, JsonObject& response)
         {
                LOGINFOMETHOD();
+	       PLUGIN_PROFILE_START();
                returnIfParamNotFound(parameters, "boost");
                string sSurroundVirtualizer = parameters["boost"].String();
                dsSurroundVirtualizer_t surroundVirtualizer;
@@ -2672,11 +2813,13 @@ namespace WPEFramework {
                    success = false;
                }
                returnResponse(success);
+	       PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setSurroundVirtualizer2(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 returnIfParamNotFound(parameters, "mode");
                 string sMode = parameters["mode"].String();
                 string sBoost = parameters["boost"].String();
@@ -2722,11 +2865,13 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setMISteering(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 returnIfParamNotFound(parameters, "MISteeringEnable");
                 string sMISteering = parameters["MISteeringEbnable"].String();
                 bool MISteering = false;
@@ -2748,12 +2893,14 @@ namespace WPEFramework {
                         LOG_DEVICE_EXCEPTION2(audioPort, sMISteering);
                         success = false;
                 }
-                returnResponse(success)
+                returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setGain(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 returnIfParamNotFound(parameters, "gain");
                 string sGain = parameters["gain"].String();
                 float newGain = 0;
@@ -2781,11 +2928,13 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setMuted (const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 returnIfParamNotFound(parameters, "muted");
                 string sMuted = parameters["muted"].String();
                 bool muted = false;
@@ -2810,11 +2959,13 @@ namespace WPEFramework {
                     success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setVolumeLevel(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 returnIfParamNotFound(parameters, "volumeLevel");
                 string sLevel = parameters["volumeLevel"].String();
                 float level = 0;
@@ -2839,11 +2990,13 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setDRCMode(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 returnIfParamNotFound(parameters, "DRCMode");
                 string sDRCMode = parameters["DRCMode"].String();
                 int DRCMode = 0;
@@ -2871,11 +3024,13 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setMS12AudioCompression (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             returnIfParamNotFound(parameters, "compresionLevel");
 
             string sCompresionLevel = parameters["compresionLevel"].String();
@@ -2900,11 +3055,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getMS12AudioCompression (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
                        bool success = true;
                        int compressionlevel = 0;
 
@@ -2924,11 +3081,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setDolbyVolumeMode (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             returnIfParamNotFound(parameters, "dolbyVolumeMode");
 
             string sDolbyVolumeMode = parameters["dolbyVolumeMode"].String();
@@ -2957,11 +3116,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getDolbyVolumeMode (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
                        bool success = true;
 
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
@@ -2976,11 +3137,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setDialogEnhancement (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             returnIfParamNotFound(parameters, "enhancerlevel");
 
             string sEnhancerlevel = parameters["enhancerlevel"].String();
@@ -3005,11 +3168,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getDialogEnhancement (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
                        bool success = true;
                        int enhancerlevel = 0;
 
@@ -3029,11 +3194,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setIntelligentEqualizerMode (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             returnIfParamNotFound(parameters, "intelligentEqualizerMode");
 
             string sIntelligentEqualizerMode = parameters["intelligentEqualizerMode"].String();
@@ -3058,11 +3225,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getIntelligentEqualizerMode (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
                        bool success = true;
                        int intelligentEqualizerMode = 0;
 
@@ -3082,12 +3251,14 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
 
         uint32_t DisplaySettings::setGraphicEqualizerMode (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             returnIfParamNotFound(parameters, "graphicEqualizerMode");
 
             string sGraphicEqualizerMode = parameters["graphicEqualizerMode"].String();
@@ -3112,11 +3283,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getGraphicEqualizerMode (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
                        bool success = true;
                        int graphicEqualizerMode = 0;
 
@@ -3136,13 +3309,14 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
 
         uint32_t DisplaySettings::setMS12AudioProfile (const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-
+	    PLUGIN_PROFILE_START();
             bool success = true;
 
             returnIfParamNotFound(parameters, "ms12AudioProfile");
@@ -3161,11 +3335,13 @@ namespace WPEFramework {
             }
 
 	    returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setMS12ProfileSettingsOverride(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             bool success = true;
 
             returnIfParamNotFound(parameters, "operation");
@@ -3193,12 +3369,14 @@ namespace WPEFramework {
             }
 
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
 
         uint32_t DisplaySettings::getMS12AudioProfile (const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             bool success = true;
 
 	    string audioProfileName;
@@ -3216,12 +3394,14 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
 
         uint32_t DisplaySettings::getSupportedMS12AudioProfiles(const JsonObject& parameters, JsonObject& response)
         {   //sample response: {"success":true,"supportedMS12AudioProfiles":["Off","Music","Movie","Game","Voice","Night","User"]}
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             vector<string> supportedProfiles;
 	    string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
@@ -3239,12 +3419,14 @@ namespace WPEFramework {
             }
             setResponseArray(response, "supportedMS12AudioProfiles", supportedProfiles);
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
 
         uint32_t DisplaySettings::setAssociatedAudioMixing(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 returnIfParamNotFound(parameters, "mixing");
                 string sMixing = parameters["mixing"].String();
                 bool mixing = false;
@@ -3272,7 +3454,8 @@ namespace WPEFramework {
                         LOG_DEVICE_EXCEPTION2(audioPort, sMixing);
                         success = false;
                 }
-                returnResponse(success)
+                returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
 
@@ -3280,6 +3463,7 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getAssociatedAudioMixing(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 bool success = true;
                 bool mixing = false;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
@@ -3301,11 +3485,13 @@ namespace WPEFramework {
                     success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setFaderControl(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 returnIfParamNotFound(parameters, "mixerBalance");
                 string sMixerBalance = parameters["mixerBalance"].String();
                 int mixerBalance = 0;
@@ -3339,12 +3525,14 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
 
         uint32_t DisplaySettings::getFaderControl(const JsonObject& parameters, JsonObject& response)
         {
                 LOGINFOMETHOD();
+		PLUGIN_PROFILE_START();
                 bool success = true;
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
                 int mixerBalance = 0;
@@ -3366,12 +3554,13 @@ namespace WPEFramework {
                         success = false;
                 }
                 returnResponse(success);
+		PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setPrimaryLanguage (const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-
+	    PLUGIN_PROFILE_START();
             bool success = true;
 
             returnIfParamNotFound(parameters, "lang");
@@ -3396,12 +3585,14 @@ namespace WPEFramework {
             }
 
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
 
         uint32_t DisplaySettings::getPrimaryLanguage (const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             bool success = true;
 
             string primaryLanguage;
@@ -3425,11 +3616,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setSecondaryLanguage (const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
 
             bool success = true;
 
@@ -3455,12 +3648,14 @@ namespace WPEFramework {
             }
 
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
 
         uint32_t DisplaySettings::getSecondaryLanguage (const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             bool success = true;
 
             string secondaryLanguage;
@@ -3484,12 +3679,14 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
 
         uint32_t DisplaySettings::getAudioDelay (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             bool success = true;
             string audioPort = parameters["audioPort"].String();//empty value will browse all ports
 
@@ -3539,11 +3736,13 @@ namespace WPEFramework {
             }
 
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setAudioDelay (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
 
 			returnIfParamNotFound(parameters, "audioDelay");
 
@@ -3606,11 +3805,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getAudioDelayOffset (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
 
             bool success = true;
             string audioPort = parameters["audioPort"].String();//empty value will browse all ports
@@ -3661,12 +3862,13 @@ namespace WPEFramework {
             }
 
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setAudioDelayOffset (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
-
+	    PLUGIN_PROFILE_START();
             returnIfParamNotFound(parameters, "audioDelayOffset");
 
             string sAudioDelayOffsetMs = parameters["audioDelayOffset"].String();
@@ -3727,11 +3929,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getSinkAtmosCapability (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
 			bool success = true;
 			dsATMOSCapability_t atmosCapability;
             try
@@ -3759,11 +3963,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setAudioAtmosOutputMode (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             returnIfParamNotFound(parameters, "enable");
 
             string sEnable = parameters["enable"].String();
@@ -3793,11 +3999,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
 	uint32_t DisplaySettings::setForceHDRMode (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             returnIfParamNotFound(parameters, "hdr_mode");
 
             string sMode = parameters["hdr_mode"].String();
@@ -3825,11 +4033,13 @@ namespace WPEFramework {
                 LOG_DEVICE_EXCEPTION2(string("HDMI0"), sMode);
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getPreferredColorDepth(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"colorDepth":"10 Bit","success":true}
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
             string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : strVideoPort;
             bool persist = parameters.HasLabel("persist") ? parameters["persist"].Boolean() : true;
@@ -3863,11 +4073,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::setPreferredColorDepth(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response: {"success":true}
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             returnIfParamNotFound(parameters, "videoDisplay");
             returnIfParamNotFound(parameters, "colorDepth");
 
@@ -3904,11 +4116,13 @@ namespace WPEFramework {
                 success = false;
             }
             returnResponse(success);
+	    PLUGIN_PROFILE_END();
         }
 
         uint32_t DisplaySettings::getColorDepthCapabilities(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"capabilities":["8 Bit","10 Bit","12 Bit","Auto"]}
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
             string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : strVideoPort;
             vector<string> colorDepthCapabilities;
@@ -3929,10 +4143,12 @@ namespace WPEFramework {
             }
             setResponseArray(response, "capabilities", colorDepthCapabilities);
             returnResponse(true);
+	    PLUGIN_PROFILE_END();
         }
 
         bool DisplaySettings::setUpHdmiCecSinkArcRouting (bool arcEnable)
         {
+	    PLUGIN_PROFILE_START();
             bool success = true;
 
             PluginHost::IShell::state state;
@@ -3955,7 +4171,8 @@ namespace WPEFramework {
 
                     LOGINFO("ARC Routing - %d \n", arcEnable);
                     m_client->Invoke<JsonObject, JsonObject>(2000, "setupARCRouting", param, hdmiCecSinkResult);
-                    if (!hdmiCecSinkResult["success"].Boolean()) {
+                    LOGINFO("return from setupARCRouting\n");
+		    if (!hdmiCecSinkResult["success"].Boolean()) {
 			success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
                     }
@@ -3965,12 +4182,13 @@ namespace WPEFramework {
 		success = false;
                 LOGERR("HdmiCecSink plugin not ready\n");
             }
-
+	    PLUGIN_PROFILE_END();
             return success;
 	}
 	
 	bool DisplaySettings::getHdmiCecSinkCecEnableStatus ()
         {
+		PLUGIN_PROFILE_START();
             bool cecEnable = false;
 
             PluginHost::IShell::state state;
@@ -3984,9 +4202,9 @@ namespace WPEFramework {
                 else {
                     JsonObject hdmiCecSinkResult;
                     JsonObject param;
-
+		    LOGINFO("calling getEnabled\n");
                     m_client->Invoke<JsonObject, JsonObject>(2000, "getEnabled", param, hdmiCecSinkResult);
-
+			LOGINFO("returning from getEnabled\n");
 		    cecEnable = hdmiCecSinkResult["enabled"].Boolean();
 		    LOGINFO("get-cecEnabled [%d]\n",cecEnable);
 
@@ -3998,11 +4216,13 @@ namespace WPEFramework {
             else {
                 LOGERR("HdmiCecSink plugin not ready\n");
             }
+	    PLUGIN_PROFILE_END();
             return cecEnable;
         }
 
 	bool DisplaySettings::getHdmiCecSinkAudioDeviceConnectedStatus ()
         {
+		PLUGIN_PROFILE_START();
             bool hdmiAudioDeviceDetected = false;
 
             PluginHost::IShell::state state;
@@ -4016,9 +4236,10 @@ namespace WPEFramework {
                 else {
                     JsonObject hdmiCecSinkResult;
                     JsonObject param;
-
+			LOGINFO("calling getAudioDeviceConnectedStatus\n");
                     m_client->Invoke<JsonObject, JsonObject>(2000, "getAudioDeviceConnectedStatus", param, hdmiCecSinkResult);
-
+			LOGINFO("returning from  getAudioDeviceConnectedStatus\n");
+			
                     hdmiAudioDeviceDetected = hdmiCecSinkResult["connected"].Boolean();
                     LOGINFO("getAudioDeviceConnectedStatus [%d]\n",hdmiAudioDeviceDetected);
 
@@ -4030,12 +4251,14 @@ namespace WPEFramework {
             else {
                 LOGERR("HdmiCecSink plugin not ready\n");
             }
+	    PLUGIN_PROFILE_END();
             return hdmiAudioDeviceDetected;
         }
 
         bool DisplaySettings::sendHdmiCecSinkAudioDevicePowerOn ()
         {
-            bool success = true;
+            PLUGIN_PROFILE_START();
+	    bool success = true;
 
             PluginHost::IShell::state state;
             if ((getServiceState(m_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
@@ -4051,6 +4274,7 @@ namespace WPEFramework {
 
                     LOGINFO("Send Audio Device Power On !!!\n");
                     m_client->Invoke<JsonObject, JsonObject>(2000, "sendAudioDevicePowerOnMessage", param, hdmiCecSinkResult);
+                    LOGINFO("returning from Send Audio Device Power On !!!\n");
                     if (!hdmiCecSinkResult["success"].Boolean()) {
                         success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
@@ -4061,12 +4285,13 @@ namespace WPEFramework {
                 success = false;
                 LOGERR("HdmiCecSink plugin not ready\n");
             }
-
+	    PLUGIN_PROFILE_END();
             return success;
         }
 
         bool DisplaySettings::requestShortAudioDescriptor()
         {
+	    PLUGIN_PROFILE_START();
             bool success = true;
 
             PluginHost::IShell::state state;
@@ -4083,6 +4308,7 @@ namespace WPEFramework {
 
                     LOGINFO("Requesting Short Audio Descriptor \n");
                     m_client->Invoke<JsonObject, JsonObject>(2000, "requestShortAudioDescriptor", param, hdmiCecSinkResult);
+                    LOGINFO("returning from Requesting Short Audio Descriptor \n");
                     if (!hdmiCecSinkResult["success"].Boolean()) {
                         success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
@@ -4093,12 +4319,13 @@ namespace WPEFramework {
                 success = false;
                 LOGERR("HdmiCecSink plugin not ready\n");
             }
-
+	    PLUGIN_PROFILE_END();
             return success;
         }
 
         bool DisplaySettings::requestAudioDevicePowerStatus()
         {
+	    PLUGIN_PROFILE_START();
             bool success = true;
 
             PluginHost::IShell::state state;
@@ -4115,6 +4342,7 @@ namespace WPEFramework {
 
                     LOGINFO("Requesting Audio Device power Status \n");
                     m_client->Invoke<JsonObject, JsonObject>(2000, "requestAudioDevicePowerStatus", param, hdmiCecSinkResult);
+                    LOGINFO("returning from Requesting Audio Device power Status \n");
                     if (!hdmiCecSinkResult["success"].Boolean()) {
                         success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
@@ -4125,13 +4353,14 @@ namespace WPEFramework {
                 success = false;
                 LOGERR("HdmiCecSink plugin not ready\n");
             }
-
+	    PLUGIN_PROFILE_END();
             return success;
         }
 
         uint32_t DisplaySettings::setEnableAudioPort (const JsonObject& parameters, JsonObject& response)
         {   //TODO: Handle other audio ports. Currently only supports HDMI ARC/eARC
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             returnIfParamNotFound(parameters, "audioPort");
 
             bool success = true;
@@ -4321,10 +4550,12 @@ namespace WPEFramework {
                 LOG_DEVICE_EXCEPTION1(audioPort);
                 success = false;
             }
+	    PLUGIN_PROFILE_END();
             returnResponse(success);
         }
         
 	void  DisplaySettings::checkSADUpdate() {
+		PLUGIN_PROFILE_START();
 		//Timer will be invoked if SAD update is delayed
 		LOGINFO("Inside checkSADUpdate\n");
 		std::lock_guard<std::mutex> lock(m_SadMutex);
@@ -4356,11 +4587,13 @@ namespace WPEFramework {
 		if (m_SADDetectionTimer.isActive()) {
 			m_SADDetectionTimer.stop();
 		}
+		PLUGIN_PROFILE_END();
 	}
 
         uint32_t DisplaySettings::getEnableAudioPort (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
                        bool success = true;
 
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
@@ -4387,6 +4620,7 @@ namespace WPEFramework {
                 LOG_DEVICE_EXCEPTION1(audioPort);
                 success = false;
             }
+	    PLUGIN_PROFILE_END();
             returnResponse(success);
         }
 
@@ -4394,6 +4628,7 @@ namespace WPEFramework {
         // Thunder plugins communication
         void DisplaySettings::getHdmiCecSinkPlugin()
         {
+	    PLUGIN_PROFILE_START();
             if(m_client == nullptr)
             {
                 string token;
@@ -4421,11 +4656,13 @@ namespace WPEFramework {
                 m_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(HDMICECSINK_CALLSIGN_VER), (_T(HDMICECSINK_CALLSIGN_VER)), false, query);
                 LOGINFO("DisplaySettings getHdmiCecSinkPlugin init m_client\n");
             }
+	    PLUGIN_PROFILE_END();
         }
 
 
         IARM_Bus_PWRMgr_PowerState_t DisplaySettings::getSystemPowerState()
         {
+	    PLUGIN_PROFILE_START();
             IARM_Result_t res;
             IARM_Bus_PWRMgr_GetPowerState_Param_t param;
 
@@ -4439,17 +4676,20 @@ namespace WPEFramework {
             {
                 LOGWARN("GetPowerState failed");
             }
-
+		PLUGIN_PROFILE_END();
             return m_powerState;
         }
 
         void DisplaySettings::initAudioPortsWorker(void)
         {
+		PLUGIN_PROFILE_START();
             DisplaySettings::_instance->InitAudioPorts();
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
+		PLUGIN_PROFILE_START();
             if(!DisplaySettings::_instance)
                  return;
             if (strcmp(owner, IARM_BUS_PWRMGR_NAME) != 0)
@@ -4553,11 +4793,13 @@ namespace WPEFramework {
 
             default: break;
             }
+	    PLUGIN_PROFILE_END();
         }
 
 	/* Message wrapper function to push the message to queue  */
 	void DisplaySettings::sendMsgToQueue(msg_t msg, void *param )
 	{
+		PLUGIN_PROFILE_START();
 		SendMsgInfo msgInfo;
 
                 msgInfo.msg = msg;
@@ -4566,10 +4808,12 @@ namespace WPEFramework {
         	DisplaySettings::_instance->m_sendMsgQueue.push(msgInfo);
         	DisplaySettings::_instance->m_sendMsgThreadRun = true;
         	DisplaySettings::_instance->m_sendMsgCV.notify_one();
+		PLUGIN_PROFILE_END();
 	}
 		
 void DisplaySettings::sendMsgThread()
 {
+	PLUGIN_PROFILE_START();
 	LOGINFO("%s: message Thread Start\n",__FUNCTION__);
 	bool result = false;
         SendMsgInfo msgInfo;
@@ -4655,12 +4899,14 @@ void DisplaySettings::sendMsgThread()
 						
 		DisplaySettings::_instance->m_sendMsgQueue.pop();
 	}
+	PLUGIN_PROFILE_END();
 }
 
         // Event management
         // 1.
         uint32_t DisplaySettings::subscribeForHdmiCecSinkEvent(const char* eventName)
         {
+	    PLUGIN_PROFILE_START();
             uint32_t err = Core::ERROR_NONE;
             LOGINFO("Attempting to subscribe for event: %s\n", eventName);
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
@@ -4712,12 +4958,14 @@ void DisplaySettings::sendMsgThread()
                     LOGERR("Failed to subscribe for %s with code %d", eventName, err);
                 }
             }
+	    PLUGIN_PROFILE_END();
             return err;
         }
 
         // 2.
         void DisplaySettings::onARCInitiationEventHandler(const JsonObject& parameters) {
-            string message;
+        	PLUGIN_PROFILE_START();
+	    	string message;
 	    string value;
 
             parameters.ToString(message);
@@ -4787,11 +5035,13 @@ void DisplaySettings::sendMsgThread()
             } else {
                 LOGINFO("%s: The ARC initiation already done", __FUNCTION__);
             }
+	    PLUGIN_PROFILE_END();
         }
 
         // 3.
         void DisplaySettings::onARCTerminationEventHandler(const JsonObject& parameters) {
-            string message;
+      		PLUGIN_PROFILE_START();
+	 	string message;
 	    string value;
 
             parameters.ToString(message);
@@ -4839,11 +5089,13 @@ void DisplaySettings::sendMsgThread()
                     LOGERR("Field 'status' could not be found in the event's payload.");
                 }
 	    }
+	    PLUGIN_PROFILE_END();
         }
 
         // 4.
         void DisplaySettings::onShortAudioDescriptorEventHandler(const JsonObject& parameters) {
-            string message;
+        	PLUGIN_PROFILE_START();
+	    	string message;
 
             parameters.ToString(message);
 	    JsonArray shortAudioDescriptorList;
@@ -4922,11 +5174,13 @@ void DisplaySettings::sendMsgThread()
                 LOGERR("Field 'ShortAudioDescriptor' could not be found in the event's payload.");
             }/*End of (m_AudioDeviceSADState == AUDIO_DEVICE_SAD_REQUESTED) */
 	  }
+	    PLUGIN_PROFILE_END();
         }
 
         // 5.
         void DisplaySettings::onSystemAudioModeEventHandler(const JsonObject& parameters) {
-            string message;
+       		PLUGIN_PROFILE_START();
+	   	string message;
             string value;
 
             parameters.ToString(message);
@@ -4973,11 +5227,13 @@ void DisplaySettings::sendMsgThread()
             } else {
                 LOGERR("Field 'audioMode' could not be found in the event's payload.");
             }
+	    PLUGIN_PROFILE_END();
         }
 
 	/* Event handler when Audio Device is Added/Removed     */
 	void DisplaySettings::onAudioDeviceConnectedStatusEventHandler(const JsonObject& parameters)
 	{
+		PLUGIN_PROFILE_START();
 	    string value;
 
 	    if (parameters.HasLabel("audioDeviceConnected"))
@@ -5011,10 +5267,12 @@ void DisplaySettings::sendMsgThread()
 		} else {
                     LOGINFO("Audio Device is removed \n");
 		}
+		PLUGIN_PROFILE_END();
         }
 
 	void DisplaySettings::onAudioDevicePowerStatusEventHandler(const JsonObject& parameters) {
             string value;
+	    PLUGIN_PROFILE_START();
             if (parameters.HasLabel("powerStatus"))
                 value = parameters["powerStatus"].String();
 
@@ -5076,10 +5334,12 @@ void DisplaySettings::sendMsgThread()
 		     m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_REQUEST;
                      sendMsgToQueue(REQUEST_AUDIO_DEVICE_POWER_STATUS, NULL);
 	     }
+	     PLUGIN_PROFILE_END();
         }
 
 	/*Arc detection timer*/
         void DisplaySettings::checkArcDeviceConnected() {
+		PLUGIN_PROFILE_START();
 	    //Timer is invoked in case of delayed HPD
 	    LOGINFO("Inside checkArcDeviceConnected\n");
 	    static int retryArcCount = 0;
@@ -5120,10 +5380,12 @@ void DisplaySettings::sendMsgThread()
 	            retryArcCount = 0; /* reset counter */
                     m_ArcDetectionTimer.stop();
             }
+	    PLUGIN_PROFILE_END();
 	}	
 	/* DisplaaySettings gets notified whenever CEC is made Enable or Disable  */
 	void DisplaySettings::onCecEnabledEventHandler(const JsonObject& parameters)
 	{
+		PLUGIN_PROFILE_START();
              string value;
 
              LOGINFO(" CEC Enable-Disable Event... \n");
@@ -5152,9 +5414,11 @@ void DisplaySettings::sendMsgThread()
 	      }
 
               LOGINFO("updated isCecEnabled [%d] ... \n", isCecEnabled);
+	      PLUGIN_PROFILE_END();
 	}
 
         void DisplaySettings::stopCecTimeAndUnsubscribeEvent() {
+		PLUGIN_PROFILE_START();
             LOGINFO ("de-init cec timer and subscribbed event \n");
             {
                 lock_guard<mutex> lck(m_callMutex);
@@ -5186,11 +5450,13 @@ void DisplaySettings::sendMsgThread()
                     delete m_client; m_client = nullptr;
                 }
             }
+	    PLUGIN_PROFILE_END();
         }
 
         // 6.
         void DisplaySettings::onTimer()
         {
+		PLUGIN_PROFILE_START();
             // lock to prevent: parallel onTimer runs, destruction during onTimer
             lock_guard<mutex> lck(m_callMutex);
 
@@ -5252,10 +5518,12 @@ void DisplaySettings::sendMsgThread()
                 sendMsgToQueue(REQUEST_AUDIO_DEVICE_POWER_STATUS, NULL);
                 LOGINFO("[HDMI_ARC0] sendAudioDevicePowerStatusRequestMsg!!!\n");
             }
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::checkAudioDeviceDetectionTimer()
         {
+		PLUGIN_PROFILE_START();
             // lock to prevent: parallel onTimer runs, destruction during onTimer
             lock_guard<mutex> lck(m_callMutex);
             if (m_subscribed && m_hdmiCecAudioDeviceDetected)
@@ -5272,11 +5540,13 @@ void DisplaySettings::sendMsgThread()
             if (m_AudioDeviceDetectTimer.isActive()) {
                m_AudioDeviceDetectTimer.stop();
             }
+	    PLUGIN_PROFILE_END();
         }
 
  void DisplaySettings::checkAudioDevicePowerStatusTimer()
  {
 
+	 PLUGIN_PROFILE_START();
     lock_guard<mutex> lck(m_callMutex);
            if (m_subscribed && m_hdmiCecAudioDeviceDetected)
            {
@@ -5299,6 +5569,7 @@ void DisplaySettings::sendMsgThread()
                retryPowerRequestCount = 0;
                m_AudioDevicePowerOnStatusTimer.stop();
             }
+	    PLUGIN_PROFILE_END();
  }
         // Event management end
 
@@ -5308,6 +5579,7 @@ void DisplaySettings::sendMsgThread()
         uint32_t DisplaySettings::getTVHDRCapabilities (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
 			bool success = true;
 			int capabilities = dsHDRSTANDARD_NONE;
             try
@@ -5327,13 +5599,14 @@ void DisplaySettings::sendMsgThread()
             {
                 LOG_DEVICE_EXCEPTION1(string("HDMI0"));
                 success = false;
-            }
+            }PLUGIN_PROFILE_END();
             returnResponse(success);
         }
 
         uint32_t DisplaySettings::isConnectedDeviceRepeater (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             bool success = true;
             bool isConnectedDeviceRepeater = false;
             try
@@ -5354,12 +5627,14 @@ void DisplaySettings::sendMsgThread()
                 LOG_DEVICE_EXCEPTION1(string("HDMI0"));
                 success = false;
             }
+	    PLUGIN_PROFILE_END();
             returnResponse(success);
         }
 
         uint32_t DisplaySettings::getDefaultResolution (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
 			bool success = true;
             try
             {
@@ -5378,12 +5653,14 @@ void DisplaySettings::sendMsgThread()
                 LOG_DEVICE_EXCEPTION1(string("HDMI0"));
                 success = false;
             }
+	    PLUGIN_PROFILE_END();
             returnResponse(success);
         }
 
         uint32_t DisplaySettings::setScartParameter (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             returnIfParamNotFound(parameters, "scartParameter");
             returnIfParamNotFound(parameters, "scartParameterData");
 
@@ -5401,6 +5678,7 @@ void DisplaySettings::sendMsgThread()
                 LOG_DEVICE_EXCEPTION2(sScartParameter, sScartParameterData);
                 success = false;
             }
+	    PLUGIN_PROFILE_END();
             returnResponse(success);
         }
         //End methods
@@ -5408,11 +5686,14 @@ void DisplaySettings::sendMsgThread()
         //Begin events
         void DisplaySettings::resolutionPreChange()
         {
+		PLUGIN_PROFILE_START();
             sendNotify("resolutionPreChange", JsonObject());
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::resolutionChanged(int width, int height)
         {
+		PLUGIN_PROFILE_START();
             vector<string> connectedDisplays;
             getConnectedVideoDisplaysHelper(connectedDisplays);
 
@@ -5464,26 +5745,32 @@ void DisplaySettings::sendMsgThread()
                 params["resolution"] = firstResolution;
                 sendNotify("resolutionChanged", params);
             }
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::zoomSettingUpdated(const string& zoomSetting)
         {//servicemanager sample: {"name":"zoomSettingUpdated","params":{"zoomSetting":"None","success":true,"videoDisplayType":"all"}
          //servicemanager sample: {"name":"zoomSettingUpdated","params":{"zoomSetting":"Full","success":true,"videoDisplayType":"all"}
             JsonObject params;
+	    PLUGIN_PROFILE_START();
             params["zoomSetting"] = zoomSetting;
             params["videoDisplayType"] = "all";
             sendNotify("zoomSettingUpdated", params);
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::activeInputChanged(bool activeInput)
         {
+		PLUGIN_PROFILE_START();
             JsonObject params;
             params["activeInput"] = activeInput;
             sendNotify("activeInputChanged", params);
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::connectedVideoDisplaysUpdated(int hdmiHotPlugEvent)
         {
+		PLUGIN_PROFILE_START();
             static int previousStatus = HDMI_HOT_PLUG_EVENT_CONNECTED;
             static int firstTime = 1;
 
@@ -5505,10 +5792,12 @@ void DisplaySettings::sendMsgThread()
                 sendNotify("connectedVideoDisplaysUpdated", params);
             }
             previousStatus = hdmiHotPlugEvent;
+	    PLUGIN_PROFILE_END();
         }
 
         void DisplaySettings::connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected)
         {
+		PLUGIN_PROFILE_START();
             JsonObject params;
             string sPortName;
             string sPortStatus;
@@ -5540,12 +5829,14 @@ void DisplaySettings::sendMsgThread()
             }
             LOGWARN ("Thunder sends notification %s audio port hotplug status %s", sPortName.c_str(), sPortStatus.c_str());
             sendNotify("connectedAudioPortUpdated", params);
+	    PLUGIN_PROFILE_END();
         }
 
         //End events
 
         void DisplaySettings::getConnectedVideoDisplaysHelper(vector<string>& connectedDisplays)
         {
+		PLUGIN_PROFILE_START();
             try
             {
                 device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
@@ -5572,10 +5863,12 @@ void DisplaySettings::sendMsgThread()
             {
                 LOG_DEVICE_EXCEPTION0();
             }
+	    PLUGIN_PROFILE_END();
         }
 
         bool DisplaySettings::checkPortName(std::string& name) const
         {
+		PLUGIN_PROFILE_START();
             if (Utils::String::stringContains(name,"HDMI")) {
 		if(Utils::String::stringContains(name,"HDMI_ARC"))
                     name = "HDMI_ARC0";
@@ -5591,12 +5884,14 @@ void DisplaySettings::sendMsgThread()
             else if (!name.empty()) // Empty is allowed
                 return false;
 
+	    PLUGIN_PROFILE_END();
             return true;
         }
 
         uint32_t DisplaySettings::resetDialogEnhancement(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             bool success = true;
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
@@ -5609,12 +5904,14 @@ void DisplaySettings::sendMsgThread()
                 LOG_DEVICE_EXCEPTION1(audioPort);
                 success = false;
             }
+	    PLUGIN_PROFILE_END();
             returnResponse(success);
         }
 
         uint32_t DisplaySettings::resetBassEnhancer(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             bool success = true;
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
@@ -5627,12 +5924,14 @@ void DisplaySettings::sendMsgThread()
                 LOG_DEVICE_EXCEPTION1(audioPort);
                 success = false;
             }
+	    PLUGIN_PROFILE_END();
             returnResponse(success);
         }
 
         uint32_t DisplaySettings::resetSurroundVirtualizer(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             bool success = true;
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
@@ -5645,12 +5944,14 @@ void DisplaySettings::sendMsgThread()
                 LOG_DEVICE_EXCEPTION1(audioPort);
                 success = false;
             }
+	    PLUGIN_PROFILE_END();
             returnResponse(success);
         }
 
         uint32_t DisplaySettings::resetVolumeLeveller(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    PLUGIN_PROFILE_START();
             bool success = true;
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
@@ -5663,12 +5964,13 @@ void DisplaySettings::sendMsgThread()
                 LOG_DEVICE_EXCEPTION1(audioPort);
                 success = false;
             }
+	    PLUGIN_PROFILE_END();
             returnResponse(success);
         }
         uint32_t DisplaySettings::getVideoFormat(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"currentVideoFormat":"SDR","supportedVideoFormat":["SDR","HDR10","HLG","DV","Technicolor Prime"],"success":true}
             LOGINFOMETHOD();
-
+		PLUGIN_PROFILE_START();
             try
             {
                 std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
@@ -5692,11 +5994,13 @@ void DisplaySettings::sendMsgThread()
 
 
             response["supportedVideoFormat"] = getSupportedVideoFormats();
+	    PLUGIN_PROFILE_END();
             returnResponse(true);
         }
 
         JsonArray DisplaySettings::getSupportedVideoFormats()
         {
+		PLUGIN_PROFILE_START();
             JsonArray videoFormats;
             int capabilities = dsHDRSTANDARD_NONE;
 
@@ -5727,11 +6031,13 @@ void DisplaySettings::sendMsgThread()
             {
                LOGINFO("capabilities: %s", videoFormats[i].String().c_str());
             }
+	    PLUGIN_PROFILE_END();
             return videoFormats;
         }
 
         const char *DisplaySettings::getVideoFormatTypeToString(dsHDRStandard_t format)
         {
+		PLUGIN_PROFILE_START();
             const char *strValue = "NONE";
             switch (format)
             {
@@ -5764,11 +6070,13 @@ void DisplaySettings::sendMsgThread()
                     strValue = "NONE";
                     break;
             }
+	    PLUGIN_PROFILE_END();
             return strValue;
 
         }
 	dsHDRStandard_t DisplaySettings::getVideoFormatTypeFromString(const char *strFormat)
         {
+		PLUGIN_PROFILE_START();
            dsHDRStandard_t mode = dsHDRSTANDARD_NONE;
             if(strcmp(strFormat,"SDR")== 0 )
                     mode = dsHDRSTANDARD_SDR;
@@ -5787,6 +6095,7 @@ void DisplaySettings::sendMsgThread()
 	    else
 		    mode = dsHDRSTANDARD_Invalid;
 
+	    PLUGIN_PROFILE_END();
 	    return mode;
         }
     } // namespace Plugin
