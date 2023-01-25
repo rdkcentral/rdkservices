@@ -74,6 +74,7 @@ jobs:
           sudo apt update
           &&
           sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang
+      
       - name: Checkout Thunder
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
@@ -108,6 +109,7 @@ jobs:
           cmake --build build/Thunder -j8
           &&
           cmake --install build/Thunder
+      
       - name: Checkout ThunderInterfaces
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
@@ -128,6 +130,7 @@ jobs:
           cmake --build build/ThunderInterfaces -j8
           &&
           cmake --install build/ThunderInterfaces
+      
       - name: Checkout rdkservices
         uses: actions/checkout@v3
         with:
@@ -156,6 +159,7 @@ jobs:
           cmake --build build/rdkservices -j8
           &&
           cmake --install build/rdkservices
+      
       - name: Set up files
         run: >
           sudo mkdir -p -m 777
@@ -182,11 +186,13 @@ jobs:
           /etc/device.properties
           /etc/authService.conf
           /version.txt
+      
       - name: Run unit tests without valgrind
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
           RdkServicesTest
+      
       - name: Run unit tests with valgrind
         if: ${{ !env.ACT }}
         run: >
@@ -200,6 +206,7 @@ jobs:
           --track-fds=yes
           --fair-sched=try
           RdkServicesTest
+      
       - name: Generate coverage
         if: ${{ matrix.coverage == 'with-coverage' && !env.ACT }}
         run: >
@@ -221,6 +228,7 @@ jobs:
           -o coverage
           -t "rdkservices coverage"
           filtered_coverage.info
+      
       - name: Upload artifacts
         if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v3

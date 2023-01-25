@@ -43,4 +43,3 @@ public:
     MOCK_METHOD(IARM_Result_t, IARM_Bus_RegisterCall, (const char* methodName, IARM_BusCall_t handler), (override));
     MOCK_METHOD(IARM_Result_t, IARM_Bus_Call_with_IPCTimeout, (const char *ownerName,  const char *methodName, void *arg, size_t argLen, int timeout), (override));
 };
-

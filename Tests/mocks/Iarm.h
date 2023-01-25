@@ -81,6 +81,7 @@ public:
     {
         return getInstance().impl->IARM_Bus_RegisterCall(methodName, handler);
     }
+
     static IARM_Result_t IARM_Bus_Call_with_IPCTimeout(const char *ownerName,  const char *methodName, void *arg, size_t argLen, int timeout)
     {
         return getInstance().impl->IARM_Bus_Call_with_IPCTimeout(ownerName, methodName, arg, argLen, timeout);
@@ -137,7 +138,6 @@ typedef struct _IARM_Bus_CECMgr_Status_Updated_Param_t
 #define IARM_BUS_CECMGR_AddLogicalAddress "AddLogicalAddress"
 #define IARM_BUS_CECMGR_GetPhysicalAddress "GetPHysicalAddress"
 #define IARM_BUS_CECMGR_API_isAvailable "isAvailable"
-
 
 #define IARMBUS_AUDIOCAPTUREMGR_NAME "audiocapturemgr"
 #define IARMBUS_AUDIOCAPTUREMGR_REQUEST_SAMPLE "requestSample"

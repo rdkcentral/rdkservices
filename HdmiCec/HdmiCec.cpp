@@ -291,7 +291,6 @@ namespace WPEFramework
 
         void HdmiCec::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
-	    LOGINFO("INSIDE DSHDMIEVENTHANDLER");
             if(!HdmiCec::_instance)
                 return;
 
@@ -482,7 +481,6 @@ namespace WPEFramework
             libcecInitStatus++;
 
             smConnection = new Connection(LogicalAddress::UNREGISTERED,false,"ServiceManager::Connection::");
-	    
             smConnection->open();
             smConnection->addFrameListener(this);
 
@@ -815,7 +813,7 @@ namespace WPEFramework
             Core::ToString((uint8_t*)input_frameBuf, length, true, bufbase64);
 
             if (HdmiCec::_instance) {
-		    MessageDecoder((*(HdmiCec::_instance))).decode(in);
+                MessageDecoder((*(HdmiCec::_instance))).decode(in);
             } else {
                 LOGWARN("HdmiCec::_instance NULL Cec msg decoding failed.");
             }
@@ -974,7 +972,7 @@ namespace WPEFramework
 	void HdmiCec::sendUnencryptMsg(unsigned char* msg, int size)
 	{
 		LOGINFO("sendMessage ");
-		
+
 		if(true == cecEnableStatus)
 		{
 			std::vector <unsigned char> buf;
@@ -1120,6 +1118,7 @@ namespace WPEFramework
 					}
 				}
 			}
+
 		}
 		pthread_mutex_unlock(&(_instance->m_lockUpdate));
                 LOGINFO("%s: Thread exited", __FUNCTION__);
