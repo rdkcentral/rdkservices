@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
         ${TESTS}
         mocks/thunder/Module.cpp
         mocks/Wraps.cpp
+	mocks/rdkshell.cpp
         )
 
 set_source_files_properties(
@@ -70,6 +71,7 @@ include_directories(../LocationSync
         ../ActivityMonitor
         ../MotionDetection
         ../CompositeInput
+	../RDKShell
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -97,6 +99,7 @@ link_directories(../LocationSync
         ../ActivityMonitor
         ../MotionDetection
         ../CompositeInput
+	../RDKShell
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -128,6 +131,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}ActivityMonitor
         ${NAMESPACE}MotionDetection
         ${NAMESPACE}CompositeInput
+	${NAMESPACE}RDKShell
         )
 
 target_include_directories(${PROJECT_NAME}

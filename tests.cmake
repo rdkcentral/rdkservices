@@ -12,6 +12,7 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/rdk/iarmmgrs-hal
         ${BASEDIR}/ccec/drivers
         ${BASEDIR}/network
+	${BASEDIR}/rdkshell
         )
 
 set(EMPTY_HEADERS
@@ -44,12 +45,21 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdk/iarmmgrs-hal/sysMgr.h
         ${BASEDIR}/network/wifiSrvMgrIarmIf.h
         ${BASEDIR}/network/netsrvmgrIarm.h
+	${BASEDIR}/rdkshell/rdkshellevents.h
+        ${BASEDIR}/rdkshell/rdkshell.h
+        ${BASEDIR}/rdkshell/compositorcontroller.h
+        ${BASEDIR}/rdkshell/logger.h
+        ${BASEDIR}/rdkshell/eastereggs.h
+        ${BASEDIR}/rdkshell/application.h
+        ${BASEDIR}/rdkshell/linuxkeys.h
         ${BASEDIR}/framebuffer-api.h
         ${BASEDIR}/libudev.h
         ${BASEDIR}/rfcapi.h
         ${BASEDIR}/rbus.h
         ${BASEDIR}/telemetry_busmessage_sender.h
         ${BASEDIR}/motionDetector.h
+	${BASEDIR}/rdk_logger_milestone.h
+        ${BASEDIR}/base64.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -69,6 +79,9 @@ set(FAKE_HEADERS
         ${BASEDIR}/Telemetry.h
         ${BASEDIR}/Udev.h
         ${BASEDIR}/MotionDetection.h
+	${BASEDIR}/rdkshell.h
+	${BASEDIR}/RdkLoggerMilestone.h
+	${BASEDIR}/base64.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -127,5 +140,6 @@ set(PLUGIN_WAREHOUSE ON)
 set(PLUGIN_ACTIVITYMONITOR ON)
 set(PLUGIN_MOTION_DETECTION ON)
 set(PLUGIN_COMPOSITEINPUT ON)
+set(PLUGIN_RDKSHELL ON)
 
 set(DS_FOUND ON)
