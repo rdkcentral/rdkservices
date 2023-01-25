@@ -1177,7 +1177,7 @@ class CECFrame{
 	};
 	CECFrameImpl* impl;
 	void getBuffer(const uint8_t **buf, size_t *len) const{
-		return impl->getBuffer(buf, len);
+		return getInstance().impl->getBuffer(buf, len);
 	}
 	CECFrame(const uint8_t *buf = NULL, uint16_t len = 0){
 		
