@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 1
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 8
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -490,6 +490,15 @@ namespace WPEFramework {
                 setMode(mode, response);
             }
 
+#ifdef DISABLE_GEOGRAPHY_TIMEZONE
+            std::string timeZone = getTimeZoneDSTHelper();
+
+            if (!timeZone.empty()) {
+                std::string tzenv = ":";
+                tzenv += timeZone;
+                Core::SystemInfo::SetEnvironment(_T("TZ"), tzenv.c_str());
+            }
+#endif
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
@@ -2259,6 +2268,12 @@ namespace WPEFramework {
 						populateResponseWithError(SysSrv_FileAccessFailed, response);
 						resp = false;
 					}
+
+#ifdef DISABLE_GEOGRAPHY_TIMEZONE
+                    std::string tzenv = ":";
+                    tzenv += timeZone;
+                    Core::SystemInfo::SetEnvironment(_T("TZ"), tzenv.c_str());
+#endif
 				}
 			} catch (...) {
 				LOGERR("catch block : parameters[\"timeZone\"]...");
