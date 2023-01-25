@@ -175,7 +175,6 @@ namespace WPEFramework
         : PluginHost::JSONRPC(),cecEnableStatus(false),smConnection(nullptr)
         {
             HdmiCec::_instance = this;
-            
 
             Register(HDMICEC_METHOD_SET_ENABLED, &HdmiCec::setEnabledWrapper, this);
             Register(HDMICEC_METHOD_GET_ENABLED, &HdmiCec::getEnabledWrapper, this);
