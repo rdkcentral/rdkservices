@@ -10,7 +10,12 @@
 #include <map>
 #include <gio/gio.h>
 #include <glib.h>
-#include "lginetwork_dbus_api.h"
+#ifdef GDBUS_USE_CODEGEN_IMPL
+    #include "gdbus-codegen-impl/lginetwork_dbus_api.h"
+#else
+    #include "lginetwork_dbus_api.h"
+#endif
+
 #include "../Module.h"
 
 #define NETWORK_CONFIG_DBUS_INTERFACE_NAME        "com.lgi.rdk.utils.networkconfig1"

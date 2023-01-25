@@ -40,8 +40,14 @@ add_library(${MODULE_NAME} SHARED
         PingNotifier.cpp
         Module.cpp
         dbus/lginetwork_client.cpp
-        dbus/lginetwork_dbus_api.c
         )
+
+if(GDBUS_USE_CODEGEN_IMPL)
+        target_sources(${MODULE_NAME} PUBLIC dbus/gdbus-codegen-impl/lginetwork_dbus_api.c)
+        add_compile_definitions(GDBUS_USE_CODEGEN_IMPL)
+else()
+        target_sources(${MODULE_NAME} PUBLIC dbus/lginetwork_dbus_api.c)
+endif()
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
