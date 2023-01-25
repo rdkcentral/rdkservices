@@ -58,6 +58,11 @@ public:
 LgiNetworkClient::LgiNetworkClient()
 {
     LOGINFO("user_data: %p", this);
+#ifdef GDBUS_USE_CODEGEN_IMPL
+    LOGINFO("using gdbus-codegen impl");
+#else
+    LOGINFO("using gdbusproxy impl");
+#endif
 }
 
 LgiNetworkClient::~LgiNetworkClient()
@@ -70,17 +75,32 @@ LgiNetworkClient::~LgiNetworkClient()
 void LgiNetworkClient::connectSignal(const char* signalName,
                                       GCallback callback)
 {
-    auto handle = g_signal_connect(m_interface, signalName, callback, this);
-    if (!handle)
-        LOGERR("Cannot connect to signal %s", signalName);
+#ifdef GDBUS_USE_CODEGEN_IMPL
+    auto object = m_interface;
+#else
+    auto object = m_interface->proxy;
+#endif
 
-    m_signalHandles.push_back(handle);
+    auto handle = g_signal_connect(object, signalName, callback, this);
+    if (!handle)
+    {
+        LOGERR("Cannot connect to signal %s", signalName);
+    }
+    else
+    {
+        m_signalHandles.push_back(handle);
+    }
 }
 
 void LgiNetworkClient::disconnectAllSignals()
 {
+#ifdef GDBUS_USE_CODEGEN_IMPL
+    auto object = m_interface;
+#else
+    auto object = m_interface->proxy;
+#endif
     for (auto handle : m_signalHandles)
-        g_signal_handler_disconnect(m_interface, handle);
+        g_signal_handler_disconnect(object, handle);
     m_signalHandles.clear();
 }
 
@@ -286,6 +306,50 @@ void LgiNetworkClient::onHandleStatusChanged(LgiNetworkClient*  aNetworkConfigPr
         onStatusChangeEvent(std::string(aId), std::string(aIfaceStatus));
 }
 
+#ifndef GDBUS_USE_CODEGEN_IMPL
+static void handle_dbus_event(GDBusProxy *proxy,
+                          char *sender_name,
+                          char *_signal_name,
+                          GVariant *parameters,
+                          gpointer user_data)
+{
+    std::string signal_name{_signal_name};
+
+    const gsize num_params = g_variant_n_children(parameters);
+    GVariantIter iter;
+    g_variant_iter_init(&iter, parameters);
+
+    // printf("handle_dbus_event: sender_name: %s signal_name: %s, num_params: %zu\n" , sender_name, _signal_name, num_params);
+
+    LgiNetworkClient *client = static_cast<LgiNetworkClient *>(user_data);
+
+    if (signal_name == "IPv4ConfigurationChanged" && num_params == 1)
+    {
+        const gchar *aId = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
+        DbusHandlerCallbacks::cbHandleIPv4ConfigurationChanged(client, aId, user_data);
+    }
+    else if (signal_name == "NetworkingEvent" && num_params == 4)
+    {
+        const gchar *aId = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
+        const gchar *aEvent = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
+        // count is 'u' / guint32
+        guint aCount = g_variant_get_uint32(g_variant_iter_next_value(&iter));
+        GVariant *aParams = g_variant_iter_next_value(&iter);
+        DbusHandlerCallbacks::cbHandleNetworkingEvent(client, aId, aEvent, aCount, aParams, user_data);
+    }
+    else if (signal_name == "StatusChanged" && num_params == 2)
+    {
+        const gchar *aId = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
+        const gchar *aIfaceStatus = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
+        DbusHandlerCallbacks::cbHandleStatusChanged(client, aId, aIfaceStatus, user_data);
+    }
+    else
+    {
+        LOGINFO("handle_dbus_event: unsupported event; sender_name: %s signal_name: %s, num_params: %zu" , sender_name, _signal_name, num_params);
+    }
+}
+#endif
+
 int LgiNetworkClient::Run()
 {
     LOGINFO("user_data: %p", this);
@@ -297,12 +361,15 @@ int LgiNetworkClient::Run()
                                                             NETWORK_CONFIG_DBUS_INTERFACE_OBJECT_PATH,
                                                             NULL, /* GCancellable */
                                                             &error);
-
     if (m_interface)
     {
+#ifdef GDBUS_USE_CODEGEN_IMPL
         connectSignal("ipv4-configuration-changed", G_CALLBACK(DbusHandlerCallbacks::cbHandleIPv4ConfigurationChanged));
         connectSignal("networking-event", G_CALLBACK (DbusHandlerCallbacks::cbHandleNetworkingEvent));
         connectSignal("status-changed", G_CALLBACK (DbusHandlerCallbacks::cbHandleStatusChanged));
+#else
+        connectSignal("g-signal", G_CALLBACK (handle_dbus_event));
+#endif
         LOGINFO("Networkconfig proxy created");
     }
     else
@@ -322,12 +389,25 @@ int LgiNetworkClient::Run()
     return 0;
 }
 
+
+static void release_networkconfig1(Networkconfig1* interface)
+{
+#ifdef GDBUS_USE_CODEGEN_IMPL
+    g_object_unref(interface);
+#else
+    if (interface->proxy) g_object_unref(interface->proxy);
+    g_dbus_connection_flush_sync(interface->connection, NULL, NULL);
+    g_object_unref(interface->connection);
+    g_free(interface);
+#endif
+}
+
 void LgiNetworkClient::Stop()
 {
     if (m_interface)
     {
         disconnectAllSignals();
-        g_object_unref(m_interface);
+        release_networkconfig1(m_interface);
         m_interface = nullptr;
         LOGINFO("signals disconnected");
     }
