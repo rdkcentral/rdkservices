@@ -187,6 +187,21 @@ TEST_F(FrontPanelTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setClockTestPattern")));
 }
 
+TEST_F(FrontPanelInitializedEventDsTest, powerModeChange)
+{
+    //powerModeChange does not make any external function calls, and simply sets the variable powerStatus.
+    //The tests that need powerState set to true may not work if helper/frontpanel.cpp
+    //ever gets fixed to be released from memory/deinitialized.
+    ASSERT_TRUE(dsFrontPanelModeChange != nullptr);
+
+    IARM_Bus_PWRMgr_EventData_t eventData;
+    eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
+    eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+
+    dsFrontPanelModeChange(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
+    
+}
+
 TEST_F(FrontPanelInitializedEventDsTest, setBrightnessWIndex)
 {
     //device::FrontPanelIndicator panel;
@@ -245,13 +260,6 @@ TEST_F(FrontPanelInitializedEventDsTest, setBrightnessClock)
     ON_CALL(indicatorMock, getName())
         .WillByDefault(::testing::Return("red"));
 
-    ASSERT_TRUE(dsFrontPanelModeChange != nullptr);
-
-    IARM_Bus_PWRMgr_EventData_t eventData;
-    eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
-    eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
-
-    dsFrontPanelModeChange(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
     
     EXPECT_CALL(displayMock, setTextBrightness(::testing::_))
         .Times(1)
@@ -421,14 +429,6 @@ TEST_F(FrontPanelInitializedEventDsTest, setClockBrightness)
         .WillByDefault(::testing::Return(device::List<device::FrontPanelIndicator>({indicatorList})));
     ON_CALL(frontPanelIndicatorMock, getName())
         .WillByDefault(::testing::Return("red"));
-
-    ASSERT_TRUE(dsFrontPanelModeChange != nullptr);
-
-    IARM_Bus_PWRMgr_EventData_t eventData;
-    eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
-    eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
-
-    dsFrontPanelModeChange(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
 
     EXPECT_CALL(displayMock, setTextBrightness(::testing::_))
         .Times(1)
@@ -609,18 +609,9 @@ FrontPanelIndicatorMock frontPanelIndicatorMock;
     ON_CALL(frontPanelIndicatorMock, getName())
         .WillByDefault(::testing::Return("red"));
 
-    ASSERT_TRUE(dsFrontPanelModeChange != nullptr);
-
     testing::NiceMock<FrontPanelIndicatorMock> indicatorMock;
     device::FrontPanelIndicator::getInstance().impl = &indicatorMock;
-
-
-    //Setting Powerstate to on, to set a certain variable.
-    IARM_Bus_PWRMgr_EventData_t eventData;
-    eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
-    eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
-
-    dsFrontPanelModeChange(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
+    
     ON_CALL(indicatorMock, getInstanceString)
         .WillByDefault(::testing::Invoke(
             [&](const std::string& name) -> device::FrontPanelIndicator& {
