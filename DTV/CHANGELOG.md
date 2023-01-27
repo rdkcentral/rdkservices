@@ -20,6 +20,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Added
 - Add CHANGELOG
 
+## [1.0.1] - 2023-01-11
+### Fixed
+- Run correctly as out-of-process service
+
 ### Change
 - Reset API version to 1.0.0
 - Change README to inform how to update changelog and API version
