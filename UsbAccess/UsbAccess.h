@@ -36,6 +36,8 @@ namespace Plugin {
         static const string METHOD_GET_MOUNTED;
         static const string METHOD_UPDATE_FIRMWARE;
         static const string METHOD_ARCHIVE_LOGS;
+        static const string METHOD_GET_USB_SIZE;
+        static const string METHOD_UNMOUNT_USB;
         //events
         static const string EVT_ON_USB_MOUNT_CHANGED;
         static const string EVT_ON_ARCHIVE_LOGS;
@@ -68,6 +70,8 @@ namespace Plugin {
         uint32_t getMountedWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
         uint32_t archiveLogs(const JsonObject& parameters, JsonObject& response);
+        uint32_t getUSBSizeWrapper(const JsonObject& parameters, JsonObject& response);
+        uint32_t unmountUSBWrapper(const JsonObject& parameters, JsonObject& response);
 
     private/*iarm*/:
         void InitializeIARM();
