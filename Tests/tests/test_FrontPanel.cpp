@@ -180,6 +180,20 @@ TEST_F(FrontPanelTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("is24HourClock")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setClockTestPattern")));
 }
+TEST_F(FrontPanelInitializedEventDsTest, powerModeChange)
+{
+    //powerModeChange does not make any external function calls, and simply sets the variable powerStatus.
+    //The tests that need powerState set to true may not work if helper/frontpanel.cpp
+    //ever gets fixed to be released from memory/deinitialized.
+    ASSERT_TRUE(dsFrontPanelModeChange != nullptr);
+
+    IARM_Bus_PWRMgr_EventData_t eventData;
+    eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
+    eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+
+    dsFrontPanelModeChange(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
+    
+}
 
 TEST_F(FrontPanelInitializedEventDsTest, setBrightnessWIndex)
 {
@@ -222,16 +236,6 @@ TEST_F(FrontPanelInitializedEventDsTest, setBrightnessClock)
     ON_CALL(frontPanelIndicatorMock, getName())
         .WillByDefault(::testing::Return("red"));
 
-    ASSERT_TRUE(dsFrontPanelModeChange != nullptr);
-
-    IARM_Bus_PWRMgr_EventData_t eventData;
-    eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
-    eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
-
-    handler.Subscribe(0, _T("powerModeChange"), _T("client.events.powerModeChange"), message);
-
-    dsFrontPanelModeChange(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
-    
     EXPECT_CALL(frontPanelTextDisplayMock, setTextBrightness(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -375,16 +379,6 @@ TEST_F(FrontPanelInitializedEventDsTest, setClockBrightness)
         .WillByDefault(::testing::Return(device::List<device::FrontPanelIndicator>({device::FrontPanelIndicator::getInstance()})));
     ON_CALL(frontPanelIndicatorMock, getName())
         .WillByDefault(::testing::Return("red"));
-
-    ASSERT_TRUE(dsFrontPanelModeChange != nullptr);
-
-    IARM_Bus_PWRMgr_EventData_t eventData;
-    eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
-    eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
-
-    handler.Subscribe(0, _T("powerModeChange"), _T("client.events.powerModeChange"), message);
-
-    dsFrontPanelModeChange(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
 
     EXPECT_CALL(frontPanelTextDisplayMock, setTextBrightness(::testing::_))
         .Times(1)
@@ -537,18 +531,7 @@ TEST_F(FrontPanelInitializedEventDsTest, powerLedOnPower)
     ON_CALL(frontPanelIndicatorMock, getName())
         .WillByDefault(::testing::Return("red"));
 
-    ASSERT_TRUE(dsFrontPanelModeChange != nullptr);
-
-
-    //Setting Powerstate to on, to set a certain variable.
-    IARM_Bus_PWRMgr_EventData_t eventData;
-    eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
-    eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
-
-    handler.Subscribe(0, _T("powerModeChange"), _T("client.events.powerModeChange"), message);
-
-    dsFrontPanelModeChange(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
-    ON_CALL(frontPanelIndicatorMock, getInstanceString)
+ ON_CALL(frontPanelIndicatorMock, getInstanceString)
         .WillByDefault(::testing::Invoke(
             [&](const std::string& name) -> device::FrontPanelIndicator& {
                 EXPECT_EQ("Power", name);
@@ -576,13 +559,6 @@ TEST_F(FrontPanelInitializedEventDsTest, powerLedOnPower)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("powerLedOn"), _T("{\"index\": \"data_led\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
-    //setting power state off to set a certain variable, to access a different part.
-    eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_OFF;
-    eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
-
-    handler.Subscribe(0, _T("powerModeChange"), _T("client.events.powerModeChange"), message);
-
-    dsFrontPanelModeChange(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
 
 }
 
