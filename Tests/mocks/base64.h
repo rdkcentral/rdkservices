@@ -30,4 +30,6 @@ public:
             return getInstance().impl->b64_encode(input, input_size, output);
     }
 };
+constexpr auto b64_get_encoded_buffer_size = &base64::b64_get_encoded_buffer_size;
+constexpr auto b64_encode = &base64::b64_encode;
 
