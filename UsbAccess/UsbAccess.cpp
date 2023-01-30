@@ -16,7 +16,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 3
 const string WPEFramework::Plugin::UsbAccess::SERVICE_NAME = "org.rdk.UsbAccess";
 const string WPEFramework::Plugin::UsbAccess::METHOD_GET_FILE_LIST = "getFileList";
 const string WPEFramework::Plugin::UsbAccess::METHOD_CREATE_LINK = "createLink";
@@ -25,6 +25,8 @@ const string WPEFramework::Plugin::UsbAccess::METHOD_GET_AVAILABLE_FIRMWARE_FILE
 const string WPEFramework::Plugin::UsbAccess::METHOD_GET_MOUNTED = "getMounted";
 const string WPEFramework::Plugin::UsbAccess::METHOD_UPDATE_FIRMWARE = "updateFirmware";
 const string WPEFramework::Plugin::UsbAccess::METHOD_ARCHIVE_LOGS = "ArchiveLogs";
+const string WPEFramework::Plugin::UsbAccess::METHOD_GET_USB_SIZE = "getUSBSize";
+const string WPEFramework::Plugin::UsbAccess::METHOD_UNMOUNT_USB = "unmountUSB";
 const string WPEFramework::Plugin::UsbAccess::LINK_URL_HTTP = "http://localhost:50050/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::LINK_PATH = "/tmp/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::EVT_ON_USB_MOUNT_CHANGED = "onUSBMountChanged";
@@ -202,6 +204,8 @@ namespace Plugin {
         registerMethod(_T("getMounted"), &UsbAccess::getMountedWrapper, this);
         registerMethod(_T("updateFirmware"), &UsbAccess::updateFirmware, this);
         registerMethod(_T("ArchiveLogs"), &UsbAccess::archiveLogs, this);
+        registerMethod(_T("getUSBSize"), &UsbAccess::getUSBSizeWrapper, this);
+        registerMethod(_T("unmountUSB"), &UsbAccess::unmountUSBWrapper, this);
     }
 
     UsbAccess::~UsbAccess()
@@ -762,6 +766,53 @@ namespace Plugin {
             paths.emplace_back(x.second);
 
         return result;
+    }
+
+    uint32_t UsbAccess::getUSBSizeWrapper(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFOMETHOD();
+
+        bool result = false;
+        char cmd[128] = {'\0'};
+        char totalsize[20] = {'\0'};
+        char usedsize[20] = {'\0'};
+        char freesize[20] = {'\0'};
+
+        std::list<string> paths;
+        getMounted(paths);
+        if (!paths.empty()) {
+            snprintf(cmd, 127, "df -h | grep %s | awk \'{print $2 \" \" $3 \" \" $4}\'", (*paths.begin()).c_str());
+            FILE* fp = popen(cmd, "r");
+            if (fp) {
+                fscanf(fp,"%s %s %s", totalsize, usedsize, freesize);
+                response["totalsize"] = string(totalsize);
+                response["usedsize"] = string(usedsize);
+                response["freesize"] = string(freesize);
+                pclose(fp);
+                result = true;
+            }
+        }
+        returnResponse(result);
+    }
+
+    uint32_t UsbAccess::unmountUSBWrapper(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFOMETHOD();
+
+        bool result = false;
+        char cmd[128] = {'\0'};
+
+        std::list<string> paths;
+        getMounted(paths);
+        if (!paths.empty()) {
+            snprintf(cmd, 127, "systemd-umount -u %s", (*paths.begin()).c_str());
+            FILE* fp = popen(cmd, "r");
+            if (fp) {
+                pclose(fp);
+                result = true;
+            }
+        }
+        returnResponse(result);
     }
 } // namespace Plugin
 } // namespace WPEFramework
