@@ -29,4 +29,5 @@ public:
     {
             return getInstance().impl->b64_encode(input, input_size, output);
     }
+};
 
