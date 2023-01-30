@@ -16,6 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.9] - 2022-12-31
+### Fixed
+- Updated documentation for sendKeyEvent thunder API.
+
+## [1.0.8] 2022-12-21
+### Fixed
+- Improve the CEC retry mechanism for OSDName on I2c cec bus busy.
+ 
 ## [1.0.7] - 2022-11-28
 ### Fixed
 - Treat warnings as errors for unit tests workflow

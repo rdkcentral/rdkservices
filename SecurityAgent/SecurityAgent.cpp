@@ -23,7 +23,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 3
 
 namespace WPEFramework {
 
@@ -95,8 +95,11 @@ namespace Plugin {
         Config config;
         config.FromString(service->ConfigLine());
         string version = service->Version();
+        string webPrefix = service->WebPrefix();
+        string callsign = service->Callsign();
 
-        _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
+        _skipURL = static_cast<uint8_t>(webPrefix.length());
+        _servicePrefix = webPrefix.substr(0, webPrefix.find(callsign));
         Core::File aclFile(service->PersistentPath() + config.ACL.Value(), true);
 
         PluginHost::ISubSystem* subSystem = service->SubSystems();
@@ -104,6 +107,9 @@ namespace Plugin {
         if (aclFile.Exists() == false) {
             aclFile = service->DataPath() + config.ACL.Value();
         }
+
+        SYSLOG(Logging::Startup, (_T("SecurityAgent: Reading acl file %s"), aclFile.Name().c_str()));
+
         if ((aclFile.Exists() == true) && (aclFile.Open(true) == true)) {
 
             if (_acl.Load(aclFile) == Core::ERROR_INCOMPLETE_CONFIG) {
@@ -126,6 +132,9 @@ namespace Plugin {
         if (connector.empty() == true) {
             connector = service->VolatilePath() + _T("token");
         }
+
+        SYSLOG(Logging::Notification,(_T("SecurityAgent TokenDispatcher connector path %s"),connector.c_str()));
+
         _engine = Core::ProxyType<RPC::InvokeServer>::Create(&Core::IWorkerPool::Instance());
         _dispatcher.reset(new TokenDispatcher(Core::NodeId(connector.c_str()), service->ProxyStubPath(), this, _engine));
 
@@ -137,7 +146,7 @@ namespace Plugin {
             } else {
                 if (subSystem != nullptr) {
                     Core::SystemInfo::SetEnvironment(_T("SECURITYAGENT_PATH"), _dispatcher->Connector().c_str(), true);
-                    Core::Sink<SecurityCallsign> information(service->Callsign());
+                    Core::Sink<SecurityCallsign> information(callsign);
 
                     if (subSystem->IsActive(PluginHost::ISubSystem::SECURITY) != false) {
                         SYSLOG(Logging::Startup, (_T("Security is not defined as External !!")));
@@ -178,6 +187,8 @@ namespace Plugin {
 
     /* virtual */ uint32_t SecurityAgent::CreateToken(const uint16_t length, const uint8_t buffer[], string& token)
     {
+        SYSLOG(Logging::Notification, (_T("Creating Token for %.*s"), length, buffer));
+
         // Generate the token from the buffer coming in...
         auto newToken = JWTFactory::Instance().Element();
 
@@ -200,7 +211,7 @@ namespace Plugin {
 
             if (load != static_cast<uint16_t>(~0)) {
                 // Seems like we extracted a valid payload, time to create an security context
-                result = Core::Service<SecurityContext>::Create<SecurityContext>(&_acl, load, payload);
+                result = Core::Service<SecurityContext>::Create<SecurityContext>(&_acl, load, payload, _servicePrefix);
             }
         }
         return (result);

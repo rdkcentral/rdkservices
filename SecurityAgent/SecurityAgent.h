@@ -164,6 +164,7 @@ namespace Plugin {
         uint8_t _skipURL;
         std::unique_ptr<TokenDispatcher> _dispatcher; 
         Core::ProxyType<RPC::InvokeServer> _engine;
+        string _servicePrefix;
     };
 
 } // namespace Plugin

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <set>
 #include "Module.h"
 
 #include "libIARM.h"
@@ -90,8 +91,10 @@ namespace Plugin {
         static bool getMounted(std::list<string>& paths);
 
         void archiveLogsInternal();
-        void onArchiveLogs(ArchiveLogsError error);
+        void onArchiveLogs(ArchiveLogsError error, const string& filePath);
         std::thread archiveLogsThread;
+        std::set<int> m_CreatedLinkIds;
+        JsonObject m_oArchiveParams;
     };
 
 } // namespace Plugin

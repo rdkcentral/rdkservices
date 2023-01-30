@@ -16,6 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.11] - 2023-01-25
+### Fixed
+- Flush cache after setting value to Persistent storage
+
+## [1.3.10] - 2022-12-27
+### Fixed
+- Prioritize graphics subsystem event early
+
 ## [1.3.9] - 2022-11-30
 ### Fixed
 - Fix RA launch in factory mode

@@ -16,6 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.12] - 2023-01-18
+### Fixed
+- Fixed deadlock in Maintenance Manager code
+
+## [1.0.11] - 2023-01-09
+### Fixed
+- Fixed locking issues in iarmEventHandler
+
 ## [1.0.10] - 2022-12-08
 ### Fixed
 - Send MAINTENANCE_ERROR event from stopMaintenance()

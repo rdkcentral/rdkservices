@@ -52,11 +52,14 @@ int testApp()
 namespace WPEFramework {
 namespace Plugin {
 
-    SecurityContext::SecurityContext(const AccessControlList* acl, const uint16_t length, const uint8_t payload[])
+    SecurityContext::SecurityContext(const AccessControlList* acl, const uint16_t length, const uint8_t payload[], const string& servicePrefix)
         : _token(string(reinterpret_cast<const TCHAR*>(payload), length))
         , _accessControlList(nullptr)
+        , _servicePrefix(servicePrefix)
     {
-        _context.FromString(_token);
+        if (_context.FromString(_token) == false) {
+            _context.URL = _token;
+        }
 
         if ( (_context.URL.IsSet() == true) && (acl != nullptr) ) {
             _accessControlList = acl->FilterMapFromURL(_context.URL.Value());
@@ -76,18 +79,33 @@ namespace Plugin {
     //! Allow a request to be checked before it is offered for processing.
     bool SecurityContext::Allowed(const Web::Request& request) const /* override */ 
     {
-        bool allowed = (_accessControlList != nullptr);
+        string callsign = "";
+        string method = "";
 
-        if (allowed == true) {
+        if ((request.Path.find(_servicePrefix, 0) != 0) || (_servicePrefix.length() > request.Path.length())) {
+            return ((_accessControlList != nullptr) && (_accessControlList->Allowed("","")));
         }
 
-        return (allowed);
+        Core::TextSegmentIterator index(Core::TextFragment(request.Path, _servicePrefix.length(), static_cast<uint32_t>(request.Path.length() - _servicePrefix.length())), false, '/');
+
+        if (index.Next()) {
+            callsign = index.Current().Text();
+            if (index.Next()) {
+                method = index.Current().Text();
+            }
+        }
+
+        return ((_accessControlList != nullptr) && (_accessControlList->Allowed(callsign, method)));
     }
 
     //! Allow a JSONRPC message to be checked before it is offered for processing.
     bool SecurityContext::Allowed(const Core::JSONRPC::Message& message) const /* override */ 
     {
-        return ((_accessControlList != nullptr) && (_accessControlList->Allowed(message.Callsign(), message.Method())));
+        bool bAllowed = ((_accessControlList != nullptr) && (_accessControlList->Allowed(message.Callsign(), message.Method())));
+        if(!bAllowed)
+            SYSLOG(Logging::Notification, ("Access for token url [%s], plugin [%s], method [%s] not allowed", _context.URL.Value().c_str(),message.Callsign().c_str(),message.Method().c_str()));
+        
+        return bAllowed;
     }
 
     string SecurityContext::Token() const /* override */
