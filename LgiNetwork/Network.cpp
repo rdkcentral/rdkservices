@@ -140,6 +140,8 @@ namespace WPEFramework
                 m_isPluginInited = true;
                 m_NetworkClient.onStatusChangeEvent = StatusChangeEvent;
                 m_NetworkClient.onNetworkingEvent = NetworkingEvent;
+                m_NetworkClient.onHandleIpv4ConfigurationChangedEvent = IP4ConfigurationChangedEvent;
+                m_NetworkClient.onHandleIpv6ConfigurationChangedEvent = IP6ConfigurationChangedEvent;
                 LOGINFO("Succeeded initializing LGI DBus Network Client");
             }
 
@@ -965,7 +967,6 @@ namespace WPEFramework
                 auto iter = params.find("ip");
                 if (iter != params.end())
                 {
-                    m_dhcpEventSeen = true;
                     // this might trigger two IPAddressChanged events but that's fine
                     // - first one might not be actually triggered as ip isn't acquired
                     // yet at that time
@@ -977,7 +978,6 @@ namespace WPEFramework
                 auto iter = params.find("ip");
                 if (iter != params.end())
                 {
-                    m_dhcpEventSeen = true;
                     onInterfaceIPAddressChanged(id, iter->second, "", true);
                 }
             }
@@ -989,25 +989,15 @@ namespace WPEFramework
                 iter = params.find(lginet::ParamNetworkChanged);
                 if (iter != params.end())
                 {
-                    // trigger ip change either if we got ack from dhcp or when
-                    // network.changed is triggered but not but both in quick succession. dhcp
-                    // event preceeds network.changed so reset it here - that way new (later)
-                    // network.changed events are seen.
-                    if (m_dhcpEventSeen)
-                    {
-                        m_dhcpEventSeen = false;
-                    }
-                    else
-                    {
-                        std::map<std::string, std::string> parameters;
-                        parameters[lginet::ParamIpv4Ip] = "";
-                        parameters[lginet::ParamIpv6Ip] = "";
+                    // onInterfaceIPAddressChanged will only trigger notification in case the provided IP is different from whatever we have stored
+                    std::map<std::string, std::string> parameters;
+                    parameters[lginet::ParamIpv4Ip] = "";
+                    parameters[lginet::ParamIpv6Ip] = "";
 
-                        if (m_NetworkClient.getSpecificParamsForInterface(id, parameters))
-                        {
-                            if (parameters[lginet::ParamIpv4Ip] != "" || parameters[lginet::ParamIpv6Ip] != "")
-                                onInterfaceIPAddressChanged(id, parameters[lginet::ParamIpv6Ip], parameters[lginet::ParamIpv4Ip], true);
-                        }
+                    if (m_NetworkClient.getSpecificParamsForInterface(id, parameters))
+                    {
+                        if (parameters[lginet::ParamIpv4Ip] != "" || parameters[lginet::ParamIpv6Ip] != "")
+                            onInterfaceIPAddressChanged(id, parameters[lginet::ParamIpv6Ip], parameters[lginet::ParamIpv4Ip], true);
                     }
                 }
             }
@@ -1024,6 +1014,11 @@ namespace WPEFramework
 #endif
 
             params["status"] = string (connected ? "CONNECTED" : "DISCONNECTED");
+            if (!connected)
+            {
+                // ips are lost, so send onIPAddressStatusChanged/LOST & clear the old values
+                onInterfaceIPAddressChanged(interface, "", "", false);
+            }
             sendNotify("onConnectionStatusChanged", params);
         }
 
@@ -1035,34 +1030,50 @@ namespace WPEFramework
 #else
             params["interface"] = interface;
 #endif
+
+            // take care of 'empty' addresses
+            ipv6Addr = ipv6Addr == "::" ? "" : ipv6Addr;
+            ipv4Addr = ipv4Addr == "0.0.0.0" ? "" : ipv4Addr;
+
+            const string oldIpv4 = m_oldAddresses[{interface, 4}];
+            const string oldIpv6 = m_oldAddresses[{interface, 6}];
+
             // prevent re-triggering event for the same IP address
+            bool sendNotification = false;
             if (acquired)
             {
-                if (m_oldIpv4 != ipv4Addr)
+                // ip4Address & ip6Address are required, so always set both keys
+                // in 'acquired' case, treat "" as "not available" (do not update m_oldAddresses)
+                if (!ipv4Addr.empty() && oldIpv4 != ipv4Addr)
                 {
-                    if (ipv4Addr != "")
-                    {
-                        params["ip4Address"] = ipv4Addr;
-                    }
-                    m_oldIpv4 = ipv4Addr;
+                    m_oldAddresses[{interface, 4}] = ipv4Addr;
+                    sendNotification = true;
                 }
+                params["ip4Address"] = m_oldAddresses[{interface, 4}];
 
-                if (m_oldIpv6 != ipv6Addr)
+                if (!ipv6Addr.empty() && oldIpv6 != ipv6Addr)
                 {
-                    if (ipv6Addr != "")
-                    {
-                        params["ip6Address"] = ipv6Addr;
-                    }
-                    m_oldIpv6 = ipv6Addr;
+                    m_oldAddresses[{interface, 6}] = ipv6Addr;
+                    sendNotification = true;
                 }
+                params["ip6Address"] = m_oldAddresses[{interface, 6}];
+
             }
-            else
+            else if (oldIpv6 != "" || oldIpv4 != "")
             {
-                params["ip4Address"] = m_oldIpv4;
-                params["ip6Address"] = m_oldIpv6;
+                params["ip4Address"] = oldIpv4;
+                params["ip6Address"] = oldIpv6;
+                // ips are lost, so clear the old values
+                m_oldAddresses[{interface, 6}] = "";
+                m_oldAddresses[{interface, 4}] = "";
+                sendNotification = true;
             }
-            params["status"] = string (acquired ? "ACQUIRED" : "LOST");
-            sendNotify("onIPAddressStatusChanged", params);
+
+            if (sendNotification)
+            {
+                params["status"] = string (acquired ? "ACQUIRED" : "LOST");
+                sendNotify("onIPAddressStatusChanged", params);
+            }
         }
 
         void Network::onDefaultInterfaceChanged(string oldInterface, string newInterface)
@@ -1127,6 +1138,30 @@ namespace WPEFramework
             }
 
             return result;
+        }
+
+        void Network::IP4ConfigurationChangedEvent(const string id)
+        {
+            if (Network::_instance)
+                Network::_instance->onIpConfigurationChangedEvent(id, 4);
+        }
+
+        void Network::IP6ConfigurationChangedEvent(const string id)
+        {
+            if (Network::_instance)
+                Network::_instance->onIpConfigurationChangedEvent(id, 6);
+        }
+
+        void Network::onIpConfigurationChangedEvent(const string interface, const int ipVersion)
+        {
+            std::map<std::string, std::string> parameters;
+            const auto param = ipVersion == 4 ? lginet::ParamIpv4Ip : lginet::ParamIpv6Ip;
+            parameters[param] = "";
+
+            if (m_NetworkClient.getSpecificParamsForInterface(interface, parameters))
+            {
+                onInterfaceIPAddressChanged(interface, parameters[lginet::ParamIpv6Ip], parameters[lginet::ParamIpv4Ip], true);
+            }
         }
 
     } // namespace Plugin

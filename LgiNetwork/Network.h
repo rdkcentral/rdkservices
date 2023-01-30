@@ -22,6 +22,8 @@
 #include <cjson/cJSON.h>
 #include <string>
 #include <atomic>
+#include <map>
+#include <utility>
 
 #include "Module.h"
 #include "NetUtils.h"
@@ -113,6 +115,9 @@ namespace WPEFramework {
 
             static void StatusChangeEvent(const std::string id, const std::string status);
             static void NetworkingEvent(const string id, const string event, const std::map<string, string> params);
+            static void IP4ConfigurationChangedEvent(const string id);
+            static void IP6ConfigurationChangedEvent(const string id);
+            void onIpConfigurationChangedEvent(const string interface, const int ipVersion);
             // this one is just to reroute event according to type *and* params
             void onNetworkingEvent(const string id, const string event, const std::map<string, string> params);
 
@@ -142,14 +147,13 @@ namespace WPEFramework {
             string m_stunEndPoint;
             string m_defaultInterface;
             string m_gatewayInterface;
-            string m_oldIpv4;
-            string m_oldIpv6;
+            // (interface id, ip version number) -> ip (string)
+            std::map<std::pair<string, int>, string> m_oldAddresses;
             uint16_t m_stunPort;
             uint16_t m_stunBindTimeout;
             uint16_t m_stunCacheTimeout;
             bool m_stunSync;
             uint32_t m_apiVersionNumber;
-            bool m_dhcpEventSeen;
         };
     } // namespace Plugin
 } // namespace WPEFramework

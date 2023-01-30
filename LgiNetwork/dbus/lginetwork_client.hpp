@@ -65,6 +65,7 @@ static const std::string ParamWolProcessTimeout                 = "wol_process.t
 typedef void (*StatusChangeEventHandler)(const std::string id, const std::string status);
 typedef void (*NetworkingEventEventHandler)(const std::string id, const std::string status,
                                             const std::map<std::string, std::string> params);
+typedef void (*IpConfigurationChangedEvent)(const std::string id);
 
 class LgiNetworkClient
 {
@@ -89,6 +90,8 @@ public:
 
     StatusChangeEventHandler onStatusChangeEvent;
     NetworkingEventEventHandler onNetworkingEvent;
+    IpConfigurationChangedEvent onHandleIpv4ConfigurationChangedEvent;
+    IpConfigurationChangedEvent onHandleIpv6ConfigurationChangedEvent;
 
 private:
 
@@ -98,6 +101,8 @@ private:
                                         guint           aCount,
                                         GVariant*       aParams);
     void onHandleIpv4ConfigurationChanged(LgiNetworkClient*  aNetworkConfigProxy,
+                                        const gchar*    aId);
+    void onHandleIpv6ConfigurationChanged(LgiNetworkClient*  aNetworkConfigProxy,
                                         const gchar*    aId);
     void onHandleStatusChanged(LgiNetworkClient*  aNetworkConfigProxy,
                                         const gchar *aId,
