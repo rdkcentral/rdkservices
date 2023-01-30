@@ -44,6 +44,13 @@ public:
         return reinterpret_cast<LgiNetworkClient*>(aUserData)->onHandleIpv4ConfigurationChanged(aNetworkConfigProxy, aId);
     }
 
+    static void cbHandleIPv6ConfigurationChanged(LgiNetworkClient*  aNetworkConfigProxy,
+                                        const gchar*    aId,
+                                        gpointer        aUserData)
+    {
+        return reinterpret_cast<LgiNetworkClient*>(aUserData)->onHandleIpv6ConfigurationChanged(aNetworkConfigProxy, aId);
+    }
+
     static void cbHandleNetworkingEvent(LgiNetworkClient*  aNetworkConfigProxy,
                                         const gchar*    aId,
                                         const gchar*    aEvent,
@@ -295,7 +302,15 @@ void LgiNetworkClient::onHandleNetworkingEvent(LgiNetworkClient*  aNetworkConfig
 void LgiNetworkClient::onHandleIpv4ConfigurationChanged(LgiNetworkClient*  aNetworkConfigProxy,
                                         const gchar*    aId)
 {
-    // nothing yet.
+    if (onHandleIpv4ConfigurationChangedEvent)
+        onHandleIpv4ConfigurationChangedEvent(aId);
+}
+
+void LgiNetworkClient::onHandleIpv6ConfigurationChanged(LgiNetworkClient*  aNetworkConfigProxy,
+                                        const gchar*    aId)
+{
+    if (onHandleIpv6ConfigurationChangedEvent)
+        onHandleIpv6ConfigurationChangedEvent(aId);
 }
 
 void LgiNetworkClient::onHandleStatusChanged(LgiNetworkClient*  aNetworkConfigProxy,
@@ -327,6 +342,11 @@ static void handle_dbus_event(GDBusProxy *proxy,
     {
         const gchar *aId = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
         DbusHandlerCallbacks::cbHandleIPv4ConfigurationChanged(client, aId, user_data);
+    }
+    else if (signal_name == "IPv6ConfigurationChanged" && num_params == 1)
+    {
+        const gchar *aId = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
+        DbusHandlerCallbacks::cbHandleIPv6ConfigurationChanged(client, aId, user_data);
     }
     else if (signal_name == "NetworkingEvent" && num_params == 4)
     {
