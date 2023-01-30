@@ -154,7 +154,6 @@ jobs:
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCOMCAST_CONFIG=OFF
           -DRDK_SERVICES_TEST=ON
-          -DRDKSHELL_TEST_MODE=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
