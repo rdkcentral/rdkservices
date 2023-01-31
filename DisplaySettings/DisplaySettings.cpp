@@ -165,7 +165,7 @@ namespace WPEFramework {
         namespace {
             // Display Settings should use inter faces
 
-            class Job : public Core::IDispatchType<void> {
+            class Job : public Core::IDispatch {
             public:
                 Job(std::function<void()> work)
                     : _work(work)
@@ -198,7 +198,7 @@ namespace WPEFramework {
             {
                 uint32_t result = Core::ERROR_ASYNC_FAILED;
                 Core::Event event(false, true);
-                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]() {
+                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]() {
                     auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
                     if (interface == nullptr) {
                         result = Core::ERROR_UNAVAILABLE;

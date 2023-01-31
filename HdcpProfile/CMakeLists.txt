@@ -21,7 +21,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(PLUGIN_HDCPPROFILE_STARTUPORDER "" CACHE STRING "To configure startup order of HdcpProfile plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
-find_package(${NAMESPACE}Protocols REQUIRED)
+find_package(${NAMESPACE}COM REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         HdcpProfile.cpp
@@ -35,7 +35,7 @@ target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NA
 
 target_link_libraries(${MODULE_NAME}
         PRIVATE
-        ${NAMESPACE}Protocols::${NAMESPACE}Protocols
+       ${NAMESPACE}COM::${NAMESPACE}COM
         )
 
 find_package(DS)

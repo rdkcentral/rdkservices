@@ -47,7 +47,7 @@ namespace ProxyStubs {
 
             // read parameters
             RPC::Data::Frame::Reader reader(input.Reader());
-            RPC::instance_id param0 = reader.Number<RPC::instance_id>();
+            Core::instance_id param0 = reader.Number<Core::instance_id>();
             PluginHost::IShell* param0_proxy = nullptr;
             ProxyStub::UnknownProxy* param0_proxy_inst = nullptr;
             if (param0 != 0) {
@@ -80,7 +80,7 @@ namespace ProxyStubs {
 
             // read parameters
             RPC::Data::Frame::Reader reader(input.Reader());
-            RPC::instance_id param0 = reader.Number<RPC::instance_id>();
+            Core::instance_id param0 = reader.Number<Core::instance_id>();
             ITextToSpeech::INotification* param0_proxy = nullptr;
             ProxyStub::UnknownProxy* param0_proxy_inst = nullptr;
             if (param0 != 0) {
@@ -109,7 +109,7 @@ namespace ProxyStubs {
 
             // read parameters
             RPC::Data::Frame::Reader reader(input.Reader());
-            RPC::instance_id param0 = reader.Number<RPC::instance_id>();
+            Core::instance_id param0 = reader.Number<Core::instance_id>();
             ITextToSpeech::INotification* param0_proxy = nullptr;
             ProxyStub::UnknownProxy* param0_proxy_inst = nullptr;
             if (param0 != 0) {
@@ -577,7 +577,7 @@ namespace ProxyStubs {
 
     class TextToSpeechProxy final : public ProxyStub::UnknownProxyType<ITextToSpeech> {
     public:
-        TextToSpeechProxy(const Core::ProxyType<Core::IPCChannel>& channel, RPC::instance_id implementation, const bool otherSideInformed)
+        TextToSpeechProxy(const Core::ProxyType<Core::IPCChannel>& channel, Core::instance_id implementation, const bool otherSideInformed)
             : BaseClass(channel, implementation, otherSideInformed)
         {
         }
@@ -588,7 +588,7 @@ namespace ProxyStubs {
 
             // write parameters
             RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
-            writer.Number<RPC::instance_id>(RPC::instance_cast<PluginHost::IShell*>(param0));
+            writer.Number<Core::instance_id>(RPC::instance_cast<PluginHost::IShell*>(param0));
 
             // invoke the method handler
             uint32_t output{};
@@ -609,7 +609,7 @@ namespace ProxyStubs {
 
             // write parameters
             RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
-            writer.Number<RPC::instance_id>(RPC::instance_cast<ITextToSpeech::INotification*>(param0));
+            writer.Number<Core::instance_id>(RPC::instance_cast<ITextToSpeech::INotification*>(param0));
 
             // invoke the method handler
             if (Invoke(newMessage) == Core::ERROR_NONE) {
@@ -625,7 +625,7 @@ namespace ProxyStubs {
 
             // write parameters
             RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
-            writer.Number<RPC::instance_id>(RPC::instance_cast<ITextToSpeech::INotification*>(param0));
+            writer.Number<Core::instance_id>(RPC::instance_cast<ITextToSpeech::INotification*>(param0));
 
             // invoke the method handler
             if (Invoke(newMessage) == Core::ERROR_NONE) {
@@ -875,7 +875,7 @@ namespace ProxyStubs {
 
     class TextToSpeechNotificationProxy final : public ProxyStub::UnknownProxyType<ITextToSpeech::INotification> {
     public:
-        TextToSpeechNotificationProxy(const Core::ProxyType<Core::IPCChannel>& channel, RPC::instance_id implementation, const bool otherSideInformed)
+        TextToSpeechNotificationProxy(const Core::ProxyType<Core::IPCChannel>& channel, Core::instance_id implementation, const bool otherSideInformed)
             : BaseClass(channel, implementation, otherSideInformed)
         {
         }

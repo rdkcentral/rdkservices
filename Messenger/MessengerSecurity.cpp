@@ -89,7 +89,7 @@ namespace Plugin {
     // TokenCheckFunction
 
     // Note, token is assumed to be a URL
-    bool Messenger::CheckToken(const string& token, const string& method, const string& parameters)
+    PluginHost::JSONRPC::classification Messenger::CheckToken(const string& token, const string& method, const string& parameters)
     {
         bool result = false;
 
@@ -173,7 +173,7 @@ namespace Plugin {
             }
         }
 
-        return result;
+        return (result ? PluginHost::JSONRPC::classification::VALID : PluginHost::JSONRPC::classification::INVALID);
     }
 
 } // namespace Plugin

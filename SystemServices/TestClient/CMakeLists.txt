@@ -17,7 +17,7 @@
 
 set(PLUGIN_NAME systemServiceTestClient)
 
-find_package(${NAMESPACE}Protocols REQUIRED)
+find_package(${NAMESPACE}COM REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_executable(${PLUGIN_NAME} systemServiceTestClient.cpp)
@@ -29,7 +29,7 @@ set_target_properties(${PLUGIN_NAME} PROPERTIES
 
 target_link_libraries(${PLUGIN_NAME}
     PRIVATE
-    ${NAMESPACE}Protocols::${NAMESPACE}Protocols
+    ${NAMESPACE}COM::${NAMESPACE}COM
     CompileSettingsDebug::CompileSettingsDebug
     ${SECURITY_TOKEN_LIBRARY}
     )

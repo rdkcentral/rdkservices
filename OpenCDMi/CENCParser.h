@@ -21,6 +21,7 @@
 #define __CENCPARSER_H
 
 #include "Module.h"
+#include <interfaces/IOCDM.h>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -46,25 +47,25 @@ namespace Plugin {
             WIDEVINE = 0x0008
         };
 
-        class KeyId : public OCDM::KeyId {
+        class KeyId : public Exchange::KeyId {
         public:
             inline KeyId()
-                : OCDM::KeyId()
+                : Exchange::KeyId()
                 , _systems(0)
             {
             }
             inline KeyId(const systemType type, const uint8_t kid[], const uint8_t length)
-                : OCDM::KeyId(kid, length)
+                : Exchange::KeyId(kid, length)
                 , _systems(type)
             {
             }
             inline KeyId(const systemType type, const uint32_t a, const uint16_t b, const uint16_t c, const uint8_t d[])
-                : OCDM::KeyId(a, b, c, d)
+                : Exchange::KeyId(a, b, c, d)
                 , _systems(type)
             {
             }
             inline KeyId(const KeyId& copy)
-                : OCDM::KeyId(copy)
+                : Exchange::KeyId(copy)
                 , _systems(copy._systems)
             {
             }
@@ -74,23 +75,23 @@ namespace Plugin {
 
             inline KeyId& operator=(const KeyId& rhs)
             {
-                OCDM::KeyId::operator=(rhs);
+                Exchange::KeyId::operator=(rhs);
                 _systems = rhs._systems;
                 return (*this);
             }
 
         public:
-            inline bool operator==(const OCDM::KeyId& rhs) const
+            inline bool operator==(const Exchange::KeyId& rhs) const
             {
-                return (OCDM::KeyId::operator== (rhs));
+                return (Exchange::KeyId::operator== (rhs));
             }   
-            inline bool operator!=(const OCDM::KeyId& rhs) const
+            inline bool operator!=(const Exchange::KeyId& rhs) const
             {
                 return (!operator==(rhs));
             }
             inline bool operator==(const KeyId& rhs) const
             {
-                return (OCDM::KeyId::operator== (rhs));
+                return (Exchange::KeyId::operator== (rhs));
             }   
             inline bool operator!=(const KeyId& rhs) const
             {
@@ -126,13 +127,13 @@ namespace Plugin {
         }
 
     public:
-        inline ::OCDM::ISession::KeyStatus Status() const
+        inline Exchange::ISession::KeyStatus Status() const
         {
-            return (_keyIds.size() > 0 ? _keyIds.begin()->Status() : ::OCDM::ISession::StatusPending);
+            return (_keyIds.size() > 0 ? _keyIds.begin()->Status() : Exchange::ISession::StatusPending);
         }
-        inline ::OCDM::ISession::KeyStatus Status(const KeyId& key) const
+        inline Exchange::ISession::KeyStatus Status(const KeyId& key) const
         {
-            ::OCDM::ISession::KeyStatus result(::OCDM::ISession::StatusPending);
+            Exchange::ISession::KeyStatus result(Exchange::ISession::StatusPending);
             if (key.IsValid() == true) {
                 std::list<KeyId>::const_iterator index(std::find(_keyIds.begin(), _keyIds.end(), key));
                 if (index != _keyIds.end()) {
@@ -145,7 +146,7 @@ namespace Plugin {
         {
             return (Iterator(_keyIds));
         }
-        inline bool HasKeyId(const OCDM::KeyId& keyId) const
+        inline bool HasKeyId(const Exchange::KeyId& keyId) const
         {
             return (std::find(_keyIds.begin(), _keyIds.end(), keyId) != _keyIds.end());
         }
@@ -161,7 +162,7 @@ namespace Plugin {
                 index->Flag(key.Systems());
             }
         }
-        inline const KeyId* UpdateKeyStatus(::OCDM::ISession::KeyStatus status, const KeyId& key)
+        inline const KeyId* UpdateKeyStatus(Exchange::ISession::KeyStatus status, const KeyId& key)
         {
             KeyId* entry = nullptr;
 

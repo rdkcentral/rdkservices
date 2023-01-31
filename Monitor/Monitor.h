@@ -774,7 +774,7 @@ namespace Plugin {
                             // Moreover it's the only only which now becomes active. This means probing
                             // has to be activated as well since it was stopped at point the last observee
                             // turned inactive
-                            _job.Schedule(Core::Time::Now());
+                            _job.Reschedule(Core::Time::Now());
 
                             TRACE(Trace::Information, (_T("Starting to probe as active observee appeared.")));
                         }
@@ -815,6 +815,19 @@ namespace Plugin {
 
                 _adminLock.Unlock();
             }
+
+            void Activated (const string& callsign, PluginHost::IShell* service) override
+            {
+                StateChange(service);
+            }
+            void Deactivated (const string& callsign, PluginHost::IShell* service) override
+            {
+                StateChange(service);
+            }
+            void Unavailable(const string&, PluginHost::IShell*) override
+            {
+            }
+
             void Snapshot(Core::JSON::ArrayType<Monitor::Data>& snapshot)
             {
                 _adminLock.Lock();
@@ -988,7 +1001,7 @@ namespace Plugin {
                         _job.Submit();
                     } else {
                         nextSlot += 1000 /* Add 1 ms */;
-                        _job.Schedule(nextSlot);
+                        _job.Reschedule(nextSlot);
                     }
                 } else {
                     TRACE(Trace::Information, (_T("Stopping to probe due to lack of active observees.")));

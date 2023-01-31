@@ -255,7 +255,7 @@ namespace WPEFramework {
         namespace {
             // rdk Shell should use inter faces
 
-            class Job : public Core::IDispatchType<void> {
+            class Job : public Core::IDispatch {
             public:
                 Job(std::function<void()> work)
                     : _work(work)
@@ -273,7 +273,7 @@ namespace WPEFramework {
             {
                 uint32_t result = Core::ERROR_ASYNC_FAILED;
                 Core::Event event(false, true);
-                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]() {
+                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]() {
                     auto interface = shell->QueryInterfaceByCallsign<PluginHost::IController>("");
                     if (interface == nullptr) {
                         result = Core::ERROR_UNAVAILABLE;
@@ -364,7 +364,7 @@ namespace WPEFramework {
             {
                 uint32_t result = Core::ERROR_ASYNC_FAILED;
                 Core::Event event(false, true);
-                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]() {
+                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]() {
                     auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
                     if (interface == nullptr) {
                         result = Core::ERROR_UNAVAILABLE;
@@ -383,7 +383,7 @@ namespace WPEFramework {
             {
                 uint32_t result = Core::ERROR_ASYNC_FAILED;
                 Core::Event event(false, true);
-                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]() {
+                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]() {
                     auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
                     if (interface == nullptr) {
                         result = Core::ERROR_UNAVAILABLE;
@@ -498,7 +498,8 @@ namespace WPEFramework {
             ToMessage(parameters, message);
 
             const uint32_t channelId = ~0;
-            auto resp =  dispatcher_->Invoke(sThunderSecurityToken, channelId, *message);
+	    Core::JSONRPC::Context context(channelId, message->Id.Value(), sThunderSecurityToken) ;
+	    auto resp = dispatcher_->Invoke(context, *message);
             if (resp->Error.IsSet()) {
               std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  resp->Error.Text.Value() << "\n";
               return resp->Error.Code;
@@ -980,7 +981,18 @@ namespace WPEFramework {
                 }
             }
         }
+        void RDKShell::MonitorClients::Activated(const string& callsign, PluginHost::IShell* service)
+        {
+            StateChange(service);
+        }
+        void RDKShell::MonitorClients::Deactivated(const string& callsign, PluginHost::IShell* service)
+        {
+            StateChange(service);
+        }
 
+        void RDKShell::MonitorClients::Unavailable(const string& callsign, PluginHost::IShell* service)
+        {}
+        
         bool RDKShell::ScreenCapture::Capture(ICapture::IStore& storer)
         {
             mCaptureStorers.push_back(&storer);

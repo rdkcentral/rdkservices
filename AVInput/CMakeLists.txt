@@ -19,7 +19,7 @@ set(PLUGIN_NAME AVInput)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
-find_package(${NAMESPACE}Protocols REQUIRED)
+find_package(${NAMESPACE}COM REQUIRED)
 
 set(PLUGIN_AVINPUT_STARTUPORDER "" CACHE STRING "To configure startup order of AVInput plugin")
 
@@ -38,7 +38,7 @@ target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
 target_link_libraries(${MODULE_NAME}
         PRIVATE
-        ${NAMESPACE}Protocols::${NAMESPACE}Protocols
+       ${NAMESPACE}COM::${NAMESPACE}COM
         )
 
 find_package(DS)

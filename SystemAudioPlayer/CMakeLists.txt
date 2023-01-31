@@ -39,7 +39,7 @@ list(APPEND CMAKE_MODULE_PATH
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GSTREAMERBASE REQUIRED gstreamer-app-1.0)
 
-find_package(GSTREAMER REQUIRED)
+find_package(GStreamer REQUIRED)
 
 find_package(Curl)
 
