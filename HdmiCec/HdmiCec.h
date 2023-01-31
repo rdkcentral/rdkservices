@@ -162,10 +162,12 @@ namespace WPEFramework {
         public:
             static HdmiCec* _instance;
             CECDeviceInfo deviceList[16];
+#ifndef LGI_CUSTOM_IMPL
             pthread_cond_t m_condSig;
             pthread_mutex_t m_lock;
             pthread_cond_t m_condSigUpdate;
             pthread_mutex_t m_lockUpdate;
+#endif
         private:
             std::string logicalAddressDeviceType;
             unsigned int logicalAddress;
@@ -174,10 +176,12 @@ namespace WPEFramework {
             bool cecEnableStatus;
             Connection *smConnection;
             int m_numberOfDevices;
+#ifndef LGI_CUSTOM_IMPL
             std::atomic_bool m_pollThreadExit;
             Utils::ThreadRAII m_pollThread;
             std::atomic_bool m_updateThreadExit;
             Utils::ThreadRAII m_UpdateThread;
+#endif
 
             const void InitializeIARM();
             void DeinitializeIARM();
@@ -216,9 +220,16 @@ namespace WPEFramework {
 
             void notify(const CECFrame &in) const;
             void onMessage(const char *message);
+#ifndef LGI_CUSTOM_IMPL
             static void threadRun();
             static void threadUpdateCheck();
+#endif
 
+#ifdef LGI_CUSTOM_IMPL
+            bool checkActiveSource();
+            static void cecActiveSourceEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+            void updateActiveSource(bool activeSource);
+#endif
         };
 	} // namespace Plugin
 } // namespace WPEFramework
