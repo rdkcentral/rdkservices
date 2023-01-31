@@ -49,6 +49,7 @@ UsbAccess interface methods:
 | :-------- | :-------- |
 | [clearLink](#clearLink) | Clears or removes the symbolic link created by the `createLink` method |
 | [createLink](#createLink) | Creates a symbolic link to the root folder of the USB drive |
+| [getLists](#getLists) | Returns a list of created links and the associated root folder of the USB drive |
 | [getAvailableFirmwareFiles](#getAvailableFirmwareFiles) | Gets a list of firmware files on the device |
 | [getFileList](#getFileList) | Gets a list of files and folders from the specified directory or path |
 | [getMounted](#getMounted) | Returns a list of mounted USB devices |
@@ -158,6 +159,60 @@ No Events
         "baseURL": "http://localhost/usbdrive",
         "success": true,
         "error": "could not create symlink OR symlink already exists: http://localhost/usbdrive"
+    }
+}
+```
+
+<a name="getLists"></a>
+## *getLists*
+
+Returns a list of created links and the associated root folder of the USB drive.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.links | array | The list of links and associated baseURL paths (empty if there are no results) |
+| result.links[#] | object |  |
+| result.links[#].path | string | The root folder of the mounted USB Drive as returned by getMounted API |
+| result.links[#].baseURL | string | The URL of the web server that points to the path as returned by createLink |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UsbAccess.getLists"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "links": [
+            {
+                "path": "/run/media/sda1",
+                "baseURL": "http://localhost/usbdrive"
+            }
+        ],
+        "success": true
     }
 }
 ```
