@@ -64,6 +64,7 @@ namespace Plugin {
         uint32_t getFileListWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t createLinkWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t clearLinkWrapper(const JsonObject& parameters, JsonObject& response);
+        uint32_t getLinksWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t getAvailableFirmwareFilesWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t getMountedWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
@@ -93,7 +94,7 @@ namespace Plugin {
         void archiveLogsInternal();
         void onArchiveLogs(ArchiveLogsError error, const string& filePath);
         std::thread archiveLogsThread;
-        std::set<int> m_CreatedLinkIds;
+        std::map<int, std::string> m_CreatedLinkIds;
         JsonObject m_oArchiveParams;
     };
 
