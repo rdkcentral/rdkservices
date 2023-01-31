@@ -11,6 +11,7 @@
 using namespace WPEFramework;
 
 using ::testing::NiceMock;
+using ::testing::Eq;
 
 class MotionDetectionTest : public ::testing::Test {
 protected:
@@ -121,8 +122,8 @@ TEST_F(MotionDetectionEventTest, armmotiondetectedInvalid)
                 return MOTION_DETECTION_RESULT_INDEX_ERROR;
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("arm"), _T("{ \"index\":\"FP_MD\",\"mode\":\"1\"}"), response));
-    EXPECT_EQ(response,  string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("arm"), _T("{ \"index\":\"FP_MD\",\"mode\":\"1\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(MotionDetectionEventTest, disarm)
@@ -148,8 +149,8 @@ TEST_F(MotionDetectionEventTest, disarmInvalid)
             }));
 
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("disarm"), _T("{\"index\":\"FP_MD\"}"), response));
-    EXPECT_EQ(response,  string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("disarm"), _T("{\"index\":\"FP_MD\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(MotionDetectionEventTest, isarmed)
@@ -177,8 +178,8 @@ TEST_F(MotionDetectionEventTest, isarmedInvalid)
             }));
 
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("isarmed"), _T("{\"index\"=\"FP_MD\"}"), response));
-    EXPECT_EQ(response, string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isarmed"), _T("{\"index\"=\"FP_MD\"}"), response));
+    EXPECT_THAT(response, Eq("{\"state\":false,\"success\":false}"));
 }
 
 TEST_F(MotionDetectionEventTest, setNoMotionPeriod)
@@ -205,8 +206,8 @@ TEST_F(MotionDetectionEventTest, setNoMotionPeriodInvalid)
             }));
 
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setNoMotionPeriod"), _T("{\"index\":\"FP_MD\",\"period\":\"10\"}"), response));
-    EXPECT_EQ(response, string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setNoMotionPeriod"), _T("{\"index\":\"FP_MD\",\"period\":\"10\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(MotionDetectionEventTest, getNoMotionPeriod)
@@ -232,8 +233,8 @@ TEST_F(MotionDetectionEventTest, getNoMotionPeriodInvalid)
                 return MOTION_DETECTION_RESULT_INDEX_ERROR;
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getNoMotionPeriod"), _T("{\"index\"=\"FP_MD\"}"), response));
-    EXPECT_EQ(response,  string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getNoMotionPeriod"), _T("{\"index\"=\"FP_MD\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(MotionDetectionEventTest, setSensitivity)
@@ -252,8 +253,8 @@ TEST_F(MotionDetectionEventTest, setSensitivity)
 
 TEST_F(MotionDetectionEventTest, setSensitivityInvalid)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setSensitivity"), _T("{\"index\":\"FP_MD\"}"), response));
-    EXPECT_EQ(response,  string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setSensitivity"), _T("{\"index\":\"FP_MD\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(MotionDetectionEventTest, getSensitivity)
@@ -282,8 +283,8 @@ TEST_F(MotionDetectionEventTest, getSensitivityInvalid)
                 return MOTION_DETECTION_RESULT_INDEX_ERROR;
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSensitivity"), _T("{\"index\":\"FP_MD\"}"), response));
-    EXPECT_EQ(response,  string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSensitivity"), _T("{\"index\":\"FP_MD\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(MotionDetectionEventTest, getLastMotionEventElapsedTime)
