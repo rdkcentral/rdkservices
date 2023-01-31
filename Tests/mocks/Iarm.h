@@ -866,3 +866,30 @@ typedef struct _IARM_Bus_SYSMgr_RunScript_t{
     char script_path [256];   //[in]  Null terminated path name of the script.
     int  return_value;        //[out] Returns the ret value of system.
 } IARM_Bus_SYSMgr_RunScript_t;
+
+typedef enum _CECMgr_EventId_t {
+        IARM_BUS_CECMGR_EVENT_SEND,
+        IARM_BUS_CECMGR_EVENT_RECV,
+        IARM_BUS_CECMGR_EVENT_ENABLE,
+        IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,
+        IARM_BUS_CECMGR_EVENT_MAX,
+        IARM_BUS_CECMGR_EVENT_STATUS_UPDATED
+} IARM_Bus_CECMgr_EventId_t;
+
+typedef struct _IARM_Bus_CECMgr_Status_Updated_Param_t
+{
+        int logicalAddress;
+}IARM_Bus_CECMgr_Status_Updated_Param_t;
+
+#define IARM_BUS_CECMGR_NAME "CECMgr"
+#define IARM_BUS_CECMGR_MAX_DATA_LENGTH 62
+#define IARM_BUS_CECMGR_API_Enable "enable"
+#define IARM_BUS_CECMGR_Send "Send"
+#define IARM_BUS_CECMGR_GetLogicalAddress "GetLogicalAddress"
+#define IARM_BUS_CECMGR_AddLogicalAddress "AddLogicalAddress"
+#define IARM_BUS_CECMGR_GetPhysicalAddress "GetPHysicalAddress"
+#define IARM_BUS_CECMGR_API_isAvailable "isAvailable"
+
+#define IARM_BUS_DSMGR_API_dsHdmiInGetNumberOfInputs    "dsHdmiInGetNumberOfInputs"
+#define IARM_BUS_DSMGR_API_dsHdmiInGetStatus            "dsHdmiInGetStatus"
+#define IARM_BUS_DSMGR_API_dsGetHDMIARCPortId  "dsGetHDMIARCPortId"
