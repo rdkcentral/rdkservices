@@ -79,7 +79,7 @@
                 ]
             }
         },
-        "getLists": {
+        "getLinks": {
             "summary": "Returns a list of created links and the associated root folder of the USB drive.",
             "result": {
                 "type": "object",
