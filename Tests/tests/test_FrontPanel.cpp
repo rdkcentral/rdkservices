@@ -154,7 +154,14 @@ protected:
     FrontPanelInitializedEventDsTest()
         : FrontPanelInitializedEventTest()
     {
-        device::FrontPanelIndicator::Color::getInstance().impl = &colorImplMock;   
+        device::FrontPanelIndicator::Color::getInstance().impl = &colorImplMock; 
+
+        //Variable that needs to be set is set through this call
+        IARM_Bus_PWRMgr_EventData_t eventData;
+        eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
+        eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+        dsFrontPanelModeChange(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
+      
     }
 
     virtual ~FrontPanelInitializedEventDsTest() override
@@ -179,20 +186,6 @@ TEST_F(FrontPanelTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("set24HourClock")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("is24HourClock")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setClockTestPattern")));
-}
-TEST_F(FrontPanelInitializedEventDsTest, powerModeChange)
-{
-    //powerModeChange does not make any external function calls, and simply sets the variable powerStatus.
-    //The tests that need powerState set to true may not work if helper/frontpanel.cpp
-    //ever gets fixed to be released from memory/deinitialized.
-    ASSERT_TRUE(dsFrontPanelModeChange != nullptr);
-
-    IARM_Bus_PWRMgr_EventData_t eventData;
-    eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
-    eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
-
-    dsFrontPanelModeChange(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
-    
 }
 
 TEST_F(FrontPanelInitializedEventDsTest, setBrightnessWIndex)
