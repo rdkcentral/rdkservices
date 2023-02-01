@@ -86,9 +86,9 @@ namespace Plugin {
         if (isIARMConnected())
         {
             IARM_Result_t res;
-            IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS) );
-            IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE) );
-            IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
+            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS) );
+            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE) );
+            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
         }
 #endif
     }
@@ -97,11 +97,11 @@ namespace Plugin {
         IARM_Result_t res;
         bool result = false;
 
-        if (isIARMConnected()) {
+        if ( Utils::IARM::isConnected() ) {
             LOGINFO("ControlSettingsPlugin: IARM already connected");
             result = true;
         } else {
-            res = IARM_Bus_Init(PLUGIN_IARM_BUS_NAME);
+            res = Utils::IARM::init();
             LOGINFO("ControlSettingsPlugin: IARM_Bus_Init: %d", res);
             if (res == IARM_RESULT_SUCCESS ||
                 res == IARM_RESULT_INVALID_STATE /* already inited or connected */) {
@@ -111,7 +111,7 @@ namespace Plugin {
                 if (res == IARM_RESULT_SUCCESS ||
                     res == IARM_RESULT_INVALID_STATE /* already connected or not inited */) {
 
-                    result = isIARMConnected();
+                    result = Utils::IARM::isConnected();
                 } else {
                     LOGERR("ControlSettingsPlugin: IARM_Bus_Connect failure: %d", res);
                 }
