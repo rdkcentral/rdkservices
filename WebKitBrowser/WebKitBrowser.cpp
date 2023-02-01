@@ -330,7 +330,6 @@ namespace Plugin {
 
     void WebKitBrowser::BridgeQuery(const string& message)
     {
-        TRACE(Trace::Information, (_T("BridgeQuery: %s"), message.c_str()));
         event_bridgequery(message);
     }
 
