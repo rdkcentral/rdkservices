@@ -48,6 +48,9 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdk/ds/videoOutputPortConfig.hpp
         ${BASEDIR}/rdk/ds/videoOutputPortType.hpp
         ${BASEDIR}/rdk/ds/videoResolution.hpp
+        ${BASEDIR}/rdk/ds/frontPanelIndicator.hpp
+        ${BASEDIR}/rdk/ds/frontPanelConfig.hpp
+        ${BASEDIR}/rdk/ds/frontPanelTextDisplay.hpp
         ${BASEDIR}/rdk/iarmbus/libIARM.h
         ${BASEDIR}/rdk/iarmbus/libIBus.h
         ${BASEDIR}/rdk/iarmbus/libIBusDaemon.h
@@ -104,6 +107,8 @@ add_definitions(
         -DHAS_API_POWERSTATE
         -DHAS_RBUS
         -DENABLE_DEVICE_MANUFACTURER_INFO
+        -DCLOCK_BRIGHTNESS_ENABLED
+        -DUSE_DS
 )
 
 message("Setting build options")
@@ -142,5 +147,6 @@ set(PLUGIN_ACTIVITYMONITOR ON)
 set(PLUGIN_MOTION_DETECTION ON)
 set(PLUGIN_COMPOSITEINPUT ON)
 set(PLUGIN_HDMICEC ON)
+set(HAS_FRONT_PANEL ON)
 
 set(DS_FOUND ON)
