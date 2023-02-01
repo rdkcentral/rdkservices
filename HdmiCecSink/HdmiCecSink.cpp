@@ -436,7 +436,7 @@ namespace WPEFramework
 					
 					case GIVE_OSD_NAME :
 			 		{
-			 			HdmiCecSink::_instance->deviceList[header.from.toInt()].update(OSDName("FA"));
+			 			HdmiCecSink::_instance->deviceList[header.from.toInt()].update(OSDName(""));
 			 		}
 						break;
 
@@ -2470,7 +2470,7 @@ namespace WPEFramework
 
 					case CECDeviceParams::REQUEST_OSD_NAME :	
 					{
-						_instance->deviceList[logicalAddress].update(OSDName("NA"));
+						_instance->deviceList[logicalAddress].update(OSDName(""));
 					}
 						break;
 
