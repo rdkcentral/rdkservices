@@ -24,6 +24,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Fixed
 - Run correctly as out-of-process service
 
+## [1.0.2] - 2023-03-02
+### Fixed
+- Change to resolve deadlock and timeout when tuning using user defined tuning parameters
+
 ### Change
 - Reset API version to 1.0.0
 - Change README to inform how to update changelog and API version
