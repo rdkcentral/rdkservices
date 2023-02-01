@@ -419,6 +419,7 @@ namespace WPEFramework
 			 if(header.from.toInt() < LogicalAddress::UNREGISTERED &&    
 			 		msg.reason.toInt()   == AbortReason::UNRECOGNIZED_OPCODE)
 			 {
+				 LOGINFO("Debug: inside if\n");
 			 	switch(msg.feature.opCode())
 			 	{
 			 		case GET_CEC_VERSION :
@@ -436,6 +437,7 @@ namespace WPEFramework
 					
 					case GIVE_OSD_NAME :
 			 		{
+						LOGINFO("Debug: OSD name: NULL\n");
 			 			HdmiCecSink::_instance->deviceList[header.from.toInt()].update(OSDName(""));
 			 		}
 						break;
