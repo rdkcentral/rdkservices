@@ -34,9 +34,9 @@ protected:
 class FrontPanelDsTest : public FrontPanelTest {
 protected:
     testing::NiceMock<FrontPanelIndicatorMock> frontPanelIndicatorMock;
-    ColorMock colorImplMock;
+    testing::NiceMock<ColorMock>  colorImplMock;
     testing::NiceMock<FrontPanelTextDisplayMock> frontPanelTextDisplayMock;
-    FrontPanelConfigMock frontPanelConfigImplMock;
+    testing::NiceMock<FrontPanelConfigMock> frontPanelConfigImplMock;
     FrontPanelDsTest()
         : FrontPanelTest()
     {
@@ -60,10 +60,10 @@ protected:
 
 class FrontPanelInitializedTest : public FrontPanelTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    testing::NiceMock<IarmBusImplMock> iarmBusImplMock;
     IARM_EventHandler_t dsPanelEventHandler;
-    FrontPanelConfigMock frontPanelConfigImplMock;
-    FrontPanelIndicatorMock frontPanelIndicatorMock;
+    testing::NiceMock<FrontPanelConfigMock> frontPanelConfigImplMock;
+    testing::NiceMock<FrontPanelIndicatorMock> frontPanelIndicatorMock;
     testing::NiceMock<FrontPanelTextDisplayMock> frontPanelTextDisplayMock;
 
     IARM_EventHandler_t dsFrontPanelModeChange;
@@ -122,7 +122,7 @@ protected:
 
 class FrontPanelInitializedEventTest : public FrontPanelInitializedTest {
 protected:
-    ServiceMock service;
+    testing::NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
     FactoriesImplementation factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
@@ -149,7 +149,7 @@ protected:
 class FrontPanelInitializedEventDsTest : public FrontPanelInitializedEventTest {
 protected:
 
-    ColorMock colorImplMock;
+    testing::NiceMock<ColorMock>  colorImplMock;
 
     FrontPanelInitializedEventDsTest()
         : FrontPanelInitializedEventTest()
