@@ -49,7 +49,7 @@ UsbAccess interface methods:
 | :-------- | :-------- |
 | [clearLink](#clearLink) | Clears or removes the symbolic link created by the `createLink` method |
 | [createLink](#createLink) | Creates a symbolic link to the root folder of the USB drive |
-| [getLists](#getLists) | Returns a list of created links and the associated root folder of the USB drive |
+| [getLinks](#getLinks) | Returns a list of created links and the associated root folder of the USB drive |
 | [getAvailableFirmwareFiles](#getAvailableFirmwareFiles) | Gets a list of firmware files on the device |
 | [getFileList](#getFileList) | Gets a list of files and folders from the specified directory or path |
 | [getMounted](#getMounted) | Returns a list of mounted USB devices |
@@ -163,8 +163,8 @@ No Events
 }
 ```
 
-<a name="getLists"></a>
-## *getLists*
+<a name="getLinks"></a>
+## *getLinks*
 
 Returns a list of created links and the associated root folder of the USB drive.
 
@@ -195,7 +195,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UsbAccess.getLists"
+    "method": "org.rdk.UsbAccess.getLinks"
 }
 ```
 
@@ -288,6 +288,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result?.path | string | <sup>*(optional)*</sup> Absolute path for which the contents are returned |
 | result.contents | array | A list of files and directories (empty if there are no results) |
 | result.contents[#] | object |  |
 | result.contents[#].name | string | the name of the file or directory |
@@ -317,6 +318,7 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "path": "/run/media/sda1/logs/PreviousLogs",
         "contents": [
             {
                 "name": "img1.jpg",

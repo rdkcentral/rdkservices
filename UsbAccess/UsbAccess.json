@@ -157,6 +157,11 @@
             "result": {
                 "type": "object",
                 "properties": {
+                    "path": {
+                        "summary": "Absolute path for which the contents are returned",
+                        "type":"string",
+                        "example": "\/run\/media\/sda1\/logs\/PreviousLogs"
+                    },
                     "contents": {
                         "summary": "A list of files and directories (empty if there are no results)",
                         "type": "array",

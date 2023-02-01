@@ -245,11 +245,11 @@ namespace Plugin {
         }
 
         FileList files;
+        string absPath;
         std::list<string> paths;
         getMounted(paths);
         if (!paths.empty())
         {
-            string absPath;
             //Loop through all the paths to match for absolute path
             for(auto const& it : paths)
             {
@@ -271,6 +271,7 @@ namespace Plugin {
             response["error"] = "not found";
         else
         {
+            response["path"] = absPath;
             JsonArray arr;
             for_each(files.begin(), files.end(), [&arr](const FileEnt& it)
             {
