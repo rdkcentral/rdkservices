@@ -195,6 +195,7 @@
                     }
                 },
                 "required": [
+                    "path",
                     "contents",
                     "success"
                 ]

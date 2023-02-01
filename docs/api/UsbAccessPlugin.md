@@ -288,7 +288,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result?.path | string | <sup>*(optional)*</sup> Absolute path for which the contents are returned |
+| result.path | string | Absolute path for which the contents are returned |
 | result.contents | array | A list of files and directories (empty if there are no results) |
 | result.contents[#] | object |  |
 | result.contents[#].name | string | the name of the file or directory |
