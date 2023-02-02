@@ -67,7 +67,7 @@ namespace WPEFramework
 #ifdef CLOCK_BRIGHTNESS_ENABLED
         static int clockBrightness = 100;
 #endif
-        static int initDone = 0;
+        int CFrontPanel::initDone = 0;
         static bool isMessageLedOn = false;
         static bool isRecordLedOn = false;
 #ifdef CLOCK_BRIGHTNESS_ENABLED
