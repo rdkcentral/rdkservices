@@ -70,6 +70,7 @@ include_directories(../LocationSync
         ../ActivityMonitor
         ../MotionDetection
         ../CompositeInput
+		../FrontPanel
 		../HdmiCecSink
         )
 link_directories(../LocationSync
@@ -98,6 +99,7 @@ link_directories(../LocationSync
         ../ActivityMonitor
         ../MotionDetection
         ../CompositeInput
+		../FrontPanel
 		../HdmiCecSink
         )
 
@@ -130,6 +132,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}ActivityMonitor
         ${NAMESPACE}MotionDetection
         ${NAMESPACE}CompositeInput
+		${NAMESPACE}FrontPanel
 		${NAMESPACE}HdmiCecSink
         )
 
