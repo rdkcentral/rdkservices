@@ -133,7 +133,7 @@ static const char *eventString[] = {
 #define CEC_SETTING_OSD_NAME "cecOSDName"
 #define CEC_SETTING_VENDOR_ID "cecVendorId"
 
-static vector<uint8_t> defaultVendorId = {0x00,0x19,0xFB};
+static std::vector<uint8_t> defaultVendorId = {0x00,0x19,0xFB};
 static VendorID appVendorId = {defaultVendorId.at(0),defaultVendorId.at(1),defaultVendorId.at(2)};
 static VendorID lgVendorId = {0x00,0xE0,0x91};
 static PhysicalAddress physical_addr = {0x0F,0x0F,0x0F,0x0F};
@@ -141,8 +141,8 @@ static LogicalAddress logicalAddress = 0xF;
 static Language defaultLanguage = "eng";
 static OSDName osdName = "TV Box";
 static int32_t powerState = DEVICE_POWER_STATE_OFF;
-static vector<uint8_t> formatid = {0,0};
-static vector<uint8_t> audioFormatCode = { SAD_FMT_CODE_ENHANCED_AC3,SAD_FMT_CODE_AC3 };
+static std::vector<uint8_t> formatid = {0,0};
+static std::vector<uint8_t> audioFormatCode = { SAD_FMT_CODE_ENHANCED_AC3,SAD_FMT_CODE_AC3 };
 static uint8_t numberofdescriptor = 2;
 static int32_t HdmiArcPortID = -1;
 
@@ -534,7 +534,7 @@ namespace WPEFramework
        HdmiCecSink::HdmiCecSink()
        : PluginHost::JSONRPC()
        {
-       	   int err;
+       	   //int err;
            LOGWARN("Initlaizing HdmiCecSink");
            HdmiCecSink::_instance = this;
            smConnection=NULL;
@@ -547,9 +547,9 @@ namespace WPEFramework
                    m_audioDevicePowerStatusRequested = false;
 		   m_pollNextState = POLL_THREAD_STATE_NONE;
 		   m_pollThreadState = POLL_THREAD_STATE_NONE;
-		   dsHdmiInGetNumberOfInputsParam_t hdmiInput;
+		   //dsHdmiInGetNumberOfInputsParam_t hdmiInput;
 
-           InitializeIARM();
+           //InitializeIARM();
 
            Register(HDMICECSINK_METHOD_SET_ENABLED, &HdmiCecSink::setEnabledWrapper, this);
            Register(HDMICECSINK_METHOD_GET_ENABLED, &HdmiCecSink::getEnabledWrapper, this);
@@ -589,130 +589,138 @@ namespace WPEFramework
            // load persistence setting
            loadSettings();
 
-            // get power state:
-            IARM_Bus_PWRMgr_GetPowerState_Param_t param;
-            err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
-                            IARM_BUS_PWRMGR_API_GetPowerState,
-                            (void *)&param,
-                            sizeof(param));
-            if(err == IARM_RESULT_SUCCESS)
-            {
-                powerState = (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON)? DEVICE_POWER_STATE_ON :  DEVICE_POWER_STATE_OFF;
-                LOGINFO("Current state is IARM: (%d) powerState :%d \n",param.curState,powerState);
-            }
-
-			err = IARM_Bus_Call(IARM_BUS_DSMGR_NAME,
-                            IARM_BUS_DSMGR_API_dsHdmiInGetNumberOfInputs,
-                            (void *)&hdmiInput,
-                            sizeof(hdmiInput));
-			
-            if(err == IARM_RESULT_SUCCESS && hdmiInput.result == dsERR_NONE )          {
-				LOGINFO("Number of Inputs [%d] \n", hdmiInput.numHdmiInputs );
-            	m_numofHdmiInput = hdmiInput.numHdmiInputs;
-            }
-			else
-			{
-				LOGINFO("Not able to get Numebr of inputs so defaulting to 3 \n");
-				m_numofHdmiInput = 3;
-			}
-
-			LOGINFO("initalize inputs \n");
-
-			for ( int i=0; i<m_numofHdmiInput; i++ )
-			{
-				HdmiPortMap hdmiPort((uint8_t)i);
-				LOGINFO(" Add to vector [%d] \n", i);
-				hdmiInputs.push_back(hdmiPort);
-			}
-
-			LOGINFO("Check the HDMI State \n");
-
-			CheckHdmiInState();
-
-            int cecMgrIsAvailableParam;
-            err = IARM_Bus_Call(IARM_BUS_CECMGR_NAME,
-                            IARM_BUS_CECMGR_API_isAvailable,
-                            (void *)&cecMgrIsAvailableParam,
-                            sizeof(cecMgrIsAvailableParam));
-
-	    if(err == IARM_RESULT_SUCCESS) {
-                LOGINFO("RDK CECDaemon up and running. IARM Call: IARM_BUS_CECMGR_API_isAvailable successful... \n");
-            }
-	    else {
-                LOGINFO("RDK CECDaemon not up yet. IARM Call: IARM_BUS_CECMGR_API_isAvailable failed !!! \n");
-            }
-            if (cecSettingEnabled && (err == IARM_RESULT_SUCCESS))
-            {
-               try
-               {
-                   CECEnable();
-               }
-               catch(...)
-               {
-                   LOGWARN("Exception while enabling CEC settings .\r\n");
-               }
-            }
-            getHdmiArcPortID();
-            
        }
 
        HdmiCecSink::~HdmiCecSink()
        {
        }
+	   const std::string HdmiCecSink::Initialize(PluginHost::IShell* /* service */)
+	   {
+			   HdmiCecSink::_instance = this;
+			   std::string msg;
+			   InitializeIARM();
 
-       void HdmiCecSink::Deinitialize(PluginHost::IShell* /* service */)
+			   int err;
+			   dsHdmiInGetNumberOfInputsParam_t hdmiInput;
+			   // get power state:
+			   IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+			   err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+							   IARM_BUS_PWRMGR_API_GetPowerState,
+							   (void *)&param,
+							   sizeof(param));
+			   if(err == IARM_RESULT_SUCCESS)
+			   {
+					   powerState = (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON)? DEVICE_POWER_STATE_ON :  DEVICE_POWER_STATE_OFF;
+					   LOGINFO("Current state is IARM: (%d) powerState :%d \n",param.curState,powerState);
+			   }
+
+			   err = IARM_Bus_Call(IARM_BUS_DSMGR_NAME,
+							   IARM_BUS_DSMGR_API_dsHdmiInGetNumberOfInputs,
+							   (void *)&hdmiInput,
+							   sizeof(hdmiInput));
+
+			   if(err == IARM_RESULT_SUCCESS && hdmiInput.result == dsERR_NONE ){
+					   LOGINFO("Number of Inputs [%d] \n", hdmiInput.numHdmiInputs );
+					   m_numofHdmiInput = hdmiInput.numHdmiInputs;
+			   }
+			   else
+			   {
+					   LOGINFO("Not able to get Numebr of inputs so defaulting to 3 \n");
+					   m_numofHdmiInput = 3;
+			   }
+			   LOGINFO("initalize inputs \n");
+
+			   for ( int i=0; i<m_numofHdmiInput; i++ )
+			   {
+					   HdmiPortMap hdmiPort((uint8_t)i);
+					   LOGINFO(" Add to vector [%d] \n", i);
+					   hdmiInputs.push_back(hdmiPort);
+			   }
+
+			   LOGINFO("Check the HDMI State \n");
+			   CheckHdmiInState();
+
+			   int cecMgrIsAvailableParam;
+			   err = IARM_Bus_Call(IARM_BUS_CECMGR_NAME,
+							   IARM_BUS_CECMGR_API_isAvailable,
+							   (void *)&cecMgrIsAvailableParam,
+							   sizeof(cecMgrIsAvailableParam));
+
+			   if(err == IARM_RESULT_SUCCESS){
+					   LOGINFO("RDK CECDaemon up and running. IARM Call: IARM_BUS_CECMGR_API_isAvailable successful... \n");
+			   }
+			   else {
+					   LOGINFO("RDK CECDaemon not up yet. IARM Call: IARM_BUS_CECMGR_API_isAvailable failed !!! \n");
+			   }
+			   if (cecSettingEnabled && (err == IARM_RESULT_SUCCESS))
+			   {
+					   try
+					   {
+							   CECEnable();
+					   }
+					   catch(...)
+					   {
+							   LOGWARN("Exception while enabling CEC settings .\r\n");
+					   }
+			   }
+			   getHdmiArcPortID();
+
+			   return msg;
+	   }
+       
+	   void HdmiCecSink::Deinitialize(PluginHost::IShell* /* service */)
        {
-	    CECDisable();
-	    m_currentArcRoutingState = ARC_STATE_ARC_EXIT;
+			   m_currentArcRoutingState = ARC_STATE_ARC_EXIT;
 
-            m_semSignaltoArcRoutingThread.release();
+			   m_semSignaltoArcRoutingThread.release();
 
-            try
-	    {
-		if (m_arcRoutingThread.joinable())
-			m_arcRoutingThread.join();
-	    }
-	    catch(const std::system_error& e)
-	    {
-		LOGERR("system_error exception in thread join %s", e.what());
-	    }
-	    catch(const std::exception& e)
-	    {
-		LOGERR("exception in thread join %s", e.what());
-	    }
+			   try
+			   {
+					   if (m_arcRoutingThread.joinable())
+							   m_arcRoutingThread.join();
+			   }
+			   catch(const std::system_error& e)
+			   {
+					   LOGERR("system_error exception in thread join %s", e.what());
+			   }
+			   catch(const std::exception& e)
+			   {
+					   LOGERR("exception in thread join %s", e.what());
+			   }
 
-	    {
-	        m_sendKeyEventThreadExit = true;
-                std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
-                m_sendKeyEventThreadRun = true;
-                m_sendKeyCV.notify_one();
-            }
+			   {
+					   m_sendKeyEventThreadExit = true;
+					   std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
+					   m_sendKeyEventThreadRun = true;
+					   m_sendKeyCV.notify_one();
+			   }
 
-	    try
-	    {
-            if (m_sendKeyEventThread.joinable())
-                m_sendKeyEventThread.join();
-	    }
-	    catch(const std::system_error& e)
-	    {
-		    LOGERR("system_error exception in thread join %s", e.what());
-	    }
-	    catch(const std::exception& e)
-	    {
-		    LOGERR("exception in thread join %s", e.what());
-	    }
+			   try
+			   {
+					   if (m_sendKeyEventThread.joinable())
+							   m_sendKeyEventThread.join();
+			   }
+			   catch(const std::system_error& e)
+			   {
+					   LOGERR("system_error exception in thread join %s", e.what());
+			   }
+			   catch(const std::exception& e)
+			   {
+					   LOGERR("exception in thread join %s", e.what());
+			   }
 
-            HdmiCecSink::_instance = nullptr;
-            DeinitializeIARM();
-	    LOGWARN(" HdmiCecSink Deinitialize() Done");
-       }
+			   CECDisable();
+			   HdmiCecSink::_instance = nullptr;
+			   DeinitializeIARM();
+			   LOGWARN(" HdmiCecSink Deinitialize() Done");
+	   }
 
-       const void HdmiCecSink::InitializeIARM()
-       {
-            if (Utils::IARM::init())
-            {
-                IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
+	   const void HdmiCecSink::InitializeIARM()
+	   {
+			   if (Utils::IARM::init())
+			   {
+					   IARM_Result_t res;
+					   IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, pwrMgrModeChangeEventHandler) );
@@ -1314,8 +1322,8 @@ namespace WPEFramework
                 std::string id = parameters["activePath"].String();
 				PhysicalAddress phy_addr = PhysicalAddress(id);
 
-				LOGINFO("Addr = %s, length = %d", id.c_str(), id.length());
-
+				LOGINFO("Addr = %s, length = %ld", id.c_str(), id.length());
+				
 				setStreamPath(phy_addr);
 				returnResponse(true);
             }
@@ -1527,7 +1535,7 @@ namespace WPEFramework
 			m_SendKeyQueue.push(keyInfo);
                         m_sendKeyEventThreadRun = true;
 			m_sendKeyCV.notify_one();
-			LOGINFO("Post send key press event to queue size:%d \n",m_SendKeyQueue.size());
+			LOGINFO("Post send key press event to queue size:%ld \n",m_SendKeyQueue.size());
 			returnResponse(true);
 		}
 	   uint32_t HdmiCecSink::sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response)
@@ -2573,13 +2581,13 @@ namespace WPEFramework
 					if ( disconnected.size() ){
 						for( unsigned int i=0; i< disconnected.size(); i++ )
 						{
-							LOGWARN("Disconnected Devices [%d]", disconnected.size());
+							LOGWARN("Disconnected Devices [%ld]", disconnected.size());
 							_instance->removeDevice(disconnected[i]);
 						}
 					}
 
 					if (connected.size()) {
-						LOGWARN("Connected Devices [%d]", connected.size());
+						LOGWARN("Connected Devices [%ld]", connected.size());
 						for( unsigned int i=0; i< connected.size(); i++ )
 						{
 							_instance->addDevice(connected[i]);
@@ -3101,7 +3109,7 @@ namespace WPEFramework
                     keyInfo = _instance->m_SendKeyQueue.front();
                     _instance->m_SendKeyQueue.pop();
 
-                LOGINFO("sendRemoteKeyThread : logical addr:0x%x keyCode: 0x%x  queue size :%d \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
+                LOGINFO("sendRemoteKeyThread : logical addr:0x%x keyCode: 0x%x  queue size :%ld \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
 			    _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
 			    _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
 			    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
