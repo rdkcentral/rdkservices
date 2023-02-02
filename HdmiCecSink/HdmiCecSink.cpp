@@ -628,7 +628,7 @@ namespace WPEFramework
 					   LOGINFO("Not able to get Numebr of inputs so defaulting to 3 \n");
 					   m_numofHdmiInput = 3;
 			   }
-			   GINFO("initalize inputs \n");
+			   LOGINFO("initalize inputs \n");
 
 			   for ( int i=0; i<m_numofHdmiInput; i++ )
 			   {
