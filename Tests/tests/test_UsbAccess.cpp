@@ -29,6 +29,7 @@ TEST_F(UsbAccessTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFileList")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("createLink")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("clearLink")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getLinks")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getAvailableFirmwareFiles")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getMounted")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("updateFirmware")));
