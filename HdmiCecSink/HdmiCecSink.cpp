@@ -817,6 +817,7 @@ namespace WPEFramework
                                                 /* Initiate a ping straight away */
                                                 HdmiCecSink::_instance->m_pollNextState = POLL_THREAD_STATE_PING;
                                                 HdmiCecSink::_instance->m_ThreadExitCV.notify_one();
+						LOGINFO("Notifying the ThreadExit upon state change\n");
 					}
 			}
 			else
@@ -2696,7 +2697,7 @@ namespace WPEFramework
 				}
 				break;
 				}
-
+				LOGINFO("sleepTime: %d\n",_instance->m_sleepTime);
 				std::unique_lock<std::mutex> lk(_instance->m_pollExitMutex);
 				if ( _instance->m_ThreadExitCV.wait_for(lk, std::chrono::milliseconds(_instance->m_sleepTime)) == std::cv_status::timeout )
 					continue;
