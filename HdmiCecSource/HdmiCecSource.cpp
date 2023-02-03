@@ -1252,8 +1252,8 @@ namespace WPEFramework
                 m_updateThreadExit = true;
                 //Trigger codition to exit poll loop
                 pthread_mutex_lock(&(_instance->m_lockUpdate)); //Join mutex lock to wait until thread is in its wait condition
-                pthread_cond_signal(&(_instance->m_condSigUpdate))
-                pthread_mutex_unlock(&(_instance->m_lockUpdate));;
+                pthread_cond_signal(&(_instance->m_condSigUpdate));
+                pthread_mutex_unlock(&(_instance->m_lockUpdate));
                 try{
                     if (m_UpdateThread.get().joinable()) {//Join thread to make sure it's deleted before moving on.
                         m_UpdateThread.get().join();
