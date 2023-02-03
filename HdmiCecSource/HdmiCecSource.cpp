@@ -1254,14 +1254,9 @@ namespace WPEFramework
                 pthread_mutex_lock(&(_instance->m_lockUpdate)); //Join mutex lock to wait until thread is in its wait condition
                 pthread_cond_signal(&(_instance->m_condSigUpdate));
                 pthread_mutex_unlock(&(_instance->m_lockUpdate));
-                try{
-                    if (m_UpdateThread.get().joinable()) {//Join thread to make sure it's deleted before moving on.
-                        m_UpdateThread.get().join();
-                    }
+                if (m_UpdateThread.get().joinable()) {//Join thread to make sure it's deleted before moving on.
+                    m_UpdateThread.get().join();
                 }
-                catch (const std::system_error& e) {
-                    LOGERR("exception in joining threadUpdateCheck %s", e.what());
-	            }
                 LOGWARN("Deleted update Thread %p", smConnection );
 
                 m_pollThreadExit = true;
@@ -1269,14 +1264,9 @@ namespace WPEFramework
                 pthread_mutex_lock(&(_instance->m_lock)); //Join mutex lock to wait until thread is in its wait condition
                 pthread_cond_signal(&(_instance->m_condSig));
                 pthread_mutex_unlock(&(_instance->m_lock));
-                try{
-                    if (m_pollThread.get().joinable()) {//Join thread to make sure it's deleted before moving on.
-                        m_pollThread.get().join();
-                    }
+                if (m_pollThread.get().joinable()) {//Join thread to make sure it's deleted before moving on.
+                    m_pollThread.get().join();
                 }
-                catch (const std::system_error& e) {
-                    LOGERR("exception in joining threadRun %s", e.what());
-	            }
                 LOGWARN("Deleted Thread %p", smConnection );
                 //Clear cec device cache.
                 removeAllCecDevices();
