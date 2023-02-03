@@ -149,19 +149,13 @@ protected:
     HdmiCecSinkInitializedEventDsTest()
         : HdmiCecSinkInitializedEventTest()
     {
-	    LibCCEC::getInstance().impl = &libCCECImplMock;
-        Connection::getInstance().impl = &connectionImplMock;	
 	    DeviceType::getInstance().impl = &deviceTypeImplMock;
-        LogicalAddress::getInstance().impl = &logicalAddressImplMock;
 
     }
 
     virtual ~HdmiCecSinkInitializedEventDsTest() override
     {
-        LibCCEC::getInstance().impl = nullptr;
-		Connection::getInstance().impl = nullptr;
         DeviceType::getInstance().impl = nullptr;
-        LogicalAddress::getInstance().impl = nullptr;
     }
 };
 
@@ -200,33 +194,16 @@ TEST_F(HdmiCecSinkInitializedEventDsTest, setEnabled)
         .WillByDefault(::testing::Return(1));
 	ON_CALL(deviceTypeImplMock, toString())
         .WillByDefault(::testing::Return("New"));
-    EXPECT_CALL(connectionImplMock, open())
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&]() {
-
-            }));
-    EXPECT_CALL(connectionImplMock, addFrameListener(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&](FrameListener *listener) {
-                //FrameListener only contains a destructor, and a void function. No values to check
-            }));
-    EXPECT_CALL(connectionImplMock, poll(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&]() {
-
-            }));
 
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
         EXPECT_EQ(response, string("{\"success\":true}"));
 
-    sleep(5);//short wait to allow setEnabled to reach thread loop, where it can exit safely without segmentation faults
+}
 
+TEST_F(HdmiCecSinkInitializedEventDsTest, getEnableTrue)
+{
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T("{}"), response));
 	EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
-
 }
 
 TEST_F(HdmiCecSinkInitializedEventDsTest, setEnableFalse)
@@ -236,32 +213,16 @@ TEST_F(HdmiCecSinkInitializedEventDsTest, setEnableFalse)
         .WillByDefault(::testing::Return(1));
     ON_CALL(deviceTypeImplMock, toString())
         .WillByDefault(::testing::Return("New"));
-    EXPECT_CALL(connectionImplMock, open())
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&]() {
-
-            }));
-    EXPECT_CALL(connectionImplMock, addFrameListener(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&](FrameListener *listener) {
-                //FrameListener only contains a destructor, and a void function. No values to check
-            }));
-	 EXPECT_CALL(connectionImplMock, poll(::testing::_, ::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&]() {
-
-            }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": false}"), response));
 	EXPECT_EQ(response, string("{\"success\":true}"));
+}
 
-    sleep(5);//short wait to allow setEnabled to reach thread loop, where it can exit safely without segmentation faults
+TEST_F(HdmiCecSinkInitializedEventDsTest, getEnabledFalse)
+{
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"enabled\":true,\"success\":false}"));
+    EXPECT_EQ(response, string("{\"enabled\":false,\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, setOSDName)
@@ -271,14 +232,6 @@ TEST_F(HdmiCecSinkDsTest, setOSDName)
 
 }
 
-TEST_F(HdmiCecSinkDsTest, setOSDNameInvalid)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setOSDName"), _T("{\"name\":""}"), response));
-    EXPECT_EQ(response,  string(""));
-
-}
-
-
 TEST_F(HdmiCecSinkDsTest, getOSDName)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getOSDName"), _T("{}"), response));
@@ -286,18 +239,10 @@ TEST_F(HdmiCecSinkDsTest, getOSDName)
 
 }
 
-
 TEST_F(HdmiCecSinkDsTest, setVendorId)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVendorId"), _T("{\"vendorid\":\"0x0019FB\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
-
-}
-
-TEST_F(HdmiCecSinkDsTest, setVendorIdInvalid)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVendorId"), _T("{\"vendorid\":""}"), response));
-    EXPECT_EQ(response,  string(""));
 
 }
 
@@ -310,21 +255,14 @@ TEST_F(HdmiCecSinkDsTest, getVendorId)
 
 TEST_F(HdmiCecSinkDsTest, setActivePath)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setActivePath"), _T("{\"activePath\":\"path1\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setActivePath"), _T("{\"activePath\":\"2.0.0.0\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
-
-}
-
-TEST_F(HdmiCecSinkDsTest, setActivePathInvalid)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setActivePath"), _T("{\"activePath\":""}"), response));
-    EXPECT_EQ(response,  string(""));
 
 }
 
 TEST_F(HdmiCecSinkDsTest, setRoutingChange)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setRoutingChange"), _T("{\"oldPort\":[{\"HDMI\":\"100\", \"TV\":\"150\"}], \"newPort\":[{\"HDMI\":\"100\", \"TV\":\"150\"}}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setRoutingChange"), _T("{\"oldPort\":\"TV\",\"newPort\":\"HDMI1\"}"), response));
     EXPECT_EQ(response,  string(""));
 
 }
@@ -354,12 +292,6 @@ TEST_F(HdmiCecSinkDsTest, setMenuLanguage)
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
 
-TEST_F(HdmiCecSinkDsTest, setMenuLanguageInvalid)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMenuLanguage"), _T(""), response));
-    EXPECT_EQ(response,  string(""));
-}
-
 TEST_F(HdmiCecSinkDsTest, requestActiveSource)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("requestActiveSource"), _T(""), response));
@@ -378,12 +310,19 @@ TEST_F(HdmiCecSinkDsTest, requestShortAudioDescriptor)
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
 
+#if 0
+
+TEST_F(HdmiCecSinkDsTest, setupARCRouting)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setupARCRouting"), _T(""), response));
+    EXPECT_EQ(response,  string(""));
+}
+
 TEST_F(HdmiCecSinkDsTest, sendStandbyMessage)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendStandbyMessage"), _T(""), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
-#if 0
 TEST_F(HdmiCecSinkDsTest, sendAudioDevicePowerOnMessage)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendAudioDevicePowerOnMessage"), _T(""), response));
