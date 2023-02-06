@@ -1409,12 +1409,6 @@ class VendorID : public CECBytes{
 	    	static VendorID instance;
 	    	return instance;
 	    };
-<<<<<<< HEAD
-		enum{
-			MAX_LEN=3,
-		};
-=======
->>>>>>> 54818933 (Updating HDMICec GTest)
         VendorID(){};
 	
 		VendorID(uint8_t byte0,uint8_t byte1,uint8_t byte2){};
@@ -1437,13 +1431,6 @@ class OSDName{
 	    	static OSDName instance;
 	    	return instance;
 	    };
-<<<<<<< HEAD
-		enum{
-			MAX_LEN=14,
-		};
-		//const char *str
-=======
->>>>>>> 54818933 (Updating HDMICec GTest)
         OSDName(){};
 		OSDName(const char *str){};
 		OSDNameImpl* impl;
