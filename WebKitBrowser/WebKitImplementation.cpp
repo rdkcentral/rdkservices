@@ -543,6 +543,7 @@ static GSourceFuncs _handlerIntervention =
                 , EnvironmentVariables()
                 , ContentFilter()
                 , LoggingTarget()
+                , WebAudioEnabled(false)
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -608,6 +609,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("environmentvariables"), &EnvironmentVariables);
                 Add(_T("contentfilter"), &ContentFilter);
                 Add(_T("loggingtarget"), &LoggingTarget);
+                Add(_T("webaudio"), &WebAudioEnabled);
             }
             ~Config()
             {
@@ -678,6 +680,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::ArrayType<EnvironmentVariable> EnvironmentVariables;
             Core::JSON::String ContentFilter;
             Core::JSON::String LoggingTarget;
+            Core::JSON::Boolean WebAudioEnabled;
         };
 
         class HangDetector
@@ -2791,6 +2794,9 @@ static GSourceFuncs _handlerIntervention =
 
             webkit_settings_set_enable_html5_database(preferences, _config.IndexedDBEnabled.Value());
 
+            // webaudio support
+            webkit_settings_set_enable_webaudio(preferences, _config.WebAudioEnabled.Value());
+
             // Allow mixed content.
             bool enableWebSecurity = _config.Secure.Value();
             g_object_set(G_OBJECT(preferences),
@@ -2991,6 +2997,9 @@ static GSourceFuncs _handlerIntervention =
                 WKPreferencesSetMediaContentTypesRequiringHardwareSupport(preferences, contentTypes);
                 WKRelease(contentTypes);
             }
+
+            // webaudio support
+            WKPreferencesSetWebAudioEnabled(preferences, _config.WebAudioEnabled.Value());
 
             WKPageGroupSetPreferences(pageGroup, preferences);
 
