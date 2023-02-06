@@ -13,9 +13,9 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     Core::JSONRPC::Message message;
-    RDKShellImplMock RDKShellmock;
-    CompositorImplMock compositormock;
-    RdkShellApiImplMock rdkshellapimock;
+    testing::NiceMock<RDKShellImplMock> RDKShellmock;
+    testing::NiceMock<CompositorImplMock> compositormock;
+    testing::NiceMock<RdkShellApiImplMock> rdkshellapimock;
     string response;
 
     RDKShellTest()
