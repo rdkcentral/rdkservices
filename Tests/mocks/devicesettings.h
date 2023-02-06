@@ -1299,10 +1299,6 @@ class LogicalAddressImpl{
 };
 class LogicalAddress : public CECBytes{
 	public: 		
-		enum {
-			MAX_LEN = 1,
-		};
-
 		static const LogicalAddress kTv;
 
 		enum {
@@ -1354,10 +1350,6 @@ class DeviceTypeImpl{
 class DeviceType : public CECBytes
 {
 	public:
-		enum {
-			MAX_LEN = 1,
-		};
-
 		enum {
 			TV = 0x0,
 			RECORDING_DEVICE,
@@ -1417,9 +1409,12 @@ class VendorID : public CECBytes{
 	    	static VendorID instance;
 	    	return instance;
 	    };
+<<<<<<< HEAD
 		enum{
 			MAX_LEN=3,
 		};
+=======
+>>>>>>> 54818933 (Updating HDMICec GTest)
         VendorID(){};
 	
 		VendorID(uint8_t byte0,uint8_t byte1,uint8_t byte2){};
@@ -1442,10 +1437,13 @@ class OSDName{
 	    	static OSDName instance;
 	    	return instance;
 	    };
+<<<<<<< HEAD
 		enum{
 			MAX_LEN=14,
 		};
 		//const char *str
+=======
+>>>>>>> 54818933 (Updating HDMICec GTest)
         OSDName(){};
 		OSDName(const char *str){};
 		OSDNameImpl* impl;
