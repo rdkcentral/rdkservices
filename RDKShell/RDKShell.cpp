@@ -1138,8 +1138,8 @@ namespace WPEFramework {
             char* mac = new char[19];
             tFHError retAPIStatus;
             std::cout << "calling factory hal init\n";
-            factorySD1_init();
-            retAPIStatus = getEthernetMAC(&mac);
+            factory_protect_init_for_rdkshell();
+	    retAPIStatus = factory_protect_hal_getEthernetMAC(&mac);
             if(retAPIStatus == E_OK)
             {
                 if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)
@@ -5756,7 +5756,7 @@ namespace WPEFramework {
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
             char* mac = new char[19];
             tFHError retAPIStatus;
-            retAPIStatus = getEthernetMAC(&mac);
+            retAPIStatus = factory_protect_hal_getEthernetMAC(&mac);
             if(retAPIStatus == E_OK)
             {
                 if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)
