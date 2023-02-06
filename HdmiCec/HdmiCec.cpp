@@ -213,9 +213,6 @@ namespace WPEFramework
 	}
         void HdmiCec::Deinitialize(PluginHost::IShell* /* service */)
         {
-	    if (m_UpdateThread.get().joinable()) { 
-                        m_UpdateThread.get().join();
-            }
             isDeviceActiveSource = false;
             HdmiCec::_instance->sendActiveSourceEvent();
             CECDisable();

@@ -32,6 +32,10 @@
 #include "LogicalAddressMock.h"
 #include "ActiveSourceMock.h"
 #include "DeviceTypeMock.h"
+#include "OSDNameMock.h"
+#include "VendorIDMock.h"
+#include "getOpNameMock.h"
+#include "CECBytesMock.h"
 using namespace WPEFramework;
 
 class HdmiCecTest : public ::testing::Test {
@@ -101,12 +105,9 @@ protected:
     virtual ~HdmiCecInitializedTest() override
     {
         
-
         sleep(2);
         plugin->Deinitialize(nullptr);
-
         IarmBus::getInstance().impl = nullptr;
-
 
     }
 };
@@ -140,7 +141,10 @@ protected:
     testing::NiceMock<LogicalAddressImplMock> logicalAddressImplMock;
     testing::NiceMock<LibCCECImplMock> libCCECImplMock;
     testing::NiceMock<ConnectionImplMock> connectionImplMock;
-     
+    testing::NiceMock<OSDNameImplMock> osdNameImplMock;
+    testing::NiceMock<VendorIDImplMock> vendorIdImplMock;
+    testing::NiceMock<CECBytesImplMock> cecBytesImplMock;
+
 
     HdmiCecInitializedEventDsTest()
         : HdmiCecInitializedEventTest()
@@ -149,19 +153,17 @@ protected:
         Connection::getInstance().impl = &connectionImplMock;	
 	    DeviceType::getInstance().impl = &deviceTypeImplMock;
         LogicalAddress::getInstance().impl = &logicalAddressImplMock;
+        OSDName::getInstance().impl = &osdNameImplMock;
+        VendorID::getInstance().impl = &vendorIdImplMock;
+        CECBytes::getInstance().impl = &cecBytesImplMock;
 
         //Setenable needs to run firzt, as it turns everything on, locally.
 	    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
         EXPECT_EQ(response, string("{\"success\":true}"));
-
-
-        
-
     }
 
     virtual ~HdmiCecInitializedEventDsTest() override
     {
-
         //Turning off HdmiCec. otherwise we get segementation faults as things memory early while threads are still running
         sleep(1);//short wait to allow setEnabled to reach thread loop, where it can exit safely without segmentation faults
         ON_CALL(connectionImplMock, close())
@@ -172,6 +174,9 @@ protected:
         LibCCEC::getInstance().impl = nullptr;
         Connection::getInstance().impl = nullptr;
         DeviceType::getInstance().impl = nullptr;
+        OSDName::getInstance().impl = nullptr;
+        VendorID::getInstance().impl = nullptr;
+        CECBytes::getInstance().impl = nullptr;
 
     }
 };
@@ -207,10 +212,10 @@ TEST_F(HdmiCecInitializedEventDsTest, getEnabledTrue)
 
 TEST_F(HdmiCecInitializedEventDsTest, sendMessage)
 {
-    ON_CALL(connectionImplMock, sendAsync(::testing::_))
-        .WillByDefault(::testing::Invoke(
+    EXPECT_CALL(connectionImplMock, sendAsync(::testing::_))
+        .Times(29)
+        .WillOnce(::testing::Invoke(
             [&](const CECFrame &frame) {
-                EXPECT_EQ(frame.MAX_LENGTH, 128);
                 
             }));
 
@@ -242,8 +247,9 @@ TEST_F(HdmiCecInitializedEventDsTest, getActiveSourceStatusFalse)
 
 TEST_F(HdmiCecInitializedEventDsTest, getCECAddress)
 {
-    ON_CALL(libCCECImplMock, getPhysicalAddress(::testing::_))
-        .WillByDefault(::testing::Invoke(
+    EXPECT_CALL(libCCECImplMock, getPhysicalAddress(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
             [&](uint32_t *physAddress) {
                 *physAddress = (uint32_t)12345;
             }));
@@ -255,19 +261,17 @@ TEST_F(HdmiCecInitializedEventDsTest, getCECAddress)
     
 	ON_CALL(deviceTypeImplMock, toString())
         .WillByDefault(::testing::Return("New"));
+    EXPECT_CALL(logicalAddressImplMock, getType())
+        .Times(1)
+        .WillOnce(::testing::Return(42));
     cecMgrEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED, &eventData , 0);
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCECAddresses"), _T(""), response));
     EXPECT_EQ(response, string("{\"CECAddresses\":{\"physicalAddress\":12345,\"logicalAddress\":42,\"deviceType\":\"New\"},\"success\":true}"));
-
-    
 }
-
-
 
 TEST_F(HdmiCecInitializedEventDsTest, onDevicesChanged)
 {
-
     EXPECT_CALL(libCCECImplMock, getPhysicalAddress(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -284,12 +288,14 @@ TEST_F(HdmiCecInitializedEventDsTest, onDevicesChanged)
     eventData.data.hdmi_hpd.event =0;
 
     dsHdmiEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, &eventData , 0);
-    
-
 }
 
 TEST_F(HdmiCecInitializedEventDsTest, getDeviceList)
-{
+{  
+    ON_CALL(osdNameImplMock, toString())
+        .WillByDefault(::testing::Return("osdName"));
+    ON_CALL(vendorIdImplMock, toString())
+        .WillByDefault(::testing::Return("vendorId"));
 
     sleep(1); //Allow the thread that populates deviceList to actually populate before we run getDeviceList.
     //Calling the device list, which is a defualt list of the hdmiCec class. Kist grabs the deviceList.
@@ -297,5 +303,4 @@ TEST_F(HdmiCecInitializedEventDsTest, getDeviceList)
     EXPECT_THAT(response, ::testing::ContainsRegex(_T(".*[({\"logicalAddress\":[0-9]*,\"osdName\":\"[a-zA-Z0-9 ]*\",\"vendorID\":\"[a-zA-Z0-9 ]*\"})*.*")));
     EXPECT_THAT(response, ::testing::ContainsRegex(_T(".*\"numberofdevices\":[0-9]*,\"deviceList\":.*")));
     EXPECT_THAT(response, ::testing::ContainsRegex(_T(".*\"success\":true.*")));
-
 }

@@ -1228,7 +1228,6 @@ public:
         return impl->getTextDisplay();
     }
 };
-
 }
 
 
@@ -1266,30 +1265,29 @@ class CECFrameImpl{
 };
 class CECFrame{
 	public:
-	static CECFrame& getInstance()
-    	{
-                static CECFrame instance;
-       	        return instance;
-	}
-
-	enum {
-		MAX_LENGTH = 128,
-	};
+	
 	CECFrameImpl* impl;
 	void getBuffer(const uint8_t **buf, size_t *len) const{
-		return getInstance().impl->getBuffer(buf, len);
+		return impl->getBuffer(buf, len);
 	}
-	CECFrame(const uint8_t *buf = NULL, uint16_t len = 0){
-		
-	}
-	private:
-		size_t len_;
-
+	CECFrame(const uint8_t *buf = NULL, uint16_t len = 0){}
 
 };
 class CECBytesImpl {
 	public:
-	virtual const std::string toString() = 0;
+	virtual const std::string toString() const = 0;
+};
+class CECBytes{
+    public:
+    CECBytesImpl* impl;
+    static CECBytes& getInstance()
+    {
+        static CECBytes instance;
+        return instance;
+	}
+    const std::string toString(void) const {
+		return impl->toString();
+    }
 };
 
 class LogicalAddressImpl{
@@ -1299,7 +1297,7 @@ class LogicalAddressImpl{
         virtual std::string toString() const = 0;
 
 };
-class LogicalAddress{
+class LogicalAddress : public CECBytes{
 	public: 		
 		enum {
 			MAX_LEN = 1,
@@ -1346,16 +1344,14 @@ class LogicalAddress{
 		int getType(void) const {
 			return getInstance().impl->getType();
 		}
-
-
-
 };
+
 class DeviceTypeImpl{
 	public:
 		virtual std::string toString() const = 0;
 
 };
-class DeviceType
+class DeviceType : public CECBytes
 {
 	public:
 		enum {
@@ -1391,55 +1387,71 @@ class DeviceType
 class PhysicalAddressImpl{
 	public:
 		virtual std::string name() const = 0;
+        virtual std::string toString() const = 0;
 
 };
-class PhysicalAddress{
+class PhysicalAddress : public CECBytes{
 	public:
-		PhysicalAddressImpl* implPhys;
+		PhysicalAddressImpl* impl;
 		std::string name() const{
-			return "1";
+			return impl->name();
 
 		}
 
-		CECBytesImpl* impl;
-                const std::string toString(void) const {
-			return "1";
-                }
+        const std::string toString(void) const {
+			return impl->toString();
+        }
 
 
 };
-
-class VendorID{
-
+class VendorIDImpl{
 	public:
+        virtual const std::string toString() const = 0;
+
+};
+
+class VendorID : public CECBytes{
+	public:
+        static VendorID& getInstance()
+	    {
+	    	static VendorID instance;
+	    	return instance;
+	    };
 		enum{
 			MAX_LEN=3,
 		};
+        VendorID(){};
 	
 		VendorID(uint8_t byte0,uint8_t byte1,uint8_t byte2){};
+		VendorIDImpl* impl;
+        const std::string toString(void) const {
+            return getInstance().impl->toString();
+        }
 
-                const std::string toString(void) const {
-			return "1";
-                }
 
-
+};
+class OSDNameImpl : public CECBytes{
+    public:
+        virtual const std::string toString() const = 0;
 };
 
 class OSDName{
 	public:
+        static OSDName& getInstance()
+	    {
+	    	static OSDName instance;
+	    	return instance;
+	    };
 		enum{
 			MAX_LEN=14,
 		};
-
-		OSDName(const char *str){
-
-		};
-
-                const std::string toString(void) const {
-			return "1";
-                }
-
-
+		//const char *str
+        OSDName(){};
+		OSDName(const char *str){};
+		OSDNameImpl* impl;
+        const std::string toString(void) const {
+            return getInstance().impl->toString();
+        }
 };
 
 class FrameListener
@@ -1454,7 +1466,6 @@ class MessageProcessor {
 	public:
 		MessageProcessor(void){}
 		virtual ~MessageProcessor(void){}
-
 };
 
 class ActiveSourceImpl{
@@ -1463,21 +1474,16 @@ class ActiveSourceImpl{
 };
 class ActiveSource {
 	public:
-		ActiveSource(){
-			
-		
-		}
+		ActiveSource(){	}
 		ActiveSourceImpl* impl;
 		Op_t opCode(void) const{
-			return 1;
+			return impl->opCode();
 		}
 		
 		PhysicalAddress physicalAddress;
-
 };
 
 class ImageViewOn {
-
 
 };
 
@@ -1485,32 +1491,22 @@ class Header {
  public: 
 	 LogicalAddress from;
 	 LogicalAddress to;
-
 };
 
 class TextViewOn {
 
-
 };
-class Version{
-	public:
-		CECBytesImpl* impl;
-                const std::string toString(void) const {
-			return "1";
-                }
-
+class Version : public CECBytes{
 
 };
 class CECVersion {
 	public:
 		Version version;
-
 };
 
 class SetOSDName{
 	public:
 		OSDName osdName;
-
 };
 
 class ReportPhysicalAddress {
@@ -1523,20 +1519,13 @@ class DeviceVendorID {
 		DeviceVendorID(const VendorID &vendor) : vendorId(vendor){}
 		VendorID vendorId;
 };
-class PowerStatus{
-	public:
-                CECBytesImpl* impl;
-                const std::string toString(void) const {
-			return "1";
-                }
 
-
+class PowerStatus : public CECBytes{
 
 };
 class ReportPowerStatus{
 	public:
 		PowerStatus status;
-
 };
 
 class ConnectionImpl{
@@ -1551,17 +1540,14 @@ class ConnectionImpl{
 
 class Connection{
 	public:
-		ConnectionImpl* impl;
-		Connection(const LogicalAddress &source = LogicalAddress::UNREGISTERED, bool opened = true, const std::string &name="")
-		{
-		
-		}
+	ConnectionImpl* impl;
+	Connection(const LogicalAddress &source = LogicalAddress::UNREGISTERED, bool opened = true, const std::string &name=""){}
 	
 	static Connection& getInstance()
-        {
-                static Connection instance;
-                return instance;
-        };
+    {
+        static Connection instance;
+        return instance;
+    };
 
 	void open(void){
 		return getInstance().impl->open();
@@ -1581,9 +1567,6 @@ class Connection{
 	void ping(const LogicalAddress &from, const LogicalAddress &to, const Throw_e &doThrow){
         return getInstance().impl->ping(from, to, doThrow);
     }
-
-
-
 };
 
 class LibCCECImpl{
@@ -1608,8 +1591,8 @@ class LibCCEC{
 			return impl->init(name);
 		}
 		void init(){
-                        return impl->init();
-                }
+            return impl->init();
+        }
 		void term(){
 			return;
 		}
@@ -1617,8 +1600,8 @@ class LibCCEC{
 			return impl->getPhysicalAddress(physicalAddress);
 		}
 		int getLogicalAddress(int devType){
-                        return impl->getLogicalAddress(devType);
-                }
+            return impl->getLogicalAddress(devType);
+        }
 
 
 };
@@ -1629,10 +1612,6 @@ class MessageDecoderImpl{
 
 };
 class MessageDecoder {
-	private:
-                MessageProcessor &processor;
-
-
 	public:
 		MessageDecoderImpl* impl;
 		MessageDecoder(MessageProcessor & proc) : processor(proc){};
@@ -1640,11 +1619,23 @@ class MessageDecoder {
 		void decode(const CECFrame &in){
 			return impl->decode(in);
 		}
-
+        MessageProcessor &processor;
+};
+class getOpNamesImpl{
+    public:
+    	virtual const char *GetOpName(Op_t op) const = 0;
+};
+class getOpNames{
+    public:
+    getOpNamesImpl* impl;
+    static getOpNames& getInstance()
+	{
+		static getOpNames instance;
+		return instance;
+	};
 };
 
 inline const char *GetOpName(Op_t op)
 {
-
-	return "name";
+	return getOpNames::getInstance().impl->GetOpName(op);
 }
