@@ -174,7 +174,21 @@ namespace Plugin {
 
         Exchange::IHDRProperties::HDRType hdrType(Exchange::IHDRProperties::HDRType::HDR_OFF);
         if (_hdrProperties->HDRSetting(hdrType) == Core::ERROR_NONE) {
-            displayInfo.Hdrtype = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdrtypeType>(hdrType);
+            displayInfo.Hdrtype = static_cast<JsonData::DisplayInfo::HdrtypesType>(hdrType);
+        }
+
+	Exchange::IHDRProperties::IHDRIterator* hdrIterator;
+        if (_hdrProperties->TVCapabilities(hdrIterator) == Core::ERROR_NONE) {
+            if (hdrIterator != nullptr) {
+                Exchange::IHDRProperties::HDRType tvHdr;
+                while (hdrIterator->Next(tvHdr)) {
+                    Core::JSON::EnumType<JsonData::DisplayInfo::HdrtypesType>& Element(displayInfo.Tvhdrtypes.Add());
+                    Element = static_cast<JsonData::DisplayInfo::HdrtypesType>(tvHdr);
+                }
+
+                displayInfo.Tvhdrtypes.Set(true);
+                hdrIterator->Release();
+            }
         }
     }
 
