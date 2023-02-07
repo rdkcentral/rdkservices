@@ -2019,7 +2019,7 @@ static GSourceFuncs _handlerIntervention =
 
             _adminLock.Unlock();
         }
-        void OnLoadFailed(const string URL)
+        void OnLoadFailed(const string& URL)
         {
             _adminLock.Lock();
 
