@@ -164,42 +164,10 @@ Use the existing services as a guide when learning the structure of both the plu
     * If the comments have little boxes of hash marks around them, make your comments have little boxes of hash marks around them too.
 
     * Minimise the use of exceptions and handle exceptions locally if possible
-    
-    * All resources acquired by a RDK Service must be released by the Deinitialize method and/or the destructor
 
-2. RDK services are implemented as Thunder Plugins and must adhere to the [PluginHost::IPlugin](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h) interface.
+2. All RDK Services must have a callsign with a prefix of `org.rdk`. RDK Service name must be CamelCase and start with a capital letter.
 
-3. All RDK Services must have a callsign with a prefix of `org.rdk`. RDK Service name must be CamelCase and start with a capital letter.
-
-4. All method, parameter and event names must be camelCase and start with a lowercase letter.
-
-5. MODULE_NAME
-
-    * Thunder provides a trace and warning reporting feature. To accurately identify the source of a warning, Thunder needs to know the human readable name of the package (executable or library). This package name is defined by the MODULE_NAME and declared by the  MODULE_NAME_DECLARATION()
-
-    * Any package that includes a Thunder component requires such a definition and declaration. If the definition is missing, a compiler error will be reported (error missing MODULE_NAME) and if the declaration is missing, a linker error will be reported (missing or duplicate symbol)
-
-    * MODULE_NAME is typically found in "Module.h" and "Module.cpp"
-
-        * Module.h
-            ```
-            #ifndef MODULE_NAME
-            #define MODULE_NAME Plugin_IOController
-            #endif
-        * Module.c
-            ```
-            #include "Module.h"
-            MODULE_NAME_DECLARATION(BUILD_REFERENCE)
-
-6. Initialization and Cleanup
-
-    * Prefer to do Plugin Initialization within IPlugin [Initialize()](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h#L71). If there is any error in initialization return non-empty string with useful error information. This will ensure that plugin doesn't get activated and also return this error information to the caller. Ensure that any Initialization done within Initialize() gets cleaned up within IPlugin [Deinitialize()](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h#L80) which gets called when the plugin is deactivated.
-    
-    * Ensure that any std::threads created are joined within Deinitialize() or the destructor to avoid [std::terminate](https://en.cppreference.com/w/cpp/thread/thread/~thread) exception. Use the [ThreadRAII](helpers/UtilsThreadRAII.h) class for creating threads which will ensure that the thread gets joined before destruction.
-
-7.  Inter-plugin communication
-    * There might be use cases where one RDK Service or plugin needs to call APIs in another RDK Service. Don't use JSON-RPC for such communication since it's an overhead and not preferred for inter-plugin communication. JSON-RPC must be used only by applications. Instead use COM RPC through the IShell Interface API [QueryInterfaceByCallsign()](https://github.com/rdkcentral/Thunder/blob/R2/Source/plugins/IShell.h#L210) exposed for each Plugin. Here is an [example](https://github.com/rdkcentral/rdkservices/blob/main/Messenger/MessengerSecurity.cpp#L35). 
-    <br><br>
+3. All method, parameter and event names must be camelCase and start with a lowercase letter.
 
 ## Versioning ##
 
@@ -266,6 +234,51 @@ This checklist is primarily intended for maintainers or reviewers. Please check 
 * For a New RDK Service, ensure [autostart](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/AVInput.config#L1) flag is set to false. The general recommendation is for RDK Services to **not** be autostarted or activated unless it's required on bootup. Resident Apps can activate the required RDK Services on demand.
 * Approve Pull Requests to [main](https://github.com/rdkcentral/RDKServices/tree/main) branch or release branches (release/*) only after you get Release Management approval for those specific branches.
 
+## Developer Guide ##
+
+[Thunder](https://github.com/rdkcentral/Thunder) doesn't provide a documentation on services.
+One can take existing services as a reference and pay attention to:
+
+- Interfaces.
+If a class is a plugin it implements `PluginHost::IPlugin`.
+If it handles WEB requests it implements `PluginHost::IWeb`.
+If it activates/deactivates and handles JSON-RPC it implements `PluginHost::IDispatcher` (or derives from `PluginHost::JSONRPC`).
+If it implements custom interfaces it adds them to [ThunderInterfaces](https://github.com/rdkcentral/ThunderInterfaces) for RPC.
+If it exposes interfaces to other processes via RPC it develops an `RPC::Communicator`.
+A class specifies its interfaces like this:
+
+    ```
+    BEGIN_INTERFACE_MAP(MyClass)
+    INTERFACE_ENTRY(PluginHost::IPlugin)
+    INTERFACE_ENTRY(PluginHost::IDispatcher)
+    END_INTERFACE_MAP
+    ```
+
+- MyService.json documents JSON-RPC interface.
+It's added to both service folder and [ThunderInterfaces](https://github.com/rdkcentral/ThunderInterfaces).
+The latter generates classes for parameters or enums that can be included like
+`#include <interfaces/json/JsonData_MyService.h>`.
+In the code, JSON-RPC methods and properties are registered like this:
+
+    ```
+    Register<void /*input params*/,void /*output params*/>(_T("sync"),
+        &MyService::endpoint_sync,
+        this);
+    Property<LocationData>(_T("location"),
+        &MyService::get_location /*getter*/,
+        nullptr /*setter*/,
+        this);
+    ```
+
+- MyService.config specifies runtime properties:
+autostart, startuporder, custom properties (passed to the service during activation via `PluginHost::IShell::ConfigLine()`).
+During the project configuration, `write_config(MyService)` in CMakeLists.txt uses MyService.config to generate and install a corresponding json file.
+
+- A service is registered via `SERVICE_REGISTRATION(MyService, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);` in a translation unit.
+
+- Module.h defines a mandatory `MODULE_NAME` and includes the framework headers like `#include <plugins/plugins.h>`.
+Module.cpp has a mandatory `MODULE_NAME_DECLARATION(BUILD_REFERENCE)`.
+Any unit that uses the framework requires `#include "Module.h"`.
 
 ## Questions? ##
 
