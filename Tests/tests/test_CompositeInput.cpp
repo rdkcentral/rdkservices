@@ -7,6 +7,7 @@
 
 using namespace WPEFramework;
 using ::testing::NiceMock;
+using ::testing::Eq;
 
 class CompositeInputTest : public ::testing::Test {
 protected:
@@ -146,8 +147,8 @@ TEST_F(CompositeInputDsTest, getCompositeInputDevices)
 
 TEST_F(CompositeInputDsTest, startCompositeInputInvalid)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("startCompositeInput"), _T("{\"portId\": \"b\"}"), response));
-    EXPECT_EQ(response, string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startCompositeInput"), _T("{\"portId\": \"b\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(CompositeInputDsTest, startCompositeInput)
@@ -165,8 +166,8 @@ TEST_F(CompositeInputDsTest, startCompositeInput)
 
 TEST_F(CompositeInputDsTest, setVideoRectangleInvalid)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setVideoRectangle"), _T("{\"x\": \"b\",\"y\": 0,\"w\": 1920,\"h\": 1080}"), response));
-    EXPECT_EQ(response, string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVideoRectangle"), _T("{\"x\": \"b\",\"y\": 0,\"w\": 1920,\"h\": 1080}"), response));
+    EXPECT_THAT(response, Eq("{\"message\":\"Invalid Arguments\",\"success\":false}"));
 }
 
 TEST_F(CompositeInputDsTest, setVideoRectangle)

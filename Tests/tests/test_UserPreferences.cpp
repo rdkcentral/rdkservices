@@ -17,11 +17,14 @@
  * limitations under the License.
  **/
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include "UserPreferences.h"
 
 using namespace WPEFramework;
+
+using ::testing::Eq;
 
 namespace {
 const string userPrefFile = _T("/opt/user_preferences.conf");
@@ -52,20 +55,23 @@ TEST_F(UserPreferencesTest, registeredMethods)
 
 TEST_F(UserPreferencesTest, paramsMissing)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setUILanguage"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setUILanguage"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(UserPreferencesTest, getUILanguage)
 {
     //Fail  case: File doesn't exists
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 
     Core::File file(userPrefFile);
     file.Destroy();
     file.Create();
 
     //Fail case: No key exists
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getUILanguage"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 
     file.Write(userPrefLang, sizeof(userPrefLang));
 
