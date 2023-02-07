@@ -1286,7 +1286,7 @@ class CECBytes{
         return instance;
 	}
     const std::string toString(void) const {
-		return impl->toString();
+		return getInstance().impl->toString();
     }
 };
 
