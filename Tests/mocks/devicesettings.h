@@ -1299,8 +1299,6 @@ class LogicalAddressImpl{
 };
 class LogicalAddress : public CECBytes{
 	public: 		
-		static const LogicalAddress kTv;
-
 		enum {
 			TV,
 			RECORDING_DEVICE_1,
