@@ -26,7 +26,6 @@
 #endif //RFC_ENABLED
 #include <syscall.h>
 #include <cstring>
-#include <cjson/cJSON.h>
 #include "RtXcastConnector.h"
 using namespace std;
 
@@ -430,27 +429,18 @@ bool XCast::deleteFromDynamicAppCache(vector<string>& appsToDelete) {
     return ret;
 }
 
-bool XCast::deleteFromDynamicAppCache(string strAppNames)
+bool XCast::deleteFromDynamicAppCache(JsonArray applications)
 {
     bool ret = false;
-    cJSON *itrName = NULL;
-    if (!strAppNames.empty()) {
-        cJSON *applications = cJSON_Parse(strAppNames.c_str());
-        if (!cJSON_IsArray(applications)) {
-            LOGINFO ("deleteFromDynamicAppCache::applications array passed: %s", strAppNames.c_str());
-            LOGINFO ("deleteFromDynamicAppCache::Invalid applications array exititng");
-            cJSON_Delete(applications);
-            return ret;
-        }
-        int iIndex = 0;
+    std::string *itrName = NULL;
+    if (!applications.IsSet()) {
+        
         vector<string> appsToDelete;
-        cJSON_ArrayForEach(itrName, applications) {
-            if (!cJSON_IsString(itrName)) {
-                LOGINFO ("Invalid name format at application index. Skipping%d", iIndex);
-                continue;
-            }
-            LOGINFO("App name to delete: %s, size:%d", itrName->valuestring, strlen (itrName->valuestring));
-            appsToDelete.push_back(string(itrName->valuestring));
+        for (int iIndex = 0; iIndex < applications.Length(); iIndex++) {
+            itrName = applications[iIndex];
+            
+            LOGINFO("App name to delete: %s, size:%d", itrName, strlen (itrName));
+            appsToDelete.push_back(string(itrName));
             iIndex++;
         }
         //If empty list is passed, dynamic cache is cleared. This will clear static list also
@@ -466,70 +456,56 @@ bool XCast::deleteFromDynamicAppCache(string strAppNames)
             ret = deleteFromDynamicAppCache (appsToDelete);
             appsToDelete.clear();
         }
-        cJSON_Delete(applications);
     }
     return ret;
 }
 
-void XCast::updateDynamicAppCache(string strApps)
+void XCast::updateDynamicAppCache(JsonArray applications)
 {
     LOGINFO("XcastService::UpdateDynamicAppCache");
 
-    cJSON *itrApp = NULL;
+    JsonObject *itrApp = NULL;
 
-    cJSON *jNames = NULL;
-    cJSON *itrName = NULL;
+    JsonArray *jNames = NULL;
+    std::string *itrName = "";
 
-    cJSON *jPrefixes = NULL;
-    cJSON *itrPrefix = NULL;
+    JsonArray *jPrefixes = NULL;
+    std::string *itrPrefix = NULL;
 
-    cJSON *jCors = NULL;
-    cJSON *itrCor = NULL;
+    JsonArray *jCors = NULL;
+    std::string *itrCor = NULL;
 
-    cJSON *jProperties = NULL;
-    cJSON *jAllowStop = NULL;
+    JsonObject *jProperties = NULL;
+    bool *jAllowStop = NULL;
 
-    cJSON *jLaunchParam = NULL;
-    cJSON *jQuery = NULL;
-    cJSON *jPayload = NULL;
+    JsonObject *jLaunchParam = NULL;
+    std::string *jQuery = NULL;
+    std::string *jPayload = NULL;
 
     std::vector <DynamicAppConfig*> appConfigList;
-    if (!strApps.empty()) {
-        cJSON *applications = cJSON_Parse(strApps.c_str());
-        if (!cJSON_IsArray(applications)) {
-            LOGINFO ("applications array passed: %s", strApps.c_str());
-            LOGINFO ("Invalid applications array exititng");
-            cJSON_Delete(applications);
-            return;
-        }
-
+    if (!applications.IsSet()) {
+        
         /* iterate over ints */
         LOGINFO("Applications:");
-        int iIndex = 0;
 
-        cJSON_ArrayForEach(itrApp, applications) {
+        for (int iIndex = 0; iIndex < applications.Length(); iIndex++) {
             std::vector <DynamicAppConfig*> appConfigListTemp;
             LOGINFO("Application: %d", iIndex);
-            if (!cJSON_IsObject(itrApp)) {
-                LOGINFO ("Invalid appliaction format at index. Skipping%d", iIndex);
-                continue;
-            }
-            jNames = cJSON_GetObjectItem(itrApp, "names");
-            if (!cJSON_IsArray(jNames)) {
+            itrApp = applications[i].Object();
+            
+            if (!itrApp.hasLabel("names")) {
                 LOGINFO ("Invalid names format at application index %d. Skipping the application", iIndex);
                 continue;
             }
             else {
-                cJSON_ArrayForEach(itrName, jNames) {
-                    if (!cJSON_IsString(itrName)) {
-                        LOGINFO ("Invalid name format at application index. Skipping%d", iIndex);
-                        continue;
-                    }
-                    LOGINFO("%s, size:%d", itrName->valuestring, strlen (itrName->valuestring));
+                jNames = itrApp['names'].Array();
+                for (i = 0; iIndex < jNames.Length(); i++) {
+                    itrName = JNames[i].String().c_str();
+                    LOGINFO("%s, size:%d", itrName, strlen (itrName));
                     DynamicAppConfig* pDynamicAppConfig = (DynamicAppConfig*) malloc (sizeof(DynamicAppConfig));
                     memset ((void*)pDynamicAppConfig, '0', sizeof(DynamicAppConfig));
                     memset (pDynamicAppConfig->appName, '\0', sizeof(pDynamicAppConfig->appName));
-                    strcpy (pDynamicAppConfig->appName, itrName->valuestring);
+                    strcpy (pDynamicAppConfig->appName, itrName);
                     memset (pDynamicAppConfig->prefixes, '\0', sizeof(pDynamicAppConfig->prefixes));
                     memset (pDynamicAppConfig->cors, '\0', sizeof(pDynamicAppConfig->cors));
                     memset (pDynamicAppConfig->query, '\0', sizeof(pDynamicAppConfig->query));
@@ -538,84 +514,78 @@ void XCast::updateDynamicAppCache(string strApps)
                 }
             }
 
-            jPrefixes = cJSON_GetObjectItem(itrApp, "prefixes");
-            if (!cJSON_IsArray(jPrefixes)) {
+            if (!itrApp.hasLabel("prefixes")) {
                 LOGINFO ("Invalid prefixes format at application index %d", iIndex);
             }
             else {
-                cJSON_ArrayForEach(itrPrefix, jPrefixes) {
-                    if (!cJSON_IsString(itrPrefix)) {
-                        LOGINFO ("Invalid prefix format at application index. Skipping%d", iIndex);
-                        continue;
-                    }
-                    LOGINFO("%s, size:%d", itrPrefix->valuestring, strlen (itrPrefix->valuestring));
+                jPrefixes = itrApp['prefixes'].Array();
+                for (i = 0; iIndex < jPrefixes.Length(); i++) {
+                    itrPrefix = jPrefixes[i].String().c_str();
+                    LOGINFO("%s, size:%d", itrPrefix, strlen (itrPrefix));
                     for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
-                        strcpy (pDynamicAppConfig->prefixes, itrPrefix->valuestring);
+                        strcpy (pDynamicAppConfig->prefixes, itrPrefix);
                     }
                 }
             }
 
-            jCors = cJSON_GetObjectItem(itrApp, "cors");
-            if (!cJSON_IsArray(jCors)) {
+            if (!itrApp.hasLabel("cors")) {
                 LOGINFO ("Invalid cors format at application index %d. Skipping the application", iIndex);
                 continue;
             }
             else {
-                cJSON_ArrayForEach(itrCor, jCors) {
-                    if (!cJSON_IsString(itrCor)) {
-                        LOGINFO ("Invalid cor format at application index. Skipping%d", iIndex);
-                        continue;
-                    }
-                    LOGINFO("%s, size:%d", itrCor->valuestring, strlen (itrCor->valuestring));
+                jCors = itrApp['cors'].Array();
+                for (i = 0; iIndex < jCors.Length(); i++) {
+                    itrCor = jCors[i].String().c_str();
+                    LOGINFO("%s, size:%d", itrCor, strlen (itrCor));
                     for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
-                        strcpy (pDynamicAppConfig->cors, itrCor->valuestring);
+                        strcpy (pDynamicAppConfig->cors, itrCor);
                     }
                 }
             }
 
-            jProperties = cJSON_GetObjectItem(itrApp, "properties");
-            if (!cJSON_IsObject(jProperties)) {
+            if (!itrApp.hasLabel("properties")) {
                 LOGINFO ("Invalid property format at application index %d", iIndex);
             }
             else {
-                jAllowStop = cJSON_GetObjectItem(jProperties, "allowStop");
-                if (!cJSON_IsBool(jAllowStop)) {
+                jProperties = itrApp['properties'].Object();
+                if (!jProperties.hasLabel("properties")) {
                     LOGINFO ("Invalid allowStop format at application index %d", iIndex);
                 }
                 else {
-                    LOGINFO("allowStop: %d", jAllowStop->valueint);
+                    jAllowStop = jProperties['allowStop'];
+                    LOGINFO("allowStop: %d", jAllowStop);
                     for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
-                        pDynamicAppConfig->allowStop = jAllowStop->valueint;
+                        pDynamicAppConfig->allowStop = jAllowStop;
                     }
                 }
             }
 
-            jLaunchParam = cJSON_GetObjectItem(itrApp, "launchParameters");
-            if (!cJSON_IsObject(jLaunchParam)) {
+            if (!itrApp.hasLabel("launchParameters")) {
                 LOGINFO ("Invalid Launch param format at application index %d", iIndex);
             }
             else {
-                jQuery = cJSON_GetObjectItem(jLaunchParam, "query");
-                if (!cJSON_IsString(jQuery)) {
+                jLaunchParam = itrApp['launchParameters'].Object();
+                if (!jLaunchParam.hasLabel("query")) {
                     LOGINFO ("Invalid query format at application index %d", iIndex);
                 }
                 else {
-                    LOGINFO("query: %s, size:%d", jQuery->valuestring, strlen (jQuery->valuestring));
+                    jQuery = itrApp['query'].Object();
+                    LOGINFO("query: %s, size:%d", jQuery, strlen (jQuery));
                 }
-                jPayload = cJSON_GetObjectItem(jLaunchParam, "payload");
-                if (!cJSON_IsString(jPayload)) {
+                if (!jLaunchParam.hasLabel("payload")) {
                     LOGINFO ("Invalid payload format at application index %d", iIndex);
                 }
                 else {
-                    LOGINFO("payload: %s, size:%d", jPayload->valuestring, strlen (jPayload->valuestring));
+                    jPayload = itrApp['payload'].Object();
+                    LOGINFO("payload: %s, size:%d", jPayload, strlen (jPayload));
                 }
                 //Set launchParameters in list for later usage
                 for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
-                    if (cJSON_IsString(jQuery)) {
-                        strcpy (pDynamicAppConfig->query, jQuery->valuestring);
+                    if (jLaunchParam.hasLabel("query")) {
+                        strcpy (pDynamicAppConfig->query, jQuery);
                     }
-                    if (cJSON_IsString(jPayload)) {
-                        strcpy (pDynamicAppConfig->payload, jPayload->valuestring);
+                    if (jLaunchParam.hasLabel("payload")) {
+                        strcpy (pDynamicAppConfig->payload, jPayload);
                     }
                 }
 
@@ -644,7 +614,6 @@ void XCast::updateDynamicAppCache(string strApps)
         //Clear the tempopary list here
         appsToDelete.clear();
         appConfigList.clear();
-        cJSON_Delete(applications);
     }
     dumpDynamicAppConfigCache(string("m_appConfigCache"), m_appConfigCache);
     return;
@@ -666,7 +635,13 @@ uint32_t XCast::registerApplications(const JsonObject& parameters, JsonObject& r
 
                m_isDynamicRegistrationsRequired = true;
                //Register dynamic application list to app cache map
-               updateDynamicAppCache(parameters["applications"].String());
+               if(parameters.hasLabel("applications")){
+                    updateDynamicAppCache(parameters["applications"].Array());
+               }
+               else{
+                    LOGINFO ("updateDynamicAppCache::applications array passed: %s", parameters.String().c_str());
+                    LOGINFO ("updateDynamicAppCache::Invalid applications array exititng");
+               }
                std::vector<DynamicAppConfig*> appConfigList;
                {lock_guard<mutex> lck(m_appConfigMutex);
                    appConfigList = m_appConfigCache;
@@ -712,7 +687,13 @@ uint32_t XCast::unregisterApplications(const JsonObject& parameters, JsonObject&
                _rtConnector->enableCastService(m_friendlyName,false);
                m_isDynamicRegistrationsRequired = true;
                //Remove app names from cache map
-               bool ret = deleteFromDynamicAppCache (parameters["applications"].String());
+               if(parameters.hasLabel("application")){
+                    bool ret = deleteFromDynamicAppCache (parameters["applications"].Array());   
+               }
+               else{
+                    LOGINFO ("deleteFromDynamicAppCache::applications array passed: %s", parameters.String().c_str());
+                    LOGINFO ("deleteFromDynamicAppCache::Invalid applications array exititng");
+               }
                std::vector<DynamicAppConfig*> appConfigList;
                {lock_guard<mutex> lck(m_appConfigMutex);
                    appConfigList = m_appConfigCache;
