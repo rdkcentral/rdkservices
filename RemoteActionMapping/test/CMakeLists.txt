@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+if (NOT RDK_SERVICES_TEST)
 set(PLUGIN_NAME ramTestClient)
 find_package(${NAMESPACE}Protocols REQUIRED)
 
@@ -30,3 +31,4 @@ target_link_libraries(${PLUGIN_NAME}
      ${NAMESPACE}Protocols::${NAMESPACE}Protocols)
 
 install(TARGETS ${PLUGIN_NAME} DESTINATION bin)
+endif ()

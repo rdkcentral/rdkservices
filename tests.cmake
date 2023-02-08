@@ -12,6 +12,8 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/rdk/iarmmgrs-hal
         ${BASEDIR}/ccec/drivers
         ${BASEDIR}/network
+        ${BASEDIR}/rdk/control
+        ${BASEDIR}/rdk/iarmmgrs
         )
 
 set(EMPTY_HEADERS
@@ -53,6 +55,12 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rbus.h
         ${BASEDIR}/telemetry_busmessage_sender.h
         ${BASEDIR}/motionDetector.h
+        ${BASEDIR}/rdk/iarmmgrs/irMgr.h
+        ${BASEDIR}/rdk/iarmmgrs/comcastIrKeyCodes.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc_voice.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc_rcu.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc_key_codes.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -72,6 +80,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/Telemetry.h
         ${BASEDIR}/Udev.h
         ${BASEDIR}/MotionDetection.h
+        ${BASEDIR}/Ctrlm.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -133,5 +142,8 @@ set(PLUGIN_ACTIVITYMONITOR ON)
 set(PLUGIN_MOTION_DETECTION ON)
 set(PLUGIN_COMPOSITEINPUT ON)
 set(HAS_FRONT_PANEL ON)
+set(PLUGIN_VOICECONTROL ON)
+set(PLUGIN_CONTROLSERVICE ON)
+set(PLUGIN_REMOTEACTIONMAPPING ON)
 
 set(DS_FOUND ON)
