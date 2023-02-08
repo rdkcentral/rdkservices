@@ -5,6 +5,8 @@
 #include <string>
 #include <sys/types.h>
 #include <vector>
+#include <sstream>
+#include <cstring>
 
 typedef enum _dsAudioPortType_t {
     dsAUDIOPORT_TYPE_ID_LR, /**< RCA audio output.                  */
@@ -1270,21 +1272,22 @@ class CECBytesImpl {
 class CECBytes{
     public:
     CECBytesImpl* impl;
-    static CECBytes& getInstance()
-    {
-        static CECBytes instance;
-        return instance;
-	}
-    const std::string toString(void) const {
-		return getInstance().impl->toString();
-    }
+    std::vector<uint8_t> str;
+    CECBytes(const uint8_t *buf, size_t len){}
+    CECBytes(const uint8_t val) : str(1, val) {};
+
+    virtual const std::string toString(void) const { 
+        std::stringstream stream; for (size_t i = 0; i < str.size(); i++) { 
+            stream << std::hex << (int)str[i]; 
+        } 
+        return stream.str(); 
+    };
 };
 
 class LogicalAddressImpl{
 	public:
 		virtual int toInt() const = 0;
 		virtual int getType() const = 0;
-        virtual std::string toString() const = 0;
 
 };
 class LogicalAddress : public CECBytes{
@@ -1309,7 +1312,7 @@ class LogicalAddress : public CECBytes{
 			BROADCAST = UNREGISTERED,
 		};
 
-		LogicalAddress(int addr = UNREGISTERED){};
+		LogicalAddress(int addr = UNREGISTERED) : CECBytes((uint8_t)addr){};
 
         static LogicalAddress& getInstance()
     	{
@@ -1319,9 +1322,6 @@ class LogicalAddress : public CECBytes{
 
         LogicalAddressImpl* impl;
 
-		const std::string toString(void) const {
-			return getInstance().impl->toString();
-        }
 		int toInt(void) const{
 			return getInstance().impl->toInt();
 		}
@@ -1330,11 +1330,6 @@ class LogicalAddress : public CECBytes{
 		}
 };
 
-class DeviceTypeImpl{
-	public:
-		virtual std::string toString() const = 0;
-
-};
 class DeviceType : public CECBytes
 {
 	public:
@@ -1348,26 +1343,13 @@ class DeviceType : public CECBytes
 			PURE_CEC_SWITCH,
 			VIDEO_PROCESSOR,
 		};
-		DeviceType(int type) {};
-        DeviceType(){};
+		DeviceType(int type) : CECBytes((uint8_t)type){};
 
-        static DeviceType& getInstance()
-    	{
-            static DeviceType instance;
-       	    return instance;
-	    }
-
-		DeviceTypeImpl* impl;
-        std::string toString(void)
-        {
-			return getInstance().impl->toString();
-        }
 
 };
 class PhysicalAddressImpl{
 	public:
 		virtual std::string name() const = 0;
-        virtual std::string toString() const = 0;
 
 };
 class PhysicalAddress : public CECBytes{
@@ -1378,53 +1360,20 @@ class PhysicalAddress : public CECBytes{
 
 		}
 
-        const std::string toString(void) const {
-			return impl->toString();
-        }
-
-
-};
-class VendorIDImpl{
-	public:
-        virtual const std::string toString() const = 0;
-
 };
 
 class VendorID : public CECBytes{
 	public:
-        static VendorID& getInstance()
-	    {
-	    	static VendorID instance;
-	    	return instance;
-	    };
-        VendorID(){};
+
 	
-		VendorID(uint8_t byte0,uint8_t byte1,uint8_t byte2){};
-		VendorIDImpl* impl;
-        const std::string toString(void) const {
-            return getInstance().impl->toString();
-        }
-
+		VendorID(uint8_t byte0,uint8_t byte1,uint8_t byte2) : CECBytes (NULL,0){};
 
 };
-class OSDNameImpl : public CECBytes{
-    public:
-        virtual const std::string toString() const = 0;
-};
 
-class OSDName{
+class OSDName : public CECBytes{
 	public:
-        static OSDName& getInstance()
-	    {
-	    	static OSDName instance;
-	    	return instance;
-	    };
-        OSDName(){};
-		OSDName(const char *str){};
-		OSDNameImpl* impl;
-        const std::string toString(void) const {
-            return getInstance().impl->toString();
-        }
+		OSDName(const char *str_) : CECBytes((const uint8_t *)str_, strlen(str_)) {};
+
 };
 
 class FrameListener
@@ -1447,7 +1396,6 @@ class ActiveSourceImpl{
 };
 class ActiveSource {
 	public:
-		ActiveSource(){	}
 		ActiveSourceImpl* impl;
 		Op_t opCode(void) const{
 			return impl->opCode();

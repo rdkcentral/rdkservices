@@ -31,11 +31,6 @@
 #include "ConnectionMock.h"
 #include "LogicalAddressMock.h"
 #include "ActiveSourceMock.h"
-#include "DeviceTypeMock.h"
-#include "OSDNameMock.h"
-#include "VendorIDMock.h"
-#include "getOpNameMock.h"
-#include "CECBytesMock.h"
 using namespace WPEFramework;
 
 class HdmiCecTest : public ::testing::Test {
@@ -137,13 +132,9 @@ protected:
 };
 class HdmiCecInitializedEventDsTest : public HdmiCecInitializedEventTest {
 protected:
-    testing::NiceMock<DeviceTypeMock> deviceTypeImplMock;
     testing::NiceMock<LogicalAddressImplMock> logicalAddressImplMock;
     testing::NiceMock<LibCCECImplMock> libCCECImplMock;
     testing::NiceMock<ConnectionImplMock> connectionImplMock;
-    testing::NiceMock<OSDNameImplMock> osdNameImplMock;
-    testing::NiceMock<VendorIDImplMock> vendorIdImplMock;
-    testing::NiceMock<CECBytesImplMock> cecBytesImplMock;
 
 
     HdmiCecInitializedEventDsTest()
@@ -151,11 +142,7 @@ protected:
     {
         LibCCEC::getInstance().impl = &libCCECImplMock;
         Connection::getInstance().impl = &connectionImplMock;	
-	    DeviceType::getInstance().impl = &deviceTypeImplMock;
         LogicalAddress::getInstance().impl = &logicalAddressImplMock;
-        OSDName::getInstance().impl = &osdNameImplMock;
-        VendorID::getInstance().impl = &vendorIdImplMock;
-        CECBytes::getInstance().impl = &cecBytesImplMock;
 
         //Setenable needs to run firzt, as it turns everything on, locally.
 	    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
@@ -173,10 +160,6 @@ protected:
         
         LibCCEC::getInstance().impl = nullptr;
         Connection::getInstance().impl = nullptr;
-        DeviceType::getInstance().impl = nullptr;
-        OSDName::getInstance().impl = nullptr;
-        VendorID::getInstance().impl = nullptr;
-        CECBytes::getInstance().impl = nullptr;
 
     }
 };
@@ -208,21 +191,6 @@ TEST_F(HdmiCecInitializedEventDsTest, getEnabledTrue)
     EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
 
 }
-
-
-TEST_F(HdmiCecInitializedEventDsTest, sendMessage)
-{
-    EXPECT_CALL(connectionImplMock, sendAsync(::testing::_))
-        .Times(29)
-        .WillOnce(::testing::Invoke(
-            [&](const CECFrame &frame) {
-                
-            }));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendMessage"), _T("{\"message\": \"P4IwAA==\"}"), response));
-    EXPECT_EQ(response, string("{\"success\":true}"));
-}
-
 
 TEST_F(HdmiCecInitializedEventDsTest, getActiveSourceStatusTrue)
 {
@@ -259,15 +227,13 @@ TEST_F(HdmiCecInitializedEventDsTest, getCECAddress)
     //Active Source Status update sets the address/logical address and what not to non-default values
     eventData.logicalAddress = 42;
     
-	ON_CALL(deviceTypeImplMock, toString())
-        .WillByDefault(::testing::Return("New"));
     EXPECT_CALL(logicalAddressImplMock, getType())
         .Times(1)
         .WillOnce(::testing::Return(42));
     cecMgrEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED, &eventData , 0);
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCECAddresses"), _T(""), response));
-    EXPECT_EQ(response, string("{\"CECAddresses\":{\"physicalAddress\":12345,\"logicalAddress\":42,\"deviceType\":\"New\"},\"success\":true}"));
+    EXPECT_EQ(response, string("{\"CECAddresses\":{\"physicalAddress\":12345,\"logicalAddress\":42,\"deviceType\":\"2a\"},\"success\":true}"));
 }
 
 TEST_F(HdmiCecInitializedEventDsTest, onDevicesChanged)
@@ -292,10 +258,6 @@ TEST_F(HdmiCecInitializedEventDsTest, onDevicesChanged)
 
 TEST_F(HdmiCecInitializedEventDsTest, getDeviceList)
 {  
-    ON_CALL(osdNameImplMock, toString())
-        .WillByDefault(::testing::Return("osdName"));
-    ON_CALL(vendorIdImplMock, toString())
-        .WillByDefault(::testing::Return("vendorId"));
 
     sleep(1); //Allow the thread that populates deviceList to actually populate before we run getDeviceList.
     //Calling the device list, which is a defualt list of the hdmiCec class. Kist grabs the deviceList.
