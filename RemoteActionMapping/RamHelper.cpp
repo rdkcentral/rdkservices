@@ -571,43 +571,43 @@ namespace WPEFramework {
                     rfDesc = (unsigned char*)rfDescriptor_IRPowerToggle;
                     rfDescLength = sizeof(rfDescriptor_IRPowerToggle);
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;
-                    LOGWARN("IR Power Toggle RF Descriptor included, size: %d.", rfDescLength);
+                    LOGWARN("IR Power Toggle RF Descriptor included, size: %zu.", rfDescLength);
                     break;
                 case MSO_RFKEY_PWR_OFF:
                     rfDesc = (unsigned char*)rfDescriptor_DiscretePwrOff;
                     rfDescLength = sizeof(rfDescriptor_DiscretePwrOff);
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;
-                    LOGWARN("Discrete Power Off RF Descriptor included, size: %d.", rfDescLength);
+                    LOGWARN("Discrete Power Off RF Descriptor included, size: %zu.", rfDescLength);
                     break;
                 case MSO_RFKEY_PWR_ON:
                     rfDesc = (unsigned char*)rfDescriptor_DiscretePwrOn;
                     rfDescLength = sizeof(rfDescriptor_DiscretePwrOn);
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;
-                    LOGWARN("Discrete Power On RF Descriptor included, size: %d.", rfDescLength);
+                    LOGWARN("Discrete Power On RF Descriptor included, size: %zu.", rfDescLength);
                     break;
                 case MSO_RFKEY_VOL_PLUS:
                     rfDesc = (unsigned char*)rfDescriptor_VolumeUp;
                     rfDescLength = sizeof(rfDescriptor_VolumeUp);
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;
-                    LOGWARN("Volume Up RF Descriptor included, size: %d.", rfDescLength);
+                    LOGWARN("Volume Up RF Descriptor included, size: %zu.", rfDescLength);
                     break;
                 case MSO_RFKEY_VOL_MINUS:
                     rfDesc = (unsigned char*)rfDescriptor_VolumeDown;
                     rfDescLength = sizeof(rfDescriptor_VolumeDown);
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;
-                    LOGWARN("Volume Down RF Descriptor included, size: %d.", rfDescLength);
+                    LOGWARN("Volume Down RF Descriptor included, size: %zu.", rfDescLength);
                     break;
                 case MSO_RFKEY_MUTE:
                     rfDesc = (unsigned char*)rfDescriptor_Mute;
                     rfDescLength = sizeof(rfDescriptor_Mute);
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;
-                    LOGWARN("Mute RF Descriptor included, size: %d.", rfDescLength);
+                    LOGWARN("Mute RF Descriptor included, size: %zu.", rfDescLength);
                     break;
                 case MSO_RFKEY_INPUT_SELECT:
                     rfDesc = (unsigned char*)rfDescriptor_Input;
                     rfDescLength = sizeof(rfDescriptor_Input);
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;
-                    LOGWARN("Input RF Descriptor included, size: %d.", rfDescLength);
+                    LOGWARN("Input RF Descriptor included, size: %zu.", rfDescLength);
                     break;
                 default:
                     LOGWARN("No RF Descriptor included for RF Key 0x%02X.", (unsigned)actionMap.rfKeyCode);
@@ -618,7 +618,7 @@ namespace WPEFramework {
             total = 1 + rfDescLength + 2 + dataSize;
             if (total > CTRLM_RCU_MAX_RIB_ATTRIBUTE_SIZE)
             {
-                LOGERR("LOGIC ERROR - IR-RF DB entry length is %u, for RF Key 0x%02X, exceeds size limits!!",
+                LOGERR("LOGIC ERROR - IR-RF DB entry length is %zu, for RF Key 0x%02X, exceeds size limits!!",
                        total, (unsigned)actionMap.rfKeyCode);
                 return false;
             }
@@ -638,7 +638,7 @@ namespace WPEFramework {
             bytePtr++;
             memcpy(bytePtr, data, dataSize);
 
-            LOGWARN("SET ribRequest data - total: %d, dataSize: %d, data: 0x%02X, 0x%02X, 0x%02X, 0x%02X - 0x%02X, 0x%02X, 0x%02X, 0x%02X - "
+            LOGWARN("SET ribRequest data - total: %zu, dataSize: %d, data: 0x%02X, 0x%02X, 0x%02X, 0x%02X - 0x%02X, 0x%02X, 0x%02X, 0x%02X - "
                     "0x%02X, 0x%02X, 0x%02X, 0x%02X - 0x%02X, 0x%02X, 0x%02X, 0x%02X - 0x%02X, 0x%02X, 0x%02X, 0x%02X.\n",
                     total, dataSize,
                     (unsigned char)ribRequest.data[0], (unsigned char)ribRequest.data[1], (unsigned char)ribRequest.data[2], (unsigned char)ribRequest.data[3],
@@ -1036,7 +1036,7 @@ namespace WPEFramework {
 
             if ((deviceID < 1) || (irData.size() <= 1))
             {
-                LOGERR("ERROR - Bad arguments - deviceID: %d, data size: %d!! Cannot set device power IRRFDB entry!",
+                LOGERR("ERROR - Bad arguments - deviceID: %d, data size: %zu!! Cannot set device power IRRFDB entry!",
                        deviceID, irData.size());
                 return false;
             }
@@ -1082,21 +1082,21 @@ namespace WPEFramework {
                     rfDesc = (unsigned char*)rfDescriptor_IRPowerToggle;
                     rfDescLength = sizeof(rfDescriptor_IRPowerToggle);
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;
-                    LOGWARN("IR Power Toggle RF Descriptor included, size: %d.", rfDescLength);
+                    LOGWARN("IR Power Toggle RF Descriptor included, size: %zu.", rfDescLength);
                     break;
                 case XRC_RFKEY_TV_PWR_OFF:
                 case XRC_RFKEY_AVR_PWR_OFF:
                     rfDesc = (unsigned char*)rfDescriptor_DiscretePwrOff;
                     rfDescLength = sizeof(rfDescriptor_DiscretePwrOff);
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;
-                    LOGWARN("Discrete Power Off RF Descriptor included, size: %d.", rfDescLength);
+                    LOGWARN("Discrete Power Off RF Descriptor included, size: %zu.", rfDescLength);
                     break;
                 case XRC_RFKEY_TV_PWR_ON:
                 case XRC_RFKEY_AVR_PWR_ON:
                     rfDesc = (unsigned char*)rfDescriptor_DiscretePwrOn;
                     rfDescLength = sizeof(rfDescriptor_DiscretePwrOn);
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;
-                    LOGWARN("Discrete Power On RF Descriptor included, size: %d.", rfDescLength);
+                    LOGWARN("Discrete Power On RF Descriptor included, size: %zu.", rfDescLength);
                     break;
                 default:
                     LOGERR("LOGIC ERROR - Invalid separate power RF Key 0x%02X.", (unsigned)rfKeyCode);
@@ -1124,7 +1124,7 @@ namespace WPEFramework {
             total = 1 + rfDescLength + 2 + dataSize;
             if (total > CTRLM_RCU_MAX_RIB_ATTRIBUTE_SIZE)
             {
-                LOGERR("LOGIC ERROR - IR-RF DB entry length is %u, for RF Key 0x%02X, exceeds size limits!!",
+                LOGERR("LOGIC ERROR - IR-RF DB entry length is %zu, for RF Key 0x%02X, exceeds size limits!!",
                        total, (unsigned)rfKeyCode);
                 return false;
             }
