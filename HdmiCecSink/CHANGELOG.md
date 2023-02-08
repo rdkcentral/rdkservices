@@ -16,6 +16,12 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+
+## [1.0.8] - 2023-02-03
+### Fixed
+- Fixed Blocked sending events to Displaysettings when panel power state is STANDBY
+- Fixed Parallel execution of event handlers
+
 ## [1.0.7] - 2022-11-28
 ### Fixed
 - Treat warnings as errors for unit tests workflow
