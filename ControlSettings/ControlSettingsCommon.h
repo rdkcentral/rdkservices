@@ -29,15 +29,4 @@ uint32_t method(const JsonObject& parameters, JsonObject& response);
 #define PLUGIN_Lock(lock) pthread_mutex_lock(&lock)
 #define PLUGIN_Unlock(lock) pthread_mutex_unlock(&lock)
 
-#define IARM_CHECK(FUNC) \
-  if ((res = FUNC) != IARM_RESULT_SUCCESS) { \
-    LOGINFO("IARM %s: %s", #FUNC, \
-        res == IARM_RESULT_INVALID_PARAM ? "invalid param" : ( \
-        res == IARM_RESULT_INVALID_STATE ? "invalid state" : ( \
-        res == IARM_RESULT_IPCCORE_FAIL ? "ipcore fail" : ( \
-        res == IARM_RESULT_OOM ? "oom" : "unknown")))); \
-  } else { \
-    LOGINFO("IARM %s: success", #FUNC); \
-  }
-
 #endif

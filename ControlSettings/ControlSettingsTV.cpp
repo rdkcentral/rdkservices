@@ -273,9 +273,9 @@ namespace Plugin {
 
 	registerMethod("setBacklightFade", &ControlSettingsTV::setBacklightFade, this);
 
-	registerMethod("getLowLatencyState", &TVMgr::getLowLatencyState, this, {2});
-        registerMethod("setLowLatencyState", &TVMgr::setLowLatencyState, this, {2});
-        registerMethod("resetLowLatencyState", &TVMgr::resetLowLatencyState, this, {2});
+	registerMethod("getLowLatencyState", &ControlSettingsTV::getLowLatencyState, this);
+        registerMethod("setLowLatencyState", &ControlSettingsTV::setLowLatencyState, this);
+        registerMethod("resetLowLatencyState", &ControlSettingsTV::resetLowLatencyState, this);
 
         LOGINFO("Exit\n");
     }

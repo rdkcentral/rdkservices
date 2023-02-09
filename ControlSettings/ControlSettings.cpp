@@ -19,6 +19,7 @@
 
 #include <string>
 #include "ControlSettings.h"
+#include "UtilsIarm.h"
 
 const char* PLUGIN_IARM_BUS_NAME = "Thunder_Plugins";
 
@@ -86,9 +87,9 @@ namespace Plugin {
         if (isIARMConnected())
         {
             IARM_Result_t res;
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS) );
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE) );
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
+            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
+            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
+            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
         }
 #endif
     }
@@ -101,10 +102,9 @@ namespace Plugin {
             LOGINFO("ControlSettingsPlugin: IARM already connected");
             result = true;
         } else {
-            res = Utils::IARM::init();
-            LOGINFO("ControlSettingsPlugin: IARM_Bus_Init: %d", res);
-            if (res == IARM_RESULT_SUCCESS ||
-                res == IARM_RESULT_INVALID_STATE /* already inited or connected */) {
+            result = Utils::IARM::init();
+            LOGINFO("ControlSettingsPlugin: IARM_Bus_Init: %d", result);
+            if ( result /* already inited or connected */) {
 
                 res = IARM_Bus_Connect();
                 LOGINFO("ControlSettingsPlugin: IARM_Bus_Connect: %d", res);
@@ -116,7 +116,7 @@ namespace Plugin {
                     LOGERR("ControlSettingsPlugin: IARM_Bus_Connect failure: %d", res);
                 }
             } else {
-                LOGERR("ControlSettingsPlugin: IARM_Bus_Init failure: %d", res);
+                LOGERR("ControlSettingsPlugin: IARM_Bus_Init failure");
             }
         }
 
