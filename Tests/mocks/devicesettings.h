@@ -1105,17 +1105,15 @@ public:
 };
 
 class FrontPanelTextDisplay;
-class FrontPanelTextDisplayImpl : public FrontPanelIndicator::FrontPanelIndicatorImpl {
+class FrontPanelTextDisplayImpl {
 public:
     virtual ~FrontPanelTextDisplayImpl() = default;
     virtual int getCurrentTimeFormat() const = 0;
     virtual void setTimeFormat(const int iTimeFormat) const = 0;
     virtual void setText(const std::string text) const = 0;
-    virtual std::string getName() const = 0;
     virtual void setMode(int mode) const = 0;
     virtual int getTextBrightness() const = 0;
     virtual void setTextBrightness(const int brightness) const = 0;
-    virtual void getBrightnessLevels(int &levels,int &min,int &max) const = 0;
     virtual FrontPanelTextDisplay& getInstanceById(int id) = 0;
     virtual FrontPanelTextDisplay& getInstanceByName(const std::string& name) = 0;
 };
@@ -1152,10 +1150,6 @@ public:
     {
 	return impl->setText(text);
     }
-    std::string getName()
-    {
-	return impl->getName();
-    }
     void setMode(int mode)
     {
         return impl->setMode(mode);
@@ -1167,10 +1161,6 @@ public:
 	void setTextBrightness(const int brightness) const
     {
         return impl->setTextBrightness(brightness);
-    }
-	void getBrightnessLevels(int &levels,int &min,int &max) const
-    {
-        return impl->getBrightnessLevels( levels, min, max);
     }
 };
 
