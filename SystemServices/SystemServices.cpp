@@ -66,8 +66,8 @@
 using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 11
+#define API_VERSION_NUMBER_MINOR 2
+#define API_VERSION_NUMBER_PATCH 8
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -2272,8 +2272,34 @@ namespace WPEFramework {
 							fflush(f);
 							fsync(fileno(f));
 							fclose(f);
+
+							std::string oldAccuracy = getTimeZoneAccuracyDSTHelper();
+							std::string accuracy = TZ_ACCURACY_INITIAL;
+
+							if (parameters.HasLabel("accuracy")) {
+								accuracy = parameters["accuracy"].String();
+								if (accuracy != TZ_ACCURACY_INITIAL && accuracy != TZ_ACCURACY_INTERIM && accuracy != TZ_ACCURACY_FINAL) {
+									LOGERR("Wrong TimeZone Accuracy: %s", accuracy.c_str());
+									accuracy = oldAccuracy;
+								}
+							}
+
+							if (accuracy != oldAccuracy) {
+								f = fopen(TZ_ACCURACY_FILE, "w");
+								if (f) {
+									if (accuracy.size() != fwrite(accuracy.c_str(), 1, accuracy.size(), f))
+										LOGERR("Failed to write %s", TZ_ACCURACY_FILE);
+    
+									fflush(f);
+									fsync(fileno(f));
+									fclose(f);
+								}
+							}
+
+
 							if (SystemServices::_instance)
-								SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone);
+								SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone,oldAccuracy, accuracy);
+
 							resp = true;
 						} else {
 							LOGERR("Unable to open %s file.\n", TZ_FILE);
@@ -2474,12 +2500,14 @@ namespace WPEFramework {
 		sendNotify(EVT_ONTERRITORYCHANGED, params);
 	}
 
-	void SystemServices::onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone)
+	void SystemServices::onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone, string oldAccuracy, string newAccuracy)
 	{
 		JsonObject params;
 		params["oldTimeZone"] = oldTimeZone;
 		params["newTimeZone"] = newTimeZone;
-		LOGWARN(" Notifying TimeZone changed - oldTimeZone: %s - newTimeZone: %s",oldTimeZone.c_str(),newTimeZone.c_str());
+		params["oldAccuracy"] = oldAccuracy;
+		params["newAccuracy"] = newAccuracy;
+		LOGWARN(" Notifying TimeZone changed - oldTimeZone: %s - newTimeZone: %s, oldAccuracy: %s - newAccuracy: %s",oldTimeZone.c_str(),newTimeZone.c_str(),oldAccuracy.c_str(),newAccuracy.c_str());
 		//Notify TimeZone changed
 		sendNotify(EVT_ONTIMEZONEDSTCHANGED, params);
 	}
@@ -2507,10 +2535,15 @@ namespace WPEFramework {
                     resp = false;
                 }
             } else {
-                LOGERR("File not found %s.\n", TZ_FILE);
-                populateResponseWithError(SysSrv_FileAccessFailed, response);
-                resp = false;
+                LOGERR("File not found %s, returning default.\n", TZ_FILE);
+                response["timeZone"] = TZ_DEFAULT;
+                resp = true;
             }
+
+            if (resp) {
+                response["accuracy"] = getTimeZoneAccuracyDSTHelper();
+            }
+
             returnResponse(resp);
         }
 
