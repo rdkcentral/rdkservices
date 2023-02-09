@@ -4,20 +4,11 @@
 
 #define LOGINFOMETHOD() { std::string json; parameters.ToString(json); LOGINFO( "params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); LOGINFO( "response=%s", json.c_str() ); }
-
-/**
- * DO NOT USE THIS.
- *
- * "success" parameter was added for legacy reasons.
- * Newer APIs should return only error code to match the spec
- */
-
-#define returnResponse(expression) \
+#define returnResponse(success) \
     { \
-        bool successBoolean = expression; \
-        response["success"] = successBoolean; \
+        response["success"] = success; \
         LOGTRACEMETHODFIN(); \
-        return (successBoolean ? WPEFramework::Core::ERROR_NONE : WPEFramework::Core::ERROR_GENERAL); \
+        return (WPEFramework::Core::ERROR_NONE); \
     }
 #define returnIfParamNotFound(param, name) \
     if (!param.HasLabel(name)) \

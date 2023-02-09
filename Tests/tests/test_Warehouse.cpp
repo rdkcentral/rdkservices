@@ -30,6 +30,9 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+using ::testing::Eq;
+
 class WarehouseTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::Warehouse> plugin;
@@ -52,9 +55,9 @@ protected:
 
 class WarehouseInitializedTest : public WarehouseTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
-    RfcApiImplMock rfcApiImplMock;
-    WrapsImplMock wrapsImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
+    NiceMock<RfcApiImplMock> rfcApiImplMock;
+    NiceMock<WrapsImplMock> wrapsImplMock;
     IARM_EventHandler_t whMgrStatusChangeEventsHandler;
 
     WarehouseInitializedTest()
@@ -85,9 +88,9 @@ protected:
 
 class WarehouseEventTest : public WarehouseInitializedTest {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
     WarehouseEventTest()
@@ -515,10 +518,12 @@ TEST_F(WarehouseResetDeviceFailureTest, UserFactoryResetDeviceFailurePwrMgr2RFCE
 TEST_F(WarehouseInitializedTest, internalResetFailPassPhrase)
 {
     //Invoke internalReset - No pass phrase
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("internalReset"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("internalReset"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false,\"error\":\"incorrect pass phrase\"}"));
 
     //Invoke internalReset - Incorrect pass phrase
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("internalReset"), _T("{\"passPhrase\":\"Test Phrase\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("internalReset"), _T("{\"passPhrase\":\"Test Phrase\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false,\"error\":\"incorrect pass phrase\"}"));
 }
 
 TEST_F(WarehouseInitializedTest, internalResetScriptFail)

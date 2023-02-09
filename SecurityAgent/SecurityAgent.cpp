@@ -41,6 +41,10 @@ namespace {
     );
 }
 
+ENUM_CONVERSION_BEGIN(Plugin::SecurityAgent::tokentype)
+    { Plugin::SecurityAgent::DAC, _TXT("dac") },
+ENUM_CONVERSION_END(Plugin::SecurityAgent::tokentype)
+
 namespace Plugin {
 
     SERVICE_REGISTRATION(SecurityAgent, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
@@ -107,6 +111,9 @@ namespace Plugin {
         if (aclFile.Exists() == false) {
             aclFile = service->DataPath() + config.ACL.Value();
         }
+
+        SYSLOG(Logging::Startup, (_T("SecurityAgent: Reading acl file %s"), aclFile.Name().c_str()));
+
         if ((aclFile.Exists() == true) && (aclFile.Open(true) == true)) {
 
             if (_acl.Load(aclFile) == Core::ERROR_INCOMPLETE_CONFIG) {
@@ -121,6 +128,15 @@ namespace Plugin {
             }
         }
 
+        _dacDir = config.DAC.Value();
+        if (!_dacDir.empty()) {
+            _dacDirCallback = Core::ProxyType<DirectoryCallback>::Create(_dacDir, _dac);
+            _dacDirCallback->Updated();
+
+            Core::Directory(_dacDir.c_str()).CreatePath();
+            Core::FileSystemMonitor::Instance().Register(&(*_dacDirCallback), _dacDir);
+        }
+
         ASSERT(_dispatcher == nullptr);
         ASSERT(subSystem != nullptr);
 
@@ -129,6 +145,9 @@ namespace Plugin {
         if (connector.empty() == true) {
             connector = service->VolatilePath() + _T("token");
         }
+
+        SYSLOG(Logging::Notification,(_T("SecurityAgent TokenDispatcher connector path %s"),connector.c_str()));
+
         _engine = Core::ProxyType<RPC::InvokeServer>::Create(&Core::IWorkerPool::Instance());
         _dispatcher.reset(new TokenDispatcher(Core::NodeId(connector.c_str()), service->ProxyStubPath(), this, _engine));
 
@@ -171,6 +190,12 @@ namespace Plugin {
         _engine.Release();
 
         _acl.Clear();
+
+        if (_dacDirCallback.IsValid()) {
+            Core::FileSystemMonitor::Instance().Unregister(&(*_dacDirCallback), _dacDir);
+            _dacDirCallback.Release();
+        }
+        _dac.Clear();
     }
 
     /* virtual */ string SecurityAgent::Information() const
@@ -181,6 +206,8 @@ namespace Plugin {
 
     /* virtual */ uint32_t SecurityAgent::CreateToken(const uint16_t length, const uint8_t buffer[], string& token)
     {
+        SYSLOG(Logging::Notification, (_T("Creating Token for %.*s"), length, buffer));
+
         // Generate the token from the buffer coming in...
         auto newToken = JWTFactory::Instance().Element();
 
@@ -203,7 +230,14 @@ namespace Plugin {
 
             if (load != static_cast<uint16_t>(~0)) {
                 // Seems like we extracted a valid payload, time to create an security context
-                result = Core::Service<SecurityContext>::Create<SecurityContext>(&_acl, load, payload, _servicePrefix);
+                Payload payloadJson;
+                payloadJson.FromString(string(reinterpret_cast<const TCHAR*>(payload), load));
+
+                if (payloadJson.Type.IsSet() && (payloadJson.Type == tokentype::DAC)) {
+                    result = Core::Service<SecurityContext>::Create<SecurityContext>(&_dac, load, payload, _servicePrefix);
+                } else {
+                    result = Core::Service<SecurityContext>::Create<SecurityContext>(&_acl, load, payload, _servicePrefix);
+                }
             }
         }
         return (result);

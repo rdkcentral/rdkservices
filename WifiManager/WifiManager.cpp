@@ -116,6 +116,7 @@ namespace WPEFramework
         void WifiManager::Deinitialize(PluginHost::IShell* service)
         {
             wifiScan.Deinitialize(service);
+            wifiSignalThreshold.stopSignalThresholdThread();
 
             instance = nullptr;
         }

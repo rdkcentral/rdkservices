@@ -36,6 +36,9 @@ public:
 
 using namespace WPEFramework;
 
+using ::testing::Eq;
+using ::testing::NiceMock;
+
 class PersistentStoreTest : public ::testing::Test {
 protected:
     Core::ProxyType<PersistentStoreMock> plugin;
@@ -54,7 +57,7 @@ protected:
 
 class PersistentStoreInitializedTest : public PersistentStoreTest {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
 
     PersistentStoreInitializedTest()
         : PersistentStoreTest()
@@ -81,7 +84,7 @@ protected:
 class PersistentStoreInitializedEventTest : public PersistentStoreInitializedTest {
 protected:
     Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
     PersistentStoreInitializedEventTest()
@@ -116,32 +119,50 @@ TEST_F(PersistentStoreTest, registeredMethods)
 
 TEST_F(PersistentStoreTest, paramsMissing)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setValue"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getValue"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getKeys"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deleteKey"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deleteNamespace"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setValue"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"params missing\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getValue"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"params missing\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getKeys"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"params missing\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deleteKey"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"params missing\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deleteNamespace"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"params missing\",\"success\":false}"));
 }
 
 TEST_F(PersistentStoreTest, paramsEmpty)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"\",\"key\":\"\",\"value\":\"\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getValue"), _T("{\"namespace\":\"\",\"key\":\"\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getKeys"), _T("{\"namespace\":\"\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deleteKey"), _T("{\"namespace\":\"\",\"key\":\"\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deleteNamespace"), _T("{\"namespace\":\"\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"\",\"key\":\"\",\"value\":\"\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"params empty\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getValue"), _T("{\"namespace\":\"\",\"key\":\"\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"params empty\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getKeys"), _T("{\"namespace\":\"\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"params empty\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deleteKey"), _T("{\"namespace\":\"\",\"key\":\"\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"params empty\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deleteNamespace"), _T("{\"namespace\":\"\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"params empty\",\"success\":false}"));
 }
 
 TEST_F(PersistentStoreTest, notInitialized)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"a\",\"value\":\"1\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getValue"), _T("{\"namespace\":\"test\",\"key\":\"a\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getNamespaces"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getStorageSize"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getKeys"), _T("{\"namespace\":\"test\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deleteKey"), _T("{\"namespace\":\"test\",\"key\":\"a\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deleteNamespace"), _T("{\"namespace\":\"test\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("flushCache"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"a\",\"value\":\"1\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"params too long\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getValue"), _T("{\"namespace\":\"test\",\"key\":\"a\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getNamespaces"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStorageSize"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getKeys"), _T("{\"namespace\":\"test\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deleteKey"), _T("{\"namespace\":\"test\",\"key\":\"a\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deleteNamespace"), _T("{\"namespace\":\"test\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("flushCache"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(PersistentStoreInitializedEventTest, jsonRpc)
@@ -192,7 +213,8 @@ TEST_F(PersistentStoreInitializedEventTest, jsonRpc)
 
 TEST_F(PersistentStoreInitializedTest, maxValue)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"a\",\"value\":\"123456789123456789\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"a\",\"value\":\"123456789123456789\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"params too long\",\"success\":false}"));
 }
 
 TEST_F(PersistentStoreInitializedEventTest, onStorageExceeded)
@@ -222,7 +244,8 @@ TEST_F(PersistentStoreInitializedEventTest, onStorageExceeded)
     EXPECT_EQ(response, _T("{\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"b\",\"value\":\"12345678\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"c\",\"value\":\"1\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setValue"), _T("{\"namespace\":\"test\",\"key\":\"c\",\"value\":\"1\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 
     EXPECT_EQ(Core::ERROR_NONE, onStorageExceeded.Lock());
 

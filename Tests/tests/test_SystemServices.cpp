@@ -36,16 +36,19 @@
 
 using namespace WPEFramework;
 
+using ::testing::Eq;
+using ::testing::NiceMock;
+
 class SystemServicesTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::SystemServices> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
-    RfcApiImplMock rfcApiImplMock;
-    WrapsImplMock wrapsImplMock;
-    IarmBusImplMock iarmBusImplMock;
-    HostImplMock hostImplMock;
+    NiceMock<RfcApiImplMock> rfcApiImplMock;
+    NiceMock<WrapsImplMock> wrapsImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
+    NiceMock<HostImplMock> hostImplMock;
 
     SystemServicesTest()
         : plugin(Core::ProxyType<Plugin::SystemServices>::Create())
@@ -69,9 +72,9 @@ protected:
 
 class SystemServicesEventTest : public SystemServicesTest {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
     SystemServicesEventTest()
@@ -246,7 +249,8 @@ TEST_F(SystemServicesTest, AutoReboot)
                 return WDMP_SUCCESS;
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setFirmwareAutoReboot"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareAutoReboot"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareAutoReboot"), _T("{\"enable\":true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
@@ -262,8 +266,10 @@ TEST_F(SystemServicesTest, RebootDelay)
                 return WDMP_SUCCESS;
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":86401}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":86401}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":10}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
@@ -358,10 +364,14 @@ TEST_F(SystemServicesEventTest, Timezone)
 
 TEST_F(SystemServicesTest, InvalidTerritory)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"U-NYC\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US@\",\"region\":\"US-NYC\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"US-N$C\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US12\",\"region\":\"US-NYC\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"U-NYC\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":{\"message\":\"Invalid region\"},\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US@\",\"region\":\"US-NYC\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":{\"message\":\"Invalid territory\"},\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"US-N$C\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":{\"message\":\"Invalid region\"},\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US12\",\"region\":\"US-NYC\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":{\"message\":\"Invalid territory\"},\"success\":false}"));
 }
 
 TEST_F(SystemServicesEventTest, ValidTerritory)
@@ -491,7 +501,8 @@ TEST_F(SystemServicesTest, MocaStatus)
                 return 0;
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("enableMoca"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableMoca"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableMoca"), _T("{\"value\":true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
@@ -525,9 +536,12 @@ TEST_F(SystemServicesTest, Mode)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"\",\"duration\":0},\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{}}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"unknown\",\"duration\":0}}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{}}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"unknown\",\"duration\":0}}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 
     ON_CALL(iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
@@ -553,7 +567,8 @@ TEST_F(SystemServicesTest, Mode)
 
 TEST_F(SystemServicesTest, setDeepSleepTimer)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setDeepSleepTimer"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setDeepSleepTimer"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
@@ -570,7 +585,8 @@ TEST_F(SystemServicesTest, setDeepSleepTimer)
 
 TEST_F(SystemServicesTest, setNetworkStandbyMode)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setNetworkStandbyMode"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setNetworkStandbyMode"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
@@ -603,6 +619,16 @@ TEST_F(SystemServicesTest, getNetworkStandbyMode)
 
 TEST_F(SystemServicesTest, setPreferredStandbyMode)
 {
+    device::SleepMode mode;
+    NiceMock<SleepModeMock> sleepModeMock;
+    device::SleepMode::getInstance().impl = &sleepModeMock;
+
+    ON_CALL(sleepModeMock, getInstanceByName)
+        .WillByDefault(::testing::Invoke(
+            [&](const std::string& name) -> device::SleepMode& {
+                EXPECT_EQ(name, "LIGHT_SLEEP");
+                return mode;
+            }));
     EXPECT_CALL(hostImplMock, setPreferredSleepMode)
         .Times(2)
         .WillOnce(::testing::Return(0))
@@ -611,16 +637,18 @@ TEST_F(SystemServicesTest, setPreferredStandbyMode)
                 throw device::Exception("test");
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{\"standbyMode\":\"LIGHT_SLEEP\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{\"standbyMode\":\"LIGHT_SLEEP\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{\"standbyMode\":\"LIGHT_SLEEP\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(SystemServicesTest, getPreferredStandbyMode)
 {
     device::SleepMode mode;
-    SleepModeMock sleepModeMock;
+    NiceMock<SleepModeMock> sleepModeMock;
     mode.impl = &sleepModeMock;
     string sleepModeString(_T("DEEP_SLEEP"));
 
@@ -638,13 +666,14 @@ TEST_F(SystemServicesTest, getPreferredStandbyMode)
                 throw device::Exception("test");
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getPreferredStandbyMode"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPreferredStandbyMode"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"preferredStandbyMode\":\"\",\"success\":false}"));
 }
 
 TEST_F(SystemServicesTest, getAvailableStandbyModes)
 {
     device::SleepMode mode;
-    SleepModeMock sleepModeMock;
+    NiceMock<SleepModeMock> sleepModeMock;
     mode.impl = &sleepModeMock;
     string sleepModeString(_T("DEEP_SLEEP"));
 
@@ -662,7 +691,8 @@ TEST_F(SystemServicesTest, getAvailableStandbyModes)
                 throw device::Exception("test");
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getAvailableStandbyModes"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAvailableStandbyModes"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"supportedStandbyModes\":[],\"success\":false}"));
 }
 
 TEST_F(SystemServicesTest, getWakeupReason)
@@ -933,9 +963,12 @@ TEST_F(SystemServicesTest, setOvertempGraceInterval)
 
 TEST_F(SystemServicesTest, getRFCConfig)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getRFCConfig"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getRFCConfig"), _T("{\"rfclist\":[]}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getRFCConfig"), _T("{\"rfclist\":[\"#@!\"]}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getRFCConfig"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getRFCConfig"), _T("{\"rfclist\":[]}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getRFCConfig"), _T("{\"rfclist\":[\"#@!\"]}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 
     ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
@@ -1046,7 +1079,8 @@ TEST_F(SystemServicesTest, getStoreDemoLink)
         EXPECT_TRUE(file.Destroy());
     }
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getStoreDemoLink"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStoreDemoLink"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"missing\",\"success\":false}"));
 
     Core::Directory(file.PathName().c_str()).CreatePath();
     file.LoadFileInfo();
@@ -1058,14 +1092,16 @@ TEST_F(SystemServicesTest, getStoreDemoLink)
 
 TEST_F(SystemServicesTest, deletePersistentPath)
 {
-    ServiceMock service;
-    ServiceMock amazonService;
+    NiceMock<ServiceMock> service;
+    NiceMock<ServiceMock> amazonService;
     string amazonPersistentPath(_T("/tmp/amazonPersistentPath"));
 
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deletePersistentPath"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deletePersistentPath"), _T("{\"callsign\":\"\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deletePersistentPath"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"message\":\"no 'callsign' (nor 'type' of execution envirionment) specified\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deletePersistentPath"), _T("{\"callsign\":\"\"}"), response));
+    EXPECT_THAT(response, Eq("{\"message\":\"specified 'callsign' or 'type' is empty\",\"success\":false}"));
 
     EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
         .Times(1)

@@ -89,9 +89,17 @@ SERVICE_REGISTRATION(XCast, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, 
 static RtXcastConnector * _rtConnector  = RtXcastConnector::getInstance();
 static int locateCastObjectRetryCount = 0;
 bool XCast::isCastEnabled = false;
-bool XCast::m_xcastEnable= false;
+#ifdef XCAST_ENABLED_BY_DEFAULT
+bool XCast::m_xcastEnable = true;
+#else
+bool XCast::m_xcastEnable = false;
+#endif
 string XCast::m_friendlyName = "";
+#ifdef XCAST_ENABLED_BY_DEFAULT_IN_STANDBY
+bool XCast::m_standbyBehavior = true;
+#else
 bool XCast::m_standbyBehavior = false;
+#endif
 bool XCast::m_enableStatus = false;
 
 IARM_Bus_PWRMgr_PowerState_t XCast::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
@@ -144,7 +152,7 @@ void XCast::DeinitializeIARM()
      if (Utils::IARM::isConnected())
      {
          IARM_Result_t res;
-         IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
+         IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerModeChange) );
      }
      Unregister(METHOD_GET_API_VERSION_NUMBER);
      Unregister(METHOD_ON_APPLICATION_STATE_CHANGED);
@@ -741,7 +749,10 @@ void XCast::onLocateCastTimer()
     int status = _rtConnector->connectToRemoteService();
     if(status != 0)
     {
-        locateCastObjectRetryCount++;
+        if(locateCastObjectRetryCount < 4)
+        {
+            locateCastObjectRetryCount++;
+        }
         if(locateCastObjectRetryCount == 1)
         {
             LOGINFO("Retry after 5 sec...");

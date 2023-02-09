@@ -242,9 +242,9 @@ namespace WPEFramework
             {
                 IARM_Result_t res;
                 //IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
             }
         }
 
@@ -528,13 +528,23 @@ namespace WPEFramework
 
                 m_updateThreadExit = true;
                 //Trigger codition to exit poll loop
+                pthread_mutex_lock(&(_instance->m_lockUpdate)); //Join mutex lock to wait until thread is in its wait condition
                 pthread_cond_signal(&(_instance->m_condSigUpdate));
+                pthread_mutex_unlock(&(_instance->m_lockUpdate));
+                if (m_UpdateThread.get().joinable()) {//Join thread to make sure it's deleted before moving on.
+                    m_UpdateThread.get().join();
+                }
                 LOGWARN("Deleted update Thread %p", smConnection );
 
 
                 m_pollThreadExit = true;
                 //Trigger codition to exit poll loop
+                pthread_mutex_lock(&(_instance->m_lock)); //Join mutex lock to wait until thread is in its wait condition
                 pthread_cond_signal(&(_instance->m_condSig));
+                pthread_mutex_unlock(&(_instance->m_lock));
+                if (m_pollThread.get().joinable()) {//Join thread to make sure it's deleted before moving on.
+                    m_pollThread.get().join();
+                }
                 LOGWARN("Deleted Thread %p", smConnection );
                 //Clear cec device cache.
                 removeAllCecDevices();

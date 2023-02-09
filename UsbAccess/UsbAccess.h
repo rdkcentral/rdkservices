@@ -1,5 +1,6 @@
 #pragma once
 
+#include <set>
 #include "Module.h"
 
 #include "libIARM.h"
@@ -63,6 +64,7 @@ namespace Plugin {
         uint32_t getFileListWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t createLinkWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t clearLinkWrapper(const JsonObject& parameters, JsonObject& response);
+        uint32_t getLinksWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t getAvailableFirmwareFilesWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t getMountedWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
@@ -90,8 +92,10 @@ namespace Plugin {
         static bool getMounted(std::list<string>& paths);
 
         void archiveLogsInternal();
-        void onArchiveLogs(ArchiveLogsError error);
+        void onArchiveLogs(ArchiveLogsError error, const string& filePath);
         std::thread archiveLogsThread;
+        std::map<int, std::string> m_CreatedLinkIds;
+        JsonObject m_oArchiveParams;
     };
 
 } // namespace Plugin

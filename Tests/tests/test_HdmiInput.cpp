@@ -12,6 +12,9 @@
 
 using namespace WPEFramework;
 
+using ::testing::NiceMock;
+using ::testing::Eq;
+
 class HdmiInputTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::HdmiInput> plugin;
@@ -32,7 +35,7 @@ protected:
 
 class HdmiInputDsTest : public HdmiInputTest {
 protected:
-    HdmiInputImplMock hdmiInputImplMock;
+    NiceMock<HdmiInputImplMock> hdmiInputImplMock;
 
     HdmiInputDsTest()
         : HdmiInputTest()
@@ -47,7 +50,7 @@ protected:
 
 class HdmiInputInitializedTest : public HdmiInputTest {
 protected:
-    IarmBusImplMock iarmBusImplMock;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
     IARM_EventHandler_t dsHdmiEventHandler;
     IARM_EventHandler_t dsHdmiStatusEventHandler;
     IARM_EventHandler_t dsHdmiSignalStatusEventHandler;
@@ -98,9 +101,9 @@ protected:
 
 class HdmiInputInitializedEventTest : public HdmiInputInitializedTest {
 protected:
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
     HdmiInputInitializedEventTest()
@@ -124,7 +127,7 @@ protected:
 
 class HdmiInputInitializedEventDsTest : public HdmiInputInitializedEventTest {
 protected:
-    HdmiInputImplMock hdmiInputImplMock;
+    NiceMock<HdmiInputImplMock> hdmiInputImplMock;
 
     HdmiInputInitializedEventDsTest()
         : HdmiInputInitializedEventTest()
@@ -179,8 +182,8 @@ TEST_F(HdmiInputDsTest, getHDMIInputDevices)
 
 TEST_F(HdmiInputDsTest, writeEDIDEmpty)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("writeEDID"), _T("{\"message\": \"message\"}"), response));
-    EXPECT_EQ(response, string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("writeEDID"), _T("{\"message\": \"message\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 
@@ -197,8 +200,8 @@ TEST_F(HdmiInputDsTest, writeEDIDInvalid)
             [&](int iport, std::vector<uint8_t> &edidVec2) {
                 edidVec2 = std::vector<uint8_t>({ 't', 'e', 's', 't' });
             }));        
-   EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("readEDID"), _T("{\"deviceId\": \"b\"}"), response));
-   EXPECT_EQ(response, string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("readEDID"), _T("{\"deviceId\": \"b\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(HdmiInputDsTest, readEDID)
@@ -229,8 +232,8 @@ TEST_F(HdmiInputDsTest, getRawHDMISPDInvalid)
             [&](int iport, std::vector<uint8_t>& edidVec2) {
                 edidVec2 = { 't', 'e', 's', 't' };
             }));   
-    EXPECT_EQ(Core::ERROR_GENERAL, handlerV2.Invoke(connection, _T("getRawHDMISPD"), _T("{\"portId\":\"b\"}"), response));
-    EXPECT_EQ(response, string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("getRawHDMISPD"), _T("{\"portId\":\"b\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(HdmiInputDsTest, getHDMISPD)
@@ -250,15 +253,15 @@ TEST_F(HdmiInputDsTest, getHDMISPDInvalid)
             [&](int iport, std::vector<uint8_t>& edidVec2) {
                 edidVec2 = {'0','1','2','n', 'p', '0'};
             })); 
-    EXPECT_EQ(Core::ERROR_GENERAL, handlerV2.Invoke(connection, _T("getHDMISPD"), _T("{\"portId\":\"b\"}"), response));
-    EXPECT_EQ(response, string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("getHDMISPD"), _T("{\"portId\":\"b\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 
 TEST_F(HdmiInputDsTest, setEdidVersionInvalid)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handlerV2.Invoke(connection, _T("setEdidVersion"), _T("{\"portId\": \"b\", \"edidVersion\":\"HDMI1.4\"}"), response));
-    EXPECT_EQ(response, string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("setEdidVersion"), _T("{\"portId\": \"b\", \"edidVersion\":\"HDMI1.4\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(HdmiInputDsTest, setEdidVersion14)
@@ -274,14 +277,14 @@ TEST_F(HdmiInputDsTest, setEdidVersion20)
 }
 TEST_F(HdmiInputDsTest, setEdidVersionEmpty)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handlerV2.Invoke(connection, _T("setEdidVersion"), _T("{\"portId\": \"0\", \"edidVersion\":\"\"}"), response));
-    EXPECT_EQ(response, string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("setEdidVersion"), _T("{\"portId\": \"0\", \"edidVersion\":\"\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(HdmiInputDsTest, getEdidVersionInvalid)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handlerV2.Invoke(connection, _T("getEdidVersion"), _T("{\"portId\": \"b\", \"edidVersion\":\"HDMI1.4\"}"), response));
-    EXPECT_EQ(response, string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handlerV2.Invoke(connection, _T("getEdidVersion"), _T("{\"portId\": \"b\", \"edidVersion\":\"HDMI1.4\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 TEST_F(HdmiInputDsTest, getEdidVersionVer14)
 {
@@ -306,8 +309,8 @@ TEST_F(HdmiInputDsTest, getEdidVersionVer20)
 
 TEST_F(HdmiInputDsTest, startHdmiInputInvalid)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("startHdmiInput"), _T("{\"portId\": \"b\"}"), response));
-    EXPECT_EQ(response, string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startHdmiInput"), _T("{\"portId\": \"b\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(HdmiInputDsTest, startHdmiInput)
@@ -325,8 +328,8 @@ TEST_F(HdmiInputDsTest, stopHdmiInput)
 
 TEST_F(HdmiInputDsTest, setVideoRectangleInvalid)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setVideoRectangle"), _T("{\"x\": \"b\",\"y\": 0,\"w\": 1920,\"h\": 1080}"), response));
-    EXPECT_EQ(response, string("")); 
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVideoRectangle"), _T("{\"x\": \"b\",\"y\": 0,\"w\": 1920,\"h\": 1080}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(HdmiInputDsTest, setVideoRectangle)
@@ -355,8 +358,8 @@ TEST_F(HdmiInputDsTest, getHdmiGameFeatureStatusInvalidPort)
             [&](int iport, bool *allm) {
                 *allm = true;
             }));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getHdmiGameFeatureStatus"), _T("{\"portId\": \"b\",\"gameFeature\": \"ALLM\"}"), response));
-    EXPECT_EQ(response, string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getHdmiGameFeatureStatus"), _T("{\"portId\": \"b\",\"gameFeature\": \"ALLM\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(HdmiInputDsTest, getHdmiGameFeatureStatus)
@@ -376,8 +379,8 @@ TEST_F(HdmiInputDsTest, getHdmiGameFeatureStatusInvalidFeature)
             [&](int iport, bool *allm) {
                 *allm = true;
             }));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getHdmiGameFeatureStatus"), _T("{\"portId\": \"0\",\"gameFeature\": \"Invalid\"}"), response));
-    EXPECT_EQ(response, string("")); 
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getHdmiGameFeatureStatus"), _T("{\"portId\": \"0\",\"gameFeature\": \"Invalid\"}"), response));
+    EXPECT_THAT(response, Eq("{\"message\":\"Mode is not supported. Supported mode: ALLM\",\"success\":false}"));
 }
 
 TEST_F(HdmiInputInitializedEventDsTest, onDevicesChanged)

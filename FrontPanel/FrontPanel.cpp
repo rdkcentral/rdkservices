@@ -195,15 +195,20 @@ namespace WPEFramework
             Register(METHOD_FP_IS_24_HOUR_CLOCK, &FrontPanel::is24HourClockWrapper, this);
             Register(METHOD_FP_SET_CLOCKTESTPATTERN, &FrontPanel::setClockTestPatternWrapper, this);
 
-            InitializeIARM();
-
-            CFrontPanel::instance()->start();
-            CFrontPanel::instance()->addEventObserver(this);
-            loadPreferences();
         }
 
         FrontPanel::~FrontPanel()
         {
+        }
+	    const string FrontPanel::Initialize(PluginHost::IShell * /* service */)
+        {
+            FrontPanel::_instance = this;
+            InitializeIARM();
+	    CFrontPanel::instance()->start();
+            CFrontPanel::instance()->addEventObserver(this);
+            loadPreferences();
+
+            return (string());
         }
 
         void FrontPanel::Deinitialize(PluginHost::IShell* /* service */)
@@ -257,7 +262,7 @@ namespace WPEFramework
            }
         }
 
-        void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)
+        void setResponseArray(JsonObject& response, const char* key, const std::vector<std::string>& items)
         {
             JsonArray arr;
             for (auto& i : items) arr.Add(JsonValue(i));

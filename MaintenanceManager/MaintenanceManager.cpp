@@ -66,7 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 10
+#define API_VERSION_NUMBER_PATCH 11
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -1119,12 +1119,6 @@ namespace WPEFramework {
 	    int mode = 1;
 
             rdkvfwrfc = readRFC(TR181_RDKVFWUPGRADER);
-            /* check if maintenance is on progress or not */
-            /* if in progress and firmware rfc is false then restrict the same */
-            if ( (rdkvfwrfc == false) && (MAINTENANCE_STARTED == m_notify_status) ){
-                LOGERR("Maintenance is in Progress, Mode change not allowed");
-                returnResponse(true);
-	    }
             /* Label should have maintenance mode and softwareOptout field */
             if ( parameters.HasLabel("maintenanceMode") && parameters.HasLabel("optOut") ){
 
@@ -1138,6 +1132,9 @@ namespace WPEFramework {
 
                 std::lock_guard<std::mutex> guard(m_callMutex);
 
+                /* check if maintenance is on progress or not */
+                /* if in progress restrict the same */
+                if ( MAINTENANCE_STARTED != m_notify_status ){
 
                     LOGINFO("SetMaintenanceMode new_mode = %s\n",new_mode.c_str());
 
@@ -1152,7 +1149,11 @@ namespace WPEFramework {
                     }
                     g_currentMode = new_mode;
                     m_setting.setValue("background_flag", bg_flag);
+		}else {
+                     /*If firmware rfc is true and IARM bus component present allow to change maintenance mode*/
+	            if (rdkvfwrfc == true) {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+                    LOGINFO("SetMaintenanceMode new_mode = %s\n",new_mode.c_str());
 		    /* Sending IARM Event to application for mode change */
 		    (new_mode != BACKGROUND_MODE) ? mode = 1 : mode = 0;
                     LOGINFO("setMaintenanceMode rfc is true and mode:%d\n", mode);
@@ -1160,10 +1161,26 @@ namespace WPEFramework {
 	            ret_code = IARM_Bus_BroadcastEvent("RdkvFWupgrader", (IARM_EventId_t) 0, (void *)&mode, sizeof(mode));
 	            if (ret_code == IARM_RESULT_SUCCESS) {
                         LOGINFO("IARM_Bus_BroadcastEvent is success and value=%d\n", mode);
+                        g_currentMode = new_mode;
+                        /* remove any older one */
+                        m_setting.remove("background_flag");
+                        if ( BACKGROUND_MODE == new_mode ) {
+                            bg_flag = "true";
+                        }
+                        else {
+                            /* foreground */
+                            bg_flag = "false";
+                        }
+		        m_setting.setValue("background_flag", bg_flag);
 	            }else{
-                        LOGINFO("IARM_Bus_BroadcastEvent is fail and value=%d\n", mode);
+                        LOGINFO("IARM_Bus_BroadcastEvent is fail Mode change not allowed and value=%d\n", mode);
 	            }
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+		    }else {
+                        LOGERR("Maintenance is in Progress, Mode change not allowed");
+		    }
+                    result =true;
+		}
 
                 /* OptOut changes here */
                 new_optout_state = parameters["optOut"].String();
@@ -1277,6 +1294,8 @@ namespace WPEFramework {
 
             bool task_status[4]={false};
             bool result=false;
+	    bool rdkvfwrfc=false;
+	    string rdkvfw="rdkvfwupgrader";
 
                 /* run only when the maintenance status is MAINTENANCE_STARTED */
                 m_statusMutex.lock();
@@ -1295,6 +1314,13 @@ namespace WPEFramework {
                     task_status[2] = task_status_FWDLD->second;
                     task_status[3] = task_status_LOGUPLD->second;
 
+		    /*Read rfc firmware upgrader and if rfc is true add rdkvfwupgrader to script_names[i].c_str() and rfc is false no need any change*/
+                    rdkvfwrfc = readRFC(TR181_RDKVFWUPGRADER);
+		    if (rdkvfwrfc == true) {
+                        //Update script_names[2].c_str() Which is deviceInitiated.sh value to rdkvfwupgrader
+			script_names[2].swap(rdkvfw);
+		        LOGINFO(" %s rdkvfw rfc is true so script_names change to\n",script_names[2].c_str());
+		    }
                     for (i=0;i<4;i++)
                         LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
                     for (i=0;i<4;i++){
