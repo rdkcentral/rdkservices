@@ -439,7 +439,7 @@ bool XCast::deleteFromDynamicAppCache(JsonArray applications)
         for (int iIndex = 0; iIndex < applications.Length(); iIndex++) {
             itrName = applications[iIndex].String();
             
-            LOGINFO("App name to delete: %s, size:%d", itrName, strlen (itrName.c_str()));
+            LOGINFO("App name to delete: %s, size:%d", itrName.c_str(), strlen (itrName.c_str()));
             appsToDelete.push_back(itrName);
             iIndex++;
         }
