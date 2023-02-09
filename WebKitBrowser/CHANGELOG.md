@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.4] - 2023-02-09
+### Removed
+- Log enhancement, avoid flooding of BridgeQuery logs
+
 ## [1.1.3] - 2022-11-01
 ### Changed
 - Added log enhancement
