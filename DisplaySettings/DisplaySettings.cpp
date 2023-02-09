@@ -82,7 +82,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 16
+#define API_VERSION_NUMBER_PATCH 17
 
 static bool isCecEnabled = false;
 static int  hdmiArcPortId = -1;
@@ -371,6 +371,7 @@ namespace WPEFramework {
             //LOGINFOMETHOD();
             LOGINFO("Entering DisplaySettings::InitAudioPorts");
             uint32_t ret = Core::ERROR_NONE;
+	    m_systemAudioMode_Power_RequestedAndReceived = true; //resetting this variable for bootup for AVR case
             try
             {
                 device::List<device::AudioOutputPort> aPorts = device::Host::getInstance().getAudioOutputPorts();
@@ -445,6 +446,7 @@ namespace WPEFramework {
 
 			     if (m_hdmiCecAudioDeviceDetected)
 			     {
+	                        m_systemAudioMode_Power_RequestedAndReceived = false; // Means we have not received system audio mode ON or power ON msg from AVR.
                                 sendMsgToQueue(SEND_AUDIO_DEVICE_POWERON_MSG, NULL);
 				LOGINFO("Audio Port : [HDMI_ARC0] sendHdmiCecSinkAudioDevicePowerOn !!! \n");
 				// Some AVR's and SB are not sending response for power on message even though it is in ON state
@@ -816,7 +818,9 @@ namespace WPEFramework {
 			
 			    }
                             else {
-				std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_ArcDisableMutex);
+		    LOGINFO("Current Arc/eArc states m_currentArcRoutingState = %d, m_hdmiInAudioDeviceConnected =%d, m_arcEarcAudioEnabled =%d, m_hdmiInAudioDeviceType = %d\n", DisplaySettings::_instance->m_currentArcRoutingState, DisplaySettings::_instance->m_hdmiInAudioDeviceConnected, \
+                                  DisplaySettings::_instance->m_arcEarcAudioEnabled, DisplaySettings::_instance->m_hdmiInAudioDeviceType);
+				std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_AudioDeviceStatesUpdateMutex);
                                 if (DisplaySettings::_instance->m_hdmiInAudioDeviceConnected == true) {
                             	    DisplaySettings::_instance->m_hdmiInAudioDeviceConnected =  false;
                                     DisplaySettings::_instance->m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
@@ -828,11 +832,10 @@ namespace WPEFramework {
                                 }
 
                                 {
-                                   std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
                                    DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
                                 }
 
-                            }
+                            }// Release Mutex m_AudioDeviceStatesUpdateMutex
 			}
                         catch (const device::Exception& err)
                         {
@@ -4496,14 +4499,14 @@ namespace WPEFramework {
                 }
 
                 if(hdmi_arc_supported) {
+		  LOGINFO("Current Arc/eArc states m_currentArcRoutingState = %d, m_hdmiInAudioDeviceConnected =%d, m_arcEarcAudioEnabled =%d, m_hdmiInAudioDeviceType = %d\n", DisplaySettings::_instance->m_currentArcRoutingState, DisplaySettings::_instance->m_hdmiInAudioDeviceConnected, \
+				  DisplaySettings::_instance->m_arcEarcAudioEnabled, DisplaySettings::_instance->m_hdmiInAudioDeviceType);
                   {
-		        std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_arcRoutingStateMutex);
+		        std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_AudioDeviceStatesUpdateMutex);
                     	LOGINFO("%s: Cleanup ARC/eARC state\n",__FUNCTION__);
                     	if(DisplaySettings::_instance->m_currentArcRoutingState != ARC_STATE_ARC_TERMINATED)
                             DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
-                  }
-		  {
-			std::lock_guard<std::mutex> lock(DisplaySettings::_instance->m_ArcDisableMutex);
+		      {
                     	if(DisplaySettings::_instance->m_hdmiInAudioDeviceConnected !=  false) {
                             DisplaySettings::_instance->m_hdmiInAudioDeviceConnected =  false;
 			    DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
@@ -4519,7 +4522,8 @@ namespace WPEFramework {
 			if((DisplaySettings::_instance->m_hdmiInAudioDeviceType != dsAUDIOARCSUPPORT_NONE))
 				DisplaySettings::_instance->m_hdmiInAudioDeviceType = dsAUDIOARCSUPPORT_NONE;
 
-		  }
+		      }
+                  }//Release Mutex m_AudioDeviceStatesUpdateMutex
 
 		  {
                     std::lock_guard<mutex> lck(DisplaySettings::_instance->m_callMutex);
@@ -4727,19 +4731,19 @@ void DisplaySettings::sendMsgThread()
                 LOGERR("Field 'status' could not be found in the event's payload.");
                 return;
             }
+	    LOGINFO("ARC routing state before update m_currentArcRoutingState=%d\n ", m_currentArcRoutingState);
 	    // AVR power status is not checked here assuming that ARC init request will happen only when AVR is in ON state
-            if (m_currentArcRoutingState != ARC_STATE_ARC_INITIATED) {
+            if ((m_currentArcRoutingState != ARC_STATE_ARC_INITIATED) && (m_systemAudioMode_Power_RequestedAndReceived == true)) {
                 value = parameters["status"].String();
 
 		if( !value.compare("success") ) {
-                    {
-		      //Update Arc state
-                      std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
-                      m_currentArcRoutingState = ARC_STATE_ARC_INITIATED;
-                    }
+		    //Update Arc state
+                    std::lock_guard<std::mutex> lock(m_AudioDeviceStatesUpdateMutex);
+                    m_currentArcRoutingState = ARC_STATE_ARC_INITIATED;
 		    //Request SAD
 		    // We will get Arc initiation request only if port is connected and Audio device is detected
 		    // So no need to explicitly check for that
+	            LOGINFO("ARC routing state after update m_currentArcRoutingState=%d\n ", m_currentArcRoutingState);
 		    device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
 		    device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
                     mode = aPort.getStereoMode(); //get Last User set stereo mode and set
@@ -4755,7 +4759,9 @@ void DisplaySettings::sendMsgThread()
 		    if (m_hdmiInAudioDeviceType == dsAUDIOARCSUPPORT_NONE) {
 			    LOGINFO("Updating Audio device type to Arc\n");
 			    m_hdmiInAudioDeviceType = dsAUDIOARCSUPPORT_ARC;
-		    } 
+		    } else {
+			    LOGINFO("m_hdmiInAudioDeviceType is already updated %d\n", m_hdmiInAudioDeviceType);
+		    }
                     try
                     {
 			if(m_hdmiInAudioDeviceConnected ==  false) {
@@ -4776,16 +4782,16 @@ void DisplaySettings::sendMsgThread()
                     {
                         LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
                     }
-		}
+		} //Release Mutex m_AudioDeviceStatesUpdateMutex if Arc is Success
 		else{
                     LOGERR("CEC ARC Initiaition Failed !!!");
                     {
-                      std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
+                      std::lock_guard<std::mutex> lock(m_AudioDeviceStatesUpdateMutex);
                       m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
-                    }
+                    }//Release Mutex m_AudioDeviceStatesUpdateMutex if Arc failure
 		}
             } else {
-                LOGINFO("%s: The ARC initiation already done", __FUNCTION__);
+                LOGINFO("%s: The ARC initiation already done or m_systemAudioMode_Power_RequestedAndReceived [%d]", __FUNCTION__, m_systemAudioMode_Power_RequestedAndReceived);
             }
         }
 
@@ -4806,23 +4812,24 @@ void DisplaySettings::sendMsgThread()
 		LOGINFO("SAD already cleared\n");
 	    }
 
+	    LOGINFO("Current ARC routing state before update m_currentArcRoutingState=%d\n ", m_currentArcRoutingState);
 	    if (m_currentArcRoutingState != ARC_STATE_ARC_TERMINATED) {
                 if (parameters.HasLabel("status")) {
                     value = parameters["status"].String();
-                    {
-                        std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
-                        m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
-                    }
+                    std::lock_guard<std::mutex> lock(m_AudioDeviceStatesUpdateMutex);
+                    m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+	            LOGINFO("Current ARC routing state after update m_currentArcRoutingState=%d\n ", m_currentArcRoutingState);
                     if(!value.compare("success")) {
 		        try 
 		        {
-			    std::lock_guard<std::mutex> lock(m_ArcDisableMutex);
 			    if(m_hdmiInAudioDeviceConnected ==  true) {
 				m_hdmiInAudioDeviceConnected = false;
 				if (m_arcEarcAudioEnabled == true) {
                                     connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
-				}
-                             }
+				} else {
+				    LOGINFO("Not notifying UI since m_arcEarcAudioEnabled = %d", m_arcEarcAudioEnabled);
+                                }
+			    }
 			    else {
 			        LOGINFO("onARCTerminationEventHandler: Skip Disable ARC and not notifying the UI as  m_hdmiInAudioDeviceConnected = false\n");
 			    }
@@ -4835,7 +4842,8 @@ void DisplaySettings::sendMsgThread()
                     else{
                         LOGERR("CEC onARCTerminationEventHandler Failed !!!");
                     }
-                } else {
+                }//Release mutex m_AudioDeviceStatesUpdateMutex 
+		else {
                     LOGERR("Field 'status' could not be found in the event's payload.");
                 }
 	    }
@@ -4935,6 +4943,7 @@ void DisplaySettings::sendMsgThread()
             if (parameters.HasLabel("audioMode")) {
                 value = parameters["audioMode"].String();
                 if(!value.compare("On")) {
+	                m_systemAudioMode_Power_RequestedAndReceived = true; // system audio mode ON is received
 			LOGINFO("Requesting power status of AVR as system audio mode is %s\n", C_STR(message));
 	                m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_REQUEST;//Should we send power request irrespective of System audio mode status
                         sendMsgToQueue(REQUEST_AUDIO_DEVICE_POWER_STATUS, NULL);
@@ -4942,26 +4951,29 @@ void DisplaySettings::sendMsgThread()
 		else if(!value.compare("Off")) {
                     LOGINFO("%s :  audioMode OFF !!!\n", __FUNCTION__);
 		    try {
-			std::lock_guard<std::mutex> lock(m_ArcDisableMutex);
+			std::lock_guard<std::mutex> lock(m_AudioDeviceStatesUpdateMutex);
+                        m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
+
    		        if(m_hdmiInAudioDeviceConnected == true) {
 			    LOGINFO("SystemAudio mode off disable Arc\n");
-                            m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
 			    m_hdmiInAudioDeviceConnected = false;
 			    if (m_arcEarcAudioEnabled == true) {
 				LOGINFO("System Audio mode is off and arc Enable is %d, Notify UI to disbale Arc", m_arcEarcAudioEnabled);
 		            	connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
+			    } else {
+				    LOGINFO("Not notifying UI since m_arcEarcAudioEnabled =%d\n", m_arcEarcAudioEnabled);
 			    }
                             {
 			      // Arc termination happens from HdmiCecSink plugin so just update the state here
-                              std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
                               m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+			      LOGINFO("Updating ARC routing state to ARC terminated\n");
                             }
 
 		        }
                         else {
                             LOGINFO("onSystemAudioModeEventHandler: Skip Disable ARC and not notifying the UI as  m_hdmiInAudioDeviceConnected = false\n");
                         }
-		    }
+		    }//Release mutex m_AudioDeviceStatesUpdateMutex
 		    catch(const device::Exception& err)
                     {
 		        LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
@@ -5035,6 +5047,7 @@ void DisplaySettings::sendMsgThread()
 
              if(pState == AVR_POWER_STATE_ON) {//ON
                 m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_ON;
+	        m_systemAudioMode_Power_RequestedAndReceived = true; // received power ON msg from AVR.
 
                 if (m_AudioDevicePowerOnStatusTimer.isActive()) {
 	           LOGINFO("Stopping timer, Audio Device power status - m_hdmiInAudioDevicePowerState [%d]!!!\n", m_hdmiInAudioDevicePowerState);
@@ -5054,6 +5067,8 @@ void DisplaySettings::sendMsgThread()
 			    // Notify UI that Audio device is connected and is in ON state
                             LOGINFO("Triggered from HPD: eARC audio device power on: Notify UI !!! \n");
                             connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, true);
+			} else {
+				LOGINFO("arc already enabled m_arcEarcAudioEnabled =%d", m_arcEarcAudioEnabled);
 			}
                     } else {
 			if ((m_hdmiInAudioDeviceConnected == false) && !(m_ArcDetectionTimer.isActive())) {
@@ -5098,7 +5113,7 @@ void DisplaySettings::sendMsgThread()
 		       LOGINFO("Arc enabled already m_arcEarcAudioEnabled =%d", m_arcEarcAudioEnabled);
 		   }
                } else if(m_hdmiInAudioDeviceConnected == false) {
-		    std::lock_guard<std::mutex> lock(m_arcRoutingStateMutex);
+		    std::lock_guard<std::mutex> lock(m_AudioDeviceStatesUpdateMutex);
 		    retryArcCount ++;
 		    LOGINFO("device Type is ARC, checking if eARC - retryArcCount [%d]", retryArcCount);
 		    if (retryArcCount >= 3 )
@@ -5113,11 +5128,15 @@ void DisplaySettings::sendMsgThread()
 			    LOGINFO("Arc initiation request not sent\n");
 		        }
 	            }
-	       }
+	       }//Release Mutex m_AudioDeviceStatesUpdateMutex
+	    } else {
+		    LOGINFO("Arc is already initiated m_currentArcRoutingState =%d", m_currentArcRoutingState);
 	    }
 
 	    if ( m_ArcDetectionTimer.isActive() && ((retryArcCount >= 3) || (m_currentArcRoutingState == ARC_STATE_ARC_INITIATED) || (m_hdmiInAudioDeviceType != dsAUDIOARCSUPPORT_NONE)) ) {
 	            retryArcCount = 0; /* reset counter */
+		    LOGINFO("Stopping the eArc detection timer retryArcCount = %d, m_currentArcRoutingState = %d, m_hdmiInAudioDeviceType = %d",\
+				    retryArcCount, m_currentArcRoutingState, m_hdmiInAudioDeviceType);
                     m_ArcDetectionTimer.stop();
             }
 	}	
@@ -5261,6 +5280,7 @@ void DisplaySettings::sendMsgThread()
             if (m_subscribed && m_hdmiCecAudioDeviceDetected)
             {
                //Connected Audio Ports status update is necessary on bootup / power state transitions
+	       m_systemAudioMode_Power_RequestedAndReceived = false;
                LOGINFO("%s: Audio Port : [HDMI_ARC0] sendHdmiCecSinkAudioDevicePowerOn !!! \n", __FUNCTION__);
                sendMsgToQueue(SEND_AUDIO_DEVICE_POWERON_MSG, NULL);
 	       LOGINFO("[HDMI_ARC0] Starting the timer to check audio device power status after power on msg!!!\n");
@@ -5286,6 +5306,11 @@ void DisplaySettings::sendMsgThread()
 		if (m_hdmiInAudioDevicePowerState != AUDIO_DEVICE_POWER_STATE_ON)
 		{
                    m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_REQUEST;
+		   if ((retryPowerRequestCount == 2) || (retryPowerRequestCount == 4)) // Send Power On msg again for 3rd and 4th iteration
+		   {
+                        LOGINFO("[HDMI_ARC0] sendHdmiCecSinkAudioDevicePowerOn !!! \n");
+                        sendMsgToQueue(SEND_AUDIO_DEVICE_POWERON_MSG, NULL);
+		   }
                    sendMsgToQueue(REQUEST_AUDIO_DEVICE_POWER_STATUS, NULL);
 		   retryPowerRequestCount++;
                    LOGINFO("[HDMI_ARC0] sendAudioDevicePowerStatusRequestMsg, retryPowerRequestCount [%d]\n", retryPowerRequestCount);
@@ -5294,7 +5319,9 @@ void DisplaySettings::sendMsgThread()
                 LOGINFO("%s: No Audio device detected\n", __FUNCTION__);
             }
 
-            if (((m_hdmiInAudioDevicePowerState == AUDIO_DEVICE_POWER_STATE_ON) || (retryPowerRequestCount >= 5)) && m_AudioDevicePowerOnStatusTimer.isActive()) {
+//            if (((m_hdmiInAudioDevicePowerState == AUDIO_DEVICE_POWER_STATE_ON) || (retryPowerRequestCount >= 5)) && m_AudioDevicePowerOnStatusTimer.isActive()) {
+            if ((retryPowerRequestCount >= 5) && m_AudioDevicePowerOnStatusTimer.isActive()) {
+	       m_systemAudioMode_Power_RequestedAndReceived = true; // resetting the Variable if power status not received.
 	       LOGINFO("Stopping timer, Audio Device power status - m_hdmiInAudioDevicePowerState [%d]!!!\n", m_hdmiInAudioDevicePowerState);
                retryPowerRequestCount = 0;
                m_AudioDevicePowerOnStatusTimer.stop();
