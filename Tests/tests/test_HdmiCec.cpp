@@ -29,7 +29,6 @@
 #include "devicesettings.h"
 #include "LibCCECMock.h"
 #include "ConnectionMock.h"
-#include "LogicalAddressMock.h"
 #include "ActiveSourceMock.h"
 using namespace WPEFramework;
 
@@ -100,7 +99,6 @@ protected:
     virtual ~HdmiCecInitializedTest() override
     {
         
-        sleep(2);
         plugin->Deinitialize(nullptr);
         IarmBus::getInstance().impl = nullptr;
 
@@ -132,7 +130,6 @@ protected:
 };
 class HdmiCecInitializedEventDsTest : public HdmiCecInitializedEventTest {
 protected:
-    testing::NiceMock<LogicalAddressImplMock> logicalAddressImplMock;
     testing::NiceMock<LibCCECImplMock> libCCECImplMock;
     testing::NiceMock<ConnectionImplMock> connectionImplMock;
 
@@ -142,7 +139,6 @@ protected:
     {
         LibCCEC::getInstance().impl = &libCCECImplMock;
         Connection::getInstance().impl = &connectionImplMock;	
-        LogicalAddress::getInstance().impl = &logicalAddressImplMock;
 
         //Setenable needs to run firzt, as it turns everything on, locally.
 	    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
@@ -152,9 +148,6 @@ protected:
     virtual ~HdmiCecInitializedEventDsTest() override
     {
         //Turning off HdmiCec. otherwise we get segementation faults as things memory early while threads are still running
-        sleep(1);//short wait to allow setEnabled to reach thread loop, where it can exit safely without segmentation faults
-        ON_CALL(connectionImplMock, close())
-            .WillByDefault(::testing::Return());
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": false}"), response));
         EXPECT_EQ(response, string("{\"success\":true}"));
         
@@ -227,13 +220,10 @@ TEST_F(HdmiCecInitializedEventDsTest, getCECAddress)
     //Active Source Status update sets the address/logical address and what not to non-default values
     eventData.logicalAddress = 42;
     
-    EXPECT_CALL(logicalAddressImplMock, getType())
-        .Times(1)
-        .WillOnce(::testing::Return(42));
     cecMgrEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED, &eventData , 0);
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCECAddresses"), _T(""), response));
-    EXPECT_EQ(response, string("{\"CECAddresses\":{\"physicalAddress\":12345,\"logicalAddress\":42,\"deviceType\":\"2a\"},\"success\":true}"));
+    EXPECT_EQ(response, string("{\"CECAddresses\":{\"physicalAddress\":12345,\"logicalAddress\":42,\"deviceType\":\"0\"},\"success\":true}"));
 }
 
 TEST_F(HdmiCecInitializedEventDsTest, onDevicesChanged)

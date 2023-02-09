@@ -1265,13 +1265,9 @@ class CECFrame{
 	CECFrame(const uint8_t *buf = NULL, uint16_t len = 0){}
 
 };
-class CECBytesImpl {
-	public:
-	virtual const std::string toString() const = 0;
-};
+
 class CECBytes{
     public:
-    CECBytesImpl* impl;
     std::vector<uint8_t> str;
     CECBytes(const uint8_t *buf, size_t len){}
     CECBytes(const uint8_t val) : str(1, val) {};
@@ -1283,12 +1279,20 @@ class CECBytes{
         return stream.str(); 
     };
 };
-
-class LogicalAddressImpl{
+class DeviceType : public CECBytes
+{
 	public:
-		virtual int toInt() const = 0;
-		virtual int getType() const = 0;
-
+		enum {
+			TV = 0x0,
+			RECORDING_DEVICE,
+			RESERVED,
+			TUNER,
+			PLAYBACK_DEVICE,
+			AUDIO_SYSTEM,
+			PURE_CEC_SWITCH,
+			VIDEO_PROCESSOR,
+		};
+		DeviceType(int type) : CECBytes((uint8_t)type){};
 };
 class LogicalAddress : public CECBytes{
 	public: 		
@@ -1314,66 +1318,49 @@ class LogicalAddress : public CECBytes{
 
 		LogicalAddress(int addr = UNREGISTERED) : CECBytes((uint8_t)addr){};
 
-        static LogicalAddress& getInstance()
-    	{
-                static LogicalAddress instance;
-       	        return instance;
-	    }
-
-        LogicalAddressImpl* impl;
-
 		int toInt(void) const{
-			return getInstance().impl->toInt();
+            return str[0];
 		}
 		int getType(void) const {
-			return getInstance().impl->getType();
+			static int _type[] = {
+                DeviceType::TV,
+                DeviceType::RECORDING_DEVICE,
+                DeviceType::RECORDING_DEVICE,
+                DeviceType::TUNER,
+                DeviceType::PLAYBACK_DEVICE,
+                DeviceType::AUDIO_SYSTEM,
+                DeviceType::TUNER,
+                DeviceType::TUNER,
+                DeviceType::PLAYBACK_DEVICE,
+                DeviceType::RECORDING_DEVICE,
+                DeviceType::TUNER,
+                DeviceType::PLAYBACK_DEVICE,
+                DeviceType::RESERVED,
+                DeviceType::RESERVED,
+                DeviceType::RESERVED,
+                DeviceType::RESERVED,
+            };
+
+            return _type[str[0]];
+
 		}
 };
 
-class DeviceType : public CECBytes
-{
-	public:
-		enum {
-			TV = 0x0,
-			RECORDING_DEVICE,
-			RESERVED,
-			TUNER,
-			PLAYBACK_DEVICE,
-			AUDIO_SYSTEM,
-			PURE_CEC_SWITCH,
-			VIDEO_PROCESSOR,
-		};
-		DeviceType(int type) : CECBytes((uint8_t)type){};
-
-
-};
-class PhysicalAddressImpl{
-	public:
-		virtual std::string name() const = 0;
-
-};
 class PhysicalAddress : public CECBytes{
 	public:
-		PhysicalAddressImpl* impl;
 		std::string name() const{
-			return impl->name();
-
+			return "PhysicalAddress"; //Actual implementation
 		}
-
 };
 
 class VendorID : public CECBytes{
 	public:
-
-	
 		VendorID(uint8_t byte0,uint8_t byte1,uint8_t byte2) : CECBytes (NULL,0){};
-
 };
 
 class OSDName : public CECBytes{
 	public:
 		OSDName(const char *str_) : CECBytes((const uint8_t *)str_, strlen(str_)) {};
-
 };
 
 class FrameListener
