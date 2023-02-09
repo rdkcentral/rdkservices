@@ -273,6 +273,10 @@ namespace Plugin {
 
 	registerMethod("setBacklightFade", &ControlSettingsTV::setBacklightFade, this);
 
+	registerMethod("getLowLatencyState", &TVMgr::getLowLatencyState, this, {2});
+        registerMethod("setLowLatencyState", &TVMgr::setLowLatencyState, this, {2});
+        registerMethod("resetLowLatencyState", &TVMgr::resetLowLatencyState, this, {2});
+
         LOGINFO("Exit\n");
     }
     
@@ -3916,5 +3920,142 @@ namespace Plugin {
            returnResponse(true);
         }
     }
+
+    uint32_t ControlSettingsTV::setLowLatencyState(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int lowLatencyIndex = 0;
+        tvError_t ret = tvERROR_NONE;
+
+        value = parameters.HasLabel("LowLatencyState") ? parameters["LowLatencyState"].String() : "";
+        returnIfParamNotFound(parameters,"LowLatencyState");
+        lowLatencyIndex = stoi(value);
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with setLowLatencyState\n");
+             ret = SetLowLatencyState( lowLatencyIndex );
+        }
+		else
+            LOGINFO("Set not required for this request!!! Just Save it\n");
+
+        if(ret != tvERROR_NONE) {
+            LOGWARN("Failed to setLowLatency\n");
+            returnResponse(false);
+        }
+        else {
+            int params[3]={0};
+            params[0]=lowLatencyIndex;
+            int retval= UpdatePQParamsToCache("set","LowLatencyState",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_LOWLATENCY_STATE,params);
+            if(retval != 0 ) {
+                LOGWARN("Failed to SaveLowLatency to ssm_data\n");
+            }
+            LOGINFO("Exit : setLowLatency successful to value: %d\n", lowLatencyIndex);
+            returnResponse(true);
+        }
+    }
+	
+    uint32_t ControlSettingsTV::getLowLatencyState(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        std::string key;
+        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        int lowlatencystate = 0;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,lowlatencystate);
+        if( err == 0 ) {
+            response["LowLatencyState"] = std::to_string(lowlatencystate);
+            LOGINFO("Exit : LowLatencyState Value: %d \n", lowlatencystate);
+            returnResponse(true);
+        }
+        else {
+            returnResponse(false);
+        }
+    }
+
+    uint32_t ControlSettingsTV::resetLowLatencyState(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int sourceIndex=0,pqIndex=0,formatIndex=0,lowlatencystate=0;
+        int params[3]={0};
+        tvError_t ret = tvERROR_NONE;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "current";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "current";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "current";
+
+        int retval= UpdatePQParamsToCache("reset","LowLatencyState",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_LOWLATENCY_STATE,params);
+        if(retval != 0 ) {
+            LOGWARN("Failed to clear Lowlatency from ssmdata and localstore\n");
+            returnResponse(false);
+        }
+		else {
+            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = GetLocalparam("LowLatencyState",formatIndex,pqIndex,sourceIndex,lowlatencystate);
+            if( err == 0 ) {
+                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,lowlatencystate);
+                ret = SetLowLatencyState(lowlatencystate);
+            }
+            else
+                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
+        }
+
+        if(ret != tvERROR_NONE)
+        {
+            returnResponse(false);
+        }
+        else
+        {
+            LOGINFO("Exit : resetLowLatency Successful to value : %d \n",lowlatencystate);
+            returnResponse(true);
+        }
+    }
+
 }//namespace Plugin
 }//namespace WPEFramework

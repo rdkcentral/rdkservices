@@ -122,6 +122,9 @@ class ControlSettingsTV : public PluginHost::IPlugin, public PluginHost::JSONRPC
         DECLARE_JSON_RPC_METHOD(getVideoFormat)
         DECLARE_JSON_RPC_METHOD(getVideoFrameRate)
         DECLARE_JSON_RPC_METHOD(getVideoResolution)
+	DECLARE_JSON_RPC_METHOD(getLowLatencyState)
+        DECLARE_JSON_RPC_METHOD(setLowLatencyState)
+        DECLARE_JSON_RPC_METHOD(resetLowLatencyState)
 
     public:
         int m_currentHdmiInResoluton;
