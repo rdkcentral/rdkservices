@@ -224,6 +224,8 @@ TEST_F(HdmiCecInitializedEventDsTest, getCECAddress)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCECAddresses"), _T(""), response));
     EXPECT_EQ(response, string("{\"CECAddresses\":{\"physicalAddress\":12345,\"logicalAddress\":42,\"deviceType\":\"0\"},\"success\":true}"));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T(".*\"physicalAddress\":12345,\"logicalAddress\":42,\"deviceType\":\"[0-9a-e]*\".*")));
+
 }
 
 TEST_F(HdmiCecInitializedEventDsTest, onDevicesChanged)
