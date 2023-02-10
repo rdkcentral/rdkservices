@@ -79,7 +79,7 @@ namespace Plugin {
         string method = "";
 
         if ((request.Path.find(_servicePrefix, 0) != 0) || (_servicePrefix.length() > request.Path.length())) {
-            return ((_accessControlList != nullptr) && (_accessControlList->Allowed(_context.URL.Value(),"","")));
+            return (_accessControlList != nullptr);
         }
 
         Core::TextSegmentIterator index(Core::TextFragment(request.Path, _servicePrefix.length(), static_cast<uint32_t>(request.Path.length() - _servicePrefix.length())), false, '/');
