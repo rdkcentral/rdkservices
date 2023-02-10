@@ -172,6 +172,7 @@ TEST_F(HdmiCecTest, RegisteredMethods)
 
 TEST_F(HdmiCecDsTest, getEnabledFalse)
 {
+    //Without setting cecEnable to true.
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T(""), response));
     EXPECT_EQ(response, string("{\"enabled\":false,\"success\":true}"));
 }
@@ -206,7 +207,7 @@ TEST_F(HdmiCecInitializedEventDsTest, getActiveSourceStatusFalse)
 }
 
 
-TEST_F(HdmiCecInitializedEventDsTest, getCECAddress)
+TEST_F(HdmiCecInitializedEventDsTest, getCECAddressWithCecIarmBusTrigger)
 {
     EXPECT_CALL(libCCECImplMock, getPhysicalAddress(::testing::_))
         .Times(1)
@@ -227,7 +228,7 @@ TEST_F(HdmiCecInitializedEventDsTest, getCECAddress)
 
 }
 
-TEST_F(HdmiCecInitializedEventDsTest, onDevicesChanged)
+TEST_F(HdmiCecInitializedEventDsTest, triggerHdmiHotPlugWithIarm)
 {
     EXPECT_CALL(libCCECImplMock, getPhysicalAddress(::testing::_))
         .Times(1)
@@ -249,8 +250,13 @@ TEST_F(HdmiCecInitializedEventDsTest, onDevicesChanged)
 
 TEST_F(HdmiCecInitializedEventDsTest, getDeviceList)
 {  
+    int iCounter = 0;
+    //Checking to see if one of the values has been filled in (as the rest get filled in at the same time, and waiting if its not.
+    while ((!Plugin::HdmiCec::_instance->deviceList[0].m_isOSDNameUpdated) && (iCounter < (2*10))) { //sleep for 2sec.
+		usleep (100 * 1000); //sleep for 100 milli sec
+		iCounter ++;
+	}
 
-    sleep(1); //Allow the thread that populates deviceList to actually populate before we run getDeviceList.
     //Calling the device list, which is a defualt list of the hdmiCec class. Kist grabs the deviceList.
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceList"), _T(""), response));
     EXPECT_THAT(response, ::testing::ContainsRegex(_T(".*[({\"logicalAddress\":[0-9]*,\"osdName\":\"[a-zA-Z0-9 ]*\",\"vendorID\":\"[a-zA-Z0-9 ]*\"})*.*")));
