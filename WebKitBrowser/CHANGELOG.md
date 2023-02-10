@@ -16,6 +16,13 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.5] - 2023-02-10
+### Changed
+- Cloud cookie jar support
+- Option to select different Cairo GL Compositor a build time
+- Update TZ from file (/opt/persistent/timeZoneDST)
+- Option to redirect logs to a specific journald unit
+
 ## [1.1.4] - 2023-02-09
 ### Removed
 - Log enhancement, avoid flooding of BridgeQuery logs
