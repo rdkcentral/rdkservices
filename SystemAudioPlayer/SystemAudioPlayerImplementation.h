@@ -82,7 +82,7 @@ namespace Plugin {
 
        public:
             static Core::ProxyType<Core::IDispatch> Create(SystemAudioPlayerImplementation *sap, Event event, string data) {
-                return (Core::proxy_cast<Core::IDispatch>(Core::ProxyType<Job>::Create(sap, event, data)));
+                return (Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create(sap, event, data)));
             }
 
             virtual void Dispatch() {
