@@ -2274,7 +2274,7 @@ namespace WPEFramework {
 							fclose(f);
 
 							std::string oldAccuracy = getTimeZoneAccuracyDSTHelper();
-							std::string accuracy = TZ_ACCURACY_INITIAL;
+							std::string accuracy = oldAccuracy;
 
 							if (parameters.HasLabel("accuracy")) {
 								accuracy = parameters["accuracy"].String();
@@ -2289,7 +2289,7 @@ namespace WPEFramework {
 								if (f) {
 									if (accuracy.size() != fwrite(accuracy.c_str(), 1, accuracy.size(), f))
 										LOGERR("Failed to write %s", TZ_ACCURACY_FILE);
-    
+
 									fflush(f);
 									fsync(fileno(f));
 									fclose(f);
