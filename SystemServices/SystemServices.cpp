@@ -1008,7 +1008,8 @@ namespace WPEFramework {
 		LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
 		IARM_Bus_MFRLib_GetSerializedData_Param_t param;
 		param.bufLen = 0;
-		param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+		param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
+		LOGWARN("value of mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME param.type  %d", param.type);
 		IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 		param.buffer[param.bufLen] = '\0';
 		LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
@@ -1081,7 +1082,8 @@ namespace WPEFramework {
             param.bufLen = 0;
             param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
             if (!parameter.compare(MODEL_NAME)) {
-                param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+                param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
+		LOGWARN("param typevalue of mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME: %d", param.type);
             } else if (!parameter.compare(HARDWARE_ID)) {
                 param.type = mfrSERIALIZED_TYPE_HWID;
             }
@@ -1886,20 +1888,23 @@ namespace WPEFramework {
         {
             bool ret =  false;
             std::string paramValue;
-            RFC_ParamData_t param = {0};
+            
+	    RFC_ParamData_t param = {0};
             param.type = WDMP_NONE;
             WDMP_STATUS status = getRFCParameter(NULL, "Device.DeviceInfo.SerialNumber", &param);
             if(WDMP_SUCCESS == status)
             {
-                paramValue = param.value;
+                LOGERR("\n param.value = %d", param.value);
+	      	    paramValue = param.value;
                 response["serialNumber"] = paramValue;
                 ret = true;
             }
             else
-                populateResponseWithError(SysSrv_Unexpected, response);
+           	    LOGERR("\n populateResponse with SysSrv_Unexpected"); 
+		    populateResponseWithError(SysSrv_Unexpected, response);
 
             return ret;
-        }
+	}
 
         /***
          * @brief : Populates Device Serial Number Info using SNMP Request.
