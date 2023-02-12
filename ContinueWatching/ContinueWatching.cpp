@@ -34,6 +34,12 @@
   */
 #include <iomanip>
 
+#if OPENSSL_VERSION_NUMBER >= 0x30000000
+#include <openssl/sha.h>
+#include <openssl/evp.h>
+#include <openssl/rand.h>
+#endif
+
 #include "ContinueWatching.h"
 
 #if !defined(DISABLE_SECAPI)
@@ -726,10 +732,28 @@ namespace WPEFramework {
 		std::string ContinueWatchingImpl::sha256(const std::string str)
 		{
 			unsigned char hash[SHA256_DIGEST_LENGTH];
+#if OPENSSL_VERSION_NUMBER < 0x30000000
 			SHA256_CTX sha256Ctx;
 			SHA256_Init(&sha256Ctx);
 			SHA256_Update(&sha256Ctx, str.c_str(), str.size());
 			SHA256_Final(hash, &sha256Ctx);
+#else
+			const EVP_MD *md = EVP_sha256();
+			EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
+			if(!EVP_DigestInit_ex(mdctx, md, NULL)) {
+				LOGWARN("%s: Failed to init SHA256\n", __FUNCTION__);
+				return FALSE;
+			}
+			if(!EVP_DigestUpdate(mdctx, str.c_str(), str.size())) {
+				LOGWARN("%s: Failed to update SHA256\n", __FUNCTION__);
+				return FALSE;
+			}
+			if(!EVP_DigestFinal_ex(mdctx, hash, NULL)) {
+				LOGWARN("%s: Failed to finalize SHA256\n", __FUNCTION__);
+				return FALSE;
+			}
+			EVP_MD_CTX_free(mdctx);
+#endif
 			std::stringstream strStream;
 			/* Iterate through hash & convert each byte to 2-char wide hex */
 			for(int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
