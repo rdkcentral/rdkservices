@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.6] - 2023-02-13
+### Changed
+- Added an option to specify different Cairo GL compositor for
+  ResidentApp and SearchAndDiscoveryApp callsigns
+
 ## [1.1.5] - 2023-02-10
 ### Changed
 - Cloud cookie jar support
