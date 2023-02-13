@@ -1138,7 +1138,6 @@ namespace WPEFramework {
             char* mac = new char[19];
             tFHError retAPIStatus;
             std::cout << "calling factory hal init\n";
-            factorySD1_init();
             retAPIStatus = getEthernetMAC(&mac);
             if(retAPIStatus == E_OK)
             {
