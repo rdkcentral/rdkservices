@@ -1176,7 +1176,7 @@ TEST_F(SystemServicesTest, getDeviceInfo_ModelName)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
     EXPECT_EQ(response, string("{\"make\":\"\\\"SKY\\\"\",\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":abc#$}"), (response)));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":abc#$}"), response));
 
     EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
          .Times(::testing::AnyNumber())
@@ -1190,7 +1190,7 @@ TEST_F(SystemServicesTest, getDeviceInfo_ModelName)
                   FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                   return pipe;
                }));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":model_number}"), (response)));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":model_number}"), response));
     EXPECT_EQ(response, string("{\"model_number\":\"SKXI11ANS\",\"success\":true}"));
 
  
@@ -1206,10 +1206,10 @@ TEST_F(SystemServicesTest, getDeviceInfo_ModelName)
                 param->type =  mfrSERIALIZED_TYPE_SKYMODELNAME;
                 return IARM_RESULT_SUCCESS;
             });
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":friendly_id}"), (response)));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":friendly_id}"), response));
     EXPECT_EQ(response, string("{\"friendly_id\":\"IP061-ec\",\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), (response)));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), response));
     EXPECT_EQ(response, string("{\"modelName\":\"IP061-ec\",\"success\":true}"));
 
     EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
@@ -1245,7 +1245,7 @@ TEST_F(SystemServicesTest, getDeviceInfo_HardwareId)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
     EXPECT_EQ(response, string("{\"make\":\"\\\"SKY\\\"\",\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":abc#$}"), (response)));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":abc#$}"), response));
 
     ON_CALL(iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
@@ -1259,7 +1259,7 @@ TEST_F(SystemServicesTest, getDeviceInfo_HardwareId)
                 param->type =  mfrSERIALIZED_TYPE_HWID;
                 return IARM_RESULT_SUCCESS;
             });
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), (response)));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), response));
     EXPECT_EQ(response, string("{\"hardwareID\":\"5678\",\"success\":true}"));
 
 }
