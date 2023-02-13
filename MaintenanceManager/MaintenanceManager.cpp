@@ -615,7 +615,7 @@ namespace WPEFramework {
 
             /* to know the maintenance is solicited or unsolicited */
             g_maintenance_type=UNSOLICITED_MAINTENANCE;
-	     LOGINFO("Triggered Maintenance on bootup");
+	     LOGINFO("Triggering Maintenance on bootup");
 
             /* On bootup we check for opt-out value
              * if empty set the value to none */
@@ -1226,7 +1226,7 @@ namespace WPEFramework {
                     /* check what mode we currently have */
                     string current_mode="";
 
-                    LOGINFO("Triggered scheduled maintenance ");
+                    LOGINFO("Triggering scheduled maintenance ");
                     /* only one maintenance at a time */
                     /* Lock so that m_notify_status will not be updated  further */
                     m_statusMutex.lock();
@@ -1300,7 +1300,7 @@ namespace WPEFramework {
 	    bool rdkvfwrfc=false;
 	    string rdkvfw="rdkvfwupgrader";
 
-                LOGINFO("Stop maintenance activities");
+                LOGINFO("Stopping maintenance activities");
                 /* run only when the maintenance status is MAINTENANCE_STARTED */
                 m_statusMutex.lock();
                 if ( MAINTENANCE_STARTED == m_notify_status  ){
