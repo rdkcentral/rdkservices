@@ -1064,7 +1064,9 @@ protected:
 	size_t getMaxLen() const {return MAX_LEN;}
 };
 
+class DataBlock{
 
+};
 //CCEC_END_NAMESPACE
 
 //#endif
@@ -1086,7 +1088,7 @@ class ActiveSourceImpl{
     public:
         virtual Op_t opCode() const = 0;
 };
-class ActiveSource {
+class ActiveSource : public DataBlock{
     public:
     Op_t opCode(void) const {return ACTIVE_SOURCE;}
     ActiveSource();
@@ -1135,17 +1137,16 @@ class TextViewOn {
 
 };
 
-class RequestActiveSource{
+class RequestActiveSource : public DataBlock{
+
+
+};
+class Standby : public DataBlock{
 
 
 };
 
-class Standby{
-
-
-};
-
-class CECVersion {
+class CECVersion : public DataBlock {
     public:
     Op_t opCode(void) const {return CEC_VERSION;}
     CECVersion();
@@ -1168,7 +1169,7 @@ class CECVersion {
 
 };
 
-class GetCECVersion{
+class GetCECVersion: public DataBlock{
 
 
 };
@@ -1178,7 +1179,7 @@ class GetMenuLanguage{
         Language language;
 };
 
-class SetMenuLanguage{
+class SetMenuLanguage : public DataBlock{
     public:
         SetMenuLanguage(const Language &lan) : language(lan) {};
         //SetMenuLanguage(const CECFrame &frame, int startPos = 0) : language(frame, startPos) {}
@@ -1186,17 +1187,17 @@ class SetMenuLanguage{
 
 };
 
-class GiveOSDName{
+class GiveOSDName: public DataBlock{
 
 
 };
 
-class GivePhysicalAddress{
+class GivePhysicalAddress: public DataBlock{
 
 
 };
 
-class GiveDeviceVendorID{
+class GiveDeviceVendorID: public DataBlock{
 
 
 };
@@ -1208,7 +1209,7 @@ class SetOSDString{
 
 };
 
-class RoutingChange{
+class RoutingChange: public DataBlock{
     public:
      Op_t opCode(void) const {return ROUTING_CHANGE;}
 
@@ -1239,7 +1240,7 @@ class RoutingInformation {
 
 };
 
-class SetStreamPath{
+class SetStreamPath: public DataBlock{
     public:
      Op_t opCode(void) const {return SET_STREAM_PATH;}
 
@@ -1265,11 +1266,11 @@ class SetStreamPath{
 };
 
 
-class GiveDevicePowerStatus{
+class GiveDevicePowerStatus: public DataBlock{
 
 
 };
-class ReportPhysicalAddress {
+class ReportPhysicalAddress : public DataBlock {
     public:
     Op_t opCode(void) const {return REPORT_PHYSICAL_ADDRESS;}
 
@@ -1298,13 +1299,13 @@ class ReportPhysicalAddress {
 };
 
 
-class DeviceVendorID {
+class DeviceVendorID : public DataBlock{
     public:
         DeviceVendorID(const VendorID &vendor) : vendorId(vendor){}
         VendorID vendorId;
 };
 
-class ReportPowerStatus{
+class ReportPowerStatus : public DataBlock{
     public:
         ReportPowerStatus();
         ReportPowerStatus(PowerStatus stat) : status(stat) {}
@@ -1333,7 +1334,7 @@ class OpCode{
         Op_t opCode_;
 };
 
-class FeatureAbort{
+class FeatureAbort: public DataBlock{
 public:
     Op_t opCode(void) const {return FEATURE_ABORT;}
 
@@ -1367,7 +1368,7 @@ class Abort{
 
 };
 
-class UserControlReleased {
+class UserControlReleased : public DataBlock {
 
 
 };
@@ -1378,7 +1379,7 @@ class Polling{
 
 };
 
-class RequestShortAudioDescriptor {
+class RequestShortAudioDescriptor: public DataBlock {
     public:
     Op_t opCode(void) const {return REQUEST_SHORT_AUDIO_DESCRIPTOR;}
 
@@ -1426,7 +1427,7 @@ class RequestShortAudioDescriptor {
      uint8_t  numberofdescriptor;
 };
 
-class UserControlPressed {
+class UserControlPressed : public DataBlock{
 public:
     Op_t opCode(void) const {return USER_CONTROL_PRESSED;}
 
@@ -1442,103 +1443,6 @@ public:
 
 class SetOSDName;
 
-/*class MessageEncoderImpl{
-        public:
-                virtual CECFrame encode(const ActiveSource &source) const = 0;
-                virtual CECFrame encode(const CECVersion &version) const = 0;
-                virtual CECFrame encode(const SetOSDName &osdName) const = 0;
-                virtual CECFrame encode(const ReportPhysicalAddress &physAddress) const = 0;
-                virtual CECFrame encode(const DeviceVendorID &vendorId) const = 0;
-                virtual CECFrame encode(const Standby &standby) const = 0;
-                virtual CECFrame encode(const GiveDevicePowerStatus &status) const = 0;
-                virtual CECFrame encode(const ImageViewOn &view) const = 0;
-                virtual CECFrame encode(const RequestActiveSource &source) const = 0;
-                virtual CECFrame encode(const ReportPowerStatus &status) const = 0;
-                virtual CECFrame encode(const FeatureAbort &feature) const = 0;
-                virtual CECFrame encode(const UserControlReleased &control) const = 0;
-                virtual CECFrame encode(const GiveOSDName &msg) const = 0;
-                virtual CECFrame encode(const GivePhysicalAddress &physicalAddres) const = 0;
-                virtual CECFrame encode(const UserControlPressed &controlPressed) const = 0; 
-                virtual CECFrame encode(const RequestShortAudioDescriptor &shortAudioDes) const = 0;
-                virtual CECFrame encode(const SetMenuLanguage &setMenuLang) const = 0;
-                virtual CECFrame encode(const GiveAudioStatus &giveaudiosts) const = 0;
-                virtual CECFrame encode(const SystemAudioModeRequest &audioModeReq) const = 0;
-
-};
-*/
-#if 0
-class MessageEncoder {
-        private:
-                //ActiveSource activeSource;
-
-
-        public:
-                MessageEncoderImpl* impl;
-                MessageEncoder(){};
-                /*MessageDecoder& getInstance(){
-                        static MessageDecoder instance;
-                        return instance;
-                }*/
-                //MessageDecoder(MessageProcessor & processor) : processor(processor){};
-                CECFrame encode(const ActiveSource &source){
-                        return impl->encode(source);
-                }
-                CECFrame encode(const CECVersion &version){
-                        return impl->encode(version);
-                }
-                CECFrame encode(const SetOSDName &osdName){
-                        return impl->encode(osdName);
-                }
-                CECFrame encode(const ReportPhysicalAddress &physAddress){
-                        return impl->encode(physAddress);
-                }
-                CECFrame encode(const DeviceVendorID &vendorId){
-                        return impl->encode(vendorId);
-                }
-                CECFrame encode(const Standby &standby){
-                        return impl->encode(standby);
-                }
-                CECFrame encode(const GiveDevicePowerStatus &status){
-                        return impl->encode(status);
-                }
-
-                CECFrame encode(const ImageViewOn &view){
-                        return impl->encode(view);
-                }
-                CECFrame encode(const RequestActiveSource &source){
-                        return impl->encode(source);
-                }
-                CECFrame encode(const ReportPowerStatus &status){
-                        return impl->encode(status);
-                }
-                CECFrame encode(const FeatureAbort &feature){
-                        return impl->encode(feature);
-                }
-                CECFrame encode(const UserControlReleased &control){
-                        return impl->encode(control);
-                }
-                CECFrame encode(const GivePhysicalAddress &physicalAddres){
-                        return impl->encode(physicalAddres);
-                }
-                CECFrame encode(const UserControlPressed &controlPressed){
-                    return impl->encode(controlPressed);
-                }
-
-                CECFrame encode(const RequestShortAudioDescriptor &shortAudioDes){
-                    return impl->encode(shortAudioDes);
-                }
-                CECFrame encode(const SetMenuLanguage &setMenuLang){
-                    return impl->encode(setMenuLang);
-                }
-                CECFrame encode(const GiveAudioStatus &giveaudiosts){
-                    return impl->encode(giveaudiosts);
-                }				
-                CECFrame encode(const SystemAudioModeRequest &audioModeReq){
-                    return impl->encode(audioModeReq);
-                }		
-
-};
-#endif
 class ReportAudioStatus
 {
 
@@ -1657,7 +1561,7 @@ class MessageDecoder {
 
 };
 
-class SetOSDName{
+class SetOSDName : public DataBlock{
     public:
     Op_t opCode(void) const {return SET_OSD_NAME;}
 
@@ -1721,11 +1625,9 @@ class Connection{
                 return instance;
         };
     void open(void){
-        //return impl->open();
         return getInstance().impl->open();
     }
     void close(void){
-        //return impl->close();
         return getInstance().impl->close();
     }
     void addFrameListener(FrameListener *listener){
@@ -1758,12 +1660,10 @@ class Connection{
     }
 
     void setSource(LogicalAddress &from) {
-		//return impl->setSource(from);
-        //source = from;
 	}
 };
 
-class SystemAudioModeRequest 
+class SystemAudioModeRequest : public DataBlock
 {
 
 public:
@@ -1791,7 +1691,7 @@ public:
   PhysicalAddress _physicaladdress;
 };
 
-class GiveAudioStatus 
+class GiveAudioStatus : public DataBlock
 {
 public:
     Op_t opCode(void) const {return GIVE_AUDIO_STATUS;}
@@ -1838,170 +1738,51 @@ class LibCCEC{
 
 };
 
-class RequestArcInitiation
+class RequestArcInitiation : public DataBlock
 {
   public:
     Op_t opCode(void) const {return REQUEST_ARC_INITIATION;}
 
 };
 
-class ReportArcInitiation
+class ReportArcInitiation: public DataBlock
 {
   public:
     Op_t opCode(void) const {return REPORT_ARC_INITIATED;}
 
 };
 
-class RequestArcTermination
+class RequestArcTermination: public DataBlock
 {
   public:
     Op_t opCode(void) const {return REQUEST_ARC_TERMINATION;}
 
 };
 
-class ReportArcTermination
+class ReportArcTermination: public DataBlock
 {
   public:
     Op_t opCode(void) const {return REPORT_ARC_TERMINATED;}
 
 };
 
-
 class MessageEncoderImpl{
         public:
-                virtual CECFrame encode(const ActiveSource &source) const = 0;
-                virtual CECFrame encode(const CECVersion &version) const = 0;
-                virtual CECFrame encode(const SetOSDName &osdName) const = 0;
-                virtual CECFrame encode(const ReportPhysicalAddress &physAddress) const = 0;
-                virtual CECFrame encode(const DeviceVendorID &vendorId) const = 0;
-                virtual CECFrame encode(const Standby &standby) const = 0;
-                virtual CECFrame encode(const GiveDevicePowerStatus &status) const = 0;
-                virtual CECFrame encode(const ImageViewOn &view) const = 0;
-                virtual CECFrame encode(const RequestActiveSource &source) const = 0;
-                virtual CECFrame encode(const ReportPowerStatus &status) const = 0;
-                virtual CECFrame encode(const FeatureAbort &feature) const = 0;
-                virtual CECFrame encode(const UserControlReleased &control) const = 0;
-                virtual CECFrame encode(const GiveOSDName &msg) const = 0;
-                virtual CECFrame encode(const GivePhysicalAddress &physicalAddres) const = 0;
-                virtual CECFrame encode(const UserControlPressed &controlPressed) const = 0;
-                virtual CECFrame encode(const RequestShortAudioDescriptor &shortAudioDes) const = 0;
-                virtual CECFrame encode(const SetMenuLanguage &setMenuLang) const = 0;
-                virtual CECFrame encode(const GiveAudioStatus &giveaudiosts) const = 0;
-                virtual CECFrame encode(const SystemAudioModeRequest &audioModeReq) const = 0;
-                virtual CECFrame encode(const GiveDeviceVendorID &vendorId) const = 0;
-                virtual CECFrame encode(const GetCECVersion &getCecVersion) const = 0;
-                virtual CECFrame encode(const RequestArcInitiation &arcInit) const = 0;
-                virtual CECFrame encode(const ReportArcInitiation &arcInit) const = 0;
-                virtual CECFrame encode(const RequestArcTermination &arcTermReq) const = 0;
-                virtual CECFrame encode(const ReportArcTermination &arcTermRep) const = 0;
-                virtual CECFrame encode(const SetStreamPath &streamPath) const = 0;
-                virtual CECFrame encode(const RoutingChange &routeChange) const = 0;
+                virtual CECFrame & encode(const DataBlock &m) const = 0;
+
 };
-
 class MessageEncoder {
-        private:
-                //ActiveSource activeSource;
-
-
         public:
                 MessageEncoderImpl* impl;
                 MessageEncoder(){};
-                /*MessageDecoder& getInstance(){
-                        static MessageDecoder instance;
+                static MessageEncoder& getInstance(){
+                        static MessageEncoder instance;
                         return instance;
-                }*/
-                //MessageDecoder(MessageProcessor & processor) : processor(processor){};
-                CECFrame encode(const ActiveSource &source){
-                        return impl->encode(source);
                 }
-                CECFrame encode(const CECVersion &version){
-                        return impl->encode(version);
+                CECFrame & encode(const DataBlock m){
+                    return getInstance().impl->encode(m);
                 }
-                CECFrame encode(const SetOSDName &osdName){
-                        return impl->encode(osdName);
-                }
-                CECFrame encode(const ReportPhysicalAddress &physAddress){
-                        return impl->encode(physAddress);
-                }
-                CECFrame encode(const DeviceVendorID &vendorId){
-                        return impl->encode(vendorId);
-                }
-                CECFrame encode(const Standby &standby){
-                        return impl->encode(standby);
-                }
-                        
-                CECFrame encode(const GiveDevicePowerStatus &status){
-                        return impl->encode(status);
-                }
-
-                CECFrame encode(const ImageViewOn &view){
-                        return impl->encode(view);
-                }
-                CECFrame encode(const RequestActiveSource &source){
-                        return impl->encode(source);
-                }
-                CECFrame encode(const GiveOSDName &msg){
-                        return impl->encode(msg);
-                }
-                CECFrame encode(const ReportPowerStatus &status){
-                        return impl->encode(status);
-                }
-                CECFrame encode(const FeatureAbort &feature){
-                        return impl->encode(feature);
-                }
-                CECFrame encode(const UserControlReleased &control){
-                        return impl->encode(control);
-                }
-                CECFrame encode(const GivePhysicalAddress &physicalAddres){
-                        return impl->encode(physicalAddres);
-                }
-                CECFrame encode(const UserControlPressed &controlPressed){
-                    return impl->encode(controlPressed);
-                }
-
-                CECFrame encode(const RequestShortAudioDescriptor &shortAudioDes){
-                    return impl->encode(shortAudioDes);
-                }
-                CECFrame encode(const SetMenuLanguage &setMenuLang){
-                    return impl->encode(setMenuLang);
-                }
-                CECFrame encode(const GiveAudioStatus &giveaudiosts){
-                    return impl->encode(giveaudiosts);
-                }
-                CECFrame encode(const SystemAudioModeRequest &audioModeReq){
-                    return impl->encode(audioModeReq);
-                }
-                CECFrame encode(const GiveDeviceVendorID &vendorId){
-                    return impl->encode(vendorId);
-                }
-
-                CECFrame encode(const GetCECVersion &getCecVersion){
-                    return impl->encode(getCecVersion);
-                }
-                CECFrame encode(const RequestArcInitiation &arcInit){
-                    return impl->encode(arcInit);
-                }
-
-                CECFrame encode(const ReportArcInitiation &arcInit){
-                    return impl->encode(arcInit);
-                }
-                CECFrame encode(const ReportArcTermination &arcTermRep){
-                    return impl->encode(arcTermRep);
-                }
-                CECFrame encode(const RequestArcTermination &arcTermReq){
-                    return impl->encode(arcTermReq);
-                }
-
-                CECFrame encode(const SetStreamPath &streamPath){
-                    return impl->encode(streamPath);
-                }
-                CECFrame encode(const RoutingChange &routeChange){
-                    return impl->encode(routeChange);
-                }
-
 };
-
-
 typedef struct _dsHdmiInGetNumberOfInputsParam_t
 {
     dsError_t   result;

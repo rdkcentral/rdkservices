@@ -13,6 +13,7 @@
 #include "LogicalAddressMock.h"
 #include "ActiveSourceMock.h"
 #include "DeviceTypeMock.h"
+#include "MessageEncoderMock.h"
 
 ///using namespace std;
 using namespace WPEFramework;
@@ -26,7 +27,7 @@ protected:
     string response;
     NiceMock<LibCCECImplMock> libCCECImplMock;
     NiceMock<IarmBusImplMock> iarmBusImplMock;
-
+    NiceMock<MessageEncoderMock> messageEncoderMock;
     NiceMock<ConnectionImplMock> connectionImplMock;
 
     HdmiCecSinkTest()
@@ -37,7 +38,11 @@ protected:
         IarmBus::getInstance().impl = &iarmBusImplMock;
         LibCCEC::getInstance().impl = &libCCECImplMock;
         Connection::getInstance().impl = &connectionImplMock;
-        
+        MessageEncoder::getInstance().impl = &messageEncoderMock;
+
+        ON_CALL(messageEncoderMock, encode(::testing::_))
+            .WillByDefault(::testing::ReturnRef(CECFrame::getInstance()));
+
 		ON_CALL(iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -66,6 +71,7 @@ protected:
 			IarmBus::getInstance().impl = nullptr;
 			LibCCEC::getInstance().impl = nullptr;
 			Connection::getInstance().impl = nullptr;
+            MessageEncoder::getInstance().impl = nullptr;
     }
    
 };
@@ -298,19 +304,11 @@ TEST_F(HdmiCecSinkDsTest, requestActiveSource)
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
 
-TEST_F(HdmiCecSinkDsTest, setupARCRouting)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setupARCRouting"), _T(""), response));
-    EXPECT_EQ(response,  string(""));
-}
-
 TEST_F(HdmiCecSinkDsTest, requestShortAudioDescriptor)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("requestShortAudioDescriptor"), _T(""), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
-
-#if 0
 
 TEST_F(HdmiCecSinkDsTest, setupARCRouting)
 {
@@ -351,4 +349,3 @@ TEST_F(HdmiCecSinkDsTest, requestAudioDevicePowerStatus)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("requestAudioDevicePowerStatus"), _T(""), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
-#endif
