@@ -236,8 +236,7 @@ namespace WPEFramework {
             std::mutex m_callMutex;
             std::mutex m_SadMutex;
 	    std::thread m_arcRoutingThread;
-	    std::mutex m_arcRoutingStateMutex;
-	    std::mutex m_ArcDisableMutex;
+	    std::mutex m_AudioDeviceStatesUpdateMutex;
 	    bool m_cecArcRoutingThreadRun; 
 	    std::condition_variable arcRoutingCV;
 	    bool m_hdmiInAudioDeviceConnected;
@@ -245,6 +244,7 @@ namespace WPEFramework {
             bool m_arcPendingSADRequest;   
             bool m_isPwrMgr2RFCEnabled;
 	    bool m_hdmiCecAudioDeviceDetected;
+	    bool m_systemAudioMode_Power_RequestedAndReceived;
 	    dsAudioARCTypes_t m_hdmiInAudioDeviceType;
 	    JsonObject m_audioOutputPortConfig;
             JsonObject getAudioOutputPortConfig() { return m_audioOutputPortConfig; }
