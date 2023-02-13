@@ -1175,6 +1175,21 @@ TEST_F(SystemServicesTest, getDeviceInfo_ModelName)
     EXPECT_EQ(response, string("{\"friendly_id\":\"IP061-ec\",\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), (response)));
     EXPECT_EQ(response, string("{\"modelName\":\"IP061-ec\",\"success\":true}"));
+	
+	EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+    .Times(::testing::AnyNumber())
+    .WillRepeatedly(::testing::Invoke(
+        [&](const char* command, const char* type) {
+         EXPECT_EQ(string(command), string("sh /lib/rdk/getDeviceDetails.sh read"));
+         const char str[] ="imageVersion=SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI";
+         char buffer[1024];
+         memset(buffer, 0, sizeof(buffer));
+         strcpy(buffer, str);
+         FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+         return pipe;
+    }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":}"), response));
+    EXPECT_EQ(response, string("{\"make\":\"\\\"SKY\\\"\",\"imageVersion\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"software_version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"friendly_id\":\"IP061-ec\",\"success\":true}"));
 }
 
 TEST_F(SystemServicesTest, getDeviceInfo_HardwareId)
