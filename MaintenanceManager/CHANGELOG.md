@@ -16,10 +16,6 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.13] - 2023-01-30
-### Fixed
-- Allow to set OptOut value when maintenance is in progress
-
 ## [1.0.12] - 2023-01-18
 ### Fixed
 - Fixed deadlock in Maintenance Manager code
