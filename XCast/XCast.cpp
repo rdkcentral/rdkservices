@@ -434,11 +434,9 @@ bool XCast::deleteFromDynamicAppCache(JsonArray applications)
     bool ret = false;
     std::string itrName = NULL;
     if (!applications.IsSet()) {
-        
         vector<string> appsToDelete;
         for (int iIndex = 0; iIndex < applications.Length(); iIndex++) {
             itrName = applications[iIndex].String();
-            
             LOGINFO("App name to delete: %s, size:%d", itrName.c_str(), strlen (itrName.c_str()));
             appsToDelete.push_back(itrName);
             iIndex++;
@@ -484,7 +482,6 @@ void XCast::updateDynamicAppCache(JsonArray applications)
 
     std::vector <DynamicAppConfig*> appConfigList;
     if (!applications.IsSet()) {
-        
         /* iterate over ints */
         LOGINFO("Applications:");
 
@@ -492,7 +489,6 @@ void XCast::updateDynamicAppCache(JsonArray applications)
             std::vector <DynamicAppConfig*> appConfigListTemp;
             LOGINFO("Application: %d", iIndex);
             itrApp = applications[iIndex].Object();
-            
             if (!itrApp.HasLabel("names")) {
                 LOGINFO ("Invalid names format at application index %d. Skipping the application", iIndex);
                 continue;
