@@ -13,7 +13,10 @@ All notable changes to this RDK Service will be documented in this file.
     * **Security** in case of vulnerabilities.
 
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
-
+##[1.0.11] - 2023-07-19
+### Added
+-Adding UtilsSynchro.hpp to provide tools for automatically synchronizing API calls for given plugin
+-Adding UtilsSynchroIarm.hpp to additionally synchronize iarm event handlers.
 
 ## [1.0.10] - 2023-04-20
 ### Fixed
