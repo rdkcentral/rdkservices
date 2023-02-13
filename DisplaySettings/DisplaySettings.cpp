@@ -2395,7 +2395,7 @@ namespace WPEFramework {
 
         uint32_t DisplaySettings::getVolumeLevel (const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFOMETHOD();
+            //LOGINFOMETHOD();
             bool success = true;
             float level = 0;
 
@@ -2860,7 +2860,7 @@ namespace WPEFramework {
 
         uint32_t DisplaySettings::setVolumeLevel(const JsonObject& parameters, JsonObject& response)
         {
-                LOGINFOMETHOD();
+                //LOGINFOMETHOD();
                 returnIfParamNotFound(parameters, "volumeLevel");
                 string sLevel = parameters["volumeLevel"].String();
                 float level = 0;
