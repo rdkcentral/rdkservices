@@ -179,6 +179,8 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setPowerState")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPowerStateIsManagedByDevice")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPowerStateBeforeReboot")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBootLoaderPattern")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("clearLastDeepSleepReason")));    
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setWakeupSrcConfiguration")));
 }
 
@@ -1095,6 +1097,35 @@ TEST_F(SystemServicesTest, deletePersistentPath)
     EXPECT_FALSE(Core::File(amazonPersistentPath).Exists());
 
     plugin->Deinitialize(&service);
+}
+
+TEST_F(SystemServicesTest,setBootLoaderPattern)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetBootLoaderPattern)));
+                auto param = static_cast<IARM_Bus_MFRLib_SetBLPattern_Param_t*>(arg);
+                EXPECT_EQ(param->pattern, mfrBL_PATTERN_SILENT_LED_ON);
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBootLoaderPattern"), _T("{\"pattern\":SILENT_LED_ON}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+TEST_F(SystemServicesTest,clearLastDeepSleepReason)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("clearLastDeepSleepReason"), _T("{}"), response));
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](const char* command, const char* type) -> FILE* {
+                EXPECT_THAT(string(command), string("rm -f /opt/standbyReason.txt"));
+                return __real_popen(command, type);
+            }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("clearLastDeepSleepReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
 TEST_F(SystemServicesEventIarmTest, onSystemPowerStateChanged)
