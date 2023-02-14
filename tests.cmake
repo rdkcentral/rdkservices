@@ -52,7 +52,15 @@ set(EMPTY_HEADERS
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
-file(TOUCH ${EMPTY_HEADERS})
+
+file(GLOB_RECURSE EMPTY_HEADERS_AVAILABLE "${BASEDIR}/*")
+if (EMPTY_HEADERS_AVAILABLE)
+    message("Skip already generated headers to avoid rebuild")
+    list(REMOVE_ITEM EMPTY_HEADERS ${EMPTY_HEADERS_AVAILABLE})
+endif ()
+if (EMPTY_HEADERS)
+    file(TOUCH ${EMPTY_HEADERS})
+endif ()
 
 include_directories(${EMPTY_HEADERS_DIRS})
 
