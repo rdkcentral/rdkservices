@@ -6,6 +6,9 @@
 - In summary, the choice between In-Process and Out-of-Process plugins depends on the desired trade-off between stability, security, and performance. Out-of-Process plugins are created primarily for stability (any crashes won't bring down the main WPEFramework process) and for resource intensive plugins (browser plugins like WebKitBrowser) that would fit better as a separate process, whereas In-Process plugins are created mainly for performance.
 
 ## **Please follow the below steps to create a new RDK service/ Thunder plugin - In process plugin.**
+
+![Graphical Represenation of steps to create a new In-Process Thunder Plugin/ RDK Services](./In-process-plugin.png)
+
 1. Create a clone repository of [rdkcentral/ rdkservices](https://github.com/rdkcentral/rdkservices).
 
 2. Navigate to the cloned repository.
@@ -23,7 +26,7 @@
 
     - **Information**: Information refers to the actual data stored in a JSON document. This data can be in the form of key-value pairs, arrays, or nested structures. The information stored in a JSON document can be used to represent a wide range of data, including configuration settings, metadata, and other types of structured data.
 
-    - **Interface**: An interface defines the way in which a JSON document can be accessed and processed by an application. It specifies the methods and properties that are available for accessing and manipulating the data stored in the document, as well as any constraints or requirements for using those methods and properties. Interfaces are often used to define the API (Application Programming Interface) for a JSON document, making it easier for developers to interact with the data stored in the document
+    - **Interface**: An interface defines the way in which a JSON document can be accessed and processed by an application. It specifies the methods and properties that are available for accessing and manipulating the data stored in the document, as well as any constraints or requirements for using those methods and properties. Interfaces are often used to define the API (Application Programming Interface) for a JSON document, making it easier for developers to interact with the data stored in the document.
 
     For example, please refer to link [SecurityAgent JSON file](https://github.com/rdkcentral/rdkservices/blob/sprint/23Q1/SecurityAgent/SecurityAgent.json).
 
@@ -198,8 +201,13 @@ $ vi meta-rdk-video/recipes-extended/rdkservices/rdkservices_git.bb
 
     URL: http://<Rpi's IP address>:9998
 
-## New Plugin test and validation
+![Controller UI](./Controller_UI_In-process.PNG)
+
+
+## New Plugin test and validation for In-process Plugin:
 - Each RDK Service can be validated through JSON RPC Commands through HTTP. It has a request and response in JSON format.
+
+callsign":"org.rdk.PluginName
 
 | Function | Request | Response |
 | :-------- | :-------- | :-------- |
@@ -211,6 +219,6 @@ $ vi meta-rdk-video/recipes-extended/rdkservices/rdkservices_git.bb
 | event API when hdmi connected|  curl http://127.0.0.1:9998/jsonrpc --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0", "id":3, "method":"org.rdk.PluginName.1.getConnectedVideoDisplays"}'| {"jsonrpc":"2.0","id":3,"result":{"connectedVideoDisplays":["HDMI0"],"success":true}}root@raspberrypi-rdk-mc:~#|
 |event API when hdmi not connected| curl http://127.0.0.1:9998/jsonrpc --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0", "id":3, "method":"org.rdk.PluginName.1.getConnectedVideoDisplays"}'| {"jsonrpc":"2.0","id":3,"result":{"connectedVideoDisplays":[],"success":true}}root@raspberrypi-rdk-mc:~#|
 
-- Please refer the link for [Out-of-process plugin](https://github.com/Pavankumar-HM/rdkservices/blob/main/docs/Developer_guide/new_plugin_outofprocess.md).
+- Please refer the link for [Out-of-process plugin](https://github.com/Pavankumar-HM/rdkservices/blob/main/docs/developerguide/new_plugin_outofprocess.md).
 
 
