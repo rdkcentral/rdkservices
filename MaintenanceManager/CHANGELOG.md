@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.15] - 2023-02-15
+### Fixed
+- Fixed race condition in startMaintenance()
+
 ## [1.0.14] - 2023-02-13
 ### Fixed
 - rdkvfwupgrader support during stop maintenance
