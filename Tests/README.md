@@ -59,6 +59,7 @@ docker exec -it <container name> /bin/bash
      Use `ON_CALL` by default, and only use `EXPECT_CALL` when intend to verify that the call is made.
 
 4. Before review:
+   - See the [common mistakes](https://github.com/rdkcentral/rdkservices/issues/3711).
    - Enable [ClangFormat](./.clang-format) and make sure the tests code is formatted.
    - For the tests, the code is built with flags `-Wall -Werror`.
      Make sure the code builds without warnings.
