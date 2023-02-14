@@ -262,6 +262,11 @@ namespace WPEFramework {
             uint8_t i=0;
             string cmd="";
             bool internetConnectStatus=false;
+	    
+            LOGINFO("Executing Maintenance tasks");
+            m_statusMutex.lock();
+            MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
+            m_statusMutex.unlock();
 
             /* cleanup if not empty */
             if(!tasks.empty()){
@@ -299,10 +304,6 @@ namespace WPEFramework {
             }
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
-
-            m_statusMutex.lock();
-            MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
-            m_statusMutex.unlock();
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
@@ -614,6 +615,7 @@ namespace WPEFramework {
 
             /* to know the maintenance is solicited or unsolicited */
             g_maintenance_type=UNSOLICITED_MAINTENANCE;
+	     LOGINFO("Triggering Maintenance on bootup");
 
             /* On bootup we check for opt-out value
              * if empty set the value to none */
@@ -1224,6 +1226,7 @@ namespace WPEFramework {
                     /* check what mode we currently have */
                     string current_mode="";
 
+                    LOGINFO("Triggering scheduled maintenance ");
                     /* only one maintenance at a time */
                     /* Lock so that m_notify_status will not be updated  further */
                     m_statusMutex.lock();
@@ -1297,6 +1300,7 @@ namespace WPEFramework {
 	    bool rdkvfwrfc=false;
 	    string rdkvfw="rdkvfwupgrader";
 
+                LOGINFO("Stopping maintenance activities");
                 /* run only when the maintenance status is MAINTENANCE_STARTED */
                 m_statusMutex.lock();
                 if ( MAINTENANCE_STARTED == m_notify_status  ){
