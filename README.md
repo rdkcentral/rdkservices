@@ -185,14 +185,16 @@ Use the existing services as a guide when learning the structure of both the plu
     * Any package that includes a Thunder component requires such a definition and declaration. If the definition is missing, a compiler error will be reported (error missing MODULE_NAME) and if the declaration is missing, a linker error will be reported (missing or duplicate symbol)
 
     * Module.h defines the mandatory MODULE_NAME. It also includes framework headers (<plugins/plugins.h>)
-        ```
+        ```shell
         #ifndef MODULE_NAME
         #define MODULE_NAME Plugin_IOController
         #endif
-    * Module.cpp defines the mandatory MODULE_NAME_DECLARATION
         ```
+    * Module.cpp defines the mandatory MODULE_NAME_DECLARATION
+        ```shell
         #include "Module.h"
         MODULE_NAME_DECLARATION(BUILD_REFERENCE)
+        ```
 
 6. A service is registered in a translation unit via a mandatory SERVICE_REGISTRATION(MyService, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH)
 
@@ -213,9 +215,7 @@ Use the existing services as a guide when learning the structure of both the plu
     
     * Ensure that any std::threads created are joined within Deinitialize() or the destructor to avoid [std::terminate](https://en.cppreference.com/w/cpp/thread/thread/~thread) exception. Use the [ThreadRAII](helpers/UtilsThreadRAII.h) class for creating threads which will ensure that the thread gets joined before destruction.
 
-10.  Inter-plugin communication
-    
-    * There might be use cases where one RDK Service or plugin needs to call APIs in another RDK Service. Don't use JSON-RPC for such communication since it's an overhead and not preferred for inter-plugin communication. JSON-RPC must be used only by applications. Instead use COM RPC through the IShell Interface API [QueryInterfaceByCallsign()](https://github.com/rdkcentral/Thunder/blob/R2/Source/plugins/IShell.h#L210) exposed for each Plugin. Here is an [example](https://github.com/rdkcentral/rdkservices/blob/main/Messenger/MessengerSecurity.cpp#L35). 
+10.  Inter-plugin communication - There might be use cases where one RDK Service or plugin needs to call APIs in another RDK Service. Don't use JSON-RPC for such communication since it's an overhead and not preferred for inter-plugin communication. JSON-RPC must be used only by applications. Instead use COM RPC through the IShell Interface API [QueryInterfaceByCallsign()](https://github.com/rdkcentral/Thunder/blob/R2/Source/plugins/IShell.h#L210) exposed for each Plugin. Here is an [example](https://github.com/rdkcentral/rdkservices/blob/main/Messenger/MessengerSecurity.cpp#L35). 
     <br><br>
 
 ## Versioning ##
