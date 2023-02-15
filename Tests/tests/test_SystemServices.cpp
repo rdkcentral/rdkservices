@@ -303,9 +303,10 @@ TEST_F(SystemServicesEventTest, Timezone)
     Core::Event changed1(false, true);
     Core::Event changed2(false, true);
     Core::Event changed3(false, true);
+    Core::Event changed4(false, true);
 
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
-        .Times(3)
+        .Times(4)
         .WillOnce(::testing::Invoke(
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
@@ -326,6 +327,28 @@ TEST_F(SystemServicesEventTest, Timezone)
 
                 return Core::ERROR_NONE;
             }))
+
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{"
+                                          "\"jsonrpc\":\"2.0\","
+                                          "\"method\":\"org.rdk.System.onTimeZoneDSTChanged\","
+                                          "\"params\":"
+                                          "{"
+                                          "\"oldTimeZone\":\"America\\/New_York\","
+                                          "\"newTimeZone\":\"America\\/New_York\","
+                                          "\"oldAccuracy\":\"INITIAL\","
+                                          "\"newAccuracy\":\"INTERIM\""
+                                          "}"
+                                          "}")));
+
+                changed2.SetEvent();
+
+                return Core::ERROR_NONE;
+            }))
+
         .WillOnce(::testing::Invoke(
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
@@ -337,12 +360,12 @@ TEST_F(SystemServicesEventTest, Timezone)
                                           "{"
                                           "\"oldTimeZone\":\"America\\/New_York\","
                                           "\"newTimeZone\":\"America\\/Costa_Rica\","
-                                          "\"oldAccuracy\":\"INITIAL\","
+                                          "\"oldAccuracy\":\"INTERIM\","
                                           "\"newAccuracy\":\"FINAL\""
                                           "}"
                                           "}")));
 
-                changed2.SetEvent();
+                changed3.SetEvent();
 
                 return Core::ERROR_NONE;
             }))
@@ -362,7 +385,7 @@ TEST_F(SystemServicesEventTest, Timezone)
                                           "}"
                                           "}")));
 
-                changed3.SetEvent();
+                changed4.SetEvent();
 
                 return Core::ERROR_NONE;
             })) ;
@@ -374,12 +397,20 @@ TEST_F(SystemServicesEventTest, Timezone)
 
     EXPECT_EQ(Core::ERROR_NONE, changed1.Lock());
 
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"timeZone\":\"America\\/New_York\",\"accuracy\":\"INITIAL\",\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"America/Costa_Rica\",\"accuracy\":\"FINAL\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"America/New_York\",\"accuracy\":\"INTERIM\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, changed2.Lock());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"timeZone\":\"America\\/New_York\",\"accuracy\":\"INTERIM\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"America/Costa_Rica\",\"accuracy\":\"FINAL\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, changed3.Lock());
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"timeZone\":\"America\\/Costa_Rica\",\"accuracy\":\"FINAL\",\"success\":true}"));
