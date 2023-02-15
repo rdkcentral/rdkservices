@@ -410,7 +410,7 @@ string getTimeZoneAccuracyDSTHelper(void)
         }
     }
 
-    if (timeZoneAccuracy.empty()) {
+    if (timeZoneAccuracy != TZ_ACCURACY_INITIAL && timeZoneAccuracy != TZ_ACCURACY_INTERIM && timeZoneAccuracy != TZ_ACCURACY_FINAL) {
         timeZoneAccuracy = TZ_ACCURACY_INITIAL;
     }
 
