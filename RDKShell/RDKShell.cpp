@@ -773,9 +773,7 @@ namespace WPEFramework {
              configSet["clientidentifier"] = RDKSHELL_SURFACECLIENT_DISPLAYNAME;
              string configSetAsString;
              configSet.ToString(configSetAsString);
-             Core::JSON::String configSetAsJsonString;
-             configSetAsJsonString.FromString(configSetAsString);
-             status = setConfig(shell, pluginName, configSetAsJsonString.Value());
+             status = setConfig(shell, pluginName, configSetAsString);
              if(status > 0)
              {
                 std::cout<<"clientidentifier config set failed"<<std::endl;
@@ -3688,15 +3686,13 @@ namespace WPEFramework {
 
                 string configSetAsString;
                 configSet.ToString(configSetAsString);
-                Core::JSON::String configSetAsJsonString;
-                configSetAsJsonString.FromString(configSetAsString);
-                status = setConfig(mCurrentService, callsign, configSetAsJsonString.Value());
+                status = setConfig(mCurrentService, callsign, configSetAsString);
 
                 std::cout << "set status: " << status << std::endl;
                 if (status > 0)
                 {
                     std::cout << "trying status one more time...\n";
-                    status = setConfig(mCurrentService, callsign, configSetAsJsonString.Value());
+                    status = setConfig(mCurrentService, callsign, configSetAsString);
                     std::cout << "set status: " << status << std::endl;
                 }
 
