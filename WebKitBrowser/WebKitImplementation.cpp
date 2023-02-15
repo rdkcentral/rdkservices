@@ -505,7 +505,12 @@ static GSourceFuncs _handlerIntervention =
                 , MSEBuffers()
                 , ThunderDecryptorPreference()
                 , MemoryProfile()
+#ifdef WEBKIT_MEMORY_PRESSURE_API
+                , WebProcessLimit()
+                , NetworkProcessLimit()
+#else
                 , MemoryPressure()
+#endif
                 , MediaContentTypesRequiringHardwareSupport()
                 , MediaDiskCache(true)
                 , DiskCache()
@@ -569,7 +574,12 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("msebuffers"), &MSEBuffers);
                 Add(_T("thunderdecryptorpreference"), &ThunderDecryptorPreference);
                 Add(_T("memoryprofile"), &MemoryProfile);
+#ifdef WEBKIT_MEMORY_PRESSURE_API
+                Add(_T("webprocesslimit"), &WebProcessLimit);
+                Add(_T("networkprocesslimit"), &NetworkProcessLimit);
+#else
                 Add(_T("memorypressure"), &MemoryPressure);
+#endif
                 Add(_T("mediacontenttypesrequiringhardwaresupport"), &MediaContentTypesRequiringHardwareSupport);
                 Add(_T("mediadiskcache"), &MediaDiskCache);
                 Add(_T("diskcache"), &DiskCache);
@@ -640,7 +650,12 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::String MSEBuffers;
             Core::JSON::Boolean ThunderDecryptorPreference;
             Core::JSON::String MemoryProfile;
+#ifdef WEBKIT_MEMORY_PRESSURE_API
+            Core::JSON::DecUInt32 WebProcessLimit;
+            Core::JSON::DecUInt32 NetworkProcessLimit;
+#else
             Core::JSON::String MemoryPressure;
+#endif
             Core::JSON::String MediaContentTypesRequiringHardwareSupport;
             Core::JSON::Boolean MediaDiskCache;
             Core::JSON::String DiskCache;
@@ -2158,10 +2173,12 @@ static GSourceFuncs _handlerIntervention =
                 Core::SystemInfo::SetEnvironment(_T("MSE_MAX_BUFFER_SIZE"), _config.MSEBuffers.Value(), !environmentOverride);
             }
 
+#ifndef WEBKIT_MEMORY_PRESSURE_API
             // Memory Pressure
             if (_config.MemoryPressure.Value().empty() == false) {
                 Core::SystemInfo::SetEnvironment(_T("WPE_POLL_MAX_MEMORY"), _config.MemoryPressure.Value(), !environmentOverride);
             }
+#endif
 
             // Memory Profile
             if (_config.MemoryProfile.Value().empty() == false) {
@@ -2694,6 +2711,14 @@ static GSourceFuncs _handlerIntervention =
                     indexedDBSizeBytes = _config.IndexedDBSize.Value() * 1024;
                 }
 
+#ifdef WEBKIT_MEMORY_PRESSURE_API
+                if (_config.NetworkProcessLimit.IsSet() == true) {
+                    WebKitMemoryPressureSettings* memoryPressureSettings = webkit_memory_pressure_settings_new();
+                    webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.NetworkProcessLimit.Value());
+                    webkit_website_data_manager_set_memory_pressure_settings(memoryPressureSettings);
+                    webkit_memory_pressure_settings_free(memoryPressureSettings);
+                }
+#endif
                 auto* websiteDataManager = webkit_website_data_manager_new(
                     "local-storage-directory", wpeStoragePath,
                     "disk-cache-directory", wpeDiskCachePath,
@@ -2705,7 +2730,18 @@ static GSourceFuncs _handlerIntervention =
                 g_free(wpeDiskCachePath);
                 g_free(indexedDBPath);
 
-                wkContext = webkit_web_context_new_with_website_data_manager(websiteDataManager);
+#ifdef WEBKIT_MEMORY_PRESSURE_API
+                if (_config.WebProcessLimit.IsSet() == true) {
+                    WebKitMemoryPressureSettings* memoryPressureSettings = webkit_memory_pressure_settings_new();
+                    webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.WebProcessLimit.Value());
+                    // Pass web process memory pressure settings to WebKitWebContext constructor
+                    wkContext = WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT, "website-data-manager", websiteDataManager, "memory-pressure-settings", memoryPressureSettings, nullptr));
+                    webkit_memory_pressure_settings_free(memoryPressureSettings);
+                } else
+#endif
+                {
+                    wkContext = webkit_web_context_new_with_website_data_manager(websiteDataManager);
+                }
                 g_object_unref(websiteDataManager);
             }
 
