@@ -2019,14 +2019,14 @@ static GSourceFuncs _handlerIntervention =
 
             _adminLock.Unlock();
         }
-        void OnLoadFailed()
+        void OnLoadFailed(const string& URL)
         {
             _adminLock.Lock();
 
             std::list<Exchange::IWebBrowser::INotification*>::iterator index(_notificationClients.begin());
 
             while (index != _notificationClients.end()) {
-                (*index)->LoadFailed(_URL);
+                (*index)->LoadFailed(URL);
                 index++;
             }
 
@@ -2567,7 +2567,7 @@ static GSourceFuncs _handlerIntervention =
                 browser->_ignoreLoadFinishedOnce = true;
                 return;
             }
-            browser->OnLoadFailed();
+            browser->OnLoadFailed(failingURI);
         }
         static void webProcessTerminatedCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitWebProcessTerminationReason reason)
         {
@@ -2792,6 +2792,7 @@ static GSourceFuncs _handlerIntervention =
                 _config.UserAgent = webkit_settings_get_user_agent(preferences);
             }
 
+            webkit_settings_set_enable_html5_local_storage(preferences, _localStorageEnabled);
             webkit_settings_set_enable_html5_database(preferences, _config.IndexedDBEnabled.Value());
 
             // webaudio support
@@ -3561,7 +3562,7 @@ static GSourceFuncs _handlerIntervention =
             return;
 
         WebKitImplementation* browser = const_cast<WebKitImplementation*>(static_cast<const WebKitImplementation*>(clientInfo));
-        browser->OnLoadFailed();
+        browser->OnLoadFailed(url);
     }
 
     /* static */ void webProcessDidCrash(WKPageRef, const void*)
