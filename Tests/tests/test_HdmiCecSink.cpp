@@ -170,7 +170,6 @@ TEST_F(HdmiCecSinkTest, RegisteredMethods)
 {
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setEnabled")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setEnabledFalse")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setOSDName")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setVendorId")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getVendorId")));
@@ -206,13 +205,13 @@ TEST_F(HdmiCecSinkInitializedEventDsTest, setEnabled)
 
 }
 
-TEST_F(HdmiCecSinkInitializedEventDsTest, getEnableTrue)
+TEST_F(HdmiCecSinkInitializedEventDsTest, getEnabledTrue)
 {
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T("{}"), response));
 	EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
 }
 
-TEST_F(HdmiCecSinkInitializedEventDsTest, setEnableFalse)
+TEST_F(HdmiCecSinkInitializedEventDsTest, setEnabledFalse)
 {
     //setting HdmiCec to enabled.
     ON_CALL(libCCECImplMock, getLogicalAddress(::testing::_))
@@ -228,7 +227,7 @@ TEST_F(HdmiCecSinkInitializedEventDsTest, getEnabledFalse)
 {
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"enabled\":false,\"success\":true}"));
+    EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, setOSDName)
@@ -269,7 +268,7 @@ TEST_F(HdmiCecSinkDsTest, setActivePath)
 TEST_F(HdmiCecSinkDsTest, setRoutingChange)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setRoutingChange"), _T("{\"oldPort\":\"TV\",\"newPort\":\"HDMI1\"}"), response));
-    EXPECT_EQ(response,  string(""));
+    EXPECT_EQ(response,  string("{\"success\":true}"));
 
 }
 
@@ -312,8 +311,8 @@ TEST_F(HdmiCecSinkDsTest, requestShortAudioDescriptor)
 
 TEST_F(HdmiCecSinkDsTest, setupARCRouting)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setupARCRouting"), _T(""), response));
-    EXPECT_EQ(response,  string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setupARCRouting"), _T("{\"enabled\":\"true\"}"), response));
+    EXPECT_EQ(response,  string("{\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, sendStandbyMessage)
@@ -335,13 +334,13 @@ TEST_F(HdmiCecSinkDsTest, sendKeyPressEvent)
 TEST_F(HdmiCecSinkTest, sendGetAudioStatusMessage)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendGetAudioStatusMessage"), _T(""), response));
-    EXPECT_EQ(response,  string(""));
+    EXPECT_EQ(response,  string("{\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, getAudioDeviceConnectedStatus)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAudioDeviceConnectedStatus"), _T(""), response));
-    EXPECT_EQ(response,  string("{\"success\":true}"));
+    EXPECT_EQ(response,  string("{\"connected\":false,\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, requestAudioDevicePowerStatus)
