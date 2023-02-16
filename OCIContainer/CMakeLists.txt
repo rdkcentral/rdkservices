@@ -4,8 +4,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(PLUGIN_OCICONTAINER_STARTUPORDER "" CACHE STRING "To configure startup order of OCIContainer plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
-find_package(jsoncpp REQUIRED)
-find_package(Dobby REQUIRED CONFIG)
+find_package(Dobby CONFIG)
 
 # Temporary fix to get defines in Dobby. Will be removed later.
 add_definitions( -DRDK )
@@ -47,13 +46,7 @@ target_include_directories(${MODULE_NAME}
 target_link_libraries(${MODULE_NAME}
         PRIVATE
 
-        # Dobby libraries
-        DobbyClientLib
-        IpcService
-        AppInfraCommon
-        AppInfraLogging
-        JsonCpp::JsonCpp
-
+        ${DOBBY_LIBRARIES}
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${SYSTEMD_LIBRARIES}
 )
