@@ -31,7 +31,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 5
 
 namespace {
     using WPEFramework::Plugin::WifiManager;
@@ -116,6 +116,7 @@ namespace WPEFramework
         void WifiManager::Deinitialize(PluginHost::IShell* service)
         {
             wifiScan.Deinitialize(service);
+            wifiSignalThreshold.stopSignalThresholdThread();
 
             instance = nullptr;
         }
