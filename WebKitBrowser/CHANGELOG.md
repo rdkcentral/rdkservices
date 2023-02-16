@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.8] - 2023-02-27
+### Added
+- Option to rename WPEWebProcess
+
 ## [1.1.7] - 2023-02-17
 ###Fixed
 - Apply config localstorageenabled value for GLIB API
