@@ -60,6 +60,7 @@ docker exec -it <container name> /bin/bash
      Suppress GMOCK WARNING-s with NiceMock.
 
 4. Before review:
+   - See the [common mistakes](https://github.com/rdkcentral/rdkservices/issues/3711).
    - Enable [ClangFormat](./.clang-format) and make sure the tests code is formatted.
    - For the tests, the code is built with flags `-Wall -Werror`.
      Make sure the code builds without warnings.

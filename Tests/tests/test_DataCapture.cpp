@@ -90,6 +90,7 @@ using testing::AtLeast;
 using testing::NiceMock;
 using testing::Return;
 using testing::Test;
+using testing::Eq;
 
 using namespace WPEFramework;
 
@@ -201,8 +202,10 @@ TEST_F(DataCaptureTest, ShouldRegisterMethod)
 TEST_F(DataCaptureTest, ShouldReturnErrorWhenParamsAreEmpty)
 {
     string response;
-    EXPECT_EQ(Core::ERROR_GENERAL, handler_.Invoke(connection_, _T("enableAudioCapture"), _T(""), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler_.Invoke(connection_, _T("getAudioClip"), _T(""), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("enableAudioCapture"), _T(""), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("getAudioClip"), _T(""), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(DataCaptureInitializedEnableAudioCaptureTest, ShouldTurnOnAudioCapture)

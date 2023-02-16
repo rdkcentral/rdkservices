@@ -543,6 +543,7 @@ static GSourceFuncs _handlerIntervention =
                 , EnvironmentVariables()
                 , ContentFilter()
                 , LoggingTarget()
+                , WebAudioEnabled(false)
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -608,6 +609,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("environmentvariables"), &EnvironmentVariables);
                 Add(_T("contentfilter"), &ContentFilter);
                 Add(_T("loggingtarget"), &LoggingTarget);
+                Add(_T("webaudio"), &WebAudioEnabled);
             }
             ~Config()
             {
@@ -678,6 +680,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::ArrayType<EnvironmentVariable> EnvironmentVariables;
             Core::JSON::String ContentFilter;
             Core::JSON::String LoggingTarget;
+            Core::JSON::Boolean WebAudioEnabled;
         };
 
         class HangDetector
@@ -2016,14 +2019,14 @@ static GSourceFuncs _handlerIntervention =
 
             _adminLock.Unlock();
         }
-        void OnLoadFailed()
+        void OnLoadFailed(const string& URL)
         {
             _adminLock.Lock();
 
             std::list<Exchange::IWebBrowser::INotification*>::iterator index(_notificationClients.begin());
 
             while (index != _notificationClients.end()) {
-                (*index)->LoadFailed(_URL);
+                (*index)->LoadFailed(URL);
                 index++;
             }
 
@@ -2564,7 +2567,7 @@ static GSourceFuncs _handlerIntervention =
                 browser->_ignoreLoadFinishedOnce = true;
                 return;
             }
-            browser->OnLoadFailed();
+            browser->OnLoadFailed(failingURI);
         }
         static void webProcessTerminatedCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitWebProcessTerminationReason reason)
         {
@@ -2789,7 +2792,11 @@ static GSourceFuncs _handlerIntervention =
                 _config.UserAgent = webkit_settings_get_user_agent(preferences);
             }
 
+            webkit_settings_set_enable_html5_local_storage(preferences, _localStorageEnabled);
             webkit_settings_set_enable_html5_database(preferences, _config.IndexedDBEnabled.Value());
+
+            // webaudio support
+            webkit_settings_set_enable_webaudio(preferences, _config.WebAudioEnabled.Value());
 
             // Allow mixed content.
             bool enableWebSecurity = _config.Secure.Value();
@@ -2991,6 +2998,9 @@ static GSourceFuncs _handlerIntervention =
                 WKPreferencesSetMediaContentTypesRequiringHardwareSupport(preferences, contentTypes);
                 WKRelease(contentTypes);
             }
+
+            // webaudio support
+            WKPreferencesSetWebAudioEnabled(preferences, _config.WebAudioEnabled.Value());
 
             WKPageGroupSetPreferences(pageGroup, preferences);
 
@@ -3552,7 +3562,7 @@ static GSourceFuncs _handlerIntervention =
             return;
 
         WebKitImplementation* browser = const_cast<WebKitImplementation*>(static_cast<const WebKitImplementation*>(clientInfo));
-        browser->OnLoadFailed();
+        browser->OnLoadFailed(url);
     }
 
     /* static */ void webProcessDidCrash(WKPageRef, const void*)

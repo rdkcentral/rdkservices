@@ -119,6 +119,7 @@ set(PLUGIN_RESIDENT_APP_STARTURL "about:blank" CACHE STRING "Initial URL for Res
 set(PLUGIN_RESIDENT_APP_LOCALSTORAGE_ENABLE "true" CACHE STRING "Enable LocalStorage of Resident App")
 set(PLUGIN_RESIDENT_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_RESIDENT_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Resident App Memory Pressure")
+set(PLUGIN_RESIDENT_APP_COMPOSITOR "msaa" CACHE STRING "cairo compositor mode for Resident App")
 
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_AUTOSTART "false" CACHE STRING "Automatically start Search&Discovery App plugin")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_STARTUPORDER "" CACHE STRING "To configure startup order of Search&Discovery App plugin")
@@ -128,6 +129,7 @@ set(PLUGIN_SEARCH_AND_DISCOVERY_APP_WEBINSPECTOR_ADDRESS ":::10003" CACHE STRING
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_LOCALSTORAGE_ENABLE "false" CACHE STRING "Enable LocalStorage of Search&Discovery App")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Search&Discovery Memory Pressure")
+set(PLUGIN_SEARCH_AND_DISCOVERY_APP_COMPOSITOR "msaa" CACHE STRING "cairo compositor mode for Search&Discovery App")
 
 set(PLUGIN_HTML_APP_AUTOSTART "false" CACHE STRING "Automatically start Htmp App plugin")
 set(PLUGIN_HTML_APP_STARTUPORDER "" CACHE STRING "To configure startup order of Html App plugin")

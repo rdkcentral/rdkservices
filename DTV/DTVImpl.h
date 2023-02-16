@@ -503,11 +503,13 @@ namespace Plugin {
             m_modulation(modulation),
             m_dvbs2(dvbs2)
          {
+SYSLOG(Logging::Notification, (_T("DvbsTuningParamsImpl: sat_name=%s"), m_satname.c_str()));
          }
 
          uint32_t Satellite(string& sat_name) const override
          {
             sat_name = m_satname;
+SYSLOG(Logging::Notification, (_T("DvbsTuningParamsImpl::Satellite: sat_name=%s"), sat_name.c_str()));
             return Core::ERROR_NONE;
          }
 
@@ -2544,29 +2546,21 @@ namespace Plugin {
 
       uint32_t StartServiceSearch(const IDTV::TunerType tuner_type, const IDTV::ServiceSearchType search_type,
          const bool retune) override;
-      uint32_t StartServiceSearch(const IDTV::ServiceSearchType search_type, const bool retune,
-         const IDvbcTuningParams *tuning_params) override;
-      uint32_t StartServiceSearch(const IDTV::ServiceSearchType search_type, const bool retune,
-         const IDvbsTuningParams *tuning_params) override;
-      uint32_t StartServiceSearch(const IDTV::ServiceSearchType search_type, const bool retune,
-         const IDvbtTuningParams *tuning_params) override;
-      uint32_t FinishServiceSearch(const IDTV::TunerType tuner_type, const bool save_changes) override;
+      uint32_t StartServiceSearch(const ServiceSearchType search_type, const bool retune,
+         const uint32_t freq_hz, const uint16_t symbol_rate,
+         const IDvbcTuningParams::ModulationType modulation) override;
+      uint32_t StartServiceSearch(const ServiceSearchType search_type, const bool retune,
+         const uint32_t freq_hz, const IDvbtTuningParams::BandwidthType bandwidth,
+         const IDvbtTuningParams::OfdmModeType mode, const bool dvbt2, const uint8_t plp_id) override;
+      uint32_t StartServiceSearch(const ServiceSearchType search_type, const bool retune,
+         const string sat_name, const uint32_t freq_khz, const IDvbsTuningParams::PolarityType polarity,
+         const uint16_t symbol_rate, const IDvbsTuningParams::FecType fec,
+         const IDvbsTuningParams::ModulationType modulation, const bool dvbs2) override;
+      uint32_t FinishServiceSearch(const TunerType tuner_type, const bool save_changes) override;
 
       uint32_t StartPlaying(const string dvburi, const bool monitor_only, int32_t& play_handle) override;
       uint32_t StartPlaying(const uint16_t lcn, const bool monitor_only, int32_t& play_handle) override;
       uint32_t StopPlaying(const int32_t play_handle) override;
-
-      uint32_t DvbcTuningParams(const uint32_t freq_hz, const uint16_t symbol_rate,
-         const IDvbcTuningParams::ModulationType modulation, IDvbcTuningParams*& params) override;
-
-      uint32_t DvbsTuningParams(const string sat_name, const uint32_t freq_khz,
-         const IDvbsTuningParams::PolarityType polarity, const uint16_t symbol_rate,
-         const IDvbsTuningParams::FecType fec, const IDvbsTuningParams::ModulationType modulation,
-         const bool dvbs2, IDvbsTuningParams*& params) override;
-
-      uint32_t DvbtTuningParams(const uint32_t freq_hz, const IDvbtTuningParams::BandwidthType bandwidth,
-         const IDvbtTuningParams::OfdmModeType mode, const bool dvbt2, const uint8_t plp_id,
-         IDvbtTuningParams*& params) override;
 
    private:
       class Config : public Core::JSON::Container
