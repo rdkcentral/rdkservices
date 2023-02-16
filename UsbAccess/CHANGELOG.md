@@ -16,9 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.1.1] - 2023-02-01
-### Changed
+## [1.2.0] - 2023-02-01
+### Added
 - Added new api getLinks, to get all the created links
+### Changed
 - Fixed bug with APIs getFileList(), createLink(), clearLink(), archiveLogs(), when invalid path is provided
 - Added "path" tag to getFileList() API's response
 
