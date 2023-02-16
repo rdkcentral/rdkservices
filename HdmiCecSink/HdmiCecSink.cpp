@@ -443,7 +443,7 @@ namespace WPEFramework
 					
 					case GIVE_OSD_NAME :
 			 		{
-			 			HdmiCecSink::_instance->deviceList[header.from.toInt()].update(OSDName("FA"));
+			 			HdmiCecSink::_instance->deviceList[header.from.toInt()].update(OSDName(""));
 			 		}
 						break;
 
@@ -1849,7 +1849,7 @@ namespace WPEFramework
 	
 		void HdmiCecSink::sendMenuLanguage()
 		{
-			Language lang = "NA";
+			Language lang = "";
 			if(!HdmiCecSink::_instance)
 				return;
 
@@ -2480,7 +2480,7 @@ namespace WPEFramework
 						if ( _instance->deviceList[logicalAddress].m_isRequestRetry++ >= HDMICECSINK_REQUEST_MAX_RETRY )
 						{
 							LOGINFO("Max retry for REQUEST_OSD_NAME = %d", _instance->deviceList[logicalAddress].m_isRequestRetry);
-							_instance->deviceList[logicalAddress].update(OSDName("NA"));
+							_instance->deviceList[logicalAddress].update(OSDName(""));
 							_instance->deviceList[logicalAddress].m_isRequestRetry = 0;
 						}
 					}
