@@ -764,12 +764,19 @@ namespace WPEFramework
 
          if (tuner_type != IDTV::TunerType::NONE)
          {
-            IDTV::IDvbcTuningParams *dvbc_params = nullptr;
-            IDTV::IDvbsTuningParams *dvbs_params = nullptr;
-            IDTV::IDvbtTuningParams *dvbt_params = nullptr;
-            bool manual_search = false;
+            IDTV::ServiceSearchType search_type;
+            bool retune = (start_search.Retune ? true : false);
 
-            result = Core::ERROR_NONE;
+            if (start_search.Searchtype == StartServiceSearchParamsData::SearchtypeType::FREQUENCY)
+            {
+               SYSLOG(Logging::Notification, (_T("DTV::StartServiceSearch: frequency")));
+               search_type = IDTV::ServiceSearchType::FREQUENCY;
+            }
+            else
+            {
+               SYSLOG(Logging::Notification, (_T("DTV::StartServiceSearch: network")));
+               search_type = IDTV::ServiceSearchType::NETWORK;
+            }
 
             if (start_search.Usetuningparams)
             {
@@ -777,79 +784,49 @@ namespace WPEFramework
                {
                   case IDTV::TunerType::DVBS:
                      SYSLOG(Logging::Notification, (_T("DTV::StartServiceSearch: manual DVB-S")));
-                     result = m_dtv->DvbsTuningParams(start_search.Dvbstuningparams.Satellite.Value(),
+                     result = m_dtv->StartServiceSearch(search_type, retune,
+                        start_search.Dvbstuningparams.Satellite.Value(),
                         (uint32_t)start_search.Dvbstuningparams.Frequency.Value(),
                         GetDvbsPolarity(start_search.Dvbstuningparams.Polarity),
                         (uint16_t)start_search.Dvbstuningparams.Symbolrate.Value(),
                         GetDvbsFEC(start_search.Dvbstuningparams.Fec),
                         GetDvbsModulation(start_search.Dvbstuningparams.Modulation),
-                        start_search.Dvbstuningparams.Dvbs2,
-                        dvbs_params);
+                        start_search.Dvbstuningparams.Dvbs2);
                      break;
+
                   case IDTV::TunerType::DVBT:
                      SYSLOG(Logging::Notification, (_T("DTV::StartServiceSearch: manual DVB-T")));
-                     result = m_dtv->DvbtTuningParams((uint32_t)start_search.Dvbttuningparams.Frequency.Value(),
+                     result = m_dtv->StartServiceSearch(search_type, retune,
+                        (uint32_t)start_search.Dvbttuningparams.Frequency.Value(),
                         GetDvbtBandwidth(start_search.Dvbttuningparams.Bandwidth),
                         GetDvbtOfdmMode(start_search.Dvbttuningparams.Mode),
                         start_search.Dvbttuningparams.Dvbt2,
-                        (uint8_t)start_search.Dvbttuningparams.Plpid,
-                        dvbt_params);
+                        (uint8_t)start_search.Dvbttuningparams.Plpid);
                      break;
+
                   case IDTV::TunerType::DVBC:
                      SYSLOG(Logging::Notification, (_T("DTV::StartServiceSearch: manual DVB-C")));
-                     result = m_dtv->DvbcTuningParams(start_search.Dvbctuningparams.Frequency.Value(),
+                     result = m_dtv->StartServiceSearch(search_type, retune,
+                        start_search.Dvbctuningparams.Frequency.Value(),
                         (uint16_t)start_search.Dvbctuningparams.Symbolrate.Value(),
-                        GetDvbcModulation(start_search.Dvbctuningparams.Modulation),
-                        dvbc_params);
+                        GetDvbcModulation(start_search.Dvbctuningparams.Modulation));
                      break;
+
                   default:
                      result = Core::ERROR_BAD_REQUEST;
                      break;
                }
+            }
+            else
+            {
+               SYSLOG(Logging::Notification, (_T("DTV::StartServiceSearch: auto")));
 
-               if (result == Core::ERROR_NONE)
-               {
-                  manual_search = true;
-               }
+               result = m_dtv->StartServiceSearch(tuner_type, search_type, retune);
             }
 
             if (result == Core::ERROR_NONE)
             {
-               IDTV::ServiceSearchType search_type;
-
-               if (start_search.Searchtype == StartServiceSearchParamsData::SearchtypeType::FREQUENCY)
-               {
-                  search_type = IDTV::ServiceSearchType::FREQUENCY;
-               }
-               else
-               {
-                  search_type = IDTV::ServiceSearchType::NETWORK;
-               }
-
-               if (manual_search)
-               {
-                  if (dvbc_params != nullptr)
-                  {
-                     result = m_dtv->StartServiceSearch(search_type, (start_search.Retune ? true : false), dvbc_params);
-                  }
-                  else if (dvbs_params != nullptr)
-                  {
-                     result = m_dtv->StartServiceSearch(search_type, (start_search.Retune ? true : false), dvbs_params);
-                  }
-                  else if (dvbt_params != nullptr)
-                  {
-                     result = m_dtv->StartServiceSearch(search_type, (start_search.Retune ? true : false), dvbt_params);
-                  }
-               }
-               else
-               {
-                  result = m_dtv->StartServiceSearch(tuner_type, search_type, (start_search.Retune ? true : false));
-               }
-
-               if (result == Core::ERROR_NONE)
-               {
-                  response = true;
-               }
+               response = true;
             }
          }
          else
