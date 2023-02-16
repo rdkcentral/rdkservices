@@ -49,6 +49,10 @@
 #include "TimeZoneSupport.h"
 #endif
 
+#if defined(ENABLE_CUSTOM_PROCESS_INFO)
+#include "ProcessInfo.h"
+#endif
+
 using namespace WPEFramework;
 
 static Core::NodeId GetConnectionNode()
@@ -122,6 +126,9 @@ public:
 
 #if defined(UPDATE_TZ_FROM_FILE)
         _tzSupport.Initialize();
+#endif
+#ifdef ENABLE_CUSTOM_PROCESS_INFO
+        ProcessInfo::SetProcessName();
 #endif
     }
 
