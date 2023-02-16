@@ -18,6 +18,8 @@
 set(PLUGIN_NAME RustBridge)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_RUSTBRIDGE_AUTOSTART true CACHE BOOL "Automatically start RustBridge plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 

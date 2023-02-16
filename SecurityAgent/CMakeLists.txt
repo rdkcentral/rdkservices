@@ -18,6 +18,7 @@
 set(PLUGIN_NAME SecurityAgent)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_SECURITYAGENT_AUTOSTART true CACHE BOOL "Automatically start SecurityAgent plugin")
 set(PLUGIN_SECURITYAGENT_STARTUPORDER "" CACHE STRING "To configure startup order of SecurityAgent plugin")
 set(PLUGIN_SECURITYAGENT_ACL_FILE_NAME "acl.json" CACHE STRING "SecurityAgent ACL file name")
 set(PLUGIN_SECURITYAGENT_DAC_FOLDER "" CACHE STRING "Folder with ACL files for DAC apps")

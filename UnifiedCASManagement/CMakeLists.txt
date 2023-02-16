@@ -18,6 +18,8 @@
 set(PLUGIN_NAME UnifiedCASManagement)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_UNIFIEDCASMANAGEMENT_AUTOSTART true CACHE BOOL "Automatically start UnifiedCASManagement plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Protocols REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)

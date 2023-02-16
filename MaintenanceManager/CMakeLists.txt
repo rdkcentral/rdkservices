@@ -18,6 +18,7 @@
 set(PLUGIN_NAME MaintenanceManager)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_MAINTENANCEMGR_AUTOSTART true CACHE BOOL "Automatically start MaintenanceManager plugin")
 set(PLUGIN_MAINTENANCEMGR_STARTUPORDER "" CACHE STRING "To configure startup order of MaintenanceManager plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)

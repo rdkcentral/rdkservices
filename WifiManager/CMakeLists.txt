@@ -18,6 +18,7 @@
 set(PLUGIN_NAME WifiManager)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_WIFI_AUTOSTART true CACHE BOOL "Automatically start WifiManager plugin")
 set(PLUGIN_WIFI_STARTUPORDER "" CACHE STRING "To configure startup order of WifiManager plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)

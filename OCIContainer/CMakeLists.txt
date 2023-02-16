@@ -1,6 +1,7 @@
 set(PLUGIN_NAME OCIContainer)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_OCICONTAINER_AUTOSTART true CACHE BOOL "Automatically start OCIContainer plugin")
 set(PLUGIN_OCICONTAINER_STARTUPORDER "" CACHE STRING "To configure startup order of OCIContainer plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
