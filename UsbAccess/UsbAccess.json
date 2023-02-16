@@ -79,7 +79,45 @@
                 ]
             }
         },
-        "getAvailableFirmwareFiles": {
+        "getLinks": {
+            "summary": "Returns a list of created links and the associated root folder of the USB drive.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "links": {
+                        "summary": "The list of links and associated baseURL paths (empty if there are no results)",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "summary": "The root folder of the mounted USB Drive as returned by getMounted API",
+                                    "type": "string",
+                                    "example": "/run/media/sda1"
+                                },
+                                "baseURL": {
+                                    "summary": "The URL of the web server that points to the path as returned by createLink",
+                                    "type": "string",
+                                    "example": "http://localhost/usbdrive"
+                                }
+                            },
+                            "required": [
+                                "path",
+                                "baseURL"
+                            ]
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "links",
+                    "success"
+                ]
+            }
+        },
+         "getAvailableFirmwareFiles": {
             "summary": "Gets a list of firmware files on the device. These files should start with the PMI or model number for that device and end with `.bin`. For example `HSTP11MWR_4.11p5s1_VBN_sdy.bin`.  \nFirmware files are scanned in the root directories. If multiple USB devices are found, then the available firmware files are checked and listed from each device.",
             "result": {
                 "type": "object",
@@ -119,6 +157,11 @@
             "result": {
                 "type": "object",
                 "properties": {
+                    "path": {
+                        "summary": "Absolute path for which the contents are returned",
+                        "type":"string",
+                        "example": "\/run\/media\/sda1\/logs\/PreviousLogs"
+                    },
                     "contents": {
                         "summary": "A list of files and directories (empty if there are no results)",
                         "type": "array",
@@ -152,6 +195,7 @@
                     }
                 },
                 "required": [
+                    "path",
                     "contents",
                     "success"
                 ]
