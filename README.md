@@ -165,9 +165,14 @@ Use the existing services as a guide when learning the structure of both the plu
 
     * Minimise the use of exceptions and handle exceptions locally if possible
     
-    * All resources acquired by a RDK Service must be released by the Deinitialize method and/or the destructor
+2. RDK services are implemented as Thunder Plugins and must adhere to the [PluginHost::IPlugin](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h) interface. If a RDK service handles WEB requests it implements [PluginHost::IWeb](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h). If it activates/deactivates and handles JSON-RPC it implements [PluginHost::IDispatcher](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/JSONRPC.h) (or derives from PluginHost::JSONRPC). If it implements custom interfaces it adds them to [ThunderInterfaces](https://github.com/rdkcentral/ThunderInterfaces) for RPC. If it exposes interfaces to other processes via RPC it develops an [RPC::Communicator](https://github.com/rdkcentral/Thunder/blob/master/Source/com/Communicator.h). A service specifies its interfaces like this:
 
-2. RDK services are implemented as Thunder Plugins and must adhere to the [PluginHost::IPlugin](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h) interface.
+```shell
+    BEGIN_INTERFACE_MAP(MyPlugin)
+    INTERFACE_ENTRY(PluginHost::IPlugin)
+    INTERFACE_ENTRY(PluginHost::IDispatcher)
+    END_INTERFACE_MAP
+```
 
 3. All RDK Services must have a callsign with a prefix of `org.rdk`. RDK Service name must be CamelCase and start with a capital letter.
 
@@ -179,26 +184,38 @@ Use the existing services as a guide when learning the structure of both the plu
 
     * Any package that includes a Thunder component requires such a definition and declaration. If the definition is missing, a compiler error will be reported (error missing MODULE_NAME) and if the declaration is missing, a linker error will be reported (missing or duplicate symbol)
 
-    * MODULE_NAME is typically found in "Module.h" and "Module.cpp"
+    * Module.h defines the mandatory MODULE_NAME. It also includes framework headers (<plugins/plugins.h>)
+        ```shell
+        #ifndef MODULE_NAME
+        #define MODULE_NAME Plugin_IOController
+        #endif
+        ```
+    * Module.cpp defines the mandatory MODULE_NAME_DECLARATION
+        ```shell
+        #include "Module.h"
+        MODULE_NAME_DECLARATION(BUILD_REFERENCE)
+        ```
 
-        * Module.h
-            ```
-            #ifndef MODULE_NAME
-            #define MODULE_NAME Plugin_IOController
-            #endif
-        * Module.c
-            ```
-            #include "Module.h"
-            MODULE_NAME_DECLARATION(BUILD_REFERENCE)
+6. A service is registered in a translation unit via a mandatory SERVICE_REGISTRATION(MyService, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH)
 
-6. Initialization and Cleanup
+7. MyPlugin.config can specify: autostart, startuporder, custom properties (passed to the service during activation via PluginHost::IShell::ConfigLine()). During the project configuration, write_config(MyPlugin) in CMakeLists.txt uses MyPlugin.config to generate and install a corresponding json file. Refer to [PersistentStore.config](https://github.com/rdkcentral/rdkservices/blob/main//PersistentStore/PersistentStore.config)
+
+8. MyPlugin.json documents JSON-RPC interface. It's added to both plugin folder and ThunderInterfaces. The latter generates classes for parameters or enums that can be included like #include <interfaces/json/JsonData_MyPlugin.h>. In the plugin code, JSON-RPC methods and properties are registered like this:
+
+```shell
+    Register<void /*input params*/, void /*output params*/>(_T("sync"), &MyPlugin::endpoint_sync, this);
+    Property<LocationData>(_T("location"), &MyPlugin::get_location /*getter*/, nullptr /*setter*/, this);
+```
+
+9. Initialization and Cleanup
+
+    * Keep Plugin Constructors & Destructors lean. Most initialization should be done within Initialize() which gets called when the plugin is activated. More on that below. This will ensure that WPEFramework boots up faster since most of the plugins are not auto-started or activated on bootup. Similarly most of the plugin cleanup should happen within Deinitialize() instead of the destructor.
 
     * Prefer to do Plugin Initialization within IPlugin [Initialize()](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h#L71). If there is any error in initialization return non-empty string with useful error information. This will ensure that plugin doesn't get activated and also return this error information to the caller. Ensure that any Initialization done within Initialize() gets cleaned up within IPlugin [Deinitialize()](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h#L80) which gets called when the plugin is deactivated.
     
     * Ensure that any std::threads created are joined within Deinitialize() or the destructor to avoid [std::terminate](https://en.cppreference.com/w/cpp/thread/thread/~thread) exception. Use the [ThreadRAII](helpers/UtilsThreadRAII.h) class for creating threads which will ensure that the thread gets joined before destruction.
 
-7.  Inter-plugin communication
-    * There might be use cases where one RDK Service or plugin needs to call APIs in another RDK Service. Don't use JSON-RPC for such communication since it's an overhead and not preferred for inter-plugin communication. JSON-RPC must be used only by applications. Instead use COM RPC through the IShell Interface API [QueryInterfaceByCallsign()](https://github.com/rdkcentral/Thunder/blob/R2/Source/plugins/IShell.h#L210) exposed for each Plugin. Here is an [example](https://github.com/rdkcentral/rdkservices/blob/main/Messenger/MessengerSecurity.cpp#L35). 
+10.  Inter-plugin communication - There might be use cases where one RDK Service or plugin needs to call APIs in another RDK Service. Don't use JSON-RPC for such communication since it's an overhead and not preferred for inter-plugin communication. JSON-RPC must be used only by applications. Instead use COM RPC through the IShell Interface API [QueryInterfaceByCallsign()](https://github.com/rdkcentral/Thunder/blob/R2/Source/plugins/IShell.h#L210) exposed for each Plugin. Here is an [example](https://github.com/rdkcentral/rdkservices/blob/main/Messenger/MessengerSecurity.cpp#L35). 
     <br><br>
 
 ## Versioning ##
