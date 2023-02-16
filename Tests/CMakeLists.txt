@@ -101,6 +101,7 @@ link_directories(../LocationSync
         ../ActivityMonitor
         ../MotionDetection
         ../CompositeInput
+        ../FrontPanel
         ../OCIContainer
         )
 
