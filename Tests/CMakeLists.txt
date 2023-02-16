@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
         ${TESTS}
         mocks/thunder/Module.cpp
         mocks/Wraps.cpp
+        mocks/Dobby.cpp
         )
 
 set_source_files_properties(
@@ -68,6 +69,10 @@ include_directories(../LocationSync
         ../TraceControl
         ../Warehouse
         ../ActivityMonitor
+        ../MotionDetection
+        ../CompositeInput
+        ../FrontPanel
+        ../OCIContainer
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -93,6 +98,10 @@ link_directories(../LocationSync
         ../TraceControl
         ../Warehouse
         ../ActivityMonitor
+        ../MotionDetection
+        ../CompositeInput
+        ../FrontPanel
+        ../OCIContainer
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -122,6 +131,10 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}TraceControl
         ${NAMESPACE}Warehouse
         ${NAMESPACE}ActivityMonitor
+        ${NAMESPACE}MotionDetection
+        ${NAMESPACE}CompositeInput
+        ${NAMESPACE}FrontPanel
+        ${NAMESPACE}OCIContainer
         )
 
 target_include_directories(${PROJECT_NAME}
