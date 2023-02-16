@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.10] - 2023-02-16
+### Fixed
+- Updated OSDName to empty string as default and when FeatureAbort frame received for GiveOSDName.
+
 ## [1.0.9] - 2022-12-31
 ### Fixed
 - Updated documentation for sendKeyEvent thunder API.
