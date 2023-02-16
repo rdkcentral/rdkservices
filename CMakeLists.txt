@@ -28,11 +28,13 @@ if(COMCAST_CONFIG)
     include(services.cmake)
 endif()
 
+option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
+
 if(RDK_SERVICES_TEST)
     include(tests.cmake)
 endif()
 
-option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
+option(PLUGIN_RUSTBRIDGE "Include RustBridge plugin" OFF)
 
 # Library installation section
 string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
