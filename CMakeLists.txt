@@ -28,6 +28,10 @@ if(COMCAST_CONFIG)
     include(services.cmake)
 endif()
 
+if(RDK_SERVICES_TEST)
+    include(tests.cmake)
+endif()
+
 option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
 
 # Library installation section
