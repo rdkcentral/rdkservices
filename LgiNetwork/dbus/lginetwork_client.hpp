@@ -6,6 +6,7 @@
 #define LGINETWORK_CLIENT_HPP_
 
 #include <thread>
+#include <future>
 #include <vector>
 #include <map>
 #include <gio/gio.h>
@@ -110,9 +111,14 @@ private:
 
     void connectSignal(const char* signalName, GCallback callback);
     void disconnectAllSignals();
+    void Worker();
 
     Networkconfig1* m_interface;
     std::vector<gulong> m_signalHandles;
+    std::thread m_loopThread;
+    std::promise<bool> m_initialized;
+    GMainContext *m_mainContext;
+    GMainLoop *m_mainLoop;
 };
 
 } // namespace lginet

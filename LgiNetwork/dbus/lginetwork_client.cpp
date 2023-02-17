@@ -374,14 +374,10 @@ int LgiNetworkClient::Run()
 {
     LOGINFO("user_data: %p", this);
 
-    GError* error = nullptr;
-    m_interface = networkconfig1_proxy_new_for_bus_sync(G_BUS_TYPE_SYSTEM,
-                                                            G_DBUS_PROXY_FLAGS_NONE,
-                                                            NETWORK_CONFIG_DBUS_INTERFACE_NAME,
-                                                            NETWORK_CONFIG_DBUS_INTERFACE_OBJECT_PATH,
-                                                            NULL, /* GCancellable */
-                                                            &error);
-    if (m_interface)
+    m_loopThread = std::thread(&LgiNetworkClient::Worker, this);
+    bool initialized = m_initialized.get_future().get();
+
+    if (initialized && m_interface)
     {
 #ifdef GDBUS_USE_CODEGEN_IMPL
         connectSignal("ipv4-configuration-changed", G_CALLBACK(DbusHandlerCallbacks::cbHandleIPv4ConfigurationChanged));
@@ -394,21 +390,50 @@ int LgiNetworkClient::Run()
     }
     else
     {
+        LOGERR("Failed to create networkconfig proxy.");
+    }
+
+    return initialized ? 0 : -1;
+}
+
+void LgiNetworkClient::Worker()
+{
+    LOGINFO("LgiNetworkClient::Worker() TID: %u", gettid());
+
+    m_mainContext = g_main_context_new();
+    m_mainLoop = g_main_loop_new(m_mainContext, false);
+
+    if(m_mainLoop && m_mainContext) {
+        g_main_context_push_thread_default(m_mainContext);
+
+        GError* error = nullptr;
+        m_interface = networkconfig1_proxy_new_for_bus_sync(G_BUS_TYPE_SYSTEM,
+                                    G_DBUS_PROXY_FLAGS_NONE,
+                                    NETWORK_CONFIG_DBUS_INTERFACE_NAME,
+                                    NETWORK_CONFIG_DBUS_INTERFACE_OBJECT_PATH,
+                                    NULL, /* GCancellable */
+                                    &error);
         if (error)
         {
             LOGERR("Failed to create networkconfig proxy: %s", error->message);
             g_error_free(error);
         }
-        else
-        {
-            LOGERR("Failed to create networkconfig proxy.");
-        }
-        return -1;
+        m_initialized.set_value(m_interface != nullptr);
+
+        LOGINFO("LgiNetworkClient::Worker() start main loop TID: %u", gettid());
+        g_main_loop_run(m_mainLoop); // blocks
+        LOGINFO("LgiNetworkClient::Worker() main loop finished TID: %u", gettid());
+        g_main_context_pop_thread_default(m_mainContext);
+        g_main_loop_unref(m_mainLoop);
+        g_main_context_unref(m_mainContext);
+        m_mainLoop = nullptr;
+        m_mainContext = nullptr;
     }
-
-    return 0;
+    else {
+        LOGERR("Failed to create glib main loop");
+        m_initialized.set_value(false);
+    }
 }
-
 
 static void release_networkconfig1(Networkconfig1* interface)
 {
@@ -429,6 +454,18 @@ void LgiNetworkClient::Stop()
         disconnectAllSignals();
         release_networkconfig1(m_interface);
         m_interface = nullptr;
+        g_main_context_invoke(m_mainContext, +[](gpointer ptr) -> gboolean {
+            LOGINFO("LgiNetworkClient::Stop() quit main loop TID: %u", gettid());
+            g_main_loop_quit((GMainLoop*)ptr);
+            return FALSE;
+        }, (gpointer)m_mainLoop);
+
+        if(m_loopThread.joinable()) {
+            m_loopThread.join();
+        }
+        else {
+            LOGERR("Worker thread should be joinable");
+        }
         LOGINFO("signals disconnected");
     }
 }
