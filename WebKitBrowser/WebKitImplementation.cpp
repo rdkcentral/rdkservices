@@ -2789,6 +2789,7 @@ static GSourceFuncs _handlerIntervention =
                 _config.UserAgent = webkit_settings_get_user_agent(preferences);
             }
 
+            webkit_settings_set_enable_html5_local_storage(preferences, _localStorageEnabled);
             webkit_settings_set_enable_html5_database(preferences, _config.IndexedDBEnabled.Value());
 
             // Allow mixed content.
