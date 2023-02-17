@@ -1,24 +1,124 @@
-# **How to add a new RDK service/Thunder plugin**
-
-- There are two types of plugins in RDK, In-Process plugins, and Out-of-Process plugins.
-- In-Process plugins run within the same process as the main application and can access the application's memory directly.
-- Out-of-Process plugins run in a separate process from the main application and connect to main WPEFramework application through COM RPC (Unix sockets).
-- In summary, the choice between In-Process and Out-of-Process plugins depends on the desired trade-off between stability, security, and performance. Out-of-Process plugins are created primarily for stability (any crashes won't bring down the main WPEFramework process) and for resource intensive plugins (browser plugins like WebKitBrowser) that would fit better as a separate process, whereas In-Process plugins are created mainly for performance.
-
-## **Please follow the below steps to create a new RDK service/ Thunder plugin - In process plugin.**
+# **Follow the below steps to create a new RDK service/ Thunder plugin - In-process plugin.**
 
 ![Graphical Represenation of steps to create a new In-Process Thunder Plugin/ RDK Services](./In-process-plugin.png)
 
-1. Create a clone repository of [rdkcentral/ rdkservices](https://github.com/rdkcentral/rdkservices).
+## 1. Create Project Folder
 
-2. Navigate to the cloned repository.
+- Create a clone repository of [rdkcentral/ rdkservices](https://github.com/rdkcentral/rdkservices).
 
-3. Create a new folder with a unique name for the plugin. Please refer to link [SecurityAgent Plugin](https://github.com/rdkcentral/rdkservices/tree/sprint/23Q1/SecurityAgent) for sample.
+- Navigate to the cloned repository.
 
-4.	Inside the plugin directory, create a new `CMakeLists.txt` file.
--	This file contains a set of directives and instructions describing the project's source files and targets. This is used to compile the Plugin code to generate the plugin library (Shared library by default; `“.so”`). External dependencies can be included/linked to the target with the help of `CMakeLists.txt` configurations.
+- Create a new folder with a unique name for the plugin. Please refer to link [SecurityAgent Plugin](https://github.com/rdkcentral/rdkservices/tree/sprint/23Q1/SecurityAgent) for sample.
+
+## 2. Create a "CMake" file
+
+- Inside the plugin directory, create a new `CMakeLists.txt` file.
+- This file contains a set of directives and instructions describing the project's source files and targets.
+- This is used to compile the Plugin code to generate the plugin library (Shared library by default; `“.so”`). External dependencies can be included/linked to the target with the help of `CMakeLists.txt` configurations.
 
     For example, please refer to link [ SecurityAgent CMakelist](https://github.com/rdkcentral/rdkservices/blob/sprint/23Q1/SecurityAgent/CMakeLists.txt).
+
+## 3. Plugin Json API Spec
+
+This JSON file provides the API spec for the plugin. This uses JSON Schema [https://json-schema.org/](https://json-schema.org/).
+
+It contains the following sections.
+a) **Schema:**
+    A schema defines the structure of a JSON document, including the type of data that can be stored in it, the names of fields and their types, and constraints on the values that can be stored in those fields. The purpose of a schema is to provide a blueprint for how the data in a JSON document should be organized, so that applications can validate the data before processing it.
+
+The Latest Schema Syntax:
+```JSON
+"$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+```
+Following indicates the spec supports jsonrpc protocol version 2.0
+```JSON
+    "jsonrpc": "2.0",
+```
+b) **Info:**
+    Info section updates details like Title, Description and Class name.
+```JSON
+
+    "info": {
+      "title": "PertsistentStore API",
+      "class": "PersistentStore",
+      "description": "The `PersistentStore` plugin allows you to persist key/value pairs by namespace"
+    },
+```
+
+c) **Definitions**
+    Defines global definitions for use in the spec.
+```JSON
+ "value": {
+            "summary": "The key value. Values are capped at 1000 characters in size.",
+            "type": "string",
+            "example": "value1"
+        }
+```
+d) **Methods**
+    Defines the APIs provided by this plugin.
+```JSON
+"deleteKey":{
+            "summary": "Deletes a key from the specified namespace.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "namespace": {
+                        "$ref": "#/definitions/namespace"
+                    },
+                    "key": {
+                        "$ref": "#/definitions/key"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "key"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        }
+```
+    i)The key specifies the API name
+    ii) "summary" provides description of the API. Provide detailed description of the API that will be useful for clients of the API. This also goes into the API documentation.
+    iii) "params" list all the input parameters for this API. "required" field within "params" lists all the required input parameters.
+    iv) "result" - provides details of the output response.
+
+e) **Events:**
+    Defines the events supported by this plugin.
+```JSON
+"onValueChanged": {
+            "summary": "Triggered whenever any of the values stored are changed using setValue.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "namespace": {
+                        "$ref": "#/definitions/namespace"
+                    },
+                    "key": {
+                        "$ref": "#/definitions/key"
+                    },
+                    "value": {
+                        "$ref": "#/definitions/value"
+                    }
+                },
+                "required": [
+                    "namespace",
+                    "key",
+                    "value"
+                ]
+            }
+        }
+```
+    i)The key specifies the event name
+    ii) "summary" provides description of the event. Provide detailed description of the event that will be useful for clients of the API. This also goes into the API documentation.
+    iii) "params" list all the parameters that will be included in the event payload. "required" field within "params" lists all the required parameters in the event payload.
+
+## 4. Headers Files
+## 5. Source Files
+
+
+    
 
 5. Create a new JSON file with a unique name `PluginName.json`.
 -	This file contains the plugin's information like schema, information and interface json file.
@@ -30,9 +130,6 @@
 
     For example, please refer to link [SecurityAgent JSON file](https://github.com/rdkcentral/rdkservices/blob/sprint/23Q1/SecurityAgent/SecurityAgent.json).
 
-**About Thunder Interfaces** - A thunder interface is `JSONRPC` and `COMRPC` interfaces which provides the communication between the `thunder (WPE Framework)` and `thunder plugins (RDK Services)`. If thunder plugin is a out of process plugin, then it's having their own thunder interface which will be saved and maintained in a separate repo [Thunder interfaces](https://github.com/rdkcentral/ThunderInterfaces).
-
-For example, `PersistentStore` Plugin has their own Thunder interface called `IStore` and located in [https://github.com/rdkcentral/ThunderInterfaces/blob/master/interfaces/IStore.h](https://github.com/rdkcentral/ThunderInterfaces/blob/master/interfaces/IStore.h).
 
 6. Create a `module.h` header file as metioned below with the required PluginName. 
  ```C++
