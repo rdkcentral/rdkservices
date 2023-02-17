@@ -2884,7 +2884,9 @@ static GSourceFuncs _handlerIntervention =
             bool enableWebSecurity = _config.Secure.Value();
 #if WEBKIT_CHECK_VERSION(2, 38, 0)
             g_object_set(G_OBJECT(preferences),
-                     "disable-web-security", !enableWebSecurity, nullptr);
+                     "disable-web-security", !enableWebSecurity,
+                     "allow-running-of-insecure-content", !enableWebSecurity,
+                     "allow-display-of-insecure-content", !enableWebSecurity, nullptr);
 #else
             g_object_set(G_OBJECT(preferences),
                      "enable-websecurity", enableWebSecurity,
