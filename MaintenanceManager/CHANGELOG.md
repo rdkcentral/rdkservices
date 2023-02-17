@@ -16,6 +16,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.12] - 2023-02-14
+### Fixed
+- Fixed race condition in startMaintenance()
 
 ## [1.0.11] - 2023-01-19
 ### Fixed
