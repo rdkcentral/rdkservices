@@ -178,7 +178,7 @@ namespace WPEFramework {
 #ifndef LGI_CUSTOM_IMPL
             std::atomic_bool m_pollThreadExit;
             Utils::ThreadRAII m_pollThread;
-            bool m_updateThreadExit;
+            std::atomic_bool m_updateThreadExit;
             Utils::ThreadRAII m_UpdateThread;
 #endif
 

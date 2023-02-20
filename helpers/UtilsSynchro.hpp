@@ -81,6 +81,18 @@ namespace Utils {
             }
         };
 
+        template<class UsingClass>
+        struct LockApiGuard {
+            std::unique_lock<std::recursive_mutex> _lock;
+            LockApiGuard() : _lock(ApiLocks<UsingClass>::mtx) {}
+            void unlock() {
+                _lock.unlock();
+            }
+            void lock() {
+                _lock.lock();
+            }
+        };
+
 
     } // Utils
 } // Synchro
