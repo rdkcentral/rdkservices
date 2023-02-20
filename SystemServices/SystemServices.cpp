@@ -3888,18 +3888,18 @@ namespace WPEFramework {
                 if(param.pwrMode & (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) )
                 {
                     response["powerState"] = "LIGHT_SLEEP";
-                    LOGWARN(" %s: %d  powerstate value: LIGHT_SLEEP  \n",__FUNCTION__,__LINE__,);
+                    LOGWARN(" %s: %d  powerstate value: LIGHT_SLEEP  \n",__FUNCTION__,__LINE__);
                 }
                 if(param.pwrMode & (1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
                 {
                     response["powerState"] = "DEEP_SLEEP";
-                    LOGWARN(" %s: %d  powerstate value: DEEP_SLEEP  \n",__FUNCTION__,__LINE__,);
+                    LOGWARN(" %s: %d  powerstate value: DEEP_SLEEP  \n",__FUNCTION__,__LINE__);
                 }
                 if(param.pwrMode & ((1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) | \
                                              (1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP)))
                 {
                     response["powerState"] = "DEFAULT";
-                    LOGWARN(" %s: %d  powerstate value: DEFAULT  \n",__FUNCTION__,__LINE__,);
+                    LOGWARN(" %s: %d  powerstate value: DEFAULT  \n",__FUNCTION__,__LINE__);
                 }
 
             } else {
