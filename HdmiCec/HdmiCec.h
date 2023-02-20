@@ -173,9 +173,9 @@ namespace WPEFramework {
             bool cecEnableStatus;
             Connection *smConnection;
             int m_numberOfDevices;
-            bool m_pollThreadExit;
+            std::atomic_bool m_pollThreadExit;
             Utils::ThreadRAII m_pollThread;
-            bool m_updateThreadExit;
+            std::atomic_bool m_updateThreadExit;
             Utils::ThreadRAII m_UpdateThread;
 
             const void InitializeIARM();
