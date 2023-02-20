@@ -411,6 +411,7 @@ string getTimeZoneAccuracyDSTHelper(void)
     }
 
     if (timeZoneAccuracy != TZ_ACCURACY_INITIAL && timeZoneAccuracy != TZ_ACCURACY_INTERIM && timeZoneAccuracy != TZ_ACCURACY_FINAL) {
+        LOGWARN("Got empty or invalid TimeZone Accuracy from the file, using default 'INITIAL'");
         timeZoneAccuracy = TZ_ACCURACY_INITIAL;
     }
 
