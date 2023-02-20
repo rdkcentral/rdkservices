@@ -39,6 +39,7 @@ namespace WPEFramework {
                 };
             }
 
+
             /* we are hiding, not overriding, Register */
             template <typename METHOD, typename REALOBJECT>
             void Register(const string& methodName, const METHOD& method, REALOBJECT* objectPtr)
@@ -48,11 +49,10 @@ namespace WPEFramework {
             }
 
             /* we are hiding, not overriding, Register */
-            template <typename INBOUND, typename OUTBOUND, typename METHOD, typename REALOBJECT>
-            void Register(const string& methodName, const METHOD& method, REALOBJECT* objectPtr)
+            template <typename METHOD, typename REALOBJECT>
+            void Register(const string& methodName, const METHOD& method, REALOBJECT* objectPtr, const std::vector<uint8_t> versions)
             {
-                using MethodType = decltype(getFunctionToCall(methodName, method, objectPtr));
-                PluginHost::JSONRPC::Register<INBOUND, OUTBOUND, MethodType, REALOBJECT>(methodName, getFunctionToCall(methodName, method, objectPtr), objectPtr);
+                PluginHost::JSONRPC::Register<METHOD,REALOBJECT>(methodName, getFunctionToCall(methodName, method, objectPtr), objectPtr, versions);
             }
 
             struct HandlerWrapper {
