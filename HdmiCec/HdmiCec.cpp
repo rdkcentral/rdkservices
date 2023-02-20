@@ -173,7 +173,7 @@ namespace WPEFramework
 //=========================================== HdmiCec =========================================
 
         HdmiCec::HdmiCec()
-        : cecEnableStatus(false),smConnection(nullptr)
+        : PluginHost::JSONRPC(),cecEnableStatus(false),smConnection(nullptr)
         {
             HdmiCec::_instance = this;
             InitializeIARM();
@@ -1050,7 +1050,7 @@ namespace WPEFramework
 			return;
 		if(!(_instance->smConnection))
 			return;
-		LOGINFO("Entering ThreadRun: _instance->m_pollThreadExit %d",_instance->m_pollThreadExit.load());
+		LOGINFO("Entering ThreadRun: _instance->m_pollThreadExit %d",_instance->m_pollThreadExit);
 		int i = 0;
 		pthread_mutex_lock(&(_instance->m_lock));//pthread_cond_wait should be mutex protected. //pthread_cond_wait will unlock the mutex and perfoms wait for the condition.
 		while (!_instance->m_pollThreadExit) {
@@ -1080,7 +1080,7 @@ namespace WPEFramework
 			return;
 		if(!(_instance->smConnection))
 			return;
-		LOGINFO("Entering ThreadUpdate: _instance->m_updateThreadExit %d",_instance->m_updateThreadExit.load());
+		LOGINFO("Entering ThreadUpdate: _instance->m_updateThreadExit %d",_instance->m_updateThreadExit);
 		int i = 0;
 		pthread_mutex_lock(&(_instance->m_lockUpdate));//pthread_cond_wait should be mutex protected. //pthread_cond_wait will unlock the mutex and perfoms wait for the condition.
 		while (!_instance->m_updateThreadExit) {

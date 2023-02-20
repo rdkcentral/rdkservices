@@ -30,6 +30,7 @@
 #include "ccec/MessageDecoder.hpp"
 #include "ccec/MessageProcessor.hpp"
 
+
 #undef Assert // this define from Connection.hpp conflicts with WPEFramework
 
 #include "Module.h"
@@ -40,8 +41,6 @@
 
 #include "UtilsBIT.h"
 #include "UtilsThreadRAII.h"
-
-#include "AbstractPluginWithApiAndIARMLock.h"
 
 namespace WPEFramework {
 
@@ -116,7 +115,7 @@ namespace WPEFramework {
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class HdmiCec : public PluginHost::IPlugin, public AbstractPluginWithApiAndIARMLock, public FrameListener, public MessageProcessor {
+        class HdmiCec : public PluginHost::IPlugin, public PluginHost::JSONRPC, public FrameListener, public MessageProcessor {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -179,7 +178,7 @@ namespace WPEFramework {
 #ifndef LGI_CUSTOM_IMPL
             std::atomic_bool m_pollThreadExit;
             Utils::ThreadRAII m_pollThread;
-            std::atomic_bool m_updateThreadExit;
+            bool m_updateThreadExit;
             Utils::ThreadRAII m_UpdateThread;
 #endif
 
