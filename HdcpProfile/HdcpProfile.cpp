@@ -31,6 +31,8 @@
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
 
+#include "UtilsSynchroIarm.hpp"
+
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
 #define HDMI_HOT_PLUG_EVENT_DISCONNECTED 1
 
@@ -99,8 +101,8 @@ namespace WPEFramework
             Utils::IARM::init();
 
             IARM_Result_t res;
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDCP_STATUS, dsHdmiEventHandler) );
+            IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdcpProfile>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
+            IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdcpProfile>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDCP_STATUS, dsHdmiEventHandler) );
         }
 
         void HdcpProfile::DeinitializeIARM()
@@ -108,15 +110,15 @@ namespace WPEFramework
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDCP_STATUS, dsHdmiEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdcpProfile>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdcpProfile>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDCP_STATUS, dsHdmiEventHandler) );
             }
         }
 
         void HdcpProfile::RegisterAll()
         {
-            Register<JsonObject, JsonObject>(_T(HDCP_PROFILE_METHOD_GET_HDCP_STATUS), &HdcpProfile::getHDCPStatusWrapper, this);
-            Register<JsonObject, JsonObject>(_T(HDCP_PROFILE_METHOD_GET_SETTOP_HDCP_SUPPORT), &HdcpProfile::getSettopHDCPSupportWrapper, this);
+            Utils::Synchro::RegisterLockedApi(_T(HDCP_PROFILE_METHOD_GET_HDCP_STATUS), &HdcpProfile::getHDCPStatusWrapper, this);
+            Utils::Synchro::RegisterLockedApi(_T(HDCP_PROFILE_METHOD_GET_SETTOP_HDCP_SUPPORT), &HdcpProfile::getSettopHDCPSupportWrapper, this);
         }
 
         void HdcpProfile::UnregisterAll()
