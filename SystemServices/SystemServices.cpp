@@ -1,4 +1,4 @@
-/**
+powrMode /**
 * If not stated otherwise in this file or this component's LICENSE
 * file the following copyright and licenses apply:
 *
@@ -3731,7 +3731,7 @@ namespace WPEFramework {
             unsigned int poweState = (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) | \
                                              (1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP);
             LOGWARN(" %s: %d Entry srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
-            if (parameters.HasLabel("powerState")) {
+            if (parameters.HasLabel("powerState")) 
             {
                 string state = parameters["powerState"].String();
                 if(state.compare("LIGHTSLEEP"))
@@ -3807,7 +3807,7 @@ namespace WPEFramework {
             }
             if(srcType) {
                 IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t param;
-                param.powrMode = poweState;
+                param.pwrMode = poweState;
                 param.srcType = srcType;
                 param.config = config;
                 IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
@@ -3867,7 +3867,7 @@ namespace WPEFramework {
                }
                if( param.srcType & (1<<WAKEUPSRC_POWER_KEY))
                {
-                     response["WAKEUPSRC_POWER_KEY"] = (param.config & (1<<WAKEUPSRC_POWER_KEY ))?true:false;
+                    response["WAKEUPSRC_POWER_KEY"] = (param.config & (1<<WAKEUPSRC_POWER_KEY ))?true:false;
                     LOGWARN(" %s: %d  WAKEUPSRC_KEY value:%d  \n",__FUNCTION__,__LINE__,param.config & (1<<WAKEUPSRC_POWER_KEY));
                }
                if( param.srcType & (1<<WAKEUPSRC_TIMER))
@@ -3885,7 +3885,7 @@ namespace WPEFramework {
                     response["WAKEUPSRC_LAN"] = (param.config & (1<<WAKEUPSRC_LAN))?true:false;
                     LOGWARN(" %s: %d  WAKEUPSRC_LAN value:%d  \n",__FUNCTION__,__LINE__,param.config & (1<<WAKEUPSRC_LAN));
                 }
-                if(prarm.pwrMode & ((1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) ))
+                if(prarm.pwrMode & (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) )
                 {
                     response["powerState"] = "LIGHT_SLEEP";
                     LOGWARN(" %s: %d  powerstate value: LIGHT_SLEEP  \n",__FUNCTION__,__LINE__,);
