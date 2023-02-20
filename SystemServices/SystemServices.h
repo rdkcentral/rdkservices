@@ -192,7 +192,7 @@ namespace WPEFramework {
                 void onRebootRequest(string reason);
                 void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
 		void onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion="", string newRegion="");
-		void onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone);
+		void onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone, string oldAccuracy, string newAccuracy);
                 /* Events : End */
 
                 /* Methods : Begin */
