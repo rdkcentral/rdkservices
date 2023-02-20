@@ -1,10 +1,7 @@
 #pragma once
 
 #include <gmock/gmock.h>
-
-#include "devicesettings.h"
-#include "Operands.hpp"
-
+#include "Operands.h"
 class MessageEncoderMock : public MessageEncoderImpl{
 public:
     virtual ~MessageEncoderMock() = default;

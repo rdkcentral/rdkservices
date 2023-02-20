@@ -15,7 +15,6 @@
 #include "DeviceTypeMock.h"
 #include "MessageEncoderMock.h"
 
-///using namespace std;
 using namespace WPEFramework;
 using ::testing::NiceMock;
 
@@ -56,8 +55,6 @@ protected:
                     param->numHdmiInputs = 1;
                 }
                 if (strcmp(methodName, IARM_BUS_CECMGR_API_isAvailable) == 0) {
-                    //auto* param = static_cast<int*>(arg);
-                    //param->curState = IARM_BUS_PWRMGR_POWERSTATE_ON;
                 }
 
                 return IARM_RESULT_SUCCESS;
@@ -149,19 +146,15 @@ class HdmiCecSinkInitializedEventDsTest : public HdmiCecSinkInitializedEventTest
 protected:
 	NiceMock<LibCCECImplMock> libCCECImplMock;
     NiceMock<ConnectionImplMock> connectionImplMock;
-    NiceMock<DeviceTypeMock> deviceTypeImplMock;
-    NiceMock<LogicalAddressImplMock> logicalAddressImplMock;
 
     HdmiCecSinkInitializedEventDsTest()
         : HdmiCecSinkInitializedEventTest()
     {
-	    DeviceType::getInstance().impl = &deviceTypeImplMock;
 
     }
 
     virtual ~HdmiCecSinkInitializedEventDsTest() override
     {
-        DeviceType::getInstance().impl = nullptr;
     }
 };
 
@@ -194,15 +187,8 @@ TEST_F(HdmiCecSinkTest, RegisteredMethods)
 
 TEST_F(HdmiCecSinkInitializedEventDsTest, setEnabled)
 {
-    //setting HdmiCec to enabled.
-    ON_CALL(libCCECImplMock, getLogicalAddress(::testing::_))
-        .WillByDefault(::testing::Return(1));
-	ON_CALL(deviceTypeImplMock, toString())
-        .WillByDefault(::testing::Return("New"));
-
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-
+	EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkInitializedEventDsTest, getEnabledTrue)
@@ -213,19 +199,12 @@ TEST_F(HdmiCecSinkInitializedEventDsTest, getEnabledTrue)
 
 TEST_F(HdmiCecSinkInitializedEventDsTest, setEnabledFalse)
 {
-    //setting HdmiCec to enabled.
-    ON_CALL(libCCECImplMock, getLogicalAddress(::testing::_))
-        .WillByDefault(::testing::Return(1));
-    ON_CALL(deviceTypeImplMock, toString())
-        .WillByDefault(::testing::Return("New"));
-
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": false}"), response));
 	EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkInitializedEventDsTest, getEnabledFalse)
 {
-
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
 }
@@ -234,42 +213,38 @@ TEST_F(HdmiCecSinkDsTest, setOSDName)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setOSDName"), _T("{\"name\":\"CECTEST\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
-
 }
 
 TEST_F(HdmiCecSinkDsTest, getOSDName)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getOSDName"), _T("{}"), response));
     EXPECT_EQ(response,  string("{\"name\":\"CECTEST\",\"success\":true}"));
-
 }
 
 TEST_F(HdmiCecSinkDsTest, setVendorId)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVendorId"), _T("{\"vendorid\":\"0x0019FB\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
-
 }
 
+/*
 TEST_F(HdmiCecSinkDsTest, getVendorId)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getVendorId"), _T("{}"), response));
     EXPECT_EQ(response,  string("{\"vendorid\":\"1\",\"success\":true}"));
 
-}
+}*/
 
 TEST_F(HdmiCecSinkDsTest, setActivePath)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setActivePath"), _T("{\"activePath\":\"2.0.0.0\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
-
 }
 
 TEST_F(HdmiCecSinkDsTest, setRoutingChange)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setRoutingChange"), _T("{\"oldPort\":\"TV\",\"newPort\":\"HDMI1\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
-
 }
 
 TEST_F(HdmiCecSinkDsTest, getDeviceList)

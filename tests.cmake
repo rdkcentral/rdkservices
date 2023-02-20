@@ -87,12 +87,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/Telemetry.h
         ${BASEDIR}/Udev.h
         ${BASEDIR}/MotionDetection.h
-		${BASEDIR}/CECFrame.hpp
-        ${BASEDIR}/Operand.hpp
-        ${BASEDIR}/Operands.hpp
-        ${BASEDIR}/CCEC.hpp
-        ${BASEDIR}/Exception.hpp
-		${BASEDIR}/Util.hpp
+		${BASEDIR}/Operands.h
         )
 
 foreach (file ${FAKE_HEADERS})
