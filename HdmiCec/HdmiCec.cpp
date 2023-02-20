@@ -193,6 +193,7 @@ namespace WPEFramework
 #ifdef LGI_CUSTOM_IMPL
             Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_TRIGGER_ACTION, &HdmiCec::triggerActionWrapper, this);
 #endif
+
             physicalAddress = 0x0F0F0F0F;
 
             logicalAddressDeviceType = "None";
@@ -1082,18 +1083,21 @@ namespace WPEFramework
 		int i = 0;
 		pthread_mutex_lock(&(_instance->m_lock));//pthread_cond_wait should be mutex protected. //pthread_cond_wait will unlock the mutex and perfoms wait for the condition.
 		while (!_instance->m_pollThreadExit) {
-			bool isActivateUpdateThread = false;
-			LOGINFO("Starting cec device polling");
-			for(i=0; i< LogicalAddress::UNREGISTERED; i++ ) {
-				bool isConnected = _instance->pingDeviceUpdateList(i);
-				if (isConnected){
-					isActivateUpdateThread = isConnected;
-				}
-			}
-			if (isActivateUpdateThread){
-				//i any of devices is connected activate thread update check
-				pthread_cond_signal(&(_instance->m_condSigUpdate));
-			}
+            {
+                Utils::Synchro::LockApiGuard<HdmiCec> lockGuard;
+                bool isActivateUpdateThread = false;
+                LOGINFO("Starting cec device polling");
+                for(i=0; i< LogicalAddress::UNREGISTERED; i++ ) {
+                    bool isConnected = _instance->pingDeviceUpdateList(i);
+                    if (isConnected){
+                        isActivateUpdateThread = isConnected;
+                    }
+                }
+                if (isActivateUpdateThread){
+                    //i any of devices is connected activate thread update check
+                    pthread_cond_signal(&(_instance->m_condSigUpdate));
+                }
+            }
 			//Wait for mutex signal here to continue the worker thread again.
 			while (!_instance->m_pollThreadExit && ETIMEDOUT == pthread_cond_timedwait(&(_instance->m_condSig), &(_instance->m_lock), &hundred_ms));
 
@@ -1115,6 +1119,8 @@ namespace WPEFramework
 			//Wait for mutex signal here to continue the worker thread again.
 			while (!_instance->m_updateThreadExit && ETIMEDOUT == pthread_cond_timedwait(&(_instance->m_condSigUpdate), &(_instance->m_lockUpdate), &hundred_ms));
 			if (_instance->m_updateThreadExit) break;
+			Utils::Synchro::LockApiGuard<HdmiCec> lockGuard;
+
 			LOGINFO("Starting cec device update check");
 			for(i=0; ((i< LogicalAddress::UNREGISTERED)&&(!_instance->m_updateThreadExit)); i++ ) {
 				//If details are not updated. update now.
@@ -1127,10 +1133,12 @@ namespace WPEFramework
 
 						if (!HdmiCec::_instance->deviceList[i].m_isOSDNameUpdated){
 							iCounter = 0;
+							lockGuard.unlock();
 							while ((!_instance->m_updateThreadExit) && (iCounter < (2*10))) { //sleep for 2sec.
 								usleep (100 * 1000); //sleep for 100 milli sec
 								iCounter ++;
 							}
+							lockGuard.lock();
 							HdmiCec::_instance->requestOsdName (i);
 							retry = true;
 						}
@@ -1139,11 +1147,14 @@ namespace WPEFramework
 						}
 
 						if (!HdmiCec::_instance->deviceList[i].m_isVendorIDUpdated){
+							Utils::Synchro::UnlockApiGuard<HdmiCec> ulockGuard;
 							iCounter = 0;
+							lockGuard.unlock();
 							while ((!_instance->m_updateThreadExit) && (iCounter < (2*10))) { //sleep for 1sec.
 								usleep (100 * 1000); //sleep for 100 milli sec
 								iCounter ++;
 							}
+							lockGuard.lock();
 
 							HdmiCec::_instance->requestVendorID (i);
 							retry = true;
