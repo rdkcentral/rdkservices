@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.3] - 2023-01-31
+### Changed
+- tvhdrtypes property included on DisplayInfo REST API calls
+
 ## [1.0.2] - 2022-12-09
 ### Changed
 - Syncup of changes from Metro version, Includes below changes:
