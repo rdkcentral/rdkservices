@@ -3,6 +3,7 @@
 #include "OCIContainer.h"
 #include "ServiceMock.h"
 #include "DobbyMock.h"
+#include "FactoriesImplementation.h"
 
 using namespace WPEFramework;
 using ::testing::NiceMock;
@@ -26,8 +27,8 @@ protected:
 class OCIContainerInitializedTest : public OCIContainerTest {
 protected:
     NiceMock<ServiceMock> service;
-    DobbyProxyImplMock dobbymock;
-    IpcServiceImplMock ipcservicemock;
+    DobbyProxyMock dobbymock;
+    IpcServiceMock ipcservicemock;
 
     OCIContainerInitializedTest()
         : OCIContainerTest()
