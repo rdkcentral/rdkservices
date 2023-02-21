@@ -4,12 +4,12 @@
 #include "Dobby.h"
 
 
-class DobbyProxyImplMock : public DobbyProxyImpl{
+class DobbyProxyMock : public IDobbyProxy{
 
 
 public:
 
-    virtual ~DobbyProxyImplMock() = default;
+    virtual ~DobbyProxyMock() = default;
 
     MOCK_METHOD(bool, shutdown, (), (const, override));
     MOCK_METHOD(bool, ping, (), (const, override));
@@ -43,11 +43,11 @@ public:
 
 };
 
-class IpcServiceImplMock: public IpcServiceImpl{
+class IpcServiceMock: public AI_IPC::IIpcService{
 
 public:
 
-    virtual ~IpcServiceImplMock() = default;
+    virtual ~IpcServiceMock() = default;
 
     MOCK_METHOD(bool, isValid, (), (const, override));
     MOCK_METHOD(bool, isServiceAvailable, (const std::string& serviceName), (const));
