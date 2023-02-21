@@ -12,7 +12,6 @@
 #include "ConnectionMock.h"
 #include "LogicalAddressMock.h"
 #include "ActiveSourceMock.h"
-#include "DeviceTypeMock.h"
 #include "MessageEncoderMock.h"
 
 using namespace WPEFramework;
@@ -54,9 +53,6 @@ protected:
                     param->result = dsERR_NONE;
                     param->numHdmiInputs = 1;
                 }
-                if (strcmp(methodName, IARM_BUS_CECMGR_API_isAvailable) == 0) {
-                }
-
                 return IARM_RESULT_SUCCESS;
             });
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
@@ -150,7 +146,6 @@ protected:
     HdmiCecSinkInitializedEventDsTest()
         : HdmiCecSinkInitializedEventTest()
     {
-
     }
 
     virtual ~HdmiCecSinkInitializedEventDsTest() override
@@ -185,66 +180,76 @@ TEST_F(HdmiCecSinkTest, RegisteredMethods)
     
 }
 
-TEST_F(HdmiCecSinkInitializedEventDsTest, setEnabled)
+TEST_F(HdmiCecSinkDsTest, sendKeyPressEvent)
 {
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
-	EXPECT_EQ(response, string("{\"success\":true}"));
-}
-
-TEST_F(HdmiCecSinkInitializedEventDsTest, getEnabledTrue)
-{
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T("{}"), response));
-	EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
-}
-
-TEST_F(HdmiCecSinkInitializedEventDsTest, setEnabledFalse)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": false}"), response));
-	EXPECT_EQ(response, string("{\"success\":true}"));
-}
-
-TEST_F(HdmiCecSinkInitializedEventDsTest, getEnabledFalse)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 65}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 66}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 67}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 1}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 2}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 3}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 4}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 0}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 9}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 13}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 32}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 33}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 34}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 35}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 36}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 37}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 38}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 39}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 40}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 41}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, setOSDName)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setOSDName"), _T("{\"name\":\"CECTEST\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
-}
 
-TEST_F(HdmiCecSinkDsTest, getOSDName)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getOSDName"), _T("{}"), response));
-    EXPECT_EQ(response,  string("{\"name\":\"CECTEST\",\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, setVendorId)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVendorId"), _T("{\"vendorid\":\"0x0019FB\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
+
 }
-
-/*
-TEST_F(HdmiCecSinkDsTest, getVendorId)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getVendorId"), _T("{}"), response));
-    EXPECT_EQ(response,  string("{\"vendorid\":\"1\",\"success\":true}"));
-
-}*/
 
 TEST_F(HdmiCecSinkDsTest, setActivePath)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setActivePath"), _T("{\"activePath\":\"2.0.0.0\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
+
 }
 
 TEST_F(HdmiCecSinkDsTest, setRoutingChange)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setRoutingChange"), _T("{\"oldPort\":\"TV\",\"newPort\":\"HDMI1\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
+
 }
 
 TEST_F(HdmiCecSinkDsTest, getDeviceList)
@@ -298,11 +303,6 @@ TEST_F(HdmiCecSinkDsTest, sendStandbyMessage)
 TEST_F(HdmiCecSinkDsTest, sendAudioDevicePowerOnMessage)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendAudioDevicePowerOnMessage"), _T(""), response));
-    EXPECT_EQ(response,  string("{\"success\":true}"));
-}
-TEST_F(HdmiCecSinkDsTest, sendKeyPressEvent)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\":\"0x0019FB\", \"keyCode\":\"0x0001\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
 

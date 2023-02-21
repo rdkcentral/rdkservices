@@ -161,7 +161,7 @@ private:
 
 class CECBytes {
 protected:
-    std::vector<uint8_t> str1;
+    std::vector<uint8_t> str;
     CECBytes(const uint8_t val) {}
     CECBytes(const uint8_t* buf, size_t len) {}
     CECBytes(const CECFrame& frame, size_t startPos, size_t len) {}
@@ -174,7 +174,7 @@ public:
 
     bool operator==(const CECBytes& in) const
     {
-        return this->str1 == in.str1;
+        return this->str == in.str;
     };
 
     virtual const std::string name(void) const
@@ -196,9 +196,12 @@ class OSDString : public CECBytes {
 
 class OSDName : public CECBytes {
 public:
-    OSDName(const char* str)
-        : CECBytes((const uint8_t*)str, strlen(str))
+    OSDName(const char* str1)
+        : CECBytes((const uint8_t*)str1, strlen(str1))
     {
+    }
+    const std::string toString(void) const {
+        return std::string(str.begin(), str.end());
     }
 };
 
@@ -270,8 +273,8 @@ public:
         MAX_LEN = 3,
     };
 
-    Language(const char* str)
-        : CECBytes((const uint8_t*)str, MAX_LEN){};
+    Language(const char* str1)
+        : CECBytes((const uint8_t*)str1, MAX_LEN){};
 };
 
 class VendorIDImpl {
@@ -279,12 +282,12 @@ public:
     virtual const std::string toString(void) const = 0;
 };
 
-class VendorID {
+class VendorID : public CECBytes{
 
 public:
-    VendorID(uint8_t byte0, uint8_t byte1, uint8_t byte2){};
-    VendorID(const uint8_t* buf, size_t len){};
-    VendorID(){};
+    VendorID(uint8_t byte0, uint8_t byte1, uint8_t byte2): CECBytes (NULL,0){};
+    VendorID(const uint8_t* buf, size_t len): CECBytes (NULL,0){};
+    VendorID(): CECBytes (NULL,0){};
 
     VendorIDImpl* impl;
     static VendorID& getInstance()
@@ -293,7 +296,7 @@ public:
         return instance;
     }
 
-    const std::string toString(void) const
+   const std::string toString(void) const
     {
         return getInstance().impl->toString();
     }
@@ -370,7 +373,7 @@ public:
     LogicalAddress(int addr = UNREGISTERED)
         : CECBytes((uint8_t)addr){};
     
-		int toInt() const
+	int toInt() const
     {
         return impl->toInt();
     }
