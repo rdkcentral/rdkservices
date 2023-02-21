@@ -692,7 +692,7 @@ namespace Plugin {
                 struct dirent *dp;
                 while ((dp = readdir(dirp)) != nullptr)
                 {
-					LOGINFO("File or Dir name = ", dp->d_name);
+					LOGINFO("File or Dir name = %s", dp->d_name);
 		            for (int i = 0; dp->d_name[i] != '\0'; i++)
 		            {
 		                LOGINFO("ch = 0x%x", dp->d_name[i]);
