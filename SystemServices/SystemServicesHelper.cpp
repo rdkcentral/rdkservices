@@ -392,6 +392,33 @@ string getTimeZoneDSTHelper(void)
 }
 
 /***
+ * @brief	: To retrieve TimeZone Accuracy
+ * @return	: string; TimeZone Accuracy
+ */
+string getTimeZoneAccuracyDSTHelper(void)
+{
+    string timeZoneAccuracy = "";
+    vector<string> lines;
+
+    if (!Utils::fileExists(TZ_ACCURACY_FILE)) {
+        return TZ_ACCURACY_INITIAL;
+    }
+
+    if (getFileContent(TZ_ACCURACY_FILE, lines)) {
+        if (lines.size() > 0) {
+            timeZoneAccuracy = lines.front();
+        }
+    }
+
+    if (timeZoneAccuracy != TZ_ACCURACY_INITIAL && timeZoneAccuracy != TZ_ACCURACY_INTERIM && timeZoneAccuracy != TZ_ACCURACY_FINAL) {
+        LOGWARN("Got empty or invalid TimeZone Accuracy from the file, using default 'INITIAL'");
+        timeZoneAccuracy = TZ_ACCURACY_INITIAL;
+    }
+
+    return timeZoneAccuracy;
+}
+
+/***
  * @brief		: To retrieve system time in requested format
  * @param1[in]	: requested format conversion info
  * @return		: string;
