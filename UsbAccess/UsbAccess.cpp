@@ -182,6 +182,22 @@ namespace Plugin {
             return ((strJson == "{}") ? true : false);
         }
 
+        //Check if it is a valid directory name
+        //Return false in case of any character outside standard ASCII range
+        //also avoid 0x3F(?) since unknown charaters are coming as ?. 
+        //Once locale support is added for utf-8/unicode, this logic, regexes needs to be revisited
+        bool isValidDirName(const char* pDirName)
+        {
+            for (int i = 0; pDirName[i] != '\0'; i++)
+            {
+                if(pDirName[i] < 0x20 ||  pDirName[i] > 0x7F || pDirName[i] == 0x3F)
+                {
+                        LOGINFO("%s is not a valid directory", pDirName);
+                        return false;
+                }
+            }
+            return true;
+        }
     }
 
     SERVICE_REGISTRATION(UsbAccess, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
@@ -692,14 +708,16 @@ namespace Plugin {
                 struct dirent *dp;
                 while ((dp = readdir(dirp)) != nullptr)
                 {
-                    if (((dp->d_type == DT_DIR) && includeFolders) ||
+                    if (((dp->d_type == DT_DIR) && includeFolders && isValidDirName(dp->d_name)) ||
                         ((dp->d_type != DT_DIR) && (fileRegex.empty() ||
                             std::regex_match(dp->d_name, std::regex(fileRegex, std::regex_constants::icase)) == true)))
+                    {
                         files.push_back(
                                 {
                                     dp->d_type == DT_DIR ? 'd' : 'f',
                                     dp->d_name
                                 });
+                    }
                 }
                 closedir(dirp);
 
