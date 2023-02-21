@@ -3761,20 +3761,24 @@ namespace WPEFramework {
             bool status = false;
             unsigned int srcType = 0x0;
             unsigned int config = 0x0;
-            unsigned int poweState = (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) | \
-                                             (1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP);
+            unsigned int powerState = 0x0;
             LOGWARN(" %s: %d Entry srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
             if (parameters.HasLabel("powerState")) 
             {
                 string state = parameters["powerState"].String();
-                if(state.compare("LIGHTSLEEP"))
-                    poweState = 1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP;
+                if(state.compare("LIGHT_SLEEP"))
+                    powerState = 1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP;
                 if(state.compare("DEEP_SLEEP"))
-                    poweState =  1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
+                    powerState =  1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
                 if(state.compare("DEFAULT"))
-                    poweState = (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) | \
+                    powerState = (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) | \
                                              (1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP);
             }
+            else{
+                    powerState = (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) | \
+                                             (1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP);
+            }
+            LOGWARN("%s: %d Power State stored:%x  config :%x \n",__FUNCTION__,__LINE__,powerState);
             if (parameters.HasLabel("WAKEUPSRC_VOICE")) 
             {
                 srcType |= 1<<WAKEUPSRC_VOICE;
@@ -3840,7 +3844,7 @@ namespace WPEFramework {
             }
             if(srcType) {
                 IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t param;
-                param.pwrMode = poweState;
+                param.pwrMode = powerState;
                 param.srcType = srcType;
                 param.config = config;
                 IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
@@ -3918,17 +3922,17 @@ namespace WPEFramework {
                     response["WAKEUPSRC_LAN"] = (param.config & (1<<WAKEUPSRC_LAN))?true:false;
                     LOGWARN(" %s: %d  WAKEUPSRC_LAN value:%d  \n",__FUNCTION__,__LINE__,param.config & (1<<WAKEUPSRC_LAN));
                 }
-                if(param.pwrMode & (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) )
+                if(param.pwrMode == (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) )
                 {
                     response["powerState"] = "LIGHT_SLEEP";
                     LOGWARN(" %s: %d  powerstate value: LIGHT_SLEEP  \n",__FUNCTION__,__LINE__);
                 }
-                if(param.pwrMode & (1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
+                if(param.pwrMode == (1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
                 {
                     response["powerState"] = "DEEP_SLEEP";
                     LOGWARN(" %s: %d  powerstate value: DEEP_SLEEP  \n",__FUNCTION__,__LINE__);
                 }
-                if(param.pwrMode & ((1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) | \
+                if(param.pwrMode == ((1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) | \
                                              (1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP)))
                 {
                     response["powerState"] = "DEFAULT";
