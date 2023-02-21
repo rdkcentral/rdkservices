@@ -3870,8 +3870,8 @@ namespace WPEFramework {
             IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
                                   IARM_BUS_PWRMGR_API_GetWakeupSrcConfig, (void *)&param,
                                   sizeof(param));
-            LOGWARN(" %s: %d res:%d srcType :%x  config :%x \n",__FUNCTION__,__LINE__,res,param.srcType,param.config);
             if (IARM_RESULT_SUCCESS == res) {
+               LOGWARN(" %s: %d res:%d srcType :%x  config :%x \n",__FUNCTION__,__LINE__,res,param.srcType,param.config);
                status = true;
                if( param.srcType & (1<<WAKEUPSRC_VOICE))
                {
