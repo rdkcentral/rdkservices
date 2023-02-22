@@ -226,7 +226,7 @@ TEST_F(HdmiCecInitializedEventDsTest, getCECAddress)
 
 }
 
-TEST_F(HdmiCecInitializedEventDsTest, onDevicesChanged)
+TEST_F(HdmiCecInitializedEventDsTest, cecAddressesChanged)
 {
     EXPECT_CALL(libCCECImplMock, getPhysicalAddress(::testing::_))
         .Times(1)
