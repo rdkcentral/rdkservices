@@ -82,7 +82,7 @@ protected:
                         EXPECT_TRUE(handler != nullptr);
                         cecMgrEventHandler = handler;
                     }
-		   if ((string(IARM_BUS_CECMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_CECMGR_EVENT_STATUS_UPDATED)) {
+		            if ((string(IARM_BUS_CECMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_CECMGR_EVENT_STATUS_UPDATED)) {
                         EXPECT_TRUE(handler != nullptr);
                         cecMgrEventHandler = handler;
                     }
@@ -110,11 +110,15 @@ protected:
     Core::JSONRPC::Message message;
     FactoriesImplementation factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
+    testing::NiceMock<LibCCECImplMock> libCCECImplMock;
+    testing::NiceMock<ConnectionImplMock> connectionImplMock;
 
     HdmiCecInitializedEventTest()
         : HdmiCecInitializedTest()
     {
         PluginHost::IFactories::Assign(&factoriesImplementation);
+        LibCCEC::getInstance().impl = &libCCECImplMock;
+        Connection::getInstance().impl = &connectionImplMock;	
 
         dispatcher = static_cast<PluginHost::IDispatcher*>(
             plugin->QueryInterface(PluginHost::IDispatcher::ID));
@@ -126,20 +130,18 @@ protected:
         dispatcher->Deactivate();
         dispatcher->Release();
         PluginHost::IFactories::Assign(nullptr);
+        LibCCEC::getInstance().impl = nullptr;
+        Connection::getInstance().impl = nullptr;
     }
 };
 class HdmiCecInitializedEventDsTest : public HdmiCecInitializedEventTest {
 protected:
-    testing::NiceMock<LibCCECImplMock> libCCECImplMock;
-    testing::NiceMock<ConnectionImplMock> connectionImplMock;
+    
 
 
     HdmiCecInitializedEventDsTest()
         : HdmiCecInitializedEventTest()
     {
-        LibCCEC::getInstance().impl = &libCCECImplMock;
-        Connection::getInstance().impl = &connectionImplMock;	
-
         //Setenable needs to run firzt, as it turns everything on, locally.
 	    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
         EXPECT_EQ(response, string("{\"success\":true}"));
@@ -151,9 +153,6 @@ protected:
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": false}"), response));
         EXPECT_EQ(response, string("{\"success\":true}"));
         
-        LibCCEC::getInstance().impl = nullptr;
-        Connection::getInstance().impl = nullptr;
-
     }
 };
 
@@ -206,8 +205,7 @@ TEST_F(HdmiCecInitializedEventDsTest, getActiveSourceStatusFalse)
     EXPECT_EQ(response, string("{\"status\":false,\"success\":true}"));
 }
 
-
-TEST_F(HdmiCecInitializedEventDsTest, getCECAddressWithCecIarmBusTrigger)
+TEST_F(HdmiCecInitializedEventDsTest, getCECAddress)
 {
     EXPECT_CALL(libCCECImplMock, getPhysicalAddress(::testing::_))
         .Times(1)
@@ -228,24 +226,30 @@ TEST_F(HdmiCecInitializedEventDsTest, getCECAddressWithCecIarmBusTrigger)
 
 }
 
-TEST_F(HdmiCecInitializedEventDsTest, triggerHdmiHotPlugWithIarm)
+TEST_F(HdmiCecInitializedEventDsTest, onDevicesChanged)
 {
     EXPECT_CALL(libCCECImplMock, getPhysicalAddress(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](uint32_t *physAddress) {
-                *physAddress = (uint32_t)12345;
+                *physAddress = (uint32_t)1234;
             }));
-    EXPECT_CALL(libCCECImplMock, getLogicalAddress(::testing::_))
-            .Times(1)
-            .WillOnce(::testing::Return(1));
-
     ASSERT_TRUE(dsHdmiEventHandler != nullptr);
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.HdmiCec.cecAddressesChanged\",\"params\":{\"CECAddresses\":{\"physicalAddress\":1234}}}")));
 
+                return Core::ERROR_NONE;
+            }));
     IARM_Bus_DSMgr_EventData_t eventData;
-    eventData.data.hdmi_hpd.event =0;
-
+    eventData.data.hdmi_hpd.event = 0;	
+    handler.Subscribe(0, _T("cecAddressesChanged"), _T("org.rdk.HdmiCec"), message);
     dsHdmiEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, &eventData , 0);
+    handler.Unsubscribe(0, _T("cecAddressesChanged"), _T("org.rdk.HdmiCec"), message);
 }
 
 TEST_F(HdmiCecInitializedEventDsTest, getDeviceList)
