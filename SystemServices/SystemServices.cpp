@@ -3766,11 +3766,11 @@ namespace WPEFramework {
             if (parameters.HasLabel("powerState")) 
             {
                 string state = parameters["powerState"].String();
-                if(state.compare("LIGHT_SLEEP"))
+                if(!state.compare("LIGHT_SLEEP"))
                     powerState = 1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP;
-                if(state.compare("DEEP_SLEEP"))
+                if(!state.compare("DEEP_SLEEP"))
                     powerState =  1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
-                if(state.compare("DEFAULT"))
+                if(!state.compare("DEFAULT"))
                     powerState = (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) | \
                                              (1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP);
             }
