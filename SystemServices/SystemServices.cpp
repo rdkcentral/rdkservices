@@ -3778,7 +3778,7 @@ namespace WPEFramework {
                     powerState = (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) | \
                                              (1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP);
             }
-            LOGWARN("%s: %d Power State stored:%x  config :%x \n",__FUNCTION__,__LINE__,powerState);
+            LOGWARN("%s: %d Power State stored:%x \r\n",__FUNCTION__,__LINE__,powerState);
             if (parameters.HasLabel("WAKEUPSRC_VOICE")) 
             {
                 srcType |= 1<<WAKEUPSRC_VOICE;
