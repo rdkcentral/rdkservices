@@ -12,9 +12,6 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/rdk/iarmmgrs-hal
         ${BASEDIR}/ccec/drivers
         ${BASEDIR}/network
-		${BASEDIR}/ccec/drivers/iarmbus
-        ${BASEDIR}/ccec/host
-        ${BASEDIR}/websocket
         )
 
 set(EMPTY_HEADERS
@@ -56,18 +53,6 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rbus.h
         ${BASEDIR}/telemetry_busmessage_sender.h
         ${BASEDIR}/motionDetector.h
-		${BASEDIR}/ccec/FrameListener.hpp
-		${BASEDIR}/ccec/Connection.hpp
-		${BASEDIR}/ccec/Assert.hpp
-		${BASEDIR}/ccec/Messages.hpp
-		${BASEDIR}/ccec/MessageDecoder.hpp
-		${BASEDIR}/ccec/MessageProcessor.hpp
-		${BASEDIR}/ccec/CECFrame.hpp
-		${BASEDIR}/ccec/MessageEncoder.hpp
-		${BASEDIR}/ccec/host/RDK.hpp
-		${BASEDIR}/ccec/drivers/iarmbus/CecIARMBusMgr.h
-		${BASEDIR}/dsRpc.h
-		${BASEDIR}/websocket/URL.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -95,7 +80,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/Telemetry.h
         ${BASEDIR}/Udev.h
         ${BASEDIR}/MotionDetection.h
-		${BASEDIR}/Operands.h
+	${BASEDIR}/Operands.h
         )
 
 foreach (file ${FAKE_HEADERS})
