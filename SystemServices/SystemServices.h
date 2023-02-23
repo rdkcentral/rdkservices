@@ -67,6 +67,7 @@ using std::ofstream;
 #define EVT_ONTIMEZONEDSTCHANGED          "onTimeZoneDSTChanged"
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
+
 namespace WPEFramework {
     namespace Plugin {
 
@@ -209,6 +210,7 @@ namespace WPEFramework {
                 uint32_t getDevicePowerState(const JsonObject& parameters,JsonObject& response);
                 uint32_t setDevicePowerState(const JsonObject& parameters,JsonObject& response);
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
+
                 uint32_t isRebootRequested(const JsonObject& parameters,JsonObject& response);
                 uint32_t setGZEnabled(const JsonObject& parameters,JsonObject& response);
                 uint32_t isGZEnabled(const JsonObject& parameters,JsonObject& response);
@@ -285,9 +287,8 @@ namespace WPEFramework {
                 uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
                 uint32_t getStoreDemoLink(const JsonObject& parameters, JsonObject& response);
                 uint32_t deletePersistentPath(const JsonObject& parameters, JsonObject& response);
-#ifdef ENABLE_SET_WAKEUP_SRC_CONFIG
                 uint32_t setWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
-#endif //ENABLE_SET_WAKEUP_SRC_CONFIG
+		uint32_t getWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPlatformConfiguration(const JsonObject& parameters, PlatformCaps& response);
         }; /* end of system service class */
     } /* end of plugin */
