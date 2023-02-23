@@ -69,11 +69,16 @@ protected:
     testing::NiceMock<IarmBusImplMock> iarmBusImplMock;
     IARM_EventHandler_t cecMgrEventHandler;
     IARM_EventHandler_t dsHdmiEventHandler;
+    testing::NiceMock<LibCCECImplMock> libCCECImplMock;
+    testing::NiceMock<ConnectionImplMock> connectionImplMock;
+    
  
     HdmiCecInitializedTest()
         : HdmiCecTest()
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
+        LibCCEC::getInstance().impl = &libCCECImplMock;
+        Connection::getInstance().impl = &connectionImplMock;
 
         ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
@@ -95,12 +100,21 @@ protected:
                 }));
 
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
+
+        //Setenable needs to run firzt, as it turns everything on, locally.
+	    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
     }
     virtual ~HdmiCecInitializedTest() override
     {
         
         plugin->Deinitialize(nullptr);
         IarmBus::getInstance().impl = nullptr;
+        LibCCEC::getInstance().impl = nullptr;
+        Connection::getInstance().impl = nullptr;
+        //Turning off HdmiCec. otherwise we get segementation faults as things memory early while threads are still running
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": false}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
 
     }
 };
@@ -110,15 +124,12 @@ protected:
     Core::JSONRPC::Message message;
     FactoriesImplementation factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
-    testing::NiceMock<LibCCECImplMock> libCCECImplMock;
-    testing::NiceMock<ConnectionImplMock> connectionImplMock;
+    
 
     HdmiCecInitializedEventTest()
         : HdmiCecInitializedTest()
     {
-        PluginHost::IFactories::Assign(&factoriesImplementation);
-        LibCCEC::getInstance().impl = &libCCECImplMock;
-        Connection::getInstance().impl = &connectionImplMock;	
+        PluginHost::IFactories::Assign(&factoriesImplementation);	
 
         dispatcher = static_cast<PluginHost::IDispatcher*>(
             plugin->QueryInterface(PluginHost::IDispatcher::ID));
@@ -130,32 +141,9 @@ protected:
         dispatcher->Deactivate();
         dispatcher->Release();
         PluginHost::IFactories::Assign(nullptr);
-        LibCCEC::getInstance().impl = nullptr;
-        Connection::getInstance().impl = nullptr;
-    }
-};
-class HdmiCecInitializedEventDsTest : public HdmiCecInitializedEventTest {
-protected:
-    
-
-
-    HdmiCecInitializedEventDsTest()
-        : HdmiCecInitializedEventTest()
-    {
-        //Setenable needs to run firzt, as it turns everything on, locally.
-	    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    }
-
-    virtual ~HdmiCecInitializedEventDsTest() override
-    {
-        //Turning off HdmiCec. otherwise we get segementation faults as things memory early while threads are still running
-        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": false}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
         
     }
 };
-
 
 TEST_F(HdmiCecTest, RegisteredMethods)
 {
@@ -177,7 +165,7 @@ TEST_F(HdmiCecDsTest, getEnabledFalse)
 }
 
 
-TEST_F(HdmiCecInitializedEventDsTest, getEnabledTrue)
+TEST_F(HdmiCecInitializedTest, getEnabledTrue)
 {
     //Get enabled just checks if CEC is on, which is a global variable.
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T(""), response));
@@ -185,7 +173,7 @@ TEST_F(HdmiCecInitializedEventDsTest, getEnabledTrue)
 
 }
 
-TEST_F(HdmiCecInitializedEventDsTest, getActiveSourceStatusTrue)
+TEST_F(HdmiCecInitializedTest, getActiveSourceStatusTrue)
 {
     //ActiveSource is a local variable, no mocked functions to check.
     //Calling the sendMessage() function with the proper message sets ActiveSource to true.
@@ -197,7 +185,7 @@ TEST_F(HdmiCecInitializedEventDsTest, getActiveSourceStatusTrue)
 
 
 }
-TEST_F(HdmiCecInitializedEventDsTest, getActiveSourceStatusFalse)
+TEST_F(HdmiCecInitializedTest, getActiveSourceStatusFalse)
 {
     //ActiveSource is a local variable, no mocked functions to check.
     //Active source is false by default.
@@ -205,7 +193,7 @@ TEST_F(HdmiCecInitializedEventDsTest, getActiveSourceStatusFalse)
     EXPECT_EQ(response, string("{\"status\":false,\"success\":true}"));
 }
 
-TEST_F(HdmiCecInitializedEventDsTest, getCECAddress)
+TEST_F(HdmiCecInitializedEventTest, getCECAddress)
 {
     EXPECT_CALL(libCCECImplMock, getPhysicalAddress(::testing::_))
         .Times(1)
@@ -226,7 +214,7 @@ TEST_F(HdmiCecInitializedEventDsTest, getCECAddress)
 
 }
 
-TEST_F(HdmiCecInitializedEventDsTest, cecAddressesChanged)
+TEST_F(HdmiCecInitializedEventTest, cecAddressesChanged)
 {
     EXPECT_CALL(libCCECImplMock, getPhysicalAddress(::testing::_))
         .Times(1)
@@ -252,7 +240,7 @@ TEST_F(HdmiCecInitializedEventDsTest, cecAddressesChanged)
     handler.Unsubscribe(0, _T("cecAddressesChanged"), _T("org.rdk.HdmiCec"), message);
 }
 
-TEST_F(HdmiCecInitializedEventDsTest, getDeviceList)
+TEST_F(HdmiCecInitializedTest, getDeviceList)
 {  
     int iCounter = 0;
     //Checking to see if one of the values has been filled in (as the rest get filled in at the same time, and waiting if its not.
@@ -263,7 +251,9 @@ TEST_F(HdmiCecInitializedEventDsTest, getDeviceList)
 
     //Calling the device list, which is a defualt list of the hdmiCec class. Kist grabs the deviceList.
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceList"), _T(""), response));
-    EXPECT_THAT(response, ::testing::ContainsRegex(_T(".*[({\"logicalAddress\":[0-9]*,\"osdName\":\"[a-zA-Z0-9 ]*\",\"vendorID\":\"[a-zA-Z0-9 ]*\"})*.*")));
-    EXPECT_THAT(response, ::testing::ContainsRegex(_T(".*\"numberofdevices\":[0-9]*,\"deviceList\":.*")));
-    EXPECT_THAT(response, ::testing::ContainsRegex(_T(".*\"success\":true.*")));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"logicalAddress\":[0-9]")));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"osdName\":\"[a-zA-Z0-9 ]*")));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"vendorID\":\"[a-zA-Z0-9 ]*\"")));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true}")));
+
 }
