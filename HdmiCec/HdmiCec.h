@@ -228,6 +228,7 @@ namespace WPEFramework {
             bool checkActiveSource();
             static void cecActiveSourceEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void updateActiveSource(bool activeSource);
+            uint32_t triggerActionWrapper(const JsonObject& parameters, JsonObject& response);
 #endif
         };
 	} // namespace Plugin

@@ -45,6 +45,7 @@
 #define HDMICEC_METHOD_GET_CEC_ADDRESSES "getCECAddresses"
 #define HDMICEC_METHOD_SEND_MESSAGE "sendMessage"
 #define HDMICEC_METHOD_GET_ACTIVE_SOURCE_STATUS "getActiveSourceStatus"
+#define HDMICEC_METHOD_TRIGGER_ACTION "triggerAction"
 
 #define HDMICEC_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define HDMICEC_EVENT_ON_MESSAGE "onMessage"
@@ -189,7 +190,9 @@ namespace WPEFramework
             Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_SEND_MESSAGE, &HdmiCec::sendMessageWrapper, this);
             Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec::getActiveSourceStatus, this);
             Utils::Synchro::RegisterLockedApi("getDeviceList", &HdmiCec::getDeviceList, this);
-
+#ifdef LGI_CUSTOM_IMPL
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_TRIGGER_ACTION, &HdmiCec::triggerActionWrapper, this);
+#endif
             physicalAddress = 0x0F0F0F0F;
 
             logicalAddressDeviceType = "None";
@@ -1205,6 +1208,46 @@ namespace WPEFramework
             }
         }
     }
+
+    uint32_t HdmiCec::triggerActionWrapper(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFO();
+
+        const char *parameterName = "actionName";
+        returnIfStringParamNotFound(parameters, parameterName);
+
+        string actionName;
+        getStringParameter(parameterName, actionName);
+
+        LOGINFO("CEC: %s Triggering action[%s]\n", __FUNCTION__, actionName.c_str());
+
+        IARM_Bus_CECHost_TriggerAction_Param_t param;
+        strncpy(param.name,
+                actionName.c_str(),
+                sizeof(param.name));
+        param.name[sizeof(param.name) - 1] = '\0';
+        param.destination = 0x0F;
+
+        const IARM_Result_t ret = IARM_Bus_Call(IARM_BUS_CECHOST_NAME,
+                                                IARM_BUS_CEC_HOST_TriggerAction,
+                                                static_cast<void *>(&param), sizeof(param));
+
+        if (IARM_RESULT_SUCCESS != ret)
+        {
+            LOGERR("CEC: ERROR - %s CALL[%s], ACTION[%s] failed result %d\n",
+                   __FUNCTION__,
+                   IARM_BUS_CEC_HOST_TriggerAction,
+                   actionName.c_str(),
+                   ret);
+            returnResponse(false);
+        }
+
+        LOGINFO("CEC: SUCCESS - %s CALL[%s], ACTION[%s]\n", __FUNCTION__, IARM_BUS_CEC_HOST_TriggerAction,
+                actionName.c_str());
+
+        returnResponse(true);
+    }
+
 #endif
 
     } // namespace Plugin

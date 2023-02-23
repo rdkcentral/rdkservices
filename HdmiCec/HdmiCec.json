@@ -23,6 +23,11 @@
                 "example": "255, 255, 255, 255"
             }
         },
+        "actionName":{
+            "summary": "Action name: POWER_ON or POWER_OFF.",
+            "type": "string",
+            "example": "POWER_ON"
+        },
         "message":{
             "summary": "The message is a base64 encoded byte array of the raw CEC bytes. The CEC message includes the device ID for the intended destination.",
             "type": "string",
@@ -204,7 +209,24 @@
             "result": {
                 "$ref": "#/common/result"
             }
-        }
+        },
+        "triggerAction":{
+            "summary": "Triggers actions like POWER_ON or POWER_OFF",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "actionName":{
+                        "$ref": "#/definitions/actionName"
+                    }
+                },
+                "required": [
+                    "actionName"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
     },
     "events": {
         "cecAddressesChanged":{
