@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.2.0] - 2023-02-16
+### Added
+- Added "accuracy" property to getTimeZoneDST/setTimeZoneDST calls
+- Added "oldAccuracy" and "newAccuracy" properties to onTimeZoneDSTChanged event
+
 ## [1.1.8] - 2022-11-28
 ### Fixed
 - Treat warnings as errors for unit tests workflow
