@@ -100,7 +100,7 @@
             "example": "ON"
         },
         "wakeupsrc": {
-            "summary": "The wakeup source Key Value Pair",
+            "summary": "The wakeup source Key enum",
             "enum": [
                 "WAKEUPSRC_VOICE",
                 "WAKEUPSRC_PRESENCE_DETECTION",
