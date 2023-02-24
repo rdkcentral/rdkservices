@@ -150,7 +150,7 @@ const char* getWakeupSrcString(uint32_t src)
     case WAKEUPSRC_PRESENCE_DETECTION:
          return "WAKEUPSRC_PRESENCE_DETECTION";
     case WAKEUPSRC_BLUETOOTH:
-         return "WAKEUPSRC_PRESENCE_DETECTION"
+         return "WAKEUPSRC_PRESENCE_DETECTION";
     case WAKEUPSRC_WIFI:
          return "WAKEUPSRC_WIFI";
     case WAKEUPSRC_IR:
