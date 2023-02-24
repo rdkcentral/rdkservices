@@ -27,6 +27,7 @@ protected:
     NiceMock<IarmBusImplMock> iarmBusImplMock;
     NiceMock<MessageEncoderMock> messageEncoderMock;
     NiceMock<ConnectionImplMock> connectionImplMock;
+    IARM_EventHandler_t pwrMgrModeChangeEventHandler;
 
     HdmiCecSinkTest()
         : plugin(Core::ProxyType<Plugin::HdmiCecSink>::Create())
@@ -40,8 +41,19 @@ protected:
 
         ON_CALL(messageEncoderMock, encode(::testing::_))
             .WillByDefault(::testing::ReturnRef(CECFrame::getInstance()));
+	
+	ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
+                        if ((string(IARM_BUS_PWRMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_PWRMGR_EVENT_MODECHANGED)) {
+                        EXPECT_TRUE(handler != nullptr);
+                        pwrMgrModeChangeEventHandler = handler;
+                    }
 
-		ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+                    return IARM_RESULT_SUCCESS;
+                }));
+	
+	ON_CALL(iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 if (strcmp(methodName, IARM_BUS_PWRMGR_API_GetPowerState) == 0) {
@@ -56,6 +68,11 @@ protected:
                 return IARM_RESULT_SUCCESS;
             });
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
+	
+	ON_CALL(connectionImplMock, open())
+            .WillByDefault(::testing::Return());
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
     }
     
 	virtual ~HdmiCecSinkTest() override
@@ -228,35 +245,36 @@ TEST_F(HdmiCecSinkDsTest, setOSDName)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setOSDName"), _T("{\"name\":\"CECTEST\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
-
 }
 
 TEST_F(HdmiCecSinkDsTest, setVendorId)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVendorId"), _T("{\"vendorid\":\"0x0019FB\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
-
 }
 
 TEST_F(HdmiCecSinkDsTest, setActivePath)
 {
+    ON_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Return());
+	    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setActivePath"), _T("{\"activePath\":\"2.0.0.0\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
-
 }
 
 TEST_F(HdmiCecSinkDsTest, setRoutingChange)
 {
+    ON_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Return());
+	    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setRoutingChange"), _T("{\"oldPort\":\"TV\",\"newPort\":\"HDMI1\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
-
 }
 
 TEST_F(HdmiCecSinkDsTest, getDeviceList)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceList"), _T(""), response));
     EXPECT_EQ(response,  string("{\"numberofdevices\":0,\"deviceList\":[],\"success\":true}"));
-
 }
 
 TEST_F(HdmiCecSinkDsTest, getActiveSource)
@@ -267,24 +285,36 @@ TEST_F(HdmiCecSinkDsTest, getActiveSource)
 
 TEST_F(HdmiCecSinkDsTest, setActiveSource)
 {
+    ON_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Return());
+	    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setActiveSource"), _T(""), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, setMenuLanguage)
 {
+    ON_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Return());
+	    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMenuLanguage"), _T("{\"language\":\"english\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, requestActiveSource)
 {
+    ON_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Return());
+	    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("requestActiveSource"), _T(""), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, requestShortAudioDescriptor)
-{
+{  
+    ON_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Return());
+	    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("requestShortAudioDescriptor"), _T(""), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
@@ -297,17 +327,26 @@ TEST_F(HdmiCecSinkDsTest, setupARCRouting)
 
 TEST_F(HdmiCecSinkDsTest, sendStandbyMessage)
 {
+    ON_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Return());
+	    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendStandbyMessage"), _T(""), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
 TEST_F(HdmiCecSinkDsTest, sendAudioDevicePowerOnMessage)
 {
+    ON_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Return());
+	    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendAudioDevicePowerOnMessage"), _T(""), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkTest, sendGetAudioStatusMessage)
 {
+    ON_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Return());
+	    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendGetAudioStatusMessage"), _T(""), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
@@ -320,6 +359,20 @@ TEST_F(HdmiCecSinkDsTest, getAudioDeviceConnectedStatus)
 
 TEST_F(HdmiCecSinkDsTest, requestAudioDevicePowerStatus)
 {
+    ON_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Return());
+	    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("requestAudioDevicePowerStatus"), _T(""), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
+}
+
+TEST_F(HdmiCecSinkInitializedEventDsTest, powerModeChange)
+{
+    ASSERT_TRUE(pwrMgrModeChangeEventHandler != nullptr);
+
+    IARM_Bus_PWRMgr_EventData_t eventData;
+    eventData.data.state.newState =IARM_BUS_PWRMGR_POWERSTATE_ON;
+    eventData.data.state.curState =IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+
+    pwrMgrModeChangeEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);  
 }
