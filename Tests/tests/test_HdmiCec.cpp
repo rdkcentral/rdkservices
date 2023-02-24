@@ -193,7 +193,7 @@ TEST_F(HdmiCecInitializedTest, getActiveSourceStatusFalse)
     EXPECT_EQ(response, string("{\"status\":false,\"success\":true}"));
 }
 
-TEST_F(HdmiCecInitializedEventTest, getCECAddress)
+TEST_F(HdmiCecInitializedTest, getCECAddress)
 {
     EXPECT_CALL(libCCECImplMock, getPhysicalAddress(::testing::_))
         .Times(1)
