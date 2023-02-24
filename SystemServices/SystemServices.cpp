@@ -3815,7 +3815,7 @@ namespace WPEFramework {
                     JsonObject wakeupSrc = wakeupSrcs.Get(i).Object();
                     for(uint32_t src = WAKEUPSRC_VOICE; src < WAKEUPSRC_MAX; src++)
                     {
-                        if(wakeupSrc.HasLabel[getWakeupSrcString(src)])
+                        if(wakeupSrc.HasLabel(getWakeupSrcString(src)))
                         {
                             srcType |= (1<<src);
                             if(wakeupSrc[getWakeupSrcString(src)].Boolean())
@@ -3840,6 +3840,7 @@ namespace WPEFramework {
                     } else {
                         status = false;
                     }
+                }
             }
             returnResponse(status);
         }
