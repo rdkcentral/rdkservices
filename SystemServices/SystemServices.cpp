@@ -3867,7 +3867,7 @@ namespace WPEFramework {
                 for(uint32_t src = WAKEUPSRC_VOICE; src <  WAKEUPSRC_MAX; src++)
                 {
                      JsonObject sourceConfig;
-                     if(parameters.srcType & (1<<src))
+                     if(para.srcType & (1<<src))
                      {
                          sourceConfig[getWakeupSrcString(src)] = (param.config & (1<<src))?true:false;
                      }
