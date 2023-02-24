@@ -99,6 +99,22 @@
             "type": "string",
             "example": "ON"
         },
+        "wakeupsrc": {
+            "summary": "The wakeup source Key Value Pair",
+            "enum": [
+                "WAKEUPSRC_VOICE",
+                "WAKEUPSRC_PRESENCE_DETECTION",
+                "WAKEUPSRC_BLUETOOTH",
+                "WAKEUPSRC_WIFI",
+                "WAKEUPSRC_IR",
+                "WAKEUPSRC_POWER_KEY",
+                "WAKEUPSRC_TIMER",
+                "WAKEUPSRC_CEC",
+                "WAKEUPSRC_LAN"
+            ],
+            "type": "string",
+            "example": "WAKEUPSEC_VOICE"
+        },
         "preferredStandbyMode": {
             "summary": "The standby mode",
             "enum": [
@@ -1822,20 +1838,21 @@
                 "$ref": "#/common/result"
             }
         },
-        "setWakeupSrcConfiguration": {
-            "summary": "Sets the wakeup source configuration.",
+        "setWakeupSrcConfiguration":{
+            "summary": "Sets the wakeup source configuration",
             "params": {
-                "type":"object",
+                "type": "object",
                 "properties": {
+                    "powerState": {
+                        "$ref": "#/definitions/powerState"
+                    },
                     "wakeupSrc": {
-                        "summary": "The wakeup source",
-                        "type": "string",
-                        "example": "3"
+                        "$ref": "#/definitions/wakeupsrc"
                     },
                     "config": {
                         "summary": "The source configuration",
-                        "type": "string",
-                        "example": "1"
+                        "type": "boolean",
+                        "example": "true"
                     }
                 },
                 "required": [
@@ -1845,6 +1862,34 @@
             },
             "result": {
                 "$ref": "#/common/result"
+            }
+        },
+        "getWakeupSrcConfiguration":{
+            "summary": "Returns the power state before reboot.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "powerState": {
+                        "$ref": "#/definitions/powerState"
+                    },
+                    "wakeupSrc": {
+                        "$ref": "#/definitions/wakeupsrc"
+                    },
+                    "config": {
+                        "summary": "The source configuration",
+                        "type": "boolean",
+                        "example": "true"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "powerState",
+                    "wakeupsrc",
+                    "config",
+                    "success"
+                ]
             }
         },
         "updateFirmware":{

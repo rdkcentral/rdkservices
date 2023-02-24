@@ -3762,7 +3762,7 @@ namespace WPEFramework {
             unsigned int srcType = 0x0;
             unsigned int config = 0x0;
             unsigned int powerState = 0x0;
-            LOGWARN(" %s: %d Entry srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
+            LOGWARN(" %s: %d Entry \n",__FUNCTION__,__LINE__);
             if (parameters.HasLabel("powerState")) 
             {
                 string state = parameters["powerState"].String();
@@ -3784,64 +3784,56 @@ namespace WPEFramework {
                 srcType |= 1<<WAKEUPSRC_VOICE;
                 if(parameters["WAKEUPSRC_VOICE"].Boolean())
                     config |= 1<<WAKEUPSRC_VOICE;
-                LOGWARN("%s: %d WAKEUPSRC_VOICE srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
             }
             if(parameters.HasLabel("WAKEUPSRC_PRESENCE_DETECTION"))
             {   
                 srcType |= 1<<WAKEUPSRC_PRESENCE_DETECTION;
                 if(parameters["WAKEUPSRC_PRESENCE_DETECTION"].Boolean())
                     config |= 1<<WAKEUPSRC_PRESENCE_DETECTION;
-                LOGWARN(" %s: %d WAKEUPSRC_PD srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
             }
             if(parameters.HasLabel("WAKEUPSRC_BLUETOOTH"))
             {
                 srcType |= 1<<WAKEUPSRC_BLUETOOTH;
                 if(parameters["WAKEUPSRC_BLUETOOTH"].Boolean())
                     config |= 1<<WAKEUPSRC_BLUETOOTH;
-                LOGWARN(" %s: %d WAKEUPSRC_BLUETOOTH srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
             }
             if(parameters.HasLabel("WAKEUPSRC_WIFI"))
             {
                 srcType |= 1<<WAKEUPSRC_WIFI;
                 if(parameters["WAKEUPSRC_WIFI"].Boolean())
                     config |= 1<<WAKEUPSRC_WIFI;
-                LOGWARN(" %s: %d WAKEUPSRC_WIFI srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
             }
             if(parameters.HasLabel("WAKEUPSRC_IR"))
             {
                 srcType |= 1<<WAKEUPSRC_IR;
                 if(parameters["WAKEUPSRC_IR"].Boolean())
                     config |= 1<<WAKEUPSRC_IR;
-                LOGWARN(" %s: %d WAKEUPSRC_IR srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
             }
             if(parameters.HasLabel("WAKEUPSRC_POWER_KEY"))
             {
                 srcType |= 1<<WAKEUPSRC_POWER_KEY;
                 if(parameters["WAKEUPSRC_POWER_KEY"].Boolean())
                     config |= 1<<WAKEUPSRC_POWER_KEY;
-                LOGWARN(" %s: %d WAKEUPSRC_KEY srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
             }
             if(parameters.HasLabel("WAKEUPSRC_TIMER"))
             {
                 srcType |= 1<<WAKEUPSRC_TIMER;
                 if(parameters["WAKEUPSRC_TIMER"].Boolean())
                     config |= 1<<WAKEUPSRC_TIMER;
-                LOGWARN(" %s: %d WAKEUPSRC_TIMER srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
             }
             if(parameters.HasLabel("WAKEUPSRC_CEC"))
             {
                 srcType |= 1<<WAKEUPSRC_CEC;
                 if(parameters["WAKEUPSRC_CEC"].Boolean())
                     config |= 1<<WAKEUPSRC_CEC;
-                LOGWARN(" %s: %d WAKEUPSRC_CECsrcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
             }
             if(parameters.HasLabel("WAKEUPSRC_LAN"))
             {
                 srcType |= 1<<WAKEUPSRC_LAN;
                 if(parameters["WAKEUPSRC_LAN"].Boolean())
                     config |= 1<<WAKEUPSRC_LAN;
-                LOGWARN(" %s: %d WAKEUPSRC_LANsrcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
             }
+            LOGWARN(" %s: %d srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
             if(srcType) {
                 IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t param;
                 param.pwrMode = powerState;
@@ -3880,62 +3872,50 @@ namespace WPEFramework {
                if( param.srcType & (1<<WAKEUPSRC_VOICE))
                {
                     response["WAKEUPSRC_VOICE"] = (param.config & (1<<WAKEUPSRC_VOICE))?true:false;
-                    LOGWARN(" %s: %d  WAKEUPSRC_VOICE value:%d  \n",__FUNCTION__,__LINE__,param.config & (1<<WAKEUPSRC_VOICE));
                }
                if( param.srcType & (1<<WAKEUPSRC_PRESENCE_DETECTION))
                {
                     response["WAKEUPSRC_PRESENCE_DETECTION"] = (param.config & (1<<WAKEUPSRC_PRESENCE_DETECTION))?true:false;
-                    LOGWARN(" %s: %d  WAKEUPSRC_PD value:%d  \n",__FUNCTION__,__LINE__,param.config & (1<<WAKEUPSRC_PRESENCE_DETECTION));
                }
                if( param.srcType & (1<<WAKEUPSRC_BLUETOOTH))
                {
                     response["WAKEUPSRC_BLUETOOTH"] = (param.config & (1<<WAKEUPSRC_BLUETOOTH))?true:false;
-                    LOGWARN(" %s: %d  WAKEUPSRC_BLUETOOTH value:%d  \n",__FUNCTION__,__LINE__,param.config & (1<<WAKEUPSRC_BLUETOOTH));
                }
                if( param.srcType & (1<<WAKEUPSRC_WIFI))
                {
                     response["WAKEUPSRC_WIFI"] = (param.config & (1<<WAKEUPSRC_WIFI))?true:false;
-                    LOGWARN(" %s: %d  WAKEUPSRC_WIFI value:%d  \n",__FUNCTION__,__LINE__,param.config & (1<<WAKEUPSRC_WIFI));
                }
                if( param.srcType & (1<<WAKEUPSRC_IR))
                {
                     response["WAKEUPSRC_IR"] = (param.config & (1<<WAKEUPSRC_IR))?true:false;
-                    LOGWARN(" %s: %d  WAKEUPSRC_IR value:%d  \n",__FUNCTION__,__LINE__,param.config & (1<<WAKEUPSRC_IR));
                }
                if( param.srcType & (1<<WAKEUPSRC_POWER_KEY))
                {
                     response["WAKEUPSRC_POWER_KEY"] = (param.config & (1<<WAKEUPSRC_POWER_KEY ))?true:false;
-                    LOGWARN(" %s: %d  WAKEUPSRC_KEY value:%d  \n",__FUNCTION__,__LINE__,param.config & (1<<WAKEUPSRC_POWER_KEY));
                }
                if( param.srcType & (1<<WAKEUPSRC_TIMER))
                {
                     response["WAKEUPSRC_TIMER"] = (param.config & (1<<WAKEUPSRC_TIMER))?true:false;
-                    LOGWARN(" %s: %d  WAKEUPSRC_TIMER value:%d  \n",__FUNCTION__,__LINE__,param.config & (1<<WAKEUPSRC_TIMER));
                }
                if( param.srcType & (1<<WAKEUPSRC_CEC))
                {
                     response["WAKEUPSRC_CEC"] = (param.config & (1<<WAKEUPSRC_CEC))?true:false;
-                    LOGWARN(" %s: %d  WAKEUPSRC_CEC value:%d  \n",__FUNCTION__,__LINE__,param.config & (1<<WAKEUPSRC_CEC));
                }
                if( param.srcType & (1<<WAKEUPSRC_LAN))
                {
                     response["WAKEUPSRC_LAN"] = (param.config & (1<<WAKEUPSRC_LAN))?true:false;
-                    LOGWARN(" %s: %d  WAKEUPSRC_LAN value:%d  \n",__FUNCTION__,__LINE__,param.config & (1<<WAKEUPSRC_LAN));
                 }
                 if(param.pwrMode == (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) )
                 {
                     response["powerState"] = "LIGHT_SLEEP";
-                    LOGWARN(" %s: %d  powerstate value: LIGHT_SLEEP  \n",__FUNCTION__,__LINE__);
                 }
                 else if(param.pwrMode == (1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
                 {
                     response["powerState"] = "DEEP_SLEEP";
-                    LOGWARN(" %s: %d  powerstate value: DEEP_SLEEP  \n",__FUNCTION__,__LINE__);
                 }
                 else
                 {
                     response["powerState"] = "DEFAULT";
-                    LOGWARN(" %s: %d  powerstate value: DEFAULT  \n",__FUNCTION__,__LINE__);
                 }
 
             } else {
