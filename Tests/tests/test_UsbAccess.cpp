@@ -7,6 +7,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::Eq;
+
 class UsbAccessTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::UsbAccess> plugin;
@@ -27,6 +29,7 @@ TEST_F(UsbAccessTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFileList")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("createLink")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("clearLink")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getLinks")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getAvailableFirmwareFiles")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getMounted")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("updateFirmware")));
@@ -53,7 +56,8 @@ TEST_F(UsbAccessTest, UpdateFirmware)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp;reboot;/my.bin\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp\';reboot;/my.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp\';reboot;/my.bin\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"invalid filename\",\"success\":false}"));
 
     Udev::getInstance().impl = nullptr;
     Wraps::getInstance().impl = nullptr;

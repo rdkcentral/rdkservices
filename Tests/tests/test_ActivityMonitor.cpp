@@ -29,6 +29,8 @@
 
 using namespace WPEFramework;
 
+using ::testing::Eq;
+
 namespace {
 const string regFile = _T("/opt/waylandregistry.conf");
 const uint8_t regFileData[] = "{\"waylandapps\":[{\"name\" : \"memcheck-amd64-\",\"binary\" : \"/usr/lib/x86_64-linux-gnu/valgrind/memcheck-amd64-%\"}]}";
@@ -64,8 +66,10 @@ TEST_F(ActivityMonitorTest, registeredMethods)
 
 TEST_F(ActivityMonitorTest, enableMonitoringEmptyConfig)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("enableMonitoring"), _T("{\"config\":[],\"memoryIntervalSeconds\":\"0\", \"cpuIntervalSeconds\":\"0\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("enableMonitoring"), _T("{\"config\":[{\"appPid\": 6763, \"memoryThresholdMB\": 10,\"cpuThresholdPercent\": 50,\"cpuThresholdSeconds\": 2}],\"memoryIntervalSeconds\":\"0\", \"cpuIntervalSeconds\":\"0\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableMonitoring"), _T("{\"config\":[],\"memoryIntervalSeconds\":\"0\", \"cpuIntervalSeconds\":\"0\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableMonitoring"), _T("{\"config\":[{\"appPid\": 6763, \"memoryThresholdMB\": 10,\"cpuThresholdPercent\": 50,\"cpuThresholdSeconds\": 2}],\"memoryIntervalSeconds\":\"0\", \"cpuIntervalSeconds\":\"0\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(ActivityMonitorTest, getAllMemoryUsage)

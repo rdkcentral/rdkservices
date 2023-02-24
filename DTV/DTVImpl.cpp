@@ -762,27 +762,20 @@ namespace Plugin {
       return result;
    }
 
-   uint32_t DTVImpl::StartServiceSearch(const IDTV::ServiceSearchType search_type, const bool retune,
-      const IDvbcTuningParams *tuning_params)
+   uint32_t DTVImpl::StartServiceSearch(const IDTV::ServiceSearchType search_type,
+      const bool retune, const uint32_t freq_hz, const uint16_t symbol_rate,
+      const IDvbcTuningParams::ModulationType modulation)
    {
       uint32_t result = Core::ERROR_BAD_REQUEST;
       E_ACTL_SEARCH_TYPE dvb_search_type;
       S_MANUAL_TUNING_PARAMS dvb_params;
-      uint32_t frequency;
-      uint16_t symbol_rate;
-      IDvbcTuningParams::ModulationType mod;
 
       memset(&dvb_params, 0, sizeof(S_MANUAL_TUNING_PARAMS));
 
-      tuning_params->Frequency(frequency);
-      dvb_params.freq = frequency;
-
-      tuning_params->SymbolRate(symbol_rate);
+      dvb_params.freq = freq_hz;
       dvb_params.u.cab.symbol_rate = symbol_rate;
 
-      tuning_params->Modulation(mod);
-
-      switch (mod)
+      switch (modulation)
       {
          case IDvbcTuningParams::ModulationType::MOD_4QAM:
             dvb_params.u.cab.mode = MODE_QAM_4;
@@ -830,154 +823,134 @@ namespace Plugin {
       return result;
    }
 
-   uint32_t DTVImpl::StartServiceSearch(const IDTV::ServiceSearchType search_type, const bool retune,
-      const IDvbsTuningParams *tuning_params)
+   uint32_t DTVImpl::StartServiceSearch(const IDTV::ServiceSearchType search_type,
+      const bool retune, const string sat_name, const uint32_t freq_khz,
+      const IDvbsTuningParams::PolarityType polarity, const uint16_t symbol_rate,
+      const IDvbsTuningParams::FecType fec, const IDvbsTuningParams::ModulationType modulation, const bool dvbs2)
    {
       uint32_t result = Core::ERROR_BAD_REQUEST;
       E_ACTL_SEARCH_TYPE dvb_search_type;
       S_MANUAL_TUNING_PARAMS dvb_params;
-      std::string sat_name;
-      uint32_t frequency;
-      uint16_t symbol_rate;
-      IDvbsTuningParams::PolarityType polarity;
-      IDvbsTuningParams::FecType fec;
-      IDvbsTuningParams::ModulationType mod;
-      bool dvbs2;
 
       memset(&dvb_params, 0, sizeof(S_MANUAL_TUNING_PARAMS));
 
-      tuning_params->Satellite(sat_name);
       dvb_params.u.sat.satellite = FindSatellite(sat_name.c_str());
 
-      tuning_params->Frequency(frequency);
-      dvb_params.freq = frequency;
-
-      tuning_params->SymbolRate(symbol_rate);
-      dvb_params.u.sat.symbol_rate = symbol_rate;
-
-      tuning_params->Polarity(polarity);
-
-      switch(polarity)
+      if (dvb_params.u.sat.satellite != NULL)
       {
-         case IDvbsTuningParams::PolarityType::HORIZONTAL:
-            dvb_params.u.sat.polarity = POLARITY_HORIZONTAL;
-            break;
-         case IDvbsTuningParams::PolarityType::VERTICAL:
-            dvb_params.u.sat.polarity = POLARITY_VERTICAL;
-            break;
-         case IDvbsTuningParams::PolarityType::LEFT:
-            dvb_params.u.sat.polarity = POLARITY_LEFT;
-            break;
-         case IDvbsTuningParams::PolarityType::RIGHT:
-            dvb_params.u.sat.polarity = POLARITY_RIGHT;
-            break;
-      }
+         dvb_params.freq = freq_khz;
+         dvb_params.u.sat.symbol_rate = symbol_rate;
 
-      tuning_params->Modulation(mod);
+         switch(polarity)
+         {
+            case IDvbsTuningParams::PolarityType::HORIZONTAL:
+               dvb_params.u.sat.polarity = POLARITY_HORIZONTAL;
+               break;
+            case IDvbsTuningParams::PolarityType::VERTICAL:
+               dvb_params.u.sat.polarity = POLARITY_VERTICAL;
+               break;
+            case IDvbsTuningParams::PolarityType::LEFT:
+               dvb_params.u.sat.polarity = POLARITY_LEFT;
+               break;
+            case IDvbsTuningParams::PolarityType::RIGHT:
+               dvb_params.u.sat.polarity = POLARITY_RIGHT;
+               break;
+         }
 
-      switch (mod)
-      {
-         case IDvbsTuningParams::ModulationType::MOD_QPSK:
-            dvb_params.u.sat.modulation = MOD_QPSK;
-            break;
-         case IDvbsTuningParams::ModulationType::MOD_8PSK:
-            dvb_params.u.sat.modulation = MOD_8PSK;
-            break;
-         case IDvbsTuningParams::ModulationType::MOD_16QAM:
-            dvb_params.u.sat.modulation = MOD_16QAM;
-            break;
-         case IDvbsTuningParams::ModulationType::MOD_AUTO:
-         default:
-            dvb_params.u.sat.modulation = MOD_AUTO;
-            break;
-      }
+         switch (modulation)
+         {
+            case IDvbsTuningParams::ModulationType::MOD_QPSK:
+               dvb_params.u.sat.modulation = MOD_QPSK;
+               break;
+            case IDvbsTuningParams::ModulationType::MOD_8PSK:
+               dvb_params.u.sat.modulation = MOD_8PSK;
+               break;
+            case IDvbsTuningParams::ModulationType::MOD_16QAM:
+               dvb_params.u.sat.modulation = MOD_16QAM;
+               break;
+            case IDvbsTuningParams::ModulationType::MOD_AUTO:
+            default:
+               dvb_params.u.sat.modulation = MOD_AUTO;
+               break;
+         }
 
-      tuning_params->Fec(fec);
+         switch(fec)
+         {
+            case IDvbsTuningParams::FecType::FEC1_2:
+               dvb_params.u.sat.fec = FEC_1_2;
+               break;
+            case IDvbsTuningParams::FecType::FEC2_3:
+               dvb_params.u.sat.fec = FEC_2_3;
+               break;
+            case IDvbsTuningParams::FecType::FEC3_4:
+               dvb_params.u.sat.fec = FEC_3_4;
+               break;
+            case IDvbsTuningParams::FecType::FEC5_6:
+               dvb_params.u.sat.fec = FEC_5_6;
+               break;
+            case IDvbsTuningParams::FecType::FEC7_8:
+               dvb_params.u.sat.fec = FEC_7_8;
+               break;
+            case IDvbsTuningParams::FecType::FEC1_4:
+               dvb_params.u.sat.fec = FEC_1_4;
+               break;
+            case IDvbsTuningParams::FecType::FEC1_3:
+               dvb_params.u.sat.fec = FEC_1_3;
+               break;
+            case IDvbsTuningParams::FecType::FEC2_5:
+               dvb_params.u.sat.fec = FEC_2_5;
+               break;
+            case IDvbsTuningParams::FecType::FEC8_9:
+               dvb_params.u.sat.fec = FEC_8_9;
+               break;
+            case IDvbsTuningParams::FecType::FEC9_10:
+               dvb_params.u.sat.fec = FEC_9_10;
+               break;
+            case IDvbsTuningParams::FecType::FEC3_5:
+               dvb_params.u.sat.fec = FEC_3_5;
+               break;
+            case IDvbsTuningParams::FecType::FEC4_5:
+               dvb_params.u.sat.fec = FEC_4_5;
+               break;
+            case IDvbsTuningParams::FecType::FEC_AUTO:
+            default:
+               dvb_params.u.sat.fec = FEC_AUTOMATIC;
+               break;
+         }
 
-      switch(fec)
-      {
-         case IDvbsTuningParams::FecType::FEC1_2:
-            dvb_params.u.sat.fec = FEC_1_2;
-            break;
-         case IDvbsTuningParams::FecType::FEC2_3:
-            dvb_params.u.sat.fec = FEC_2_3;
-            break;
-         case IDvbsTuningParams::FecType::FEC3_4:
-            dvb_params.u.sat.fec = FEC_3_4;
-            break;
-         case IDvbsTuningParams::FecType::FEC5_6:
-            dvb_params.u.sat.fec = FEC_5_6;
-            break;
-         case IDvbsTuningParams::FecType::FEC7_8:
-            dvb_params.u.sat.fec = FEC_7_8;
-            break;
-         case IDvbsTuningParams::FecType::FEC1_4:
-            dvb_params.u.sat.fec = FEC_1_4;
-            break;
-         case IDvbsTuningParams::FecType::FEC1_3:
-            dvb_params.u.sat.fec = FEC_1_3;
-            break;
-         case IDvbsTuningParams::FecType::FEC2_5:
-            dvb_params.u.sat.fec = FEC_2_5;
-            break;
-         case IDvbsTuningParams::FecType::FEC8_9:
-            dvb_params.u.sat.fec = FEC_8_9;
-            break;
-         case IDvbsTuningParams::FecType::FEC9_10:
-            dvb_params.u.sat.fec = FEC_9_10;
-            break;
-         case IDvbsTuningParams::FecType::FEC3_5:
-            dvb_params.u.sat.fec = FEC_3_5;
-            break;
-         case IDvbsTuningParams::FecType::FEC4_5:
-            dvb_params.u.sat.fec = FEC_4_5;
-            break;
-         case IDvbsTuningParams::FecType::FEC_AUTO:
-         default:
-            dvb_params.u.sat.fec = FEC_AUTOMATIC;
-            break;
-      }
+         dvb_params.u.sat.dvb_s2 = (dvbs2 ? TRUE : FALSE);
 
-      tuning_params->DvbS2(dvbs2);
-      dvb_params.u.sat.dvb_s2 = (dvbs2 ? TRUE : FALSE);
+         if (search_type == IDTV::ServiceSearchType::FREQUENCY)
+         {
+            dvb_search_type = ACTL_FREQ_SEARCH;
+         }
+         else
+         {
+            dvb_search_type = ACTL_NETWORK_SEARCH;
+         }
 
-      if (search_type == IDTV::ServiceSearchType::FREQUENCY)
-      {
-         dvb_search_type = ACTL_FREQ_SEARCH;
-      }
-      else
-      {
-         dvb_search_type = ACTL_NETWORK_SEARCH;
-      }
+         ADB_PrepareDatabaseForSearch(SIGNAL_QPSK, NULL, (retune ? TRUE : FALSE), FALSE);
 
-      ADB_PrepareDatabaseForSearch(SIGNAL_QPSK, NULL, (retune ? TRUE : FALSE), FALSE);
-
-      if (ACTL_StartManualSearch(SIGNAL_QPSK, &dvb_params, dvb_search_type))
-      {
-         result = Core::ERROR_NONE;
+         if (ACTL_StartManualSearch(SIGNAL_QPSK, &dvb_params, dvb_search_type))
+         {
+            result = Core::ERROR_NONE;
+         }
       }
 
       return result;
    }
 
-   uint32_t DTVImpl::StartServiceSearch(const IDTV::ServiceSearchType search_type, const bool retune,
-      const IDvbtTuningParams *tuning_params)
+   uint32_t DTVImpl::StartServiceSearch(const IDTV::ServiceSearchType search_type,
+      const bool retune, const uint32_t freq_hz, const IDvbtTuningParams::BandwidthType bandwidth,
+      const IDvbtTuningParams::OfdmModeType mode, const bool dvbt2, const uint8_t plp_id)
    {
       uint32_t result = Core::ERROR_BAD_REQUEST;
       E_ACTL_SEARCH_TYPE dvb_search_type;
       S_MANUAL_TUNING_PARAMS dvb_params;
-      uint32_t frequency;
-      IDvbtTuningParams::BandwidthType bandwidth;
-      IDvbtTuningParams::OfdmModeType ofdm_mode;
-      bool dvbt2;
-      uint8_t plp_id;
 
       memset(&dvb_params, 0, sizeof(S_MANUAL_TUNING_PARAMS));
 
-      tuning_params->Frequency(frequency);
-      dvb_params.freq = frequency;
-
-      tuning_params->Bandwidth(bandwidth);
+      dvb_params.freq = freq_hz;
 
       switch (bandwidth)
       {
@@ -1002,9 +975,7 @@ namespace Plugin {
             break;
       }
 
-      tuning_params->OfdmMode(ofdm_mode);
-
-      switch(ofdm_mode)
+      switch(mode)
       {
          case IDvbtTuningParams::OfdmModeType::OFDM_1K:
             dvb_params.u.terr.mode = MODE_COFDM_1K;
@@ -1030,10 +1001,7 @@ namespace Plugin {
             break;
       }
 
-      tuning_params->DvbT2(dvbt2);
       dvb_params.u.terr.type = (dvbt2 ? TERR_TYPE_DVBT2 : TERR_TYPE_DVBT);
-
-      tuning_params->PlpId(plp_id);
       dvb_params.u.terr.plp_id = plp_id;
 
       if (search_type == IDTV::ServiceSearchType::FREQUENCY)
@@ -1135,34 +1103,6 @@ namespace Plugin {
       }
 
       return (Core::ERROR_NONE);
-   }
-
-   uint32_t DTVImpl::DvbcTuningParams(const uint32_t freq_hz, const uint16_t symbol_rate,
-      const IDvbcTuningParams::ModulationType modulation, IDvbcTuningParams*& params)
-   {
-      //params = new DvbcTuningParamsImpl(freq_hz, symbol_rate, modulation);
-      params = Core::Service<DvbcTuningParamsImpl>::Create<IDTV::IDvbcTuningParams>(freq_hz, symbol_rate, modulation);
-      return Core::ERROR_NONE;
-   }
-
-   uint32_t DTVImpl::DvbsTuningParams(const string sat_name, const uint32_t freq_khz,
-      const IDvbsTuningParams::PolarityType polarity, const uint16_t symbol_rate,
-      const IDvbsTuningParams::FecType fec, const IDvbsTuningParams::ModulationType modulation,
-      const bool dvbs2, IDvbsTuningParams*& params)
-   {
-      //params = new DvbsTuningParamsImpl(sat_name, freq_khz, polarity, symbol_rate, fec, modulation, dvbs2);
-      params = Core::Service<DvbsTuningParamsImpl>::Create<IDTV::IDvbsTuningParams>(sat_name, freq_khz,
-         polarity, symbol_rate, fec, modulation, dvbs2);
-      return Core::ERROR_NONE;
-   }
-
-   uint32_t DTVImpl::DvbtTuningParams(const uint32_t freq_hz, const IDvbtTuningParams::BandwidthType bandwidth,
-      const IDvbtTuningParams::OfdmModeType mode, const bool dvbt2, const uint8_t plp_id,
-      IDvbtTuningParams*& params)
-   {
-      //params = new DvbtTuningParamsImpl(freq_hz, bandwidth, mode, dvbt2, plp_id);
-      params = Core::Service<DvbtTuningParamsImpl>::Create<IDTV::IDvbtTuningParams>(freq_hz, bandwidth, mode, dvbt2, plp_id);
-      return Core::ERROR_NONE;
    }
 
    void DTVImpl::DvbEventHandler(U32BIT event, void *event_data, U32BIT data_size)
@@ -1417,12 +1357,24 @@ namespace Plugin {
    {
       U8BIT *name;
 
+      if (STB_IsUnicodeString((U8BIT *)satellite_name))
+      {
+         // Given name is in DVB format so skip the first char which is the type indicator byte
+         satellite_name++;
+      }
+
       void *sat_ptr = ADB_GetNextSatellite(NULL);
       while (sat_ptr != NULL)
       {
          if ((name = ADB_GetSatelliteName(sat_ptr)) != NULL)
          {
-            if (strcmp(satellite_name, (char *)name + 1) == 0)
+            if (STB_IsUnicodeString(name))
+            {
+               // Satellite name is in DVB format so skip the first char which is the type indicator byte
+               name++;
+            }
+
+            if (strcmp(satellite_name, (char *)name) == 0)
             {
                // Found the named satellite
                break;

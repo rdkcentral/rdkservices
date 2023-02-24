@@ -138,10 +138,13 @@ namespace Plugin {
         }
 
         //From usb number 2, it returns the next available number
-        int nextAvailableNumber(const std::set<int>& numList) {
+        int nextAvailableNumber(const std::map<int, std::string>& numList) {
             int nNum = 2;
             for(auto const& it : numList) {
-                if(it != nNum) {
+                //Treat 1 as special case, since we create this as usbdrive (no number suffix)
+                if(it.first == 1)
+                    continue;
+                if(it.first != nNum) {
                     break;
                 }
                 nNum++;
@@ -150,7 +153,8 @@ namespace Plugin {
         }
 
         //Returns if the incomingPath already has existing link
-        bool isSymlinkExists(string& availableLink, string& incomingPath)
+        // availableLink: /tmp/usbdrive, incomingPath: /run/media/sda1
+        bool isSymlinkExists(const string& availableLink, const string& incomingPath)
         {
             bool bLinkExists = false;
             char targetPath[256];
@@ -170,6 +174,14 @@ namespace Plugin {
             }
             return bLinkExists;
         }
+
+        bool isParamsEmpty(const JsonObject &parameters)
+        {
+            std::string strJson; 
+            parameters.ToString(strJson);
+            return ((strJson == "{}") ? true : false);
+        }
+
     }
 
     SERVICE_REGISTRATION(UsbAccess, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
@@ -185,6 +197,7 @@ namespace Plugin {
         registerMethod(_T("getFileList"), &UsbAccess::getFileListWrapper, this);
         registerMethod(_T("createLink"), &UsbAccess::createLinkWrapper, this);
         registerMethod(_T("clearLink"), &UsbAccess::clearLinkWrapper, this);
+        registerMethod(_T("getLinks"), &UsbAccess::getLinksWrapper, this);
         registerMethod(_T("getAvailableFirmwareFiles"), &UsbAccess::getAvailableFirmwareFilesWrapper, this);
         registerMethod(_T("getMounted"), &UsbAccess::getMountedWrapper, this);
         registerMethod(_T("updateFirmware"), &UsbAccess::updateFirmware, this);
@@ -225,13 +238,18 @@ namespace Plugin {
         string pathParam;
         if (parameters.HasLabel("path"))
             pathParam = parameters["path"].String();
+        else if (!isParamsEmpty(parameters))
+        {
+            LOGWARN("path is missing from the parameters");
+            return Core::ERROR_BAD_REQUEST;
+        }
 
         FileList files;
+        string absPath;
         std::list<string> paths;
         getMounted(paths);
         if (!paths.empty())
         {
-            string absPath;
             //Loop through all the paths to match for absolute path
             for(auto const& it : paths)
             {
@@ -253,6 +271,7 @@ namespace Plugin {
             response["error"] = "not found";
         else
         {
+            response["path"] = absPath;
             JsonArray arr;
             for_each(files.begin(), files.end(), [&arr](const FileEnt& it)
             {
@@ -274,48 +293,62 @@ namespace Plugin {
         bool result = false;
 
         std::list<string> paths;
-        string baseURL = LINK_URL_HTTP;
+        getMounted(paths);
 
+        string baseURL = LINK_URL_HTTP;
 		string pathParam;
 		if (parameters.HasLabel("path"))
 			pathParam = parameters["path"].String();
+        else if (!isParamsEmpty(parameters))
+        {
+            LOGWARN("path is missing from the parameters");
+            return Core::ERROR_BAD_REQUEST;
+        }
+        else if(!paths.empty())
+            pathParam = *paths.begin();
 
 		bool bLinkExists = false;
-
-        //Loop through all the existing IDs and set bLinkExists to true, if it already has the link
-        for(auto itr : m_CreatedLinkIds)
+        if (!paths.empty())
         {
-            string linkPath = LINK_PATH+std::to_string(itr);
-			bLinkExists = isSymlinkExists(linkPath, pathParam);
-			if(bLinkExists)
-				break;
-		}
-
-        getMounted(paths);
-        if (!paths.empty() && (!bLinkExists))
-        {
-            string pathParam;
-            if (parameters.HasLabel("path"))
-                pathParam = parameters["path"].String();
-
-            //For the first usb drive, create link with out number suffix
-            if( pathParam.empty() || ((*paths.begin()).compare(pathParam)) == 0 )
-            {
-                result = createLink(*paths.begin(), LINK_PATH);
-            }
-            else
-            {
-                //Loop through all the paths for exact match and create link
-                for(auto const& it : paths)
+            // Check the symlink already exists with first usbdrive
+            if(isSymlinkExists(LINK_PATH, pathParam))
+                bLinkExists = true;
+            else {
+                //Loop through all the existing IDs and set bLinkExists to true, if it already has the link
+                for(auto const& itr : m_CreatedLinkIds)
                 {
-                    if(it.compare(pathParam) == 0)
-                    {
-                        int nUsbNum = nextAvailableNumber(m_CreatedLinkIds);
-                        baseURL = baseURL + std::to_string(nUsbNum);    //Add number suffix
-                        result = createLink(it, LINK_PATH+std::to_string(nUsbNum));
-						if (result)
-							m_CreatedLinkIds.insert(nUsbNum);
+                    string linkPath = LINK_PATH+std::to_string(itr.first);
+                    bLinkExists = isSymlinkExists(linkPath, pathParam);
+                    if(bLinkExists) {
+                        baseURL = baseURL + std::to_string(itr.first);
                         break;
+                    }
+                }
+            }
+
+            if(!bLinkExists)
+            {
+                //For the first usb drive, create link with out number suffix
+                if((*paths.begin()).compare(pathParam) == 0 )
+                {
+                    result = createLink(*paths.begin(), LINK_PATH);
+                    if (result)
+                        m_CreatedLinkIds.insert(std::make_pair(1, *paths.begin()));
+                }
+                else
+                {
+                    //Loop through all the paths for exact match and create link
+                    for(auto const& it : paths)
+                    {
+                        if(it.compare(pathParam) == 0)
+                        {
+                            int nUsbNum = nextAvailableNumber(m_CreatedLinkIds);
+                            baseURL = baseURL + std::to_string(nUsbNum);    //Add number suffix
+                            result = createLink(it, LINK_PATH+std::to_string(nUsbNum));
+                            if (result)
+                                m_CreatedLinkIds.insert(std::make_pair(nUsbNum, it));
+                            break;
+                        }
                     }
                 }
             }
@@ -323,6 +356,8 @@ namespace Plugin {
 
         if (result)
 	        response["baseURL"] = baseURL;
+        else if (bLinkExists)
+            response["error"] = "symlink already exists: " + baseURL;
         else
             response["error"] = "could not create symlink";
 
@@ -339,16 +374,23 @@ namespace Plugin {
         string urlParam;
         if (parameters.HasLabel("baseURL"))
             urlParam = parameters["baseURL"].String();
+        else if (!isParamsEmpty(parameters))
+        {
+            LOGWARN("baseURL is missing from the parameters");
+            return Core::ERROR_BAD_REQUEST;
+        }
 
         if(urlParam.empty() || (urlParam.compare(LINK_URL_HTTP)) == 0)
         {
             result = clearLink(LINK_PATH);
+            if (result)
+                m_CreatedLinkIds.erase(1);
         }
         else
         {
             //Validate incoming path
             std::smatch match;
-            if (regex_search(urlParam, match, std::regex("http://localhost:50050/usbdrive[0-9]+")) &&  match.size() >= 1) {
+            if (regex_search(urlParam, match, std::regex("http://localhost:50050/usbdrive[0-9]+$")) &&  match.size() >= 1) {
                 nUsbNum = std::stoi(urlParam.substr(urlParam.find_last_not_of("0123456789") + 1));
                 result = clearLink(LINK_PATH+std::to_string(nUsbNum));
                 if (result)
@@ -360,6 +402,28 @@ namespace Plugin {
             response["error"] = "could not remove symlink";
 
         returnResponse(result);
+    }
+
+    uint32_t UsbAccess::getLinksWrapper(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFOMETHOD();
+
+        JsonArray arr;
+        //Loop through all created links
+        for(auto const& itr : m_CreatedLinkIds)
+        {
+            std::string strLink = LINK_URL_HTTP;
+            //Special case for first drive, where the number suffix is not needed
+            if(itr.first != 1)
+                strLink += std::to_string(itr.first);
+
+            JsonObject links;
+            links["path"] = itr.second;
+            links["baseURL"] = strLink;
+            arr.Add(links);
+        }
+        response["links"] = arr;
+        returnResponse(true);
     }
 
     uint32_t UsbAccess::getAvailableFirmwareFilesWrapper(const JsonObject &parameters, JsonObject &response)
@@ -460,6 +524,12 @@ namespace Plugin {
     uint32_t UsbAccess::archiveLogs(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFOMETHOD();
+
+        if (!isParamsEmpty(parameters) && !parameters.HasLabel("path"))
+        {
+            LOGWARN("path is missing from the parameters");
+            return Core::ERROR_BAD_REQUEST;
+        }
 
         if (archiveLogsThread.joinable())
             archiveLogsThread.join();
