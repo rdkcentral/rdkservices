@@ -25,8 +25,7 @@
 namespace AI_IPC
 {
 
-class IIpcService
-{
+class IIpcService {
 public:
     virtual ~IIpcService() = default;
     virtual bool isValid() const = 0;
@@ -43,8 +42,7 @@ std::shared_ptr<IIpcService> createIpcService(const std::string& address, const 
 
 
 class IpcService : public AI_IPC::IIpcService
-                 , public std::enable_shared_from_this<IpcService>
-{
+                 , public std::enable_shared_from_this<IpcService> {
 
 public:
     static IpcService& getInstance()
@@ -55,45 +53,49 @@ public:
 
     IIpcService* impl;
 
-    IpcService(const std::string& dbusAddress, const std::string& serviceName, int defaultTimeoutMs = -1){
-
+    IpcService(const std::string& dbusAddress, const std::string& serviceName, int defaultTimeoutMs = -1)
+    {
     }
 
-    IpcService(){
-        IpcService("test", "test");
+    IpcService()
+    {
     }
 
-
-    bool isValid() const {
+    bool isValid() const 
+    {
         return getInstance().impl->isValid();
     }
 
-    void flush(){
+    void flush()
+    {
         return getInstance().impl->flush();
     }
 
-    bool start(){
+    bool start()
+    {
         return getInstance().impl->start();
     }
 
-    bool stop(){
+    bool stop()
+    {
         return getInstance().impl->stop();
     }
 
-    bool isServiceAvailable(const std::string& serviceName) const{
+    bool isServiceAvailable(const std::string& serviceName) const
+    {
         return getInstance().impl->isServiceAvailable(serviceName);
     }
 
-    std::string getBusAddress() const{
+    std::string getBusAddress() const
+    {
         return getInstance().impl->getBusAddress();
     }
 };
 
-class IDobbyProxyEvents
-{
+class IDobbyProxyEvents {
+
 public:
-    enum class ContainerState
-    {
+    enum class ContainerState {
         Invalid = 0,
         Starting = 1,
         Running = 2,
@@ -109,8 +111,8 @@ public:
 
 typedef std::function<void(int32_t, const std::string&, IDobbyProxyEvents::ContainerState, const void*)> StateChangeListener;
 
-class IDobbyProxy
-{
+class IDobbyProxy {
+
 public:
     ~IDobbyProxy() = default;
 
@@ -162,8 +164,8 @@ public:
 
 };
 
-class DobbyProxy : public IDobbyProxy
-{
+class DobbyProxy : public IDobbyProxy {
+
 protected:
 
 public:
@@ -177,7 +179,6 @@ public:
 
     DobbyProxy()
     {
-        DobbyProxy(nullptr, DOBBY_SERVICE, DOBBY_OBJECT);
     }
 
     DobbyProxy(const std::shared_ptr<AI_IPC::IIpcService>& ipcService,
