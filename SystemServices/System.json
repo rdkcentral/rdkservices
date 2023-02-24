@@ -99,21 +99,37 @@
             "type": "string",
             "example": "ON"
         },
-        "wakeupsrc": {
-            "summary": "The wakeup source Key enum",
-            "enum": [
-                "WAKEUPSRC_VOICE",
-                "WAKEUPSRC_PRESENCE_DETECTION",
-                "WAKEUPSRC_BLUETOOTH",
-                "WAKEUPSRC_WIFI",
-                "WAKEUPSRC_IR",
-                "WAKEUPSRC_POWER_KEY",
-                "WAKEUPSRC_TIMER",
-                "WAKEUPSRC_CEC",
-                "WAKEUPSRC_LAN"
-            ],
-            "type": "string",
-            "example": "WAKEUPSEC_VOICE"
+        "wakeupSources": {
+            "summary": "Array of Key value pair with wake up sources and its configurations",
+            "Type": "Array",
+            "items" : {
+                "summary": "Wake up source config Key value pair",
+                "type": "Object",
+                "properties": {
+                    "wakeupsrc": {
+                        "summary": "Wake up source identifier",
+                        "enum": [
+                            "WAKEUPSRC_VOICE",
+                            "WAKEUPSRC_PRESENCE_DETECTION",
+                            "WAKEUPSRC_BLUETOOTH",
+                            "WAKEUPSRC_WIFI",
+                            "WAKEUPSRC_IR",
+                            "WAKEUPSRC_POWER_KEY",
+                            "WAKEUPSRC_TIMER",
+                            "WAKEUPSRC_CEC",
+                            "WAKEUPSRC_LAN"
+                        ],
+                        "type": "string",
+                        "example": "WAKEUPSEC_VOICE"
+                    },
+                    "config" : {
+                        "summary": "Wake up source configuration",
+                        "type" : "Boolean",
+                        "example" : "true"
+                    }
+                }
+            }
+
         },
         "preferredStandbyMode": {
             "summary": "The standby mode",
@@ -1839,25 +1855,19 @@
             }
         },
         "setWakeupSrcConfiguration":{
-            "summary": "Sets the wakeup source configuration",
+            "summary": "Sets the wakeup source configuration and powerState",
             "params": {
                 "type": "object",
                 "properties": {
                     "powerState": {
                         "$ref": "#/definitions/powerState"
                     },
-                    "wakeupSrc": {
-                        "$ref": "#/definitions/wakeupsrc"
-                    },
-                    "config": {
-                        "summary": "The source configuration",
-                        "type": "boolean",
-                        "example": "true"
+                    "wakeupSources": {
+                        "$ref": "#/definitions/wakeupSources"
                     }
                 },
                 "required": [
-                    "wakeupSrc",
-                    "config"
+                    "wakeupSources"
                 ]
             },
             "result": {
@@ -1865,20 +1875,15 @@
             }
         },
         "getWakeupSrcConfiguration":{
-            "summary": "Returns the power state before reboot.",
+            "summary": "Returns all the supported wakeup configurations and powerState set",
             "result": {
                 "type": "object",
                 "properties": {
                     "powerState": {
                         "$ref": "#/definitions/powerState"
                     },
-                    "wakeupSrc": {
-                        "$ref": "#/definitions/wakeupsrc"
-                    },
-                    "config": {
-                        "summary": "The source configuration",
-                        "type": "boolean",
-                        "example": "true"
+                    "wakeupSources": {
+                        "$ref": "#/definitions/wakeupSources"
                     },
                     "success":{
                         "$ref": "#/common/success"
@@ -1886,8 +1891,7 @@
                 },
                 "required": [
                     "powerState",
-                    "wakeupsrc",
-                    "config",
+                    "wakeupSources",
                     "success"
                 ]
             }

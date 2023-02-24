@@ -140,6 +140,34 @@ bool setGzEnabled(bool enabled)
     return retVal;
 }
 
+const char* getWakeupSrcString(uint32_t src)
+{
+    
+    switch (src)
+    {
+    case WAKEUPSRC_VOICE:
+         return "WAKEUPSRC_VOICE";
+    case WAKEUPSRC_PRESENCE_DETECTION:
+         return "WAKEUPSRC_PRESENCE_DETECTION";
+    case WAKEUPSRC_BLUETOOTH:
+         return "WAKEUPSRC_PRESENCE_DETECTION"
+    case WAKEUPSRC_WIFI:
+         return "WAKEUPSRC_WIFI";
+    case WAKEUPSRC_IR:
+         return "WAKEUPSRC_IR";
+    case WAKEUPSRC_POWER_KEY:
+         return "WAKEUPSRC_POWER_KEY";
+    case WAKEUPSRC_TIMER:
+         return "WAKEUPSRC_TIMER";
+    case WAKEUPSRC_CEC:
+         return "WAKEUPSRC_CEC";
+    case WAKEUPSRC_LAN:
+         return "WAKEUPSRC_LAN";
+    default:
+         return "";
+    }
+}
+
 /**
  * @brief returns the value of the contents of /opt/gzenabled.
  *
@@ -3751,7 +3779,7 @@ namespace WPEFramework {
         }
         /***
          * @brief : To set the wakeup source configuration.
-         * @param1[in] : {"params":{ "wakeupSrc": <int>, "config": <int>}
+         * @param1[in] : {"params":{ "" "wakeupSrc": <int>, "config": <int>}
          * @param2[out] : {"result":{"success":<bool>}}
          * @return     : Core::<StatusCode>
          */
@@ -3779,74 +3807,39 @@ namespace WPEFramework {
                                              (1 << IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP);
             }
             LOGWARN("%s: %d Power State stored:%x \r\n",__FUNCTION__,__LINE__,powerState);
-            if (parameters.HasLabel("WAKEUPSRC_VOICE")) 
+            if (parameters.HasLabel("wakeupSources")) 
             {
-                srcType |= 1<<WAKEUPSRC_VOICE;
-                if(parameters["WAKEUPSRC_VOICE"].Boolean())
-                    config |= 1<<WAKEUPSRC_VOICE;
-            }
-            if(parameters.HasLabel("WAKEUPSRC_PRESENCE_DETECTION"))
-            {   
-                srcType |= 1<<WAKEUPSRC_PRESENCE_DETECTION;
-                if(parameters["WAKEUPSRC_PRESENCE_DETECTION"].Boolean())
-                    config |= 1<<WAKEUPSRC_PRESENCE_DETECTION;
-            }
-            if(parameters.HasLabel("WAKEUPSRC_BLUETOOTH"))
-            {
-                srcType |= 1<<WAKEUPSRC_BLUETOOTH;
-                if(parameters["WAKEUPSRC_BLUETOOTH"].Boolean())
-                    config |= 1<<WAKEUPSRC_BLUETOOTH;
-            }
-            if(parameters.HasLabel("WAKEUPSRC_WIFI"))
-            {
-                srcType |= 1<<WAKEUPSRC_WIFI;
-                if(parameters["WAKEUPSRC_WIFI"].Boolean())
-                    config |= 1<<WAKEUPSRC_WIFI;
-            }
-            if(parameters.HasLabel("WAKEUPSRC_IR"))
-            {
-                srcType |= 1<<WAKEUPSRC_IR;
-                if(parameters["WAKEUPSRC_IR"].Boolean())
-                    config |= 1<<WAKEUPSRC_IR;
-            }
-            if(parameters.HasLabel("WAKEUPSRC_POWER_KEY"))
-            {
-                srcType |= 1<<WAKEUPSRC_POWER_KEY;
-                if(parameters["WAKEUPSRC_POWER_KEY"].Boolean())
-                    config |= 1<<WAKEUPSRC_POWER_KEY;
-            }
-            if(parameters.HasLabel("WAKEUPSRC_TIMER"))
-            {
-                srcType |= 1<<WAKEUPSRC_TIMER;
-                if(parameters["WAKEUPSRC_TIMER"].Boolean())
-                    config |= 1<<WAKEUPSRC_TIMER;
-            }
-            if(parameters.HasLabel("WAKEUPSRC_CEC"))
-            {
-                srcType |= 1<<WAKEUPSRC_CEC;
-                if(parameters["WAKEUPSRC_CEC"].Boolean())
-                    config |= 1<<WAKEUPSRC_CEC;
-            }
-            if(parameters.HasLabel("WAKEUPSRC_LAN"))
-            {
-                srcType |= 1<<WAKEUPSRC_LAN;
-                if(parameters["WAKEUPSRC_LAN"].Boolean())
-                    config |= 1<<WAKEUPSRC_LAN;
-            }
-            LOGWARN(" %s: %d srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
-            if(srcType) {
-                IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t param;
-                param.pwrMode = powerState;
-                param.srcType = srcType;
-                param.config = config;
-                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
-                                       IARM_BUS_PWRMGR_API_SetWakeupSrcConfig, (void *)&param,
-                                       sizeof(param));
-                if (IARM_RESULT_SUCCESS == res) {
-                    status = true;
-                } else {
-                    status = false;
+                JsonArray wakeupSrcs = parameters["wakeupSources"].Array();
+                for(uint32_t i =0; i<wakeupSrcs.Length();i++)
+                {
+                    JsonObject wakeupSrc = wakeupSrcs.Get(i).Object();
+                    for(uint32_t src = WAKEUPSRC_VOICE; src < WAKEUPSRC_MAX; src++)
+                    {
+                        if(wakeupSrc.HasLabel[getWakeupSrcString(src)])
+                        {
+                            srcType |= (1<<src);
+                            if(wakeupSrc[getWakeupSrcString(src)].Boolean())
+                            {
+                                config |= (1<<src);
+                            }
+                            break;
+                        }
+                    }
                 }
+                LOGWARN(" %s: %d srcType:%x  config :%x \n",__FUNCTION__,__LINE__,srcType ,config);
+                if(srcType) {
+                    IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t param;
+                    param.pwrMode = powerState;
+                    param.srcType = srcType;
+                    param.config = config;
+                    IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                                           IARM_BUS_PWRMGR_API_SetWakeupSrcConfig, (void *)&param,
+                                           sizeof(param));
+                    if (IARM_RESULT_SUCCESS == res) {
+                        status = true;
+                    } else {
+                        status = false;
+                    }
             }
             returnResponse(status);
         }
@@ -3861,49 +3854,23 @@ namespace WPEFramework {
         uint32_t SystemServices::getWakeupSrcConfiguration(const JsonObject& parameters,
                 JsonObject& response)
         {
+            JsonArray wakeupSrc;
             IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t param;
             bool status = false;
             IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
                                   IARM_BUS_PWRMGR_API_GetWakeupSrcConfig, (void *)&param,
                                   sizeof(param));
             if (IARM_RESULT_SUCCESS == res) {
-               LOGWARN(" %s: %d res:%d srcType :%x  config :%x \n",__FUNCTION__,__LINE__,res,param.srcType,param.config);
-               status = true;
-               if( param.srcType & (1<<WAKEUPSRC_VOICE))
-               {
-                    response["WAKEUPSRC_VOICE"] = (param.config & (1<<WAKEUPSRC_VOICE))?true:false;
-               }
-               if( param.srcType & (1<<WAKEUPSRC_PRESENCE_DETECTION))
-               {
-                    response["WAKEUPSRC_PRESENCE_DETECTION"] = (param.config & (1<<WAKEUPSRC_PRESENCE_DETECTION))?true:false;
-               }
-               if( param.srcType & (1<<WAKEUPSRC_BLUETOOTH))
-               {
-                    response["WAKEUPSRC_BLUETOOTH"] = (param.config & (1<<WAKEUPSRC_BLUETOOTH))?true:false;
-               }
-               if( param.srcType & (1<<WAKEUPSRC_WIFI))
-               {
-                    response["WAKEUPSRC_WIFI"] = (param.config & (1<<WAKEUPSRC_WIFI))?true:false;
-               }
-               if( param.srcType & (1<<WAKEUPSRC_IR))
-               {
-                    response["WAKEUPSRC_IR"] = (param.config & (1<<WAKEUPSRC_IR))?true:false;
-               }
-               if( param.srcType & (1<<WAKEUPSRC_POWER_KEY))
-               {
-                    response["WAKEUPSRC_POWER_KEY"] = (param.config & (1<<WAKEUPSRC_POWER_KEY ))?true:false;
-               }
-               if( param.srcType & (1<<WAKEUPSRC_TIMER))
-               {
-                    response["WAKEUPSRC_TIMER"] = (param.config & (1<<WAKEUPSRC_TIMER))?true:false;
-               }
-               if( param.srcType & (1<<WAKEUPSRC_CEC))
-               {
-                    response["WAKEUPSRC_CEC"] = (param.config & (1<<WAKEUPSRC_CEC))?true:false;
-               }
-               if( param.srcType & (1<<WAKEUPSRC_LAN))
-               {
-                    response["WAKEUPSRC_LAN"] = (param.config & (1<<WAKEUPSRC_LAN))?true:false;
+                LOGWARN(" %s: %d res:%d srcType :%x  config :%x \n",__FUNCTION__,__LINE__,res,param.srcType,param.config);
+                status = true;
+                for(uint32_t src = WAKEUPSRC_VOICE; src <  WAKEUPSRC_MAX; src++)
+                {
+                     JsonObject sourceConfig;
+                     if(parameters.srcType & (1<<src))
+                     {
+                         sourceConfig[getWakeupSrcString(src)] = (param.config & (1<<src))?true:false;
+                     }
+                     wakeupSrc.Add(sourceConfig);
                 }
                 if(param.pwrMode == (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) )
                 {
@@ -3916,6 +3883,10 @@ namespace WPEFramework {
                 else
                 {
                     response["powerState"] = "DEFAULT";
+                }
+                if(wakeupSrc.Length() > 0)
+                {
+                    response["wakeupSources"] = wakeupSrc;
                 }
 
             } else {
