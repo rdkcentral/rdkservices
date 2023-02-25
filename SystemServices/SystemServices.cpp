@@ -3779,7 +3779,7 @@ namespace WPEFramework {
         }
         /***
          * @brief : To set the wakeup source configuration.
-         * @param1[in] : {"params":{ "" "wakeupSrc": <int>, "config": <int>}
+         * @param1[in] : {"params":{"powerState":<string>,"wakeupSources":[{<WakeupSrcTrigger string>:<bool>},...]}
          * @param2[out] : {"result":{"success":<bool>}}
          * @return     : Core::<StatusCode>
          */
@@ -3847,7 +3847,7 @@ namespace WPEFramework {
         
         /***
          * @brief : To get the wakeup source configuration.
-         * @param1[out] : {"params":{ "wakeupSrc": <int>, "config": <int>}
+         * @param1[out] : {"params":{"powerState":<string>,"wakeupSources":[{<WakeupSrcTrigger string>:<bool>},...]}
          * @param2[out] : {"result":{"success":<bool>}}
          * @return     : Core::<StatusCode>
          */
@@ -3869,9 +3869,9 @@ namespace WPEFramework {
                      JsonObject sourceConfig;
                      if(param.srcType & (1<<src))
                      {
-                         sourceConfig[getWakeupSrcString(src)] = (param.config & (1<<src))?true:false;
+                        sourceConfig[getWakeupSrcString(src)] = (param.config & (1<<src))?true:false;
+                        wakeupSrc.Add(sourceConfig);
                      }
-                     wakeupSrc.Add(sourceConfig);
                 }
                 if(param.pwrMode == (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) )
                 {
