@@ -1130,7 +1130,7 @@ TEST_F(SystemServicesTest, setWakeupSrcConfiguration)
                                             (1<< WAKEUPSRC_BLUETOOTH ) | (1<< WAKEUPSRC_WIFI) |(1<< WAKEUPSRC_IR) | \
                                             (1<< WAKEUPSRC_POWER_KEY ) | (1<< WAKEUPSRC_TIMER ) | (1<< WAKEUPSRC_CEC) | \
                                             (1<< WAKEUPSRC_LAN));
-                EXPECT_EQ(param->config, t(1<<WAKEUPSRC_VOICE) | (1<<WAKEUPSRC_PRESENCE_DETECTION) | \
+                EXPECT_EQ(param->config, (1<<WAKEUPSRC_VOICE) | (1<<WAKEUPSRC_PRESENCE_DETECTION) | \
                                             (1<< WAKEUPSRC_BLUETOOTH ) | (1<< WAKEUPSRC_WIFI) |(1<< WAKEUPSRC_IR) | \
                                             (1<< WAKEUPSRC_POWER_KEY ) | (1<< WAKEUPSRC_TIMER ) | (1<< WAKEUPSRC_CEC) | \
                                             (1<< WAKEUPSRC_LAN));
