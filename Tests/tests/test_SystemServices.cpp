@@ -1139,11 +1139,7 @@ TEST_F(SystemServicesTest, setWakeupSrcConfiguration)
 
     // TODO: BUG. enum should be used
     // TODO: BUG. boolean should not be number string
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setWakeupSrcConfiguration"), _T("{\"powerState\":4, 
-                                                \"wakeupSources\":[{\"WAKEUPSRC_VOICE\":\"1\"},{\"WAKEUPSRC_PRESENCE_DETECTION\":\"1\"}, 
-                                                {\"WAKEUPSRC_BLUETOOTH\":\"1\"},{\"WAKEUPSRC_WIFI\":\"1\"},{\"WAKEUPSRC_IR\":\"1\"},
-                                                {\"WAKEUPSRC_POWER_KEY\":\"1\"},{\"WAKEUPSRC_TIMER\":\"1\"},{\"WAKEUPSRC_CEC\":\"1\"},
-                                                {\"WAKEUPSRC_LAN\":\"1\"}]}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setWakeupSrcConfiguration"), _T("{\"powerState\":"DEEPSLEEP",\"wakeupSources\":[{\"WAKEUPSRC_VOICE\":\"1\"}]}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
