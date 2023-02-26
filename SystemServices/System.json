@@ -1877,7 +1877,7 @@
             }
         },
         "setWakeupSrcConfiguration":{
-            "summary": "Sets the wakeup source configuration and powerState",
+            "summary": "Sets the wakeup source configuration for the input powerState",
             "params": {
                 "type": "object",
                 "properties": {
@@ -1897,7 +1897,7 @@
             }
         },
         "getWakeupSrcConfiguration":{
-            "summary": "Returns all the supported wakeup configurations and powerState set",
+            "summary": "Returns all the supported wakeup configurations and powerState",
             "result": {
                 "type": "object",
                 "properties": {
