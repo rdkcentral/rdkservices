@@ -95,7 +95,7 @@ public:
 class IDobbyProxyEvents {
 
 public:
-    enum class ContainerState {
+    enum ContainerState {
         Invalid = 0,
         Starting = 1,
         Running = 2,
