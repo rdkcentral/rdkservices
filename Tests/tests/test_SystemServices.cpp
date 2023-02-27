@@ -1125,21 +1125,15 @@ TEST_F(SystemServicesTest, setWakeupSrcConfiguration)
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
                 EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetWakeupSrcConfig)));
                 auto param = static_cast<IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t*>(arg);
-/*                EXPECT_EQ(param->pwrMode, IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP);
-                EXPECT_EQ(param->srcType, (1<<WAKEUPSRC_VOICE) | (1<<WAKEUPSRC_PRESENCE_DETECTION) | \
-                                            (1<< WAKEUPSRC_BLUETOOTH ) | (1<< WAKEUPSRC_WIFI) |(1<< WAKEUPSRC_IR) | \
-                                            (1<< WAKEUPSRC_POWER_KEY ) | (1<< WAKEUPSRC_TIMER ) | (1<< WAKEUPSRC_CEC) | \
-                                            (1<< WAKEUPSRC_LAN));
-                EXPECT_EQ(param->config, (1<<WAKEUPSRC_VOICE) | (1<<WAKEUPSRC_PRESENCE_DETECTION) | \
-                                            (1<< WAKEUPSRC_BLUETOOTH ) | (1<< WAKEUPSRC_WIFI) |(1<< WAKEUPSRC_IR) | \
-                                            (1<< WAKEUPSRC_POWER_KEY ) | (1<< WAKEUPSRC_TIMER ) | (1<< WAKEUPSRC_CEC) | \
-                                            (1<< WAKEUPSRC_LAN));*/
+                EXPECT_EQ(param->pwrMode, IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP);
+                EXPECT_EQ(param->srcType, (1<<WAKEUPSRC_VOICE));
+                EXPECT_EQ(param->config, (1<<WAKEUPSRC_VOICE));
                 return IARM_RESULT_SUCCESS;
             });
 
     // TODO: BUG. enum should be used
     // TODO: BUG. boolean should not be number string
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setWakeupSrcConfiguration"), _T("{\"powerState\":\"DEEPSLEEP\",\"wakeupSources\":[{\"WAKEUPSRC_VOICE\":\"1\"}]}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setWakeupSrcConfiguration"), _T("{\"powerState\":\"DEEP_SLEEP\",\"wakeupSources\":[{\"WAKEUPSRC_VOICE\":\"1\"}]}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
