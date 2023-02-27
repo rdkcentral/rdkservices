@@ -65,6 +65,10 @@ if(PLUGIN_VOICECONTROL)
     add_subdirectory(VoiceControl)
 endif()
 
+if(PLUGIN_REMOTECONTROL)
+	add_subdirectory(RemoteControl)
+endif()
+
 if(PLUGIN_RUSTBRIDGE)
     add_subdirectory(RustBridge)
 endif()
