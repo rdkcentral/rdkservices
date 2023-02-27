@@ -1,5 +1,5 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/main/Tools/JsonGenerator/schemas/plugin.schema.json",
     "info": {
       "title": "RemoteControl Plugin",
       "callsign": "org.rdk.RemoteControl",
