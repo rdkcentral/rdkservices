@@ -251,9 +251,8 @@ TEST_F(HdmiCecInitializedTest, getDeviceList)
 
     //Calling the device list, which is a defualt list of the hdmiCec class. Kist grabs the deviceList.
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceList"), _T(""), response));
-    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"logicalAddress\":[0-9]")));
-    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"osdName\":\"[a-zA-Z0-9 ]*")));
-    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"vendorID\":\"[a-zA-Z0-9 ]*\"")));
-    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true}")));
+    //m_osdName and m_vendorID do not get populated in the population function, like logical address, and thus are empty with actual implementtion of .toString()
+    EXPECT_EQ(response, string(_T("{\"numberofdevices\":14,\"deviceList\":[{\"logicalAddress\":1,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":2,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":3,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":4,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":5,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":6,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":7,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":8,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":9,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":10,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":11,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":12,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":13,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":14,\"osdName\":\"\",\"vendorID\":\"\"}],\"success\":true}")));
+
 
 }
