@@ -8,19 +8,6 @@
 using namespace WPEFramework;
 using ::testing::NiceMock;
 
-namespace {
-
-    enum ContainerState {
-        Invalid = 0,
-        Starting = 1,
-        Running = 2,
-        Stopping = 3,
-        Paused = 4,
-        Stopped = 5,
-    };
-
-}
-
 class OCIContainerTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::OCIContainer> plugin;
@@ -99,7 +86,7 @@ TEST_F(OCIContainerInitializedTest, getContainerStateTest)
         .WillOnce(::testing::Return(containerslist));
 
     EXPECT_CALL(dobbymock, getContainerState(91))
-        .WillOnce(::testing::Return(ContainerState::Running));
+        .WillOnce(::testing::Return(IDobbyProxyEvents::ContainerState::Running));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getContainerState"), _T("{"
         "\"containerId\": \"com.bskyb.epgui\"}"), response));
