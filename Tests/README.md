@@ -42,7 +42,7 @@ docker exec -it <container name> /bin/bash
  For the queries on syntax please refer to the [Workflow syntax for GitHub Actions](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions).
 
 2. External dependencies need to be mocked.
- For each external header, add one into the [unit-tests.yml](../.github/workflows/unit-tests.yml) (preserve the original path parts, if needed).
+ For each external header, add one into the [tests.cmake](../tests.cmake) (preserve the original path parts, if needed).
  For each external declaration, add one into the [mocks folder](./mocks).
  For the queries on mocks please refer to the [gMock Cookbook](http://google.github.io/googletest/gmock_cook_book.html).
 
@@ -60,6 +60,7 @@ docker exec -it <container name> /bin/bash
      Suppress GMOCK WARNING-s with NiceMock.
 
 4. Before review:
+   - See the [common mistakes](https://github.com/rdkcentral/rdkservices/issues/3711).
    - Enable [ClangFormat](./.clang-format) and make sure the tests code is formatted.
    - For the tests, the code is built with flags `-Wall -Werror`.
      Make sure the code builds without warnings.

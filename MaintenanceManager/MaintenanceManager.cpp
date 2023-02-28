@@ -66,7 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 10
+#define API_VERSION_NUMBER_PATCH 12
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -263,6 +263,11 @@ namespace WPEFramework {
             string cmd="";
             bool internetConnectStatus=false;
 
+            LOGINFO("Executing Maintenance tasks");
+            m_statusMutex.lock();
+            MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
+            m_statusMutex.unlock();
+
             /* cleanup if not empty */
             if(!tasks.empty()){
                 tasks.erase (tasks.begin(),tasks.end());
@@ -299,10 +304,6 @@ namespace WPEFramework {
             }
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
-
-            m_statusMutex.lock();
-            MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
-            m_statusMutex.unlock();
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
@@ -614,6 +615,7 @@ namespace WPEFramework {
 
             /* to know the maintenance is solicited or unsolicited */
             g_maintenance_type=UNSOLICITED_MAINTENANCE;
+            LOGINFO("Triggering Maintenance on bootup");
 
             /* On bootup we check for opt-out value
              * if empty set the value to none */
@@ -1119,12 +1121,6 @@ namespace WPEFramework {
 	    int mode = 1;
 
             rdkvfwrfc = readRFC(TR181_RDKVFWUPGRADER);
-            /* check if maintenance is on progress or not */
-            /* if in progress and firmware rfc is false then restrict the same */
-            if ( (rdkvfwrfc == false) && (MAINTENANCE_STARTED == m_notify_status) ){
-                LOGERR("Maintenance is in Progress, Mode change not allowed");
-                returnResponse(true);
-	    }
             /* Label should have maintenance mode and softwareOptout field */
             if ( parameters.HasLabel("maintenanceMode") && parameters.HasLabel("optOut") ){
 
@@ -1138,6 +1134,9 @@ namespace WPEFramework {
 
                 std::lock_guard<std::mutex> guard(m_callMutex);
 
+                /* check if maintenance is on progress or not */
+                /* if in progress restrict the same */
+                if ( MAINTENANCE_STARTED != m_notify_status ){
 
                     LOGINFO("SetMaintenanceMode new_mode = %s\n",new_mode.c_str());
 
@@ -1152,7 +1151,11 @@ namespace WPEFramework {
                     }
                     g_currentMode = new_mode;
                     m_setting.setValue("background_flag", bg_flag);
+		}else {
+                     /*If firmware rfc is true and IARM bus component present allow to change maintenance mode*/
+	            if (rdkvfwrfc == true) {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+                    LOGINFO("SetMaintenanceMode new_mode = %s\n",new_mode.c_str());
 		    /* Sending IARM Event to application for mode change */
 		    (new_mode != BACKGROUND_MODE) ? mode = 1 : mode = 0;
                     LOGINFO("setMaintenanceMode rfc is true and mode:%d\n", mode);
@@ -1160,10 +1163,26 @@ namespace WPEFramework {
 	            ret_code = IARM_Bus_BroadcastEvent("RdkvFWupgrader", (IARM_EventId_t) 0, (void *)&mode, sizeof(mode));
 	            if (ret_code == IARM_RESULT_SUCCESS) {
                         LOGINFO("IARM_Bus_BroadcastEvent is success and value=%d\n", mode);
+                        g_currentMode = new_mode;
+                        /* remove any older one */
+                        m_setting.remove("background_flag");
+                        if ( BACKGROUND_MODE == new_mode ) {
+                            bg_flag = "true";
+                        }
+                        else {
+                            /* foreground */
+                            bg_flag = "false";
+                        }
+		        m_setting.setValue("background_flag", bg_flag);
 	            }else{
-                        LOGINFO("IARM_Bus_BroadcastEvent is fail and value=%d\n", mode);
+                        LOGINFO("IARM_Bus_BroadcastEvent is fail Mode change not allowed and value=%d\n", mode);
 	            }
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+		    }else {
+                        LOGERR("Maintenance is in Progress, Mode change not allowed");
+		    }
+                    result =true;
+		}
 
                 /* OptOut changes here */
                 new_optout_state = parameters["optOut"].String();
@@ -1207,6 +1226,7 @@ namespace WPEFramework {
                     /* check what mode we currently have */
                     string current_mode="";
 
+                    LOGINFO("Triggering scheduled maintenance ");
                     /* only one maintenance at a time */
                     /* Lock so that m_notify_status will not be updated  further */
                     m_statusMutex.lock();
@@ -1280,6 +1300,7 @@ namespace WPEFramework {
 	    bool rdkvfwrfc=false;
 	    string rdkvfw="rdkvfwupgrader";
 
+                LOGINFO("Stopping maintenance activities");
                 /* run only when the maintenance status is MAINTENANCE_STARTED */
                 m_statusMutex.lock();
                 if ( MAINTENANCE_STARTED == m_notify_status  ){

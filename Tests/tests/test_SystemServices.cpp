@@ -36,6 +36,7 @@
 
 using namespace WPEFramework;
 
+using ::testing::Eq;
 using ::testing::NiceMock;
 
 class SystemServicesTest : public ::testing::Test {
@@ -248,7 +249,8 @@ TEST_F(SystemServicesTest, AutoReboot)
                 return WDMP_SUCCESS;
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setFirmwareAutoReboot"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareAutoReboot"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareAutoReboot"), _T("{\"enable\":true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
@@ -264,8 +266,10 @@ TEST_F(SystemServicesTest, RebootDelay)
                 return WDMP_SUCCESS;
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":86401}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":86401}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFirmwareRebootDelay"), _T("{\"delaySeconds\":10}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
@@ -298,9 +302,11 @@ TEST_F(SystemServicesEventTest, Timezone)
 {
     Core::Event changed1(false, true);
     Core::Event changed2(false, true);
+    Core::Event changed3(false, true);
+    Core::Event changed4(false, true);
 
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
-        .Times(2)
+        .Times(4)
         .WillOnce(::testing::Invoke(
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
@@ -311,11 +317,55 @@ TEST_F(SystemServicesEventTest, Timezone)
                                                              "\"params\":"
                                                              "\\{"
                                                              "\"oldTimeZone\":\".*\","
-                                                             "\"newTimeZone\":\"America\\\\/New_York\""
+                                                             "\"newTimeZone\":\"America\\\\/New_York\","
+                                                             "\"oldAccuracy\":\".*\","
+                                                             "\"newAccuracy\":\".*\""
                                                              "\\}"
                                                              "\\}")));
 
                 changed1.SetEvent();
+
+                return Core::ERROR_NONE;
+            }))
+
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{"
+                                          "\"jsonrpc\":\"2.0\","
+                                          "\"method\":\"org.rdk.System.onTimeZoneDSTChanged\","
+                                          "\"params\":"
+                                          "{"
+                                          "\"oldTimeZone\":\"America\\/New_York\","
+                                          "\"newTimeZone\":\"America\\/New_York\","
+                                          "\"oldAccuracy\":\"INITIAL\","
+                                          "\"newAccuracy\":\"INTERIM\""
+                                          "}"
+                                          "}")));
+
+                changed2.SetEvent();
+
+                return Core::ERROR_NONE;
+            }))
+
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{"
+                                          "\"jsonrpc\":\"2.0\","
+                                          "\"method\":\"org.rdk.System.onTimeZoneDSTChanged\","
+                                          "\"params\":"
+                                          "{"
+                                          "\"oldTimeZone\":\"America\\/New_York\","
+                                          "\"newTimeZone\":\"America\\/Costa_Rica\","
+                                          "\"oldAccuracy\":\"INTERIM\","
+                                          "\"newAccuracy\":\"FINAL\""
+                                          "}"
+                                          "}")));
+
+                changed3.SetEvent();
 
                 return Core::ERROR_NONE;
             }))
@@ -328,42 +378,64 @@ TEST_F(SystemServicesEventTest, Timezone)
                                           "\"method\":\"org.rdk.System.onTimeZoneDSTChanged\","
                                           "\"params\":"
                                           "{"
-                                          "\"oldTimeZone\":\"America\\/New_York\","
-                                          "\"newTimeZone\":\"America\\/Costa_Rica\""
+                                          "\"oldTimeZone\":\"America\\/Costa_Rica\","
+                                          "\"newTimeZone\":\"America\\/New_York\","
+                                          "\"oldAccuracy\":\"FINAL\","
+                                          "\"newAccuracy\":\"FINAL\""
                                           "}"
                                           "}")));
 
-                changed2.SetEvent();
+                changed4.SetEvent();
 
                 return Core::ERROR_NONE;
-            }));
+            })) ;
 
     handler.Subscribe(0, _T("onTimeZoneDSTChanged"), _T("org.rdk.System"), message);
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"America/New_York\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"America/New_York\",\"accuracy\":\"INITIAL\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, changed1.Lock());
 
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"timeZone\":\"America\\/New_York\",\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"America/Costa_Rica\"}"), response));
+    EXPECT_EQ(response, string("{\"timeZone\":\"America\\/New_York\",\"accuracy\":\"INITIAL\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"America/New_York\",\"accuracy\":\"INTERIM\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, changed2.Lock());
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"timeZone\":\"America\\/Costa_Rica\",\"success\":true}"));
+    EXPECT_EQ(response, string("{\"timeZone\":\"America\\/New_York\",\"accuracy\":\"INTERIM\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"America/Costa_Rica\",\"accuracy\":\"FINAL\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, changed3.Lock());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"timeZone\":\"America\\/Costa_Rica\",\"accuracy\":\"FINAL\",\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"America/New_York\",\"accuracy\":\"<wrong accuracy>\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, changed3.Lock());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"timeZone\":\"America\\/New_York\",\"accuracy\":\"FINAL\",\"success\":true}"));
 
     handler.Unsubscribe(0, _T("onTimeZoneDSTChanged"), _T("org.rdk.System"), message);
 }
 
 TEST_F(SystemServicesTest, InvalidTerritory)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"U-NYC\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US@\",\"region\":\"US-NYC\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"US-N$C\"}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US12\",\"region\":\"US-NYC\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"U-NYC\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":{\"message\":\"Invalid region\"},\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US@\",\"region\":\"US-NYC\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":{\"message\":\"Invalid territory\"},\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"USA\",\"region\":\"US-N$C\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":{\"message\":\"Invalid region\"},\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTerritory"), _T("{\"territory\":\"US12\",\"region\":\"US-NYC\"}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":{\"message\":\"Invalid territory\"},\"success\":false}"));
 }
 
 TEST_F(SystemServicesEventTest, ValidTerritory)
@@ -493,7 +565,8 @@ TEST_F(SystemServicesTest, MocaStatus)
                 return 0;
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("enableMoca"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableMoca"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableMoca"), _T("{\"value\":true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
@@ -527,9 +600,12 @@ TEST_F(SystemServicesTest, Mode)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"\",\"duration\":0},\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{}}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"unknown\",\"duration\":0}}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{}}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"unknown\",\"duration\":0}}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 
     ON_CALL(iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
@@ -555,7 +631,8 @@ TEST_F(SystemServicesTest, Mode)
 
 TEST_F(SystemServicesTest, setDeepSleepTimer)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setDeepSleepTimer"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setDeepSleepTimer"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
@@ -572,7 +649,8 @@ TEST_F(SystemServicesTest, setDeepSleepTimer)
 
 TEST_F(SystemServicesTest, setNetworkStandbyMode)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setNetworkStandbyMode"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setNetworkStandbyMode"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
@@ -623,10 +701,12 @@ TEST_F(SystemServicesTest, setPreferredStandbyMode)
                 throw device::Exception("test");
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{\"standbyMode\":\"LIGHT_SLEEP\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{\"standbyMode\":\"LIGHT_SLEEP\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPreferredStandbyMode"), _T("{\"standbyMode\":\"LIGHT_SLEEP\"}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(SystemServicesTest, getPreferredStandbyMode)
@@ -650,7 +730,8 @@ TEST_F(SystemServicesTest, getPreferredStandbyMode)
                 throw device::Exception("test");
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getPreferredStandbyMode"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPreferredStandbyMode"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"preferredStandbyMode\":\"\",\"success\":false}"));
 }
 
 TEST_F(SystemServicesTest, getAvailableStandbyModes)
@@ -674,7 +755,8 @@ TEST_F(SystemServicesTest, getAvailableStandbyModes)
                 throw device::Exception("test");
             }));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getAvailableStandbyModes"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAvailableStandbyModes"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"supportedStandbyModes\":[],\"success\":false}"));
 }
 
 TEST_F(SystemServicesTest, getWakeupReason)
@@ -945,9 +1027,12 @@ TEST_F(SystemServicesTest, setOvertempGraceInterval)
 
 TEST_F(SystemServicesTest, getRFCConfig)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getRFCConfig"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getRFCConfig"), _T("{\"rfclist\":[]}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getRFCConfig"), _T("{\"rfclist\":[\"#@!\"]}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getRFCConfig"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getRFCConfig"), _T("{\"rfclist\":[]}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getRFCConfig"), _T("{\"rfclist\":[\"#@!\"]}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 
     ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
@@ -1039,15 +1124,16 @@ TEST_F(SystemServicesTest, setWakeupSrcConfiguration)
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
                 EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetWakeupSrcConfig)));
-                auto param = static_cast<IARM_Bus_PWRMgr_SetWakeupSrcConfig_Param_t*>(arg);
-                EXPECT_EQ(param->srcType, WAKEUPSRC_WIFI);
-                EXPECT_EQ(param->config, true);
+                auto param = static_cast<IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t*>(arg);
+                EXPECT_EQ(param->pwrMode, (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP));
+                EXPECT_EQ(param->srcType, (1<<WAKEUPSRC_VOICE));
+                EXPECT_EQ(param->config, (1<<WAKEUPSRC_VOICE));
                 return IARM_RESULT_SUCCESS;
             });
 
     // TODO: BUG. enum should be used
     // TODO: BUG. boolean should not be number string
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setWakeupSrcConfiguration"), _T("{\"wakeupSrc\":3,\"config\":\"1\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setWakeupSrcConfiguration"), _T("{\"powerState\":\"DEEP_SLEEP\",\"wakeupSources\":[{\"WAKEUPSRC_VOICE\":true}]}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
@@ -1058,7 +1144,8 @@ TEST_F(SystemServicesTest, getStoreDemoLink)
         EXPECT_TRUE(file.Destroy());
     }
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getStoreDemoLink"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStoreDemoLink"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"error\":\"missing\",\"success\":false}"));
 
     Core::Directory(file.PathName().c_str()).CreatePath();
     file.LoadFileInfo();
@@ -1076,8 +1163,10 @@ TEST_F(SystemServicesTest, deletePersistentPath)
 
     EXPECT_EQ(string(""), plugin->Initialize(&service));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deletePersistentPath"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("deletePersistentPath"), _T("{\"callsign\":\"\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deletePersistentPath"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"message\":\"no 'callsign' (nor 'type' of execution envirionment) specified\",\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("deletePersistentPath"), _T("{\"callsign\":\"\"}"), response));
+    EXPECT_THAT(response, Eq("{\"message\":\"specified 'callsign' or 'type' is empty\",\"success\":false}"));
 
     EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
         .Times(1)

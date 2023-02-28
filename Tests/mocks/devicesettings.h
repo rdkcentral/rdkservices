@@ -998,7 +998,7 @@ public:
     class Color;
     class ColorImpl {
     public:
-	virtual ~ColorImpl() = default;
+        virtual ~ColorImpl() = default;
         virtual const Color& getInstanceById(int id) = 0;
         virtual const Color& getInstanceByName(const std::string& name) = 0;
         virtual std::string getName() const = 0;
@@ -1015,11 +1015,11 @@ public:
         ColorImpl* impl;
 
         static const Color& getInstance(int id)
-	{
+        {
             return getInstance().impl->getInstanceById(id);
-	}
+        }
         static const Color& getInstance(const std::string& name)
-	{
+        {
             return getInstance().impl->getInstanceByName(name);
         }
         static const int kWhite = dsFPD_COLOR_WHITE;
@@ -1062,9 +1062,9 @@ public:
     }
     static FrontPanelIndicator& getInstance(const std::string& name)
     {
-    	return getInstance().impl->getInstanceString(name);
+        return getInstance().impl->getInstanceString(name);
     }
-	
+
     void setState(const bool bState) const
     {
         return impl->setState(bState);
@@ -1076,15 +1076,15 @@ public:
     }
     void setBrightness(const int brightness, const bool toPersist = true)
     {
-	return impl->setBrightness(brightness, toPersist);
+        return impl->setBrightness(brightness, toPersist);
     }
     int getBrightness()
     {
-	return impl->getBrightness();
+        return impl->getBrightness();
     }
     void setColor(const Color &newColor, bool toPersist = true)
     {
-	return impl->setColor(newColor, toPersist);
+        return impl->setColor(newColor, toPersist);
     }
     void setColor(const uint32_t color, const bool toPersist = true)
     {
@@ -1105,17 +1105,15 @@ public:
 };
 
 class FrontPanelTextDisplay;
-class FrontPanelTextDisplayImpl : public FrontPanelIndicator::FrontPanelIndicatorImpl {
+class FrontPanelTextDisplayImpl {
 public:
     virtual ~FrontPanelTextDisplayImpl() = default;
     virtual int getCurrentTimeFormat() const = 0;
     virtual void setTimeFormat(const int iTimeFormat) const = 0;
     virtual void setText(const std::string text) const = 0;
-    virtual std::string getName() const = 0;
     virtual void setMode(int mode) const = 0;
     virtual int getTextBrightness() const = 0;
     virtual void setTextBrightness(const int brightness) const = 0;
-    virtual void getBrightnessLevels(int &levels,int &min,int &max) const = 0;
     virtual FrontPanelTextDisplay& getInstanceById(int id) = 0;
     virtual FrontPanelTextDisplay& getInstanceByName(const std::string& name) = 0;
 };
@@ -1129,11 +1127,11 @@ public:
 
     int getCurrentTimeFormat() const
     {
-	return impl->getCurrentTimeFormat();
+        return impl->getCurrentTimeFormat();
     }
     void setTimeFormat(const int iTimeFormat)
     {
-	return impl->setTimeFormat(iTimeFormat);
+        return impl->setTimeFormat(iTimeFormat);
     }
     static FrontPanelTextDisplay& getInstance(const std::string& name)
     {
@@ -1152,10 +1150,6 @@ public:
     {
 	return impl->setText(text);
     }
-    std::string getName()
-    {
-	return impl->getName();
-    }
     void setMode(int mode)
     {
         return impl->setMode(mode);
@@ -1167,10 +1161,6 @@ public:
 	void setTextBrightness(const int brightness) const
     {
         return impl->setTextBrightness(brightness);
-    }
-	void getBrightnessLevels(int &levels,int &min,int &max) const
-    {
-        return impl->getBrightnessLevels( levels, min, max);
     }
 };
 

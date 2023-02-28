@@ -29,6 +29,11 @@ if(COMCAST_CONFIG)
 endif()
 
 option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
+
+if(RDK_SERVICES_TEST)
+    include(tests.cmake)
+endif()
+
 option(PLUGIN_RUSTBRIDGE "Include RustBridge plugin" OFF)
 
 # Library installation section

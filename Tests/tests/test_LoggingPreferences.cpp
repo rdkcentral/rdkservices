@@ -29,6 +29,7 @@
 using namespace WPEFramework;
 
 using ::testing::NiceMock;
+using ::testing::Eq;
 
 class LoggingPreferencesTest : public ::testing::Test {
 protected:
@@ -98,7 +99,8 @@ TEST_F(LoggingPreferencesTest, registeredMethods)
 
 TEST_F(LoggingPreferencesTest, paramsMissing)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(LoggingPreferencesInitializedTest, getKeystrokeMask)
@@ -216,7 +218,10 @@ TEST_F(LoggingPreferencesInitializedTest, errorCases)
                 return IARM_RESULT_SUCCESS;
             });
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("isKeystrokeMaskEnabled"), _T("{}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isKeystrokeMaskEnabled"), _T("{}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setKeystrokeMaskEnabled"), _T("{\"keystrokeMaskEnabled\":false}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
