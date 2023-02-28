@@ -2540,7 +2540,8 @@ static GSourceFuncs _handlerIntervention =
         {
             if (type == WEBKIT_POLICY_DECISION_TYPE_RESPONSE) {
                 auto *response = webkit_response_policy_decision_get_response(WEBKIT_RESPONSE_POLICY_DECISION(decision));
-                browser->SetResponseHTTPStatusCode(webkit_uri_response_get_status_code(response));
+                if (webkit_uri_response_is_main_frame(response))
+                    browser->SetResponseHTTPStatusCode(webkit_uri_response_get_status_code(response));
             }
             webkit_policy_decision_use(decision);
             return TRUE;
