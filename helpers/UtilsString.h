@@ -119,5 +119,20 @@ namespace String {
     {
         return stringContains(s1, std::string(s2));
     }
+
+    // Split string s into a vector of strings using the supplied delimiter
+    inline void split(std::vector<std::string> &stringList, std::string &s, std::string delimiters)
+    {
+        size_t current;
+        size_t next = -1;
+        do
+        {
+            current = next + 1;
+            next = s.find_first_of( delimiters, current );
+
+            stringList.push_back(s.substr( current, next - current ));
+        }
+        while (next != string::npos);
+    }
 }
 }

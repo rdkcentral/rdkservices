@@ -1,0 +1,699 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/main/Tools/JsonGenerator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "RemoteControl API",
+        "class": "RemoteControl",
+        "description": "The `RemoteControl` plugin provides the ability to pair and IR-program remote controls."
+    },
+    "definitions": {
+        "version": {
+            "summary": "The API version number",
+            "type": "integer",
+            "example": 1
+        },
+        "netType": {
+            "summary": "The type of network",
+            "type": "integer",
+            "example": 1
+        },
+        "netTypeSupported": {
+            "summary": "a list of the network types that the STB supports, Note that some devices may only support one network type.",
+            "type": "array",
+            "items": {
+                "type":"integer",
+                "example": ""
+            }
+        },
+        "pairingState": {
+            "summary": "The current overall pairing state of the specified network: `INITIALISING` - starting up, no paired remotes, `IDLE` - no activity, `SEARCHING` - searching for remotes, `PAIRING` - paring to a remote, `COMPLETE` - successfully paired to a remote, `FAILED` - failed to find or pair to a remote",
+            "type": "string",
+            "enum": [
+                "INITIALISING",
+                "IDLE",
+                "SEARCHING",
+                "PAIRING",
+                "COMPLETE",
+                "FAILED"
+            ],
+            "example": "COMPLETE"
+        },
+        "remoteData": {
+            "summary": "Remote information for each paired remote control. This array may be empty, if there are no paired remotes on the specified network.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "macAddress": {
+                        "summary":  "The MAC address of the remote in hex-colon format",
+                        "type": "string",
+                        "example": "E8:1C:FD:9A:07:1E"
+                    },
+                    "connected": {
+                        "summary": "`true` if the remote is connected, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "name": {
+                        "summary": "The remote name",
+                        "type": "string",
+                        "example": "P073 SkyQ EC201"
+                    },
+                    "remoteId": {
+                        "summary": "This integer is the remote ID number, assigned by the network",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "deviceId": {
+                        "summary": "The device ID number that is assigned by the network.",
+                        "type": "integer",
+                        "example": 65
+                    },
+                    "make": {
+                        "summary": "The manufacturer name of the remote",
+                        "type": "string",
+                        "example": "Omni Remotes"
+                    },
+                    "model": {
+                        "summary": "The remote model name",
+                        "type": "string",
+                        "example": "EC201"
+                    },
+                    "hwVersion": {
+                        "summary": "The remote hardware revision",
+                        "type": "string",
+                        "example": "201.2.0.0"
+                    },
+                    "swVersion": {
+                        "summary": "The remote software revision",
+                        "type": "string",
+                        "example": "1.0.0"
+                    },
+                    "btlVersion": {
+                        "summary": "The remote bootloader revision",
+                        "type": "string",
+                        "example": "2.0"
+                    },
+                    "serialNumber": {
+                        "summary": "The remote serial number",
+                        "type": "string",
+                        "example": "18464408B544"
+                    },
+                    "batteryPercent": {
+                        "summary": "The current remote battery level as a percentage (0 to 100)",
+                        "type": "integer",
+                        "example": 82
+                    },
+                    "tvIRCode": {
+                        "summary": "The current TV IR code that the remote is programmed with. If the remote is not presently programmed with an IR code or if the TV IR code is not known, then this value is not returned.",
+                        "type": "string",
+                        "example": 1
+                    },
+                    "ampIRCode": {
+                        "summary": "The current AVR/AMP IR code that the remote is programmed with. If the remote is not presently programmed with an IR code or if the AVR/AMP IR code is unknown, then this value is not returned",
+                        "type": "string",
+                        "example": 1
+                    },
+                    "wakeupKeyCode": {
+                        "summary": "The Linux key code of the last button to be pressed on the remote before wakeup from deepsleep",
+                        "type": "integer",
+                        "example": 65
+                    },
+                    "wakeupConfig": {
+                        "summary": "The current deepsleep wakeup key configuration of the remote. (possible values: all - all keys on the remote will wake target from deepsleep, none - no keys on the remote will wake target from deepsleep, custom - the custom list of Linux key codes provided in wakeupCustomList will wake target from deepsleep)",
+                        "type": "string",
+                        "enum": [
+                          "all",
+                          "none",
+                          "custom"
+                        ],
+                        "example": "custom"
+                    },
+                    "wakeupCustomList": {
+                        "summary": "will only be present if wakeupConfig is custom, this parameter will list the linux keycodes that can wake the target from deepsleep",
+                        "type": "string",
+                        "example":"[3,1]"
+                    }
+                },
+                "required": [
+                    "macAddress",
+                    "connected",
+                    "remoteId"
+                ]
+            }
+        },
+        "avDevType": {
+            "summary": "Whether the device is a video (TV) or audio (AVR, amplifier, or soundbar) device",
+            "type": "string",
+            "enum": [
+                "TV",
+                "AMP"
+            ],
+            "example": "AMP"
+        },
+        "manufacturer": {
+            "summary": "The manufacturer name of the AV device",
+            "type": "string",
+            "example": "Samsung"
+        },
+        "model": {
+            "summary": "The model name of the AV device",
+            "type": "string",
+            "example": "AH5901068L"
+        },
+        "remoteId": {
+            "summary": "The remote ID of the target remote on the specified network",
+            "type": "integer",
+            "example": 1
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/definitions/success"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": true
+        }
+    },
+    "methods": {
+        "clearIRCodes": {
+            "summary": "Clears the IR codes from the specified remote.\n \nEvents\n \n| Event | Description | \n| :-------- | :-------- | \n| `onStatus` | Triggered if the IR codes cleared from remote on the specified network |",
+            "events":[
+                "onStatus"
+            ],
+            "params": {
+                "type": "object",
+                "properties": {
+                    "remoteId": {
+                        "$ref": "#/definitions/remoteId"
+                    },
+                    "netType": {
+                        "$ref": "#/definitions/netType"
+                    }
+                },
+                "required": [
+                    "remoteId",
+                    "netType"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "configureWakeupKeys": {
+            "summary": "Configures which keys on the remote will wake the target from deepsleep. \n  \n### Events \n\n No events",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "netType": {
+                        "summary": "The type of network.(currently on Bluetooth Low Energy network supports this feature)",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "wakeupConfig": {
+                        "summary": "The deepsleep wakeup key configuration of the remote. (possible values: all - all keys on the remote will wake target from deepsleep, none - no keys on the remote will wake target from deepsleep, custom - the custom list of Linux key codes provided in customKeys will wake target from deepsleep)",
+                        "type": "string",
+                        "enum": [
+                          "all",
+                          "none",
+                          "custom"
+                        ],
+                        "example": "custom"
+                    },
+                    "customKeys": {
+                        "summary": "Mandatory param only if wakeupConfig is custom, otherwise it should be omitted. This parameter is a list of linux keycodes that can wake the target from deepsleep",
+                        "type": "string",
+                        "example": "3,1"
+                    }
+                },
+                "required": [
+                    "netType",
+                    "wakeupConfig"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "getApiVersionNumber": {
+            "summary": "Gets the current API version number. \n  \n### Events \n\n No events",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "version": {
+                        "$ref": "#/definitions/version"
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required":[
+                    "version",
+                    "success"
+                ]
+            }
+        },
+        "getIRCodesByAutoLookup": {
+            "summary": "Returns a list of available IR codes for the TV and AVRs specified by the input parameters. \n  \n### Events \n\n No events",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "netType": {
+                        "$ref": "#/definitions/netType"
+                    }
+                },
+                "required": [
+                    "netType"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "tvcodes": {
+                        "summary": "A list of TV IR codes",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "1156"
+                        }
+                    },
+                    "avrcodes": {
+                        "summary": "A list of AVR IR codes",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "R2467"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required":[
+                    "tvCodes",
+                    "avrCodes",
+                    "success"
+                ]
+            }
+        },
+        "getIRCodesByNames": {
+            "summary": "Returns a list of IR codes for the AV device specified by the input parameters. \n  \n### Events \n\n No events",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "netType": {
+                        "$ref": "#/definitions/netType"
+                    },
+                    "avDevType": {
+                        "$ref": "#/definitions/avDevType"
+                    },
+                    "manufacturer": {
+                        "$ref": "#/definitions/manufacturer"
+                    },
+                    "model": {
+                        "$ref": "#/definitions/model"
+                    }
+                },
+                "required": [
+                    "netType",
+                    "avDevType",
+                    "manufacturer",
+                    "model"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "avDevType": {
+                        "$ref": "#/definitions/avDevType"
+                    },
+                    "manufacturer": {
+                        "$ref": "#/definitions/manufacturer"
+                    },
+                    "model": {
+                        "$ref": "#/definitions/model"
+                    },
+                    "codes": {
+                        "summary": "A list of IR codes",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "R2467"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required":[
+                    "avDevType",
+                    "manufacturer",
+                    "model",
+                    "codes",
+                    "success"
+                ]
+            }
+        },
+        "getLastKeypressSource": {
+            "summary": "Returns last key press source data. \n  \n### Events \n\n No events",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "netType": {
+                        "$ref": "#/definitions/netType"
+                    }
+                },
+                "required": [
+                    "netType"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "controllerId": {
+                        "summary": "The controller ID of the target remote on the specified network",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "timestamp": {
+                        "summary": "The time of the last key press",
+                        "type": "integer",
+                        "example": 1621005572000
+                    },
+                    "sourceName": {
+                        "summary": "The source of the last key press",
+                        "type": "string",
+                        "example": "XR15-10"
+                    },
+                    "sourceType": {
+                        "summary": "The source type of the last key press",
+                        "type": "string",
+                        "example": "IR"
+                    },
+                    "sourceKeyCode": {
+                        "summary": "The source key code",
+                        "type": "integer",
+                        "example": 192
+                    },
+                    "bIsScreenBindMode": {
+                        "summary": "`true` if in screen bind mode, otherwise `false`",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "remoteKeypadConfig": {
+                        "summary": "The configuration of the remote keypad",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required":[
+                    "controllerId",
+                    "timestamp",
+                    "sourceName",
+                    "sourceType",
+                    "sourceKeyCode",
+                    "bIsScreenBindMode",
+                    "remoteKeypadConfig",
+                    "success"
+                ]
+            }
+        },
+        "getIRDBManufacturers": {
+            "summary": "Returns a list of manufacturer names based on the specified input parameters. \n  \n### Events \n\n No events",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "netType": {
+                        "$ref": "#/definitions/netType"
+                    },
+                    "avDevType": {
+                        "$ref": "#/definitions/avDevType"
+                    },
+                    "manufacturer": {
+                        "summary": "A part of the name of the manufacturer of the AV device",
+                        "type": "string",
+                        "example": "Sa"
+                    }
+                },
+                "required": [
+                    "netType",
+                    "avDevType",
+                    "manufacturer"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "avDevType": {
+                        "$ref": "#/definitions/avDevType"
+                    },
+                    "manufacturers": {
+                        "summary": "A list of manufacturer names",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "Samsung"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required":[
+                    "avDevType",
+                    "manufacturers",
+                    "success"
+                ]
+            }
+        },
+        "getIRDBModels": {
+            "summary": "Returns a list of model names based on the specified input parameters. \n  \n### Events \n\n No events",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "netType": {
+                        "$ref": "#/definitions/netType"
+                    },
+                    "avDevType": {
+                        "$ref": "#/definitions/avDevType"
+                    },
+                    "manufacturer": {
+                        "$ref": "#/definitions/manufacturer"
+                    },
+                    "model": {
+                        "summary": "A part (minimum of 3 characters) of the model name of the AV device",
+                        "type": "string",
+                        "example": "AH5"
+                    }
+                },
+                "required": [
+                    "netType",
+                    "avDevType",
+                    "manufacturer",
+                    "model"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "avDevType": {
+                        "$ref": "#/definitions/avDevType"
+                    },
+                    "manufacturer": {
+                        "$ref": "#/definitions/manufacturer"
+                    },
+                    "models": {
+                        "summary": "A list of model names",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "AH5901068L"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required":[
+                    "avDevType",
+                    "manufacturer",
+                    "models",
+                    "success"
+                ]
+            }
+        },
+        "getNetStatus": {
+            "summary": "Returns the status information provided by the last `onStatus` event for the specified network. \n  \n### Events \n\n No events",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "netType": {
+                        "$ref": "#/definitions/netType"
+                    }
+                },
+                "required": [
+                    "netType"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "status":{
+                        "type":"object",
+                        "properties":{
+                                "netType": {
+                                    "$ref": "#/definitions/netType"
+                                },
+                                "netTypeSupported": {
+                                    "$ref": "#/definitions/netTypeSupported"
+                                },
+                                "pairingState": {
+                                    "$ref": "#/definitions/pairingState"
+                                },
+                                "remoteData": {
+                                    "$ref": "#/definitions/remoteData"
+                                }
+                            },
+                            "required":[
+                               "netType",
+                               "netTypeSupported",
+                               "pairingState",
+                               "remoteData"
+                            ]
+                    },
+                    "success": {
+                        "$ref": "#/definitions/success"
+                    }
+                },
+                "required":[
+                    "status",
+                    "success"
+                ]
+            }
+        },
+        "startPairing": {
+            "summary": "Initiates pairing a remote with the STB on the specified network. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onStatus` | Triggered if pairing starts on the specified network |",
+            "events": [
+                "onStatus"
+            ],
+            "params": {
+                "type": "object",
+                "properties": {
+                    "netType": {
+                        "$ref": "#/definitions/netType"
+                    },
+                    "timeout": {
+                        "summary": "The amount of time, in seconds, to attempt pairing before timing out. If this parameter is not present, an STB-defined default is used for the specified network. A value of `0` indicates no timeout.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 30
+                    }
+                },
+                "required": [
+                    "netType"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "setIRCode": {
+            "summary": "Programs an IR code into the specified remote control.\n \nEvents\n \n| Event | Description | \n| :-------- | :-------- | \n| `onStatus` | Triggered if the IR codes sets into remote on the specified network|",
+            "events":[
+                "onStatus"
+            ],
+            "params": {
+                "type": "object",
+                "properties": {
+                    "remoteId": {
+                        "$ref": "#/definitions/remoteId"
+                    },
+                    "netType": {
+                        "$ref": "#/definitions/netType"
+                    },
+                    "avDevType": {
+                        "$ref": "#/definitions/avDevType"
+                    },
+                    "code": {
+                        "summary": "The IR code being programmed into the remote.",
+                        "type": "string",
+                        "example": "M3320"
+                    }
+                },
+                "required": [
+                    "remoteId",
+                    "netType",
+                    "avDevType",
+                    "code"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        },
+        "initializeIRDB": {
+            "summary": "Initializes the IR database.\n  \n### Events \n\n No events",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "netType": {
+                        "$ref": "#/definitions/netType"
+                    }
+                },
+                "required": [
+                    "netType"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
+        }
+    },
+    "events": {
+        "onStatus":{
+            "summary": "Triggered at any time when the status of any one of the supported STB remote networks changes",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "status":{
+                        "type":"object",
+                        "properties":{
+                            "netType": {
+                                "$ref": "#/definitions/netType"
+                            },
+                            "netTypeSupported": {
+                                "$ref": "#/definitions/netTypeSupported"
+                            },
+                            "pairingState": {
+                                "$ref": "#/definitions/pairingState"
+                            },
+                            "remoteData": {
+                                "$ref": "#/definitions/remoteData"
+                            }
+                        },
+                        "required":[
+                            "netType",
+                            "netTypeSupported",
+                            "pairingState",
+                            "remoteData"
+                        ]
+                    }
+                },
+                "required":[
+                    "status"
+                ]
+            }
+        }
+    }
+}
