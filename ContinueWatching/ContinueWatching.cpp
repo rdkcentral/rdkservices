@@ -56,6 +56,9 @@
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
 
+#if OPENSSL_VERSION_NUMBER >= 0x30000000
+#include <openssl/evp.h>
+#endif
 
 namespace WPEFramework {
 
@@ -726,10 +729,19 @@ namespace WPEFramework {
 		std::string ContinueWatchingImpl::sha256(const std::string str)
 		{
 			unsigned char hash[SHA256_DIGEST_LENGTH];
+#if OPENSSL_VERSION_NUMBER < 0x30000000
 			SHA256_CTX sha256Ctx;
 			SHA256_Init(&sha256Ctx);
 			SHA256_Update(&sha256Ctx, str.c_str(), str.size());
 			SHA256_Final(hash, &sha256Ctx);
+#else
+			const EVP_MD *md = EVP_sha256();
+			EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
+			EVP_DigestInit_ex(mdctx, md, NULL);
+			EVP_DigestUpdate(mdctx, str.c_str() , str.size());
+			EVP_DigestFinal_ex(mdctx, hash, NULL);
+			EVP_MD_CTX_free(mdctx);
+#endif
 			std::stringstream strStream;
 			/* Iterate through hash & convert each byte to 2-char wide hex */
 			for(int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
