@@ -1293,6 +1293,25 @@ class DeviceType : public CECBytes
 			VIDEO_PROCESSOR,
 		};
 		DeviceType(int type) : CECBytes((uint8_t)type){};
+
+        const std::string toString(void) const {
+            static const char *names_[] = {
+                "TV",
+                "Recording Device",
+                "Reserved",
+                "Tuner",
+                "Playback Device",
+                "Audio System",
+                "Pure CEC Switch",
+                "Video Processor",
+            };
+            if((str[0] <= VIDEO_PROCESSOR)){
+                return names_[str[0]];
+            }
+            else{
+                return "Unknown";
+            }
+        }
 };
 class LogicalAddress : public CECBytes{
 	public: 		
@@ -1344,6 +1363,33 @@ class LogicalAddress : public CECBytes{
             return _type[str[0]];
 
 		}
+
+        const std::string toString(void) const{
+            static const char *names_[] = {
+            "TV",
+            "Recording Device 1",
+            "Recording Device 2",
+            "Tuner 1",
+            "Playback Device 1",
+            "Audio System",
+            "Tuner 2",
+            "Tuner 3",
+            "Playback Device 2",
+            "Recording Device 3",
+            "Tuner 4",
+            "Playback Device 3",
+            "Reserved 12",
+            "Reserved 13",
+            "Specific Use",
+            "Broadcast/Unregistered",
+            };
+            if((str[0] <= BROADCAST) && (str[0] >= TV)){
+                return names_[str[0]];
+            }
+            else{
+                return "Unknown";
+            }
+        }
 };
 
 class PhysicalAddress : public CECBytes{

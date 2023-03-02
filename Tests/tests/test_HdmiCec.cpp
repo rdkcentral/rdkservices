@@ -205,12 +205,12 @@ TEST_F(HdmiCecInitializedTest, getCECAddress)
     IARM_Bus_CECMgr_Status_Updated_Param_t eventData;
 
     //Active Source Status update sets the address/logical address and what not to non-default values
-    eventData.logicalAddress = 42;
+    eventData.logicalAddress = 5;
     
     cecMgrEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED, &eventData , 0);
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCECAddresses"), _T(""), response));
-    EXPECT_EQ(response, string(_T("{\"CECAddresses\":{\"physicalAddress\":12345,\"logicalAddress\":42,\"deviceType\":\"0\"},\"success\":true}")));
+    EXPECT_EQ(response, string(_T("{\"CECAddresses\":{\"physicalAddress\":12345,\"logicalAddress\":5,\"deviceType\":\"5\"},\"success\":true}")));
 
 }
 
