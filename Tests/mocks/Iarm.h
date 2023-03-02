@@ -351,7 +351,8 @@ typedef enum _WakeupSrcType_t {
     WAKEUPSRC_POWER_KEY,
     WAKEUPSRC_TIMER,
     WAKEUPSRC_CEC,
-    WAKEUPSRC_LAN
+    WAKEUPSRC_LAN,
+    WAKEUPSRC_MAX
 } WakeupSrcType_t;
 
 typedef struct _PWRMgr_EventData_t {
@@ -436,11 +437,14 @@ typedef struct _IARM_Bus_PWRMgr_GetPowerState_Param_t {
 #define IARM_BUS_PWRMGR_API_GetOvertempGraceInterval "GetOvertempGraceInterval"
 #define IARM_BUS_PWRMGR_API_SetOvertempGraceInterval "SetOvertempGraceInterval"
 
-typedef struct _IARM_Bus_PWRMgr_SetWakeupSrcConfig_Param_t {
-    WakeupSrcType_t srcType;
-    bool config;
-} IARM_Bus_PWRMgr_SetWakeupSrcConfig_Param_t;
-
+/**
+ *  @brief Structure which holds the wakeup source type and the value to be set and the power state.
+ */
+typedef struct _IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t{
+     uint32_t pwrMode;
+     uint32_t srcType;
+     uint32_t config;
+} IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t;
 /**
  *  @brief Structure which holds the ware house reset time.
  */
@@ -474,6 +478,7 @@ typedef struct _IARM_BUS_PWRMgr_WareHouseOpn_EventData_t {
 } IARM_BUS_PWRMgr_WareHouseOpn_EventData_t;
 
 #define IARM_BUS_PWRMGR_API_SetWakeupSrcConfig "setWakeupSrcConfig"
+#define IARM_BUS_PWRMGR_API_GetWakeupSrcConfig "getWakeupSrcConfig" /*!< gets wakup configuration*/
 
 #define IARM_BUS_SYSMGR_NAME "SYSMgr"
 #define IARM_BUS_SYSMGR_API_GetSystemStates "GetSystemStates"

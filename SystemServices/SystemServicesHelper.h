@@ -63,6 +63,7 @@
 #define XCONF_OVERRIDE_FILE						"/opt/swupdate.conf"
 #define	URL_XCONF								"http://xconf.xcal.tv/xconf/swu/stb"
 #define TZ_FILE									"/opt/persistent/timeZoneDST"
+#define TZ_ACCURACY_FILE						"/opt/persistent/timeZoneDSTAccuracy"
 #define DEVICE_PROPERTIES                       "/etc/device.properties"
 #define OPT_DCM_PROPERTIES                      "/opt/dcm.properties"
 #define ETC_DCM_PROPERTIES                      "/etc/dcm.properties"
@@ -78,6 +79,11 @@
 #define MODE_NORMAL     "NORMAL"
 #define MODE_EAS        "EAS"
 #define MODE_WAREHOUSE  "WAREHOUSE"
+
+#define TZ_DEFAULT "UTC"
+#define TZ_ACCURACY_INITIAL "INITIAL"
+#define TZ_ACCURACY_INTERIM "INTERIM"
+#define TZ_ACCURACY_FINAL   "FINAL"
 
 #define CAT_DWNLDPROGRESSFILE_AND_GET_INFO "cat /opt/curl_progress | tr -s '\r' '\n' | tail -n 1 | sed 's/^ *//g' | sed '/^[^M/G]*$/d' | tr -s ' ' | cut -d ' ' -f3"
 
@@ -231,6 +237,12 @@ string getXconfOverrideUrl(bool& bFileExists);
  * @return	: string; TimeZone
  */
 string getTimeZoneDSTHelper(void);
+
+/***
+ * @brief	: To retrieve TimeZone Accuracy
+ * @return	: string; TimeZone Accuracy
+ */
+string getTimeZoneAccuracyDSTHelper(void);
 
 /***
  * @brief		: To retrieve system time in requested format

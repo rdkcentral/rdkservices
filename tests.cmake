@@ -14,6 +14,9 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/ccec/drivers/iarmbus
         ${BASEDIR}/ccec/host
         ${BASEDIR}/network
+        ${BASEDIR}/Dobby
+        ${BASEDIR}/Dobby/Public/Dobby
+        ${BASEDIR}/Dobby/IpcService
         )
 
 set(EMPTY_HEADERS
@@ -66,10 +69,22 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rbus.h
         ${BASEDIR}/telemetry_busmessage_sender.h
         ${BASEDIR}/motionDetector.h
+        ${BASEDIR}/Dobby/DobbyProtocol.h
+        ${BASEDIR}/Dobby/DobbyProxy.h
+        ${BASEDIR}/Dobby/Public/Dobby/IDobbyProxy.h
+        ${BASEDIR}/Dobby/IpcService/IpcFactory.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
-file(TOUCH ${EMPTY_HEADERS})
+
+file(GLOB_RECURSE EMPTY_HEADERS_AVAILABLE "${BASEDIR}/*")
+if (EMPTY_HEADERS_AVAILABLE)
+    message("Skip already generated headers to avoid rebuild")
+    list(REMOVE_ITEM EMPTY_HEADERS ${EMPTY_HEADERS_AVAILABLE})
+endif ()
+if (EMPTY_HEADERS)
+    file(TOUCH ${EMPTY_HEADERS})
+endif ()
 
 include_directories(${EMPTY_HEADERS_DIRS})
 
@@ -85,6 +100,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/Telemetry.h
         ${BASEDIR}/Udev.h
         ${BASEDIR}/MotionDetection.h
+        ${BASEDIR}/Dobby.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -119,6 +135,7 @@ set(CMAKE_DISABLE_FIND_PACKAGE_Udev ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_RFC ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_RBus ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
+set(CMAKE_DISABLE_FIND_PACKAGE_Dobby ON)
 
 set(PLUGIN_DATACAPTURE ON)
 set(PLUGIN_DEVICEDIAGNOSTICS ON)
@@ -148,5 +165,6 @@ set(PLUGIN_MOTION_DETECTION ON)
 set(PLUGIN_COMPOSITEINPUT ON)
 set(PLUGIN_HDMICEC ON)
 set(HAS_FRONT_PANEL ON)
+set(PLUGIN_OCICONTAINER ON)
 
 set(DS_FOUND ON)
