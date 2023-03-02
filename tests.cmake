@@ -15,6 +15,9 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/Dobby
         ${BASEDIR}/Dobby/Public/Dobby
         ${BASEDIR}/Dobby/IpcService
+        ${BASEDIR}/ccec/drivers/iarmbus
+        ${BASEDIR}/ccec/host
+        ${BASEDIR}/websocket
         )
 
 set(EMPTY_HEADERS
@@ -60,6 +63,18 @@ set(EMPTY_HEADERS
         ${BASEDIR}/Dobby/DobbyProxy.h
         ${BASEDIR}/Dobby/Public/Dobby/IDobbyProxy.h
         ${BASEDIR}/Dobby/IpcService/IpcFactory.h
+        ${BASEDIR}/ccec/FrameListener.hpp
+	${BASEDIR}/ccec/Connection.hpp
+	${BASEDIR}/ccec/Assert.hpp
+	${BASEDIR}/ccec/Messages.hpp
+	${BASEDIR}/ccec/MessageDecoder.hpp
+	${BASEDIR}/ccec/MessageProcessor.hpp
+	${BASEDIR}/ccec/CECFrame.hpp
+	${BASEDIR}/ccec/MessageEncoder.hpp
+	${BASEDIR}/ccec/host/RDK.hpp
+	${BASEDIR}/ccec/drivers/iarmbus/CecIARMBusMgr.h
+	${BASEDIR}/dsRpc.h
+	${BASEDIR}/websocket/URL.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -88,6 +103,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/Udev.h
         ${BASEDIR}/MotionDetection.h
         ${BASEDIR}/Dobby.h
+        ${BASEDIR}/Operands.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -122,6 +138,7 @@ set(CMAKE_DISABLE_FIND_PACKAGE_Udev ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_RFC ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_RBus ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_Dobby ON)
+set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 
 set(PLUGIN_DATACAPTURE ON)
 set(PLUGIN_DEVICEDIAGNOSTICS ON)
@@ -151,5 +168,6 @@ set(PLUGIN_MOTION_DETECTION ON)
 set(PLUGIN_COMPOSITEINPUT ON)
 set(HAS_FRONT_PANEL ON)
 set(PLUGIN_OCICONTAINER ON)
+set(PLUGIN_HDMICECSINK ON)
 
 set(DS_FOUND ON)

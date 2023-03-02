@@ -74,6 +74,7 @@ include_directories(../LocationSync
         ../CompositeInput
         ../FrontPanel
         ../OCIContainer
+        ../HdmiCecSink
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -103,6 +104,7 @@ link_directories(../LocationSync
         ../CompositeInput
         ../FrontPanel
         ../OCIContainer
+        ../HdmiCecSink
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -136,6 +138,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}CompositeInput
         ${NAMESPACE}FrontPanel
         ${NAMESPACE}OCIContainer
+        ${NAMESPACE}HdmiCecSink
         )
 
 target_include_directories(${PROJECT_NAME}
