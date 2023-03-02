@@ -2,7 +2,7 @@
 <a name="XCast_Plugin"></a>
 # XCast Plugin
 
-**Version: [1.0.8](https://github.com/rdkcentral/rdkservices/blob/main/XCast/CHANGELOG.md)**
+**Version: [1.0.9](https://github.com/rdkcentral/rdkservices/blob/main/XCast/CHANGELOG.md)**
 
 A org.rdk.Xcast plugin for Thunder framework.
 
@@ -47,15 +47,15 @@ XCast interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getApiVersionNumber](#getApiVersionNumber) | Gets the API version |
-| [getEnabled](#getEnabled) | Reports whether xcast is enabled or disabled |
+| [getApiVersionNumber](#getApiVersionNumber) | Gets the API version number |
+| [getEnabled](#getEnabled) | Reports whether xcast plugin is enabled or disabled |
 | [getFriendlyName](#getFriendlyName) | Returns the friendly name set by setFriendlyName API |
 | [getProtocolVersion](#getProtocolVersion) | Returns the DIAL protocol version supported by the server |
-| [getStandbyBehavior](#getStandbyBehavior) | Gets the expected xcast behavior in standby mode |
+| [getStandbyBehavior](#getStandbyBehavior) | Return current standby behavior option string set uisng setStandbyBehavior or default value  |
 | [onApplicationStateChanged](#onApplicationStateChanged) | Provides notification whenever an application changes state due to user activity, an internal error, or other reasons |
 | [registerApplications](#registerApplications) | Registers an application |
 | [unregisterApplications](#unregisterApplications) | Unregisters an application |
-| [setEnabled](#setEnabled) | Enables or disables xcast |
+| [setEnabled](#setEnabled) | Enable or disable XCAST service |
 | [setFriendlyName](#setFriendlyName) | Sets the friendly name of device |
 | [setStandbyBehavior](#setStandbyBehavior) | Sets the expected xcast behavior in standby mode |
 
@@ -63,7 +63,7 @@ XCast interface methods:
 <a name="getApiVersionNumber"></a>
 ## *getApiVersionNumber*
 
-Gets the API version.
+Gets the API version number.
 
 ### Events
 
@@ -109,7 +109,7 @@ This method takes no parameters.
 <a name="getEnabled"></a>
 ## *getEnabled*
 
-Reports whether xcast is enabled or disabled.
+Reports whether xcast plugin is enabled or disabled.
 
 ### Events
 
@@ -170,7 +170,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.friendlyname | string | The friendly name of the implementation |
+| result.friendlyname | string | The friendly name of the device which used to display on the client device list |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -192,7 +192,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "friendlyname": "xdial",
+        "friendlyname": "Manufacturer name",
         "success": true
     }
 }
@@ -238,7 +238,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "version": "2.1",
+        "version": "2.2.1",
         "success": true
     }
 }
@@ -247,7 +247,7 @@ This method takes no parameters.
 <a name="getStandbyBehavior"></a>
 ## *getStandbyBehavior*
 
-Gets the expected xcast behavior in standby mode.
+Return current standby behavior option string set uisng setStandbyBehavior or default value .
 
 ### Events
 
@@ -359,7 +359,7 @@ No Events
 <a name="registerApplications"></a>
 ## *registerApplications*
 
-Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list. so that app list will be appended to the existing XCast white list.
+Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list. so that app list will be appended to the existing XCast white list. If a DIAL request for an unregistered application is received by DIAL server, the request will be denied (HTTP 404) per DIAL specification. Optional fields need not be included, or can be included with empty values.
 
 ### Events
 
@@ -370,7 +370,19 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.applications | string | The application name to register |
+| params.applications | array | Json array with one or more application details to register |
+| params.applications[#] | object |  |
+| params.applications[#].names | array | case-sensitive. Group of acceptable names for a related application. Application name in request URI must have exact match to one of the names. Otherwise, matching prefix is needed. If the application name in request URI does not match any names or prefixes, then the request shall fail |
+| params.applications[#].names[#] | string |  |
+| params.applications[#]?.prefixes | array | <sup>*(optional)*</sup> If the application name in request URI does not match the list of names, it must contain one of the prefixes.If the application name in request URI does not match any names or prefixes, then the request shall fail |
+| params.applications[#]?.prefixes[#] | string | <sup>*(optional)*</sup>  |
+| params.applications[#]?.cors | array | <sup>*(optional)*</sup> a set of origins allowed for the application. This must not be empty |
+| params.applications[#]?.cors[#] | string | <sup>*(optional)*</sup>  |
+| params.applications[#]?.properties | object | <sup>*(optional)*</sup> specific application properties applicable to app management. If not present in descriptor, the default value is assumed |
+| params.applications[#]?.properties.allowStop | boolean | is the application (matching name list or prefix list) allowed to stop (no PID presence) after launched |
+| params.applications[#]?.launchParameters | object | <sup>*(optional)*</sup> launchParameters that application wants dial-server to append before sending the request to launch application |
+| params.applications[#]?.launchParameters.query | string | query string that need to be appended in launch request |
+| params.applications[#]?.launchParameters.payload | string | optional payload string that need to be appended in launch request |
 
 ### Result
 
@@ -389,7 +401,26 @@ No Events
     "id": 42,
     "method": "org.rdk.Xcast.registerApplications",
     "params": {
-        "applications": "NetflixApp"
+        "applications": [
+            {
+                "names": [
+                    "Youtube"
+                ],
+                "prefixes": [
+                    "myYouTube"
+                ],
+                "cors": [
+                    ".youtube.com"
+                ],
+                "properties": {
+                    "allowStop": true
+                },
+                "launchParameters": {
+                    "query": "source_type=12",
+                    "payload": "..."
+                }
+            }
+        ]
     }
 }
 ```
@@ -420,7 +451,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.applications | string | The application name to unregister |
+| params.applications | string | One or more application name to unregister |
 
 ### Result
 
@@ -439,7 +470,7 @@ No Events
     "id": 42,
     "method": "org.rdk.Xcast.unregisterApplications",
     "params": {
-        "applications": "NetflixApp"
+        "applications": "['YouTube', 'Netflix']"
     }
 }
 ```
@@ -459,7 +490,7 @@ No Events
 <a name="setEnabled"></a>
 ## *setEnabled*
 
-Enables or disables xcast.
+Enable or disable XCAST service.  When disabled, the customer should not be able to discover CPE as a cast target for any client application. After enable(true) server application manger must re-register all app that are available for user to cast. The enabled status is not persisted on device after each reboot or reconnect application should call setEnalbed to initialize XCast thunder plugin.
 
 ### Events
 
@@ -509,7 +540,7 @@ No Events
 <a name="setFriendlyName"></a>
 ## *setFriendlyName*
 
-Sets the friendly name of device. It allows an application to override the default friendly name value with the friendly name passed as an argument.
+Sets the friendly name of device. It allows an application to override the default friendly name value with the friendly name passed as an argument. The provided name  should not be empty. If a user provided name is not available, the caller of the API should use the default name partnerId+Model  (or any other agreed default name) as the parameter. After initialization, XCastService should not be activated until setFriendlyName() is invoked. Frinedly name is not persisted on device after each reboot or reconnect application should call API to update the friendlyName.
 
 ### Events
 
@@ -520,7 +551,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.friendlyname | string | The friendly name of the implementation |
+| params.friendlyname | string | The friendly name of the device which used to display on the client device list |
 
 ### Result
 
@@ -539,7 +570,7 @@ No Events
     "id": 42,
     "method": "org.rdk.Xcast.setFriendlyName",
     "params": {
-        "friendlyname": "xdial"
+        "friendlyname": "Manufacturer name"
     }
 }
 ```
@@ -559,7 +590,7 @@ No Events
 <a name="setStandbyBehavior"></a>
 ## *setStandbyBehavior*
 
-Sets the expected xcast behavior in standby mode. It allows an application to override controls on xcast behavior in standby mode. The default behavior in STANDBY mode is inactive, so client device can not discover the server. When STANDBY behavior is active, client device can discover the server.
+Sets the expected xcast behavior in standby mode. It allows an application to override controls on xcast behavior in standby mode. The default behavior in STANDBY mode is inactive, so client device can not discover the server. When STANDBY behavior is active, client device can discover the CPE device and perform the launch operation. Upon reeiving the launch request device will transitioned from STANDBY to ON mode.
 
 ### Events
 
