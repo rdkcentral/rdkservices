@@ -210,7 +210,7 @@ TEST_F(HdmiCecInitializedTest, getCECAddress)
     cecMgrEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED, &eventData , 0);
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCECAddresses"), _T(""), response));
-    EXPECT_EQ(response, string(_T("{\"CECAddresses\":{\"physicalAddress\":12345,\"logicalAddress\":5,\"deviceType\":\"5\"},\"success\":true}")));
+    EXPECT_EQ(response, string(_T("{\"CECAddresses\":{\"physicalAddress\":12345,\"logicalAddress\":5,\"deviceType\":\"Audio System"\"},\"success\":true}")));
 
 }
 
