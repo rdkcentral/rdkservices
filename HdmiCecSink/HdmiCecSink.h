@@ -52,7 +52,7 @@ namespace WPEFramework {
         private:
             MessageProcessor &processor;
         };
-        
+
         class HdmiCecSinkProcessor : public MessageProcessor
         {
         public:
@@ -94,12 +94,12 @@ namespace WPEFramework {
                 printf("Header : From : %s \n", header.from.toString().c_str());
                 printf("Header : to   : %s \n", header.to.toString().c_str());
             }
-        
+
         };
 
 		class CECDeviceParams {
 			public:
-				
+
 			enum {
 				REQUEST_NONE = 0,
 				REQUEST_PHISICAL_ADDRESS = 1,
@@ -114,7 +114,7 @@ namespace WPEFramework {
 				REQUEST_NOT_DONE,
 				REQUEST_TIME_ELAPSED,
 			};
-			
+
 			DeviceType m_deviceType;
 			LogicalAddress m_logicalAddress;
 			PhysicalAddress m_physicalAddr;
@@ -137,8 +137,8 @@ namespace WPEFramework {
 			std::chrono::system_clock::time_point m_requestTime;
 			std::vector<FeatureAbort> m_featureAborts;
 			std::chrono::system_clock::time_point m_lastPowerUpdateTime;
-			
-			CECDeviceParams() 
+
+			CECDeviceParams()
 			: m_deviceType(0), m_logicalAddress(0),m_physicalAddr(0x0f,0x0f,0x0f,0x0f),m_cecVersion(0),m_vendorID(0,0,0),m_osdName(""),m_powerStatus(0),m_currentLanguage("")
 			{
 				m_isDevicePresent = false;
@@ -153,7 +153,7 @@ namespace WPEFramework {
 				m_isRequestRetry = 0;
 			}
 
-			void clear( ) 
+			void clear( )
 			{
 				m_deviceType = 0;
 				m_logicalAddress = 0;
@@ -194,11 +194,11 @@ namespace WPEFramework {
 			}
 
 			bool isAllUpdated() {
-				if( !m_isPAUpdated 
-					|| !m_isVersionUpdated 
+				if( !m_isPAUpdated
+					|| !m_isVersionUpdated
 					|| !m_isOSDNameUpdated
-					|| !m_isVendorIDUpdated 
-					|| !m_isPowerStatusUpdated 
+					|| !m_isVendorIDUpdated
+					|| !m_isPowerStatusUpdated
 					|| !m_isDeviceTypeUpdated ){
 					return false;
 				}
@@ -248,7 +248,7 @@ namespace WPEFramework {
 					m_childsLogicalAddr[i] = LogicalAddress::UNREGISTERED;
 				}
 			}
-			
+
 		} ;
 	        typedef struct sendKeyInfo
                 {
@@ -263,7 +263,7 @@ namespace WPEFramework {
 			LogicalAddress m_logicalAddr;
 			PhysicalAddress m_physicalAddr;
 			DeviceNode m_deviceChain[3];
-			
+
 			HdmiPortMap(uint8_t portID) : m_portID(portID),
 							m_logicalAddr(LogicalAddress::UNREGISTERED),
 							m_physicalAddr(portID+1,0,0,0)
@@ -284,7 +284,7 @@ namespace WPEFramework {
 			void addChild( const LogicalAddress &logical_addr, const PhysicalAddress &physical_addr )
 			{
 				LOGINFO(" logicalAddr = %d, phisicalAddr = %s", m_logicalAddr.toInt(), physical_addr.toString().c_str());
-				
+
 				if ( m_logicalAddr.toInt() != LogicalAddress::UNREGISTERED &&
 						m_logicalAddr.toInt() != logical_addr.toInt() )
 				{
@@ -341,7 +341,7 @@ namespace WPEFramework {
 			void getRoute(    PhysicalAddress &physical_addr, std::vector<uint8_t> &   route )
 			{
 				LOGINFO(" logicalAddr = %d, phsical = %s", m_logicalAddr.toInt(), physical_addr.toString().c_str());
-				
+
 				if ( m_logicalAddr.toInt() != LogicalAddress::UNREGISTERED )
 				{
 					LOGINFO(" search for logicalAddr = %d", m_logicalAddr.toInt());
@@ -353,12 +353,12 @@ namespace WPEFramework {
 						{
 							route.push_back(m_deviceChain[2].m_childsLogicalAddr[physical_addr.getByteValue(3) - 1]);
 						}
-						
+
 						if ( physical_addr.getByteValue(2) != 0 )
 						{
 							route.push_back(m_deviceChain[1].m_childsLogicalAddr[physical_addr.getByteValue(2) - 1]);
 						}
-						
+
 						if ( physical_addr.getByteValue(1) != 0 )
 						{
 							route.push_back(m_deviceChain[0].m_childsLogicalAddr[physical_addr.getByteValue(1) - 1]);
@@ -369,7 +369,7 @@ namespace WPEFramework {
 					else
 					{
 						route.push_back(m_logicalAddr.toInt());
-						LOGINFO("logicalAddr = %d, physical = %s", m_logicalAddr.toInt(), m_physicalAddr.toString().c_str());	
+						LOGINFO("logicalAddr = %d, physical = %s", m_logicalAddr.toInt(), m_physicalAddr.toString().c_str());
 					}
 				}
 			}
@@ -460,7 +460,7 @@ private:
     std::condition_variable cv_;
 
 };
-		// This is a server for a JSONRPC communication channel. 
+		// This is a server for a JSONRPC communication channel.
 		// For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
 		// By inheriting from this class, the plugin realizes the interface PluginHost::IDispatcher.
 		// This realization of this interface implements, by default, the following methods on this plugin
@@ -477,7 +477,7 @@ private:
 		enum {
 			POLL_THREAD_STATE_NONE,
 			POLL_THREAD_STATE_IDLE,
-			POLL_THREAD_STATE_POLL,	
+			POLL_THREAD_STATE_POLL,
 			POLL_THREAD_STATE_PING,
 			POLL_THREAD_STATE_INFO,
 			POLL_THREAD_STATE_WAIT,
@@ -517,7 +517,7 @@ private:
         public:
             HdmiCecSink();
             virtual ~HdmiCecSink();
-            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
+            virtual const string Initialize(PluginHost::IShell* shell) override ;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override { return {}; }
             static HdmiCecSink* _instance;
@@ -537,7 +537,7 @@ private:
 			void setRoutingChange(const std::string &from, const std::string &to);
 			int findLogicalAddress( const PhysicalAddress &physical_addr);
 			void sendPowerOFFCommand(const PhysicalAddress &physical_addr);
-			void sendPowerONCommand(const PhysicalAddress &physical_addr); 
+			void sendPowerONCommand(const PhysicalAddress &physical_addr);
 			void sendStandbyMessage();
 			void setCurrentLanguage(const Language &lang);
 			void sendMenuLanguage();
@@ -669,9 +669,9 @@ private:
             void getPhysicalAddress();
             void getLogicalAddress();
             void cecAddressesChanged(int changeStatus);
-            
+
             // Arc functions
-    
+
             static void  threadSendKeyEvent();
             static void  threadArcRouting();
             void requestArcInitiation();
@@ -685,7 +685,3 @@ private:
         };
 	} // namespace Plugin
 } // namespace WPEFramework
-
-
-
-
