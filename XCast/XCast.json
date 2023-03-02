@@ -4,7 +4,7 @@
     "info": {
         "title": "XCast API", 
         "class": "XCast", 
-        "description": "This XCast plugin provides methods and events to support launching applications from an external source (for example, DIAL, Alexa, or WebPA). The RT implementation should use a RT service name that complies to the convention `com.comcast.<name>cast`. For example, `com.comcast.xdialcast` is used by `xdialserver`."
+        "description": "The XCast plugin provides methods and events to support launching applications from an external source (for example, DIAL). The RT implementation should use a RT service name that complies to the convention `com.comcast.<name>cast`. For example, `com.comcast.xdialcast` is used by `xdialserver`."
     },
     "common": {
         "$ref": "../common/common.json"
@@ -26,12 +26,11 @@
             "example":"1234"
         },
         "friendlyname": {
-            "summary": "The friendly name of the implementation",
+            "summary": "The friendly name of the device which used to display on the client device list",
             "type": "string",
-            "example": "xdial"
+            "example": "Manufacturer name"
         },
         "standbybehavior": {
-                        
             "summary": "whether to remain active or inactive during standby mode",
             "enum": [
                 "active",
@@ -40,15 +39,101 @@
             "type": "string",
             "example": "active"
         },
+        "names": {
+            "summary": "case-sensitive. Group of acceptable names for a related application. Application name in request URI must have exact match to one of the names. Otherwise, matching prefix is needed. If the application name in request URI does not match any names or prefixes, then the request shall fail.",
+            "type": "array",
+            "items": {
+               "type": "string",
+               "example": "Youtube"
+            }
+        },
+        "prefixes": {
+            "summary": "If the application name in request URI does not match the list of names, it must contain one of the prefixes.If the application name in request URI does not match any names or prefixes, then the request shall fail.",
+            "type": "array",
+            "items": {
+               "type": "string",
+               "example": "myYouTube"
+            }
+        },
+        "cors": {
+            "summary": "a set of origins allowed for the application. This must not be empty",
+            "type": "array",
+            "items": {
+               "type": "string",
+               "example": ".youtube.com"
+            }
+        },
+        "properties": {
+            "summary": "specific application properties applicable to app management. If not present in descriptor, the default value is assumed",
+            "type": "object",
+            "properties": {
+                "allowStop": {
+                    "summary": "is the application (matching name list or prefix list) allowed to stop (no PID presence) after launched",
+                    "type": "boolean",
+                    "example": true
+                }
+            },
+            "required":[
+                "allowStop"
+            ]
+        },
+        "launchParameters": {
+            "summary": "launchParameters that application wants dial-server to append before sending the request to launch application",
+            "type": "object",
+            "properties": {
+                "query": {
+                    "summary": "query string that need to be appended in launch request",
+                    "type": "string",
+                    "example": "source_type=12"
+                },
+                "payload": {
+                    "summary": "optional payload string that need to be appended in launch request",
+                    "type": "string",
+                    "example": ""
+                }
+             },
+            "required":[
+                "query",
+                "payload"
+            ]
+        },
+        "applicationsList": {
+            "summary": "Json array with one or more application details to register",
+            "type": "array",
+            "items": {
+               "type": "object",
+               "properties": {
+                    "names": {
+                        "$ref": "#/definitions/names"
+                    },
+                    "prefixes": {
+                        "$ref": "#/definitions/prefixes"
+                    },
+                    "cors": {
+                       "$ref": "#/definitions/cors"
+                    },
+                    "properties": {
+                        "$ref": "#/definitions/properties"
+                    },
+                    "launchParameters": {
+                        "$ref": "#/definitions/launchParameters"
+                    }
+                },
+                "required":[
+                    "names",
+                    "cores"
+                ]
+            }
+        },
         "version": {
             "summary": "DIAL protocol version",
             "type": "string",
-            "example": "2.1"
+            "example": "2.2.1"
         }
     },
     "methods": {
         "getApiVersionNumber":{
-            "summary": "Gets the API version.",
+            "summary": "Gets the API version number.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -68,7 +153,7 @@
             }
         },
         "getEnabled":{
-            "summary": "Reports whether xcast is enabled or disabled.",
+            "summary": "Reports whether xcast plugin is enabled or disabled.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -122,7 +207,7 @@
             }
         },
         "getStandbyBehavior":{
-            "summary": "Gets the expected xcast behavior in standby mode.",
+            "summary": "Return current standby behavior option string set uisng setStandbyBehavior or default value .",
             "result": {
                 "type":"object",
                 "properties": {
@@ -171,19 +256,14 @@
             }
         },
         "registerApplications": {
-            "summary": "Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list. so that app list will be appended to the existing XCast white list",
+            "summary": "Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list. so that app list will be appended to the existing XCast white list. If a DIAL request for an unregistered application is received by DIAL server, the request will be denied (HTTP 404) per DIAL specification. Optional fields need not be included, or can be included with empty values.",
             "params": {
                 "type":"object",
                 "properties": {
                     "applications": {
-                        "summary": "The application name to register",
-                        "type": "string",
-                        "example": "NetflixApp"
+                        "$ref": "#/definitions/applicationsList"
                     }
-                },
-                "required": [
-                    "applications"
-                ]
+                }
             },
             "result": {
                 "$ref": "#/common/result"
@@ -195,9 +275,9 @@
                 "type":"object",
                 "properties": {
                     "applications": {
-                        "summary": "The application name to unregister",
+                        "summary": "One or more application name to unregister",
                         "type": "string",
-                        "example": "NetflixApp"
+                        "example": ["YouTube","Netflix"]
                     }
                 },
                 "required": [
@@ -209,7 +289,7 @@
             }
         },
         "setEnabled":{
-            "summary": "Enables or disables xcast.",
+            "summary": "Enable or disable XCAST service.  When disabled, the customer should not be able to discover CPE as a cast target for any client application. After enable(true) server application manger must re-register all app that are available for user to cast. The enabled status is not persisted on device after each reboot or reconnect application should call setEnalbed to initialize XCast thunder plugin.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -226,7 +306,7 @@
             }
         },
         "setFriendlyName":{
-            "summary": "Sets the friendly name of device. It allows an application to override the default friendly name value with the friendly name passed as an argument.",
+            "summary": "Sets the friendly name of device. It allows an application to override the default friendly name value with the friendly name passed as an argument. The provided name  should not be empty. If a user provided name is not available, the caller of the API should use the default name partnerId+Model  (or any other agreed default name) as the parameter. After initialization, XCastService should not be activated until setFriendlyName() is invoked. Frinedly name is not persisted on device after each reboot or reconnect application should call API to update the friendlyName",
             "params": {
                 "type":"object",
                 "properties": {
@@ -243,7 +323,7 @@
             }
         },
         "setStandbyBehavior":{
-            "summary": "Sets the expected xcast behavior in standby mode. It allows an application to override controls on xcast behavior in standby mode. The default behavior in STANDBY mode is inactive, so client device can not discover the server. When STANDBY behavior is active, client device can discover the server.",
+            "summary": "Sets the expected xcast behavior in standby mode. It allows an application to override controls on xcast behavior in standby mode. The default behavior in STANDBY mode is inactive, so client device can not discover the server. When STANDBY behavior is active, client device can discover the CPE device and perform the launch operation. Upon reeiving the launch request device will transitioned from STANDBY to ON mode",
             "params": {
                 "type":"object",
                 "properties": {
