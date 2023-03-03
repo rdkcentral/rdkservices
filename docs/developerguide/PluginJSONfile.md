@@ -1,11 +1,10 @@
 # 3. Plugin Json API Spec
 
-This JSON file provides the API spec for the plugin. This uses JSON Schema [https://json-schema.org/](https://json-schema.org/).
+Create **FooPlugin.json**. This JSON file provides the API spec for **FooPlugin**.
 
-## For example:
-- Create **FooPlugin.json**. This JSON file provides the API spec for **FooPlugin**.
-- This API spec is used to generate the JSON data and enum classes used for JSON-RPC.
-- This API spec is also used to generate plugin documentation that is hosted on the [RDK Services Documentaion wiki](https://rdkcentral.github.io/rdkservices/#/README).
+This API spec is used to generate the JSON data and enum classes used for JSON-RPC.
+
+This API spec is also used to generate plugin documentation that is hosted on the [RDK Services Documentaion wiki](https://rdkcentral.github.io/rdkservices/#/README).
 
 Refer [FooPlugin.json](FooPlugin/FooPlugin.json)
 
