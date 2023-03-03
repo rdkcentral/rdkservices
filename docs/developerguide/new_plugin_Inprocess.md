@@ -2,6 +2,8 @@
 
 ![Graphical Represenation of steps to create a new In-Process Thunder Plugin/ RDK Services](./In-process-plugin.png)
 
+For example, Please follow the below steps involved in creation of **FooPlugin** that implements an API setValue to set a key/value and an event onValueChanged that is triggered whenever setValue is called.
+
 1.  [**Create Project Folder**](createfolder.md)
 2.  [**Plugin Json API Spec**](PluginJSONfile.md)
 3.  [**Headers Files**](headerfiles.md)
@@ -12,5 +14,3 @@
 8.  [**Compilation & Install**](Comp%26Installfile.md)
 9.  [**Controller UI**](ControllerUI.md)
 10. [**New Plugin test and validation**](Test%26Validation.md)
-
-For example, Please follow the steps involved in creation of **FooPlugin** that implements an API setValue to set a key/value and an event onValueChanged that is triggered whenever setValue is called.
