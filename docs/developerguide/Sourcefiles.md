@@ -1,85 +1,13 @@
-# 5. Source files
+# 4. Source files
 
-FooPlugin.cpp
-```C++
-#include "FooPlugin.h"
-
-#define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
-
-namespace WPEFramework {
-
-namespace {
-
-    static Plugin::Metadata<Plugin::FooPlugin> metadata(
-        // Version (Major, Minor, Patch)
-        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
-        // Preconditions
-        {},
-        // Terminations
-        {},
-        // Controls
-        {}
-    );
-}
-
-namespace Plugin {
-
-SERVICE_REGISTRATION(FooPlugin, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
-
-FooPlugin::FooPlugin()
-    : PluginHost::JSONRPC(),
-{
-    RegisterAll();
-}
-
-
-
-FooPlugin::~FooPlugin()
-{
-    UnregisterAll();
-}
-
-void PersistentStore::RegisterAll()
-{
-    Register<JsonObject, JsonObject>(_T("setValue"), &PersistentStore::endpoint_setValue, this);
-    Register<JsonObject, JsonObject>(_T("getValue"), &PersistentStore::endpoint_getValue, this);
-
-}
-
-void PersistentStore::UnregisterAll()
-{
-    Unregister(_T("setValue"));
-    Unregister(_T("getValue"));
-}
-
-const string PersistentStore::Initialize(PluginHost::IShell *service)
-{
-	string result;
-	
-	// Add Plugin initialization logic
-	
-	return result;
-}
-
-void FooPlugin::Deinitialize(PluginHost::IShell * /* service */)
-{
-	// Add Plugin Cleanup logic
-}
-
-string PersistentStore::Information() const
-{
-    return (string());
-}
-}
-}
-```
+Refer [FooPlugin.cpp](./FooPlugin/FooPlugin.cpp)
 
 ## Highlighting important sections from the Source file:
 
  - All Plugins support semantic versioning (Major.Minor.Patch) to track their changes. API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH refer to macros defined in the plugin source file for semantic versioning. These should be updated when there are changes done to the plugin. For a new plugin that is ready for release, it should be set to 1.0.0
-  Refer to [RDK Services versioning](https://github.com/rdkcentral/RDKServices#versioning) for more details.
+
+- Refer to [RDK Services versioning](https://github.com/rdkcentral/RDKServices#versioning) for more details.
+
 ```C++
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0

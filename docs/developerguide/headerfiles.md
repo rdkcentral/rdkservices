@@ -1,8 +1,9 @@
-# 4. Headers Files
+# 3. Headers Files
 
 ## a) Create a "Module.h" header file
+
 - The file **"Module.h"** defines the mandatory `MODULE_NAME`. Thunder provides a trace and warning reporting feature. To accurately identify the source of a warning, Thunder needs to know the human-readable name of the package (executable or library). This package name is defined by the `MODULE_NAME` and declared by the `MODULE_NAME_DECLARATION()`. 
-- It also includes framework headers (<plugins/plugins.h>).
+- It also includes wpeframework headers (<plugins/plugins.h>).
 ```C++
 #ifndef MODULE_NAME
 #define MODULE_NAME Plugin_IOController
@@ -10,7 +11,7 @@
 
 #include <plugins/plugins.h>
 ```
-For example, Please refer to link [SecurityAgent/Module.h](https://github.com/rdkcentral/rdkservices/blob/sprint/23Q1/SecurityAgent/Module.h).
+Refer [FooPlugin Module.h](./FooPlugin/Module.h) header file.
 
 ## b) Create a "Module.cpp" file
 - This file defines the mandatory `MODULE_NAME_DECLARATION` as mentioned below.
@@ -18,53 +19,12 @@ For example, Please refer to link [SecurityAgent/Module.h](https://github.com/rd
 #include "Module.h"
 MODULE_NAME_DECLARATION(BUILD_REFERENCE)
 ```
-For example, Please refer to link [SecurityAgent/Module.cpp](https://github.com/rdkcentral/rdkservices/blob/sprint/23Q1/SecurityAgent/Module.cpp).
+Refer [FooPlugin Module.cpp](./FooPlugin/Module.cpp).
 
 ## c) Create "FooPlugin.h" main header file
 - This main header file declares the Plugin implementation class.
-```C++
-#pragma once
-#include "Module.h"
 
-namespace WPEFramework
-{
-    namespace Plugin
-    {
-        class FooPlugin : public PluginHost::IPlugin, public PluginHost::JSONRPC
-        {
-        private:
-            FooPlugin(const FooPlugin &) = delete;
-            FooPlugin &operator=(const FooPlugin &) = delete;
-
-        public:
-            FooPlugin();
-            virtual ~FooPlugin();
-
-            // Build QueryInterface implementation, specifying all possible interfaces to be returned.
-            BEGIN_INTERFACE_MAP(FooPlugin)
-            INTERFACE_ENTRY(PluginHost::IPlugin)
-            INTERFACE_ENTRY(PluginHost::IDispatcher)
-            END_INTERFACE_MAP
-
-        public:
-            //   IPlugin methods
-            // -------------------------------------------------------------------------------------------------------
-            virtual const string Initialize(PluginHost::IShell *service) override;
-            virtual void Deinitialize(PluginHost::IShell *service) override;
-            virtual string Information() const override;
-
-        protected:
-            void RegisterAll();
-            void UnregisterAll();
-
-            uint32_t endpoint_setValue(const JsonObject &parameters, JsonObject &response);
-
-            virtual void event_onValueChanged(const string &key, const string &value);
-        };
-
-    } // namespace Plugin
-} // namespace WPEFramework
-```
+Refer [FooPlugin.h](./FooPlugin/FooPlugin.h) header file.
 
 ### Highlighting important sections from the Header file:
 
@@ -89,6 +49,11 @@ class FooPlugin : public PluginHost::IPlugin, public PluginHost::JSONRPC
     virtual void Deinitialize(PluginHost::IShell *service) override;
 ```
 
- For example, please refer to link [SecurityAgent.h file](https://github.com/rdkcentral/rdkservices/blob/sprint/23Q1/SecurityAgent/SecurityAgent.h).
+- Declare the API and event handlers.
+```C++
+    uint32_t endpoint_setValue(const JsonObject &parameters, JsonObject &response);
+    virtual void event_onValueChanged(const string &key, const string &value);
+```
+
 
 
