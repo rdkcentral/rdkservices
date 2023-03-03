@@ -1,4 +1,4 @@
-# 3. Plugin Json API Spec
+# 2. Plugin Json API Spec
 
 Create **FooPlugin.json**. This JSON file provides the API spec for **FooPlugin**.
 
