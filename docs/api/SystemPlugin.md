@@ -2,7 +2,7 @@
 <a name="System_Plugin"></a>
 # System Plugin
 
-**Version: [1.0.11](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
+**Version: [1.2.0](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -2123,6 +2123,7 @@ This method takes no parameters.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.timeZone | string | The timezone |
+| result.accuracy | string | The timezone accuracy (must be one of the following: *INITIAL*, *INTERIM*, *FINAL*) |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -2145,6 +2146,7 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "timeZone": "America/New_York",
+        "accuracy": "INITIAL",
         "success": true
     }
 }
@@ -3330,6 +3332,7 @@ Sets the system time zone. See `getTimeZones` to get a list of available timezon
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.timeZone | string | The timezone |
+| params?.accuracy | string | <sup>*(optional)*</sup> The timezone accuracy (must be one of the following: *INITIAL*, *INTERIM*, *FINAL*) |
 
 ### Result
 
@@ -3348,7 +3351,8 @@ Sets the system time zone. See `getTimeZones` to get a list of available timezon
     "id": 42,
     "method": "org.rdk.System.setTimeZoneDST",
     "params": {
-        "timeZone": "America/New_York"
+        "timeZone": "America/New_York",
+        "accuracy": "INITIAL"
     }
 }
 ```
@@ -3861,8 +3865,10 @@ Triggered when device time zone changed.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.oldTimeZone | string |  old time zone |
-| params.newTimeZone | string |  new time zone |
+| params.oldTimeZone | string | old time zone |
+| params.newTimeZone | string | new time zone |
+| params.oldAccuracy | string | old time zone accuracy |
+| params.newAccuracy | string | new time zone accuracy |
 
 ### Example
 
@@ -3872,7 +3878,9 @@ Triggered when device time zone changed.
     "method": "client.events.onTimeZoneDSTChanged",
     "params": {
         "oldTimeZone": "America/New_York",
-        "newTimeZone": "Europe/London"
+        "newTimeZone": "Europe/London",
+        "oldAccuracy": "INITIAL",
+        "newAccuracy": "FINAL"
     }
 }
 ```
