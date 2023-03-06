@@ -2,7 +2,7 @@
 <a name="LEDControl_Plugin"></a>
 # LEDControl Plugin
 
-**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/LEDControl/CHANGELOG.md)**
+**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/LEDControl/CHANGELOG.md)**
 
 A org.rdk.LEDControl plugin for Thunder framework.
 
@@ -46,15 +46,15 @@ LEDControl interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getSupportedLEDStates](#getSupportedLEDStates) | Returns all the platform supported led states |
-| [getLEDState](#getLEDState) | Returns current led state of the device |
-| [setLEDState](#setLEDState) | Change the device led state to one mentioned in the argument |
+| [getSupportedLEDStates](#getSupportedLEDStates) | Returns all the LED states supported by the platform |
+| [getLEDState](#getLEDState) | Returns current LED state |
+| [setLEDState](#setLEDState) | Change the device LED state to one mentioned in the input argument |
 
 
 <a name="getSupportedLEDStates"></a>
 ## *getSupportedLEDStates*
 
-Returns all the platform supported led states.
+Returns all the LED states supported by the platform.
 
 ### Events
 
@@ -69,7 +69,6 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.supportedLEDStates | string array | Returns all the led states returned by the platform |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -85,4 +84,110 @@ This method takes no parameters.
 ```
 
 #### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="getLEDState"></a>
+## *getLEDState*
+
+Returns current LED state.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.state | string | Indicates a platform supported LED state |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.LEDControl.getLEDState"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "state": "ACTIVE",
+        "success": true
+    }
+}
+```
+
+<a name="setLEDState"></a>
+## *setLEDState*
+
+Change the device LED state to one mentioned in the input argument.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.state | string | Indicates a platform supported LED state |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.LEDControl.setLEDState",
+    "params": {
+        "state": "ACTIVE"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
 
