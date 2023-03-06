@@ -204,25 +204,33 @@ namespace Plugin {
         Register("getBacklight", &ControlSettingsTV::getBacklight, this);
         registerMethod("setBacklight", &ControlSettingsTV::setBacklight, this);
         registerMethod("resetBacklight", &ControlSettingsTV::resetBacklight, this);
+        registerMethod("getBacklightCaps", &ControlSettingsTV::getBacklightCaps, this);
+        registerMethod("getBrightnessCaps", &ControlSettingsTV::getBrightnessCaps, this);
         Register("getBrightness", &ControlSettingsTV::getBrightness, this);
         registerMethod("setBrightness", &ControlSettingsTV::setBrightness, this);
         registerMethod("resetBrightness", &ControlSettingsTV::resetBrightness, this);
         Register("getContrast", &ControlSettingsTV::getContrast, this);
         registerMethod("setContrast", &ControlSettingsTV::setContrast, this);
         registerMethod("resetContrast", &ControlSettingsTV::resetContrast, this);
+	registerMethod("getContrastCaps", &ControlSettingsTV::getContrastCaps, this);
         Register("getSharpness", &ControlSettingsTV::getSharpness, this);
         registerMethod("setSharpness", &ControlSettingsTV::setSharpness, this);
         registerMethod("resetSharpness", &ControlSettingsTV::resetSharpness, this);
+	registerMethod("getSharpnessCaps", &ControlSettingsTV::getSharpnessCaps, this);
         Register("getSaturation", &ControlSettingsTV::getSaturation, this);
         registerMethod("setSaturation", &ControlSettingsTV::setSaturation, this);
         registerMethod("resetSaturation", &ControlSettingsTV::resetSaturation, this);
+	registerMethod("getSaturationCaps", &ControlSettingsTV::getSaturationCaps, this);
         Register("getHue", &ControlSettingsTV::getHue, this);
         registerMethod("setHue", &ControlSettingsTV::setHue, this);
         registerMethod("resetHue", &ControlSettingsTV::resetHue, this);
+	registerMethod("gethueCaps", &ControlSettingsTV::getHueCaps, this);
         Register("getColorTemperature", &ControlSettingsTV::getColorTemperature, this);
         registerMethod("setColorTemperature", &ControlSettingsTV::setColorTemperature, this);
         registerMethod("resetColorTemperature", &ControlSettingsTV::resetColorTemperature, this);
+	registerMethod("getColorTemperatureCaps", &ControlSettingsTV::getColorTemperatureCaps, this);
 
+        registerMethod("getComponentCaps", &ControlSettingsTV::getComponentCaps, this);
         registerMethod("getComponentSaturation", &ControlSettingsTV::getComponentSaturation, this);
         registerMethod("setComponentSaturation", &ControlSettingsTV::setComponentSaturation, this);
         registerMethod("resetComponentSaturation", &ControlSettingsTV::resetComponentSaturation, this);
@@ -235,27 +243,37 @@ namespace Plugin {
         registerMethod("getBacklightDimmingMode", &ControlSettingsTV::getBacklightDimmingMode, this);
         registerMethod("setBacklightDimmingMode", &ControlSettingsTV::setBacklightDimmingMode, this);
         registerMethod("resetBacklightDimmingMode", &ControlSettingsTV::resetBacklightDimmingMode, this);
+        registerMethod("getDimmingModeCaps", &ControlSettingsTV::getDimmingModeCaps, this);
         registerMethod("getAutoBacklightControl", &ControlSettingsTV::getAutoBacklightControl, this);
         registerMethod("setAutoBacklightControl", &ControlSettingsTV::setAutoBacklightControl, this);
         registerMethod("resetAutoBacklightControl", &ControlSettingsTV::resetAutoBacklightControl, this);
+        registerMethod("getAutoBacklightControlCaps", &ControlSettingsTV::getAutoBacklightControlCaps, this);
 
         registerMethod("getSupportedDolbyVisionModes", &ControlSettingsTV::getSupportedDolbyVisionModes, this);
         registerMethod("getDolbyVisionMode", &ControlSettingsTV::getDolbyVisionMode, this);
         registerMethod("setDolbyVisionMode", &ControlSettingsTV::setDolbyVisionMode, this);
         registerMethod("resetDolbyVisionMode", &ControlSettingsTV::resetDolbyVisionMode, this);
+        registerMethod("getDolbyVisionModeCaps", &ControlSettingsTV::getDolbyVisionModeCaps, this);
         registerMethod("getSupportedHLGModes", &ControlSettingsTV::getSupportedHLGModes, this);
         registerMethod("getHLGMode", &ControlSettingsTV::getHLGMode, this);
         registerMethod("setHLGMode", &ControlSettingsTV::setHLGMode, this);
         registerMethod("resetHLGMode", &ControlSettingsTV::resetHLGMode, this);
+	registerMethod("getHLGModeCaps", &ControlSettingsTV::getHLGModeCaps, this);
         registerMethod("getSupportedHDR10Modes", &ControlSettingsTV::getSupportedHDR10Modes, this);
 	registerMethod("getHDR10Mode", &ControlSettingsTV::getHDR10Mode, this);
 	registerMethod("setHDR10Mode", &ControlSettingsTV::setHDR10Mode, this);
 	registerMethod("resetHDR10Mode", &ControlSettingsTV::resetHDR10Mode, this);
+	registerMethod("getHDR10ModeCaps", &ControlSettingsTV::getHDR10ModeCaps, this);
 	
 	registerMethod("getWBInfo", &ControlSettingsTV::getWBInfo, this);
 	registerMethod("getWBCtrl", &ControlSettingsTV::getWBCtrl, this);
 	registerMethod("setWBCtrl", &ControlSettingsTV::setWBCtrl, this);
 	registerMethod("resetWBCtrl", &ControlSettingsTV::resetWBCtrl, this);
+
+	registerMethod("getAspectRatio2", &ControlSettingsTV::getAspectRatio2, this);
+        registerMethod("setAspectRatio2", &ControlSettingsTV::setAspectRatio2, this);
+        registerMethod("resetAspectRatio", &ControlSettingsTV::resetAspectRatio, this);
+        registerMethod("getAspectRatioCaps", &ControlSettingsTV::getAspectRatioCaps, this);
 
 	GetHandler(2)->Register<JsonObject, JsonObject>("getBacklight", &ControlSettingsTV::getBacklight2, this);
         GetHandler(2)->Register<JsonObject, JsonObject>("getBrightness", &ControlSettingsTV::getBrightness2, this);
@@ -276,6 +294,7 @@ namespace Plugin {
 	registerMethod("getLowLatencyState", &ControlSettingsTV::getLowLatencyState, this);
         registerMethod("setLowLatencyState", &ControlSettingsTV::setLowLatencyState, this);
         registerMethod("resetLowLatencyState", &ControlSettingsTV::resetLowLatencyState, this);
+        registerMethod("getLowLatencyStateCaps", &ControlSettingsTV::getLowLatencyStateCaps, this);
 
         LOGINFO("Exit\n");
     }
@@ -470,6 +489,58 @@ namespace Plugin {
             }
         }
     }
+    
+    uint32_t ControlSettingsTV::getAspectRatioCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        JsonArray rangeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        JsonObject AspectRatioInfo;
+        JsonObject pqmodeInfo;
+        JsonObject sourceInfo;
+        JsonObject formatInfo;
+
+        unsigned int index = 0;
+
+        tvError_t ret = GetAspectRatioCaps(range,pqmode,source,format);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+		else
+        {
+            for (index = 0; index < range.size(); index++)
+                rangeArray.Add(range[index]);
+
+            response["AspectRatioInfo"]=rangeArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+            response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
+            returnResponse(true);
+        }
+    }
 
     uint32_t ControlSettingsTV::setAspectRatio2(const JsonObject& parameters, JsonObject& response)
     {
@@ -545,7 +616,7 @@ namespace Plugin {
         }
     }
 
-     uint32_t ControlSettingsTV::getAspectRatio2(const JsonObject& parameters, JsonObject& response)
+    uint32_t ControlSettingsTV::getAspectRatio2(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
@@ -992,7 +1063,58 @@ namespace Plugin {
             LOGINFO("Exit : resetBacklight Successful to value : %d \n",backlight);
             returnResponse(true);
         }
+    }
 
+    uint32_t ControlSettingsTV::getBacklightCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        JsonArray rangeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        JsonObject rangeInfo;
+        JsonObject pqmodeInfo;
+        JsonObject sourceInfo;
+        JsonObject formatInfo;
+
+        unsigned int index = 0;
+
+        tvError_t ret = GetCustomParamsCaps(range,pqmode,source,format);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            for (index = 0; index < range.size(); index++)
+                rangeArray.Add(range[index]);
+
+            response["rangeInfo"]=rangeArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+            response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
+            returnResponse(true);
+        }
     }
 
     uint32_t ControlSettingsTV::getBrightness(const JsonObject& parameters, JsonObject& response)
@@ -1175,6 +1297,58 @@ namespace Plugin {
 
     }
 
+    uint32_t ControlSettingsTV::getBrightnessCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+	std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+        
+        JsonArray rangeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+	JsonObject rangeInfo;
+	JsonObject pqmodeInfo;
+	JsonObject sourceInfo;
+	JsonObject formatInfo;
+
+	unsigned int index = 0;
+
+	tvError_t ret = GetCustomParamsCaps(range,pqmode,source,format);
+
+	if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            for (index = 0; index < range.size(); index++)
+                rangeArray.Add(range[index]);
+
+            response["rangeInfo"]=rangeArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+	    response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
+            returnResponse(true);
+	}
+    }
+
     uint32_t ControlSettingsTV::getContrast(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
@@ -1354,6 +1528,58 @@ namespace Plugin {
             returnResponse(true);
         }
 
+    }
+
+    uint32_t ControlSettingsTV::getContrastCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        JsonArray rangeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        JsonObject rangeInfo;
+        JsonObject pqmodeInfo;
+        JsonObject sourceInfo;
+        JsonObject formatInfo;
+
+        unsigned int index = 0;
+
+        tvError_t ret = GetCustomParamsCaps(range,pqmode,source,format);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            for (index = 0; index < range.size(); index++)
+                rangeArray.Add(range[index]);
+
+            response["rangeInfo"]=rangeArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+            response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
+            returnResponse(true);
+        }
     }
 
     uint32_t ControlSettingsTV::getSaturation(const JsonObject& parameters, JsonObject& response)
@@ -1538,6 +1764,58 @@ namespace Plugin {
 
     }
 
+    uint32_t ControlSettingsTV::getSaturationCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        JsonArray rangeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        JsonObject rangeInfo;
+        JsonObject pqmodeInfo;
+        JsonObject sourceInfo;
+        JsonObject formatInfo;
+
+        unsigned int index = 0;
+
+        tvError_t ret = GetCustomParamsCaps(range,pqmode,source,format);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            for (index = 0; index < range.size(); index++)
+                rangeArray.Add(range[index]);
+
+            response["rangeInfo"]=rangeArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+            response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
+            returnResponse(true);
+        }
+    }
+
     uint32_t ControlSettingsTV::getSharpness(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
@@ -1717,6 +1995,58 @@ namespace Plugin {
             returnResponse(true);
         }
 
+    }
+
+    uint32_t ControlSettingsTV::getSharpnessCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        JsonArray rangeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        JsonObject rangeInfo;
+        JsonObject pqmodeInfo;
+        JsonObject sourceInfo;
+        JsonObject formatInfo;
+
+        unsigned int index = 0;
+
+        tvError_t ret = GetCustomParamsCaps(range,pqmode,source,format);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            for (index = 0; index < range.size(); index++)
+                rangeArray.Add(range[index]);
+
+            response["rangeInfo"]=rangeArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+            response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
+            returnResponse(true);
+        }
     }
 
     uint32_t ControlSettingsTV::getHue(const JsonObject& parameters, JsonObject& response)
@@ -1899,6 +2229,58 @@ namespace Plugin {
             returnResponse(true);
         }
 
+    }
+
+    uint32_t ControlSettingsTV::getHueCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        JsonArray rangeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        JsonObject rangeInfo;
+        JsonObject pqmodeInfo;
+        JsonObject sourceInfo;
+        JsonObject formatInfo;
+
+        unsigned int index = 0;
+
+        tvError_t ret = GetCustomParamsCaps(range,pqmode,source,format);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            for (index = 0; index < range.size(); index++)
+                rangeArray.Add(range[index]);
+
+            response["rangeInfo"]=rangeArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+            response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
+            returnResponse(true);
+        }
     }
 
     uint32_t ControlSettingsTV::getColorTemperature(const JsonObject& parameters, JsonObject& response)
@@ -2146,6 +2528,58 @@ namespace Plugin {
         }
     }
 
+    uint32_t ControlSettingsTV::getColorTemperatureCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        JsonArray rangeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        JsonObject rangeInfo;
+        JsonObject pqmodeInfo;
+        JsonObject sourceInfo;
+        JsonObject formatInfo;
+
+        unsigned int index = 0;
+
+        tvError_t ret = GetCustomParamsCaps(range,pqmode,source,format,true);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+		else
+        {
+            for (index = 0; index < range.size(); index++)
+                rangeArray.Add(range[index]);
+
+            response["rangeInfo"]=rangeArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+            response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
+            returnResponse(true);
+        }
+    }
+
     uint32_t ControlSettingsTV::getComponentSaturation(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
@@ -2333,7 +2767,8 @@ namespace Plugin {
             LOGINFO("Exit : resetComponentSaturation()\n");
             returnResponse(true);
         }
-    }    
+    }
+
 
     uint32_t ControlSettingsTV::getComponentHue(const JsonObject& parameters, JsonObject& response)
     {
@@ -2712,6 +3147,66 @@ namespace Plugin {
         }
     }
 
+    uint32_t ControlSettingsTV::getComponentCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::vector<std::string> range;
+        std::vector<std::string> color;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        JsonArray rangeArray;
+        JsonArray colorArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        JsonObject rangeInfo;
+        JsonObject colorInfo;
+        JsonObject pqmodeInfo;
+        JsonObject sourceInfo;
+        JsonObject formatInfo;
+
+        unsigned int index = 0;
+
+        tvError_t ret = GetComponentCaps(range,color,pqmode,source,format);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            for (index = 0; index < range.size(); index++)
+                rangeArray.Add(range[index]);
+
+            response["rangeInfo"]=rangeArray;
+
+	    for (index = 0; index < color.size(); index++)
+                rangeArray.Add(color[index]);
+
+            response["colorInfo"]=colorArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+            response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
+            returnResponse(true);
+        }
+    }
+
     uint32_t ControlSettingsTV::getBacklightDimmingMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
@@ -2882,6 +3377,58 @@ namespace Plugin {
         }
     }
 
+    uint32_t ControlSettingsTV::getDimmingModeCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::vector<std::string> supportedDimmingMode;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        JsonArray supportedDimmingModeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        JsonObject supportedDimmingModeInfo;
+        JsonObject pqmodeInfo;
+        JsonObject sourceInfo;
+        JsonObject formatInfo;
+
+        unsigned int index = 0;
+
+        tvError_t ret = GetDimmingModeCaps(supportedDimmingMode,pqmode,source,format);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            for (index = 0; index < supportedDimmingMode.size(); index++)
+                supportedDimmingModeArray.Add(supportedDimmingMode[index]);
+
+            response["supportedDimmingModeInfo"]=supportedDimmingModeArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+            response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
+            returnResponse(true);
+        }
+    }
+
     uint32_t ControlSettingsTV::getAutoBacklightControl(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
@@ -3041,6 +3588,58 @@ namespace Plugin {
         }
         else
         {
+            returnResponse(true);
+        }
+    }
+
+    uint32_t ControlSettingsTV::getAutoBacklightControlCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        JsonArray rangeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        JsonObject AutoBacklightControlInfo;
+        JsonObject pqmodeInfo;
+        JsonObject sourceInfo;
+        JsonObject formatInfo;
+
+        unsigned int index = 0;
+
+        tvError_t ret = GetAutoBacklightControlCaps(range,pqmode,source,format);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            for (index = 0; index < range.size(); index++)
+                rangeArray.Add(range[index]);
+
+            response["AutoBacklightControlInfo"]=rangeArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+            response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
             returnResponse(true);
         }
     }
@@ -3206,7 +3805,57 @@ namespace Plugin {
         }
     }
 
+    uint32_t ControlSettingsTV::getDolbyVisionModeCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
 
+        JsonArray rangeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        JsonObject DolbyVisionModeInfo;
+        JsonObject pqmodeInfo;
+        JsonObject sourceInfo;
+        JsonObject formatInfo;
+
+        unsigned int index = 0;
+
+        tvError_t ret = GetDolbyModeCaps(range,pqmode,source,format);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            for (index = 0; index < range.size(); index++)
+                rangeArray.Add(range[index]);
+
+            response["DolbyVisionModeInfo"]=rangeArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+            response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
+            returnResponse(true);
+        }
+    }
 
     uint32_t ControlSettingsTV::getSupportedHDR10Modes(const JsonObject& parameters, JsonObject& response)
     {
@@ -3368,6 +4017,58 @@ namespace Plugin {
         }
     }
 
+    uint32_t ControlSettingsTV::getHDR10ModeCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        JsonArray rangeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        JsonObject HDR10ModeInfo;
+        JsonObject pqmodeInfo;
+        JsonObject sourceInfo;
+        JsonObject formatInfo;
+
+        unsigned int index = 0;
+
+        tvError_t ret = GetHDR10Caps(range,pqmode,source,format);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            for (index = 0; index < range.size(); index++)
+                rangeArray.Add(range[index]);
+
+            response["HDR10ModeInfo"]=rangeArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+            response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
+            returnResponse(true);
+        }
+    }
+    
     uint32_t ControlSettingsTV::getSupportedHLGModes(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
@@ -3522,6 +4223,58 @@ namespace Plugin {
         else
         {
             LOGINFO("Exit : %s \n",__FUNCTION__);
+            returnResponse(true);
+        }
+    }
+
+    uint32_t ControlSettingsTV::getHLGModeCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        JsonArray rangeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        JsonObject HLG10ModeInfo;
+        JsonObject pqmodeInfo;
+        JsonObject sourceInfo;
+        JsonObject formatInfo;
+
+        unsigned int index = 0;
+
+        tvError_t ret = GetHLGCaps(range,pqmode,source,format);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            for (index = 0; index < range.size(); index++)
+                rangeArray.Add(range[index]);
+
+            response["HLG10ModeInfo"]=rangeArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+            response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
             returnResponse(true);
         }
     }
@@ -4053,6 +4806,58 @@ namespace Plugin {
         else
         {
             LOGINFO("Exit : resetLowLatency Successful to value : %d \n",lowlatencystate);
+            returnResponse(true);
+        }
+    }
+
+    uint32_t ControlSettingsTV::getLowLatencyStateCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        JsonArray rangeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        JsonObject LowLatencyInfo;
+        JsonObject pqmodeInfo;
+        JsonObject sourceInfo;
+        JsonObject formatInfo;
+
+        unsigned int index = 0;
+
+        tvError_t ret = GetLowLatencyCaps(range,pqmode,source,format);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            for (index = 0; index < range.size(); index++)
+                rangeArray.Add(range[index]);
+
+            response["LowLatencyInfo"]=rangeArray;
+
+            for (index = 0; index < pqmode.size(); index++)
+                pqmodeArray.Add(pqmode[index]);
+
+            response["pqmodeInfo"]=pqmodeArray;
+
+            for (index = 0; index < source.size(); index++)
+                sourceArray.Add(source[index]);
+
+            response["sourceInfo"]=sourceArray;
+
+            for (index = 0; index < format.size(); index++)
+                formatArray.Add(format[index]);
+
+            response["formatInfo"]=formatArray;
+
+            LOGINFO("Exit\n");
             returnResponse(true);
         }
     }
