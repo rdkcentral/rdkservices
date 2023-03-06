@@ -64,7 +64,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 9
+#define API_VERSION_NUMBER_PATCH 10
 
 namespace WPEFramework {
 
@@ -89,9 +89,17 @@ SERVICE_REGISTRATION(XCast, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, 
 static RtXcastConnector * _rtConnector  = RtXcastConnector::getInstance();
 static int locateCastObjectRetryCount = 0;
 bool XCast::isCastEnabled = false;
-bool XCast::m_xcastEnable= false;
+#ifdef XCAST_ENABLED_BY_DEFAULT
+bool XCast::m_xcastEnable = true;
+#else
+bool XCast::m_xcastEnable = false;
+#endif
 string XCast::m_friendlyName = "";
+#ifdef XCAST_ENABLED_BY_DEFAULT_IN_STANDBY
+bool XCast::m_standbyBehavior = true;
+#else
 bool XCast::m_standbyBehavior = false;
+#endif
 bool XCast::m_enableStatus = false;
 
 IARM_Bus_PWRMgr_PowerState_t XCast::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
