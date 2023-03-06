@@ -14,6 +14,10 @@ All notable changes to this RDK Service will be documented in this file.
 
     For more details, refer to versioning section under Main README.
 
+## [1.0.1] - 2023-03-06
+### Fixed
+- LEDControl: updated documentation
+
 ## [1.0.0] - 2023-11-01
 ### Added
 - New RDK Service LEDControl to manage LEDs in the device front panel
