@@ -8,7 +8,7 @@ Please note that the generated FooPlugin.json is packaged in the builds and inst
 
 ## Highlighting important sections from the configuation file:
 
-- **autostart** - set this flag to false to indicate that plugin will not getting autostarted or activated by default when wpeframework is started. This will will then get activated on demand by a resident app or another application. Most plugins should have autostart set to false. It should be set to true only if this plugin is truly needed on wpeframework startup.
+- **autostart** - set this flag to false to indicate that plugin will not getting autostarted or activated by default when wpeframework is started. This will then get activated on demand by a resident app or another application. Most plugins should have autostart set to false. It should be set to true only if this plugin is truly needed on wpeframework startup.
 
 - **preconditions** - Plugin can state dependencies that it needs for it to be activated and used. WPEFramework provides such dependencies through subsystems that can be implemented by core framework or by some other Plugin.
 

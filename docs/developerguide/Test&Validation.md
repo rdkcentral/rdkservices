@@ -1,6 +1,6 @@
 # 10. New Plugin test and validation for In-process Plugin
 
-- Each RDK Service can be validated through JSON RPC Commands through HTTP. It has a request and response in JSON format.
+Each RDK Service can be validated through JSON RPC Commands through HTTP. It has a request and response in JSON format.
 
 callsign":"org.rdk.PluginName
 
@@ -14,4 +14,4 @@ callsign":"org.rdk.PluginName
 | event API when hdmi connected|  curl http://127.0.0.1:9998/jsonrpc --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0", "id":3, "method":"org.rdk.PluginName.1.getConnectedVideoDisplays"}'| {"jsonrpc":"2.0","id":3,"result":{"connectedVideoDisplays":["HDMI0"],"success":true}}root@raspberrypi-rdk-mc:~#|
 |event API when hdmi not connected| curl http://127.0.0.1:9998/jsonrpc --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0", "id":3, "method":"org.rdk.PluginName.1.getConnectedVideoDisplays"}'| {"jsonrpc":"2.0","id":3,"result":{"connectedVideoDisplays":[],"success":true}}root@raspberrypi-rdk-mc:~#|
 
-- Please refer the link for [Out-of-process plugin](https://github.com/Pavankumar-HM/rdkservices/blob/main/docs/developerguide/new_plugin_outofprocess.md).
+Please refer the link for [Out-of-process plugin](https://github.com/Pavankumar-HM/rdkservices/blob/main/docs/developerguide/new_plugin_outofprocess.md).

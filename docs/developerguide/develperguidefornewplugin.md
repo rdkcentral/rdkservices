@@ -7,6 +7,6 @@ There are two types of plugins in RDK, In-Process plugins, and Out-of-Process pl
 
 # **Thunder Interfaces:**
 
- A thunder interface is `JSONRPC` and `COMRPC` interfaces which provides the communication between the `thunder (WPE Framework)` and `thunder plugins (RDK Services)`. If thunder plugin is a out of process plugin, then it's having their own thunder interface which will be saved and maintained in a separate repo [Thunder interfaces](https://github.com/rdkcentral/ThunderInterfaces).
+ A thunder interface is **JSONRPC** and **COMRPC** interfaces which provides the communication between the **thunder (WPE Framework)** and **thunder plugins (RDK Services)**. If thunder plugin is a out of process plugin, then it's having their own thunder interface which will be saved and maintained in a separate repo [Thunder interfaces](https://github.com/rdkcentral/ThunderInterfaces).
 
-For example, `PersistentStore` Plugin has their own Thunder interface called `IStore` and located in [https://github.com/rdkcentral/ThunderInterfaces/blob/master/interfaces/IStore.h](https://github.com/rdkcentral/ThunderInterfaces/blob/master/interfaces/IStore.h).
+For example, PersistentStore Plugin has their own Thunder interface called IStore and located in [https://github.com/rdkcentral/ThunderInterfaces/blob/master/interfaces/IStore.h](https://github.com/rdkcentral/ThunderInterfaces/blob/master/interfaces/IStore.h).

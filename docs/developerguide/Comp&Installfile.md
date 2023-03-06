@@ -28,7 +28,7 @@ $ vi meta-rdk-video/recipes-extended/rdkservices/rdkservices_git.bb
 
     - Copy the PluginName.json (Ex: FooPlugin.json) file to `/etc/WPEFramework/plugins` in **RDK Set top box**.
 
-    - Copy the plugin library `libWPEFrameworkPluginName.so` to `/usr/lib/wpeframework/plugins`
+    - Copy the plugin library `libWPEFrameworkPluginName.so` to `/usr/lib/wpeframework/plugins`.
 
 - So that the controller plugin identify it and list it in the **WebUI (controller UI)**.
 

@@ -15,7 +15,7 @@ A schema defines the structure of a JSON document, including the type of data th
 
 RDK Services API specs use [JSON Schema](https://json-schema.org/).
 
-Following lines should be added to `FooPlugin.json` to point to the latest schema used.
+Following lines should be added to **FooPlugin.json** to point to the latest schema used.
 
 ```JSON
 "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
