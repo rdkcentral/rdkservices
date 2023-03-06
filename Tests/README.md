@@ -1,5 +1,11 @@
 # Unit Tests #
 
+### Table of Contents ###
+
+[How to run locally](#how-to-run-locally)<br>
+[Best Practices](#best-practices)<br>
+[FAQ](#faq)<br>
+
 ## How to run locally ##
 
 Install [act](https://github.com/nektos/act) and docker:
@@ -35,6 +41,15 @@ Get a bash shell in the container, if needed:
 docker ps
 docker exec -it <container name> /bin/bash
 ```
+
+## Best Practices ##
+
+* Unit Test cases should be use-case based or behavior based. Avoid creating one test case per API/function and verifying multiple behaviors in the same test.
+    * Use the [Arrange-Act-Assert](https://automationpanda.com/2020/07/07/arrange-act-assert-a-pattern-for-writing-good-tests/) pattern to write tests. There should be 3 sections, separated by blank lines - setup (Arrange), execute code (Act), and verify that the behavior occurred as expected (Assert). Irrelevant details can be moved to the fixture or utility function.
+
+* Have one test per use case or behavior. A common mistake is to focus on member functions - TEST(ASet, Add) which results in a mix of different behaviors in a single test. One Assert per Test helps to have tests that fail for a specific reason and drives to focus on one behavior at a time. This also helps developers to understand what broke if a test fails.
+
+* Deriving highly descriptive test names is important. A test case name and test name together, left to right, should reveal a sentence that describes what is verified - TEST(ASet, IgnoresDuplicateAdded). When using fixtures, the fixture name should clearly describe the context - TEST_F(ASetWithOneItem, HasSizeOfOne).
 
 ## FAQ ##
 
