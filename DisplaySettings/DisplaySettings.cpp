@@ -44,7 +44,7 @@
 
 #include "tracing/Logging.h"
 #include <syscall.h>
-
+#include <sys/time.h>
 #include "UtilsCStr.h"
 #include "UtilsIarm.h"
 #include "UtilsJsonRpc.h"
@@ -2817,6 +2817,9 @@ namespace WPEFramework {
 
         uint32_t DisplaySettings::setVolumeLevel(const JsonObject& parameters, JsonObject& response)
         {
+               struct timeval begin, end;
+               gettimeofday(&begin, 0);
+ 
                 LOGINFOMETHOD();
                 returnIfParamNotFound(parameters, "volumeLevel");
                 string sLevel = parameters["volumeLevel"].String();
@@ -2833,7 +2836,18 @@ namespace WPEFramework {
                 try
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                        gettimeofday(&end, 0);
+                        long seconds = end.tv_sec - begin.tv_sec;
+                        long microseconds = end.tv_usec - begin.tv_usec;
+                        double elapsed = seconds + microseconds*1e-6;
+                        printf(" Displaysetting getAudioOutputPort Time measured: %.3f seconds.\n", elapsed);                        
+                        gettimeofday(&begin, 0);
                         aPort.setLevel(level);
+                        gettimeofday(&end, 0);
+                        long seconds = end.tv_sec - begin.tv_sec;
+                        long microseconds = end.tv_usec - begin.tv_usec;
+                        double elapsed = seconds + microseconds*1e-6;
+                        printf(" Displaysetting setLevel Time measured: %.3f seconds.\n", elapsed);                   
                         success= true;
                 }
                 catch (const device::Exception& err)
