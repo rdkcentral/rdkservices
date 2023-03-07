@@ -199,7 +199,7 @@ TEST_F(HdmiCecSinkDsTest, sendKeyPressEvent)
     EXPECT_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
         .WillRepeatedly(::testing::Invoke(
             [&](const LogicalAddress &to, const CECFrame &frame, int timeout) {
-               EXPECT_LE(to.toInt(), LogicalAddress::AUDIO_SYSTEM);
+               EXPECT_LE(to.toInt(), LogicalAddress::BROADCAST);
                EXPECT_GT(timeout, 0);
             }));
 
