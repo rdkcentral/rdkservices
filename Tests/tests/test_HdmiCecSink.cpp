@@ -8,7 +8,6 @@
 #include "LibCCECMock.h"
 #include "ConnectionMock.h"
 #include "LogicalAddressMock.h"
-#include "ActiveSourceMock.h"
 #include "MessageEncoderMock.h"
 
 using namespace WPEFramework;

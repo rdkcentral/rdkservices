@@ -448,11 +448,6 @@ inline const char* GetOpName(Op_t op) {
 class MessageProcessor {
 };
 
-class ActiveSourceImpl {
-public:
-    virtual Op_t opCode() const = 0;
-};
-
 class ActiveSource : public DataBlock {
 public:
     Op_t opCode(void) const { return ACTIVE_SOURCE; }
