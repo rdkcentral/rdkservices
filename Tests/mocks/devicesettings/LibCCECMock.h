@@ -36,14 +36,6 @@ public:
     MOCK_METHOD(int, toInt, (), (const, override));
 };
 
-class PhysicalAddressImplMock : public PhysicalAddressImpl {
-public:
-    virtual ~PhysicalAddressImplMock() = default;
-
-    MOCK_METHOD(uint8_t, getByteValue, (int), (const, override));
-};
-
-
 class AbortReasonImplMock : public AbortReasonImpl {
 public:
     virtual ~AbortReasonImplMock() = default;

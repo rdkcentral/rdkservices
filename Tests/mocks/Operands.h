@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <stdint.h>
 #include <cstring>
 #include <cstdio>
@@ -70,11 +69,6 @@ public:
     }
 };
 
-class CECFrameImpl {
-public:
-    virtual void getBuffer(const uint8_t** buf, size_t* len) const = 0;
-};
-
 class CECFrame {
 public:
     enum {
@@ -92,7 +86,8 @@ public:
     CECFrameImpl* impl;
     void getBuffer(const uint8_t** buf, size_t* len) const
     {
-        return impl->getBuffer(buf, len);
+		*len = this->len_;
+		*buf = this->buf_;
     }
 
 private:
@@ -103,7 +98,9 @@ private:
 class CECBytes {
 protected:
     std::vector<uint8_t> str;
-    CECBytes(const uint8_t val) : str (1, val){}
+    CECBytes(const uint8_t val){
+		str.push_back(val);
+	}
     CECBytes(const uint8_t* buf, size_t len) {
         if(buf && len){
             for(size_t i =0; i < len; i++){
@@ -238,11 +235,6 @@ public:
 
 };
 
-class PhysicalAddressImpl {
-public:
-    virtual uint8_t getByteValue(int index) const = 0;
-};
-
 class PhysicalAddress : public CECBytes {
 public:
     enum {
@@ -252,13 +244,10 @@ public:
         : CECBytes(frame, startPos, MAX_LEN){};
     PhysicalAddress(uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3)
         : CECBytes(NULL, 0){};
-    PhysicalAddress(std::string& addr)
-        : CECBytes(NULL, 0)
-    {
+    PhysicalAddress(std::string& addr): CECBytes(NULL, 0){
     }
-    PhysicalAddress();
+    PhysicalAddress(): CECBytes(NULL, 0){};
 
-    PhysicalAddress* impl;
     static PhysicalAddress& getInstance()
     {
         static PhysicalAddress instance;
@@ -267,7 +256,7 @@ public:
 
     uint8_t getByteValue(int index) const
     {
-        return impl->getByteValue(index);
+        return 1;
     }
 };
 
@@ -298,7 +287,7 @@ public:
 
 	int toInt() const
     {
-        return str[1];
+        return str[0];
     }
 
     int getType() const;
@@ -605,12 +594,11 @@ public:
     PowerStatus status;
 };
 
-class OpCode {
+class OpCode :public DataBlock {
 public:
     std::string toString(void) const { return GetOpName(opCode_); }
     Op_t opCode(void) const { return FEATURE_ABORT; }
-    OpCode(Op_t opCode)
-        : opCode_(opCode){};
+    OpCode(Op_t opCode): opCode_(opCode){};
 
 private:
     Op_t opCode_;

@@ -603,6 +603,11 @@ namespace WPEFramework
 
 			const std::string HdmiCecSink::Initialize(PluginHost::IShell* /* service */)
 			{
+					HdmiCecSink::_instance = this;
+					int err;
+					dsHdmiInGetNumberOfInputsParam_t hdmiInput;
+
+					InitializeIARM();
 					// get power state:
 					IARM_Bus_PWRMgr_GetPowerState_Param_t param;
 					err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
@@ -667,6 +672,7 @@ namespace WPEFramework
 							}
 					}
 					getHdmiArcPortID();
+					return (std::string());
 			}
 
        void HdmiCecSink::Deinitialize(PluginHost::IShell* /* service */)
