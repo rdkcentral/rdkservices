@@ -79,6 +79,10 @@
 #define SAD_FMT_CODE_AC3 2
 #define SAD_FMT_CODE_ENHANCED_AC3 10
 
+#define SYSTEM_AUDIO_MODE_ON 0x01
+#define SYSTEM_AUDIO_MODE_OFF 0x00
+#define AUDIO_DEVICE_POWERSTATE_OFF 1
+
 enum {
 	DEVICE_POWER_STATE_ON = 0,
 	DEVICE_POWER_STATE_OFF = 1
@@ -148,7 +152,7 @@ static int32_t HdmiArcPortID = -1;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 10
+#define API_VERSION_NUMBER_PATCH 11
 
 namespace WPEFramework
 {
@@ -1003,7 +1007,7 @@ namespace WPEFramework
                  return;
             }
 
-	    if ( (msg.status.toInt() == 0x00) && (m_currentArcRoutingState == ARC_STATE_ARC_INITIATED))
+	    if ( (msg.status.toInt() == SYSTEM_AUDIO_MODE_OFF) && (m_currentArcRoutingState == ARC_STATE_ARC_INITIATED))
             {
 		/* ie system audio mode off -> amplifier goign to standby but still ARC is in initiated state,stop ARC and 
 		 bring the ARC state machine to terminated state*/
@@ -1013,7 +1017,18 @@ namespace WPEFramework
             }
 
             params["audioMode"] = msg.status.toString().c_str();
-            sendNotify(eventString[HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE], params);
+	    if (msg.status.toInt() == SYSTEM_AUDIO_MODE_ON) {
+		LOGINFO("panel power state is %s", powerState ? "Off" : "On");
+	        if (powerState == DEVICE_POWER_STATE_ON ) {
+		    LOGINFO("Notifying system audio mode ON event");
+                    sendNotify(eventString[HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE], params);
+		} else {
+		    LOGINFO("Not notifying system audio mode ON event");
+		}
+	    } else {
+		    LOGINFO("Notifying system audio Mode OFF event");
+		    sendNotify(eventString[HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE], params);
+	    }
          }
          void HdmiCecSink::Process_ReportAudioStatus_msg(const ReportAudioStatus msg)
          {
@@ -1139,11 +1154,18 @@ namespace WPEFramework
         {
             JsonObject params;
             params["powerStatus"] = JsonValue(powerStatus);
-            LOGINFO("Notify DS!!! logicalAddress = %d , Audio device power status = %d \n", logicalAddress, powerStatus);
-	    /* update audio device power status request flag only if Audio device is ON or in STANDBY not in other states */
-	    if((powerStatus == 0) || (powerStatus == 1))
-	        m_audioDevicePowerStatusRequested = false;
-            sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_POWER_STATUS], params);
+	    LOGINFO("Panle power state is %s", powerState ? "Off" : "On");
+	    if (powerStatus != AUDIO_DEVICE_POWERSTATE_OFF) {
+	        if (powerState == DEVICE_POWER_STATE_ON ) {
+                    LOGINFO("Notify DS!!! logicalAddress = %d , Audio device power status = %d \n", logicalAddress, powerStatus);
+                    sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_POWER_STATUS], params);
+		} else {
+		    LOGINFO("Not notifying audio device power state to DS");
+		}
+	    } else {
+                    LOGINFO("Notify DS!!! logicalAddress = %d , Audio device power status = %d \n", logicalAddress, powerStatus);
+                    sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_POWER_STATUS], params);
+	    }
         }
 
         void HdmiCecSink::SendStandbyMsgEvent(const int logicalAddress)
@@ -3049,6 +3071,8 @@ namespace WPEFramework
             {
                m_arcStartStopTimer.stop();
             }
+	    if (powerState == DEVICE_POWER_STATE_ON ) {
+		LOGINFO("Notifying Arc Initiation event as power state is %s", powerState ? "Off" : "On");
 		{
             	  std::lock_guard<std::mutex> lock(_instance->m_arcRoutingStateMutex);
 	          _instance->m_currentArcRoutingState = ARC_STATE_ARC_INITIATED;
@@ -3057,7 +3081,9 @@ namespace WPEFramework
                   LOGINFO("Got : ARC_INITIATED  and notify Device setting");
                   params["status"] = string("success");
                   sendNotify(eventString[HDMICECSINK_EVENT_ARC_INITIATION_EVENT], params); 
-	  
+	    } else {
+		LOGINFO("Not notifying Arc Initiation event as power state is %s", powerState ? "Off" : "On");
+	    }
 
        }
        void HdmiCecSink::Process_TerminateArc()
