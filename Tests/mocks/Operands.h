@@ -83,7 +83,6 @@ public:
         return instance;
     }
 
-    CECFrameImpl* impl;
     void getBuffer(const uint8_t** buf, size_t* len) const
     {
 		*len = this->len_;
