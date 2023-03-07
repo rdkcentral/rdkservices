@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.11] - 2023-03-07
+### Fixed
+- Fixed Blocked sending events to Displaysettings when panel power state is STANDBY
+- Fixed Parallel execution of event handlers
+
 ## [1.0.10] - 2023-02-16
 ### Fixed
 - Updated OSDName to empty string as default and when FeatureAbort frame received for GiveOSDName.
