@@ -45,6 +45,14 @@
 #include "AAMPJSBindings.h"
 #endif
 
+#if defined(UPDATE_TZ_FROM_FILE)
+#include "TimeZoneSupport.h"
+#endif
+
+#if defined(ENABLE_CUSTOM_PROCESS_INFO)
+#include "ProcessInfo.h"
+#endif
+
 using namespace WPEFramework;
 
 static Core::NodeId GetConnectionNode()
@@ -115,10 +123,20 @@ public:
               list->AddWhiteListToWebKit(extension);
             }
         }
+
+#if defined(UPDATE_TZ_FROM_FILE)
+        _tzSupport.Initialize();
+#endif
+#ifdef ENABLE_CUSTOM_PROCESS_INFO
+        ProcessInfo::SetProcessName();
+#endif
     }
 
     void Deinitialize()
     {
+#if defined(UPDATE_TZ_FROM_FILE)
+        _tzSupport.Deinitialize();
+#endif
         if (_comClient.IsValid() == true) {
             _comClient.Release();
         }
@@ -206,6 +224,10 @@ private:
 private:
     Core::ProxyType<RPC::InvokeServerType<2, 0, 4> > _engine;
     Core::ProxyType<RPC::CommunicatorClient> _comClient;
+
+#if defined(UPDATE_TZ_FROM_FILE)
+    TZ::TimeZoneSupport _tzSupport;
+#endif
 
     string _consoleLogPrefix;
     gboolean _logToSystemConsoleEnabled;

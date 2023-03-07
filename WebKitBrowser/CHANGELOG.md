@@ -16,6 +16,42 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.11] - 2023-03-05
+### Fixed
+- LoadFailed event is not triggerring with the URL(failed to load by the browser)
+
+## [1.1.10] - 2023-03-03
+### Added
+- Config entry to enable WebAudio
+
+## [1.1.9] - 2023-03-01
+### Fixed
+- Verify source frame of response before reading http status code
+
+## [1.1.8] - 2023-02-27
+### Added
+- Option to rename WPEWebProcess
+
+## [1.1.7] - 2023-02-17
+###Fixed
+- Apply config localstorageenabled value for GLIB API
+
+## [1.1.6] - 2023-02-13
+### Changed
+- Added an option to specify different Cairo GL compositor for
+  ResidentApp and SearchAndDiscoveryApp callsigns
+
+## [1.1.5] - 2023-02-10
+### Changed
+- Cloud cookie jar support
+- Option to select different Cairo GL Compositor a build time
+- Update TZ from file (/opt/persistent/timeZoneDST)
+- Option to redirect logs to a specific journald unit
+
+## [1.1.4] - 2023-02-09
+### Removed
+- Log enhancement, avoid flooding of BridgeQuery logs
+
 ## [1.1.3] - 2022-11-01
 ### Changed
 - Added log enhancement
