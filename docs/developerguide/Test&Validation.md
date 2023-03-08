@@ -2,7 +2,7 @@
 
 Each RDK Service can be validated through JSON RPC Commands through HTTP. It has a request and response in JSON format.
 
-callsign":"org.rdk.PluginName
+"callsign":"org.rdk.PluginName"
 
 | Function | Request | Response |
 | :-------- | :-------- | :-------- |

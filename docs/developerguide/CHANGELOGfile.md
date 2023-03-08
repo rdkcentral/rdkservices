@@ -5,6 +5,7 @@ Create **CHANGELOG.md** file that is used to track changes done to this plugin. 
 Provide user friendly information on what was changed with the new version. Please don't mention JIRA tickets in CHANGELOG.
 
 Please Add entry in the CHANGELOG for each version change and indicate the type of change with these labels:
+
 * **Added** for new features.
 * **Changed** for changes in existing functionality.
 * **Deprecated** for soon-to-be removed features.

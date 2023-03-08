@@ -4,4 +4,4 @@
 
 - Navigate to the cloned repository.
 
-- Create a new folder with a unique name for the plugin. For example, Create a new directory [FooPlugin](./FooPlugin).
+- Create a new folder with a unique name for the plugin. For example, Refer [FooPlugin](./FooPlugin/) directory.

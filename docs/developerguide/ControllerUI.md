@@ -4,5 +4,5 @@ Controller UI is a web UI that can be launched from a host machine's (machine un
 
     URL: http://<Rpi's IP address>:9998
 
-![Controller UI](./Controller_UI_In-process.PNG)
+![Controller UI](./ControllerUI_In-process.PNG)
 

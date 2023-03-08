@@ -99,7 +99,6 @@ This section defines the APIs provided by this plugin as mentioned in the below 
 This section defines the events supported by this plugin as mentioned in the below sample.
 
 ```JSON
-
 "onValueChanged": {
     "summary": "Triggered whenever any of the values stored are changed using setValue",
     "params": {

@@ -2,7 +2,7 @@
 
 Refer [FooPlugin.config](./FooPlugin/FooPlugin.config) file.
 
-Create **"FooPlugin.config"**. This config file is used to specify: autostart, startuporder, custom properties (passed to the service during activation via **PluginHost::IShell::ConfigLine()**). During the project configuration, write_config(FooPlugin) in **CMakeLists.txt** uses **FooPlugin.config** to generate and install a corresponding json file **FooPlugin.json** on the device. (usually under /etc/WPEFramework/plugins)
+Create **"FooPlugin.config"**. This config file is used to specify autostart, startuporder, custom properties (passed to the service during activation via **PluginHost::IShell::ConfigLine()**). During the project configuration, write_config(FooPlugin) in **CMakeLists.txt** uses **FooPlugin.config** to generate and install a corresponding json file **FooPlugin.json** on the device (usually under /etc/WPEFramework/plugins).
 
 Please note that the generated FooPlugin.json is packaged in the builds and installed on the device is different from the API Spec of the same name. The API spec only resides in the source repo and is not packaged/installed on the devices.
 

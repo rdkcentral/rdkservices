@@ -1,10 +1,10 @@
-# 4. Source files
+# 4. Source Files
 
 Refer [FooPlugin.cpp](./FooPlugin/FooPlugin.cpp)
 
 ## Highlighting important sections from the Source file:
 
- - All Plugins support semantic versioning (Major.Minor.Patch) to track their changes. API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH refer to macros defined in the plugin source file for semantic versioning. These should be updated when there are changes done to the plugin. For a new plugin that is ready for release, it should be set to 1.0.0
+- All Plugins support semantic versioning (Major.Minor.Patch) to track their changes. API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH refer to macros defined in the plugin source file for semantic versioning. These should be updated when there are changes done to the plugin. For a new plugin that is ready for release, it should be set to 1.0.0
 
 - Refer to [RDK Services versioning](https://github.com/rdkcentral/RDKServices#versioning) for more details.
 
@@ -28,6 +28,7 @@ namespace {
         {}
     );
 }
+}
 ```
 
 - The plugin is registered in a translation unit via a mandatory SERVICE_REGISTRATION(MyService, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH).
@@ -43,7 +44,8 @@ Register<JsonObject, JsonObject>(_T("setValue"), &PersistentStore::endpoint_setV
 - Initialization and Cleanup
 Keep Plugin Constructors & Destructors lean. Most initialization should be done within Initialize() which gets called when the plugin is activated. This will ensure that WPEFramework boots up faster since most of the plugins are not auto-started or activated on bootup. Similarly most of the plugin cleanup should happen within Deinitialize() instead of the destructor.
 
-If there is any error in initialization return non-empty string with useful error information from Initialize(). This will ensure that plugin doesn't get activated and also return this error information to the caller. 
+- If there is any error in initialization return non-empty string with useful error information from Initialize().This will ensure that plugin doesn't get activated and also return this error information to the caller.
+
 ```C++
 const string FooPlugin::Initialize(PluginHost::IShell *service)
 {
