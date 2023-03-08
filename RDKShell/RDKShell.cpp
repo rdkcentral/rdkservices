@@ -4636,18 +4636,25 @@ namespace WPEFramework {
                             WPEFramework::Core::JSON::String stateString;
                             const string callsignWithVersion = callsign + ".1";
                             auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
-                            uint32_t stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                            uint32_t stateStatus = 0;
 
-                            if(service.JSONState == PluginHost::MetaData::Service::state::HIBERNATED)
+                            if(service.JSONState != PluginHost::MetaData::Service::state::HIBERNATED)
                             {
-                                stateStatus = 0;
+                                stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                            }
+                            else
+                            {
                                 stateString = "checkpointed";
                             }
 
                             if (stateStatus == 0)
                             {
                                 WPEFramework::Core::JSON::String urlString;
-                                uint32_t urlStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
+                                uint32_t urlStatus = 1;
+                                if(service.JSONState != PluginHost::MetaData::Service::state::HIBERNATED)
+                                {
+                                    urlStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
+                                }
 
                                 JsonObject typeObject;
                                 typeObject["callsign"] = callsign;
