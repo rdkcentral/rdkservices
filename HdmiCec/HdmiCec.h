@@ -58,7 +58,6 @@ namespace WPEFramework {
 		short m_deviceInfoStatus;
 	        bool m_isOSDNameUpdated;
 	        bool m_isVendorIDUpdated;
-                /*CID:283052-Initializing m_deviceInfoStatus*/
 		CECDeviceInfo()
 		: m_logicalAddress(0),m_vendorID(0,0,0),m_osdName("NA"), m_deviceInfoStatus(0), m_isOSDNameUpdated (false), m_isVendorIDUpdated (false)
 		{
