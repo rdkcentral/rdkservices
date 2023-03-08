@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkMiracastService.so",
+ "classname":"MiracastService",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.MiracastService",
+ "autostart":false
+}

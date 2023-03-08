@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "MiracastService Plugin",
+      "callsign": "org.rdk.MiracastService",
+      "locator": "libWPEFrameworkMiracastService.so",
+      "status": "production",
+      "description": "The `MiracastService` plugin allows you to do screen mirroring from Client Devices via WiFi-Direct."
+    },
+    "interface": {
+      "$ref": "MiracastService.json#"
+    }
+}
