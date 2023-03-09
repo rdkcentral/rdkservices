@@ -18,7 +18,6 @@ protected:
     Core::ProxyType<Plugin::HdmiCecSink> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
-    string response;
     NiceMock<LibCCECImplMock> libCCECImplMock;
     NiceMock<IarmBusImplMock> iarmBusImplMock;
     NiceMock<ConnectionImplMock> connectionImplMock;
@@ -70,6 +69,28 @@ protected:
                     return IARM_RESULT_SUCCESS;
                 }));
 
+        ON_CALL(connectionImplMock, open())
+            .WillByDefault(::testing::Return());
+
+		EXPECT_EQ(string(""), plugin->Initialize(nullptr));
+    }
+
+	virtual ~HdmiCecSinkTest() override
+    {
+        plugin->Deinitialize(nullptr);
+        IarmBus::getInstance().impl = nullptr;
+        LibCCEC::getInstance().impl = nullptr;
+        Connection::getInstance().impl = nullptr;
+        MessageEncoder::getInstance().impl = nullptr;
+    }
+};
+
+class HdmiCecSinkDsTest : public HdmiCecSinkTest {
+protected:
+    string response;
+    
+	HdmiCecSinkDsTest(): HdmiCecSinkTest()
+    {
 		ON_CALL(iarmBusImplMock, IARM_Bus_Call)
             .WillByDefault(
                 [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -93,32 +114,9 @@ protected:
                     }
                     return IARM_RESULT_SUCCESS;
                 });
-
-        EXPECT_EQ(string(""), plugin->Initialize(nullptr));
-
-        ON_CALL(connectionImplMock, open())
-            .WillByDefault(::testing::Return());
-
-        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    }
-
-	virtual ~HdmiCecSinkTest() override
-    {
-        plugin->Deinitialize(nullptr);
-        IarmBus::getInstance().impl = nullptr;
-        LibCCEC::getInstance().impl = nullptr;
-        Connection::getInstance().impl = nullptr;
-        MessageEncoder::getInstance().impl = nullptr;
-    }
-};
-
-class HdmiCecSinkDsTest : public HdmiCecSinkTest {
-protected:
-
-    HdmiCecSinkDsTest(): HdmiCecSinkTest()
-    {
-
+		
+		EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
+		EXPECT_EQ(response, string("{\"success\":true}"));
     }
     virtual ~HdmiCecSinkDsTest() override
     {
@@ -126,26 +124,14 @@ protected:
     }
 };
 
-class HdmiCecSinkInitializedTest : public HdmiCecSinkTest {
-protected:
-    HdmiCecSinkInitializedTest(): HdmiCecSinkTest()
-    {
-
-    }
-    virtual ~HdmiCecSinkInitializedTest() override
-    {
-
-    }
-};
-
-class HdmiCecSinkInitializedEventTest : public HdmiCecSinkInitializedTest {
+class HdmiCecSinkInitializedEventTest : public HdmiCecSinkDsTest {
 protected:
     NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
     NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
 
-    HdmiCecSinkInitializedEventTest(): HdmiCecSinkInitializedTest()
+    HdmiCecSinkInitializedEventTest(): HdmiCecSinkDsTest()
     {
         PluginHost::IFactories::Assign(&factoriesImplementation);
         dispatcher = static_cast<PluginHost::IDispatcher*>(
@@ -323,7 +309,7 @@ TEST_F(HdmiCecSinkDsTest, getActiveSource)
     std::this_thread::sleep_for(std::chrono::seconds(20));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getActiveSource"), _T(""), response));
-    EXPECT_EQ(response,  string("{\"available\":true,\"logicalAddress\":0,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"5\",\"osdName\":\"\",\"vendorID\":\"019ff\",\"powerStatus\":\"0\",\"port\":\"HDMI0\",\"success\":true}"));
+    EXPECT_EQ(response,  string("{\"available\":true,\"logicalAddress\":0,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"5\",\"osdName\":\"\",\"vendorID\":\"019ff\",\"powerStatus\":\"1\",\"port\":\"HDMI0\",\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, setMenuLanguage)
@@ -379,7 +365,7 @@ TEST_F(HdmiCecSinkInitializedEventDsTest, cecDemonInitialisation)
     dsHdmiCecSinkEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED, &eventData , 0);
 }
 
-TEST_F(HdmiCecSinkInitializedEventDsTest, getCECAddress)
+TEST_F(HdmiCecSinkInitializedEventDsTest, cecEventStatusUpdate)
 {
     ASSERT_TRUE(dsHdmiCecSinkEventHandler != nullptr);
     IARM_Bus_CECMgr_Status_Updated_Param_t eventData;
