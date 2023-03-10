@@ -99,6 +99,60 @@
             "type": "string",
             "example": "ON"
         },
+        "wakeupSources": {
+            "summary": "Array of Key value pair with wake up sources and its configurations",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "WAKEUPSRC_VOICE": {
+                        "description": "Voice Wake up",
+                        "type":"boolean",
+                        "example": true
+                    },
+                        "WAKEUPSRC_PRESENCE_DETECTION": {
+                        "description": "Presense detection wake up",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "WAKEUPSRC_BLUETOOTH": {
+                        "description": "Bluetooth Wakeup",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "WAKEUPSRC_WIFI": {
+                        "description": "WiFi Wake up",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "WAKEUPSRC_IR": {
+                        "description": "IR Remote Wake up",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "WAKEUPSRC_POWER_KEY": {
+                        "description": "Power Button Wake up - GPIO",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "WAKEUPSRC_CEC": {
+                        "description": "HDMI CEC commadn Wake up",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "WAKEUPSRC_LAN": {
+                        "description": "LAN wake up",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "WAKEUPSRC_TIMER": {
+                        "description": "TImer Wake up",
+                        "type":"boolean",
+                        "example": true
+                    }
+                }
+            }
+        },
         "preferredStandbyMode": {
             "summary": "The standby mode",
             "enum": [
@@ -122,6 +176,16 @@
             "summary": "The timezone",
             "type": "string",
             "example": "America/New_York"
+        },
+        "timeZoneAccuracy": {
+            "summary": "The timezone accuracy",
+            "enum": [
+                "INITIAL",
+                "INTERIM",
+                "FINAL"
+            ],
+            "type": "string",
+            "example": "INITIAL"
         },
         "seconds": {
             "summary": "The deep sleep timeout in seconds",
@@ -1256,12 +1320,16 @@
                     "timeZone": {
                         "$ref": "#/definitions/timeZone"
                     },
+                    "accuracy": {
+                        "$ref": "#/definitions/timeZoneAccuracy"
+                    },
                     "success":{
                         "$ref": "#/common/success"
                     }
                 },
                 "required": [
                     "timeZone",
+                    "accuracy",
                     "success"
                 ]
             }
@@ -1795,6 +1863,9 @@
                 "properties": {
                     "timeZone": {
                         "$ref": "#/definitions/timeZone"
+                    },
+                    "accuracy": {
+                        "$ref": "#/definitions/timeZoneAccuracy"
                     }
                 },
                 "required": [
@@ -1805,29 +1876,46 @@
                 "$ref": "#/common/result"
             }
         },
-        "setWakeupSrcConfiguration": {
-            "summary": "Sets the wakeup source configuration.",
+        "setWakeupSrcConfiguration":{
+            "summary": "Sets the wakeup source configuration for the input powerState",
             "params": {
-                "type":"object",
+                "type": "object",
                 "properties": {
-                    "wakeupSrc": {
-                        "summary": "The wakeup source",
-                        "type": "string",
-                        "example": "3"
+                    "powerState": {
+                        "$ref": "#/definitions/powerState"
                     },
-                    "config": {
-                        "summary": "The source configuration",
-                        "type": "string",
-                        "example": "1"
+                    "wakeupSources": {
+                        "$ref": "#/definitions/wakeupSources"
                     }
                 },
                 "required": [
-                    "wakeupSrc",
-                    "config"
+                    "wakeupSources"
                 ]
             },
             "result": {
                 "$ref": "#/common/result"
+            }
+        },
+        "getWakeupSrcConfiguration":{
+            "summary": "Returns all the supported wakeup configurations and powerState",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "powerState": {
+                        "$ref": "#/definitions/powerState"
+                    },
+                    "wakeupSources": {
+                        "$ref": "#/definitions/wakeupSources"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "powerState",
+                    "wakeupSources",
+                    "success"
+                ]
             }
         },
         "updateFirmware":{
@@ -2145,19 +2233,31 @@
                 "type": "object",
                 "properties": {
                 "oldTimeZone":{
-                        "summary": " old time zone",
+                        "summary": "old time zone",
                         "type": "string",
                         "example":"America/New_York"
                 },
                 "newTimeZone":{
-                        "summary": " new time zone",
+                        "summary": "new time zone",
                         "type": "string",
                         "example":"Europe/London"
-                    }
+                },
+                "oldAccuracy":{
+                        "summary": "old time zone accuracy",
+                        "type": "string",
+                        "example":"INITIAL"
+                },
+                "newAccuracy":{
+                        "summary": "new time zone accuracy",
+                        "type": "string",
+                        "example":"FINAL"
+                }
 				},
                 "required":[
                     "oldTimeZone",
-                    "newTimeZone"
+                    "newTimeZone",
+                    "oldAccuracy",
+                    "newAccuracy"
                     ]
             }
         }

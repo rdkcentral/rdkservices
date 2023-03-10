@@ -12,7 +12,10 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/rdk/iarmmgrs-hal
         ${BASEDIR}/ccec/drivers
         ${BASEDIR}/network
-	${BASEDIR}/rdkshell
+        ${BASEDIR}/Dobby
+        ${BASEDIR}/Dobby/Public/Dobby
+        ${BASEDIR}/Dobby/IpcService
+        ${BASEDIR}/rdkshell
         )
 
 set(EMPTY_HEADERS
@@ -61,12 +64,24 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rbus.h
         ${BASEDIR}/telemetry_busmessage_sender.h
         ${BASEDIR}/motionDetector.h
-	${BASEDIR}/rdk_logger_milestone.h
+        ${BASEDIR}/Dobby/DobbyProtocol.h
+        ${BASEDIR}/Dobby/DobbyProxy.h
+        ${BASEDIR}/Dobby/Public/Dobby/IDobbyProxy.h
+        ${BASEDIR}/Dobby/IpcService/IpcFactory.h
+        ${BASEDIR}/rdk_logger_milestone.h
         ${BASEDIR}/base64.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
-file(TOUCH ${EMPTY_HEADERS})
+
+file(GLOB_RECURSE EMPTY_HEADERS_AVAILABLE "${BASEDIR}/*")
+if (EMPTY_HEADERS_AVAILABLE)
+    message("Skip already generated headers to avoid rebuild")
+    list(REMOVE_ITEM EMPTY_HEADERS ${EMPTY_HEADERS_AVAILABLE})
+endif ()
+if (EMPTY_HEADERS)
+    file(TOUCH ${EMPTY_HEADERS})
+endif ()
 
 include_directories(${EMPTY_HEADERS_DIRS})
 
@@ -82,9 +97,10 @@ set(FAKE_HEADERS
         ${BASEDIR}/Telemetry.h
         ${BASEDIR}/Udev.h
         ${BASEDIR}/MotionDetection.h
-	${BASEDIR}/rdkshell.h
-	${BASEDIR}/RdkLoggerMilestone.h
-	${BASEDIR}/base64.h
+        ${BASEDIR}/Dobby.h
+        ${BASEDIR}/rdkshell.h
+	      ${BASEDIR}/RdkLoggerMilestone.h
+	      ${BASEDIR}/base64.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -118,6 +134,7 @@ set(CMAKE_DISABLE_FIND_PACKAGE_IARMBus ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_Udev ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_RFC ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_RBus ON)
+set(CMAKE_DISABLE_FIND_PACKAGE_Dobby ON)
 
 set(PLUGIN_DATACAPTURE ON)
 set(PLUGIN_DEVICEDIAGNOSTICS ON)
@@ -146,6 +163,7 @@ set(PLUGIN_ACTIVITYMONITOR ON)
 set(PLUGIN_MOTION_DETECTION ON)
 set(PLUGIN_COMPOSITEINPUT ON)
 set(HAS_FRONT_PANEL ON)
+set(PLUGIN_OCICONTAINER ON)
 set(PLUGIN_RDKSHELL ON)
 
 set(DS_FOUND ON)

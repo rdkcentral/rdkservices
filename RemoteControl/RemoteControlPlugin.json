@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "RemoteControl Plugin",
+      "callsign": "org.rdk.RemoteControl",
+      "locator": "libWPEFrameworkVoiceControl.so",
+      "status": "production",
+      "description": "The `RemoteControl` plugin provides the ability to pair and IR-program remote controls."
+    },
+    "interface": {
+      "$ref": "RemoteControl.json#"
+    }
+}

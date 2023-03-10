@@ -28,11 +28,12 @@ if(COMCAST_CONFIG)
     include(services.cmake)
 endif()
 
+option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
+
 if(RDK_SERVICES_TEST)
     include(tests.cmake)
 endif()
 
-option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
 option(PLUGIN_RUSTBRIDGE "Include RustBridge plugin" OFF)
 
 # Library installation section
@@ -63,6 +64,10 @@ endif()
 
 if(PLUGIN_VOICECONTROL)
     add_subdirectory(VoiceControl)
+endif()
+
+if(PLUGIN_REMOTECONTROL)
+	add_subdirectory(RemoteControl)
 endif()
 
 if(PLUGIN_RUSTBRIDGE)
@@ -348,6 +353,10 @@ endif()
 
 if(PLUGIN_UNIFIEDCASMANAGEMENT)
     add_subdirectory(UnifiedCASManagement)
+endif()
+
+if(PLUGIN_LEDCONTROL)
+    add_subdirectory(LEDControl)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
