@@ -580,7 +580,7 @@
 		    },
 		    "lowLatencyMode": {
 			"summary": "Indicates whether low latency Mode is 0 or 1",
-			"type":"integer",
+			"type":"bool",
 			"example": 1
 		    },
                     "audioOuputCompensated": {

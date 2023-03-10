@@ -607,7 +607,7 @@ namespace WPEFramework
 		   Register(HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS,&HdmiCecSink::sendGiveAudioStatusWrapper,this);
 		   Register(HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS,&HdmiCecSink::getAudioDeviceConnectedStatusWrapper,this);
                    Register(HDMICECSINK_METHOD_REQUEST_AUDIO_DEVICE_POWER_STATUS,&HdmiCecSink::requestAudioDevicePowerStatusWrapper,this);
-		     Register(HDMICECSINK_METHOD_SET_LATENCY_INFO, &HdmiCecSink::setLatencyInfoWrapper, this);
+		   Register(HDMICECSINK_METHOD_SET_LATENCY_INFO, &HdmiCecSink::setLatencyInfoWrapper, this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
            m_sendKeyEventThreadExit = false;
@@ -1016,7 +1016,7 @@ namespace WPEFramework
 	   HdmiCecSink::_instance->Send_ShortAudioDescriptor_Event(audiodescriptor);
         }
 
-        void HdmiCecSink::updateCurrentLatency(uint8_t videoLatency, uint8_t lowLatencyMode,uint8_t audioOutputCompensated, uint8_t audioOutputDelay = 0)
+        void HdmiCecSink::updateCurrentLatency(uint8_t videoLatency, bool lowLatencyMode,uint8_t audioOutputCompensated, uint8_t audioOutputDelay = 0)
         { 
 	    uint8_t latencyFlags = 0;
 	    latencyFlags = ((lowLatencyMode & 0x1) << 2) | (audioOutputCompensated & 0x3);
@@ -1613,7 +1613,8 @@ namespace WPEFramework
 	   }
 	   uint32_t HdmiCecSink::setLatencyInfoWrapper(const JsonObject& parameters, JsonObject& response)
            {
-	       uint8_t video_latency, low_latency_mode, audio_output_compensated,audio_output_delay;
+	       uint8_t video_latency,audio_output_compensated,audio_output_delay;
+	       bool low_latency_mode;
 
 	       returnIfParamNotFound(parameters, "videoLatency");
 	       returnIfParamNotFound(parameters, "lowLatencyMode");
