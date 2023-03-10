@@ -567,7 +567,66 @@
             "result": {
                 "$ref": "#/common/result"
             }
-        }
+        },
+	"requestCurrentLatency": {
+            "summary": "Sends a request to invoke reportCurrentLatency with Physical address as parameter",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "physicalAddress":{
+                        "summary": "Physical address of the target device",
+                        "type":"string",
+                        "example": "1.0.0.0"
+                    }
+                },
+                "required": [
+                    "physicalAddress"
+                ]
+            },
+	    "result": {
+                "$ref": "#/common/result"
+            }
+	},
+        "reportCurrentLatency": {
+	    "summary": "Sends PhysicalAddress,Video Latency, whether Low LatencyMode is enabled or not,Audio Output Compensated value and Audio Output Delay as parameters to invoke reportCurrentLatency method",
+	    "params": {
+                "type":"object",
+                "properties": {
+                    "physicalAddress":{
+                        "summary": "Physical address of the target device",
+                        "type":"string",
+                        "example": "0.0.0.0"
+                    },
+		    "videoLatency": {
+			"summary": "Indicates the Video Latency of the target device",
+			"type":"integer",
+			"example": 2
+		    },
+		    "lowLatencyMode": {
+			"summary": "Indicates whether low latency Mode is enabled or not",
+			"type":"integer",
+			"example": 1
+		    },
+                    "audioOuputCompensated": {
+                        "summary": "Indicates whether Audio Output is delay compensated or not. 0 - (NA)Sent by Non-TV, 1 = TV's audio Output is delay compensated, 2 = Not delay compensated, 3 = Partially delayed",
+                        "type":"integer",
+                        "example": 1
+                    },
+		    "audioOutputDelay": {
+			"summary": "Indicates the Audio Output Delay of the target device in milliseconds",
+			"type":"integer",
+			"example": 20
+		    }
+		},
+		"required": [
+                    "physicalAddress",
+		    "videoLatency",
+		    "lowLatencyMode",
+		    "audioOutputCompensated"
+                ]
+	    }
+
+	}
     },
     "events": {
         "arcInitiationEvent": {
