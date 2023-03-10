@@ -1877,7 +1877,7 @@
             }
         },
         "setWakeupSrcConfiguration":{
-            "summary": "Sets the wakeup source configuration for the input powerState",
+            "summary": "Sets the wakeup source configuration for the input powerState. Using the setNetworkStandbyMode API to set network standby will interfere with WAKEUPSRC_WIFI and WAKEUPSRC_LAN values. Please migrate to setWakeupSrcConfiguration API instead of setNetworkStandbyMode API",
             "params": {
                 "type": "object",
                 "properties": {

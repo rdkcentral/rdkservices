@@ -1621,21 +1621,27 @@ namespace WPEFramework {
              JsonObject& response)
          {
              bool status = false;
-             IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t param;
+             uint32_t config = 0x0;
+             IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t param;
              if (parameters.HasLabel("nwStandby")) {
-                 param.bStandbyMode = parameters["nwStandby"].Boolean();
-                 LOGWARN("setNetworkStandbyMode called, with NwStandbyMode : %s\n",
-                          (param.bStandbyMode)?("Enabled"):("Disabled"));
-                 IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
-                                        IARM_BUS_PWRMGR_API_SetNetworkStandbyMode, (void *)&param,
+                LOGWARN("setNetworkStandbyMode called, with NwStandbyMode : %s\n",
+                    (parameters["nwStandby"].Boolean())?("Enabled"):("Disabled"));
+                if(parameters["nwStandby"].Boolean())
+                {
+                    config = ((1<<WAKEUPSRC_WIFI)|(1<<WAKEUPSRC_LAN));
+                }
+                param.pwrMode = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
+                param.srcType = ((1<<WAKEUPSRC_WIFI)|(1<<WAKEUPSRC_LAN));
+                param.config = config;
+                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                                        IARM_BUS_PWRMGR_API_SetWakeupSrcConfig, (void *)&param,
                                         sizeof(param));
-
-                 if (IARM_RESULT_SUCCESS == res) {
-                     status = true;
-                     m_networkStandbyModeValid = false;
-                 } else {
-                     status = false;
-                 }
+                if (IARM_RESULT_SUCCESS == res) {
+                    status = true;
+                    m_networkStandbyModeValid = false;
+                } else {
+                    status = false;
+                }
              } else {
                  populateResponseWithError(SysSrv_MissingKeyValues, response);
              }
@@ -1659,11 +1665,15 @@ namespace WPEFramework {
                 LOGINFO("Got cached NetworkStandbyMode: '%s'", m_networkStandbyMode ? "true" : "false");
             }
             else {
-                IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t param;
+                IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t param;
+                bool nwStandby = false;
                 IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
-                                       IARM_BUS_PWRMGR_API_GetNetworkStandbyMode, (void *)&param,
-                                       sizeof(param));
-                bool nwStandby = param.bStandbyMode;
+                                  IARM_BUS_PWRMGR_API_GetWakeupSrcConfig, (void *)&param,
+                                  sizeof(param));
+                if((param.srcType & (1<<WAKEUPSRC_LAN)) || (param.srcType & (1<<WAKEUPSRC_WIFI)))
+                {
+                    nwStandby = ((param.config & (1<<WAKEUPSRC_WIFI) )|| (param.config & (1<<WAKEUPSRC_LAN)));
+                } 
     
                 LOGWARN("getNetworkStandbyMode called, current NwStandbyMode is: %s\n",
                          nwStandby?("Enabled"):("Disabled"));
@@ -3822,6 +3832,10 @@ namespace WPEFramework {
                             {
                                 config |= (1<<src);
                             }
+                            if((src == WAKEUPSRC_WIFI) || (src == WAKEUPSRC_LAN))
+                            {
+                                m_networkStandbyModeValid = false;
+                            } 
                             break;
                         }
                     }
