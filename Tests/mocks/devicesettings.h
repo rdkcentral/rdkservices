@@ -1426,6 +1426,24 @@ class rtObjectRef : public rtRef<rtIObject>, public rtObjectBase{
 
 class rtArrayObject;
 
+#define RT_voidType2               "\0"
+#define RT_valueType2              "v"
+#define RT_rtValueType2            "v"
+#define RT_boolType2               "b"
+#define RT_int8_tType2             "1"
+#define RT_uint8_tType2            "2"
+#define RT_intType2                "4"
+#define RT_int32_tType2            "4"
+#define RT_uint32_tType2           "5"
+#define RT_int64_tType2            "6"
+#define RT_uint64_tType2           "7"
+#define RT_floatType2              "e"
+#define RT_doubleType2             "d"
+#define RT_rtStringType2           "s"
+#define RT_rtObjectRefType2        "o"
+#define RT_rtFunctionRefType2      "f"
+#define RT_voidPtrType2            "z"
+
 union rtValue_{
     rtArrayObject *objectValue;
     rtString *stringValue;
@@ -1459,12 +1477,12 @@ class rtValue
   rtValue(const rtString& v){}
   rtValue(const rtArrayObject* v){
     mValue.objectValue = (rtArrayObject*)v;
-    mType = 'o';
+    mType = RT_rtObjectRefType2;
   }
   rtValue(const rtObjectRef& v){}
   rtValue(const rtValue& v){}
   ~rtValue(){}
-  rtValue& operator=(bool v)                {  mValue.boolValue = v;    return *this; }
+  rtValue& operator=(bool v)                {  mValue.boolValue = v;    mType = RT_boolType2; return *this; }
   rtValue& operator=(int8_t v)              {      return *this; }
   rtValue& operator=(uint8_t v)             {     return *this; }
   rtValue& operator=(int32_t v)             {     return *this; }
@@ -1479,13 +1497,50 @@ class rtValue
   rtValue& operator=(const rtObjectRef& v)  {    return *this; }
   rtValue& operator=(const rtValue& v)      {     return *this; }
   bool operator!=(const rtValue& rhs) const { return !(*this == rhs); }
-  bool operator==(const rtValue& rhs) const;
+  bool rtValue::operator==(const rtValue& rhs) const
+{
+  return compare(*this, rhs);
+}
+    
+bool compare(const rtValue& lhs, const rtValue& rhs)
+{
+  bool result = false;
+  if (lhs.getType() == rhs.getType())
+  {
+    switch(lhs.getType())
+    {
+    case RT_voidType:     result = true; break;
+    case RT_boolType:     result = (lhs.mValue.boolValue == rhs.mValue.boolValue); break;
+    case RT_int8_tType:   result = (lhs.mValue.int8Value == rhs.mValue.int8Value); break;
+    case RT_uint8_tType:  result = (lhs.mValue.uint8Value == rhs.mValue.uint8Value); break;
+    case RT_int32_tType:  result = (lhs.mValue.int32Value == rhs.mValue.int32Value); break;
+    case RT_uint32_tType: result = (lhs.mValue.uint32Value == rhs.mValue.uint32Value); break;
+    case RT_int64_tType:  result = (lhs.mValue.int64Value == rhs.mValue.int64Value); break;
+    case RT_uint64_tType: result = (lhs.mValue.uint64Value == rhs.mValue.uint64Value); break;
+    case RT_floatType:    result = (lhs.mValue.floatValue == rhs.mValue.floatValue); break;
+    case RT_doubleType:   result = (lhs.mValue.doubleValue == rhs.mValue.doubleValue); break;
+    case RT_stringType:
+    {
+      if (lhs.mValue.stringValue && rhs.mValue.stringValue)
+        result = (*lhs.mValue.stringValue == *rhs.mValue.stringValue);
+      else
+        result = (lhs.mValue.stringValue == rhs.mValue.stringValue);
+    }
+    break;
+    case RT_objectType:   result = (lhs.mValue.objectValue == rhs.mValue.objectValue); break;
+    case RT_functionType: result = (lhs.mValue.functionValue == rhs.mValue.functionValue); break;
+    }
+  }
+  return result;
+}
+rtType getType() const { return mType; }
   rtObjectRef toObject() const {
         rtObjectRef v;
         return v;
     }
     setString (const rtString& v){
-        mValue.stringValue = new rtString(v)
+        mValue.stringValue = new rtString(v);
+        mType = RT_rtStringType2;
     }
   static bool compare(const rtValue& lhs, const rtValue& rhs){
     return 1;
