@@ -1,6 +1,6 @@
 # **Follow the below steps to create a new RDK service/ Thunder plugin - In-process plugin.**
 
-![Graphical Represenation of steps to create a new In-Process Thunder Plugin/ RDK Services](./developerguide/Flowdiagramfornewthunderplugin-Inprocess.png)
+![Graphical Represenation of steps to create a new In-Process Thunder Plugin/ RDK Services](./Flowdiagramfornewthunderplugin-Inprocess.PNG)
 
 For example, Please follow the below steps involved in creation of **FooPlugin** that implements an API setValue to set a key/value and an event onValueChanged that is triggered whenever setValue is called.
 
