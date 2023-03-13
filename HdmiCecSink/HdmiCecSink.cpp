@@ -1036,7 +1036,7 @@ namespace WPEFramework
 		return;
 
 	    LOGINFO("Send Report Current Latency message \n");
-	    _instance->smConnection->sendTo(LogicalAddress::BROADCAST,MessageEncoder().encode(ReportCurrentLatency(physical_addr,video_latency,latency_flags,audio_output_delay)));
+	    _instance->smConnection->sendTo(LogicalAddress::BROADCAST,MessageEncoder().encode(ReportCurrentLatency(physical_addr,m_video_latency,m_latency_flags,m_audio_output_delay)));
 
         }
 
