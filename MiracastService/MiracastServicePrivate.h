@@ -24,7 +24,6 @@
 #include <string>
 #include <vector>
 #include <logger.h> 
-#include <mqueue.h>
 #include <glib.h>
 #include "wifiSrvMgrIarmIf.h"
 #include <semaphore.h>
@@ -32,11 +31,11 @@
 using namespace std;
 using namespace MIRACAST;
 
-enum INTERFACE
+typedef enum INTERFACE
 {
     NON_GLOBAL_INTERFACE = 0,
     GLOBAL_INTERFACE
-};
+}P2P_INTERFACE;
 
 enum P2P_EVENTS
 {
@@ -127,7 +126,8 @@ typedef enum rtsp_msg_handler_actions_e
 	M6_REQUEST_ACK,
 	M7_REQUEST_ACK,
 	RTSP_ACTIVATE,
-	RTSP_SELF_ABORT
+	RTSP_SELF_ABORT,
+	RTSP_INACTIVATE
 }RTSP_MSG_HANDLER_ACTIONS;
 
 typedef enum client_req_handler_actions_e
@@ -198,6 +198,8 @@ class MiracastRTSPMessages
 		std::string m7_msg_req_ack_from_client;
 };
 
+#define MIRACAST_THREAD_RECV_MSG_INDEFINITE_WAIT	( -1 )
+
 class MiracastThread
 {
 	public:
@@ -206,7 +208,7 @@ class MiracastThread
 		~MiracastThread();
 		void start( void );
 		void send_message( void* message , size_t msg_size );
-		void receive_message( void* message , size_t msg_size );
+		int8_t receive_message( void* message , size_t msg_size , int sem_wait_timedout );
 		void* thread_user_data;
 
 	private:

@@ -61,8 +61,6 @@ void log(LogLevel level,
     const char* format, ...)
 {
    
-    struct stat st;
-    long double size;
     const char* levelMap[] = {"Fatal", "Error", "Warning", "Info", "Verbose", "Trace"};
     const short kFormatMessageSize = 4096;
     char formatted[kFormatMessageSize];
@@ -121,5 +119,4 @@ void log(LogLevel level,
     if (FATAL_LEVEL == level)
       std::abort();
 }
-
 } // namespace MIRACAST

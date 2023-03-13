@@ -33,12 +33,12 @@ using namespace MIRACAST;
 
 static MiracastPrivate* g_miracastPrivate = NULL;
 
-static enum P2P_EVENTS convertIARMtoP2P(IARM_Bus_NMgr_P2P_EventId_t eventId)
+static enum P2P_EVENTS convertIARMtoP2P(IARM_EventId_t eventId)
 {
     return (P2P_EVENTS)eventId;
 }
 
-static void iarmEvtHandler(const char *owner, IARM_Bus_NMgr_P2P_EventId_t eventId, void *data, size_t len)
+static void iarmEvtHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
 {
     if (strcmp(owner, IARM_BUS_NM_SRV_MGR_NAME)  == 0)
     {
@@ -136,7 +136,7 @@ int MiracastPrivate::p2pInit()
     pthread_attr_init(&thread_attr);
     pthread_attr_setstacksize(&thread_attr, 256*1024);
 
-    ret = pthread_create(&p2p_ctrl_monitor_thread_id, &thread_attr, (void*)&monitor_thread, this);
+    ret = pthread_create(&p2p_ctrl_monitor_thread_id, &thread_attr, reinterpret_cast<void* (*)(void*)>(monitor_thread), this);
     if (ret != 0)
     { 
         MIRACASTLOG_ERROR("WIFI_HAL: P2P Monitor thread creation failed ");
@@ -307,7 +307,7 @@ MiracastError MiracastPrivate::executeCommand(std::string command, int interface
     else
     {
         char ret_buffer[2048] = {0};
-        p2pExecute(command.c_str(), interface, ret_buffer);
+        p2pExecute((char*)command.c_str(), static_cast<P2P_INTERFACE>(interface), ret_buffer);
         retBuffer = ret_buffer;
         MIRACASTLOG_INFO("command return buffer is - %s", retBuffer.c_str());
     }

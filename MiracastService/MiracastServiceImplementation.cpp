@@ -25,9 +25,14 @@ using namespace MIRACAST;
 
 MiracastServiceImplementation* MiracastServiceImplementation::create(MiracastCallback* xrecallback)
 {
+	std::cout << "MiracastServiceImplementation::create\n";
 	MIRACASTLOG_VERBOSE("Service created\n");
-	if(! access( "/opt/disableMiracast", F_OK ) != -1)
+
+	if(! (access( "/opt/disableMiracast", F_OK ) != -1))
+	{
 		return new MiracastServiceImplementation(xrecallback);
+	}
+#if 0
 	else
 	{
 		if(xrecallback)
@@ -35,6 +40,8 @@ MiracastServiceImplementation* MiracastServiceImplementation::create(MiracastCal
 		MIRACASTLOG_VERBOSE("Service cannot be created. Disabled\n");
 		return NULL;
 	}
+#endif
+	return NULL;
 }
 
 void MiracastServiceImplementation::Destroy( MiracastServiceImplementation* object )
@@ -46,6 +53,7 @@ void MiracastServiceImplementation::Destroy( MiracastServiceImplementation* obje
 
 MiracastServiceImplementation::MiracastServiceImplementation(MiracastCallback* xrecallback)
 {
+	std::cout << "MiracastServiceImplementation::ctor\n";
 	m_impl = new MiracastPrivate(xrecallback);
 }
 
@@ -104,13 +112,14 @@ bool MiracastServiceImplementation::disconnectDevice()
 	return m_impl->disconnectDevice();
 }
 
-void MiracastServiceImplementation::SendMessage( size_t action )
+void MiracastServiceImplementation::StopApplication( void )
 {
-	m_impl->SendMessageToClientReqHandler( action );
+	m_impl->SendMessageToClientReqHandler( Stop_Miracast_Service );
 }
 
 void MiracastServiceImplementation::setEnable( std::string is_enabled )
 {
+	std::cout << "MiracastServiceImplementation::setEnable\n";
 	if( "true" == is_enabled ){
 		m_impl->SendMessageToClientReqHandler( Start_WiFi_Display );
 	}
@@ -121,6 +130,7 @@ void MiracastServiceImplementation::setEnable( std::string is_enabled )
 
 void MiracastServiceImplementation::acceptClientConnectionRequest( std::string is_accepted )
 {
+	std::cout << "MiracastServiceImplementation::acceptClientConnectionRequest\n";
 	if( "Accept" == is_accepted ){
 		m_impl->SendMessageToClientReqHandler( Accept_ConnectDevice_Request );
 	}

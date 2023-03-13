@@ -87,7 +87,7 @@ class MiracastServiceImplementation
 		
 		bool enableMiracast(bool flag = false);
 
-		void SendMessage( size_t action );
+		void StopApplication( void );
 		//Global APIs
 		MiracastError discoverDevices(); 
 		MiracastError selectDevice();

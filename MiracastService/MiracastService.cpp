@@ -58,13 +58,13 @@ namespace WPEFramework
 		SERVICE_REGISTRATION(MiracastService, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
 		MiracastService* MiracastService::_instance = nullptr;
+		MiracastServiceImplementation* MiracastService::m_miracast_service_impl = nullptr;
 
 		MiracastService::MiracastService()
 			: PluginHost::JSONRPC(),
 			m_isPlatInitialized (false)
 		{
 			LOGINFO("MiracastService::ctor");
-			std::cout << "MiracastService::ctor\n";
 			MiracastService::_instance = this;
 			Register( METHOD_MIRACAST_SET_ENABLE , &MiracastService::setEnable, this);
 			Register( METHOD_MIRACAST_CLIENT_CONNECT_REQUEST , &MiracastService::acceptClientConnectionRequest, this);
@@ -73,13 +73,11 @@ namespace WPEFramework
 		MiracastService::~MiracastService()
 		{
 			LOGINFO("MiracastService::~MiracastService");
-			std::cout << "MiracastService::~MiracastService\n";
 		}
 
 		const string MiracastService::Initialize(PluginHost::IShell* service )
 		{
 			LOGINFO("MiracastService::Initialize");
-			std::cout << "MiracastService::Initialize\n";
 			if (!m_isPlatInitialized){
 				mCurrentService = service;
 				m_miracast_service_impl = MiracastServiceImplementation::create(nullptr);
@@ -94,9 +92,10 @@ namespace WPEFramework
 		{
 			MiracastService::_instance = nullptr;
 			LOGINFO("MiracastService::Deinitialize");
-			std::cout << "MiracastService::Deinitialize\n";
 			if (m_isPlatInitialized){
+				m_miracast_service_impl->StopApplication();
 				MiracastServiceImplementation::Destroy(m_miracast_service_impl);
+				mCurrentService = nullptr;
 				m_miracast_service_impl = nullptr;
 				m_isPlatInitialized = false;
 			}
@@ -122,7 +121,7 @@ namespace WPEFramework
 			if ( parameters.HasLabel("enabled")){
 				is_enabled = parameters["enabled"].String();
 				if (( "true" == is_enabled ) || ( "false" == is_enabled )){
-					m_miracast_service_impl->setEnable( is_enabled ); 
+					m_miracast_service_impl->setEnable( is_enabled );
 					success = true;
 				}
 			}

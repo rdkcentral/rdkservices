@@ -43,7 +43,6 @@
 #define MAX_EPOLL_EVENTS 64
 #define SPACE " "
 
-//static sem_t session_client_req_sync;
 static MiracastPrivate* g_miracastPrivate = NULL;
 
 void ClientRequestHandlerCallback( void* args );
@@ -419,7 +418,7 @@ bool MiracastPrivate::ReceiveBufferTimedOut( void* buffer , size_t buffer_len )
 		}
 	}
 	MIRACASTLOG_INFO("received string(%d) - %s\n", recv_return, buffer);
-	printf("received string(%d) - %s\n", recv_return, buffer);
+	printf("received string(%d) - %s\n", recv_return, (char*)buffer);
 	return status;
 }
 
@@ -864,16 +863,15 @@ MiracastPrivate::MiracastPrivate(MiracastCallback* Callback)
 	memset(event_buffer, '\0', sizeof(event_buffer));
 	MIRACASTLOG_INFO("Private instance instantiated");
 
-	int returnval = sem_init( &session_client_req_sync , 0, 0 );
 	g_miracastPrivate = this;
 
-	m_client_req_handler_thread = new MiracastThread( CLIENT_REQ_HANDLER_NAME , CLIENT_REQ_HANDLER_STACK , 0 , 0 , (void*)&ClientRequestHandlerCallback , NULL );
+	m_client_req_handler_thread = new MiracastThread( CLIENT_REQ_HANDLER_NAME , CLIENT_REQ_HANDLER_STACK , 0 , 0 , reinterpret_cast<void (*)(void*)>(&ClientRequestHandlerCallback) , NULL );
 	m_client_req_handler_thread->start();
 
-	m_session_manager_thread = new MiracastThread( SESSION_MGR_NAME , SESSION_MGR_STACK , SESSION_MGR_MSG_COUNT , SESSION_MGR_MSGQ_SIZE , (void*)&SessionMgrThreadCallback , NULL );
+	m_session_manager_thread = new MiracastThread( SESSION_MGR_NAME , SESSION_MGR_STACK , SESSION_MGR_MSG_COUNT , SESSION_MGR_MSGQ_SIZE , reinterpret_cast<void (*)(void*)>(&SessionMgrThreadCallback) , NULL );
         m_session_manager_thread->start();
 	
-	m_rtsp_msg_handler_thread = new MiracastThread( RTSP_HANDLER_NAME , RTSP_HANDLER_STACK , RTSP_HANDLER_MSG_COUNT , RTSP_HANDLER_MSGQ_SIZE , (void*)&RTSPMsgHandlerCallback , NULL );
+	m_rtsp_msg_handler_thread = new MiracastThread( RTSP_HANDLER_NAME , RTSP_HANDLER_STACK , RTSP_HANDLER_MSG_COUNT , RTSP_HANDLER_MSGQ_SIZE , reinterpret_cast<void (*)(void*)>(&RTSPMsgHandlerCallback) , NULL );
 	m_rtsp_msg_handler_thread->start();
 
 	m_rtsp_msg = new MiracastRTSPMessages();
@@ -922,14 +920,12 @@ MiracastError MiracastPrivate::connectDevice(std::string MAC)
 
 	ret = (MiracastError)executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
 	MIRACASTLOG_VERBOSE("Establishing P2P connection with authType - %s", m_authType.c_str());
-	m_eventCallback->onConnected();
+	//m_eventCallback->onConnected();
 	return ret;
 }
 
 MiracastError MiracastPrivate::startStreaming()
 {
-	MiracastError ret = MIRACAST_FAIL;
-
 	const char* mcastIptableFile = "/opt/mcast_iptable.txt";
 	std::ifstream mIpfile (mcastIptableFile);
 	std::string mcast_iptable;
@@ -1002,9 +998,9 @@ bool MiracastPrivate::getConnectionStatus()
 
 DeviceInfo* MiracastPrivate::getDeviceDetails(std::string MAC)
 {
-    DeviceInfo* deviceInfo;
+    DeviceInfo* deviceInfo = nullptr;
     std::size_t found;
-    memset(deviceInfo, 0, sizeof(deviceInfo));
+    //memset(deviceInfo, 0, sizeof(deviceInfo));
     for(auto device : m_deviceInfo)
     {
         found = device->deviceMAC.find(MAC);
@@ -1254,6 +1250,13 @@ RTSP_SEND_RESPONSE_CODE MiracastPrivate::validate_rtsp_msg_response_back(std::st
 			response_code = validate_rtsp_m7_request_ack( rtsp_msg_buffer );
 		}
 		break;
+		case RTSP_INACTIVATE:
+		case RTSP_ACTIVATE:
+		case RTSP_SELF_ABORT:
+		{
+			//
+		}
+		break;
 	}
 	MIRACASTLOG_INFO("Validating RTSP Msg => ACTION[%#04X] Resp[%#04X]\n",action_id,response_code);
 
@@ -1302,7 +1305,7 @@ MiracastThread::~MiracastThread()
 
 void MiracastThread::start(void)
 {
-	pthread_create( &thread_, &attr_, (void*)thread_callback , thread_user_data );
+	pthread_create( &thread_, &attr_, reinterpret_cast<void* (*)(void*)>(thread_callback) , thread_user_data );
 }
 
 void MiracastThread::send_message( void* message , size_t msg_size )
@@ -1319,12 +1322,29 @@ void MiracastThread::send_message( void* message , size_t msg_size )
 	sem_post( &this->sem_object );
 }
 
-void MiracastThread::receive_message( void* message , size_t msg_size )
+int8_t MiracastThread::receive_message( void* message , size_t msg_size , int sem_wait_timedout )
 {
-	unsigned int priority = 0;
+	int8_t status = false;
 
-	sem_wait( &this->sem_object );
-	if ( NULL != this->g_queue ){
+	if ( MIRACAST_THREAD_RECV_MSG_INDEFINITE_WAIT == sem_wait_timedout ){
+		sem_wait( &this->sem_object );
+		status = true;
+	}
+	else if ( 0 < sem_wait_timedout ){
+		struct timespec ts;
+		clock_gettime(CLOCK_REALTIME, &ts);
+		ts.tv_sec += sem_wait_timedout;
+
+		if (sem_timedwait(&sem_object, &ts) == -1)
+		{
+			status = false;
+		}
+	}
+	else{
+		status = -1;
+	}
+
+	if (( true == status ) && ( NULL != this->g_queue )){
 		void* data_ptr = static_cast<void*>(g_async_queue_pop(this->g_queue));
 		if (( NULL != message ) && ( NULL != data_ptr )){
 			memcpy(message , data_ptr , msg_size );
@@ -1332,19 +1352,20 @@ void MiracastThread::receive_message( void* message , size_t msg_size )
 		}	
 
 	}
+	return status;
 }
 
 void MiracastPrivate::SessionManagerThread(void* args)
 {
 	SessionMgrMsg session_message_data = { 0 };
-	RTSPHldrMsg rtsp_message_data = {0};
+	RTSPHldrMsg rtsp_message_data = { RTSP_INACTIVATE , 0 };
 
 	while( true ){
 		std::string event_buffer;
 		event_buffer.clear();
 
 		MIRACASTLOG_INFO("[%s] Waiting for Event .....\n",__FUNCTION__);
-		m_session_manager_thread->receive_message( &session_message_data , SESSION_MGR_MSGQ_SIZE);
+		m_session_manager_thread->receive_message( &session_message_data , SESSION_MGR_MSGQ_SIZE , MIRACAST_THREAD_RECV_MSG_INDEFINITE_WAIT );
 		
 		event_buffer = session_message_data.event_buffer;
 
@@ -1380,9 +1401,11 @@ void MiracastPrivate::SessionManagerThread(void* args)
 				device->deviceMAC = storeData(event_buffer.c_str(), "p2p_dev_addr"); 
 				device->deviceType = storeData(event_buffer.c_str(), "pri_dev_type"); 
 				device->modelName = storeData(event_buffer.c_str(), "name"); 
-				wfdSubElements = storeData(event_buffer.c_str(), "wfd_dev_info"); 
+				wfdSubElements = storeData(event_buffer.c_str(), "wfd_dev_info");
+#if 0
 				device->isCPSupported = ((strtol(wfdSubElements.c_str(), NULL, 16) >> 32) && 256);
 				device->deviceRole = (DEVICEROLE)((strtol(wfdSubElements.c_str(), NULL, 16) >> 32) && 3); 
+#endif
 				MIRACASTLOG_VERBOSE("Device data parsed & stored successfully");
 				
 				m_deviceInfo.push_back(device);
@@ -1557,6 +1580,19 @@ void MiracastPrivate::SessionManagerThread(void* args)
 				RestartSession();
 			}
 			break;
+			case SESSION_MGR_GO_STOP_FIND:
+			case SESSION_MGR_GO_NEG_SUCCESS:
+			case SESSION_MGR_GO_NEG_FAILURE:
+			case SESSION_MGR_GO_GROUP_FORMATION_SUCCESS:
+			case SESSION_MGR_GO_GROUP_FORMATION_FAILURE:
+			case SESSION_MGR_GO_EVENT_ERROR:
+			case SESSION_MGR_GO_UNKNOWN_EVENT:
+			case SESSION_MGR_SELF_ABORT:
+			case SESSION_MGR_INVALID_ACTION:
+			{
+				//
+			}
+			break;
 		}
 	}
 }
@@ -1571,7 +1607,7 @@ void MiracastPrivate::RTSPMessageHandlerThread( void* args )
 
 	while( true ){
 		MIRACASTLOG_INFO("[%s] Waiting for Event .....\n",__FUNCTION__);
-		m_rtsp_msg_handler_thread->receive_message( &message_data , sizeof(message_data));
+		m_rtsp_msg_handler_thread->receive_message( &message_data , sizeof(message_data) , MIRACAST_THREAD_RECV_MSG_INDEFINITE_WAIT );
 
 		MIRACASTLOG_INFO("[%s] Received Action[%#04X]\n",__FUNCTION__,message_data.action);
 
@@ -1600,7 +1636,7 @@ void MiracastPrivate::RTSPMessageHandlerThread( void* args )
 				break;
 			}
 			memset( &rtsp_message_socket , 0x00 , sizeof(rtsp_message_socket));
-			message_data.action = message_data.action + 1;
+			message_data.action = static_cast<RTSP_MSG_HANDLER_ACTIONS>(message_data.action + 1);
 		}
 
 		if (( RTSP_VALID_MSG_OR_SEND_REQ_RESPONSE_OK == response_code ) && ( M7_REQUEST_ACK == message_data.action ))
@@ -1632,7 +1668,7 @@ void MiracastPrivate::ClientRequestHandlerThread( void* args )
 		memset( &session_mgr_msg_data , 0x00 , SESSION_MGR_MSGQ_SIZE );
 
 		MIRACASTLOG_INFO("[%s] Waiting for Event .....\n",__FUNCTION__);
-		m_client_req_handler_thread->receive_message( &client_req_hldr_msg_data , sizeof(client_req_hldr_msg_data));
+		m_client_req_handler_thread->receive_message( &client_req_hldr_msg_data , sizeof(client_req_hldr_msg_data) , MIRACAST_THREAD_RECV_MSG_INDEFINITE_WAIT );
 
 		MIRACASTLOG_INFO("[%s] Received Action[%#04X]\n",__FUNCTION__,client_req_hldr_msg_data.action);
 
@@ -1653,7 +1689,7 @@ void MiracastPrivate::ClientRequestHandlerThread( void* args )
 			{
 				std::string device_name = client_req_hldr_msg_data.buffer_user_data;
 				std::string MAC = client_req_hldr_msg_data.action_buffer;
-				int input = 1;
+				//int input = 1;
 
 				printf("GO Device[%s - %s] wants to connect:\n",device_name.c_str(),MAC.c_str());
 			#if 0
