@@ -60,6 +60,10 @@ set(EMPTY_HEADERS
         ${BASEDIR}/Dobby/DobbyProxy.h
         ${BASEDIR}/Dobby/Public/Dobby/IDobbyProxy.h
         ${BASEDIR}/Dobby/IpcService/IpcFactory.h
+        ${BASEDIR}/rtRemote.h
+        ${BASEDIR}/rtObject.h
+        ${BASEDIR}/rtError.h
+        ${BASEDIR}/rtNotifier.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -112,6 +116,8 @@ add_definitions(
         -DENABLE_DEVICE_MANUFACTURER_INFO
         -DCLOCK_BRIGHTNESS_ENABLED
         -DUSE_DS
+        -DRFC_ENABLED
+        -DXCAST_ENABLED_BY_DEFAULT
 )
 
 message("Setting build options")
@@ -151,5 +157,6 @@ set(PLUGIN_MOTION_DETECTION ON)
 set(PLUGIN_COMPOSITEINPUT ON)
 set(HAS_FRONT_PANEL ON)
 set(PLUGIN_OCICONTAINER ON)
+set(PLUGIN_XCAST ON)
 
 set(DS_FOUND ON)

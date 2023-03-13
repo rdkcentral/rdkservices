@@ -74,6 +74,7 @@ include_directories(../LocationSync
         ../CompositeInput
         ../FrontPanel
         ../OCIContainer
+        ../XCast
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -103,6 +104,7 @@ link_directories(../LocationSync
         ../CompositeInput
         ../FrontPanel
         ../OCIContainer
+        ../XCast
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -136,6 +138,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}CompositeInput
         ${NAMESPACE}FrontPanel
         ${NAMESPACE}OCIContainer
+        ${NAMESPACE}XCast
         )
 
 target_include_directories(${PROJECT_NAME}
