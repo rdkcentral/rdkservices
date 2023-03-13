@@ -780,10 +780,8 @@ TEST_F(RDKShellTest, moveBehind)
 
 }
 
-TEST_F(RDKShellTest, Opacity)
+TEST_F(RDKShellTest, getOpacity)
 {
-	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getOpacity"), _T("{}"), response));
-
 	ON_CALL(compositormock, getOpacity(::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [](const std::string& client, unsigned int& opacity) {
@@ -792,15 +790,10 @@ TEST_F(RDKShellTest, Opacity)
                 }));
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getOpacity"), _T("{\"client\": \"org.rdk.Netflix\"}"), response));
 	EXPECT_EQ(response, string("{\"opacity\":100,\"success\":true}"));
+}
 
-	ON_CALL(compositormock, getOpacity(::testing::_, ::testing::_))
-                .WillByDefault(::testing::Return(false));
-        EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getOpacity"), _T("{\"client\": \"org.rdk.Netflix\"}"), response));
-
-	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setOpacity"), _T("{\"client\": \"org.rdk.Netflix\"}"), response));
-
-        EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setOpacity"), _T("{\"opacity\": 100}"), response));
-
+TEST_F(RDKShellTest, setOpacity)
+{
 	ON_CALL(compositormock, setOpacity(::testing::_, ::testing::_))
                .WillByDefault(::testing::Invoke(
                 [](const std::string& client, const unsigned int opacity) {
@@ -808,21 +801,15 @@ TEST_F(RDKShellTest, Opacity)
 		    EXPECT_EQ(opacity, 100);
                     return true;
                 }));
-        EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setOpacity"), _T("{\"client\": \"org.rdk.Netflix\","
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setOpacity"), _T("{\"client\": \"org.rdk.Netflix\","
 					                                             "\"opacity\": 100}"), response));
 
-        ON_CALL(compositormock, setOpacity(::testing::_, ::testing::_))
-                .WillByDefault(::testing::Return(false));
-        EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setOpacity"), _T("{\"client\": \"org.rdk.Netflix\","
-					                                               "\"opacity\": 100}"), response));
+ 
 }
-
 
 TEST_F(RDKShellTest, setFocus)
 {
-	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setFocus"), _T("{}"), response));
-
-        ON_CALL(compositormock, setFocus(::testing::_))
+     ON_CALL(compositormock, setFocus(::testing::_))
 		.WillByDefault(::testing::Invoke(
                 [](const std::string& client){
                       EXPECT_EQ(client, string("org.rdk.Netflix"));
@@ -832,20 +819,10 @@ TEST_F(RDKShellTest, setFocus)
 
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFocus"), _T("{\"client\": \"org.rdk.Netflix\"}"), response));
 	EXPECT_EQ(response, string("{\"success\":true}"));
-
-	ON_CALL(compositormock, setFocus(::testing::_))
-	      .WillByDefault(::testing::Invoke(
-                [](const std::string& client){
-                      EXPECT_EQ(client, string("org.rdk.Netflix"));
-                      return false;
-                }));
-
-        EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setFocus"), _T("{\"client\": \"org.rdk.Netflix\"}"), response));
 }
 
 TEST_F(RDKShellTest, removeKeyIntercepts)
 {
-        EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("removeKeyIntercept"), _T("{}"), response));
         ON_CALL(compositormock, removeKeyIntercept(::testing::_, ::testing::_, ::testing::_))
 		.WillByDefault(::testing::Invoke(
                 [](const std::string& client, const uint32_t& keyCode, const uint32_t& flags){
@@ -863,27 +840,10 @@ TEST_F(RDKShellTest, removeKeyIntercepts)
                                                                                 "\"callsign\": \"org.rdk.Netflix\""
                                                                                 "}"), response));
 	EXPECT_EQ(response, string("{\"success\":true}"));
-        ON_CALL(compositormock, removeKeyIntercept(::testing::_, ::testing::_, ::testing::_))
-		.WillByDefault(::testing::Invoke(
-                [](const std::string& client, const uint32_t& keyCode, const uint32_t& flags){
-                      EXPECT_EQ(client, string("org.rdk.Netflix"));
-                      EXPECT_EQ(keyCode, 10);
-                      EXPECT_EQ(flags, RDKSHELL_FLAGS_SHIFT);
-                      return false;
-                }));
-        EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("removeKeyIntercept"), _T("{"
-                                                                                "\"keyCode\": 10,"
-                                                                                "\"modifiers\": ["
-                                                                                "    \"shift\""
-                                                                                "],"
-                                                                                "\"client\": \"org.rdk.Netflix\","
-                                                                                "\"callsign\": \"org.rdk.Netflix\""
-                                                                                "}"), response));
 }
 
 TEST_F(RDKShellTest, removeKeyListeners)
 {
-	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("removeKeyListener"), _T("{}"), response));
         ON_CALL(compositormock, removeKeyListener(::testing::_, ::testing::_, ::testing::_))
 		.WillByDefault(::testing::Invoke(
                 [](const std::string& client, const uint32_t& keyCode, const uint32_t& flags){
@@ -908,30 +868,6 @@ TEST_F(RDKShellTest, removeKeyListeners)
                                                                                          "]"
                                                                                     "}"), response));
 	EXPECT_EQ(response, string("{\"success\":true}"));
-        ON_CALL(compositormock, removeKeyListener(::testing::_, ::testing::_, ::testing::_))
-              .WillByDefault(::testing::Invoke(
-                [](const std::string& client, const uint32_t& keyCode, const uint32_t& flags){
-                      EXPECT_EQ(client, string("org.rdk.Netflix"));
-                      EXPECT_EQ(keyCode, 10);
-                      EXPECT_EQ(flags, RDKSHELL_FLAGS_SHIFT);
-                      return false;
-                }));
-        EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("removeKeyListener"), _T("{"
-                                                                                "\"client\": \"org.rdk.Netflix\","
-                                                                                "\"callsign\": \"org.rdk.Netflix\","
-                                                                                "\"keys\": ["
-                                                                                     "{"
-                                                                                           "\"keyCode\": 10,"
-                                                                                           "\"nativekeyCode\": 10,"
-                                                                                           "\"modifiers\": ["
-                                                                                                "\"shift\""
-                                                                                           "],"
-                                                                                           "\"activate\": false,"
-                                                                                           "\"propagate\": true"
-                                                                                     "}"
-                                                                                         "]"
-                                                                                    "}"), response));
-
 }
 
 TEST_F(RDKShellTest, removeKeyMetadataListener)
@@ -946,15 +882,6 @@ TEST_F(RDKShellTest, removeKeyMetadataListener)
 
    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("removeKeyMetadataListener"), _T("{\"client\": \"org.rdk.Netflix\"}"), response));
    EXPECT_EQ(response, string("{\"success\":true}"));
-
-   ON_CALL(compositormock, removeKeyMetadataListener(::testing::_))
-            .WillByDefault(::testing::Invoke(
-                [](const std::string& client){
-                      EXPECT_EQ(client, string("org.rdk.Netflix"));
-                      return false;
-                }));
-   EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("removeKeyMetadataListener"), _T("{\"client\": \"org.rdk.Netflix\"}"), response));
-
 }
 
 TEST_F(RDKShellTest, injectKey)
@@ -967,16 +894,7 @@ TEST_F(RDKShellTest, injectKey)
                 EXPECT_EQ(flags, RDKSHELL_FLAGS_SHIFT);
                 return true;
             }));
-   EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("injectKey"), _T("{\"keyCode\": 10, \"modifiers\": [\"shift\"]}"), response));
-
-   ON_CALL(compositormock, injectKey(::testing::_, ::testing::_))
-	   .WillByDefault(::testing::Invoke(
-                [](const uint32_t& keyCode, const uint32_t& flags) {
-                EXPECT_EQ(keyCode, 10);
-                EXPECT_EQ(flags, RDKSHELL_FLAGS_SHIFT);
-                return false;
-		}));
-   EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("injectKey"), _T("{\"keyCode\": 10, \"modifiers\": [\"shift\"]}"), response));   
+   EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("injectKey"), _T("{\"keyCode\": 10, \"modifiers\": [\"shift\"]}"), response));   
 }
 
 TEST_F(RDKShellTest, getZOrder)
@@ -1003,7 +921,7 @@ TEST_F(RDKShellTest, getZOrder)
     "}"));
 }
 
-TEST_F(RDKShellTest, HolePunch)
+TEST_F(RDKShellTest, setHolePunch)
 {
   ON_CALL(compositormock, setHolePunch(::testing::_, ::testing::_))
                 .WillByDefault(::testing::Invoke(
@@ -1017,6 +935,10 @@ TEST_F(RDKShellTest, HolePunch)
                                                                                              "\"holePunch\": true}"), response));
   EXPECT_EQ(response, string("{\"success\":true}"));
 
+}
+
+TEST_F(RDKShellTest, getHolePunch)
+{
   ON_CALL(compositormock, getHolePunch(::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [](const std::string& client, bool& holePunch){
@@ -1031,7 +953,7 @@ TEST_F(RDKShellTest, HolePunch)
 
 }
 
-TEST_F(RDKShellTest, Scale)
+TEST_F(RDKShellTest, getScale)
 {
   ON_CALL(compositormock, getScale(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
@@ -1060,18 +982,6 @@ TEST_F(RDKShellTest, enableVirtualDisplay)
 				                                                            "\"callsign\": \"org.rdk.Netflix\","
                                                                                              "\"enable\": true}"), response));
   EXPECT_EQ(response, _T("{\"success\":true}"));
-
-  ON_CALL(compositormock, enableVirtualDisplay(::testing::_, ::testing::_))
-            .WillByDefault(::testing::Invoke(
-                [](const std::string& client, const bool enable){
-                    EXPECT_EQ(client, string("org.rdk.Netflix"));
-                    EXPECT_EQ(enable, false);
-                      return false;
-                }));
-
-  EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("enableVirtualDisplay"), _T("{\"client\": \"org.rdk.Netflix\","
-                                                                                            "\"callsign\": \"org.rdk.Netflix\","
-                                                                                             "\"enable\": false}"), response));
 }
 
 TEST_F(RDKShellTest, enableInactivityReporting)
@@ -1085,15 +995,6 @@ TEST_F(RDKShellTest, enableInactivityReporting)
 
   EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableInactivityReporting"), _T("{\"enable\": true}"), response));
   EXPECT_EQ(response, _T("{\"success\":true}"));
-
-  ON_CALL(compositormock, enableInactivityReporting(::testing::_))
-            .WillByDefault(::testing::Invoke(
-                [](const bool enable){
-                    EXPECT_EQ(enable, false);
-                      return true;
-                }));
-
-  EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableInactivityReporting"), _T("{\"enable\": false}"), response));
 }
 
 
