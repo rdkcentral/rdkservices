@@ -5790,7 +5790,7 @@ namespace WPEFramework {
                 std::thread requestsThread =
                 std::thread([=]()
                 {
-                    auto systemServiceConnection = RDKShell::getThunderControllerClient();
+                    auto thunderController = RDKShell::getThunderControllerClient();
                     JsonObject request, result, eventMsg;
                     request["callsign"] = callsign;
                     request["timeout"] = RDKSHELL_THUNDER_TIMEOUT;
@@ -5802,7 +5802,7 @@ namespace WPEFramework {
                     {
                         request["procsequence"] = parameters["procsequence"];
                     }
-                    uint32_t errCode = systemServiceConnection->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "hibernate", request, result);
+                    uint32_t errCode = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "hibernate", request, result);
                     if(errCode > 0)
                     {
                         eventMsg["success"] = false;
@@ -5831,11 +5831,11 @@ namespace WPEFramework {
                 std::thread requestsThread =
                 std::thread([=]()
                 {
-                    auto systemServiceConnection = RDKShell::getThunderControllerClient();
+                    auto thunderController = RDKShell::getThunderControllerClient();
                     JsonObject request, result, eventMsg;
                     request["callsign"] = callsign;
 
-                    uint32_t errCode = systemServiceConnection->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", request, result);
+                    uint32_t errCode = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", request, result);
                     if(errCode > 0)
                     {
                         eventMsg["success"] = false;
