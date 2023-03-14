@@ -191,4 +191,4 @@ This section defines the events supported by this plugin as mentioned in the bel
 ```
 - The `key` specifies the event name `onValueChanged`. Event names follow camelcase starting with lower case.
 - The `summary` provides a detailed description about the event, as that description will be useful for the clients of the API. This is also included in the API documentation.
-- The `params` list all the parameters that will be included in the event payload. and the `required` field within the `params` lists all the required parameters only.
+- The `params` list all the parameters that will be included in the event payload and the `required` field within the `params` lists all the required parameters only.

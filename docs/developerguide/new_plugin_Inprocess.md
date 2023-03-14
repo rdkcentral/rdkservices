@@ -1,4 +1,4 @@
-# Steps to create a new RDK service / Thunder plugin - In-process plugin.
+# Steps to create a new RDK service / Thunder plugin - In-process plugin
 
 ![Graphical representation of steps to create a new In-process Thunder Plugin / RDK Service](./Flowdiagram-Inprocessplugin.PNG)
 
