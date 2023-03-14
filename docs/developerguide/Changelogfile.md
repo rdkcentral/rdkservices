@@ -1,6 +1,6 @@
 # 7. CHANGELOG file
 
-Create **CHANGELOG.md** file that is used to track changes done to this plugin. RDKServices uses semantic versioning and all changes to the plugin should include a version update and be documented in this file.
+Create `CHANGELOG.md` file that is used to track changes done to this plugin. RDKServices uses semantic versioning and all changes to the plugin should include a version update and be documented in this file.
 
 Provide user friendly information on what was changed with the new version. Please don't mention JIRA tickets in CHANGELOG.
 
