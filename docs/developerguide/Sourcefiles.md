@@ -1,6 +1,6 @@
 # 4. Source Files
 
-Create "FooPlugin.cpp" main source file.
+Create `FooPlugin.cpp` main source file.
 
 Example:
 ```C++

@@ -1,6 +1,6 @@
 # 6. Plugin metadata JSON file
 
-Create **"(PluginName)Plugin.json"** file that provides various metadata about the plugin.
+Create `(PluginName)Plugin.json` file that provides various metadata about the plugin.
 
 Example:
 ```JSON
@@ -19,4 +19,4 @@ Example:
 }
 ```
 
-The **"interface"** refers to the JSON API Spec file that was defined in [Step 2](./PluginJSONfile.md).
+The `interface` refers to the JSON API Spec file that was defined in [Step 2](developerguide/PluginJSONfile.md).

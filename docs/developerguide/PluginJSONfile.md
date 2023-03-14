@@ -1,6 +1,6 @@
 # 2. Plugin Json API Spec
 
-Create **FooPlugin.json**. This JSON file provides the API spec for **FooPlugin**.
+Create `FooPlugin.json`. This JSON file provides the API spec for `FooPlugin`.
 
 This API spec is used to generate the JSON data and enum classes used for JSON-RPC.
 
@@ -87,7 +87,7 @@ A schema defines the structure of a JSON document, including the type of data th
 
 RDK Services API specs use [JSON Schema](https://json-schema.org/).
 
-Following lines should be added to **FooPlugin.json** to point to the latest schema used.
+Following lines should be added to `FooPlugin.json` to point to the latest schema used.
 
 ```JSON
 "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
@@ -161,10 +161,10 @@ This section defines the APIs provided by this plugin as mentioned in the below 
 }
 ```
 
-- The **"key"** specifies the API name **"setValue"**. APIs names follow camelCase starting with lower case.
-- The **"summary"** provides a detailed description about the API, as that description will be useful for the clients of the API. This is also included in the API documentation.
-- The **"params"** list all the input parameters for this API and the **"required"** field within the **"params"** lists all the required input parameters only.
-- The **"result"** provides details of the output response.
+- The `key` specifies the API name `setValue`. APIs names follow camelCase starting with lower case.
+- The `summary` provides a detailed description about the API, as that description will be useful for the clients of the API. This is also included in the API documentation.
+- The `params` list all the input parameters for this API and the `required` field within the `params` lists all the required input parameters only.
+- The `result` provides details of the output response.
 
 #### e) Events:
 This section defines the events supported by this plugin as mentioned in the below sample.
@@ -189,6 +189,6 @@ This section defines the events supported by this plugin as mentioned in the bel
     }
 }
 ```
-- The **key** specifies the event name **"onValueChanged"**. Event names follow camelcase starting with lower case.
-- The **"summary"** provides a detailed description about the event, as that description will be useful for the clients of the API. This is also included in the API documentation.
-- The **"params"** list all the parameters that will be included in the event payload. and the **"required"** field within the **"params"** lists all the required parameters only.
+- The `key` specifies the event name `onValueChanged`. Event names follow camelcase starting with lower case.
+- The `summary` provides a detailed description about the event, as that description will be useful for the clients of the API. This is also included in the API documentation.
+- The `params` list all the parameters that will be included in the event payload. and the `required` field within the `params` lists all the required parameters only.
