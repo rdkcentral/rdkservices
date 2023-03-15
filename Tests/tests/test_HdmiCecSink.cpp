@@ -5,7 +5,7 @@
 #include "ServiceMock.h"
 #include "devicesettings.h"
 #include "HdmiCec.h"
-#include "HdmiCecMock.h"
+//#include "HdmiCecMock.h"
 
 using namespace WPEFramework;
 using ::testing::NiceMock;
