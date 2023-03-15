@@ -1061,6 +1061,21 @@ namespace Plugin {
                 return Exchange::OCDM_RESULT::OCDM_S_FALSE;
             }
 
+            Exchange::OCDM_RESULT GetSystemMetrics(
+                const std::string& keySystem,
+                uint8_t metrics[],
+                uint32_t metricsLen,
+                uint32_t &count)
+            {
+                CDMi::IMediaSystemMetrics* systemMetrix = _parent.MetricsSystem(keySystem);
+                if(systemMetrix) {
+                    CDMi::CDMi_RESULT result = systemMetrix->GetMetrics(metricsLen, metrics, count);
+                    return static_cast<Exchange::OCDM_RESULT>(result);
+                }
+                TRACE(Trace::Error, ("Failed to access buffer systemMetrix (%s)", keySystem.c_str()));
+                return Exchange::OCDM_RESULT::OCDM_S_FALSE;
+            }
+
             void GetSessionsDesignators(std::list<string> & list) {
                 _adminLock.Lock();
                 list.clear();
@@ -1558,6 +1573,22 @@ namespace Plugin {
             }
 
             TRACE(Trace::Information, ("KeySystem(%s) => %p", keySystem.c_str(), result));
+            return (result);
+        }
+
+        CDMi::IMediaSystemMetrics* MetricsSystem(const std::string& keySystem)
+        {
+            CDMi::IMediaSystemMetrics* result = nullptr;
+
+            if (keySystem.empty() == false) {
+                std::map<const std::string, SystemFactory>::iterator index(_systemToFactory.find(keySystem));
+
+                if (_systemToFactory.end() != index) {
+                    result = index->second.Factory->MetricsInstance();
+                }
+            }
+
+            TRACE(Trace::Information, ("MetricsSystem(%s) => %p", keySystem.c_str(), result));
             return (result);
         }
 
