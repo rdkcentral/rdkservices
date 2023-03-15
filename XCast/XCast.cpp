@@ -438,7 +438,6 @@ bool XCast::deleteFromDynamicAppCache(JsonArray applications)
         itrName = applications[iIndex].String();
         LOGINFO("App name to delete: %s, size:%d", itrName.c_str(), strlen (itrName.c_str()));
         appsToDelete.push_back(itrName);
-        iIndex++;
     }
     //If empty list is passed, dynamic cache is cleared. This will clear static list also
     //Net result will be not app will be able to launch.
@@ -589,7 +588,6 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 appConfigList.push_back(pDynamicAppConfig);
             }
             appConfigListTemp.clear();
-            iIndex++;
         }
         dumpDynamicAppConfigCache(string("appConfigList"), appConfigList);
         vector<string> appsToDelete;
