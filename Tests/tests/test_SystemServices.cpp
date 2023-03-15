@@ -657,7 +657,7 @@ TEST_F(SystemServicesTest, setNetworkStandbyMode)
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
-                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetNetworkStandbyMode)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetWakeupSrcConfig)));
                 return IARM_RESULT_SUCCESS;
             });
 
@@ -671,9 +671,10 @@ TEST_F(SystemServicesTest, getNetworkStandbyMode)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
-                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_GetNetworkStandbyMode)));
-                auto param = static_cast<IARM_Bus_PWRMgr_NetworkStandbyMode_Param_t*>(arg);
-                param->bStandbyMode = true;
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_GetWakeupSrcConfig)));
+                auto param = static_cast<IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t*>(arg);
+                param->srcType = ((1<<WAKEUPSRC_WIFI)|(1<<WAKEUPSRC_LAN));
+                param->config = ((1<<WAKEUPSRC_WIFI)|(1<<WAKEUPSRC_LAN));
                 return IARM_RESULT_SUCCESS;
             });
 
