@@ -20,6 +20,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_NETWORK_STARTUPORDER "" CACHE STRING "To configure startup order of Network plugin")
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(LibGlib REQUIRED)
