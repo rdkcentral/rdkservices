@@ -4,11 +4,8 @@
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
 #include "devicesettings.h"
-#include "Operands.h"
-#include "LibCCECMock.h"
-#include "ConnectionMock.h"
-#include "LogicalAddressMock.h"
-#include "MessageEncoderMock.h"
+#include "HdmiCec.h"
+#include "HdmiCecMock.h"
 
 using namespace WPEFramework;
 using ::testing::NiceMock;
