@@ -25,6 +25,8 @@ enum {
     REPORT_ARC_TERMINATED = 0XC2,
     REQUEST_ARC_INITIATION = 0XC3,
     REQUEST_ARC_TERMINATION = 0XC4,
+	REQUEST_CURRENT_LATENCY = 0xA7,
+	REPORT_CURRENT_LATENCY = 0xA8,
     UNKNOWN = 0xFFFF
 };
 
@@ -827,6 +829,21 @@ public:
 class ReportArcTermination : public DataBlock {
 public:
     Op_t opCode(void) const { return REPORT_ARC_TERMINATED; }
+};
+
+class RequestCurrentLatency : public DataBlock
+{
+public:
+	Op_t opCode(void) const {return REQUEST_CURRENT_LATENCY;}
+    RequestCurrentLatency(const PhysicalAddress &physicaladdres = {0xf,0xf,0xf,0xf} ): physicaladdress(physicaladdres) {}
+    PhysicalAddress physicaladdress;
+};
+
+class ReportCurrentLatency : public DataBlock
+{
+public:
+    Op_t opCode(void) const {return REPORT_CURRENT_LATENCY;}
+    ReportCurrentLatency(const PhysicalAddress &physicaladdress, uint8_t videoLatency, uint8_t latencyFlags, uint8_t audioOutputDelay = 0){}
 };
 
 class MessageEncoderImpl {
