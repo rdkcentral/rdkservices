@@ -70,7 +70,7 @@ namespace Plugin {
 
        public:
             static Core::ProxyType<Core::IDispatch> Create(TextToSpeechImplementation *tts, Event event, string data) {
-                return (Core::proxy_cast<Core::IDispatch>(Core::ProxyType<Job>::Create(tts, event, data)));
+                return (Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create(tts, event, data)));
             }
 
             virtual void Dispatch() {

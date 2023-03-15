@@ -1,6 +1,10 @@
 set(PLUGIN_NAME TextToSpeech)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+#one time operation in case of change in ITextToSpeech.h or generator change (Thunder upgrade) - regenerate ProxyStubs_TextToSpeech.cpp)
+#find_package(ProxyStubGenerator REQUIRED)
+#ProxyStubGenerator(NAMESPACE "WPEFramework::Exchange" INPUT "${CMAKE_CURRENT_SOURCE_DIR}/ITextToSpeech.h" OUTDIR "${CMAKE_CURRENT_SOURCE_DIR}")
+
 set(PLUGIN_TEXTTOSPEECH_AUTOSTART "true" CACHE STRING "Automatically start TestToSpeech plugin")
 set(PLUGIN_TEXTTOSPEECH_STARTUPORDER "" CACHE STRING "Automatically start TextToSpeech plugin")
 set(PLUGIN_TEXTTOSPEECH_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
