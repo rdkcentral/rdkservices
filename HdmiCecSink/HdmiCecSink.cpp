@@ -60,6 +60,7 @@
 #define HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS "sendGetAudioStatusMessage"
 #define HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS "getAudioDeviceConnectedStatus"
 #define HDMICECSINK_METHOD_REQUEST_AUDIO_DEVICE_POWER_STATUS "requestAudioDevicePowerStatus"
+#define HDMICECSINK_METHOD_SET_LATENCY_INFO	"setLatencyInfo"
 
 #define TEST_ADD 0
 #define HDMICECSINK_REQUEST_MAX_RETRY 3
@@ -77,6 +78,10 @@
 #define SYSTEM_AUDIO_MODE_ON 0x01
 #define SYSTEM_AUDIO_MODE_OFF 0x00
 #define AUDIO_DEVICE_POWERSTATE_OFF 1
+
+#define DEFAULT_VIDEO_LATENCY 100
+#define DEFAULT_LATENCY_FLAGS 3
+#define DEFAULT_AUDIO_OUTPUT_DELAY 100
 
 enum
 {
@@ -537,6 +542,20 @@ namespace WPEFramework
 			LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n", GetOpName(msg.opCode()), msg.status.getAudioMuteStatus(), msg.status.toString().c_str(), msg.status.getAudioVolume());
 			HdmiCecSink::_instance->Process_ReportAudioStatus_msg(msg);
 		}
+
+		void HdmiCecSinkProcessor::process (const RequestCurrentLatency &msg, const Header &header)
+		{
+			printHeader(header);
+			LOGINFO("Command: Request Current Latency :%s, physical address: %s",GetOpName(msg.opCode()),msg.physicaladdress.toString().c_str());
+
+			if(msg.physicaladdress.toString() == physical_addr.toString()) {
+				HdmiCecSink::_instance->setLatencyInfo();
+			}
+			else {
+				LOGINFO("Physical Address does not match with TV's physical address");
+				return;
+	     	}
+		}
 		//=========================================== HdmiCecSink =========================================
 		HdmiCecSink::HdmiCecSink()
 			: PluginHost::JSONRPC()
@@ -553,6 +572,9 @@ namespace WPEFramework
 			m_audioDevicePowerStatusRequested = false;
 			m_pollNextState = POLL_THREAD_STATE_NONE;
 			m_pollThreadState = POLL_THREAD_STATE_NONE;
+			m_video_latency = DEFAULT_VIDEO_LATENCY;
+			m_latency_flags = DEFAULT_LATENCY_FLAGS ;
+			m_audio_output_delay = DEFAULT_AUDIO_OUTPUT_DELAY;
 
 			Register(HDMICECSINK_METHOD_SET_ENABLED, &HdmiCecSink::setEnabledWrapper, this);
 			Register(HDMICECSINK_METHOD_GET_ENABLED, &HdmiCecSink::getEnabledWrapper, this);
@@ -577,6 +599,8 @@ namespace WPEFramework
 			Register(HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS, &HdmiCecSink::sendGiveAudioStatusWrapper, this);
 			Register(HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS, &HdmiCecSink::getAudioDeviceConnectedStatusWrapper, this);
 			Register(HDMICECSINK_METHOD_REQUEST_AUDIO_DEVICE_POWER_STATUS, &HdmiCecSink::requestAudioDevicePowerStatusWrapper, this);
+			Register(HDMICECSINK_METHOD_SET_LATENCY_INFO, &HdmiCecSink::setLatencyInfoWrapper, this);
+
 			logicalAddressDeviceType = "None";
 			logicalAddress = 0xFF;
 			m_sendKeyEventThreadExit = false;
@@ -996,6 +1020,30 @@ namespace WPEFramework
 			}
 			HdmiCecSink::_instance->Send_ShortAudioDescriptor_Event(audiodescriptor);
 		}
+		
+		void HdmiCecSink::updateCurrentLatency(uint8_t videoLatency, bool lowLatencyMode,uint8_t audioOutputCompensated, uint8_t audioOutputDelay = 0)
+		{
+			uint8_t latencyFlags = 0;
+			latencyFlags = ((lowLatencyMode & 0x1) << 2) | (audioOutputCompensated & 0x3);
+			LOGINFO("Video Latency : %d , Low Latency Mode : %d ,Audio Output Compensated value : %d , Audio Output Delay : %d , Latency Flags: %d ", videoLatency, lowLatencyMode, audioOutputCompensated, audioOutputDelay, latencyFlags);
+			m_video_latency = videoLatency;
+			m_latency_flags = latencyFlags;
+			m_audio_output_delay = audioOutputDelay;
+			setLatencyInfo();
+		}
+
+		void HdmiCecSink::setLatencyInfo()
+		{
+			if(!HdmiCecSink::_instance)
+				return;
+
+			if(!(_instance->smConnection))
+				return;
+
+			LOGINFO("Send Report Current Latency message \n");
+			_instance->smConnection->sendTo(LogicalAddress::BROADCAST,MessageEncoder().encode(ReportCurrentLatency(physical_addr,m_video_latency,m_latency_flags,m_audio_output_delay)));
+
+        }
 
 		void HdmiCecSink::Process_SetSystemAudioMode_msg(const SetSystemAudioMode &msg)
 		{
@@ -1572,6 +1620,23 @@ namespace WPEFramework
 		uint32_t HdmiCecSink::sendGiveAudioStatusWrapper(const JsonObject &parameters, JsonObject &response)
 		{
 			sendGiveAudioStatusMsg();
+			returnResponse(true);
+		}
+		uint32_t HdmiCecSink::setLatencyInfoWrapper(const JsonObject& parameters, JsonObject& response)
+		{
+			uint8_t video_latency,audio_output_compensated,audio_output_delay;
+			bool low_latency_mode;
+
+			returnIfParamNotFound(parameters, "videoLatency");
+			returnIfParamNotFound(parameters, "lowLatencyMode");
+			returnIfParamNotFound(parameters, "audioOutputCompensated");
+			returnIfParamNotFound(parameters, "audioOutputDelay");
+			video_latency = stoi(parameters["videoLatency"].String());
+			low_latency_mode = stoi(parameters["lowLatencyMode"].String());
+			audio_output_compensated = stoi(parameters["audioOutputCompensated"].String());
+			audio_output_delay = stoi(parameters["audioOutputDelay"].String());
+
+			updateCurrentLatency(video_latency, low_latency_mode,audio_output_compensated, audio_output_delay);
 			returnResponse(true);
 		}
 		bool HdmiCecSink::loadSettings()
