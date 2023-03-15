@@ -528,6 +528,7 @@ static GSourceFuncs _handlerIntervention =
                 , MSEBuffers()
                 , ThunderDecryptorPreference()
                 , MemoryProfile()
+                , MemoryPressure()
                 , Memory()
                 , MediaContentTypesRequiringHardwareSupport()
                 , MediaDiskCache(true)
@@ -592,6 +593,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("msebuffers"), &MSEBuffers);
                 Add(_T("thunderdecryptorpreference"), &ThunderDecryptorPreference);
                 Add(_T("memoryprofile"), &MemoryProfile);
+                Add(_T("memorypressure"), &MemoryPressure);
                 Add(_T("memory"), &Memory);
                 Add(_T("mediacontenttypesrequiringhardwaresupport"), &MediaContentTypesRequiringHardwareSupport);
                 Add(_T("mediadiskcache"), &MediaDiskCache);
@@ -663,6 +665,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::String MSEBuffers;
             Core::JSON::Boolean ThunderDecryptorPreference;
             Core::JSON::String MemoryProfile;
+            Core::JSON::String MemoryPressure;
             MemorySettings Memory;
             Core::JSON::String MediaContentTypesRequiringHardwareSupport;
             Core::JSON::Boolean MediaDiskCache;
@@ -2183,6 +2186,9 @@ static GSourceFuncs _handlerIntervention =
 
             // Memory Pressure
 #if !(WEBKIT_CHECK_VERSION(2, 38, 0))
+            if (_config.MemoryPressure.Value().empty() == false) {
+                Core::SystemInfo::SetEnvironment(_T("WPE_POLL_MAX_MEMORY"), _config.MemoryPressure.Value(), !environmentOverride);
+            } else {
             std::stringstream limitStr;
             if ((_config.Memory.IsSet() == true) && (_config.Memory.NetworkProcessLimit.IsSet() == true)) {
                 limitStr << "networkprocess:" << _config.Memory.NetworkProcessLimit.Value() << "m";
@@ -2192,6 +2198,7 @@ static GSourceFuncs _handlerIntervention =
             }
             if (!limitStr.str().empty()) {
                 Core::SystemInfo::SetEnvironment(_T("WPE_POLL_MAX_MEMORY"), limitStr.str(), !environmentOverride);
+            }
             }
 #endif
 
@@ -2728,9 +2735,34 @@ static GSourceFuncs _handlerIntervention =
                 }
 
 #if WEBKIT_CHECK_VERSION(2, 38, 0)
-                if ((_config.Memory.IsSet() == true) && (_config.Memory.NetworkProcessLimit.IsSet() == true)) {
+                uint32_t webProcessLimit{ 0 };
+                uint32_t networkProcessLimit{ 0 };
+
+                if (_config.MemoryPressure.Value().empty() == false) {
+
+                    string mStr = _config.MemoryPressure.Value();
+                    mStr.erase(remove_if(mStr.begin(), mStr.end(), ::isspace), mStr.end());
+                    std::istringstream iss(mStr);
+                    while (iss.good()) {
+                        string token;
+                        getline(iss, token, ',');
+
+                        auto pos = token.find(":");
+                        if (pos != string::npos) {
+                            string mKey = token.substr(0, pos);
+                            uint32_t mValue = static_cast<uint32_t>(atoi(token.substr(pos + 1).c_str()));
+                            if (mKey.compare("webprocess") == 0) {
+                                webProcessLimit = mValue;
+                            } else if (mKey.compare("networkprocess") == 0) {
+                                networkProcessLimit = mValue;
+                            }
+                        }
+                    }
+                }
+
+                if ((networkProcessLimit) || ((_config.Memory.IsSet() == true) && (_config.Memory.NetworkProcessLimit.IsSet() == true))) {
                     WebKitMemoryPressureSettings* memoryPressureSettings = webkit_memory_pressure_settings_new();
-                    webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.NetworkProcessLimit.Value());
+                    webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, (networkProcessLimit ? networkProcessLimit : _config.Memory.NetworkProcessLimit.Value()));
                     webkit_website_data_manager_set_memory_pressure_settings(memoryPressureSettings);
                     webkit_memory_pressure_settings_free(memoryPressureSettings);
                 }
@@ -2747,9 +2779,9 @@ static GSourceFuncs _handlerIntervention =
                 g_free(indexedDBPath);
 
 #if WEBKIT_CHECK_VERSION(2, 38, 0)
-                if ((_config.Memory.IsSet() == true) && (_config.Memory.WebProcessLimit.IsSet() == true)) {
+                if ((webProcessLimit) || ((_config.Memory.IsSet() == true) && (_config.Memory.WebProcessLimit.IsSet() == true))) {
                     WebKitMemoryPressureSettings* memoryPressureSettings = webkit_memory_pressure_settings_new();
-                    webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.WebProcessLimit.Value());
+                    webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, (webProcessLimit ? webProcessLimit : _config.Memory.WebProcessLimit.Value())  );
                     // Pass web process memory pressure settings to WebKitWebContext constructor
                     wkContext = WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT, "website-data-manager", websiteDataManager, "memory-pressure-settings", memoryPressureSettings, nullptr));
                     webkit_memory_pressure_settings_free(memoryPressureSettings);
