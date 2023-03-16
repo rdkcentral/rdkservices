@@ -684,7 +684,7 @@ namespace WPEFramework
                {
 		   CECEnable();
                }
-               catch (...)
+               catch(...)
                {
 		   LOGWARN("Exception while enabling CEC settings .\r\n");
                }
