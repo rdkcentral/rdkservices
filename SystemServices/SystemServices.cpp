@@ -329,6 +329,8 @@ namespace WPEFramework {
 	    m_ManufacturerDataModelNameValid = false;
             m_MfgSerialNumberValid = false;
 #endif
+            m_uploadLogsPid = -1;
+
             regcomp (&m_regexUnallowedChars, REGEX_UNALLOWABLE_INPUT, REG_EXTENDED);
 
             /**
@@ -431,6 +433,9 @@ namespace WPEFramework {
             registerMethod(_T("getLastWakeupKeyCode"), &SystemServices::getLastWakeupKeyCode, this);
 #endif
             registerMethod("uploadLogs", &SystemServices::uploadLogs, this);
+
+            registerMethod("uploadLogsAsync", &SystemServices::uploadLogsAsync, this);
+            registerMethod("abortLogUpload", &SystemServices::abortLogUpload, this);
 
             registerMethod("getPowerStateBeforeReboot", &SystemServices::getPowerStateBeforeReboot,
                     this);
@@ -2135,6 +2140,33 @@ namespace WPEFramework {
         }
 
         /***
+         * @brief : sends notification when time source state has changed.
+         *
+         */
+        void SystemServices::onLogUpload(int newState)
+        {
+            lock_guard<mutex> lck(m_uploadLogsMutex);
+
+            if (-1 != m_uploadLogsPid) {
+                JsonObject params;
+                params["logUploadStatus"] = newState == IARM_BUS_SYSMGR_LOG_UPLOAD_SUCCESS ? "UPLOAD_SUCCESS" : "UPLOAD_FAILURE";
+                sendNotify(EVT_ONLOGUPLOAD, params);
+                GetHandler(2)->Notify(EVT_ONLOGUPLOAD, params);
+
+                pid_t wp;
+                int status;
+
+                if ((wp = waitpid(m_uploadLogsPid, &status, 0)) != m_uploadLogsPid) {
+                    LOGERR("Waitpid for failed: %d, status: %d", m_uploadLogsPid, status);
+                }
+
+                m_uploadLogsPid = -1;
+            } else {
+                LOGERR("Upload Logs script isn't runing");
+            }
+        }
+
+        /***
          * @brief : Worker to fetch details of various MAC addresses.
          * @Event : {"ecm_mac":"<MAC>","estb_mac":"<MAC>","moca_mac":"<MAC>",
          *     "eth_mac":"<MAC>","wifi_mac":"<MAC>","info":"Details fetch status",
@@ -2521,6 +2553,79 @@ namespace WPEFramework {
 		//Notify TimeZone changed
 		sendNotify(EVT_ONTIMEZONEDSTCHANGED, params);
 	}
+
+    uint32_t SystemServices::uploadLogsAsync(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGWARN("");
+
+        pid_t uploadLogsPid = -1;
+
+        {
+            lock_guard<mutex> lck(m_uploadLogsMutex);
+            uploadLogsPid = m_uploadLogsPid;
+        }
+
+        if (-1 != uploadLogsPid) {
+            LOGWARN("Another instance of log upload script is running");
+            abortLogUpload(parameters, response);
+        }
+
+        lock_guard<mutex> lck(m_uploadLogsMutex);
+        m_uploadLogsPid = UploadLogs::logUploadAsync();
+
+        returnResponse(true);
+    }
+
+    uint32_t SystemServices::abortLogUpload(const JsonObject& parameters, JsonObject& response)
+    {
+
+        lock_guard<mutex> lck(m_uploadLogsMutex);
+
+        if (-1 != m_uploadLogsPid) {
+
+            // Kill child processes
+            std::stringstream cmd;
+            cmd << "pgrep -P " << m_uploadLogsPid;
+
+            FILE* fp = popen(cmd.str().c_str(), "r");
+            if (NULL != fp) {
+
+                char output[1024];
+                while (NULL != fgets (output, sizeof(output) - 1, fp)) {
+                    std::string line = output;
+                    line = trim(line);
+
+                    char *end;
+                    int pid = strtol(line.c_str(), &end, 10);
+
+                    if (line.c_str() != end && 0 != pid && 1 != pid) {
+                        kill(pid, SIGKILL);
+                    } else
+                        LOGERR("Bad pid: %d", pid);
+                }
+
+                pclose(fp);
+            } else {
+                LOGERR("Cannot run command\n");
+            }
+
+            kill(m_uploadLogsPid, SIGKILL);
+
+            int status;
+            waitpid(m_uploadLogsPid, &status, 0);
+
+            m_uploadLogsPid = -1;
+
+            JsonObject params;
+            params["logUploadStatus"] = "UPLOAD_ABORTED";
+            sendNotify(EVT_ONLOGUPLOAD, params);
+
+            returnResponse(true);
+        }
+
+        LOGERR("Upload logs script is not running");
+        returnResponse(false);
+    }
 
         /***
          * @brief : To fetch timezone from TZ_FILE.
@@ -3977,6 +4082,17 @@ namespace WPEFramework {
                             }
                         }
                     } break;
+                case IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD:
+                    {
+                        LOGWARN("IARMEvt: IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD = '%d'", state);
+                        if (SystemServices::_instance)
+                        {
+                            SystemServices::_instance->onLogUpload(state);
+                        } else {
+                            LOGERR("SystemServices::_instance is NULL.\n");
+                        }
+                    } break;
+
 
                 default:
                     /* Nothing to do. */;
