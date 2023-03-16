@@ -433,28 +433,26 @@ bool XCast::deleteFromDynamicAppCache(JsonArray applications)
 {
     bool ret = false;
     std::string itrName = "";
-    if (applications.Length() != 0) {
-        vector<string> appsToDelete;
-        for (int iIndex = 0; iIndex < applications.Length(); iIndex++) {
-            itrName = applications[iIndex].String();
-            LOGINFO("App name to delete: %s, size:%d", itrName.c_str(), strlen (itrName.c_str()));
-            appsToDelete.push_back(itrName);
-            iIndex++;
-        }
-        //If empty list is passed, dynamic cache is cleared. This will clear static list also
-        //Net result will be not app will be able to launch.
-        if(!appsToDelete.size()){
-            LOGINFO ("Empty unregister list is passed clearing the dynamic cache");
-            {lock_guard<mutex> lck(m_appConfigMutex);
-                m_appConfigCache.clear();
-            }
-            ret = true;
-        } else {
-            //Remove specified appl list from dynamic app cache
-            ret = deleteFromDynamicAppCache (appsToDelete);
-            appsToDelete.clear();
-        }
+    vector<string> appsToDelete;
+    for (int iIndex = 0; iIndex < applications.Length(); iIndex++) {
+        itrName = applications[iIndex].String();
+        LOGINFO("App name to delete: %s, size:%d", itrName.c_str(), strlen (itrName.c_str()));
+        appsToDelete.push_back(itrName);
     }
+    //If empty list is passed, dynamic cache is cleared. This will clear static list also
+    //Net result will be not app will be able to launch.
+    if(!appsToDelete.size()){
+        LOGINFO ("Empty unregister list is passed clearing the dynamic cache");
+        {lock_guard<mutex> lck(m_appConfigMutex);
+            m_appConfigCache.clear();
+        }
+        ret = true;
+    } else {
+        //Remove specified appl list from dynamic app cache
+        ret = deleteFromDynamicAppCache (appsToDelete);
+        appsToDelete.clear();
+    }
+    
     return ret;
 }
 
@@ -544,7 +542,7 @@ void XCast::updateDynamicAppCache(JsonArray applications)
             }
             else {
                 jProperties = itrApp["properties"].Object();
-                if (!jProperties.HasLabel("properties")) {
+                if (!jProperties.HasLabel("allowStop")) {
                     LOGINFO ("Invalid allowStop format at application index %d", iIndex);
                 }
                 else {
@@ -590,7 +588,6 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 appConfigList.push_back(pDynamicAppConfig);
             }
             appConfigListTemp.clear();
-            iIndex++;
         }
         dumpDynamicAppConfigCache(string("appConfigList"), appConfigList);
         vector<string> appsToDelete;
