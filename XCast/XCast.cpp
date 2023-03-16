@@ -916,19 +916,23 @@ void XCast::getUrlFromAppLaunchParams (const char *app_name, const char *payload
     }
     else if(strcmp(app_name,"Netflix") == 0) {
         memset( url, 0, url_len );
-        strcat( url, "source_type=12" );
-        if(payload != NULL)
+        bool first = true;
+        if(payload != NULL && strlen(payload))
         {
-            const char * pUrlEncodedParams;
-            pUrlEncodedParams = payload;
-            if( pUrlEncodedParams ){
-                strcat( url, "&dial=");
-                strcat( url, pUrlEncodedParams );
+            if (!first) {
+                strcat(url, "&");
             }
+            first = false;
+            strcat( url, "dial=");
+            strcat( url, payload );
         }
 
-        if(additional_data_url != NULL){
-            strcat(url, "&additionalDataUrl=");
+        if(additional_data_url != NULL && strlen(additional_data_url)){
+            if (!first) {
+                strcat(url, "&");
+            }
+            first = false;
+            strcat(url, "additionalDataUrl=");
             strcat(url, additional_data_url);
         }
     }
