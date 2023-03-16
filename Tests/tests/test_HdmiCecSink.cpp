@@ -355,11 +355,14 @@ TEST_F(HdmiCecSinkInitializedEventDsTest, powerModeChange)
     pwrMgrModeChangeEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
 }
 
-TEST_F(HdmiCecSinkInitializedEventDsTest, cecDemonInitialisation)
+TEST_F(HdmiCecSinkInitializedEventDsTest, HdmiCecEnableStatus)
 {
     ASSERT_TRUE(dsHdmiCecSinkEventHandler != nullptr);
     IARM_Bus_CECMgr_Status_Updated_Param_t eventData;
     dsHdmiCecSinkEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED, &eventData , 0);
+    
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkInitializedEventDsTest, cecEventStatusUpdate)
