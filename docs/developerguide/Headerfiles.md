@@ -5,7 +5,8 @@
 - The file `Module.h` defines the mandatory `MODULE_NAME`. Thunder provides a trace and warning reporting feature. To accurately identify the source of a warning, Thunder needs to know the human-readable name of the package (executable or library). This package name is defined by the `MODULE_NAME` and declared by the `MODULE_NAME_DECLARATION()`.
 
 - It also includes wpeframework headers "<plugins/plugins.h>".
-Example:
+
+    Example:
     ```C
     #pragma once
     #ifndef MODULE_NAME
