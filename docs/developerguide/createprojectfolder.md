@@ -5,3 +5,5 @@
 - Navigate to the cloned repository.
 
 - Create a new folder with a unique name for the plugin. For example, Refer [FooPlugin](developerguide/FooPlugins) directory.
+
+- Refer [Test link](developerguide/FooooPlugin)
