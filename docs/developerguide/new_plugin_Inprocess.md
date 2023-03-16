@@ -4,7 +4,7 @@
 
 For example, Please follow the below steps involved in creation of `FooPlugin` that implements an API setValue to set a key/value and an event `onValueChanged` that is triggered whenever setValue is called.
 
-1.  [Create Project Folder](developerguide/createfolder.md)
+1.  [Create Project Folder](developerguide/createprojectfolder.md)
 2.  [Plugin Json API Spec](developerguide/PluginJSONfile.md)
 3.  [Headers Files](developerguide/Headerfiles.md)
 4.  [Source Files](developerguide/Sourcefiles.md)

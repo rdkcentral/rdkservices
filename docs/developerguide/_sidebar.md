@@ -3,7 +3,7 @@
 - [**User Guide**](userguide/intro.md)
 - [**Developer Guide**](/README)
   - [**Steps to create a new RDK service/ Thunder plugin - In-process plugin**](developerguide/new_plugin_Inprocess.md)
-    - [Create Project Folder](developerguide/createfolder.md)
+    - [Create Project Folder](developerguide/createprojectfolder.md)
     - [Plugin Json API Spec](developerguide/PluginJSONfile.md)
     - [Headers Files](developerguide/Headerfiles.md)
     - [Source Files](developerguide/Sourcefiles.md)
