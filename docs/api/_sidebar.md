@@ -1,6 +1,7 @@
 <!-- markdownlint-disable-next-line first-line-heading -->
 - [**Home**](/homepage.md)
 - [**User Guide**](userguide/intro.md)
+- [**Developer Guide**](developerguide/develperguidefornewplugin.md)
 - [**API Reference**](/README)
   - [ActivityMonitor](api/ActivityMonitorPlugin.md)
   - [AVInput](api/AVInputPlugin.md)
