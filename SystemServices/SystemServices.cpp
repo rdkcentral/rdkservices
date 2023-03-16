@@ -3822,6 +3822,10 @@ namespace WPEFramework {
                             {
                                 config |= (1<<src);
                             }
+                            if((src == WAKEUPSRC_WIFI) || (src == WAKEUPSRC_LAN))
+                            {
+                                m_networkStandbyModeValid = false;
+                            }
                             break;
                         }
                     }
