@@ -13,4 +13,14 @@ Please Add entry in the CHANGELOG for each version change and indicate the type 
 * **Fixed** for any bug fixes.
 * **Security** in case of vulnerabilities.
 
-Refer [CHANGELOG.md](developerguide/FooPlugin/CHANGELOG.md) file.
+For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+
+```markdown
+## [1.0.0] - 2023-02-28
+### Added
+- Add CHANGELOG
+
+### Change
+- Reset API version to 1.0.0
+- Change README to inform how to update changelog and API version
+```
