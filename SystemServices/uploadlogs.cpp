@@ -302,30 +302,11 @@ bool getDCMconfigDetails(string &upload_protocol,string &httplink, string &uploa
     return true;
 }
 
-
-/* Call uploadSTBLogs.sh direclty by preparing the url
- * and other details
- */
-
-std::int32_t LogUploadBeforeDeepSleep()
+std::int32_t getUploadLogParameters(string &tftp_server, string &upload_protocol, string &upload_httplink)
 {
-    /* Check the RFC flag */
-    if( !checkLogUploadBeforeDeepSleepFlag()){
-        LOGINFO("LogUploadBeforeDeepSleep RFC is False.\n");
-        return E_NOK;
-    }
-
-    if ( !Utils::fileExists("/lib/rdk/uploadSTBLogs.sh") ){
-        return E_NOK;
-    }
-
-    int32_t ret = E_NOK;
     string build_type;
-    string tftp_server;
-    string upload_protocol;
     string httplink;
     string uploadcheck;
-    string upload_httplink;
     string dcmFile, force_mtls;
     string calledFromPlugin="1";
     bool mTlsLogUpload = false;
@@ -370,14 +351,86 @@ std::int32_t LogUploadBeforeDeepSleep()
        }
    }
 
+   return E_OK;
+}
+
+
+/* Call uploadSTBLogs.sh direclty by preparing the url
+ * and other details
+ */
+
+std::int32_t LogUploadBeforeDeepSleep()
+{
+    /* Check the RFC flag */
+    if( !checkLogUploadBeforeDeepSleepFlag()){
+        LOGINFO("LogUploadBeforeDeepSleep RFC is False.\n");
+        return E_NOK;
+    }
+
+    if ( !Utils::fileExists("/lib/rdk/uploadSTBLogs.sh") ){
+        return E_NOK;
+    }
+
+    string tftp_server;
+    string upload_protocol;
+    string upload_httplink;
+    string calledFromPlugin="1";
+
+    if (E_NOK == getUploadLogParameters(tftp_server, upload_protocol, upload_httplink))
+        return E_NOK;
+
    string cmd;
    cmd = "nice -n 19 /bin/busybox sh /lib/rdk/uploadSTBLogs.sh " + tftp_server + " 0 1 0 " + upload_protocol + " " + upload_httplink + " " + calledFromPlugin + " & " + " \0";
    int exec_status = system(cmd.c_str());
    LOGINFO("CMD %s [exec_status:%d]",cmd.c_str(), exec_status);
 
-   ret = E_OK;
+   return E_OK;
+}
 
-   return ret;
+pid_t logUploadAsync(void)
+{
+    if ( !Utils::fileExists("/lib/rdk/uploadSTBLogs.sh") ){
+        return -1;
+    }
+
+    string tftp_server;
+    string upload_protocol;
+    string upload_httplink;
+
+    if (E_NOK == getUploadLogParameters(tftp_server, upload_protocol, upload_httplink))
+        return -1;
+
+    const char *argArray[] = {
+        "/bin/sh",
+        "/lib/rdk/uploadSTBLogs.sh",
+        tftp_server.c_str(),
+        "0", //FLAG,
+        "1", //DCM_FLAG,
+        "0", //UploadOnReboot,
+        upload_protocol.c_str(),
+        upload_httplink.c_str(), 
+        "1",
+        0
+    };
+
+    pid_t pid  = fork();
+
+    if (-1 == pid)
+    {
+        LOGERR("Fork failed for %s", argArray[2]);
+    }
+    else if (0 == pid)
+    {
+        if (execve(argArray[0], (char **)argArray, environ) == -1)
+        {
+            LOGERR("Execve failed: %s", strerror(errno));
+            _Exit(127);
+        }
+    }
+
+    LOGINFO("Started %d process with %s", pid, argArray[1]);
+
+    return pid;
 }
 
 
