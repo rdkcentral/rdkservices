@@ -13,4 +13,4 @@ Please Add entry in the CHANGELOG for each version change and indicate the type 
 * **Fixed** for any bug fixes.
 * **Security** in case of vulnerabilities.
 
-Refer [CHANGELOG.md](developerguide/FooPlugins/CHANGELOG.md) file.
+Refer [CHANGELOG.md](developerguide/FooPlugin/CHANGELOG.md) file.
