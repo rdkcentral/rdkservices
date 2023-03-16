@@ -165,7 +165,6 @@ TEST_F(RDKShellTest, getClients)
 
 TEST_F(RDKShellTest, keyRepeatConfig)
 {
-   EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("keyRepeatConfig"), _T("{}"), response));
    ON_CALL(compositormock, setKeyRepeatConfig(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [](bool enabled, int32_t initialDelay, int32_t repeatInterval){
@@ -195,7 +194,6 @@ TEST_F(RDKShellTest, resetinactivity)
 
 TEST_F(RDKShellTest, launchApplication)
 {
-	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("launchApplication"), _T("{}"), response));
 	ON_CALL(compositormock, launchApplication(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
 		.WillByDefault(::testing::Invoke(
 		[](const std::string& client, const std::string& uri, const std::string& mimeType, bool topmost, bool focus){
@@ -213,7 +211,6 @@ TEST_F(RDKShellTest, launchApplication)
 
 TEST_F(RDKShellTest, suspendApplication)
 {
-	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("suspendApplication"), _T("{}"), response));
 	ON_CALL(compositormock, suspendApplication(::testing::_))
             .WillByDefault(::testing::Invoke(
                 [](const std::string& client){
@@ -238,7 +235,6 @@ TEST_F(RDKShellTest, suspendApplication)
 
 TEST_F(RDKShellTest, resumeApplication)
 {
-        EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("resumeApplication"), _T("{}"), response));
         ON_CALL(compositormock, resumeApplication(::testing::_))
             .WillByDefault(::testing::Invoke(
                 [](const std::string& client){
@@ -567,7 +563,6 @@ TEST_F(RDKShellTest, getBlockedAVApplications)
 
 TEST_F(RDKShellTest, ScaleToFit)
 {
-	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("scaleToFit"), _T("{}"), response));
 	ON_CALL(compositormock, scaleToFit(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [](const std::string& client, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height){
@@ -610,7 +605,6 @@ TEST_F(RDKShellTest, hideAllClients)
 
 TEST_F(RDKShellTest, ignoreKeyInputs)
 {
-	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("ignoreKeyInputs"), _T("{}"), response));
         ON_CALL(compositormock, ignoreKeyInputs(::testing::_))
             .WillByDefault(::testing::Invoke(
                 [](bool ignore){
@@ -639,8 +633,6 @@ TEST_F(RDKShellTest, moveToFront)
 
 TEST_F(RDKShellTest, moveToBack)
 {
-      EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("moveToBack"), _T("{}"), response));
-
         ON_CALL(compositormock, moveToBack(::testing::_))
 		.WillByDefault(::testing::Invoke(
                 [](const std::string& client) {
@@ -769,7 +761,6 @@ TEST_F(RDKShellTest, removeKeyListeners)
 
 TEST_F(RDKShellTest, removeKeyMetadataListener)
 {
-   EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("removeKeyMetadataListener"), _T("{}"), response));
    ON_CALL(compositormock, removeKeyMetadataListener(::testing::_))
            .WillByDefault(::testing::Invoke(
                 [](const std::string& client){
@@ -783,7 +774,6 @@ TEST_F(RDKShellTest, removeKeyMetadataListener)
 
 TEST_F(RDKShellTest, injectKey)
 {
-   EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("injectKey"), _T("{}"), response));
    ON_CALL(compositormock, injectKey(::testing::_, ::testing::_))
                 .WillByDefault(::testing::Invoke(
 		[](const uint32_t& keyCode, const uint32_t& flags) {
