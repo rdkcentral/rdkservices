@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.11] - 2023-03-05
+### Fixed
+- LoadFailed event is not triggerring with the URL(failed to load by the browser)
+
 ## [1.1.10] - 2023-03-03
 ### Added
 - Config entry to enable WebAudio

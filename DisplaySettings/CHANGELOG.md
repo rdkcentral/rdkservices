@@ -15,6 +15,13 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+## [1.0.19] - 2023-03-07
+### Fixed
+- Reduced Arc/eArc audio routing dependency based on HPD
+- Fixed Blocked sending events to Displaysettings when panel power state is STANDBY
+- Fixed Parallel execution of event handlers
+
+
 ## [1.0.18] - 2023-02-09
 ### Fixed
 - Fixed IARM_Bus_UnRegisterEventHandler  call to IARM_Bus_RemoveEventHandler
