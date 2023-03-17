@@ -482,6 +482,9 @@ namespace WPEFramework {
                 &SystemServices::getPlatformConfiguration, this);
         }
 
+#define LOG_UPLOAD_STATUS_SUCCESS "UPLOAD_SUCCESS"
+#define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
+#define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
 
         SystemServices::~SystemServices()
         {
@@ -2173,7 +2176,10 @@ namespace WPEFramework {
 
             if (-1 != m_uploadLogsPid) {
                 JsonObject params;
-                params["logUploadStatus"] = newState == IARM_BUS_SYSMGR_LOG_UPLOAD_SUCCESS ? "UPLOAD_SUCCESS" : "UPLOAD_FAILURE";
+
+                params["logUploadStatus"] = newState == IARM_BUS_SYSMGR_LOG_UPLOAD_SUCCESS ? LOG_UPLOAD_STATUS_SUCCESS :
+                    newState == IARM_BUS_SYSMGR_LOG_UPLOAD_ABORTED ? LOG_UPLOAD_STATUS_ABORTED : LOG_UPLOAD_STATUS_FAILURE;
+
                 sendNotify(EVT_ONLOGUPLOAD, params);
                 GetHandler(2)->Notify(EVT_ONLOGUPLOAD, params);
 
@@ -2642,7 +2648,7 @@ namespace WPEFramework {
             m_uploadLogsPid = -1;
 
             JsonObject params;
-            params["logUploadStatus"] = "UPLOAD_ABORTED";
+            params["logUploadStatus"] = LOG_UPLOAD_STATUS_ABORTED;
             sendNotify(EVT_ONLOGUPLOAD, params);
 
             returnResponse(true);
