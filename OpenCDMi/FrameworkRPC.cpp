@@ -33,6 +33,7 @@
 // DRM engines.
 #include <interfaces/IDRM.h>
 #include <interfaces/IContentDecryption.h>
+#include <interfaces/IOCDM.h>
 
 #define INITIALIZATION_RETRY_SLEEP_MS         100         // delay in [ms] after getting CDMi_BUSY_CANNOT_INITIALIZE and retry
 #define INITIALIZATION_MAX_RETRY_COUNTER      50          // number of repetitions in retrying procedure
