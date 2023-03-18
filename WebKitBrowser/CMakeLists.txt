@@ -325,6 +325,11 @@ if(PLUGIN_WEBKITBROWSER_RESIDENT_APP)
     write_config( ResidentApp )
 endif()
 
+# Factory App configuration
+if(PLUGIN_WEBKITBROWSER_FACTORY_APP)
+    write_config( FactoryApp )
+endif()
+
 if(PLUGINS_CREATE_IPKG_TARGETS)
 include(CreatePackage)
 CreateDebPackage(
