@@ -401,7 +401,7 @@ namespace WPEFramework
             IARM_BUS_NetSrvMgr_InterfaceList_t list;
             bool result = false;
 
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -460,7 +460,7 @@ namespace WPEFramework
             string gateway;
 
             bool result = false;
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -490,7 +490,7 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -535,7 +535,7 @@ namespace WPEFramework
 
             bool result = false;
 
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -569,7 +569,7 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -613,7 +613,7 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -654,7 +654,7 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -708,7 +708,7 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -742,7 +742,7 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -782,7 +782,7 @@ namespace WPEFramework
 
             bool result = false;
 
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -816,7 +816,7 @@ namespace WPEFramework
 
             bool result = false;
 
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -845,7 +845,7 @@ namespace WPEFramework
         uint32_t Network::setIPSettings(const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -869,7 +869,7 @@ namespace WPEFramework
             bool autoconfig = true;
             bool result = false;
 
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -1023,7 +1023,7 @@ namespace WPEFramework
             bool result = false;
             string interface = "";
             string ipversion = "";
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -1065,7 +1065,7 @@ namespace WPEFramework
             bool result = false;
             string interface = "";
             string ipversion = "";
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -1218,7 +1218,7 @@ namespace WPEFramework
             bool result = false;
             bool isconnected = false;
 
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -1245,7 +1245,7 @@ namespace WPEFramework
         {
             bool result = false;
             JsonArray endpoints = parameters["endpoints"].Array();
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -1324,7 +1324,7 @@ namespace WPEFramework
             IARM_BUS_NetSrvMgr_Iface_StunRequest_t iarmData = { 0 };
             string server, iface;
 
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
@@ -1549,7 +1549,7 @@ namespace WPEFramework
         {
             bool result = false;
 
-            if(m_isPluginInited)
+            if(!m_isPluginInited)
                 EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
