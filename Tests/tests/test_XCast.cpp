@@ -13,6 +13,7 @@
 #include "RtObjectBaseMock.h"
 #include "FloatingRtFunctionsMock.h"
 #include "RtObjectRefMock.h"
+#include "RtArrayObjectMock.h"
 
 //Required, xdialCastObj cannot be moved into the .h, as we don't 
 //want header includes to have access to the object
@@ -87,8 +88,9 @@ protected:
     IARM_EventHandler_t dsHdmiGameFeatureStatusEventHandler;
 
     NiceMock<floatingRtFunctionsMock> rtFloatingMock;
-        NiceMock<rtObjectBaseMock> rtBaseMock;
-        NiceMock<rtObjectRefMock> rtRefMock;
+    NiceMock<rtObjectBaseMock> rtBaseMock;
+    NiceMock<rtObjectRefMock> rtRefMock;
+    NiceMock<rtArrayObjectMock> rtArrayMock;
 
 
     XCastInitializedTest()
@@ -99,11 +101,13 @@ protected:
         rtObjectRef::getInstance().impl = &rtRefMock;
         floatingRtFunctions::getInstance().impl = &rtFloatingMock;
         RfcApi::getInstance().impl = &rfcApiImplMock;
+        rtArrayObject::getInstance().impl = &rtArrayMock;
         
         ON_CALL(rtFloatingMock, rtRemoteLocateObject(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](rtRemoteEnvironment *env, const char* str, rtObjectRef& obj, int x, remoteDisconnectCallback back, void *cbdata=NULL) {
-                    obj = new rtIObject();
+                    rtIObject rtIObj;
+                    obj = &rtIObj;
                     return RT_OK;
                 })); 
         
@@ -121,28 +125,28 @@ protected:
         ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
-                    if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG)) {
+                    /*if ((string(IARM_BUS_PWRMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_PWRMGR_API_GetPowerState)) {
                         EXPECT_TRUE(handler != nullptr);
                         dsHdmiEventHandler = handler;
-                    }
-                   if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS)) {
-                        EXPECT_TRUE(handler != nullptr);
-                        dsHdmiStatusEventHandler = handler;
-                   }
-                    if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS)) {
-                        EXPECT_TRUE(handler != nullptr);
-                        dsHdmiSignalStatusEventHandler = handler;
-                    }
-                    if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE)) {
-                        EXPECT_TRUE(handler != nullptr);
-                        dsHdmiVideoModeEventHandler = handler;
-                    }
-                    if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS)) {
-                        EXPECT_TRUE(handler != nullptr);
-                        dsHdmiGameFeatureStatusEventHandler = handler;
-                    }
+                    }*/
                     return IARM_RESULT_SUCCESS;
                 }));
+        ON_CALL(iarmBusImplMock, IARM_Bus_Call(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                auto* param = static_cast<IARM_Bus_PWRMgr_GetPowerState_Param_t*>(arg);
+                param->curState = IARM_BUS_PWRMGR_POWERSTATE_ON;
+                return IARM_RESULT_SUCCESS;
+            });
+
+
+        ON_CALL(rtRefMock, send(::testing::_, ::testing::_,::testing::_))
+            .WillByDefault(
+            [](const char* messageName, const char* method, rtFunctionCallback* callback) {
+                delete callback;
+                callback = nullptr;
+                return RT_OK;
+            }); 
 
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
 
@@ -165,10 +169,11 @@ protected:
         rtObjectBase::getInstance().impl = nullptr;
         IarmBus::getInstance().impl = nullptr;
         rtObjectRef::getInstance().impl = nullptr;
+        rtArrayObject::getInstance().impl = nullptr;
     }
 };
 
-/*
+
 class XCastInitializedEventTest : public XCastInitializedTest {
 protected:
     NiceMock<ServiceMock> service;
@@ -194,24 +199,6 @@ protected:
         PluginHost::IFactories::Assign(nullptr);
     }
 };
-
-class XCastInitializedEventDsTest : public XCastInitializedEventTest {
-protected:
-    NiceMock<XCastImplMock> XCastImplMock;
-
-    XCastInitializedEventDsTest()
-        : XCastInitializedEventTest()
-    {
-        device::XCast::getInstance().impl = &XCastImplMock;
-    }
-
-    virtual ~XCastInitializedEventDsTest() override
-    {
-        device::XCast::getInstance().impl = nullptr;
-    }
-};
-
-*/
 
 TEST_F(XCastTest, RegisteredMethods)
 {
@@ -291,8 +278,12 @@ TEST_F(XCastInitializedTest, onApplicationStateChanged)
                 [](const char* name, const char* value) {
                     return RT_OK;
                 })); 
-    ON_CALL(rtRefMock, send(::testing::_, ::testing::_))
-            .WillByDefault(::testing::Return(RT_OK)); 
+    ON_CALL(rtRefMock, send(::testing::_, ::testing::Matcher<rtObjectRef&>(::testing::_)))
+            .WillByDefault(::testing::Invoke(
+                [](const char* messageName, rtObjectRef& ref) {
+                    delete ref.mRef;
+                    return RT_OK;
+                }));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("onApplicationStateChanged"), _T("{\"applicationName\": \"NetflixApp\", \"state\":\"running\", \"applicationId\": \"1234\", \"error\": \"\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
     
@@ -319,24 +310,225 @@ TEST_F(XCastInitializedTest, unregisterApplications)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
-TEST_F(XCastInitializedTest, registerApplications)
+TEST_F(XCastInitializedTest, unRegisterAllApplications)
 {
 
-    const rtValue val;
-    EXPECT_CALL(rtBaseMock, set(::testing::_, ::testing::Matcher<const rtValue&>(::testing::_)))
+    EXPECT_CALL(rtArrayMock, pushBack(::testing::Matcher<const char*>(::testing::_)))
             .WillOnce(::testing::Invoke(
-                [](const char* name, const rtValue& value) {
-                    std::string strName = name;
-                    std::string strValue =value.mValue.objectValue->mElements[0];
-                    EXPECT_EQ("Names", strName);
+                [](const char* value) {
+                    std::string strValue = value;
                     EXPECT_EQ("Youtube", strValue);
+                }))
+            .WillOnce(::testing::Invoke(
+                [](const char* value) {
+                    std::string strValue = value;
+                    EXPECT_EQ("myYouTube", strValue);
+                }))
+            .WillOnce(::testing::Invoke(
+                [](const char* value) {
+                    std::string strValue = value;
+                    EXPECT_EQ("youtube.com", strValue);
+                }))
+            .WillOnce(::testing::Invoke(
+                [](const char* value) {
+                    std::string strValue = value;
+                    EXPECT_EQ("Netflix", strValue);
+                }))
+            .WillOnce(::testing::Invoke(
+                [](const char* value) {
+                    std::string strValue = value;
+                    EXPECT_EQ("myNetflix", strValue);
+                }))
+            .WillOnce(::testing::Invoke(
+                [](const char* value) {
+                    std::string strValue = value;
+                    EXPECT_EQ("netflix.com", strValue);
+                }))
+            //First six are from the registerApplications call
+            .WillOnce(::testing::Invoke(
+                [](const char* value) {
+                    std::string strValue = value;
+                    EXPECT_EQ("Netflix", strValue);
+                }))
+            .WillOnce(::testing::Invoke(
+                [](const char* value) {
+                    std::string strValue = value;
+                    EXPECT_EQ("myNetflix", strValue);
+                }))
+            .WillOnce(::testing::Invoke(
+                [](const char* value) {
+                    std::string strValue = value;
+                    EXPECT_EQ("netflix.com", strValue);
+                }));
+            //Last three are the ones remaining afte youtube has been unregistered.
+    EXPECT_CALL(rtBaseMock, set(::testing::_, ::testing::Matcher<bool>(::testing::_)))
+            .WillOnce(::testing::Invoke(
+                [](const char* name, bool value) {
+                    bool testBool = true;
+                    EXPECT_EQ(testBool, value);
 
                     return RT_OK;
                 }))
-            .WillRepeatedly(::testing::Invoke(
-                [](const char* name, const rtValue& value) {
+            .WillOnce(::testing::Invoke(
+                [](const char* name, bool value) {
+                    bool testBool = true;
+                    EXPECT_EQ(testBool, value);
+
                     return RT_OK;
-                })); 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("registerApplications"), _T("{\"applications\": [{\"names\": [\"Youtube\"], \"prefixes\": [\"myYouTube\"], \"cors\": [\"youtube.com\"], \"properties\": {\"allowstop\": true}}]}"), response));
+                }))
+                //First two are form register Applications call.
+                .WillOnce(::testing::Invoke(
+                [](const char* name, bool value) {
+                    bool testBool = true;
+                    EXPECT_EQ(testBool, value);
+
+                    return RT_OK;
+                }));
+                //Last is from the remaining once Youtube has been unregistered.
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("registerApplications"), _T("{\"applications\": [{\"names\": [\"Youtube\"], \"prefixes\": [\"myYouTube\"], \"cors\": [\"youtube.com\"], \"properties\": {\"allowStop\": true}},{\"names\": [\"Netflix\"], \"prefixes\": [\"myNetflix\"], \"cors\": [\"netflix.com\"], \"properties\": {\"allowStop\": true}, \"launchParameters\": {\"query\":\"testquery\", \"payload\":\"testpayload\"}}]}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
+
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("unregisterApplications"), _T("{\"applications\": [\"Youtube\"]}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(XCastInitializedTest, registerApplications)
+{
+
+    EXPECT_CALL(rtArrayMock, pushBack(::testing::Matcher<const char*>(::testing::_)))
+            .WillOnce(::testing::Invoke(
+                [](const char* value) {
+                    std::string strValue = value;
+                    EXPECT_EQ("Youtube", strValue);
+                }))
+            .WillOnce(::testing::Invoke(
+                [](const char* value) {
+                    std::string strValue = value;
+                    EXPECT_EQ("myYouTube", strValue);
+                }))
+            .WillOnce(::testing::Invoke(
+                [](const char* value) {
+                    std::string strValue = value;
+                    EXPECT_EQ("youtube.com", strValue);
+                }))
+            .WillOnce(::testing::Invoke(
+                [](const char* value) {
+                    std::string strValue = value;
+                    EXPECT_EQ("Netflix", strValue);
+                }))
+            .WillOnce(::testing::Invoke(
+                [](const char* value) {
+                    std::string strValue = value;
+                    EXPECT_EQ("myNetflix", strValue);
+                }))
+            .WillOnce(::testing::Invoke(
+                [](const char* value) {
+                    std::string strValue = value;
+                    EXPECT_EQ("netflix.com", strValue);
+                }));
+            //Last three are the ones remaining afte youtube has been unregistered.
+    EXPECT_CALL(rtBaseMock, set(::testing::_, ::testing::Matcher<bool>(::testing::_)))
+            .WillOnce(::testing::Invoke(
+                [](const char* name, bool value) {
+                    bool testBool = true;
+                    EXPECT_EQ(testBool, value);
+
+                    return RT_OK;
+                }))
+            .WillOnce(::testing::Invoke(
+                [](const char* name, bool value) {
+                    bool testBool = true;
+                    EXPECT_EQ(testBool, value);
+
+                    return RT_OK;
+                }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("registerApplications"), _T("{\"applications\": [{\"names\": [\"Youtube\"], \"prefixes\": [\"myYouTube\"], \"cors\": [\"youtube.com\"], \"properties\": {\"allowStop\": true}},{\"names\": [\"Netflix\"], \"prefixes\": [\"myNetflix\"], \"cors\": [\"netflix.com\"], \"properties\": {\"allowStop\": true}, \"launchParameters\": {\"query\":\"testquery\", \"payload\":\"testpayload\"}}]}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("unregisterApplications"), _T("{\"applications\": []}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+
+TEST_F(XCastInitializedEventTest, onApplicationHideRequest)
+{
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.onApplicationHideRequest\",\"params\":{\"applicationName\":\"NetflixApp\",\"applicationId\":\"1234\"}}")));
+                return Core::ERROR_NONE;
+            }));
+    
+    handler.Subscribe(0, _T("onApplicationHideRequest"), _T("client.events"), message);
+    plugin->onXcastApplicationHideRequest("Netflix", "1234");
+    handler.Unsubscribe(0, _T("onApplicationHideRequest"), _T("client.events"), message); 
+}
+TEST_F(XCastInitializedEventTest, onApplicationStateRequest)
+{
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.onApplicationStateRequest\",\"params\":{\"applicationName\":\"NetflixApp\",\"applicationId\":\"1234\"}}")));
+                return Core::ERROR_NONE;
+            }));
+    
+    handler.Subscribe(0, _T("onApplicationStateRequest"), _T("client.events"), message);
+    plugin->onXcastApplicationStateRequest("Netflix", "1234");
+    handler.Unsubscribe(0, _T("onApplicationStateRequest"), _T("client.events"), message); 
+}
+TEST_F(XCastInitializedEventTest, onApplicationLaunchRequest)
+{
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.onApplicationLaunchRequest\",\"params\":{\"applicationName\":\"Netflix\",\"parameters\":{\"url\":\"1234\"}}}")));
+                return Core::ERROR_NONE;
+            }));
+    
+    handler.Subscribe(0, _T("onApplicationLaunchRequest"), _T("client.events"), message);
+    plugin->onXcastApplicationLaunchRequest("Netflix", "1234");
+    handler.Unsubscribe(0, _T("onApplicationLaunchRequest"), _T("client.events"), message); 
+}
+TEST_F(XCastInitializedEventTest, onApplicationResumeRequest)
+{
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.onApplicationResumeRequest\",\"params\":{\"applicationName\":\"NetflixApp\",\"applicationId\":\"1234\"}}")));
+                return Core::ERROR_NONE;
+            }));
+    
+    handler.Subscribe(0, _T("onApplicationResumeRequest"), _T("client.events"), message);
+    plugin->onXcastApplicationResumeRequest("Netflix", "1234");
+    handler.Unsubscribe(0, _T("onApplicationResumeRequest"), _T("client.events"), message); 
+}
+TEST_F(XCastInitializedEventTest, onApplicationStopRequest)
+{
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.onApplicationStopRequest\",\"params\":{\"applicationName\":\"Netflix\",\"applicationId\":\"1234\"}}")));
+                return Core::ERROR_NONE;
+            }));
+    
+    handler.Subscribe(0, _T("onApplicationStopRequest"), _T("client.events"), message);
+    plugin->onXcastApplicationStopRequest("Netflix", "1234");
+    handler.Unsubscribe(0, _T("onApplicationStopRequest"), _T("client.events"), message); 
 }

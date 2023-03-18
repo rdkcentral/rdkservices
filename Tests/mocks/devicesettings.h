@@ -1223,58 +1223,34 @@ class rtIObject
 {
   public:
     typedef unsigned long refcount_t;
-    unsigned long AddRef() {
-        return 1;
-    }
-    unsigned long Release(){
-        return 1;
-    }
-    //virtual rtMethodMap* getMap() const = 0;
     
-    virtual rtError Get(const char* name, rtValue* value) const {
-        return 0;
-    }
-    virtual rtError Get(uint32_t i, rtValue* value) const {
-        return 0;
-    }
-    virtual rtError Set(const char* name, const rtValue* value) {
-        return 0;
-    }
-    virtual rtError Set(uint32_t i, const rtValue* value) {
-        return 0;
+    virtual ~rtIObject(){
     }
 };
 
 class rtString{
     public:
-        char* mData;
-        const char * cString() const{
-            return mData?mData:"";
+        std::string mData;
+        rtString(const char* s){
+            mData = s;
+        }
+        rtString(const rtString& s){
+            mData = s.mData;
+        }
+        rtString(){
+            mData = "";
+        }
+        const char* cString() const{
+            return mData.c_str();
         }
         rtString& operator=(const char* s){
-            if(s != mData){
-                term();
-                if(s){
-                    mData = (char*)s;
-                }
-            }
+            mData = s;
             return *this;
         }
 
         rtString& operator=(const rtString& s){
-            if(&s != this){
-                term();
-                if(s.mData){
-                    mData = s.mData;
-                }
-            }
+            mData = s.mData;
             return *this;
-        }
-        void term(){
-            if(mData){
-                free(mData);
-            }
-            mData = 0;
         }
 
 };
@@ -1285,6 +1261,8 @@ class rtFunctionCallback{
         rtFunctionCallback(rtFunctionCB cb, void* context = NULL){
 
         }
+        ~rtFunctionCallback() = default;
+        
 };
 template <class T>
 class rtRef
@@ -1294,16 +1272,14 @@ public:
   rtRef(const T* p):        mRef(NULL) {asn(p);         }
   rtRef(const rtRef<T>& r): mRef(NULL) {asn(r.getPtr());}
   rtRef(rtRef<T>&& r) noexcept: mRef(r.mRef) {r.mRef = nullptr;}
-  virtual ~rtRef()                     {term();}
-  void term()
-  {
+  virtual ~rtRef()                     {
     if (mRef) 
-    {
-      mRef->Release();
-      mRef = NULL;
-    }
+      {
+        delete mRef;
+        mRef = nullptr;
+      }
   }
-  
+
   T* operator->()   const {return mRef;}
   operator T* ()    const {return mRef;}
   T* getPtr()       const {return mRef;}
@@ -1313,34 +1289,32 @@ public:
   bool operator! () const {return mRef == NULL; }  
   inline rtRef<T>& operator=(const T* p)                                  {asn(p);      return *this;}
   inline rtRef<T>& operator=(const rtRef<T>& r)                           {asn(r.mRef); return *this;}
-  inline rtRef<T>& operator=(rtRef<T>&& r) noexcept
-  {
-    term();
-    mRef = r.mRef;
-    r.mRef = nullptr;
-    return *this;
-  }
+
   inline friend bool operator==(const T* lhs,const rtRef<T>& rhs)         {return lhs==rhs.mRef;}
   inline friend bool operator==(const rtRef<T>& lhs,const T* rhs)         {return lhs.mRef==rhs;}
-  
   inline friend bool operator==(const rtRef<T>& lhs,const rtRef<T>& rhs)  {return lhs.mRef==rhs.mRef;}
   
-protected:
   void asn(const T* p) 
   {
     if (mRef != p) 
     {
       if (mRef) 
       {
-        mRef->Release();
+        delete mRef;
         mRef = NULL;
       }
       mRef = const_cast<T*>(p);
-      if (mRef) 
-        mRef->AddRef();
+      
     }
   }
-  
+  void term(){
+    if (mRef) 
+      {
+        delete mRef;
+        mRef = NULL;
+      }
+  }
+
   T* mRef;
 };
 
@@ -1348,6 +1322,7 @@ class rtObjectBaseImpl{
     public:
     virtual ~rtObjectBaseImpl() = default;
     virtual rtError set(const char* name, const char* value) const = 0;
+    virtual rtError set(const char* name, bool value) const = 0;
     virtual rtError set(const char* name, const rtValue& value) const = 0;
     virtual rtString get(const char* name) const = 0;
     virtual rtError sendReturns(const char* messageName, rtString& result) const  = 0;
@@ -1364,34 +1339,38 @@ class rtObjectBase{
     rtError set(const char* name, const char* value){
         return getInstance().impl->set(name, value);
     }
+    rtError set(const char* name, bool value){
+        return getInstance().impl->set(name, value);
+    }
     rtError set(const char* name, const rtValue& value){
         return getInstance().impl->set(name, value);
     }
     
-    rtError set(uint32_t i, const rtValue& value){
-        return 0;
-    }
     template <typename T>
     rtError sendReturns(const char* messageName, T& result){
         return getInstance().impl->sendReturns(messageName, result);
     }
-    template <typename T>
-    rtError sendReturns(const char* messageName, const rtValue& arg1, T& result){
-        return 0;
-    }
-    template <typename T>
-    rtError get(const char* name, T& result) {
-        return 0;
-    };
+
     template <typename T>
     T get(const char* name) {
         return getInstance().impl->get(name);
     };
+    virtual ~rtObjectBase() = default;
 };
 
+class rtMapObject: public rtObjectBase, public rtIObject{
+    public:
+     virtual ~rtMapObject() = default;
+
+};
+
+class rtObjectRef;
 class rtObjectRefImpl{
     public:
-        virtual rtError send(const char* messageName, rtObjectBase& base)  = 0;
+        virtual rtError send(const char* messageName, const rtValue& arg1)  = 0;
+        virtual rtError send(const char* messageName)  = 0;
+        virtual rtError send(const char* messageName, const char* method, rtFunctionCallback* callback)  = 0;
+        virtual rtError send(const char* messageName, rtObjectRef& base)  = 0;
 
 };
 
@@ -1405,171 +1384,123 @@ class rtObjectRef : public rtRef<rtIObject>, public rtObjectBase{
         }
         rtObjectRef(){}
         rtObjectRef(const rtObjectRef&) = default;
-        rtObjectRef(const rtIObject* o) {};
+        rtObjectRef(const rtMapObject* o) {delete o; o = NULL; };
+        rtObjectRef& operator=(rtMapObject* o){delete o; o = NULL; return *this;};
         rtObjectRef& operator=(const rtObjectRef&){return *this;};
         rtObjectRef& operator=(rtIObject* o){asn(o);return *this;};
         rtObjectRef& operator=(rtObjectRef&&) = default;
 
         rtError send(const char* messageName){
-            return 0;
+            return getInstance().impl->send(messageName);
         }
         rtError send(const char* messageName, const char* method, rtFunctionCallback* callback){
-            return 0;
+            return getInstance().impl->send(messageName, method, callback);
         }
         rtError send(const char* messageName, const rtValue& arg1){
-            return 0;
+            return getInstance().impl->send(messageName, arg1);
         }
-        rtError send(const char* messageName, rtObjectBase& base){
+        rtError send(const char* messageName, rtObjectRef& base){
             return getInstance().impl->send(messageName, base);
+        }
+        virtual ~rtObjectRef(){
+         term();
         }
 };
 
 class rtArrayObject;
 
-#define RT_voidType2               "\0"
-#define RT_valueType2              "v"
-#define RT_rtValueType2            "v"
-#define RT_boolType2               "b"
-#define RT_int8_tType2             "1"
-#define RT_uint8_tType2            "2"
-#define RT_intType2                "4"
-#define RT_int32_tType2            "4"
-#define RT_uint32_tType2           "5"
-#define RT_int64_tType2            "6"
-#define RT_uint64_tType2           "7"
-#define RT_floatType2              "e"
-#define RT_doubleType2             "d"
-#define RT_rtStringType2           "s"
-#define RT_rtObjectRefType2        "o"
-#define RT_rtFunctionRefType2      "f"
-#define RT_voidPtrType2            "z"
-
-union rtValue_{
-    rtArrayObject *objectValue;
-    rtString *stringValue;
+struct rtValue_{
+    std::string stringValue;
     bool boolValue;
 };
 
-typedef char rtType;
-
-
 class rtValueImpl{
     public:
-        virtual bool compare(const rtValue& lhs, const rtValue& rhs) const = 0;
+        virtual void rtValueConstructor(bool v) const = 0;
+        virtual void rtValueConstructor(const char* v) const = 0;
+        virtual void rtValueConstructor(rtArrayObject* v) const = 0;
+        virtual void rtValueConstructor(const rtString& v) const = 0;
 };
 
 class rtValue
 {
  public:
   rtValue_ mValue;
-  rtType mType;
+  rtValueImpl* impl;
+  static rtValue& getInstance()
+    {
+        static rtValue instance;
+        return instance;
+    }
   rtValue(){}
-  rtValue(bool v){}
-  rtValue(int8_t v){}
-  rtValue(uint8_t v){}
-  rtValue(int32_t v){}
-  rtValue(uint32_t v){}
-  rtValue(int64_t v){}
-  rtValue(uint64_t v){}
-  rtValue(float v){}
-  rtValue(double v){}
-  rtValue(const char* v){}
-  rtValue(const rtString& v){}
-  rtValue(const rtArrayObject* v){
-    mValue.objectValue = (rtArrayObject*)v;
-    mType = RT_rtObjectRefType2;
+  rtValue(bool v){mValue.boolValue =v;}
+  rtValue(const char* v){mValue.stringValue = (char*)v;}
+  rtValue(const rtString& v){mValue.stringValue = v.cString();}
+  rtValue(rtIObject* v){
+    delete v;
   }
   rtValue(const rtObjectRef& v){}
   rtValue(const rtValue& v){}
   ~rtValue(){}
-  rtValue& operator=(bool v)                {  mValue.boolValue = v;    mType = RT_boolType2; return *this; }
-  rtValue& operator=(int8_t v)              {      return *this; }
-  rtValue& operator=(uint8_t v)             {     return *this; }
-  rtValue& operator=(int32_t v)             {     return *this; }
-  rtValue& operator=(uint32_t v)            {    return *this; }
-  rtValue& operator=(int64_t v)             {     return *this; }
-  rtValue& operator=(uint64_t v)            {    return *this; }
-  rtValue& operator=(float v)               {     return *this; }
-  rtValue& operator=(double v)              {    return *this; }
-  rtValue& operator=(const char* v)         { setString(v);   return *this; }
-  rtValue& operator=(const rtString& v)     { setString(v);  return *this; }
-  rtValue& operator=(const rtIObject* v)    {    return *this; }
+  rtValue& operator=(bool v)                { mValue.boolValue = v; return *this; }
+  rtValue& operator=(const char* v)         { mValue.stringValue = (char*)v;   return *this; }
+  rtValue& operator=(const rtString& v)     { mValue.stringValue = v.cString();  return *this; }
+  rtValue& operator=(const rtIObject* v)    { delete v;   return *this; }
   rtValue& operator=(const rtObjectRef& v)  {    return *this; }
   rtValue& operator=(const rtValue& v)      {     return *this; }
-  bool operator!=(const rtValue& rhs) const { return !(*this == rhs); }
-  bool rtValue::operator==(const rtValue& rhs) const
-{
-  return compare(*this, rhs);
-}
-    
-bool compare(const rtValue& lhs, const rtValue& rhs)
-{
-  bool result = false;
-  if (lhs.getType() == rhs.getType())
-  {
-    switch(lhs.getType())
-    {
-    case RT_voidType:     result = true; break;
-    case RT_boolType:     result = (lhs.mValue.boolValue == rhs.mValue.boolValue); break;
-    case RT_int8_tType:   result = (lhs.mValue.int8Value == rhs.mValue.int8Value); break;
-    case RT_uint8_tType:  result = (lhs.mValue.uint8Value == rhs.mValue.uint8Value); break;
-    case RT_int32_tType:  result = (lhs.mValue.int32Value == rhs.mValue.int32Value); break;
-    case RT_uint32_tType: result = (lhs.mValue.uint32Value == rhs.mValue.uint32Value); break;
-    case RT_int64_tType:  result = (lhs.mValue.int64Value == rhs.mValue.int64Value); break;
-    case RT_uint64_tType: result = (lhs.mValue.uint64Value == rhs.mValue.uint64Value); break;
-    case RT_floatType:    result = (lhs.mValue.floatValue == rhs.mValue.floatValue); break;
-    case RT_doubleType:   result = (lhs.mValue.doubleValue == rhs.mValue.doubleValue); break;
-    case RT_stringType:
-    {
-      if (lhs.mValue.stringValue && rhs.mValue.stringValue)
-        result = (*lhs.mValue.stringValue == *rhs.mValue.stringValue);
-      else
-        result = (lhs.mValue.stringValue == rhs.mValue.stringValue);
-    }
-    break;
-    case RT_objectType:   result = (lhs.mValue.objectValue == rhs.mValue.objectValue); break;
-    case RT_functionType: result = (lhs.mValue.functionValue == rhs.mValue.functionValue); break;
-    }
-  }
-  return result;
-}
-rtType getType() const { return mType; }
-  rtObjectRef toObject() const {
+  
+    rtObjectRef toObject() const {
         rtObjectRef v;
         return v;
     }
-    setString (const rtString& v){
-        mValue.stringValue = new rtString(v);
-        mType = RT_rtStringType2;
+    void setString (const char* v){
+        mValue.stringValue = (char*)v;
     }
-  static bool compare(const rtValue& lhs, const rtValue& rhs){
-    return 1;
-  }
+    void setString (const rtString& v){
+        mValue.stringValue = v.cString();
+    }
+    
 };
+
+class rtArrayObjectImpl{
+    public:
+        virtual void pushBack(const char* v) const = 0;
+        virtual void pushBack(rtValue v) const = 0;
+};
+
 
 class rtArrayObject : public rtObjectBase, public rtIObject{
     public:
-    void pushBack(rtValue v){
-        mElements.push_back(v);
+    rtArrayObjectImpl* impl;
+    static rtArrayObject& getInstance()
+    {
+        static rtArrayObject instance;
+        return instance;
     }
-    //std::vector<std::string> mElements;
-    std::vector<rtValue> mElements;
+    void pushBack(const char* v){
+        getInstance().impl->pushBack(v);
+    }
+    void pushBack(rtValue v){
+        getInstance().impl->pushBack(v);
+    }
+    virtual ~rtArrayObject() = default;
 
 };
 
 class rtRemoteEnvironment{
 
-};
-
-class rtMapObject: public rtObjectBase, public rtIObject{
 
 };
-
 
 class floatingRtFunctionsImpl{
     public:
         virtual ~floatingRtFunctionsImpl() = default;
         virtual rtError rtRemoteLocateObject(rtRemoteEnvironment *env, const char* str, rtObjectRef& obj, int x, remoteDisconnectCallback back, void *cbdata=NULL) = 0;
+        virtual rtRemoteEnvironment* rtEnvironmentGetGlobal() = 0;
+        virtual rtError rtRemoteShutdown(rtRemoteEnvironment *env) = 0;
+        virtual rtError rtRemoteInit(rtRemoteEnvironment *env) = 0;
+        virtual rtError rtRemoteProcessSingleItem() = 0;
+        virtual char* rtStrError(rtError err) = 0;
 
 };
 
@@ -1585,26 +1516,21 @@ class floatingRtFunctions{
 
 };
 
-
-
 inline rtError rtRemoteProcessSingleItem(){
-    return 0;
+    return floatingRtFunctions::getInstance().impl->rtRemoteProcessSingleItem();
 }
 inline rtError rtRemoteLocateObject(rtRemoteEnvironment *env, const char* str, rtObjectRef& obj, int x, remoteDisconnectCallback back, void *cbdata=NULL){
     return floatingRtFunctions::getInstance().impl->rtRemoteLocateObject(env, str, obj, x, back, cbdata);
 }
 inline rtRemoteEnvironment* rtEnvironmentGetGlobal(){
-    rtRemoteEnvironment *env = new rtRemoteEnvironment();
-    return env;
+    return floatingRtFunctions::getInstance().impl->rtEnvironmentGetGlobal();
 }
 inline rtError rtRemoteInit(rtRemoteEnvironment *env){
-    return RT_OK;
+    return floatingRtFunctions::getInstance().impl->rtRemoteInit(env);
 }
 inline rtError rtRemoteShutdown(rtRemoteEnvironment *env){
-    return 0;
+    return floatingRtFunctions::getInstance().impl->rtRemoteShutdown(env);
 }
 inline char* rtStrError(rtError err){
-    char a[100];
-    char* s = a;
-    return s;
+    return floatingRtFunctions::getInstance().impl->rtStrError(err);
 }
