@@ -241,8 +241,7 @@ namespace WPEFramework
 
                 if(retVal != IARM_RESULT_SUCCESS)
                 {
-                    LOGERR("NETWORK_NOT_READY: The NetSrvMgr Component is not available.Retrying in separate thread");
-                    retryIarmEventRegistration();
+                    LOGERR("NETWORK_NOT_READY: Lets handle it in the future request to NetSrvMgr Component");
                 }
                 else {
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS, eventHandler) );
