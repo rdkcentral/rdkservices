@@ -876,6 +876,20 @@ namespace WPEFramework {
                        gPluginDataMutex.unlock();
                    }
                 }
+                else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == "factoryapp")
+                {
+                    bool once = false;
+                    if (!once)
+                    {
+                        PluginHost::ISubSystem* subSystems(service->SubSystems());
+                        if (subSystems != nullptr)
+                        {
+                            subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
+                            subSystems->Release();
+                        }
+                        once = true;
+                    }
+                }
                 else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == WPEFramework::Plugin::RDKShell::SERVICE_NAME)
                 {
                    /*PluginHost::ISubSystem* subSystems(service->SubSystems());
@@ -1266,8 +1280,8 @@ namespace WPEFramework {
                             sFactoryModeStart = true;
                         }
                         subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
-                        subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
-                        subSystems->Release();
+                        //subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
+                        //subSystems->Release();
                         if (sFactoryModeStart) 
                         {
                             JsonObject request, response;
@@ -1286,8 +1300,10 @@ namespace WPEFramework {
                         }
                         else
                         {
-                          std::cout << "not launching factory app as conditions not matched\n";
+                          subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
+                          std::cout << "not launching factory app as conditions not matched, setting graphics sub system\n";
                         }
+                        subSystems->Release();
                     }
                 }
                 isRunning = sRunning;
@@ -1368,8 +1384,8 @@ namespace WPEFramework {
                         }
                         std::cout << "setting platform and graphics after wait\n";
                         subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
-                        subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
-                        subSystems->Release();
+                        //subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
+                        //subSystems->Release();
                     }
                     sPersistentStoreWaitProcessed = true;
                     if (sFactoryModeStart)
@@ -1390,8 +1406,10 @@ namespace WPEFramework {
                     }
                     else
                     {
-                        std::cout << "not launching factory app as conditions not matched\n";
+                        subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
+                        std::cout << "not launching factory app as conditions not matched, setting graphics sub system\n";
                     }
+                    subSystems->Release();
                   }
                   RdkShell::draw();
                   if (needsScreenshot)
@@ -4838,7 +4856,7 @@ namespace WPEFramework {
                 }
                 JsonObject launchRequest, configuration;
                 launchRequest["callsign"] = "factoryapp";
-                launchRequest["type"] = "ResidentApp";
+                launchRequest["type"] = "factoryapp";
                 launchRequest["uri"] = std::string(factoryAppUrl);
                 configuration["uri"] = launchRequest["uri"];
                 launchRequest["focused"] = true;

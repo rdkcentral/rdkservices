@@ -118,6 +118,17 @@ set(PLUGIN_RESIDENT_APP_LOCALSTORAGE_ENABLE "true" CACHE STRING "Enable LocalSto
 set(PLUGIN_RESIDENT_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_RESIDENT_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Resident App Memory Pressure")
 
+
+set(PLUGIN_FACTORY_APP_AUTOSTART "false" CACHE STRING "Automatically start Factory App plugin")
+set(PLUGIN_FACTORY_APP_STARTUPORDER "" CACHE STRING "To configure startup order of Factory App plugin")
+set(PLUGIN_FACTORY_APP_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
+set(PLUGIN_FACTORY_APP_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string for Factory App")
+set(PLUGIN_FACTORY_APP_WEBINSPECTOR_ADDRESS ":::10000" CACHE STRING "IP:Port for WebInspector of Factory App")
+set(PLUGIN_FACTORY_APP_STARTURL "about:blank" CACHE STRING "Initial URL for Factory App plugin")
+set(PLUGIN_FACTORY_APP_LOCALSTORAGE_ENABLE "true" CACHE STRING "Enable LocalStorage of Factory App")
+set(PLUGIN_FACTORY_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
+set(PLUGIN_FACTORY_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Factory App Memory Pressure")
+
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_AUTOSTART "false" CACHE STRING "Automatically start Search&Discovery App plugin")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_STARTUPORDER "" CACHE STRING "To configure startup order of Search&Discovery App plugin")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
