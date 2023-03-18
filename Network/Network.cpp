@@ -229,7 +229,6 @@ namespace WPEFramework
 
         const string Network::Initialize(PluginHost::IShell* /* service */)
         {
-            string msg;
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
@@ -237,20 +236,11 @@ namespace WPEFramework
 
 #ifndef NET_DISABLE_NETSRVMGR_CHECK
                 char c;
-                uint32_t retry = 0;
-                do{
-                    retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c), (1000*10));
-                    if(retVal != IARM_RESULT_SUCCESS){
-                        LOGERR("NetSrvMgr is not available. Failed to activate Network Plugin, retry = %d", retry);
-                        usleep(500*1000);
-                        retry++;
-                    }
-                }while((retVal != IARM_RESULT_SUCCESS) && (retry < 20));
+                retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c));
 #endif
 
                 if(retVal != IARM_RESULT_SUCCESS)
                 {
-                    msg = "NetSrvMgr is not available";
                     LOGERR("NETWORK_NOT_READY: The NetSrvMgr Component is not available.Retrying in separate thread");
                     retryIarmEventRegistration();
                 }
@@ -265,20 +255,15 @@ namespace WPEFramework
             }
             else
             {
-                msg = "IARM bus is not available";
                 LOGERR("IARM bus is not available. Failed to activate Network Plugin");
             }
 
-            return msg;
+            return string();
         }
 
         void Network::Deinitialize(PluginHost::IShell* /* service */)
         {
             m_isPluginInited = false;
-            if(m_registrationThread.joinable())
-            {
-                m_registrationThread.join();
-            }
 
             if (Utils::IARM::isConnected())
             {
@@ -365,33 +350,32 @@ namespace WPEFramework
             return retval;
         }
 
-
-        void  Network::retryIarmEventRegistration()
-        {
-            m_registrationThread = thread(&Network::threadEventRegistration, this);
-
-        }
-        void  Network::threadEventRegistration()
+        void  Network::EnsureNetSrvMgrRunning()
         {
             IARM_Result_t res = IARM_RESULT_SUCCESS;
             IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+
+            if (m_isPluginInited)
+                return;
+
 #ifndef NET_DISABLE_NETSRVMGR_CHECK
+            char c;
+            uint32_t retry = 0;
             do
             {
-                char c;
-                uint32_t retry = 0;
-                retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c));
+                /* Try 1sec timeout to check whether the NetSrvMgr is running or not */
+                retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c), 1000);
                 if(retVal != IARM_RESULT_SUCCESS){
-                    LOGERR("threadEventRegistration: NetSrvMgr is not available. Failed to activate Network Plugin, retrying count = %d", retry);
+                    LOGERR("NetSrvMgr is not available yet. Retry = %d", retry);
                     usleep(500*1000);
                     retry++;
                 }
-            }while((retVal != IARM_RESULT_SUCCESS)  && (m_isPluginInited != true ));
+            }while((retVal != IARM_RESULT_SUCCESS) && (retry < 20));
 #endif
 
             if(retVal != IARM_RESULT_SUCCESS)
             {
-                LOGERR("threadEventRegistration NetSrvMgr is not available. Failed to activate Network Plugin, retrying new cycle");
+                LOGERR("EnsureNetSrvMgrRunning NetSrvMgr is not available. Failed to activate Network Plugin, retrying new cycle");
             }
             else
             {
@@ -399,7 +383,7 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
-                LOGINFO("NETWORK_AVAILABILITY_RETRY_SUCCESS: threadEventRegistration successfully subscribed to IARM event for Network Plugin");
+                LOGINFO("NETWORK_AVAILABILITY_RETRY_SUCCESS: EnsureNetSrvMgrRunning successfully subscribed to IARM event for Network Plugin");
                 m_isPluginInited = true;
             }
 
@@ -417,6 +401,9 @@ namespace WPEFramework
         {
             IARM_BUS_NetSrvMgr_InterfaceList_t list;
             bool result = false;
+
+            if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
             {
@@ -475,6 +462,9 @@ namespace WPEFramework
 
             bool result = false;
             if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
+
+            if(m_isPluginInited)
             {
                 if (m_useDefInterfaceCache)
                 {
@@ -500,6 +490,9 @@ namespace WPEFramework
         uint32_t Network::setDefaultInterface (const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
+
+            if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
             {
@@ -544,6 +537,9 @@ namespace WPEFramework
             bool result = false;
 
             if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
+
+            if(m_isPluginInited)
             {
                 if(m_useStbIPCache)
                 {
@@ -573,6 +569,9 @@ namespace WPEFramework
         uint32_t Network::getSTBIPFamily(const JsonObject &parameters, JsonObject &response)
         {
             bool result = false;
+
+            if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
             {
@@ -616,6 +615,9 @@ namespace WPEFramework
             bool result = false;
 
             if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
+
+            if(m_isPluginInited)
             {
                 if (parameters.HasLabel("interface"))
                 {
@@ -652,6 +654,9 @@ namespace WPEFramework
         uint32_t Network::setInterfaceEnabled (const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
+
+            if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
             {
@@ -705,6 +710,9 @@ namespace WPEFramework
             bool result = false;
 
             if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
+
+            if(m_isPluginInited)
             {
                 if (!parameters.HasLabel("endpoint"))
                     LOGERR("No endpoint specified");
@@ -734,6 +742,9 @@ namespace WPEFramework
         uint32_t Network::traceNamedEndpoint(const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
+
+            if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
             {
@@ -773,6 +784,9 @@ namespace WPEFramework
             bool result = false;
 
             if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
+
+            if(m_isPluginInited)
             {
                 if (parameters.HasLabel("endpoint"))
                 {
@@ -804,6 +818,9 @@ namespace WPEFramework
             bool result = false;
 
             if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
+
+            if(m_isPluginInited)
             {
                 if (parameters.HasLabel("endpointName"))
                 {
@@ -830,6 +847,9 @@ namespace WPEFramework
         {
             bool result = false;
             if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
+
+            if(m_isPluginInited)
                 return  setIPSettingsInternal(parameters, response);
             else
                 LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
@@ -849,6 +869,9 @@ namespace WPEFramework
             string secondarydns = "";
             bool autoconfig = true;
             bool result = false;
+
+            if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
             {
@@ -1002,6 +1025,9 @@ namespace WPEFramework
             string interface = "";
             string ipversion = "";
             if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
+
+            if(m_isPluginInited)
             {
                 getDefaultStringParameter("interface", interface,"");
                 internal ["interface"] = interface;
@@ -1040,6 +1066,9 @@ namespace WPEFramework
             bool result = false;
             string interface = "";
             string ipversion = "";
+            if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
+
             if(m_isPluginInited)
             {
                 getDefaultStringParameter("interface", interface, "");
@@ -1191,6 +1220,9 @@ namespace WPEFramework
             bool isconnected = false;
 
             if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
+
+            if(m_isPluginInited)
             {
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*) &isconnected, sizeof(isconnected)))
                 {
@@ -1214,6 +1246,9 @@ namespace WPEFramework
         {
             bool result = false;
             JsonArray endpoints = parameters["endpoints"].Array();
+            if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
+
             if(m_isPluginInited)
             {
                 if (0 == endpoints.Length() || MAX_ENDPOINTS < endpoints.Length())
@@ -1289,6 +1324,9 @@ namespace WPEFramework
 
             IARM_BUS_NetSrvMgr_Iface_StunRequest_t iarmData = { 0 };
             string server, iface;
+
+            if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
             {
@@ -1511,6 +1549,9 @@ namespace WPEFramework
         bool Network::_getDefaultInterface(string& interface, string& gateway)
         {
             bool result = false;
+
+            if(m_isPluginInited)
+                EnsureNetSrvMgrRunning();
 
             if(m_isPluginInited)
             {
