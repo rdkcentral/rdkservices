@@ -1275,8 +1275,8 @@ public:
   virtual ~rtRef()                     {
     if (mRef) 
       {
-        delete mRef;
-        mRef = nullptr;
+        //delete mRef;
+        //mRef = NULL;
       }
   }
 
@@ -1306,13 +1306,6 @@ public:
       mRef = const_cast<T*>(p);
       
     }
-  }
-  void term(){
-    if (mRef) 
-      {
-        delete mRef;
-        mRef = NULL;
-      }
   }
 
   T* mRef;
@@ -1384,8 +1377,8 @@ class rtObjectRef : public rtRef<rtIObject>, public rtObjectBase{
         }
         rtObjectRef(){}
         rtObjectRef(const rtObjectRef&) = default;
-        rtObjectRef(const rtMapObject* o) {delete o; o = NULL; };
-        rtObjectRef& operator=(rtMapObject* o){delete o; o = NULL; return *this;};
+        rtObjectRef(const rtMapObject* o) {delete o; o = nullptr; };
+        rtObjectRef& operator=(rtMapObject* o){delete o; o = nullptr; return *this;};
         rtObjectRef& operator=(const rtObjectRef&){return *this;};
         rtObjectRef& operator=(rtIObject* o){asn(o);return *this;};
         rtObjectRef& operator=(rtObjectRef&&) = default;
@@ -1403,7 +1396,6 @@ class rtObjectRef : public rtRef<rtIObject>, public rtObjectBase{
             return getInstance().impl->send(messageName, base);
         }
         virtual ~rtObjectRef(){
-         term();
         }
 };
 
@@ -1437,7 +1429,10 @@ class rtValue
   rtValue(const char* v){mValue.stringValue = (char*)v;}
   rtValue(const rtString& v){mValue.stringValue = v.cString();}
   rtValue(rtIObject* v){
-    delete v;
+    if(v){
+        delete v;
+        v = nullptr;
+    }
   }
   rtValue(const rtObjectRef& v){}
   rtValue(const rtValue& v){}
@@ -1445,7 +1440,7 @@ class rtValue
   rtValue& operator=(bool v)                { mValue.boolValue = v; return *this; }
   rtValue& operator=(const char* v)         { mValue.stringValue = (char*)v;   return *this; }
   rtValue& operator=(const rtString& v)     { mValue.stringValue = v.cString();  return *this; }
-  rtValue& operator=(const rtIObject* v)    { delete v;   return *this; }
+  rtValue& operator=(const rtIObject* v)    { delete v; v = nullptr;   return *this; }
   rtValue& operator=(const rtObjectRef& v)  {    return *this; }
   rtValue& operator=(const rtValue& v)      {     return *this; }
   
