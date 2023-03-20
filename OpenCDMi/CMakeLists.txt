@@ -43,6 +43,7 @@ add_library(${MODULE_NAME} SHARED
         Module.cpp)
 
 add_library(${PLUGIN_OCDM_IMPLEMENTATION} SHARED
+        LibertyConfig.cpp
         CENCParser.cpp
         FrameworkRPC.cpp
         CapsParser.cpp
@@ -74,7 +75,9 @@ target_link_libraries(${PLUGIN_OCDM_IMPLEMENTATION}
                 CompileSettingsDebug::CompileSettingsDebug
                 ${NAMESPACE}Plugins::${NAMESPACE}Plugins
                 ${NAMESPACE}Definitions::${NAMESPACE}Definitions
-                ocdm::ocdm)
+                ocdm::ocdm
+                asconnector
+                rdkloggers)
 
 # Library definition section
 install(TARGETS ${MODULE_NAME}
