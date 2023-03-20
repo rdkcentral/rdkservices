@@ -173,6 +173,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
         {
             if (Utils::IARM::init())
             {
+                IARM_Result_t res;
                 IARM_Result_t retVal = IARM_RESULT_SUCCESS;
 
 #ifndef NET_DISABLE_NETSRVMGR_CHECK
@@ -207,6 +208,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
             if (Utils::IARM::isConnected())
             {
+                IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS) );
@@ -291,6 +293,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
         void  Network::EnsureNetSrvMgrRunning()
         {
+            IARM_Result_t res;
             IARM_Result_t retVal = IARM_RESULT_SUCCESS;
 
             if (m_isPluginInited)
