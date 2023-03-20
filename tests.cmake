@@ -101,6 +101,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/Udev.h
         ${BASEDIR}/MotionDetection.h
         ${BASEDIR}/Dobby.h
+        ${BASEDIR}/HdmiCec.h
         )
 
 foreach (file ${FAKE_HEADERS})

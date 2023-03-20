@@ -27,9 +27,7 @@
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
 #include "devicesettings.h"
-#include "LibCCECMock.h"
-#include "ConnectionMock.h"
-#include "ActiveSourceMock.h"
+#include "HdmiCecMock.h"
 using namespace WPEFramework;
 
 class HdmiCecTest : public ::testing::Test {
@@ -249,10 +247,23 @@ TEST_F(HdmiCecInitializedTest, getDeviceList)
 		iCounter ++;
 	}
 
-    //Calling the device list, which is a defualt list of the hdmiCec class. Kist grabs the deviceList.
+    const char* val = "TEST";
+    OSDName name = OSDName(val);
+    SetOSDName osdName = SetOSDName(name);
+
+    Header header;
+    header.from = LogicalAddress(1); //specifies with logicalAddress in the deviceList we're using
+
+    VendorID vendor(1,2,3);
+    DeviceVendorID vendorid(vendor);
+
+    plugin->process(osdName, header); //calls the process that sets osdName for LogicalAddress = 1
+    plugin->process(vendorid, header); //calls the process that sets vendorID for LogicalAddress = 1
+
+    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceList"), _T(""), response));
-    //m_osdName and m_vendorID do not get populated in the population function, like logical address, and thus are empty with actual implementtion of .toString()
-    EXPECT_EQ(response, string(_T("{\"numberofdevices\":14,\"deviceList\":[{\"logicalAddress\":1,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":2,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":3,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":4,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":5,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":6,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":7,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":8,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":9,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":10,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":11,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":12,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":13,\"osdName\":\"\",\"vendorID\":\"\"},{\"logicalAddress\":14,\"osdName\":\"\",\"vendorID\":\"\"}],\"success\":true}")));
+
+    EXPECT_EQ(response, string(_T("{\"numberofdevices\":14,\"deviceList\":[{\"logicalAddress\":1,\"osdName\":\"TEST\",\"vendorID\":\"123\"},{\"logicalAddress\":2,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":3,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":4,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":5,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":6,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":7,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":8,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":9,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":10,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":11,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":12,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":13,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":14,\"osdName\":\"NA\",\"vendorID\":\"000\"}],\"success\":true}")));
 
 
 }
