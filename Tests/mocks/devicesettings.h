@@ -1273,11 +1273,6 @@ public:
   rtRef(const rtRef<T>& r): mRef(NULL) {asn(r.getPtr());}
   rtRef(rtRef<T>&& r) noexcept: mRef(r.mRef) {r.mRef = nullptr;}
   virtual ~rtRef()                     {
-    if (mRef) 
-      {
-        //delete mRef;
-        //mRef = NULL;
-      }
   }
 
   T* operator->()   const {return mRef;}
