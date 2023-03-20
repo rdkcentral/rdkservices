@@ -231,7 +231,6 @@ namespace WPEFramework
         {
             if (Utils::IARM::init())
             {
-                IARM_Result_t res;
                 IARM_Result_t retVal = IARM_RESULT_SUCCESS;
 
 #ifndef NET_DISABLE_NETSRVMGR_CHECK
@@ -266,7 +265,6 @@ namespace WPEFramework
 
             if (Utils::IARM::isConnected())
             {
-                IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS) );
                 IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS) );
@@ -351,7 +349,6 @@ namespace WPEFramework
 
         void  Network::EnsureNetSrvMgrRunning()
         {
-            IARM_Result_t res = IARM_RESULT_SUCCESS;
             IARM_Result_t retVal = IARM_RESULT_SUCCESS;
 
             if (m_isPluginInited)
@@ -359,22 +356,12 @@ namespace WPEFramework
 
 #ifndef NET_DISABLE_NETSRVMGR_CHECK
             char c;
-            uint32_t retry = 0;
-            do
-            {
-                /* Try 1sec timeout to check whether the NetSrvMgr is running or not */
-                retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c), 1000);
-                if(retVal != IARM_RESULT_SUCCESS){
-                    LOGERR("NetSrvMgr is not available yet. Retry = %d", retry);
-                    usleep(500*1000);
-                    retry++;
-                }
-            }while((retVal != IARM_RESULT_SUCCESS) && (retry < 20));
+            /* Try 1sec timeout to check whether the NetSrvMgr is running or not */
+            retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c), 1000);
 #endif
-
             if(retVal != IARM_RESULT_SUCCESS)
             {
-                LOGERR("EnsureNetSrvMgrRunning NetSrvMgr is not available. Failed to activate Network Plugin, retrying new cycle");
+                LOGERR("EnsureNetSrvMgrRunning NetSrvMgr is not available. lets check in next cycle");
             }
             else
             {
@@ -382,7 +369,7 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
-                LOGINFO("NETWORK_AVAILABILITY_RETRY_SUCCESS: EnsureNetSrvMgrRunning successfully subscribed to IARM event for Network Plugin");
+                LOGINFO("EnsureNetSrvMgrRunning successfully subscribed to IARM event for Network Plugin");
                 m_isPluginInited = true;
             }
 
