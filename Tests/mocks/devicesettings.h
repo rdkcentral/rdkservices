@@ -5,8 +5,6 @@
 #include <string>
 #include <sys/types.h>
 #include <vector>
-#include <sstream>
-#include <cstring>
 
 typedef enum _dsAudioPortType_t {
     dsAUDIOPORT_TYPE_ID_LR, /**< RCA audio output.                  */
@@ -431,7 +429,6 @@ typedef struct _dsFPDColorConfig_t{
 	int id;
 	dsFPDColor_t color;
 }dsFPDColorConfig_t;
-
 
 namespace device {
 
@@ -1208,4 +1205,6 @@ public:
         return impl->getTextDisplay();
     }
 };
+
 }
+
