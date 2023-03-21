@@ -68,6 +68,7 @@ namespace Plugin {
         TTS::TTSConfiguration *ttsConfig = _ttsManager->configuration();
         ttsConfig->setEndPoint(GET_STR(config, "endpoint", ""));
         ttsConfig->setSecureEndPoint(GET_STR(config, "secureendpoint", ""));
+        ttsConfig->setLocalEndPoint(GET_STR(config, "localendpoint", ""));
         ttsConfig->setLanguage(GET_STR(config, "language", "en-US"));
         ttsConfig->setVoice(GET_STR(config, "voice", ""));
         ttsConfig->setVolume(std::stod(GET_STR(config, "volume", "100")));
@@ -85,9 +86,19 @@ namespace Plugin {
         } else {
             TTSLOG_WARNING("Doesn't find default voice configuration");
         }
+
+        if(config.HasLabel("local_voices")) {
+            JsonObject voices = config["local_voices"].Object();
+            JsonObject::Iterator it = voices.Variants();
+            while(it.Next())
+                ttsConfig->m_others_local["voice_for_" + string(it.Label())] = it.Current().String();
+
+        }
+
         ttsConfig->loadFromConfigStore();
         TTSLOG_INFO("TTSEndPoint : %s", ttsConfig->endPoint().c_str());
         TTSLOG_INFO("SecureTTSEndPoint : %s", ttsConfig->secureEndPoint().c_str());
+        TTSLOG_INFO("LocalTTSEndPoint : %s", ttsConfig->localEndPoint().c_str());
         TTSLOG_INFO("Language : %s", ttsConfig->language().c_str());
         TTSLOG_INFO("Voice : %s", ttsConfig->voice().c_str());
         TTSLOG_INFO("Volume : %lf", ttsConfig->volume());
@@ -100,7 +111,14 @@ namespace Plugin {
             TTSLOG_INFO("%s : %s", it->first.c_str(), it->second.c_str());
             ++it;
         }
-
+        
+        if(ttsConfig->isSwitchRequired())
+        {
+            std::vector<std::string> local_voices;
+            TTSLOG_INFO("Online/offline endpoint switch enabled\n");
+            _ttsManager->listLocalVoices(ttsConfig->language(), local_voices);
+            ttsConfig->setLocalVoice(local_voices.front());
+        }
         _ttsManager->enableTTS(ttsConfig->enabled());
         return 0;
     }
@@ -182,6 +200,7 @@ namespace Plugin {
         TTS::Configuration config;
         config.ttsEndPoint = GET_STR(parameters, "ttsendpoint", "");
         config.ttsEndPointSecured = GET_STR(parameters, "ttsendpointsecured", "");
+        config.ttsEndPointLocal = GET_STR(parameters, "ttsendpointlocal", "");
         config.language = GET_STR(parameters, "language", "");
         config.voice = GET_STR(parameters, "voice", "");
         config.volume = std::stod(GET_STR(parameters, "volume", "0.0"));

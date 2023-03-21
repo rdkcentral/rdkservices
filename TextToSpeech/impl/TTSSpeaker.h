@@ -87,6 +87,12 @@ struct SpeechData {
         int8_t primVolDuck;
 };
 
+enum PipelineType
+{
+  MP3,
+  PCM
+};
+
 class TTSSpeaker {
 public:
     TTSSpeaker(TTSConfiguration &config);
@@ -103,6 +109,7 @@ public:
 
     bool pause(uint32_t id = 0);
     bool resume(uint32_t id = 0);
+    PipelineType getPipelineType();
 
 private:
 
@@ -121,6 +128,7 @@ private:
     void queueData(SpeechData);
     void flushQueue();
     SpeechData dequeueData();
+    PipelineType m_pipelinetype;
 
     // Private functions
     inline void setSpeakingState(bool state, TTSSpeakerClient *client=NULL);
@@ -135,6 +143,7 @@ private:
     GThread     *m_main_loop_thread;
     bool        m_pipelineError;
     bool        m_networkError;
+    bool        m_remoteError;
     bool        m_runThread;
     bool        m_busThread;
     bool        m_flushed;
@@ -160,21 +169,31 @@ private:
 #endif
     void setMixGain(MixGain gain, int val);
     static void GStreamerThreadFunc(void *ctx);
-    void createPipeline();
+    void createPipeline(PipelineType type=MP3);
     void resetPipeline();
+    PipelineType getUrlType(string url);
     void destroyPipeline();
 
     // GStreamer Helper functions
     bool needsPipelineUpdate();
     std::string constructURL(TTSConfiguration &config, SpeechData &d);
     void speakText(TTSConfiguration config, SpeechData &data);
+    void speakLocal(SpeechData &data);
     bool waitForStatus(GstState expected_state, uint32_t timeout_ms);
     void waitForAudioToFinishTimeout(float timeout_s);
     bool handleMessage(GstMessage*);
+    void play(string url,SpeechData &data);
     static int GstBusCallback(GstBus *bus, GstMessage *message, gpointer data);
     static void event_loop(void *data);
 };
 
 } // namespace TTS
+
+namespace WPEFramework {
+namespace Plugin {
+bool _readFromFile(std::string filename, TTS::TTSConfiguration &ttsConfig);
+bool _writeToFile(std::string filename, TTS::TTSConfiguration &ttsConfig);
+}//namespace Plugin
+}//namespace WPEFramework
 
 #endif

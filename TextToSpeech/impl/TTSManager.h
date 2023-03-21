@@ -35,7 +35,9 @@ struct Configuration {
 
     std::string ttsEndPoint;
     std::string ttsEndPointSecured;
+    std::string ttsEndPointLocal;
     std::string language;
+    std::string local_voice;
     std::string voice;
     std::string apiKey;
     FallbackData data;
@@ -73,6 +75,7 @@ public:
     bool isTTSEnabled();
     void initiateDownload();
     TTS_Error listVoices(std::string language, std::vector<std::string> &voices);
+    TTS_Error listLocalVoices(std::string language, std::vector<std::string> &voices);
     TTS_Error setConfiguration(Configuration &configuration);
     TTS_Error getConfiguration(Configuration &configuration);
 
