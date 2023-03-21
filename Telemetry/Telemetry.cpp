@@ -24,11 +24,18 @@
 
 #include "rfcapi.h"
 
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+#include "pwrMgr.h"
+#include "UtilsIarm.h"
+#endif /* USE_IARMBUS || USE_IARM_BUS */
+
+
 #ifdef HAS_RBUS
 #include "rbus.h"
 
 #define RBUS_COMPONENT_NAME "TelemetryThunderPlugin"
 #define T2_ON_DEMAND_REPORT "Device.X_RDKCENTRAL-COM_T2.UploadDCMReport"
+#define T2_ABORT_ON_DEMAND_REPORT "Device.X_RDKCENTRAL-COM_T2.AbortDCMReport"
 #endif
 
 // Methods
@@ -77,6 +84,8 @@ namespace WPEFramework
 
         Telemetry* Telemetry::_instance = nullptr;
 
+        static void _powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
         Telemetry::Telemetry()
         : PluginHost::JSONRPC()
         {
@@ -96,6 +105,10 @@ namespace WPEFramework
 
         const string Telemetry::Initialize(PluginHost::IShell* service )
         {
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+            InitializeIARM();
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+
             JsonObject config;
             config.FromString(service->ConfigLine());
             std::string t2PersistentFolder = config.HasLabel("t2PersistentFolder") ? config["t2PersistentFolder"].String() : T2_PERSISTENT_FOLDER;
@@ -171,6 +184,10 @@ namespace WPEFramework
 
         void Telemetry::Deinitialize(PluginHost::IShell* /* service */)
         {
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+            DeinitializeIARM();
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+
             Telemetry::_instance = nullptr;
 #ifdef HAS_RBUS
             if (RBUS_ERROR_SUCCESS == rbusHandleStatus)
@@ -180,6 +197,57 @@ namespace WPEFramework
             }
 #endif
         }
+
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+        void Telemetry::InitializeIARM()
+        {
+            if (Utils::IARM::init())
+            {
+                IARM_Result_t res;
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
+            }
+        }
+
+        void Telemetry::DeinitializeIARM()
+        {
+            if (Utils::IARM::isConnected())
+            {
+                IARM_Result_t res;
+                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED));
+            }
+        }
+
+        void _powerEventHandler(const char *owner, IARM_EventId_t eventId,
+                void *data, size_t len)
+        {
+
+            if (IARM_BUS_PWRMGR_EVENT_MODECHANGED == eventId)
+            {
+                IARM_Bus_PWRMgr_EventData_t *eventData = (IARM_Bus_PWRMgr_EventData_t *)data;
+
+                if (IARM_BUS_PWRMGR_POWERSTATE_STANDBY == eventData->data.state.newState ||
+                      IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP == eventData->data.state.newState)
+                {
+                    if (IARM_BUS_PWRMGR_POWERSTATE_ON == eventData->data.state.curState)
+                    {
+                        if (Telemetry::_instance) {
+                            Telemetry::_instance->UploadReport();
+                        } else {
+                            LOGERR("Telemetry::_instance is NULL.\n");
+                        }
+                    }
+                }
+                else if(IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP == eventData->data.state.newState)
+                {
+                    if (Telemetry::_instance) {
+                        Telemetry::_instance->AbortReport();
+                    } else {
+                        LOGERR("Telemetry::_instance is NULL.\n");
+                    }
+                }
+            }
+        }
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
         uint32_t Telemetry::setReportProfileStatus(const JsonObject& parameters, JsonObject& response)
         {
@@ -204,7 +272,6 @@ namespace WPEFramework
                 }
 
                 returnResponse(true);
-
             }
             else
             {
@@ -281,9 +348,8 @@ namespace WPEFramework
         }
 
 #endif
-        uint32_t Telemetry::uploadReport(const JsonObject& parameters, JsonObject& response)
+        uint32_t Telemetry::UploadReport()
         {
-            LOGINFOMETHOD();
 #ifdef HAS_RBUS
             if (RBUS_ERROR_SUCCESS != rbusHandleStatus)
             {
@@ -292,7 +358,7 @@ namespace WPEFramework
 
             if (RBUS_ERROR_SUCCESS == rbusHandleStatus)
             {
-                int rc = rbusMethod_InvokeAsync(rbusHandle, "Device.X_RDKCENTRAL-COM_T2.UploadDCMReport", NULL, t2EventHandler, 0);
+                int rc = rbusMethod_InvokeAsync(rbusHandle, T2_ON_DEMAND_REPORT, NULL, t2EventHandler, 0);
                 if (RBUS_ERROR_SUCCESS != rc)
                 {
                     std::stringstream str;
@@ -312,8 +378,49 @@ namespace WPEFramework
 #else
             LOGERR("No RBus support");
             return Core::ERROR_NOT_EXIST;
-#endif 
+#endif
             return Core::ERROR_NONE;
+        }
+
+        uint32_t Telemetry::AbortReport()
+        {
+            LOGINFO("");
+#ifdef HAS_RBUS
+            if (RBUS_ERROR_SUCCESS != rbusHandleStatus)
+            {
+                rbusHandleStatus = rbus_open(&rbusHandle, RBUS_COMPONENT_NAME);
+            }
+
+            if (RBUS_ERROR_SUCCESS == rbusHandleStatus)
+            {
+                int rc = rbusMethod_InvokeAsync(rbusHandle, T2_ABORT_ON_DEMAND_REPORT, NULL, NULL, 0);
+                if (RBUS_ERROR_SUCCESS != rc)
+                {
+                    std::stringstream str;
+                    str << "Failed to call " << T2_ABORT_ON_DEMAND_REPORT << ": " << rc;
+                    LOGERR("%s", str.str().c_str());
+
+                    return Core::ERROR_RPC_CALL_FAILED;
+                }
+            }
+            else
+            {
+                std::stringstream str;
+                str << "rbus_open failed with error code " << rbusHandleStatus;
+                LOGERR("%s", str.str().c_str());
+                return Core::ERROR_OPENING_FAILED;
+            }
+#else
+            LOGERR("No RBus support");
+            return Core::ERROR_NOT_EXIST;
+#endif
+            return Core::ERROR_NONE;
+        }
+
+        uint32_t Telemetry::uploadReport(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            return UploadReport();
         }
 
     } // namespace Plugin
