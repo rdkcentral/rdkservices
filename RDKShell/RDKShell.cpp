@@ -141,8 +141,10 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AV_BLOCKED_APPS
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE = "getGraphicsFrameRate";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE = "setGraphicsFrameRate";
+#ifdef HIBERNATE_SUPPORT_ENABLED
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_CHECKPOINT = "checkpoint";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_RESTORE = "restore";
+#endif
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -164,8 +166,10 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LO
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onEasterEgg";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_WILL_DESTROY = "onWillDestroy";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE = "onScreenshotComplete";
+#ifdef HIBERNATE_SUPPORT_ENABLED
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_CHECKPOINTED = "onCheckpointed";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_RESTORED = "onRestored";
+#endif
 
 using namespace std;
 using namespace RdkShell;
@@ -1112,8 +1116,10 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE, &RDKShell::setGraphicsFrameRateWrapper, this);
             Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
             Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
+#ifdef HIBERNATE_SUPPORT_ENABLED
             Register(RDKSHELL_METHOD_CHECKPOINT, &RDKShell::checkpointWrapper, this);
             Register(RDKSHELL_METHOD_RESTORE, &RDKShell::restoreWrapper, this);
+#endif
       	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -4638,6 +4644,7 @@ namespace WPEFramework {
                             auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
                             uint32_t stateStatus = 0;
 
+#ifdef HIBERNATE_SUPPORT_ENABLED
                             if(service.JSONState != PluginHost::MetaData::Service::state::HIBERNATED)
                             {
                                 stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
@@ -4646,15 +4653,20 @@ namespace WPEFramework {
                             {
                                 stateString = "checkpointed";
                             }
+#endif
 
                             if (stateStatus == 0)
                             {
                                 WPEFramework::Core::JSON::String urlString;
                                 uint32_t urlStatus = 1;
+#ifdef HIBERNATE_SUPPORT_ENABLED
                                 if(service.JSONState != PluginHost::MetaData::Service::state::HIBERNATED)
                                 {
+#endif
                                     urlStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
+#ifdef HIBERNATE_SUPPORT_ENABLED
                                 }
+#endif
 
                                 JsonObject typeObject;
                                 typeObject["callsign"] = callsign;
@@ -5759,6 +5771,7 @@ namespace WPEFramework {
             returnResponse(status);
         }
 
+#ifdef HIBERNATE_SUPPORT_ENABLED
         uint32_t RDKShell::checkpointWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -5853,6 +5866,7 @@ namespace WPEFramework {
 
             returnResponse(status);
         }
+#endif
 
         // Registered methods end
 
