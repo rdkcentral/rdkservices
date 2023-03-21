@@ -93,7 +93,6 @@ namespace WPEFramework {
 
             //Private variables
             std::atomic_bool m_isPluginInited{false};
-            std::thread m_registrationThread;
 
             //Begin methods
             uint32_t getQuirks(const JsonObject& parameters, JsonObject& response);
@@ -135,7 +134,7 @@ namespace WPEFramework {
             bool _getDefaultInterface(std::string& interface, std::string& gateway);
 
             void retryIarmEventRegistration();
-            void threadEventRegistration();
+            void EnsureNetSrvMgrRunning();
 
             bool _doTrace(std::string &endpoint, int packets, JsonObject& response);
             bool _doTraceNamedEndpoint(std::string &endpointName, int packets, JsonObject& response);
