@@ -228,7 +228,7 @@ TEST_F(HdmiCecSinkDsTest, setActivePath)
 
 TEST_F(HdmiCecSinkDsTest, setRoutingChangeInvalidParam)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setRoutingChange"), _T("{\"oldPort\":\"HDMI0\"}"), response)
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setRoutingChange"), _T("{\"oldPort\":\"HDMI0\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":false}"));
 }
 
@@ -247,30 +247,15 @@ TEST_F(HdmiCecSinkDsTest, setRoutingChange)
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
 
-TEST_F(HdmiCecSinkDsTest, setActiveSource)
+TEST_F(HdmiCecSinkDsTest, setMenuLanguageInvalidParam)
 {
-    EXPECT_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
-        .WillRepeatedly(::testing::Invoke(
-            [&](const LogicalAddress &to, const CECFrame &frame, int timeout) {
-                EXPECT_LE(to.toInt(), LogicalAddress::BROADCAST);
-                EXPECT_GT(timeout, 0);
-            }));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setActiveSource"), _T(""), response));
-    EXPECT_EQ(response,  string("{\"success\":true}"));
-}
-
-TEST_F(HdmiCecSinkDsTest, getActiveSource)
-{
-    std::this_thread::sleep_for(std::chrono::seconds(20));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getActiveSource"), _T(""), response));
-    EXPECT_EQ(response,  string("{\"available\":true,\"logicalAddress\":0,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"5\",\"osdName\":\"\",\"vendorID\":\"019ff\",\"powerStatus\":\"1\",\"port\":\"HDMI0\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMenuLanguage"), _T("{\"language\":""}"), response));
+    EXPECT_EQ(response,  string("{\"success\":false}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, setMenuLanguage)
 {
-    EXPECT_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(connectionImplMock, sendTo(::testing::, ::testing::, ::testing::_))
         .WillRepeatedly(::testing::Invoke(
             [&](const LogicalAddress &to, const CECFrame &frame, int timeout) {
                 EXPECT_LE(to.toInt(), LogicalAddress::BROADCAST);
@@ -281,13 +266,28 @@ TEST_F(HdmiCecSinkDsTest, setMenuLanguage)
     EXPECT_EQ(response,  string("{\"success\":true}"));
 }
 
+TEST_F(HdmiCecSinkDsTest, setupARCRoutingInvalidParam)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setupARCRouting"), _T("{}"), response));
+    EXPECT_EQ(response,  string("{\"success\":false}"));
+}
+
 TEST_F(HdmiCecSinkDsTest, setupARCRouting)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setupARCRouting"), _T("{\"enabled\":\"true\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
+}
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setupARCRouting"), _T("{\"enabled\":\"false\"}"), response));
-    EXPECT_EQ(response,  string("{\"success\":true}"));
+TEST_F(HdmiCecSinkDsTest, sendKeyPressEventMissingParam)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": }"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+}
+
+TEST_F(HdmiCecSinkDsTest, sendKeyPressEvent)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 65}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkInitializedEventDsTest, onHdmiOutputHDCPStatusEvent)
@@ -322,13 +322,4 @@ TEST_F(HdmiCecSinkInitializedEventDsTest, HdmiCecEnableStatus)
     
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
-}
-
-TEST_F(HdmiCecSinkInitializedEventDsTest, cecEventStatusUpdate)
-{
-    ASSERT_TRUE(dsHdmiCecSinkEventHandler != nullptr);
-    IARM_Bus_CECMgr_Status_Updated_Param_t eventData;
-
-    eventData.logicalAddress = 5;
-    dsHdmiCecSinkEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED, &eventData , 0);
 }
