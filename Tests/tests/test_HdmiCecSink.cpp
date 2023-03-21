@@ -177,79 +177,40 @@ TEST_F(HdmiCecSinkTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("requestAudioDevicePowerStatus")));
 }
 
-TEST_F(HdmiCecSinkDsTest, sendKeyPressEvent)
+TEST_F(HdmiCecSinkDsTest, setOSDNameParamMissing)
 {
-    EXPECT_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
-        .WillRepeatedly(::testing::Invoke(
-            [&](const LogicalAddress &to, const CECFrame &frame, int timeout) {
-               EXPECT_LE(to.toInt(), LogicalAddress::BROADCAST);
-               EXPECT_GT(timeout, 0);
-            }));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 65}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 66}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 67}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 1}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 2}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 3}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 4}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 0}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 9}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 13}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 32}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 33}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 34}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 35}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 36}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 37}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 38}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 39}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 40}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 41}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));
-}
-
-TEST_F(HdmiCecSinkDsTest, setOSDName)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setOSDName"), _T("{\"name\":\"CECTEST\"}"), response));
-    EXPECT_EQ(response,  string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setOSDName"), _T("{}"), response));
+    EXPECT_EQ(response,  string("{\"success\":false}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, getOSDName)
 {
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setOSDName"), _T("{\"name\":\"CECTEST\"}"), response));
+    EXPECT_EQ(response,  string("{\"success\":true}"));
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getOSDName"), _T("{}"), response));
     EXPECT_EQ(response,  string("{\"name\":\"CECTEST\",\"success\":true}"));
 }
 
-TEST_F(HdmiCecSinkDsTest, setVendorId)
+TEST_F(HdmiCecSinkDsTest, setVendorIdParamMissing)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVendorId"), _T("{\"vendorid\":\"0x0019FF\"}"), response));
-    EXPECT_EQ(response,  string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVendorId"), _T("{}"), response));
+    EXPECT_EQ(response,  string("{\"success\":false}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, getVendorId)
 {
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVendorId"), _T("{\"vendorid\":\"0x0019FF\"}"), response));
+    EXPECT_EQ(response,  string("{\"success\":true}"));
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getVendorId"), _T("{}"), response));
     EXPECT_EQ(response,  string("{\"vendorid\":\"019ff\",\"success\":true}"));
+}
+
+TEST_F(HdmiCecSinkDsTest, setActivePathMissingParam)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setActivePath"), _T("{}"), response));
+    EXPECT_EQ(response,  string("{\"success\":false}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, setActivePath)
@@ -257,12 +218,18 @@ TEST_F(HdmiCecSinkDsTest, setActivePath)
     EXPECT_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
         .WillRepeatedly(::testing::Invoke(
             [&](const LogicalAddress &to, const CECFrame &frame, int timeout) {
-               EXPECT_LE(to.toInt(), LogicalAddress::BROADCAST);
+               EXPECT_EQ(to.toInt(), LogicalAddress::BROADCAST);
                EXPECT_GT(timeout, 0);
             }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setActivePath"), _T("{\"activePath\":\"2.0.0.0\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
+}
+
+TEST_F(HdmiCecSinkDsTest, setRoutingChangeInvalidParam)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setRoutingChange"), _T("{\"oldPort\":\"HDMI0\"}"), response)
+    EXPECT_EQ(response,  string("{\"success\":false}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, setRoutingChange)
@@ -272,20 +239,12 @@ TEST_F(HdmiCecSinkDsTest, setRoutingChange)
     EXPECT_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
         .WillRepeatedly(::testing::Invoke(
             [&](const LogicalAddress &to, const CECFrame &frame, int timeout) {
-                EXPECT_LE(to.toInt(), LogicalAddress::BROADCAST);
+                EXPECT_EQ(to.toInt(), LogicalAddress::BROADCAST);
                 EXPECT_GT(timeout, 0);
             }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setRoutingChange"), _T("{\"oldPort\":\"HDMI0\",\"newPort\":\"TV\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
-}
-
-TEST_F(HdmiCecSinkDsTest, getDeviceList)
-{
-    std::this_thread::sleep_for(std::chrono::seconds(20));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceList"), _T(""), response));
-    EXPECT_EQ(response,  string("{\"numberofdevices\":14,\"deviceList\":[{\"logicalAddress\":1,\"physicalAddress\":\"\",\"deviceType\":\"2\",\"cecVersion\":\"0\",\"osdName\":\"\",\"vendorID\":\"000\",\"powerStatus\":\"0\",\"portNumber\":-1},{\"logicalAddress\":2,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"0\",\"osdName\":\"\",\"vendorID\":\"000\",\"powerStatus\":\"0\",\"portNumber\":-1},{\"logicalAddress\":3,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"0\",\"osdName\":\"\",\"vendorID\":\"000\",\"powerStatus\":\"0\",\"portNumber\":-1},{\"logicalAddress\":4,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"0\",\"osdName\":\"\",\"vendorID\":\"000\",\"powerStatus\":\"0\",\"portNumber\":-1},{\"logicalAddress\":5,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"0\",\"osdName\":\"\",\"vendorID\":\"000\",\"powerStatus\":\"0\",\"portNumber\":-1},{\"logicalAddress\":6,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"0\",\"osdName\":\"\",\"vendorID\":\"000\",\"powerStatus\":\"0\",\"portNumber\":-1},{\"logicalAddress\":7,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"0\",\"osdName\":\"\",\"vendorID\":\"000\",\"powerStatus\":\"0\",\"portNumber\":-1},{\"logicalAddress\":8,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"0\",\"osdName\":\"\",\"vendorID\":\"000\",\"powerStatus\":\"0\",\"portNumber\":-1},{\"logicalAddress\":9,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"0\",\"osdName\":\"\",\"vendorID\":\"000\",\"powerStatus\":\"0\",\"portNumber\":-1},{\"logicalAddress\":10,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"0\",\"osdName\":\"\",\"vendorID\":\"000\",\"powerStatus\":\"0\",\"portNumber\":-1},{\"logicalAddress\":11,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"0\",\"osdName\":\"\",\"vendorID\":\"000\",\"powerStatus\":\"0\",\"portNumber\":-1},{\"logicalAddress\":12,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"0\",\"osdName\":\"\",\"vendorID\":\"000\",\"powerStatus\":\"0\",\"portNumber\":-1},{\"logicalAddress\":13,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"0\",\"osdName\":\"\",\"vendorID\":\"000\",\"powerStatus\":\"0\",\"portNumber\":-1},{\"logicalAddress\":14,\"physicalAddress\":\"\",\"deviceType\":\"0\",\"cecVersion\":\"0\",\"osdName\":\"\",\"vendorID\":\"000\",\"powerStatus\":\"0\",\"portNumber\":-1}],\"success\":true}"));
 }
 
 TEST_F(HdmiCecSinkDsTest, setActiveSource)

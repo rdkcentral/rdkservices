@@ -682,11 +682,11 @@ namespace WPEFramework
            {
   	       try
                {
-		   CECEnable();
+                   CECEnable();
                }
                catch(...)
                {
-		   LOGWARN("Exception while enabling CEC settings .\r\n");
+                   LOGWARN("Exception while enabling CEC settings .\r\n");
                }
 	   }
            getHdmiArcPortID();

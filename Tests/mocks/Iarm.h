@@ -873,17 +873,17 @@ typedef struct _IARM_Bus_SYSMgr_RunScript_t{
 } IARM_Bus_SYSMgr_RunScript_t;
 
 typedef enum _CECMgr_EventId_t {
-        IARM_BUS_CECMGR_EVENT_SEND,
-        IARM_BUS_CECMGR_EVENT_RECV,
-        IARM_BUS_CECMGR_EVENT_ENABLE,
-        IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,
-        IARM_BUS_CECMGR_EVENT_MAX,
-        IARM_BUS_CECMGR_EVENT_STATUS_UPDATED
+    IARM_BUS_CECMGR_EVENT_SEND,
+    IARM_BUS_CECMGR_EVENT_RECV,
+    IARM_BUS_CECMGR_EVENT_ENABLE,
+    IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,
+    IARM_BUS_CECMGR_EVENT_MAX,
+    IARM_BUS_CECMGR_EVENT_STATUS_UPDATED
 } IARM_Bus_CECMgr_EventId_t;
 
 typedef struct _IARM_Bus_CECMgr_Status_Updated_Param_t
 {
-        int logicalAddress;
+    int logicalAddress;
 }IARM_Bus_CECMgr_Status_Updated_Param_t;
 
 #define IARM_BUS_CECMGR_API_isAvailable "isAvailable"
