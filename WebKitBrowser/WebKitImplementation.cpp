@@ -2557,7 +2557,14 @@ static GSourceFuncs _handlerIntervention =
                     browser->_ignoreLoadFinishedOnce = false;
                     return;
                 }
-                browser->OnLoadFinished(Core::ToString(webkit_web_view_get_uri(webView)));
+                const std::string uri = webkit_web_view_get_uri(webView);
+                if (browser->_httpStatusCode < 0 && uri.find("http", 0, 4) != std::string::npos &&
+                    webkit_web_view_get_estimated_load_progress(webView) < 1.0)
+                {
+                    // Load failed or there is another load in progress already
+                    return;
+                }
+                browser->OnLoadFinished(Core::ToString(uri.c_str()));
             }
         }
         static void loadFailedCallback(WebKitWebView*, WebKitLoadEvent loadEvent, const gchar* failingURI, GError* error, WebKitImplementation* browser)
