@@ -977,6 +977,14 @@ void XCast::onXcastApplicationLaunchRequestWithLaunchParam (string appName,
 {
     //TODO
     LOGINFO ("XcastService::onXcastApplicationLaunchRequestWithLaunchParam ");
+    if(strAddDataUrl.size() > DIAL_MAX_ADDITIONALURL){
+        LOGWARN ("%s - current additional data size (%d) exceeds maximum allowed size (%d) ", __PRETTY_FUNCTION__, strAddDataUrl.size(), DIAL_MAX_ADDITIONALURL);
+        return;
+    }
+    if(strPayLoad.size() > DIAL_MAX_PAYLOAD) {
+        LOGWARN ("%s - current payload size (%d) exceeds maximum allowed size (%d) ", __PRETTY_FUNCTION__, strPayLoad.size(), DIAL_MAX_PAYLOAD);
+        return;
+    }
     JsonObject params;
     JsonObject urlParam;
     char url[DIAL_MAX_PAYLOAD+DIAL_MAX_ADDITIONALURL+100] = {0,};
