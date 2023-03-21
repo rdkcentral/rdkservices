@@ -63,7 +63,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 12
+#define API_VERSION_NUMBER_PATCH 13
 
 namespace WPEFramework {
 
@@ -866,6 +866,14 @@ void XCast::onXcastApplicationLaunchRequestWithLaunchParam (string appName,
 {
     //TODO
     LOGINFO ("XcastService::onXcastApplicationLaunchRequestWithLaunchParam ");
+    if(strAddDataUrl.size() > DIAL_MAX_ADDITIONALURL){
+        LOGWARN ("%s - current additional data size (%d) exceeds maximum allowed size (%d) ", __PRETTY_FUNCTION__, strAddDataUrl.size(), DIAL_MAX_ADDITIONALURL);
+        return;
+    }
+    if(strPayLoad.size() > DIAL_MAX_PAYLOAD) {
+        LOGWARN ("%s - current payload size (%d) exceeds maximum allowed size (%d) ", __PRETTY_FUNCTION__, strPayLoad.size(), DIAL_MAX_PAYLOAD);
+        return;
+    }
     JsonObject params;
     JsonObject urlParam;
     char url[DIAL_MAX_PAYLOAD+DIAL_MAX_ADDITIONALURL+100] = {0,};
