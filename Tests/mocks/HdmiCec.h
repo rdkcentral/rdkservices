@@ -25,8 +25,8 @@ enum {
     REPORT_ARC_TERMINATED = 0XC2,
     REQUEST_ARC_INITIATION = 0XC3,
     REQUEST_ARC_TERMINATION = 0XC4,
-	REQUEST_CURRENT_LATENCY = 0xA7,
-	REPORT_CURRENT_LATENCY = 0xA8,
+    REQUEST_CURRENT_LATENCY = 0xA7,
+    REPORT_CURRENT_LATENCY = 0xA8,
     UNKNOWN = 0xFFFF
 };
 
@@ -215,7 +215,6 @@ public:
 
 
 class VendorID : public CECBytes{
-
 public:
     enum {
         MAX_LEN = 3,
@@ -231,8 +230,6 @@ public:
     };
     VendorID(const uint8_t* buf, size_t len): CECBytes (NULL,0){};
     VendorID(): CECBytes (NULL,0){};
-
-
 };
 
 class PhysicalAddress : public CECBytes {

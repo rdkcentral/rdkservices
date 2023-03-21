@@ -72,7 +72,7 @@ protected:
 		EXPECT_EQ(string(""), plugin->Initialize(nullptr));
     }
 
-	virtual ~HdmiCecSinkTest() override
+    virtual ~HdmiCecSinkTest() override
     {
         plugin->Deinitialize(nullptr);
         IarmBus::getInstance().impl = nullptr;
@@ -86,7 +86,7 @@ class HdmiCecSinkDsTest : public HdmiCecSinkTest {
 protected:
     string response;
     
-	HdmiCecSinkDsTest(): HdmiCecSinkTest()
+    HdmiCecSinkDsTest(): HdmiCecSinkTest()
     {
 		ON_CALL(iarmBusImplMock, IARM_Bus_Call)
             .WillByDefault(
@@ -255,7 +255,7 @@ TEST_F(HdmiCecSinkDsTest, setMenuLanguageInvalidParam)
 
 TEST_F(HdmiCecSinkDsTest, setMenuLanguage)
 {
-    EXPECT_CALL(connectionImplMock, sendTo(::testing::, ::testing::, ::testing::_))
+    EXPECT_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
         .WillRepeatedly(::testing::Invoke(
             [&](const LogicalAddress &to, const CECFrame &frame, int timeout) {
                 EXPECT_LE(to.toInt(), LogicalAddress::BROADCAST);
