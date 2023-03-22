@@ -89,8 +89,8 @@ public:
 
     void getBuffer(const uint8_t** buf, size_t* len) const
     {
-		*len = this->len_;
-		*buf = this->buf_;
+        *len = this->len_;
+        *buf = this->buf_;
     }
 
 private:
@@ -102,8 +102,8 @@ class CECBytes {
 protected:
     std::vector<uint8_t> str;
     CECBytes(const uint8_t val){
-		str.push_back(val);
-	}
+        str.push_back(val);
+    }
     CECBytes(const uint8_t* buf, size_t len) {
         if(buf && len){
             for(size_t i =0; i < len; i++){
@@ -146,9 +146,7 @@ class OSDString : public CECBytes {
 
 class OSDName : public CECBytes {
 public:
-    OSDName(const char* str1)
-        : CECBytes((const uint8_t*)str1, strlen(str1)){
-    }
+    OSDName(const char* str1): CECBytes((const uint8_t*)str1, strlen(str1)) {}
 
     const std::string toString(void) const {
         return std::string(str.begin(), str.end());
@@ -166,10 +164,8 @@ public:
         UNRECOGNIZED_OPCODE,
     };
 
-    AbortReason(int reason)
-        : CECBytes((uint8_t)reason){
-    }
-
+    AbortReason(int reason): CECBytes((uint8_t)reason){}
+    
     AbortReason();
 
     AbortReason* impl;
@@ -202,14 +198,6 @@ public:
 		VIDEO_PROCESSOR,
     };
 
-    DeviceType(const CECFrame& frame, size_t startPos)
-        : CECBytes(frame, startPos, MAX_LEN)
-    {
-    }
-    DeviceType(int type)
-        : CECBytes((uint8_t)type)
-    {
-    }
 
     const std::string toString(void) const {
             static const char *names_[] = {
@@ -229,6 +217,9 @@ public:
                 return "Unknown";
             }
         }
+
+    DeviceType(const CECFrame& frame, size_t startPos): CECBytes(frame, startPos, MAX_LEN){}
+    DeviceType(int type): CECBytes((uint8_t)type){}
 };
 
 class Language : public CECBytes {
@@ -237,13 +228,11 @@ public:
         MAX_LEN = 3,
     };
 
-    Language(const char* str1)
-        : CECBytes((const uint8_t*)str1, MAX_LEN){};
+    Language(const char* str1): CECBytes((const uint8_t*)str1, MAX_LEN){};
 };
 
 
 class VendorID : public CECBytes{
-
 public:
     enum {
         MAX_LEN = 3,
@@ -255,12 +244,10 @@ public:
         bytes[1] = byte1;
         bytes[2] = byte2;
         str.insert(str.begin(), bytes, bytes + MAX_LEN);
-
     };
+
     VendorID(const uint8_t* buf, size_t len): CECBytes (NULL,0){};
     VendorID(): CECBytes (NULL,0){};
-
-
 };
 
 class PhysicalAddress : public CECBytes {
@@ -268,12 +255,9 @@ public:
     enum {
         MAX_LEN = 2,
     };
-    PhysicalAddress(const CECFrame& frame, size_t startPos)
-        : CECBytes(frame, startPos, MAX_LEN){};
-    PhysicalAddress(uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3)
-        : CECBytes(NULL, 0){};
-    PhysicalAddress(std::string& addr): CECBytes(NULL, 0){
-    }
+    PhysicalAddress(const CECFrame& frame, size_t startPos): CECBytes(frame, startPos, MAX_LEN){};
+    PhysicalAddress(uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3): CECBytes(NULL, 0){};
+    PhysicalAddress(std::string& addr): CECBytes(NULL, 0){};
     PhysicalAddress(): CECBytes(NULL, 0){};
 
     static PhysicalAddress& getInstance()
@@ -310,10 +294,9 @@ public:
         return instance;
     }
 
-    LogicalAddress(int addr = UNREGISTERED)
-        : CECBytes((uint8_t)addr){};
+    LogicalAddress(int addr = UNREGISTERED): CECBytes((uint8_t)addr){};
 
-	int toInt() const
+    int toInt() const
     {
         return str[0];
     }
@@ -347,8 +330,7 @@ public:
         V_1_4 = 0x05
     };
 
-    Version(int version)
-        : CECBytes((uint8_t)version){};
+    Version(int version): CECBytes((uint8_t)version){};
 };
 
 class PowerStatusImpl {
@@ -365,9 +347,7 @@ public:
         POWER_STATUS_FEATURE_ABORT = 0x05,
     };
 
-    PowerStatus(int status)
-        : CECBytes((uint8_t)status){};
-
+    PowerStatus(int status): CECBytes((uint8_t)status){};
     PowerStatus();
 
     PowerStatus* impl;
@@ -483,8 +463,7 @@ public:
         UI_COMMAND_NUM_9 = 0x29,
     };
 
-    UICommand(int command)
-        : CECBytes((uint8_t)command){};
+    UICommand(int command): CECBytes((uint8_t)command){};
 };
 
 class DataBlock {
@@ -501,9 +480,7 @@ class ActiveSource : public DataBlock {
 public:
     Op_t opCode(void) const { return ACTIVE_SOURCE; }
 
-    ActiveSource(PhysicalAddress& phyAddress)
-        : physicalAddress(phyAddress){
-    }
+    ActiveSource(PhysicalAddress& phyAddress): physicalAddress(phyAddress){}
 
     PhysicalAddress physicalAddress;
 };
@@ -537,10 +514,7 @@ class Standby : public DataBlock {
 
 class CECVersion : public DataBlock {
 public:
-    CECVersion(const Version& ver)
-        : version(ver){
-    }
-
+    CECVersion(const Version& ver): version(ver){};
     Version version;
 };
 
@@ -552,8 +526,7 @@ class GetMenuLanguage {
 
 class SetMenuLanguage : public DataBlock {
 public:
-    SetMenuLanguage(const Language& lan)
-        : language(lan){};
+    SetMenuLanguage(const Language& lan): language(lan){};
     const Language language;
 };
 
@@ -589,13 +562,8 @@ public:
 
 class SetStreamPath : public DataBlock {
 public:
-    SetStreamPath(const PhysicalAddress& toSink1)
-        : toSink(toSink1){
-    }
-
-    SetStreamPath(const CECFrame& frame, int startPos = 0)
-        : toSink(frame, startPos){
-    }
+    SetStreamPath(const PhysicalAddress& toSink1): toSink(toSink1){}
+    SetStreamPath(const CECFrame& frame, int startPos = 0): toSink(frame, startPos){}
 
     PhysicalAddress toSink;
 };
@@ -678,9 +646,7 @@ public:
 
 class UserControlPressed : public DataBlock {
 public:
-    UserControlPressed(const UICommand& command)
-        : uiCommand(command){
-    }
+    UserControlPressed(const UICommand& command): uiCommand(command){}
 
     UICommand uiCommand;
 };
@@ -892,7 +858,7 @@ public:
 class RequestCurrentLatency : public DataBlock
 {
 public:
-	Op_t opCode(void) const {return REQUEST_CURRENT_LATENCY;}
+    Op_t opCode(void) const {return REQUEST_CURRENT_LATENCY;}
     RequestCurrentLatency(const PhysicalAddress &physicaladdres = {0xf,0xf,0xf,0xf} ): physicaladdress(physicaladdres) {}
     PhysicalAddress physicaladdress;
 };

@@ -50,20 +50,17 @@ docker exec -it <container name> /bin/bash
  Common recommendations:
    - Tests should be fast.
    - Tests should be independent and repeatable.
-   - If two or more tests operate on similar data, use a test fixture.
-   - Fixture constructor/destructor should be preferred over `SetUp()/TearDown()` unless using `ASSERT_xx`.
-   - `EXPECT_*` are preferred, as they allow more than one failure to be reported in a test.
-     However, use `ASSERT_*` if it doesn’t make sense to continue when the assertion in question fails.
+   - Find the smallest piece of logic you can test, isolate it from other parts.
+   - Use One-Assert-per-Test and Arrange-Act-Assert patterns.
+     If two or more tests operate on similar data, use a test fixture.
    - Having more constraints than necessary is bad.
      If a test over-specifies, it doesn’t leave enough freedom to the implementation.
      Use `ON_CALL` by default, and only use `EXPECT_CALL` when intend to verify that the call is made.
      Suppress GMOCK WARNING-s with NiceMock.
 
 4. Before review:
-   - See the [common mistakes](https://github.com/rdkcentral/rdkservices/issues/3711).
    - Enable [ClangFormat](./.clang-format) and make sure the tests code is formatted.
-   - For the tests, the code is built with flags `-Wall -Werror`.
-     Make sure the code builds without warnings.
+   - Make sure the code builds without warnings.
    - At the bottom of the workflow summary page on GitHub, there is a section with artifacts.
      Artifacts include coverage report and valgrind log.
      They help to understand how much code is covered by tests and whether there are memory leaks.

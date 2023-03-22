@@ -835,6 +835,12 @@ static GSourceFuncs _handlerIntervention =
             Block();
 
             if (_loop != nullptr) {
+                if (g_main_loop_is_running(_loop) == FALSE) {
+                    g_main_context_invoke(_context, [](gpointer data) -> gboolean {
+                        g_main_loop_quit(reinterpret_cast<GMainLoop*>(data));
+                        return G_SOURCE_REMOVE;
+                    }, _loop);
+                }
                 g_main_loop_quit(_loop);
             }
 
@@ -2557,7 +2563,14 @@ static GSourceFuncs _handlerIntervention =
                     browser->_ignoreLoadFinishedOnce = false;
                     return;
                 }
-                browser->OnLoadFinished(Core::ToString(webkit_web_view_get_uri(webView)));
+                const std::string uri = webkit_web_view_get_uri(webView);
+                if (browser->_httpStatusCode < 0 && uri.find("http", 0, 4) != std::string::npos &&
+                    webkit_web_view_get_estimated_load_progress(webView) < 1.0)
+                {
+                    // Load failed or there is another load in progress already
+                    return;
+                }
+                browser->OnLoadFinished(Core::ToString(uri.c_str()));
             }
         }
         static void loadFailedCallback(WebKitWebView*, WebKitLoadEvent loadEvent, const gchar* failingURI, GError* error, WebKitImplementation* browser)
@@ -2570,7 +2583,7 @@ static GSourceFuncs _handlerIntervention =
             }
             browser->OnLoadFailed(failingURI);
         }
-        static void webProcessTerminatedCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitWebProcessTerminationReason reason)
+        static void webProcessTerminatedCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitWebProcessTerminationReason reason, WebKitImplementation* browser)
         {
             switch (reason) {
             case WEBKIT_WEB_PROCESS_CRASHED:
@@ -2583,7 +2596,12 @@ static GSourceFuncs _handlerIntervention =
                 SYSLOG(Trace::Fatal, (_T("CRASH: WebProcess terminated by API")));
                 break;
             }
-            exit(1);
+            g_signal_handlers_block_matched(webView, G_SIGNAL_MATCH_DATA, 0, 0, nullptr, nullptr, browser);
+            struct ExitJob : public Core::IDispatch
+            {
+                virtual void Dispatch() { exit(1); }
+            };
+            Core::IWorkerPool::Instance().Submit(Core::proxy_cast<Core::IDispatch>(Core::ProxyType<ExitJob>::Create()));
         }
         static void closeCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitImplementation* browser)
         {
@@ -2846,7 +2864,7 @@ static GSourceFuncs _handlerIntervention =
             g_signal_connect(_view, "decide-policy", reinterpret_cast<GCallback>(decidePolicyCallback), this);
             g_signal_connect(_view, "notify::uri", reinterpret_cast<GCallback>(uriChangedCallback), this);
             g_signal_connect(_view, "load-changed", reinterpret_cast<GCallback>(loadChangedCallback), this);
-            g_signal_connect(_view, "web-process-terminated", reinterpret_cast<GCallback>(webProcessTerminatedCallback), nullptr);
+            g_signal_connect(_view, "web-process-terminated", reinterpret_cast<GCallback>(webProcessTerminatedCallback), this);
             g_signal_connect(_view, "close", reinterpret_cast<GCallback>(closeCallback), this);
             g_signal_connect(_view, "permission-request", reinterpret_cast<GCallback>(decidePermissionCallback), nullptr);
             g_signal_connect(_view, "show-notification", reinterpret_cast<GCallback>(showNotificationCallback), this);

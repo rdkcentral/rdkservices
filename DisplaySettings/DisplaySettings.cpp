@@ -2352,7 +2352,7 @@ namespace WPEFramework {
 
         uint32_t DisplaySettings::getVolumeLevel (const JsonObject& parameters, JsonObject& response)
         {
-            LOGINFOMETHOD();
+            //LOGINFOMETHOD();
             bool success = true;
             float level = 0;
 
@@ -2817,7 +2817,7 @@ namespace WPEFramework {
 
         uint32_t DisplaySettings::setVolumeLevel(const JsonObject& parameters, JsonObject& response)
         {
-                LOGINFOMETHOD();
+                //LOGINFOMETHOD();/*prevent log spam*/
                 returnIfParamNotFound(parameters, "volumeLevel");
                 string sLevel = parameters["volumeLevel"].String();
                 float level = 0;
@@ -2841,7 +2841,9 @@ namespace WPEFramework {
                         LOG_DEVICE_EXCEPTION2(audioPort, sLevel);
                         success = false;
                 }
-                returnResponse(success);
+                //returnResponse(success);/*prevent log spam*/
+                response["success"] = success;
+                return (WPEFramework::Core::ERROR_NONE);
         }
 
         uint32_t DisplaySettings::setDRCMode(const JsonObject& parameters, JsonObject& response)

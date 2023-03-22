@@ -44,6 +44,7 @@ set_source_files_properties(
         tests/test_Warehouse.cpp
         tests/test_HdmiCec.cpp
         tests/test_FrontPanel.cpp
+        tests/test_HdmiCecSink.cpp
         PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 include_directories(../LocationSync
@@ -76,6 +77,7 @@ include_directories(../LocationSync
         ../HdmiCec
         ../FrontPanel
         ../OCIContainer
+        ../HdmiCecSink
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -106,6 +108,7 @@ link_directories(../LocationSync
         ../HdmiCec
         ../FrontPanel
         ../OCIContainer
+        ../HdmiCecSink
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -140,6 +143,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}HdmiCec
         ${NAMESPACE}FrontPanel
         ${NAMESPACE}OCIContainer
+        ${NAMESPACE}HdmiCecSink
         )
 
 target_include_directories(${PROJECT_NAME}
