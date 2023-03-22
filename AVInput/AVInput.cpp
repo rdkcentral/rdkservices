@@ -927,7 +927,7 @@ uint32_t AVInput::getSupportedGameFeatures(const JsonObject& parameters, JsonObj
         return Core::ERROR_GENERAL;
     }
     else {
-        setResponseArray(response, "suppoortedGameFeatures", supportedFeatures);
+        setResponseArray(response, "supportedGameFeatures", supportedFeatures);
         return Core::ERROR_NONE;
     }
 }
