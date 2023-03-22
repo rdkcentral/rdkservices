@@ -677,7 +677,7 @@ namespace WPEFramework
            }
            if (cecSettingEnabled && (err == IARM_RESULT_SUCCESS))
            {
-  	       try
+               try
                {
                    CECEnable();
                }
@@ -1387,7 +1387,7 @@ namespace WPEFramework
                 std::string id = parameters["activePath"].String();
 				PhysicalAddress phy_addr = PhysicalAddress(id);
 
-                                LOGINFO("Addr = %s, length = %ld", id.c_str(), id.length());
+                LOGINFO("Addr = %s, length = %ld", id.c_str(), id.length());
 
 				setStreamPath(phy_addr);
 				returnResponse(true);
@@ -1600,7 +1600,7 @@ namespace WPEFramework
 			m_SendKeyQueue.push(keyInfo);
                         m_sendKeyEventThreadRun = true;
 			m_sendKeyCV.notify_one();
-                        LOGINFO("Post send key press event to queue size:%ld \n",m_SendKeyQueue.size());
+            LOGINFO("Post send key press event to queue size:%ld \n",m_SendKeyQueue.size());
 			returnResponse(true);
 		}
 	   uint32_t HdmiCecSink::sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response)
@@ -2674,7 +2674,7 @@ namespace WPEFramework
 					}
 
 					if (connected.size()) {
-                                                LOGWARN("Connected Devices [%ld]", connected.size());
+                        LOGWARN("Connected Devices [%ld]", connected.size());
 						for( unsigned int i=0; i< connected.size(); i++ )
 						{
 							_instance->addDevice(connected[i]);
