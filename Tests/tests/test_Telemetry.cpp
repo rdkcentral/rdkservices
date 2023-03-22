@@ -7,6 +7,7 @@
 #include "ServiceMock.h"
 #include "TelemetryMock.h"
 #include "RBusMock.h"
+#include "IarmBusMock.h"
 
 namespace {
 const string profileFN = _T("/tmp/DefaultProfile.json");
@@ -38,6 +39,7 @@ protected:
 class TelemetryTest : public T2Test {
 protected:
     NiceMock<ServiceMock> service;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
     Core::ProxyType<Plugin::Telemetry> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
@@ -49,9 +51,13 @@ protected:
         , handler(*plugin)
         , connection(1, 0)
     {
+        IarmBus::getInstance().impl = &iarmBusImplMock;
         Core::Directory(t2PpersistentFolder.c_str()).Destroy(true);
     }
-    virtual ~TelemetryTest() override = default;
+    virtual ~TelemetryTest() override
+    {
+        IarmBus::getInstance().impl = nullptr;
+    }
 };
 
 class TelemetryRfcTest : public TelemetryTest {
