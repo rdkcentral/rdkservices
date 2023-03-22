@@ -25,11 +25,11 @@ enum {
     REPORT_ARC_TERMINATED = 0XC2,
     REQUEST_ARC_INITIATION = 0XC3,
     REQUEST_ARC_TERMINATION = 0XC4,
-	REQUEST_CURRENT_LATENCY = 0xA7,
-	REPORT_CURRENT_LATENCY = 0xA8,
+    REQUEST_CURRENT_LATENCY = 0xA7,
+    REPORT_CURRENT_LATENCY = 0xA8,
     ROUTING_CHANGE = 0x80,
-	ROUTING_INFORMATION = 0x81,
-	SET_STREAM_PATH = 0x86,
+    ROUTING_INFORMATION = 0x81,
+    SET_STREAM_PATH = 0x86,
     UNKNOWN = 0xFFFF
 };
 
@@ -186,18 +186,16 @@ public:
     enum {
         MAX_LEN = 1,
     };
-
     enum {
         TV = 0x0,
-		RECORDING_DEVICE,
-		RESERVED,
-		TUNER,
-		PLAYBACK_DEVICE,
-		AUDIO_SYSTEM,
-		PURE_CEC_SWITCH,
-		VIDEO_PROCESSOR,
+        RECORDING_DEVICE,
+        RESERVED,
+        TUNER,
+        PLAYBACK_DEVICE,
+        AUDIO_SYSTEM,
+        PURE_CEC_SWITCH,
+        VIDEO_PROCESSOR,
     };
-
 
     const std::string toString(void) const {
             static const char *names_[] = {
