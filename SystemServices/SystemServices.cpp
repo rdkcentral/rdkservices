@@ -2263,7 +2263,7 @@ namespace WPEFramework {
         uint32_t SystemServices::setTimeZoneDST(const JsonObject& parameters,
                 JsonObject& response)
 	{
-		bool resp = false;
+		bool resp = true;
 		if (parameters.HasLabel("timeZone")) {
 			std::string dir = dirnameOf(TZ_FILE);
 			std::string timeZone = "";
@@ -2291,49 +2291,56 @@ namespace WPEFramework {
 							//Do nothing//
 						}
 						std::string oldTimeZoneDST = getTimeZoneDSTHelper();
-
-						FILE *f = fopen(TZ_FILE, "w");
-						if (f) {
-							if (timeZone.size() != fwrite(timeZone.c_str(), 1, timeZone.size(), f))
-								LOGERR("Failed to write %s", TZ_FILE);
-
-							fflush(f);
-							fsync(fileno(f));
-							fclose(f);
-
-							std::string oldAccuracy = getTimeZoneAccuracyDSTHelper();
-							std::string accuracy = oldAccuracy;
-
-							if (parameters.HasLabel("accuracy")) {
-								accuracy = parameters["accuracy"].String();
-								if (accuracy != TZ_ACCURACY_INITIAL && accuracy != TZ_ACCURACY_INTERIM && accuracy != TZ_ACCURACY_FINAL) {
-									LOGERR("Wrong TimeZone Accuracy: %s", accuracy.c_str());
-									accuracy = oldAccuracy;
+						
+						if (oldTimeZoneDST != timeZone) {
+							FILE *f = fopen(TZ_FILE, "w");
+							if (f) {
+								if (timeZone.size() != fwrite(timeZone.c_str(), 1, timeZone.size(), f))
+								{
+									LOGERR("Failed to write %s", TZ_FILE);
+									resp = false;
 								}
+
+								fflush(f);
+								fsync(fileno(f));
+								fclose(f);
+
+							} else {
+								LOGERR("Unable to open %s file.\n", TZ_FILE);
+								populateResponseWithError(SysSrv_FileAccessFailed, response);
+								resp = false;
 							}
-
-							if (accuracy != oldAccuracy) {
-								f = fopen(TZ_ACCURACY_FILE, "w");
-								if (f) {
-									if (accuracy.size() != fwrite(accuracy.c_str(), 1, accuracy.size(), f))
-										LOGERR("Failed to write %s", TZ_ACCURACY_FILE);
-
-									fflush(f);
-									fsync(fileno(f));
-									fclose(f);
-								}
-							}
-
-
-							if (SystemServices::_instance)
-								SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone,oldAccuracy, accuracy);
-
-							resp = true;
-						} else {
-							LOGERR("Unable to open %s file.\n", TZ_FILE);
-							populateResponseWithError(SysSrv_FileAccessFailed, response);
-							resp = false;
 						}
+
+						std::string oldAccuracy = getTimeZoneAccuracyDSTHelper();
+						std::string accuracy = oldAccuracy;
+
+						if (parameters.HasLabel("accuracy")) {
+							accuracy = parameters["accuracy"].String();
+							if (accuracy != TZ_ACCURACY_INITIAL && accuracy != TZ_ACCURACY_INTERIM && accuracy != TZ_ACCURACY_FINAL) {
+								LOGERR("Wrong TimeZone Accuracy: %s", accuracy.c_str());
+								accuracy = oldAccuracy;
+							}
+						}
+
+						if (accuracy != oldAccuracy) {
+							FILE *f = fopen(TZ_ACCURACY_FILE, "w");
+							if (f) {
+								if (accuracy.size() != fwrite(accuracy.c_str(), 1, accuracy.size(), f))
+								{
+									LOGERR("Failed to write %s", TZ_ACCURACY_FILE);
+									resp = false;
+								}
+
+								fflush(f);
+								fsync(fileno(f));
+								fclose(f);
+							}
+						}
+
+						if (SystemServices::_instance && (oldTimeZoneDST != timeZone || oldAccuracy != accuracy))
+							SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone,oldAccuracy, accuracy);
+
 					}
 					else{
 						LOGERR("Invalid timeZone  %s received. Timezone not supported in TZ Database. \n", timeZone.c_str());
