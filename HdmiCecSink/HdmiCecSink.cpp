@@ -613,7 +613,7 @@ namespace WPEFramework
            m_arcStartStopTimer.setSingleShot(true);
            // load persistence setting
            loadSettings();
-	}
+       }
 
        HdmiCecSink::~HdmiCecSink()
        {
@@ -621,48 +621,45 @@ namespace WPEFramework
        
        const std::string HdmiCecSink::Initialize(PluginHost::IShell * /* service */)
        {
-	   HdmiCecSink::_instance = this;
-	   int err;
-	   dsHdmiInGetNumberOfInputsParam_t hdmiInput;
+           HdmiCecSink::_instance = this;
+           int err;
+           dsHdmiInGetNumberOfInputsParam_t hdmiInput;
 
-	   InitializeIARM();
-	   // get power state:
-	   IARM_Bus_PWRMgr_GetPowerState_Param_t param;
-	   err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
-					   IARM_BUS_PWRMGR_API_GetPowerState,
-					   (void *)&param,
-					   sizeof(param));
-	   if (err == IARM_RESULT_SUCCESS)
-	   {
-		powerState = (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON) ? DEVICE_POWER_STATE_ON : DEVICE_POWER_STATE_OFF;
-		LOGINFO("Current state is IARM: (%d) powerState :%d \n", param.curState, powerState);
-	   }
+           InitializeIARM();
+           // get power state:
+           IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+           err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                               IARM_BUS_PWRMGR_API_GetPowerState,
+                               (void *)&param,
+                               sizeof(param));
+           if (err == IARM_RESULT_SUCCESS)
+           {
+                powerState = (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON) ? DEVICE_POWER_STATE_ON : DEVICE_POWER_STATE_OFF;
+                LOGINFO("Current state is IARM: (%d) powerState :%d \n", param.curState, powerState);
+           }
 
-	   err = IARM_Bus_Call(IARM_BUS_DSMGR_NAME,
-					   IARM_BUS_DSMGR_API_dsHdmiInGetNumberOfInputs,
-					   (void *)&hdmiInput,
-					   sizeof(hdmiInput));
+           err = IARM_Bus_Call(IARM_BUS_DSMGR_NAME,
+                               IARM_BUS_DSMGR_API_dsHdmiInGetNumberOfInputs,
+                               (void *)&hdmiInput,
+                               sizeof(hdmiInput));
 
-	   if (err == IARM_RESULT_SUCCESS && hdmiInput.result == dsERR_NONE)
-	   {
-		LOGINFO("Number of Inputs [%d] \n", hdmiInput.numHdmiInputs);
-		m_numofHdmiInput = hdmiInput.numHdmiInputs;
-	   }
-	   else
-	   {
-       		LOGINFO("Not able to get Numebr of inputs so defaulting to 3 \n");
-       		m_numofHdmiInput = 3;
-	   }
+           if (err == IARM_RESULT_SUCCESS && hdmiInput.result == dsERR_NONE)
+           {
+                LOGINFO("Number of Inputs [%d] \n", hdmiInput.numHdmiInputs);
+                m_numofHdmiInput = hdmiInput.numHdmiInputs;
+           }else{
+                LOGINFO("Not able to get Numebr of inputs so defaulting to 3 \n");
+                m_numofHdmiInput = 3;
+           }
 
-	   LOGINFO("initalize inputs \n");
+           LOGINFO("initalize inputs \n");
 
-	   for (int i = 0; i < m_numofHdmiInput; i++)
-	   {
-		HdmiPortMap hdmiPort((uint8_t)i);
-		LOGINFO(" Add to vector [%d] \n", i);
-		hdmiInputs.push_back(hdmiPort);
-	   }
-	   LOGINFO("Check the HDMI State \n");
+           for (int i = 0; i < m_numofHdmiInput; i++){
+                HdmiPortMap hdmiPort((uint8_t)i);
+                LOGINFO(" Add to vector [%d] \n", i);
+                hdmiInputs.push_back(hdmiPort);
+           }
+           LOGINFO("Check the HDMI State \n");
            CheckHdmiInState();
 
            int cecMgrIsAvailableParam;
@@ -672,11 +669,11 @@ namespace WPEFramework
                            sizeof(cecMgrIsAvailableParam));
            if (err == IARM_RESULT_SUCCESS)
            {
-		LOGINFO("RDK CECDaemon up and running. IARM Call: IARM_BUS_CECMGR_API_isAvailable successful... \n");
+                LOGINFO("RDK CECDaemon up and running. IARM Call: IARM_BUS_CECMGR_API_isAvailable successful... \n");
            }
            else
            {
-		LOGINFO("RDK CECDaemon not up yet. IARM Call: IARM_BUS_CECMGR_API_isAvailable failed !!! \n");
+                LOGINFO("RDK CECDaemon not up yet. IARM Call: IARM_BUS_CECMGR_API_isAvailable failed !!! \n");
            }
            if (cecSettingEnabled && (err == IARM_RESULT_SUCCESS))
            {
@@ -688,10 +685,12 @@ namespace WPEFramework
                {
                    LOGWARN("Exception while enabling CEC settings .\r\n");
                }
-	   }
+           }
+           
            getHdmiArcPortID();
-	   return (std::string());
+           return (std::string());
        }
+
        void HdmiCecSink::Deinitialize(PluginHost::IShell* /* service */)
        {
 	    CECDisable();
@@ -1388,7 +1387,7 @@ namespace WPEFramework
                 std::string id = parameters["activePath"].String();
 				PhysicalAddress phy_addr = PhysicalAddress(id);
 
-				LOGINFO("Addr = %s, length = %ld", id.c_str(), id.length());
+                                LOGINFO("Addr = %s, length = %ld", id.c_str(), id.length());
 
 				setStreamPath(phy_addr);
 				returnResponse(true);
@@ -1601,7 +1600,7 @@ namespace WPEFramework
 			m_SendKeyQueue.push(keyInfo);
                         m_sendKeyEventThreadRun = true;
 			m_sendKeyCV.notify_one();
-			LOGINFO("Post send key press event to queue size:%ld \n",m_SendKeyQueue.size());
+                        LOGINFO("Post send key press event to queue size:%ld \n",m_SendKeyQueue.size());
 			returnResponse(true);
 		}
 	   uint32_t HdmiCecSink::sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response)
@@ -2669,13 +2668,13 @@ namespace WPEFramework
 					if ( disconnected.size() ){
 						for( unsigned int i=0; i< disconnected.size(); i++ )
 						{
-							LOGWARN("Disconnected Devices [%ld]", disconnected.size());
+                                                        LOGWARN("Disconnected Devices [%ld]", disconnected.size());
 							_instance->removeDevice(disconnected[i]);
 						}
 					}
 
 					if (connected.size()) {
-						LOGWARN("Connected Devices [%ld]", connected.size());
+                                                LOGWARN("Connected Devices [%ld]", connected.size());
 						for( unsigned int i=0; i< connected.size(); i++ )
 						{
 							_instance->addDevice(connected[i]);
