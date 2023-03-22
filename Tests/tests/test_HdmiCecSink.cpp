@@ -69,7 +69,7 @@ protected:
         ON_CALL(connectionImplMock, open())
             .WillByDefault(::testing::Return());
 
-		EXPECT_EQ(string(""), plugin->Initialize(nullptr));
+        EXPECT_EQ(string(""), plugin->Initialize(nullptr));
     }
 
     virtual ~HdmiCecSinkTest() override
@@ -88,7 +88,7 @@ protected:
     
     HdmiCecSinkDsTest(): HdmiCecSinkTest()
     {
-		ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        ON_CALL(iarmBusImplMock, IARM_Bus_Call)
             .WillByDefault(
                 [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                     if (strcmp(methodName, IARM_BUS_PWRMGR_API_GetPowerState) == 0) {
@@ -111,13 +111,11 @@ protected:
                     }
                     return IARM_RESULT_SUCCESS;
                 });
-		
-		EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
-		EXPECT_EQ(response, string("{\"success\":true}"));
+        
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
+        EXPECT_EQ(response, string("{\"success\":true}"));
     }
-    virtual ~HdmiCecSinkDsTest() override
-    {
-
+    virtual ~HdmiCecSinkDsTest() override {
     }
 };
 
