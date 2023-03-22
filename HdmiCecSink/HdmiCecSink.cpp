@@ -2668,7 +2668,7 @@ namespace WPEFramework
 					if ( disconnected.size() ){
 						for( unsigned int i=0; i< disconnected.size(); i++ )
 						{
-                                                        LOGWARN("Disconnected Devices [%ld]", disconnected.size());
+                            LOGWARN("Disconnected Devices [%ld]", disconnected.size());
 							_instance->removeDevice(disconnected[i]);
 						}
 					}
