@@ -83,8 +83,9 @@ namespace WPEFramework
         SERVICE_REGISTRATION(Telemetry, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         Telemetry* Telemetry::_instance = nullptr;
-
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         static void _powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
         Telemetry::Telemetry()
         : PluginHost::JSONRPC()
