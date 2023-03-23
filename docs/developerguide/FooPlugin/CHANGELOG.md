@@ -16,19 +16,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.3] - 2023-03-13
-### Changed
-- Missing MPEG2 and MPEG4 in Video codecs
-
-## [1.0.2] - 2022-12-01
-### Syncup
-- Syncup of changes from Metro version
-
-## [1.0.1] - 2022-10-04
-### Fixed
-- Fixed warnings that are treated as errors with "-Wall -Werror"
-
-## [1.0.0] - 2022-05-11
+## [1.0.0] - 2023-02-28
 ### Added
 - Add CHANGELOG
 
