@@ -44,6 +44,7 @@ set_source_files_properties(
         tests/test_SystemServices.cpp
         tests/test_Warehouse.cpp
         tests/test_FrontPanel.cpp
+        tests/test_HdmiCecSink.cpp
         PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 include_directories(../LocationSync
@@ -75,6 +76,7 @@ include_directories(../LocationSync
         ../CompositeInput
         ../FrontPanel
         ../OCIContainer
+        ../HdmiCecSink
         ../RDKShell
         )
 link_directories(../LocationSync
@@ -105,6 +107,7 @@ link_directories(../LocationSync
         ../CompositeInput
         ../FrontPanel
         ../OCIContainer
+        ../HdmiCecSink
         ../RDKShell
         )
 
@@ -139,6 +142,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}CompositeInput
         ${NAMESPACE}FrontPanel
         ${NAMESPACE}OCIContainer
+        ${NAMESPACE}HdmiCecSink
         ${NAMESPACE}RDKShell
         )
 
