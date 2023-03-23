@@ -233,7 +233,7 @@
                         "$ref": "#/definitions/applicationName"
                     },
                     "state":{
-                        "summary":"A predefined application state. Either `running` or `stopped`.",
+                        "summary":"A predefined application state. Either `running`, `stopped`, `hidden`, or `suspended` (introduced in DIAL 2.1, `suspended` is a synonym to `hidden`).",
                         "type":"string",
                         "example":"running"
                     },
