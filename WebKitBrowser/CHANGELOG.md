@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.13] - 2023-03-22
+### Fixed
+- Fixed Worker thread callback crash after browser plugin deactivation
+
 ## [1.1.12] - 2023-03-08
 ### Fixed
 - Undefined symbols on qemu x86 platform
