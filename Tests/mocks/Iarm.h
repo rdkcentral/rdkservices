@@ -547,7 +547,8 @@ typedef enum _SYSMgr_FirmwareUpdateState_t {
 typedef enum _SYSMgr_LogUpload_t
 {
   IARM_BUS_SYSMGR_LOG_UPLOAD_SUCCESS = 0,
-  IARM_BUS_SYSMGR_LOG_UPLOAD_FAILED= 1,
+  IARM_BUS_SYSMGR_LOG_UPLOAD_FAILED = 1,
+  IARM_BUS_SYSMGR_LOG_UPLOAD_ABORTED = 2,
 } IARM_Bus_SYSMGR_SYSMgr_LogUpload_t;
 
 typedef struct _IARM_BUS_SYSMgr_EventData_t {
