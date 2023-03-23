@@ -1317,7 +1317,7 @@ TEST_F(SystemServicesEventIarmTest, onRebootRequest)
  *
  *                @return An object containing the device details.
  * Use case coverage:
- *                @Success :12
+ *                @Success :9
  *                @Failure :7
  ********************************************************************************************************************/
 
@@ -1332,6 +1332,8 @@ TEST_F(SystemServicesEventIarmTest, onRebootRequest)
  */
 TEST_F(SystemServicesTest, getDeviceInfoFailed_OnQueryParamContainsUnallowableCharacter)
 {
+   EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":abc#$}"), response));
+   ASSERT_EQ(response, "{\"message\":\"Input has unallowable characters\",\"success\":false}");
 }
 
 /**
@@ -1344,6 +1346,8 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnQueryParamContainsUnallowableCh
  */
 TEST_F(SystemServicesTest, getDeviceInfoFailed_OnInvalidQueryParam)
 {
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":friendId}"), response));
+    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 /**
@@ -1357,10 +1361,14 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnInvalidQueryParam)
  */
 TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileNotExist)
 {
+    /* TODO : Implementation To be done:
+     * Need to mock as etc/device.properties does not exist.Working on it */
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
+    //ASSERT_EQ(response, "{\"SysSrv_Status\":4,\"errorMessage\":\"Unexpected Error\",\"success\":false}");
 }
 
 /**
- * @brief : getDeviceInfo When QueryParam is Empty  and DevicePropertyFile Not Exist
+ * @brief : getDeviceInfo When QueryParam is Empty  and DevicePropertyFile failed to open
  *          Check if (i)No input query param passed/ query Param = {make}
  *          & (ii) Failed to open the device property file ,
  *          then,getDeviceInfo shall be failed and  returns an error message in the response
@@ -1370,6 +1378,11 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileNotExist)
  */
 TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileFailedToOpen)
 {
+    /* TODO : Implementation To be done :
+     * Mocking fopen with file doesnt exist is not working straight forward
+     * as it impacts other APIs/plugins using fopen, so working on that */
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
+    //ASSERT_EQ(response,"{\"SysSrv_Status\":5,\"errorMessage\":\"Unexpected Error\",\"success\":false}");
 }
 
 /**
@@ -1382,6 +1395,12 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileFailedToOpen)
  */
 TEST_F(SystemServicesTest, getDeviceInfoFailed_OnMissingKeyInDevicePropertyFile)
 {
+    ofstream file("/etc/device.properties");
+    file << "MFGNAME=\"SKY\"";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 }
 
 /**
@@ -1394,18 +1413,34 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnMissingKeyInDevicePropertyFile)
  */
 TEST_F(SystemServicesTest, getDeviceInfoFailed_OnMissingKeyValueInDevicePropertyFile)
 {
+    ofstream file("/etc/device.properties");
+    file << "MFG_NAME=";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 }
 
 /**
  * @brief : getDeviceInfo When ManufactureDataReadAPI Failed For GetModelName/HardwareID
  *          Check if (i) input parametr as Model name/Hardware ID and
- *          (ii)If there is no manufacturer data available
+ *          (ii) Manufacture Data Read API[IARM_BUS_MFRLIB_API_GetSerializedData] failed
  *          then, getDeviceInfo shall be failed and returns an error message in the response
  * @param[in]   : "params":{"params": "modelName"}
  * @return      :  {"message":"Manufacturer Data Read Failed","success":false}
  */
 TEST_F(SystemServicesTest, getDeviceInfoFailed_OnManufactureDataReadAPIFailed)
 {
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+               EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+               EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+               //setting up a mock that always returns an error code.
+               return IARM_RESULT_IPCCORE_FAIL;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), response));
+    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":11,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 }
 
 /**
@@ -1417,6 +1452,12 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnManufactureDataReadAPIFailed)
  */
 TEST_F(SystemServicesTest, getDeviceInfoSuccess_onMakeParameter)
 {
+    ofstream file("/etc/device.properties");
+    file << "MFG_NAME=SKY";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
+    EXPECT_EQ(response, string("{\"make\":\"SKY\",\"success\":true}"));
 }
 
 /**
@@ -1428,24 +1469,29 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onMakeParameter)
  *          then  getDeviceInfo shall remove those characters from input param
  *          and then successfully retrieve  the corresponding value and returns it in the response
  *          Tested with following valid input params: {"bluetooth_mac","boxIP","build_type","estb_mac","eth_mac","friendly_id","imageVersion","version","software_version","model_number","wifi_mac"}
- * @param[in]   : "params":{"params": "estb_mac"}i
+ * @param[in]   : "params":{"params": "estb_mac"} /
  *              : "params":{"params": "[estb_mac]"}
  * @return      : {"estb_mac":"20:F1:9E:EE:62:08","success":true}
  */
 TEST_F(SystemServicesTest, getDeviceInfoSuccess_onValidInput)
 {
-}
 
-/**
- * @brief : getDeviceInfo  When QueryParam is ModelName
- *          Check if device's Model Name as input query param,
- *          then getDeviceInfo shall succeed and retrieves the information from  the external Bus device API
- *          and returns it in the response.
- * @param[in]   :  "params":{"params": "modelName"}
- * @return      :  {"modelName":"IP061-ec","success":true}
- */
-TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParamModelName)
-{
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+         .Times(::testing::AnyNumber())
+         .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                  EXPECT_EQ(string(command), string("sh /lib/rdk/getDeviceDetails.sh read estb_mac"));
+                  // Simulated the behavior of "getDeviceDetails.sh" script inorder to obtain the value of estb_mac key
+                  const char key_estb_mac[] = "12:34:56:78:90:AB";
+                  char buffer[1024];
+                  memset(buffer, 0, sizeof(buffer));
+                  strcpy(buffer, key_estb_mac);
+                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                  return pipe;
+               }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":estb_mac}"), response));
+    EXPECT_EQ(response, string("{\"estb_mac\":\"12:34:56:78:90:AB\",\"success\":true}"));
 }
 
 /**
@@ -1458,18 +1504,50 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParamModelName)
  */
 TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParamHardwareId)
 {
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "5678";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, sizeof(param->buffer));
+                param->type =  mfrSERIALIZED_TYPE_HWID;
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), response));
+    EXPECT_EQ(response, string("{\"hardwareID\":\"5678\",\"success\":true}"));
 }
 
 /**
- * @brief : getDeviceInfo  When QueryParam is FriendlyId
- *          Check if device's FriendlyId as input query param,
+ * @brief : getDeviceInfo  When QueryParam is FriendlyId/ModelName
+ *          Check if device's FriendlyId/ModelName as input query param,
  *          then getDeviceInfo shall succeed and retrieves the information from  the external Bus device API
  *          and returns it in the response.
  * @param[in]   : "params": {"params": "friendly_id"}
+ *              : "params": {"params": "model_name"}
  * @return      :  {"friendly_id":"IP061-ec","success":true}
  */
-TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParamFriendlyId)
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParamFriendlyIdOrModelName)
 {
+   ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "IP061-ec";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, sizeof(param->buffer));
+                param->type =  mfrSERIALIZED_TYPE_SKYMODELNAME;
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":friendly_id}"), response));
+    EXPECT_EQ(response, string("{\"friendly_id\":\"IP061-ec\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), response));
+    EXPECT_EQ(response, string("{\"modelName\":\"IP061-ec\",\"success\":true}"));
+
 }
 
 /**
@@ -1482,6 +1560,36 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParamFriendlyId)
  */
 TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedHardwareId)
 {
+   //Below IARM_Bus_Call function is called for saving the retrieved data
+   //in member variables [cached value] & setting the corresponding flags to true
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "5678";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, sizeof(param->buffer));
+                param->type =  mfrSERIALIZED_TYPE_HWID;
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), response));
+    EXPECT_EQ(response, string("{\"hardwareID\":\"5678\",\"success\":true}"));
+
+    //To confirm that the retrieved data is cached Data;
+    //sets an expectation that the IARM_Bus_Call function should not be called during this sequence
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0)
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), response));
+    EXPECT_EQ(response, string("{\"hardwareID\":\"5678\",\"success\":true}"));
+
 }
 
 /**
@@ -1494,6 +1602,35 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedHardwareId)
  */
 TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedModelName)
 {
+   //Below IARM_Bus_Call function is called for saving the retrieved data
+   //in member variables [cached value] & setting the corresponding flags to true
+   ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "IP061-ec";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, sizeof(param->buffer));
+                param->type =  mfrSERIALIZED_TYPE_SKYMODELNAME;
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), response));
+    EXPECT_EQ(response, string("{\"modelName\":\"IP061-ec\",\"success\":true}"));
+
+    //To confirm that the retrieved data is cached Data;
+    //sets an expectation that the IARM_Bus_Call function should not be called during this sequence
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0)
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), response));
+    EXPECT_EQ(response, string("{\"modelName\":\"IP061-ec\",\"success\":true}"));
 }
 
 /**
@@ -1501,15 +1638,17 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedModelName)
  *          Check if QueryParams  contains no label as "params"
  *          then getDeviceInfo shall successfully retrieve the device info and  returns it in the response
  * @param[in]   :   "params" :{}
- * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
- *                                     "boxIP":"192.168.1.100","build_type":"VBN",
- *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
- *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "cable_card_firmware_version":"ABCD1234",
- *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ * @return      : {"make":"SKY","success":true}
  */
 TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParameterHasNoLabelParam)
 {
+     //Create fake device property file
+     ofstream propFile("/etc/device.properties");
+     propFile << "MFG_NAME=SKY";
+     propFile.close();
+
+     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
+     EXPECT_EQ(response, string("{\"make\":\"SKY\",\"success\":true}"));
 }
 
 /**
@@ -1528,14 +1667,45 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParameterHasNoLabelParam)
  */
 TEST_F(SystemServicesTest, getDeviceInfoSuccess_onNoValueForQueryParameter)
 {
+    const string deviceInfoScript = _T("/lib/rdk/getDeviceDetails.sh");
+    const uint8_t deviceInfoContent[] = "echo \"bluetooth_mac=D4:52:EE:32:A3:B2\n"
+                                         "boxIP=192.168.1.0\n"
+                                         "build_type=VBN\n"
+                                         "estb_mac=D4:52:EE:32:A3:B0\n"
+                                         "eth_mac=D4:52:EE:32:A3:B0\n"
+                                         "friendly_id=IP061-ec\n"
+                                         "imageVersion=SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\n"
+                                         "model_number=SKXI11ANS\n"
+                                         "wifi_mac=D4:52:EE:32:A3:B1\"\n";
+
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* command, const char* type) -> FILE* {
+                EXPECT_EQ(string(command), string(_T("sh /lib/rdk/getDeviceDetails.sh read")));
+                return __real_popen(command, type);
+            }));
+
+    //Create fake device property file
+    ofstream propFile("/etc/device.properties");
+    propFile << "MFG_NAME=SKY";
+    propFile.close();
+
+    //Create fake device info script
+    Core::File file(deviceInfoScript);
+    file.Create();
+    file.Write(deviceInfoContent, sizeof(deviceInfoContent));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":}"), response));
+    EXPECT_EQ(response, _T("{\"make\":\"SKY\",\"bluetooth_mac\":\"D4:52:EE:32:A3:B2\",\"boxIP\":\"192.168.1.0\",\"build_type\":\"VBN\",\"estb_mac\":\"D4:52:EE:32:A3:B0\",\"eth_mac\":\"D4:52:EE:32:A3:B0\",\"friendly_id\":\"\",\"imageVersion\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"software_version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"model_number\":\"SKXI11ANS\",\"wifi_mac\":\"D4:52:EE:32:A3:B1\",\"success\":true}"));
+    file.Destroy();
 }
 
 /**
- * @brief : getDeviceInfo When QueryParams Value is Empty and getDeviceDetails Script contains ImageVersion
- *          Check if No value in input parameter and getDeviceDetails Script Contain key value = ImageVersion
+ * @brief : getDeviceInfo When QueryParams Value is Empty and getDeviceDetails Script contains some specific key-value pairs [ImageVersion,CableCardVersion/ModelNumber]
+ *          Check if No value in input parameter and getDeviceDetails Script Contain key value = ImageVersion/ key value = CableCardVersion/ key value = ModelNumber
  *          then getDeviceInfo shall successfully retrieve the device info and returns it in the response where
- *          ImageVersion stored in keys, "version" and "software_version"
- * @param[in]   :  "params" : {}
+ *          ImageVersion stored in keys, "version" and "software_version" ,"cable_card_firmware_version","model_number" respectively
+ * @param[in]   :  "params": {"params" : {}}
  * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
  *                                     "boxIP":"192.168.1.100","build_type":"VBN",
  *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
@@ -1544,43 +1714,38 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onNoValueForQueryParameter)
  *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
  *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
  */
-TEST_F(SystemServicesTest, getDeviceInfoSuccess_getImageVersionOnEmptyParameter)
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_OnSpecificKeyValueParsing)
 {
-}
+    const string deviceInfoScript = _T("/lib/rdk/getDeviceDetails.sh");
+    const uint8_t deviceInfoContent[] = "echo \"bluetooth_mac=D4:52:EE:32:A3:B2\n"
+                                         "boxIP=192.168.1.0\n"
+                                         "build_type=VBN\n"
+                                         "estb_mac=D4:52:EE:32:A3:B0\n"
+                                         "eth_mac=D4:52:EE:32:A3:B0\n"
+                                         "friendly_id=IP061-ec\n"
+                                         "imageVersion=SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\n"
+                                         "model_number=SKXI11ANS\n"
+                                         "wifi_mac=D4:52:EE:32:A3:B1\"\n";
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* command, const char* type) -> FILE* {
+                EXPECT_EQ(string(command), string(_T("sh /lib/rdk/getDeviceDetails.sh read")));
+                return __real_popen(command, type);
+            }));
 
-/**
- * @brief : getDeviceInfo When QueryParams Value is Empty and getDeviceDetails Script contains CableCardVersion
- *          Check if No value in input parameter and getDeviceDetails Script Contain key value = CableCardVersion
- *          then getDeviceInfo shall successfully retrieve the device info and   returns it in the response where CableCardVersion
- *          stored in keys "cable_card_firmware_version"
- * @param[in]   :   "params" :{}
- * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
- *                                     "boxIP":"192.168.1.100","build_type":"VBN",
- *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
- *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "cable_card_firmware_version":"ABCD1234",
- *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
- */
-TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCableCardVersionOnEmptyParameter)
-{
-}
+    //Create fake device property file
+    ofstream propFile("/etc/device.properties");
+    propFile << "MFG_NAME=SKY";
+    propFile.close();
 
-/**
- * @brief : getDeviceInfo when QueryParams Value is Empty and getDeviceDetails Script contains ModelNumber
- *          Check if No value in input parameter and getDeviceDetails Script Contain key value = ModelNumber
- *          then getDeviceInfo shall successfully retrieve the device info and  returns it in the response where ModelNumber
- *          stored in key "model_number"
- * @param[in]   :   "params" :{}
- * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
- *                                     "boxIP":"192.168.1.100","build_type":"VBN",
- *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
- *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
- */
-TEST_F(SystemServicesTest, getDeviceInfoSuccess_getModelNumberOnEmptyParameter)
-{
+    //Create fake device info script
+    Core::File file(deviceInfoScript);
+    file.Create();
+    file.Write(deviceInfoContent, sizeof(deviceInfoContent));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":}"), response));
+    EXPECT_EQ(response, _T("{\"make\":\"SKY\",\"bluetooth_mac\":\"D4:52:EE:32:A3:B2\",\"boxIP\":\"192.168.1.0\",\"build_type\":\"VBN\",\"estb_mac\":\"D4:52:EE:32:A3:B0\",\"eth_mac\":\"D4:52:EE:32:A3:B0\",\"friendly_id\":\"\",\"imageVersion\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"software_version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"model_number\":\"SKXI11ANS\",\"wifi_mac\":\"D4:52:EE:32:A3:B1\",\"success\":true}"));
+    file.Destroy();
 }
 
 /*Test cases for getDeviceInfo ends here*/
