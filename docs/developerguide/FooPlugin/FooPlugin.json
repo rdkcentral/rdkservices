@@ -1,0 +1,70 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "FooPlugin API",
+        "class": "FooPlugin",
+        "description": "The `FooPlugin` plugin allows you to persist key/value pairs"
+    },
+    "common": {
+        "$ref": "../common/common.json"
+    },
+    "definitions": {
+        "key": {
+            "summary": "The key name as a valid UTF-8 string",
+            "type": "string",
+            "example": "key1"
+        },
+        "value": {
+            "summary": "The key value. Values are capped at 1000 characters in size.",
+            "type": "string",
+            "example": "value1"
+        }
+    },
+    "methods": {
+        "setValue": {
+            "summary": "Sets the value of a given key",
+            "events": {
+                "onValueChanged": "Triggered whenever any of the values stored are changed using setValue"
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "$ref": "#/definitions/key"
+                    },
+                    "value": {
+                        "$ref": "#/definitions/value"
+                    }
+                },
+                "required": [
+                    "key",
+                    "value"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        }
+    },
+    "events": {
+        "onValueChanged": {
+            "summary": "Triggered whenever any of the values stored are changed using setValue",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "$ref": "#/definitions/key"
+                    },
+                    "value": {
+                        "$ref": "#/definitions/value"
+                    }
+                },
+                "required": [
+                    "key",
+                    "value"
+                ]
+            }
+        }
+    }
+}
