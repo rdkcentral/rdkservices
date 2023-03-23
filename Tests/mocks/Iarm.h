@@ -528,6 +528,8 @@ typedef enum _SYSMgr_SystemState_t {
     IARM_BUS_SYSMGR_SYSSTATE_RWS_CONNECTION_RESET, //41
     IARM_BUS_SYSMGR_SYSSTATE_QAM_READY, //42
     IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE //43, Added as part of RDK-19978, As the IARM
+    IARM_BUS_SYSMGR_SYSSTATE_USB_DETECTED, //44
+    IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD, //45
 } IARM_Bus_SYSMgr_SystemState_t;
 
 typedef enum _SYSMgr_FirmwareUpdateState_t {
@@ -541,6 +543,12 @@ typedef enum _SYSMgr_FirmwareUpdateState_t {
     IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_ONHOLD_FOR_OPTOUT = 7, /* On Hold for opt-out */
     IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_CRITICAL_REBOOT = 8
 } IARM_Bus_SYSMGR_FirmwareUpdateState_t;
+
+typedef enum _SYSMgr_LogUpload_t
+{
+  IARM_BUS_SYSMGR_LOG_UPLOAD_SUCCESS = 0,
+  IARM_BUS_SYSMGR_LOG_UPLOAD_FAILED= 1,
+} IARM_Bus_SYSMGR_SYSMgr_LogUpload_t;
 
 typedef struct _IARM_BUS_SYSMgr_EventData_t {
     union {
