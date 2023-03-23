@@ -482,6 +482,8 @@ namespace WPEFramework {
                 &SystemServices::getPlatformConfiguration, this);
         }
 
+#define RFC_LOG_UPLOAD "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadBeforeDeepSleep.Enable"
+
 #define LOG_UPLOAD_STATUS_SUCCESS "UPLOAD_SUCCESS"
 #define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
 #define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
@@ -3553,22 +3555,31 @@ namespace WPEFramework {
 			reason = ((reason.length()) ? reason : "application");
             LOGINFO("SystemServices::setDevicePowerState state: %s\n", state.c_str());
 
-#if defined(LOGUPLOAD_BEFORE_DEEPSLEEP)
-            if ( "LIGHT_SLEEP" == state || "STANDBY" == state){
-                if ( "ON" == m_current_state){
-
-                    /* only if transition from ON -> LIGHT_SLEEP
-                     * perform logupload when state change to Standby */
-                    int32_t uploadStatus = UploadLogs::LogUploadBeforeDeepSleep();
-                    if ( E_NOK == uploadStatus ){
-                        LOGERR("SystemServices Logupload Disabled \n");
-                    }
-                    else {
-                        LOGINFO("LogUploadBeforeDeepSleep Success \n");
+            if ("LIGHT_SLEEP" == state || "STANDBY" == state) {
+                if ("ON" == m_current_state) {
+    
+                    RFC_ParamData_t param = {0};
+                    WDMP_STATUS status = getRFCParameter(NULL, RFC_LOG_UPLOAD, &param);
+                    if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+                    {
+                        JsonObject p;
+                        JsonObject r;
+                        uploadLogsAsync(p, r);
                     }
                 }
+            } else if ("DEEP_SLEEP" == state) {
+
+                pid_t uploadLogsPid = -1;
+
+                {
+                    lock_guard<mutex> lck(m_uploadLogsMutex);
+                    uploadLogsPid = m_uploadLogsPid;
+                }
+
+                if (-1 != uploadLogsPid)
+                    abortLogUpload(parameters, response);
             }
-#endif
+
             if (state == "STANDBY") {
                 if (SystemServices::_instance) {
 					SystemServices::_instance->getPreferredStandbyMode(paramIn, paramOut);
