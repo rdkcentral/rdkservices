@@ -1387,7 +1387,7 @@ namespace WPEFramework
                 std::string id = parameters["activePath"].String();
 				PhysicalAddress phy_addr = PhysicalAddress(id);
 
-                LOGINFO("Addr = %s, length = %d", id.c_str(), id.length());
+                LOGINFO("Addr = %s, length = %lu", id.c_str(), id.length());
 
 				setStreamPath(phy_addr);
 				returnResponse(true);
