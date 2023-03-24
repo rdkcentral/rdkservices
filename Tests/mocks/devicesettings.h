@@ -1264,6 +1264,11 @@ class rtFunctionCallback{
         ~rtFunctionCallback() = default;
         
 };
+
+/*
+Based on pxCore, Copyright 2015-2018 John Robinson
+Licensed under the Apache License, Version 2.0
+*/
 template <class T>
 class rtRef
 {
