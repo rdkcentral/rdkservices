@@ -69,9 +69,6 @@ include_directories(../LocationSync
         ../TraceControl
         ../Warehouse
         ../ActivityMonitor
-        ../MotionDetection
-        ../CompositeInput
-        ../FrontPanel
         ../OCIContainer
         )
 link_directories(../LocationSync
@@ -98,9 +95,6 @@ link_directories(../LocationSync
         ../TraceControl
         ../Warehouse
         ../ActivityMonitor
-        ../MotionDetection
-        ../CompositeInput
-        ../FrontPanel
         ../OCIContainer
         )
 
@@ -131,9 +125,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}TraceControl
         ${NAMESPACE}Warehouse
         ${NAMESPACE}ActivityMonitor
-        ${NAMESPACE}MotionDetection
-        ${NAMESPACE}CompositeInput
-        ${NAMESPACE}FrontPanel
         ${NAMESPACE}OCIContainer
         )
 
