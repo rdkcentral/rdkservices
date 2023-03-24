@@ -22,12 +22,12 @@
 #include "Module.h"
 #include "WifiManagerDefines.h"
 #include "WifiManagerInterface.h"
-#include "impl/WifiManagerWPS.h"
-#include "impl/WifiManagerState.h"
-#include "impl/WifiManagerConnect.h"
-#include "impl/WifiManagerSignalThreshold.h"
-#include "impl/WifiManagerScan.h"
-#include "impl/WifiManagerEvents.h"
+#include "WifiManagerWPS.h"
+#include "WifiManagerState.h"
+#include "WifiManagerConnect.h"
+#include "WifiManagerSignalThreshold.h"
+#include "WifiManagerScan.h"
+#include "WifiManagerEvents.h"
 
 namespace WPEFramework {
 
