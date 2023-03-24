@@ -87,6 +87,12 @@ struct SpeechData {
         int8_t primVolDuck;
 };
 
+enum PipelineType
+{
+  MP3,
+  PCM
+};
+
 class TTSSpeaker {
 public:
     TTSSpeaker(TTSConfiguration &config);
@@ -103,6 +109,7 @@ public:
 
     bool pause(uint32_t id = 0);
     bool resume(uint32_t id = 0);
+    PipelineType getPipelineType();
 
 private:
 
@@ -121,6 +128,7 @@ private:
     void queueData(SpeechData);
     void flushQueue();
     SpeechData dequeueData();
+    PipelineType m_pipelinetype;
 
     // Private functions
     inline void setSpeakingState(bool state, TTSSpeakerClient *client=NULL);
@@ -160,8 +168,9 @@ private:
 #endif
     void setMixGain(MixGain gain, int val);
     static void GStreamerThreadFunc(void *ctx);
-    void createPipeline();
+    void createPipeline(PipelineType type=MP3);
     void resetPipeline();
+    PipelineType getUrlType(string url);
     void destroyPipeline();
 
     // GStreamer Helper functions

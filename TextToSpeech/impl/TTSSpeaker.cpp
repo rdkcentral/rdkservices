@@ -37,19 +37,23 @@ bool _writeToFile(std::string filename, TTS::TTSConfiguration &ttsConfig);
 namespace TTS {
 
 std::map<std::string, std::string> TTSConfiguration::m_others;
+std::map<std::string, std::string> TTSConfiguration::m_others_local;
 
 TTSConfiguration::TTSConfiguration() :
     m_ttsEndPoint(""),
     m_ttsEndPointSecured(""),
+    m_ttsEndPointLocal(""),
     m_apiKey(""),
     m_language("en-US"),
     m_voice(""),
+    m_local_voice(""),
     m_volume(MAX_VOLUME),
     m_rate(DEFAULT_RATE),
     m_primVolDuck(25),
     m_preemptiveSpeaking(true),
     m_enabled(false),
-    m_fallbackenabled(false) { }
+    m_fallbackenabled(false), 
+    m_switchRequired(false) { }
 
 TTSConfiguration::~TTSConfiguration() {}
 
@@ -57,6 +61,8 @@ TTSConfiguration::TTSConfiguration(TTSConfiguration &config)
 {
     m_ttsEndPoint = config.m_ttsEndPoint;
     m_ttsEndPointSecured = config.m_ttsEndPointSecured;
+    m_ttsEndPointLocal = config.m_ttsEndPointLocal;
+    m_local_voice = config.m_local_voice;
     m_language = config.m_language;
     m_apiKey = config.m_apiKey;
     m_voice = config.m_voice;
@@ -64,6 +70,7 @@ TTSConfiguration::TTSConfiguration(TTSConfiguration &config)
     m_rate = config.m_rate;
     m_primVolDuck = config.m_primVolDuck;
     m_enabled = config.m_enabled;
+    m_switchRequired = config.m_switchRequired;
     m_preemptiveSpeaking = config.m_preemptiveSpeaking;
     m_data.scenario = config.m_data.scenario;
     m_data.value = config.m_data.value;
@@ -74,6 +81,8 @@ TTSConfiguration& TTSConfiguration::operator = (const TTSConfiguration &config)
 {
     m_ttsEndPoint = config.m_ttsEndPoint;
     m_ttsEndPointSecured = config.m_ttsEndPointSecured;
+    m_ttsEndPointLocal = config.m_ttsEndPointLocal;
+    m_local_voice = config.m_local_voice;
     m_language = config.m_language;
     m_apiKey = config.m_apiKey;
     m_voice = config.m_voice;
@@ -81,6 +90,7 @@ TTSConfiguration& TTSConfiguration::operator = (const TTSConfiguration &config)
     m_rate = config.m_rate;
     m_primVolDuck = config.m_primVolDuck;
     m_enabled = config.m_enabled;
+    m_switchRequired = config.m_switchRequired;
     m_preemptiveSpeaking = config.m_preemptiveSpeaking;
     m_data.scenario = config.m_data.scenario;
     m_data.value = config.m_data.value;
@@ -133,6 +143,27 @@ bool TTSConfiguration::setVoice(const std::string voice) {
     if(!voice.empty())
     {
         UPDATE_AND_RETURN(m_voice, voice);  
+    }
+    else
+        TTSLOG_VERBOSE("Empty Voice input");
+    return false;
+}
+
+bool TTSConfiguration::setLocalEndPoint(const std::string endpoint) {
+    if(!endpoint.empty())
+    {
+        m_switchRequired = true;
+        UPDATE_AND_RETURN(m_ttsEndPointLocal, endpoint);
+    }
+    else    
+        TTSLOG_VERBOSE("Invalid Local TTSEndPoint input \"%s\"", endpoint.c_str());
+    return false;
+}
+
+bool TTSConfiguration::setLocalVoice(const std::string voice) {
+    if(!voice.empty())
+    {
+        UPDATE_AND_RETURN(m_local_voice, voice);  
     }
     else
         TTSLOG_VERBOSE("Empty Voice input");
@@ -202,6 +233,21 @@ const std::string TTSConfiguration::voice() {
     }
 }
 
+const std::string TTSConfiguration::localvoice() {
+    std::string str;
+
+    if(!m_local_voice.empty())
+        return m_local_voice;
+    else {
+        std::string key = std::string("voice_for_") + m_language;
+        auto it = m_others_local.find(key);
+        if(it != m_others_local.end())
+            str = it->second;
+        return str;
+    }
+}
+
+
 bool TTSConfiguration::updateWith(TTSConfiguration &nConfig) {
     bool updated = false;
     setEndPoint(nConfig.m_ttsEndPoint);
@@ -220,6 +266,11 @@ bool TTSConfiguration::isValid() {
         return false;
     }
     return true;
+}
+
+bool TTSConfiguration::isSwitchRequired()
+{
+    return m_switchRequired;
 }
 
 bool TTSConfiguration::isFallbackEnabled()
@@ -330,6 +381,11 @@ TTSSpeaker::~TTSSpeaker() {
     g_thread_join(m_main_loop_thread);
 }
 
+PipelineType TTSSpeaker::getPipelineType()
+{
+   return m_pipelinetype;
+}
+
 void TTSSpeaker::ensurePipeline(bool flag) {
     std::unique_lock<std::mutex> mlock(m_queueMutex);
     TTSLOG_WARNING("%s", __FUNCTION__);
@@ -348,6 +404,18 @@ int TTSSpeaker::speak(TTSSpeakerClient *client, uint32_t id, std::string text, b
     queueData(data);
 
     return 0;
+}
+
+PipelineType TTSSpeaker::getUrlType(string url)
+{
+   std::string LoopbackEndPoint = LOOPBACK_ENDPOINT;
+   std::string  LocalhostEndPoint = LOCALHOST_ENDPOINT;
+   //Check if url contains endpoint on localhost, enable PCM audio
+   if((url.rfind(LoopbackEndPoint,0) != std::string::npos)  || (url.rfind(LocalhostEndPoint,0) != std::string::npos)){
+       TTSLOG_INFO("PCM audio playback is enabled");
+       return PCM;
+    }
+    return MP3;
 }
 
 SpeechState TTSSpeaker::getSpeechState(uint32_t id) {
@@ -579,7 +647,7 @@ void TTSSpeaker::setMixGain(MixGain gain, int volume)
 }
 
 // GStreamer Releated members
-void TTSSpeaker::createPipeline() {
+void TTSSpeaker::createPipeline(PipelineType type) {
     m_isEOS = false;
 
     GstCaps *audiocaps = NULL;
@@ -643,13 +711,29 @@ void TTSSpeaker::createPipeline() {
         tts_url.append("&text=init");
         std::string LoopbackEndPoint = LOOPBACK_ENDPOINT;
         std::string  LocalhostEndPoint = LOCALHOST_ENDPOINT;
-        //Check if url contains endpoint on localhost, enable PCM audio
-        if((tts_url.rfind(LoopbackEndPoint,0) != std::string::npos)  || (tts_url.rfind(LocalhostEndPoint,0) != std::string::npos)){
+
+        if(m_defaultConfig.isSwitchRequired())
+        {
+           if(type == PCM)
+           {
+               m_pcmAudioEnabled = true; 
+               m_pipelinetype = PCM;
+               TTSLOG_INFO("PCM audio playback is enabled");
+           } 
+           else
+           {
+               TTSLOG_INFO("mp3 audio playback is enabled");
+               m_pipelinetype = MP3;
+           }   
+        }   
+        else
+        {//non-flex device
+            if((getUrlType(tts_url)) == PCM){
             TTSLOG_INFO("PCM audio playback is enabled");
             m_pcmAudioEnabled = true;
+            }
         }
 
-#if defined(PLATFORM_AMLOGIC)
         if(m_pcmAudioEnabled) {
             //Raw PCM audio does not work with souphhtpsrc on Amlogic alsaasink
             m_source = gst_element_factory_make("httpsrc", NULL);
@@ -657,6 +741,7 @@ void TTSSpeaker::createPipeline() {
         else {
             m_source = gst_element_factory_make("souphttpsrc", NULL);
         }
+#if defined(PLATFORM_AMLOGIC)
         g_object_set(G_OBJECT(m_audioSink), "tts-mode", TRUE, NULL);
 #endif
 
@@ -724,8 +809,8 @@ void TTSSpeaker::createPipeline() {
     }
     else {
         TTSLOG_INFO("PCM audio capsfilter added to sink");
-        gst_bin_add_many(GST_BIN(m_pipeline), m_source, m_audioVolume, convert, resample, m_audioSink,  NULL);
-        gst_element_link_many (m_source, convert, resample, audiofilter, m_audioVolume, m_audioSink, NULL);
+        gst_bin_add_many(GST_BIN(m_pipeline), m_source,capsfilter, convert, resample, m_audioVolume, m_audioSink,  NULL);
+        gst_element_link_many (m_source, capsfilter, convert, resample, m_audioVolume, m_audioSink, NULL);
     }
 #endif
 
@@ -765,7 +850,7 @@ void TTSSpeaker::resetPipeline() {
 
     if(!m_pipeline) {
         // If pipe line is NULL, create one
-        createPipeline();
+        createPipeline(m_pipelinetype);
     } else {
         // If pipeline is present, bring it to NULL state
         gst_element_set_state(m_pipeline, GST_STATE_NULL);
@@ -859,6 +944,22 @@ std::string TTSSpeaker::constructURL(TTSConfiguration &config, SpeechData &d) {
     std::string tts_request;
     TTSURLConstructer url;
     tts_request = url.constructURL(m_defaultConfig,d.text,false);
+    if(m_defaultConfig.isSwitchRequired())
+    {
+       PipelineType pipelineType;
+       pipelineType = getUrlType(tts_request);
+       if(pipelineType != m_pipelinetype) 
+       {
+          //pipeline switch required
+          TTSLOG_INFO("pipeline needs updation\n");
+          destroyPipeline();
+          createPipeline(pipelineType);
+       }
+       else
+       {
+          TTSLOG_INFO("re-use existing pipeline.\n");
+       }
+    }
     TTSLOG_WARNING("Constructured final URL is %s", tts_request.c_str());
     return tts_request;
 }
@@ -866,11 +967,13 @@ std::string TTSSpeaker::constructURL(TTSConfiguration &config, SpeechData &d) {
 void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
     m_isEOS = false;
     m_duration = 0;
+    string url; 
 
     if(m_pipeline && !m_pipelineError && !m_flushed) {
         m_currentSpeech = &data;
+        url = constructURL(config, data);
 
-        g_object_set(G_OBJECT(m_source), "location", constructURL(config, data).c_str(), NULL);
+        g_object_set(G_OBJECT(m_source), "location", url.c_str(), NULL);
         // PCM Sink seems to be accepting volume change before PLAYING state
         g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
@@ -911,7 +1014,7 @@ void TTSSpeaker::GStreamerThreadFunc(void *ctx) {
     while(speaker && speaker->m_runThread) {
         if(speaker->needsPipelineUpdate()) {
             if(speaker->m_ensurePipeline) {
-                speaker->createPipeline();
+                speaker->createPipeline(speaker->getPipelineType());
 
                 // If pipeline creation fails, send playbackerror to the client and remove the req from queue
                 if(!speaker->m_pipeline && !speaker->m_queue.empty()) {

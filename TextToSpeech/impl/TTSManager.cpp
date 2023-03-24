@@ -114,9 +114,33 @@ TTS_Error TTSManager::listVoices(std::string language, std::vector<std::string> 
     return TTS_OK;
 }
 
+TTS_Error TTSManager::listLocalVoices(std::string language, std::vector<std::string> &voices) {
+     
+     std::string key = std::string("voice_for_");
+     if(language.empty())
+     {
+        voices.push_back(m_defaultConfiguration.localvoice());
+     }
+     else
+     {
+         key += language;
+         if(m_defaultConfiguration.m_others_local.find(key) != m_defaultConfiguration.m_others_local.end())
+         {
+             voices.push_back(m_defaultConfiguration.m_others_local[key]);
+         }
+         else
+         {
+             voices.push_back("");
+         }
+
+     }
+     return TTS_OK;
+}
+
 TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
     TTSLOG_TRACE("Setting Default Configuration");
     bool updated = false;
+    bool language_updated = false;
     std::string v = m_defaultConfiguration.voice();
 
     m_defaultConfiguration.setEndPoint(configuration.ttsEndPoint);
@@ -138,18 +162,27 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
         }
         else {
             updated |= m_defaultConfiguration.setVoice(voices.front());
-            updated |= m_defaultConfiguration.setLanguage(configuration.language);
+            updated |= language_updated = m_defaultConfiguration.setLanguage(configuration.language);
         }
     }
     else {
         updated |= m_defaultConfiguration.setVoice(configuration.voice);
-        updated |= m_defaultConfiguration.setLanguage(configuration.language);
+        updated |=  language_updated  = m_defaultConfiguration.setLanguage(configuration.language);
     }
+    
+    if( m_defaultConfiguration.isSwitchRequired() && language_updated )
+    {
+        std::vector<std::string> local_voices;
+        listLocalVoices(m_defaultConfiguration.language(),local_voices);
+        m_defaultConfiguration.setLocalVoice(local_voices.front());
+    }  
 
     updated |= m_defaultConfiguration.setVolume(configuration.volume);
     updated |= m_defaultConfiguration.setRate(configuration.rate);
     updated |= m_defaultConfiguration.setPrimVolDuck(configuration.primVolDuck);
     updated |= m_defaultConfiguration.setFallBackText(configuration.data);
+    //m_defaultConfiguration.setLocalEndPoint(configuration.ttsEndPointLocal);
+    //m_defaultConfiguration.setLocalVoice(configuration.local_voice);
 
     if(m_defaultConfiguration.endPoint().empty() && !m_defaultConfiguration.secureEndPoint().empty())
         m_defaultConfiguration.setEndPoint(m_defaultConfiguration.secureEndPoint());
