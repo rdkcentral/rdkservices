@@ -52,7 +52,6 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rfcapi.h
         ${BASEDIR}/rbus.h
         ${BASEDIR}/telemetry_busmessage_sender.h
-        ${BASEDIR}/motionDetector.h
         ${BASEDIR}/Dobby/DobbyProtocol.h
         ${BASEDIR}/Dobby/DobbyProxy.h
         ${BASEDIR}/Dobby/Public/Dobby/IDobbyProxy.h
@@ -83,7 +82,6 @@ set(FAKE_HEADERS
         ${BASEDIR}/RBus.h
         ${BASEDIR}/Telemetry.h
         ${BASEDIR}/Udev.h
-        ${BASEDIR}/MotionDetection.h
         ${BASEDIR}/Dobby.h
         )
 
@@ -142,9 +140,6 @@ set(PLUGIN_WIFIMANAGER ON)
 set(PLUGIN_TRACECONTROL ON)
 set(PLUGIN_WAREHOUSE ON)
 set(PLUGIN_ACTIVITYMONITOR ON)
-set(PLUGIN_MOTION_DETECTION ON)
-set(PLUGIN_COMPOSITEINPUT ON)
-set(HAS_FRONT_PANEL ON)
 set(PLUGIN_OCICONTAINER ON)
 
 set(DS_FOUND ON)
