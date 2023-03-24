@@ -18,6 +18,7 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/ccec/drivers/iarmbus
         ${BASEDIR}/ccec/host
         ${BASEDIR}/websocket
+        ${BASEDIR}/rdkshell
         )
 
 set(EMPTY_HEADERS
@@ -53,6 +54,13 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdk/iarmmgrs-hal/sysMgr.h
         ${BASEDIR}/network/wifiSrvMgrIarmIf.h
         ${BASEDIR}/network/netsrvmgrIarm.h
+      	${BASEDIR}/rdkshell/rdkshellevents.h
+        ${BASEDIR}/rdkshell/rdkshell.h
+        ${BASEDIR}/rdkshell/compositorcontroller.h
+        ${BASEDIR}/rdkshell/logger.h
+        ${BASEDIR}/rdkshell/eastereggs.h
+        ${BASEDIR}/rdkshell/application.h
+        ${BASEDIR}/rdkshell/linuxkeys.h
         ${BASEDIR}/framebuffer-api.h
         ${BASEDIR}/libudev.h
         ${BASEDIR}/rfcapi.h
@@ -64,17 +72,19 @@ set(EMPTY_HEADERS
         ${BASEDIR}/Dobby/Public/Dobby/IDobbyProxy.h
         ${BASEDIR}/Dobby/IpcService/IpcFactory.h
         ${BASEDIR}/ccec/FrameListener.hpp
-	${BASEDIR}/ccec/Connection.hpp
-	${BASEDIR}/ccec/Assert.hpp
-	${BASEDIR}/ccec/Messages.hpp
-	${BASEDIR}/ccec/MessageDecoder.hpp
-	${BASEDIR}/ccec/MessageProcessor.hpp
-	${BASEDIR}/ccec/CECFrame.hpp
-	${BASEDIR}/ccec/MessageEncoder.hpp
-	${BASEDIR}/ccec/host/RDK.hpp
-	${BASEDIR}/ccec/drivers/iarmbus/CecIARMBusMgr.h
-	${BASEDIR}/dsRpc.h
-	${BASEDIR}/websocket/URL.h
+	      ${BASEDIR}/ccec/Connection.hpp
+	      ${BASEDIR}/ccec/Assert.hpp
+	      ${BASEDIR}/ccec/Messages.hpp
+	      ${BASEDIR}/ccec/MessageDecoder.hpp
+	      ${BASEDIR}/ccec/MessageProcessor.hpp
+	      ${BASEDIR}/ccec/CECFrame.hpp
+	      ${BASEDIR}/ccec/MessageEncoder.hpp
+	      ${BASEDIR}/ccec/host/RDK.hpp
+	      ${BASEDIR}/ccec/drivers/iarmbus/CecIARMBusMgr.h
+	      ${BASEDIR}/dsRpc.h
+	      ${BASEDIR}/websocket/URL.h
+        ${BASEDIR}/rdk_logger_milestone.h
+        ${BASEDIR}/base64.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -104,6 +114,9 @@ set(FAKE_HEADERS
         ${BASEDIR}/MotionDetection.h
         ${BASEDIR}/Dobby.h
         ${BASEDIR}/HdmiCec.h
+        ${BASEDIR}/rdkshell.h
+	      ${BASEDIR}/RdkLoggerMilestone.h
+	      ${BASEDIR}/base64.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -169,5 +182,6 @@ set(PLUGIN_COMPOSITEINPUT ON)
 set(HAS_FRONT_PANEL ON)
 set(PLUGIN_OCICONTAINER ON)
 set(PLUGIN_HDMICECSINK ON)
+set(PLUGIN_RDKSHELL ON)
 
 set(DS_FOUND ON)
