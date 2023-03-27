@@ -779,6 +779,35 @@ namespace WPEFramework {
          */
         void SystemServices::onSystemPowerStateChanged(string currentPowerState, string powerState)
         {
+
+            if ("LIGHT_SLEEP" == powerState || "STANDBY" == powerState) {
+                if ("ON" == currentPowerState) {
+                    RFC_ParamData_t param = {0};
+                    WDMP_STATUS status = getRFCParameter(NULL, RFC_LOG_UPLOAD, &param);
+                    if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+                    {
+                        JsonObject p;
+                        JsonObject r;
+                        uploadLogsAsync(p, r);
+                    }
+                }
+            } else if ("DEEP_SLEEP" == powerState) {
+
+                pid_t uploadLogsPid = -1;
+
+                {
+                    lock_guard<mutex> lck(m_uploadLogsMutex);
+                    uploadLogsPid = m_uploadLogsPid;
+                }
+
+                if (-1 != uploadLogsPid)
+                {
+                    JsonObject p;
+                    JsonObject r;
+                    abortLogUpload(p, r);
+                }
+            }
+
             JsonObject params;
             params["powerState"] = powerState;
             params["currentPowerState"] = currentPowerState;
@@ -3529,31 +3558,6 @@ namespace WPEFramework {
 			/* Power state defaults standbyReason is "application". */
 			reason = ((reason.length()) ? reason : "application");
             LOGINFO("SystemServices::setDevicePowerState state: %s\n", state.c_str());
-
-            if ("LIGHT_SLEEP" == state || "STANDBY" == state) {
-                if ("ON" == m_current_state) {
-    
-                    RFC_ParamData_t param = {0};
-                    WDMP_STATUS status = getRFCParameter(NULL, RFC_LOG_UPLOAD, &param);
-                    if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
-                    {
-                        JsonObject p;
-                        JsonObject r;
-                        uploadLogsAsync(p, r);
-                    }
-                }
-            } else if ("DEEP_SLEEP" == state) {
-
-                pid_t uploadLogsPid = -1;
-
-                {
-                    lock_guard<mutex> lck(m_uploadLogsMutex);
-                    uploadLogsPid = m_uploadLogsPid;
-                }
-
-                if (-1 != uploadLogsPid)
-                    abortLogUpload(parameters, response);
-            }
 
             if (state == "STANDBY") {
                 if (SystemServices::_instance) {
