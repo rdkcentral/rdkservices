@@ -721,7 +721,7 @@ namespace WPEFramework {
                                 actionMap.tvIRData.push_back((unsigned char)(byteval & 0xFF));
                             }
                             keysPresent.tv.setKey(actionMap.rfKeyCode);
-                            LOGWARN("keyActionMap[%d]: tvIRKeyCode size: %d.", i, actionMap.tvIRData.size());
+                            LOGWARN("keyActionMap[%d]: tvIRKeyCode size: %zu.", i, actionMap.tvIRData.size());
                             if (actionMap.tvIRData.size() > 12)
                             {
                                 LOGWARN("tvIRKeyCode bytes - 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X",
@@ -783,7 +783,7 @@ namespace WPEFramework {
                                 actionMap.avrIRData.push_back((unsigned char)(byteval & 0xFF));
                             }
                             keysPresent.avr.setKey(actionMap.rfKeyCode);
-                            LOGWARN("keyActionMap[%d]: avrIRKeyCode size: %d.", i, actionMap.avrIRData.size());
+                            LOGWARN("keyActionMap[%d]: avrIRKeyCode size: %zu.", i, actionMap.avrIRData.size());
                             if (actionMap.avrIRData.size() > 12)
                             {
                                 LOGWARN("avrIRKeyCode bytes - 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X",
@@ -808,7 +808,7 @@ namespace WPEFramework {
                 LOGWARN("localMaps is finished, size: %d", (int)localMaps.size());
                 if (numMaps != (int)localMaps.size())
                 {
-                    LOGERR("ERROR - maps conversion failure - input numMaps: %d, output localMaps size: %d!",
+                    LOGERR("ERROR - maps conversion failure - input numMaps: %d, output localMaps size: %zu!",
                            numMaps, localMaps.size());
                     response["status_code"] = (int)STATUS_INVALID_ARGUMENT;
                     returnResponse(false);
@@ -2142,7 +2142,7 @@ namespace WPEFramework {
             if (done)
             {
                 stopRIBLoadTimer();
-                LOGWARN("Sending onIRCodeLoad event - numKeys is %d.", rfKeyCodes.size());
+                LOGWARN("Sending onIRCodeLoad event - numKeys is %zu.", rfKeyCodes.size());
                 m_irdbLoadState = IRDB_LOAD_STATE_NONE;
                 onIRCodeLoad(deviceID, rfKeyCodes, IRCODE_LOAD_STATUS_OK);
                 m_lastSetRemoteID = -1;
@@ -2241,7 +2241,7 @@ namespace WPEFramework {
                         status = IRCODE_LOAD_STATUS_REFUSED;
                     }
 
-                    LOGWARN("TIMEOUT: IRRF Database LoadState(%d) - sending onIRCodeLoad event - numKeys: %d, status: %d.",
+                    LOGWARN("TIMEOUT: IRRF Database LoadState(%d) - sending onIRCodeLoad event - numKeys: %zu, status: %d.",
                             m_irdbLoadState, rfKeyCodes.size(), status);
 
                     m_irdbLoadState = IRDB_LOAD_STATE_NONE;

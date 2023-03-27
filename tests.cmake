@@ -18,6 +18,8 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/ccec/drivers/iarmbus
         ${BASEDIR}/ccec/host
         ${BASEDIR}/websocket
+        ${BASEDIR}/rdk/control
+        ${BASEDIR}/rdk/iarmmgrs
         )
 
 set(EMPTY_HEADERS
@@ -79,6 +81,12 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rtObject.h
         ${BASEDIR}/rtError.h
         ${BASEDIR}/rtNotifier.h
+        ${BASEDIR}/rdk/iarmmgrs/irMgr.h
+        ${BASEDIR}/rdk/iarmmgrs/comcastIrKeyCodes.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc_voice.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc_rcu.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc_key_codes.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -108,6 +116,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/MotionDetection.h
         ${BASEDIR}/Dobby.h
         ${BASEDIR}/HdmiCec.h
+        ${BASEDIR}/Ctrlm.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -176,5 +185,8 @@ set(HAS_FRONT_PANEL ON)
 set(PLUGIN_OCICONTAINER ON)
 set(PLUGIN_HDMICECSINK ON)
 set(PLUGIN_XCAST ON)
+set(PLUGIN_VOICECONTROL ON)
+set(PLUGIN_CONTROLSERVICE ON)
+set(PLUGIN_REMOTEACTIONMAPPING ON)
 
 set(DS_FOUND ON)
