@@ -110,6 +110,15 @@ void onURLChangeWorkarounds(const std::string &url, WKPageRef page)
         SYSLOG(Logging::Notification, (_T("Deactivating convert playready key ID for Shaka")));
         WKContextSetEnv(WKPageGetContext(page), WKStringCreateWithUTF8CString("CONVERT_PLAYREADY_KEY_ID_FOR_SHAKA"), WKStringCreateWithUTF8CString("0"), true, false);
     }
+
+    // HUMAXEOS-4885
+    if (url.find("virginmedia.player.stv") != std::string::npos || url.find("virginmedia-staging.player.stvqa") != std::string::npos) {
+        SYSLOG(Logging::Notification, (_T("Disabling clipping for STV")));
+        WKContextSetEnv(WKPageGetContext(page), WKStringCreateWithUTF8CString("DISABLE_CLIPPING"), WKStringCreateWithUTF8CString("1"), true, false);
+    } else {
+        SYSLOG(Logging::Notification, (_T("Enabling clipping")));
+        WKContextSetEnv(WKPageGetContext(page), WKStringCreateWithUTF8CString("DISABLE_CLIPPING"), WKStringCreateWithUTF8CString("0"), true, false);
+    }
 }
 
 } // namespace
