@@ -19,7 +19,12 @@ All notable changes to this RDK Service will be documented in this file.
 ## [1.0.0] - 2022-05-11
 ### Added
 - Add CHANGELOG
-- Added unit tests for OCIContainer
 ### Change
 - Reset API version to 1.0.0
 - Change README to inform how to update changelog and API version
+
+## [1.0.1] - 2023-03-27
+### Added
+- Added unit tests for OCIContainer
+### Change
+- Cleaned up CMakeLists.txt file to make it compatible with unit tests
