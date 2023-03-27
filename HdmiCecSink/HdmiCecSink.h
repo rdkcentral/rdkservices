@@ -87,6 +87,7 @@ namespace WPEFramework {
                 void process (const ReportShortAudioDescriptor  &msg, const Header &header);
 		void process (const SetSystemAudioMode &msg, const Header &header);
 		void process (const ReportAudioStatus &msg, const Header &header);
+		void process (const RequestCurrentLatency &msg, const Header &header);
         private:
             Connection conn;
             void printHeader(const Header &header)
@@ -517,7 +518,7 @@ private:
         public:
             HdmiCecSink();
             virtual ~HdmiCecSink();
-            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
+            virtual const string Initialize(PluginHost::IShell* shell) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override { return {}; }
             static HdmiCecSink* _instance;
@@ -555,6 +556,8 @@ private:
 			void sendDeviceUpdateInfo(const int logicalAddress);
 			void sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason);
 			void systemAudioModeRequest();
+			void updateCurrentLatency(uint8_t videoLatency, bool lowLatencyMode, uint8_t audioOutputCompensated, uint8_t audioOutputDelay);
+			void setLatencyInfo();
                         void SendStandbyMsgEvent(const int logicalAddress);
                         void requestAudioDevicePowerStatus();
                         void reportAudioDevicePowerStatusInfo(const int logicalAddress, const int powerStatus);
@@ -599,6 +602,7 @@ private:
 	                uint32_t sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t getAudioDeviceConnectedStatusWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t requestAudioDevicePowerStatusWrapper(const JsonObject& parameters, JsonObject& response);
+			uint32_t setLatencyInfoWrapper(const JsonObject& parameters, JsonObject& response);
                         //End methods
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;
@@ -624,6 +628,11 @@ private:
             std::queue<SendKeyInfo> m_SendKeyQueue;
             std::condition_variable m_sendKeyCV;
 	    std::condition_variable m_ThreadExitCV;
+
+	    /* DALS - Latency Values */
+	    uint8_t m_video_latency;
+	    uint8_t m_latency_flags;
+	    uint8_t m_audio_output_delay;
 
             /* ARC related */
             std::thread m_arcRoutingThread;
