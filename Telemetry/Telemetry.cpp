@@ -221,9 +221,14 @@ namespace WPEFramework
         void _powerEventHandler(const char *owner, IARM_EventId_t eventId,
                 void *data, size_t len)
         {
-
             if (IARM_BUS_PWRMGR_EVENT_MODECHANGED == eventId)
             {
+                if (nullptr == Telemetry::_instance)
+                {
+                    LOGERR("Telemetry::_instance is NULL.\n");
+                    return;
+                }
+
                 IARM_Bus_PWRMgr_EventData_t *eventData = (IARM_Bus_PWRMgr_EventData_t *)data;
 
                 if (IARM_BUS_PWRMGR_POWERSTATE_STANDBY == eventData->data.state.newState ||
@@ -231,20 +236,12 @@ namespace WPEFramework
                 {
                     if (IARM_BUS_PWRMGR_POWERSTATE_ON == eventData->data.state.curState)
                     {
-                        if (Telemetry::_instance) {
-                            Telemetry::_instance->UploadReport();
-                        } else {
-                            LOGERR("Telemetry::_instance is NULL.\n");
-                        }
+                        Telemetry::_instance->UploadReport();
                     }
                 }
                 else if(IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP == eventData->data.state.newState)
                 {
-                    if (Telemetry::_instance) {
-                        Telemetry::_instance->AbortReport();
-                    } else {
-                        LOGERR("Telemetry::_instance is NULL.\n");
-                    }
+                    Telemetry::_instance->AbortReport();
                 }
             }
         }
@@ -348,9 +345,15 @@ namespace WPEFramework
             sendNotify(TELEMETRY_METHOD_EVT_ON_REPORT_UPLOAD, eventData);
         }
 
+        static void t2OnAbortEventHandler(rbusHandle_t handle, char const* methodName, rbusError_t error, rbusObject_t param)
+        {
+            LOGINFO("Got %s rbus callback", methodName);
+        }
+
 #endif
         uint32_t Telemetry::UploadReport()
         {
+            LOGINFO("");
 #ifdef HAS_RBUS
             if (RBUS_ERROR_SUCCESS != rbusHandleStatus)
             {
@@ -394,7 +397,7 @@ namespace WPEFramework
 
             if (RBUS_ERROR_SUCCESS == rbusHandleStatus)
             {
-                int rc = rbusMethod_InvokeAsync(rbusHandle, T2_ABORT_ON_DEMAND_REPORT, NULL, NULL, 0);
+                int rc = rbusMethod_InvokeAsync(rbusHandle, T2_ABORT_ON_DEMAND_REPORT, NULL, t2OnAbortEventHandler, 0);
                 if (RBUS_ERROR_SUCCESS != rc)
                 {
                     std::stringstream str;
