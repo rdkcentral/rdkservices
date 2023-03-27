@@ -42,6 +42,7 @@
 #define TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS "setReportProfileStatus"
 #define TELEMETRY_METHOD_LOG_APPLICATION_EVENT "logApplicationEvent"
 #define TELEMETRY_METHOD_UPLOAD_REPORT "uploadReport"
+#define TELEMETRY_METHOD_ABORT_REPORT "abortReport"
 
 #define TELEMETRY_METHOD_EVT_ON_REPORT_UPLOAD "onReportUpload"
 
@@ -95,6 +96,7 @@ namespace WPEFramework
             Register(TELEMETRY_METHOD_SET_REPORT_PROFILE_STATUS, &Telemetry::setReportProfileStatus, this);
             Register(TELEMETRY_METHOD_LOG_APPLICATION_EVENT, &Telemetry::logApplicationEvent, this);
             Register(TELEMETRY_METHOD_UPLOAD_REPORT, &Telemetry::uploadReport, this);
+            Register(TELEMETRY_METHOD_ABORT_REPORT, &Telemetry::abortReport, this);
 
             Utils::Telemetry::init();
         }
@@ -425,6 +427,12 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
             return UploadReport();
+        }
+
+        uint32_t Telemetry::abortReport(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            return AbortReport();
         }
 
     } // namespace Plugin

@@ -49,6 +49,7 @@ namespace WPEFramework {
             uint32_t setReportProfileStatus(const JsonObject& parameters, JsonObject& response);
             uint32_t logApplicationEvent(const JsonObject& parameters, JsonObject& response);
             uint32_t uploadReport(const JsonObject& parameters, JsonObject& response);
+            uint32_t abortReport(const JsonObject& parameters, JsonObject& response);
             //End methods
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
