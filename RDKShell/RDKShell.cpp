@@ -947,7 +947,7 @@ namespace WPEFramework {
                 else if (currentState == PluginHost::IShell::DEACTIVATED)
                 {
                     std::string configLine = service->ConfigLine();
-                    if (configLine.empty())
+                    if (configLine.empty() || service->Callsign() == RESIDENTAPP_CALLSIGN)
                     {
                         return;
                     }
@@ -1277,6 +1277,13 @@ namespace WPEFramework {
                         {
                             sFactoryModeStart = true;
                         }
+                        if (sFactoryModeStart == true) {
+                            gRdkShellMutex.unlock();
+                            PluginHost::IShell* raShell = pluginService->QueryInterfaceByCallsign<PluginHost::IShell>(RESIDENTAPP_CALLSIGN);
+                            raShell->Deactivate(PluginHost::IShell::REQUESTED);
+                            raShell->Release();
+                            gRdkShellMutex.lock();
+                        }
                         subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
                         subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
                         subSystems->Release();
@@ -1377,6 +1384,13 @@ namespace WPEFramework {
                         if ((nullptr != rdkshellPlugin) && rdkshellPlugin->checkForBootupFactoryAppLaunch())
                         {
                             sFactoryModeStart = true;
+                        }
+                        if (sFactoryModeStart == true) {
+                            gRdkShellMutex.unlock();
+                            PluginHost::IShell* raShell = pluginService->QueryInterfaceByCallsign<PluginHost::IShell>(RESIDENTAPP_CALLSIGN);
+                            raShell->Deactivate(PluginHost::IShell::REQUESTED);
+                            raShell->Release();
+                            gRdkShellMutex.lock();
                         }
                         std::cout << "setting platform and graphics after wait\n";
                         subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
