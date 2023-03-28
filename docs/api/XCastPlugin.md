@@ -2,7 +2,7 @@
 <a name="XCast_Plugin"></a>
 # XCast Plugin
 
-**Version: [1.0.10](https://github.com/rdkcentral/rdkservices/blob/main/XCast/CHANGELOG.md)**
+**Version: [1.0.11](https://github.com/rdkcentral/rdkservices/blob/main/XCast/CHANGELOG.md)**
 
 A org.rdk.Xcast plugin for Thunder framework.
 
@@ -315,7 +315,7 @@ No Events
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.applicationName | string | Registered application name |
-| params.state | string | A predefined application state. Either `running` or `stopped` |
+| params.state | string | A predefined application state. Either `running`, `stopped`, `hidden`, or `suspended` (introduced in DIAL 2.1, `suspended` is a synonym to `hidden`) |
 | params?.applicationId | string | <sup>*(optional)*</sup> Application instance ID |
 | params?.error | string | <sup>*(optional)*</sup> A predefined error from the cast target application. Either `none`, `forbidden` `unavailable` `invalid` or `internal` |
 
