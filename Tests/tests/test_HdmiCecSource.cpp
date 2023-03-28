@@ -168,7 +168,7 @@ protected:
     virtual ~HdmiCecSourceInitializedTest() override
     {
             int lCounter = 0;
-            while ((Plugin::HdmiCecSource::_instance->m_sendKeyEventThreadRun) && (lCounter < (2*10))) { //sleep for 2sec.
+            while ((Plugin::HdmiCecSource::_instance->deviceList[0].m_isOSDNameUpdated) && (lCounter < (2*10))) { //sleep for 2sec.
 	        	usleep (100 * 1000); //sleep for 100 milli sec
 	        	lCounter ++;
 	        }
