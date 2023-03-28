@@ -27,6 +27,9 @@ enum {
     REQUEST_ARC_TERMINATION = 0XC4,
     REQUEST_CURRENT_LATENCY = 0xA7,
     REPORT_CURRENT_LATENCY = 0xA8,
+    ROUTING_CHANGE = 0x80,
+    ROUTING_INFORMATION = 0x81,
+    SET_STREAM_PATH = 0x86,
     UNKNOWN = 0xFFFF
 };
 
@@ -185,8 +188,33 @@ public:
     };
     enum {
         TV = 0x0,
-        RESERVED = 0x02,
+        RECORDING_DEVICE,
+        RESERVED,
+        TUNER,
+        PLAYBACK_DEVICE,
+        AUDIO_SYSTEM,
+        PURE_CEC_SWITCH,
+        VIDEO_PROCESSOR,
     };
+
+    const std::string toString(void) const {
+            static const char *names_[] = {
+                "TV",
+                "Recording Device",
+                "Reserved",
+                "Tuner",
+                "Playback Device",
+                "Audio System",
+                "Pure CEC Switch",
+                "Video Processor",
+            };
+            if((str[0] <= VIDEO_PROCESSOR)){
+                return names_[str[0]];
+            }
+            else{
+                return "Unknown";
+            }
+        }
 
     DeviceType(const CECFrame& frame, size_t startPos): CECBytes(frame, startPos, MAX_LEN){}
     DeviceType(int type): CECBytes((uint8_t)type){}
@@ -271,7 +299,27 @@ public:
         return str[0];
     }
 
-    int getType() const;
+    int getType(void) const {
+		static int _type[] = {
+            DeviceType::TV,
+            DeviceType::RECORDING_DEVICE,
+            DeviceType::RECORDING_DEVICE,
+            DeviceType::TUNER,
+            DeviceType::PLAYBACK_DEVICE,
+            DeviceType::AUDIO_SYSTEM,
+            DeviceType::TUNER,
+            DeviceType::TUNER,
+            DeviceType::PLAYBACK_DEVICE,
+            DeviceType::RECORDING_DEVICE,
+            DeviceType::TUNER,
+            DeviceType::PLAYBACK_DEVICE,
+            DeviceType::RESERVED,
+            DeviceType::RESERVED,
+            DeviceType::RESERVED,
+            DeviceType::RESERVED,
+        };
+        return _type[str[0]];
+	}
 };
 
 class Version : public CECBytes {
@@ -672,6 +720,7 @@ public:
     virtual void sendTo(const LogicalAddress& to, const CECFrame& frame) const = 0;
     virtual void sendTo(const LogicalAddress& to, const CECFrame& frame, int timeout) const = 0;
     virtual void poll(const LogicalAddress& from, const Throw_e& doThrow) const = 0;
+    virtual void sendAsync(const CECFrame &frame) const = 0;
 };
 
 class Connection {
@@ -717,6 +766,10 @@ public:
         return getInstance().impl->poll(from, doThrow);
     }
 
+    void sendAsync(const CECFrame &frame){
+		return getInstance().impl->sendAsync(frame);
+	}
+
     void setSource(LogicalAddress& from) {
     }
 };
@@ -742,6 +795,7 @@ public:
     virtual void term() const = 0;
     virtual void getPhysicalAddress(uint32_t* physicalAddress) const = 0;
     virtual int addLogicalAddress(const LogicalAddress& source) const = 0;
+    virtual int getLogicalAddress(int devType) const = 0;
 };
 
 class LibCCEC {
@@ -772,6 +826,10 @@ public:
 
     int addLogicalAddress(const LogicalAddress& source){
         return impl->addLogicalAddress(source);
+    }
+
+    int getLogicalAddress(int devType){
+        return impl->getLogicalAddress(devType);
     }
 };
 
@@ -828,4 +886,13 @@ public:
     {
         return getInstance().impl->encode(m);
     }
+};
+
+class IOException : public Exception
+{
+	public:
+		virtual const char* what() const throw()
+		{
+			return "IO Exception..";
+		}
 };

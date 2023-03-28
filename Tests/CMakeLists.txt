@@ -42,6 +42,7 @@ set_source_files_properties(
         tests/test_DeviceVideoCapabilities.cpp
         tests/test_SystemServices.cpp
         tests/test_Warehouse.cpp
+        tests/test_HdmiCec.cpp
         tests/test_FrontPanel.cpp
         tests/test_HdmiCecSink.cpp
         PROPERTIES COMPILE_FLAGS "-fexceptions")
@@ -73,6 +74,7 @@ include_directories(../LocationSync
         ../ActivityMonitor
         ../MotionDetection
         ../CompositeInput
+        ../HdmiCec
         ../FrontPanel
         ../OCIContainer
         ../HdmiCecSink
@@ -107,6 +109,7 @@ link_directories(../LocationSync
         ../ActivityMonitor
         ../MotionDetection
         ../CompositeInput
+        ../HdmiCec
         ../FrontPanel
         ../OCIContainer
         ../HdmiCecSink
@@ -145,6 +148,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}ActivityMonitor
         ${NAMESPACE}MotionDetection
         ${NAMESPACE}CompositeInput
+        ${NAMESPACE}HdmiCec
         ${NAMESPACE}FrontPanel
         ${NAMESPACE}OCIContainer
         ${NAMESPACE}HdmiCecSink
