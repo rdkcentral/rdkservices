@@ -167,6 +167,11 @@ protected:
     }
     virtual ~HdmiCec_2InitializedTest() override
     {
+            int lCounter = 0;
+            while ((Plugin::HdmiCec_2::_instance->m_sendKeyEventThreadRun) && (lCounter < (2*10))) { //sleep for 2sec.
+	        	usleep (100 * 1000); //sleep for 100 milli sec
+	        	lCounter ++;
+	        }
             EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": false}"), response));
             EXPECT_EQ(response, string("{\"success\":true}"));
             plugin->Deinitialize(nullptr);
