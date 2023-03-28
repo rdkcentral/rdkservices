@@ -461,7 +461,13 @@ public:
         UI_COMMAND_NUM_9 = 0x29,
     };
 
-    UICommand(int command): CECBytes((uint8_t)command){};
+    UICommand(int command)
+        : CECBytes((uint8_t)command){};
+
+    int toInt() const
+    {
+        return str[0];
+    }
 };
 
 class DataBlock {
@@ -498,10 +504,12 @@ public:
     LogicalAddress to;
 };
 
-class ImageViewOn {
+class ImageViewOn : public DataBlock{
+
+
 };
 
-class TextViewOn {
+class TextViewOn : public DataBlock{
 };
 
 class RequestActiveSource : public DataBlock {
@@ -519,7 +527,7 @@ public:
 class GetCECVersion : public DataBlock {
 };
 
-class GetMenuLanguage {
+class GetMenuLanguage : public DataBlock{
 };
 
 class SetMenuLanguage : public DataBlock {
@@ -632,7 +640,7 @@ public:
 class UserControlReleased : public DataBlock {
 };
 
-class Polling {
+class Polling : public DataBlock{
 };
 
 class RequestShortAudioDescriptor : public DataBlock {
@@ -871,6 +879,7 @@ public:
 class MessageEncoderImpl {
 public:
     virtual CECFrame& encode(const DataBlock& m) const = 0;
+    virtual CECFrame& encode(const UserControlPressed& m) const = 0;
 };
 
 class MessageEncoder {
@@ -881,6 +890,10 @@ public:
     {
         static MessageEncoder instance;
         return instance;
+    }
+    CECFrame& encode(const UserControlPressed m)
+    {
+        return getInstance().impl->encode(m);
     }
     CECFrame& encode(const DataBlock m)
     {

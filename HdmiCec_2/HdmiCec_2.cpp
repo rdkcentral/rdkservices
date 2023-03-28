@@ -83,7 +83,7 @@ static const char *eventString[] = {
 #define CEC_SETTING_OSD_NAME "cecOSDName"
 #define CEC_SETTING_VENDOR_ID "cecVendorId"
 
-static vector<uint8_t> defaultVendorId = {0x00,0x19,0xFB};
+static std::vector<uint8_t> defaultVendorId = {0x00,0x19,0xFB};
 static VendorID appVendorId = {defaultVendorId.at(0),defaultVendorId.at(1),defaultVendorId.at(2)};
 static VendorID lgVendorId = {0x00,0xE0,0x91};
 static PhysicalAddress physical_addr = {0x0F,0x0F,0x0F,0x0F};
@@ -385,7 +385,7 @@ namespace WPEFramework
 //=========================================== HdmiCec_2 =========================================
 
        HdmiCec_2::HdmiCec_2()
-       : PluginHost::JSONRPC()
+       : PluginHost::JSONRPC(),cecEnableStatus(false),smConnection(nullptr), m_sendKeyEventThreadRun(false)
        {
            LOGWARN("ctor");
            IsCecMgrActivated = false;
@@ -454,7 +454,7 @@ namespace WPEFramework
                    device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                    if (vPort.isDisplayConnected())
                    {
-                       vector<uint8_t> edidVec;
+                       std::vector<uint8_t> edidVec;
                        vPort.getDisplay().getEDIDBytes(edidVec);
                        //Set LG vendor id if connected with LG TV
                        if(edidVec.at(8) == 0x1E && edidVec.at(9) == 0x6D)
@@ -619,7 +619,7 @@ namespace WPEFramework
 			m_SendKeyQueue.push(keyInfo);
             m_sendKeyEventThreadRun = true;
 			m_sendKeyCV.notify_one();
-			LOGINFO("Post send key press event to queue size:%d \n",m_SendKeyQueue.size());
+			LOGINFO("Post send key press event to queue size:%d \n",(int)m_SendKeyQueue.size());
 			returnResponse(true);
 		}
 	    
@@ -826,7 +826,7 @@ namespace WPEFramework
                    device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                    if (vPort.isDisplayConnected())
                    {
-                     vector<uint8_t> edidVec;
+                     std::vector<uint8_t> edidVec;
                      vPort.getDisplay().getEDIDBytes(edidVec);
                      //Set LG vendor id if connected with LG TV
                      if(edidVec.at(8) == 0x1E && edidVec.at(9) == 0x6D)
@@ -1273,6 +1273,10 @@ namespace WPEFramework
 
                 smConnection->close();
                 delete smConnection;
+                delete msgProcessor;
+                delete msgFrameListener;
+                msgProcessor = NULL;
+                msgFrameListener = NULL;
                 smConnection = NULL;
             }
             cecEnableStatus = false;
@@ -1669,7 +1673,7 @@ namespace WPEFramework
                     keyInfo = _instance->m_SendKeyQueue.front();
                     _instance->m_SendKeyQueue.pop();
 
-                LOGINFO("sendRemoteKeyThread : logical addr:0x%x keyCode: 0x%x  queue size :%d \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
+                LOGINFO("sendRemoteKeyThread : logical addr:0x%x keyCode: 0x%x  queue size :%d \n",keyInfo.logicalAddr,keyInfo.keyCode,(int)_instance->m_SendKeyQueue.size());
 			    _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
 			    _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
             }
