@@ -47,6 +47,8 @@ protected:
 
         ON_CALL(messageEncoderMock, encode(::testing::Matcher<const DataBlock&>(::testing::_)))
             .WillByDefault(::testing::ReturnRef(CECFrame::getInstance()));
+        ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+           .WillByDefault(::testing::ReturnRef(CECFrame::getInstance()));
 
         ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
