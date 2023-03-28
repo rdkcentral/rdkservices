@@ -183,6 +183,10 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPowerStateIsManagedByDevice")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPowerStateBeforeReboot")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setWakeupSrcConfiguration")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("reboot")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getStateInfo")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFirmwareUpdateInfo")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBootLoaderPattern")));
 }
 
 TEST_F(SystemServicesTest, SystemUptime)
@@ -1306,3 +1310,536 @@ TEST_F(SystemServicesEventIarmTest, onRebootRequest)
 
     handler.Unsubscribe(0, _T("onRebootRequest"), _T("org.rdk.System"), message);
 }
+/*******************************************************************************************************************
+ * Test function for :requestSystemReboot
+ * requestSystemReboot :
+ *                Requests that the system performs a reboot of the set-top box.
+ *                Triggering onRebootRequest event.
+ *
+ *                @return IARM BUS status and Whether the request succeeded.
+ * Use case coverage:
+ *                @Success :3
+ *                @Failure :0
+ ********************************************************************************************************************/
+
+/**
+ * @brief :requestSystemReboot when reason is not passed
+ *        Check if (i)valid reason is passed as input parameter and
+ *        (ii) if Bus call status returns as SUCCESS
+ *        then requestSystemReboot shall be succeeded and returns the BUS call status in the response.
+ *
+ * @param[in]   :  "params": {}
+ * @return      :  {"IARM_Bus_Call_STATUS":0,"success":true}
+ */
+TEST_F(SystemServicesTest, requestSystemRebootSuccess_withoutreason)
+{
+}
+
+/**
+ * @brief :requestSystemReboot when reason is passed
+ *        Check if (i)valid reason is passed as input parameter and
+ *        (ii) if Bus call status returns as SUCCESS
+ *        then requestSystemReboot shall be succeeded and returns the BUS call status in the response.
+ *
+ * @param[in]   :  "params": {"rebootReason": "FIRMWARE_FAILURE"}
+ * @return      :  {"IARM_Bus_Call_STATUS":0,"success":true}
+ */
+TEST_F(SystemServicesTest, requestSystemRebootSuccess_withreason)
+{
+}
+
+/**
+ * @brief :requestSystemReboot when reason is passed and Bus API failed
+ *        Check if (i)valid reason is passed as input parameter and
+ *        (ii) if Bus call status returns some error_codes
+ *         then requestSystemReboot shall be succeeded and returns the respective Bus call status[INVALID_PARAM, INVALID_STATE, IPCCORE_FAIL, OOM] in the response.
+ *
+ *
+ * @param[in]   :  "params": {"rebootReason": "FIRMWARE_FAILURE"}
+ * @return      :  {"IARM_Bus_Call_STATUS":4,"success":true}
+ *
+ */
+TEST_F(SystemServicesTest,  requestSystemRebootSuccess_onRebootBusAPIFailed)
+{
+}
+
+/*Test cases for requestSystemReboot ends here*/
+
+/*******************************************************************************************************************
+ * Test function for :getStateInfo
+ * getStateInfo :
+ *                Queries device state information of various properties.
+ *
+ *                @return Whether the request succeeded.
+ * Use case coverage:
+ *                @Success :27
+ *                @Failure :2
+ ********************************************************************************************************************/
+
+/**
+ * @brief : getStateInfo When QueryParam is Empty
+ *       Check if QueryParam is not passed
+ *       then,getStateInfo shall be failed and returns an error message in the response
+ *
+ * @param[in]   : "params": {}
+ * @return      : {"SysSrv_Status":2,"errorMessage":"Missing required key\/value(s)","success":false}}
+ */
+TEST_F(SystemServicesTest, getStateInfoFailed_onEmptyParamList)
+{
+}
+
+/**
+ * @brief : getStateInfo when Invalid query Param is passed
+ *        Check if Invalid query parameters passed,
+ *        then getStateInfo shall be failed and returns an error message in the response
+ *
+ * @param[in]   :  "params": {"card.disconnected"}
+ * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
+ */
+TEST_F(SystemServicesTest, getStateInfoFailed_OnInvalidQueryParam)
+{
+}
+/**
+ * @brief : getStateInfo When QueryParam is channel_map
+ *        Check if valid query parameter com.comcast.channel_map is passed,
+ *        then it will return a value for this param in bus call,
+ *        getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.channel_map"}
+ * @return      :  {"com.comcast.channel_map":2,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamChannelMap)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is card.disconnected
+ *        Check if valid query parameter card.disconnected passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.card.disconnected"}
+ * @return      :  {"com.comcast.card.disconnected":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCardDisconnected)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is tune_ready
+ *        Check if valid query parameter tune_ready is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.tune_ready"}
+ * @return      :  {"com.comcast.tune_ready":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamTuneReady)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is cmac
+ *        Check if valid query parameter cmac is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.cmac"}
+ * @return      :  {"com.comcast.cmac":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCmac)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is card.moto.entitlements
+ *        Check if valid query parameter card.moto.entitlements is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.card.moto.entitlements"}
+ * @return      :  {"com.comcast.card.moto.entitlements":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCardMotoEntitlements)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is card.moto.hrv_rx
+ *        Check if valid query parameter card.moto.hrv_rx is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.card.moto.hrv_rx"}
+ * @return      :  {"com.comcast.card.moto.hrv_rx":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCardMotoHrvRx)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is card.cisco.status
+ *        Check if valid query parameter card.cisco.status is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.card.cisco.status"}
+ * @return      :  {"com.comcast.card.cisco.status":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCardCiscoStatus)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is video_presenting
+ *        Check if valid query parameter video_presenting is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.video_presenting"}
+ * @return      :  {"com.comcast.video_presenting":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamVideoPresenting)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is hdmi_out
+ *        Check if valid query parameters hdmi_out is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.hdmi_out"}
+ * @return      :  {"com.comcast.hdmi_out":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamHdmiOut)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is hdcp_enabled
+ *        Check if valid query parameters hdcp_enabled is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.hdcp_enabled"}
+ * @return      :  {"com.comcast.hdcp_enabled":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamHdcpEnabled)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is hdmi_edid_read
+ *        Check if valid query parameter hdmi_edid_read is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.hdmi_edid_read"}
+ * @return      :  {"com.comcast.hdmi_edid_read":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamHdmiEdidRead)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is firmware_download
+ *        Check if valid query parameters firmware_download is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.firmware_download"}
+ * @return      :  {"com.comcast.firmware_download":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamFirmwareDownload)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is time_source
+ *        Check if valid query parameter time_source is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.time_source"}
+ * @return      :  {"com.comcast.time_source":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamTimeSource)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is time_zone_available
+ *        Check if valid query parameter time_zone_available is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.time_zone_available"}
+ * @return      :  {"com.comcast.time_zone_available":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamTimeZoneAvailable)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is ca_system
+ *        Check if valid query parameter ca_system is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.ca_system"}
+ * @return      :  {"com.comcast.ca_system":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCaSystem)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is estb_ip
+ *        Check if valid query parameters estb_ip is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.estb_ip"}
+ * @return      :  {"com.comcast.estb_ip":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamEstbIp)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is ecm_ip
+ *        Check if valid query parameter ecm_ip is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.ecm_ip"}
+ * @return      :  {"com.comcast.ecm_ip":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamEcmIp)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is lan_ip
+ *        Check if valid query parameters lan_ip is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.lan_ip"}
+ * @return      :  {"com.comcast.lan_ip":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamLanIp)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is moca
+ *        Check if valid query parameter moca is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.moca"}
+ * @return      :  {"com.comcast.moca":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamMoca)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is docsis
+ *        Check if valid query parameter docsis is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.docsis"}
+ * @return      :  {"com.comcast.docsis":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamDocsis)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is dsg_broadcast_tunnel
+ *        Check if valid query parameter dsg_broadcast_tunnel is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.dsg_broadcast_tunnel"}
+ * @return      :  {"com.comcast.dsg_broadcast_tunnel":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamDsgBroadcastTunnel)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is dsg_ca_tunnel
+ *        Check if valid query parameter dsg_ca_tunnel is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.dsg_ca_tunnel"}
+ * @return      :  {"com.comcast.dsg_ca_tunnel":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamDsgCaTunnel)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is cable_card
+ *        Check if valid query parameter cable_card is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.cable_card"}
+ * @return      :  {"com.comcast.cable_card":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCableCard)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is cable_card_download
+ *        Check if valid query parameter cable_card_download is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.cable_card_download"}
+ * @return      :  {"com.comcast.cable_card_download":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCableCardDownload)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is cvr_subsystem
+ *        Check if valid query parameters cvr_subsystem is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.cvr_subsystem"}
+ * @return      :  {"com.comcast.cvr_subsystem":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCvrSubsystem)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is download
+ *        Check if valid query parameter download is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.download"}
+ * @return      :  {"com.comcast.download":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamDownload)
+{
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is vod_ad
+ *        Check if valid query parameter vod_ad is passed,
+ *        then getStateInfo shall be succeed and returns a success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.vod_ad"}
+ * @return      :  {"com.comcast.vod_ad":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamVodAd)
+{
+}
+
+/*Test cases for getStateInfo ends here*/
+
+/*******************************************************************************************************************
+ * Test function for :getFirmwareUpdateInfo
+ * getFirmwareUpdateInfo :
+ *                Checks the firmware update information.
+ *                Triggering onFirmwareUpdateInfoReceived event.
+ *
+ *                @return Whether the event notification succeeded and the request succeeded.
+ * Use case coverage:
+ *                @Success :1
+ *                @Failure :1
+ ********************************************************************************************************************/
+
+/**
+ * @brief : getFirmwareUpdateInfo when there are system errors
+ *        Check if m_getFirmwareInfoThread.get().join() throws system error exception,
+ *        then getFirmwareUpdateInfo will Fail.
+ *
+ * @param[in]   :  "params": {"GUID": "1234abcd"}
+ * @return      :  {"asyncResponse":false,"success":false}
+ */
+TEST_F(SystemServicesTest, getFirmwareUpdateInfoFailed_withsystemerrors)
+{
+}
+
+/**
+ * @brief : getFirmwareUpdateInfo when there are no system errors
+ *        Check if m_getFirmwareInfoThread.get().join() doesn't throw error,
+ *        then getFirmwareUpdateInfo will Succeed.
+ *
+ * @param[in]   :  "params": {"GUID": "1234abcd"}
+ * @return      :  {"asyncResponse":true,"success":true}
+ */
+TEST_F(SystemServicesTest, getFirmwareUpdateInfoSuccess_withoutsystemerrors)
+{
+}
+
+/*Test cases for getFirmwareUpdateInfo ends here*/
+
+/*******************************************************************************************************************
+ * Test function for :setBootLoaderPattern
+ * setBootLoaderPattern :
+ *                Sets the boot loader pattern mode in MFR.
+ *                valid patterns: {"NORMAL","SILENT","SILENT_LED_ON"}
+ *
+ *                @return Whether the request succeeded.
+ * Use case coverage:
+ *                @Success :3
+ *                @Failure :2
+ ********************************************************************************************************************/
+
+/**
+ * @brief : setBootLoaderPattern when pattern is not passed
+ *        Check if pattern is not passed,
+ *        then setBootLoaderPattern will Fail.
+ *
+ * @param[in]   :  "params": {}
+ * @return      :  {"success":false}
+ */
+TEST_F(SystemServicesTest, setBootLoaderPatternFailed_OnEmptyParamList)
+{
+}
+
+/**
+ * @brief : setBootLoaderPattern when pattern is passed
+ *       Check if invalid pattern is passed,
+ *       then setBootLoaderPattern will Fail.
+ *
+ * @param[in]   :  "params": {"pattern": "SILENT_LED_OFF"}
+ * @return      :  {"success":false}
+ */
+TEST_F(SystemServicesTest, setBootLoaderPatternFailed_Oninvalidpattern)
+{
+}
+
+/**
+ * @brief : setBootLoaderPattern when pattern is NORMAL
+ *        Check if (i)pattern is NORMAL and
+ *        (ii) if Bus call status returns as SUCCESS
+ *        then setBootLoaderPattern will Succeed.
+ *
+ *
+ * @param[in]   :  "params": {"pattern": "NORMAL"}
+ * @return      :  {"success":true}
+ */
+TEST_F(SystemServicesTest, setBootLoaderPatternSuccess_onPatterntypeNORMAL)
+{
+}
+
+/**
+ * @brief : setBootLoaderPattern when pattern is SILENT
+ *        Check if (i)pattern is SILENT and
+ *        (ii) if Bus call status returns as SUCCESS
+ *        then setBootLoaderPattern will Succeed.
+ *
+ *
+ * @param[in]   :  "params": {"pattern": "SILENT"}
+ * @return      :  {"success":true}
+ */
+TEST_F(SystemServicesTest, setBootLoaderPatternSuccess_onPatterntypeSILENT)
+{
+}
+
+/**
+ * @brief : setBootLoaderPattern when pattern is SILENT_LED_ON
+ *        Check if (i)pattern is SILENT_LED_ON and
+ *        (ii) if Bus call status returns as SUCCESS
+ *        then setBootLoaderPattern will Succeed.
+ *
+ *
+ * @param[in]   :  "params": {"pattern": "SILENT_LED_ON"}
+ * @return      :  {"success":true}
+ */
+TEST_F(SystemServicesTest, setBootLoaderPatternSuccess_onPatterntypeSILENTLEDON)
+{
+}
+
+/*Test cases for setBootLoaderPattern ends here*/
