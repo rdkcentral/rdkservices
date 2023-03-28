@@ -12,6 +12,9 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/rdk/iarmmgrs-hal
         ${BASEDIR}/ccec/drivers
         ${BASEDIR}/network
+        ${BASEDIR}/Dobby
+        ${BASEDIR}/Dobby/Public/Dobby
+        ${BASEDIR}/Dobby/IpcService
         )
 
 set(EMPTY_HEADERS
@@ -49,6 +52,10 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rfcapi.h
         ${BASEDIR}/rbus.h
         ${BASEDIR}/telemetry_busmessage_sender.h
+        ${BASEDIR}/Dobby/DobbyProtocol.h
+        ${BASEDIR}/Dobby/DobbyProxy.h
+        ${BASEDIR}/Dobby/Public/Dobby/IDobbyProxy.h
+        ${BASEDIR}/Dobby/IpcService/IpcFactory.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -75,6 +82,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/RBus.h
         ${BASEDIR}/Telemetry.h
         ${BASEDIR}/Udev.h
+        ${BASEDIR}/Dobby.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -106,6 +114,7 @@ set(CMAKE_DISABLE_FIND_PACKAGE_IARMBus ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_Udev ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_RFC ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_RBus ON)
+set(CMAKE_DISABLE_FIND_PACKAGE_Dobby ON)
 
 set(PLUGIN_DATACAPTURE ON)
 set(PLUGIN_DEVICEDIAGNOSTICS ON)
@@ -131,5 +140,6 @@ set(PLUGIN_WIFIMANAGER ON)
 set(PLUGIN_TRACECONTROL ON)
 set(PLUGIN_WAREHOUSE ON)
 set(PLUGIN_ACTIVITYMONITOR ON)
+set(PLUGIN_OCICONTAINER ON)
 
 set(DS_FOUND ON)
