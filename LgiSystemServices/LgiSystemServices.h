@@ -61,6 +61,7 @@ namespace WPEFramework {
             END_INTERFACE_MAP
 
             uint32_t getDeviceInfo(const JsonObject& parameters, JsonObject& response);
+            uint32_t getTimeZoneDST(const JsonObject& parameters, JsonObject& response);
 
         private:
             std::map<std::string, std::string> m_deviceInfo;

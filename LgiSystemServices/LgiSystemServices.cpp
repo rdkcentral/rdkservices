@@ -28,6 +28,8 @@
 
 #include "UtilsString.h"
 #include "UtilsJsonRpc.h"
+#include "UtilsfileExists.h"
+#include "SystemServicesHelper.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 1
@@ -155,6 +157,7 @@ namespace WPEFramework {
             : PluginHost::JSONRPC()
         {
             Register("getDeviceInfo", &LgiSystemServices::getDeviceInfo, this);
+            Register("getTimeZoneDST", &LgiSystemServices::getTimeZoneDST, this);
         }
 
 
@@ -211,6 +214,34 @@ namespace WPEFramework {
             }
 
             returnResponse(true);
+        }
+
+        uint32_t LgiSystemServices::getTimeZoneDST(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            std::string timezone;
+            bool resp = false;
+
+            if (Utils::fileExists(TZ_FILE)) {
+                if(readFromFile(TZ_FILE, timezone)) {
+                    LOGWARN("Fetch TimeZone: %s\n", timezone.c_str());
+                    for(const char c : timezone) {
+                        LOGWARN("Fetch TimeZone: %c\n", c);
+                    }
+                    response["timeZone"] = timezone;
+                    response["accuracy"] = "FINAL";
+                    resp = true;
+                } else {
+                    LOGERR("Unable to open %s file.\n", TZ_FILE);
+                    response["timeZone"] = "null";
+                    resp = false;
+                }
+            } else {
+                LOGERR("File not found %s.\n", TZ_FILE);
+                populateResponseWithError(SysSrv_FileAccessFailed, response);
+                resp = false;
+            }
+            returnResponse(resp);
         }
     }
 }
