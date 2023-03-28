@@ -77,5 +77,6 @@ public:
     virtual ~MessageEncoderMock() = default;
 
     MOCK_METHOD(CECFrame&, encode, (const DataBlock &m), (const, override));
+    MOCK_METHOD(CECFrame&, encode, (const UserControlPressed &m), (const, override));
 };
 

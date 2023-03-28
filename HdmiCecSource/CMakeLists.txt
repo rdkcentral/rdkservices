@@ -18,6 +18,7 @@ set(PLUGIN_NAME HdmiCecSource)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_HDMICECSOURCE_STARTUPORDER "" CACHE STRING "To configure startup order of HdmiCecSource plugin")
+set_source_files_properties(HdmiCecSource.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
