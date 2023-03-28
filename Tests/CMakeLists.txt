@@ -78,6 +78,7 @@ include_directories(../LocationSync
         ../FrontPanel
         ../OCIContainer
         ../HdmiCecSink
+        ../XCast
         ../VoiceControl
         ../ControlService
         ../RemoteActionMapping
@@ -112,6 +113,7 @@ link_directories(../LocationSync
         ../FrontPanel
         ../OCIContainer
         ../HdmiCecSink
+        ../XCast
         ../VoiceControl
         ../ControlService
         ../RemoteActionMapping
@@ -150,6 +152,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}FrontPanel
         ${NAMESPACE}OCIContainer
         ${NAMESPACE}HdmiCecSink
+        ${NAMESPACE}XCast
         ${NAMESPACE}VoiceControl
         ${NAMESPACE}ControlService
         ${NAMESPACE}RemoteActionMapping

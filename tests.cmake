@@ -90,6 +90,10 @@ set(EMPTY_HEADERS
 	${BASEDIR}/ccec/drivers/iarmbus/CecIARMBusMgr.h
 	${BASEDIR}/dsRpc.h
 	${BASEDIR}/websocket/URL.h
+        ${BASEDIR}/rtRemote.h
+        ${BASEDIR}/rtObject.h
+        ${BASEDIR}/rtError.h
+        ${BASEDIR}/rtNotifier.h
         ${BASEDIR}/rdk/iarmmgrs/irMgr.h
         ${BASEDIR}/rdk/iarmmgrs/comcastIrKeyCodes.h
         ${BASEDIR}/rdk/control/ctrlm_ipc.h
@@ -150,6 +154,8 @@ add_definitions(
         -DENABLE_DEVICE_MANUFACTURER_INFO
         -DCLOCK_BRIGHTNESS_ENABLED
         -DUSE_DS
+        -DRFC_ENABLED
+        -DXCAST_ENABLED_BY_DEFAULT
 )
 
 message("Setting build options")
@@ -193,6 +199,7 @@ set(PLUGIN_HDMICEC ON)
 set(HAS_FRONT_PANEL ON)
 set(PLUGIN_OCICONTAINER ON)
 set(PLUGIN_HDMICECSINK ON)
+set(PLUGIN_XCAST ON)
 set(PLUGIN_VOICECONTROL ON)
 set(PLUGIN_CONTROLSERVICE ON)
 set(PLUGIN_REMOTEACTIONMAPPING ON)
