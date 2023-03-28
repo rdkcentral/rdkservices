@@ -33,6 +33,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         LgiSystemServices.cpp
+        SystemServicesHelper.cpp
         Module.cpp
         )
 
