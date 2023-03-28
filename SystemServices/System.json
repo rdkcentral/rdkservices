@@ -2289,7 +2289,7 @@
                         "type":"string",
                         "enum": [
                             "UPLOAD_SUCCESS",
-                            "UPLOAD_FAILURE"
+                            "UPLOAD_FAILURE",
                             "UPLOAD_ABORTED"
                         ],
                         "example":"UPLOAD_SUCCESS"
