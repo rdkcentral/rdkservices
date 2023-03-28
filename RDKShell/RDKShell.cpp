@@ -102,7 +102,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SUSPEND_APP = "susp
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_RESUME_APP = "resumeApplication";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_DESTROY = "destroy";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AVAILABLE_TYPES = "getAvailableTypes";
-const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_STATE = "getState";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_STATE = "gimageetState";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_MEMORY = "getSystemMemory";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_SYSTEM_RESOURCE_INFO = "getSystemResourceInfo";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_MEMORY_MONITOR = "setMemoryMonitor";
@@ -1412,7 +1412,7 @@ namespace WPEFramework {
                       uint32_t size;
                       string screenshotBase64;
                       CompositorController::screenShot(data, size);
-		      Utils::String::imageEncoder(&data[0], size, true, screenshotBase64);
+		      Utils::String::encodeBase64(&data[0], size, true, screenshotBase64);
                       std::cout << "Screenshot success size:" << size << std::endl;
                       JsonObject params;
                       params["imageData"] = screenshotBase64;
