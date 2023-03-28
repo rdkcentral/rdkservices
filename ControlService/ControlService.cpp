@@ -244,7 +244,7 @@ namespace WPEFramework {
                 }
 
                 if (len != sizeof(IARM_Bus_IRMgr_EventData_t)) {
-                    LOGERR("ERROR - Got IARM_BUS_IRMGR_EVENT_IRKEY event with bad data length: %u, should be: %u!!",
+                    LOGERR("ERROR - Got IARM_BUS_IRMGR_EVENT_IRKEY event with bad data length: %zu, should be: %zu!!",
                            len, sizeof(IARM_Bus_IRMgr_EventData_t));
                 }
                 // We only care about the SETUP key - don't clutter the log with other irMgr keypress events
@@ -286,7 +286,7 @@ namespace WPEFramework {
 
                     if (len != sizeof(ctrlm_rcu_iarm_event_key_ghost_t))
                     {
-                        LOGERR("ERROR - Got CTRLM_RCU_IARM_EVENT_KEY_GHOST event with bad data length: %u, should be: %u!!\n",
+                        LOGERR("ERROR - Got CTRLM_RCU_IARM_EVENT_KEY_GHOST event with bad data length: %zu, should be: %zu!!\n",
                                len, sizeof(ctrlm_rcu_iarm_event_key_ghost_t));
                     }
 
@@ -328,7 +328,7 @@ namespace WPEFramework {
                 LOGINFO("Got a controlMgr battery milestone event!");
                 if (len != sizeof(ctrlm_rcu_iarm_event_battery_t))
                 {
-                    LOGERR("ERROR - Got CTRLM_RCU_IARM_EVENT_BATTERY_MILESTONE event with bad data length: %u, should be: %u!!\n",
+                    LOGERR("ERROR - Got CTRLM_RCU_IARM_EVENT_BATTERY_MILESTONE event with bad data length: %zu, should be: %zu!!\n",
                            len, sizeof(ctrlm_rcu_iarm_event_battery_t));
                     return;
                 }
@@ -366,7 +366,7 @@ namespace WPEFramework {
                 LOGINFO("Got a controlMgr remote reboot event!");
                 if (len != sizeof(ctrlm_rcu_iarm_event_remote_reboot_t))
                 {
-                    LOGERR("ERROR - Got CTRLM_RCU_IARM_EVENT_REMOTE_REBOOT event with bad data length: %u, should be: %u!!\n",
+                    LOGERR("ERROR - Got CTRLM_RCU_IARM_EVENT_REMOTE_REBOOT event with bad data length: %zu, should be: %zu!!\n",
                            len, sizeof(ctrlm_rcu_iarm_event_remote_reboot_t));
                     return;
                 }
@@ -409,7 +409,7 @@ namespace WPEFramework {
                 // Allow for variable size event, dictated by this event type
                 if (len < sizeof(ctrlm_rcu_iarm_event_reverse_cmd_t))
                 {
-                    LOGERR("ERROR - Got CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_END event with bad data length: %u, should be: %u!!\n",
+                    LOGERR("ERROR - Got CTRLM_RCU_IARM_EVENT_RCU_REVERSE_CMD_END event with bad data length: %zu, should be: %zu!!\n",
                            len, sizeof(ctrlm_rcu_iarm_event_reverse_cmd_t));
                     return;
                 }
@@ -475,7 +475,7 @@ namespace WPEFramework {
 
                    if (len != sizeof(ctrlm_rcu_iarm_event_control_t))
                    {
-                       LOGERR("ERROR - Got CTRLM_RCU_IARM_EVENT_CONTROL event with bad data length: %u, should be: %u!!\n",
+                       LOGERR("ERROR - Got CTRLM_RCU_IARM_EVENT_CONTROL event with bad data length: %zu, should be: %zu!!\n",
                               len, sizeof(ctrlm_rcu_iarm_event_control_t));
                    }
 
@@ -1228,7 +1228,7 @@ namespace WPEFramework {
             }
 
             keypressInfo["remoteId"]           = JsonValue((int)lastKeyInfo.controller_id);
-            keypressInfo["timestamp"]          = JsonValue((long long)lastKeyInfo.timestamp);   // This timestamp is already in milliseconds
+            keypressInfo["timestamp"]          = JsonValue((int64_t)lastKeyInfo.timestamp);   // This timestamp is already in milliseconds
             keypressInfo["sourceName"]         = std::string(lastKeyInfo.source_name);
 
             if (lastKeyInfo.source_type == IARM_BUS_IRMGR_KEYSRC_RF)
@@ -1936,7 +1936,7 @@ namespace WPEFramework {
                     strncpy(strRemoteType, pairMetrics.last_screenbind_remote_type, CTRLM_MAIN_SOURCE_NAME_MAX_LENGTH);
                     strRemoteType[CTRLM_MAIN_SOURCE_NAME_MAX_LENGTH - 1] = '\0';
                     stbData["stbLastScreenBindErrorRemoteType"] = std::string(strRemoteType);
-                    stbData["stbLastScreenBindErrorTimestamp"]  = JsonValue((long long)(pairMetrics.last_screenbind_error_timestamp * 1000LL));
+                    stbData["stbLastScreenBindErrorTimestamp"]  = JsonValue((int64_t)(pairMetrics.last_screenbind_error_timestamp * 1000LL));
 
                     stbData["stbNumOtherBindFailures"]          = JsonValue((int)pairMetrics.num_non_screenbind_failures);
                     stbData["stbLastOtherBindErrorCode"]        = JsonValue((int)pairMetrics.last_non_screenbind_error_code);
@@ -1944,7 +1944,7 @@ namespace WPEFramework {
                     strRemoteType[CTRLM_MAIN_SOURCE_NAME_MAX_LENGTH - 1] = '\0';
                     stbData["stbLastOtherBindErrorRemoteType"]  = std::string(strRemoteType);
                     stbData["stbLastOtherBindErrorBindType"]    = JsonValue((int)pairMetrics.last_non_screenbind_error_binding_type);
-                    stbData["stbLastOtherBindErrorTimestamp"]   = JsonValue((long long)(pairMetrics.last_non_screenbind_error_timestamp * 1000LL));
+                    stbData["stbLastOtherBindErrorTimestamp"]   = JsonValue((int64_t)(pairMetrics.last_non_screenbind_error_timestamp * 1000LL));
                 }
             }
 
@@ -2015,12 +2015,12 @@ namespace WPEFramework {
             remoteInfo["remoteModel"]               = std::string(getRemoteModel(ctrlStatus.status.type));
             remoteInfo["remoteModelVersion"]        = std::string(getRemoteModelVersion(ctrlStatus.status.type));
             remoteInfo["howRemoteIsPaired"]         = std::string(getPairingType(ctrlStatus.status.binding_type));
-            remoteInfo["pairingTimestamp"]          = JsonValue((long long)(ctrlStatus.status.time_binding * 1000LL));
+            remoteInfo["pairingTimestamp"]          = JsonValue((int64_t)(ctrlStatus.status.time_binding * 1000LL));
             remoteInfo["batteryLevelLoaded"]        = JsonValue(std::to_string(ctrlStatus.status.battery_voltage_loaded));  // TODO: Fix problem with FP parameters
             remoteInfo["batteryLevelUnloaded"]      = JsonValue(std::to_string(ctrlStatus.status.battery_voltage_unloaded));  // TODO: Fix problem with FP parameters
             remoteInfo["batteryLevelPercentage"]    = JsonValue((int)ctrlStatus.status.battery_level_percent);
             remoteInfo["batteryLastEvent"]          = JsonValue((int)ctrlStatus.status.battery_event);
-            remoteInfo["batteryLastEventTimestamp"] = JsonValue((long long)(ctrlStatus.status.time_battery_update * 1000LL));
+            remoteInfo["batteryLastEventTimestamp"] = JsonValue((int64_t)(ctrlStatus.status.time_battery_update * 1000LL));
 
             remoteInfo["numVoiceCommandsPreviousDay"]        = JsonValue((int)ctrlStatus.status.voice_cmd_count_yesterday);
             remoteInfo["numVoiceCommandsCurrentDay"]         = JsonValue((int)ctrlStatus.status.voice_cmd_count_today);
@@ -2037,7 +2037,7 @@ namespace WPEFramework {
             remoteInfo["numVoiceCmdsHighLossCurrentDay"]  = JsonValue((int)ctrlStatus.status.utterances_exceeding_packet_loss_threshold_today);
 
             remoteInfo["lastRebootErrorCode"]   = JsonValue((int)ctrlStatus.status.reboot_reason);
-            remoteInfo["lastRebootTimestamp"]   = JsonValue((long long)(ctrlStatus.status.reboot_timestamp * 1000LL));
+            remoteInfo["lastRebootTimestamp"]   = JsonValue((int64_t)(ctrlStatus.status.reboot_timestamp * 1000LL));
 
             remoteInfo["versionInfoSw"]     = std::string(ctrlStatus.status.version_software);
             remoteInfo["versionInfoHw"]     = std::string(ctrlStatus.status.version_hardware);
@@ -2049,7 +2049,7 @@ namespace WPEFramework {
             remoteInfo["programmedAvrIRCode"]   = std::string(ctrlStatus.status.ir_db_code_avr);
 
             remoteInfo["bHasRemoteBeenUpdated"] = JsonValue((bool)ctrlStatus.status.firmware_updated);
-            remoteInfo["lastCommandTimeDate"]   = JsonValue((long long)(ctrlStatus.status.time_last_key * 1000LL));
+            remoteInfo["lastCommandTimeDate"]   = JsonValue((int64_t)(ctrlStatus.status.time_last_key * 1000LL));
             remoteInfo["rf4ceRemoteSocMfr"]     = std::string(ctrlStatus.status.chipset);
             remoteInfo["remoteMfr"]             = std::string(ctrlStatus.status.manufacturer);
 
@@ -2062,22 +2062,22 @@ namespace WPEFramework {
             remoteInfo["bHasBattery"]                       = JsonValue((bool)ctrlStatus.status.has_battery);
             if((bool)ctrlStatus.status.has_battery)
             {
-                remoteInfo["batteryChangedTimestamp"]           = JsonValue((long long)(ctrlStatus.status.time_battery_changed * 1000LL));
+                remoteInfo["batteryChangedTimestamp"]           = JsonValue((int64_t)(ctrlStatus.status.time_battery_changed * 1000LL));
                 remoteInfo["batteryChangedActualPercentage"]    = JsonValue((int)ctrlStatus.status.battery_changed_actual_percentage);
                 remoteInfo["batteryChangedUnloadedVoltage"]     = JsonValue(std::to_string(ctrlStatus.status.battery_changed_unloaded_voltage));
-                remoteInfo["battery75PercentTimestamp"]         = JsonValue((long long)(ctrlStatus.status.time_battery_75_percent * 1000LL));
+                remoteInfo["battery75PercentTimestamp"]         = JsonValue((int64_t)(ctrlStatus.status.time_battery_75_percent * 1000LL));
                 remoteInfo["battery75PercentActualPercentage"]  = JsonValue((int)ctrlStatus.status.battery_75_percent_actual_percentage);
                 remoteInfo["battery75PercentUnloadedVoltage"]   = JsonValue(std::to_string(ctrlStatus.status.battery_75_percent_unloaded_voltage));
-                remoteInfo["battery50PercentTimestamp"]         = JsonValue((long long)(ctrlStatus.status.time_battery_50_percent * 1000LL));
+                remoteInfo["battery50PercentTimestamp"]         = JsonValue((int64_t)(ctrlStatus.status.time_battery_50_percent * 1000LL));
                 remoteInfo["battery50PercentActualPercentage"]  = JsonValue((int)ctrlStatus.status.battery_50_percent_actual_percentage);
                 remoteInfo["battery50PercentUnloadedVoltage"]   = JsonValue(std::to_string(ctrlStatus.status.battery_50_percent_unloaded_voltage));
-                remoteInfo["battery25PercentTimestamp"]         = JsonValue((long long)(ctrlStatus.status.time_battery_25_percent * 1000LL));
+                remoteInfo["battery25PercentTimestamp"]         = JsonValue((int64_t)(ctrlStatus.status.time_battery_25_percent * 1000LL));
                 remoteInfo["battery25PercentActualPercentage"]  = JsonValue((int)ctrlStatus.status.battery_25_percent_actual_percentage);
                 remoteInfo["battery25PercentUnloadedVoltage"]   = JsonValue(std::to_string(ctrlStatus.status.battery_25_percent_unloaded_voltage));
-                remoteInfo["battery5PercentTimestamp"]          = JsonValue((long long)(ctrlStatus.status.time_battery_5_percent * 1000LL));
+                remoteInfo["battery5PercentTimestamp"]          = JsonValue((int64_t)(ctrlStatus.status.time_battery_5_percent * 1000LL));
                 remoteInfo["battery5PercentActualPercentage"]   = JsonValue((int)ctrlStatus.status.battery_5_percent_actual_percentage);
                 remoteInfo["battery5PercentUnloadedVoltage"]    = JsonValue(std::to_string(ctrlStatus.status.battery_5_percent_unloaded_voltage));
-                remoteInfo["battery0PercentTimestamp"]          = JsonValue((long long)(ctrlStatus.status.time_battery_0_percent * 1000LL));
+                remoteInfo["battery0PercentTimestamp"]          = JsonValue((int64_t)(ctrlStatus.status.time_battery_0_percent * 1000LL));
                 remoteInfo["battery0PercentActualPercentage"]   = JsonValue((int)ctrlStatus.status.battery_0_percent_actual_percentage);
                 remoteInfo["battery0PercentUnloadedVoltage"]    = JsonValue(std::to_string(ctrlStatus.status.battery_0_percent_unloaded_voltage));
                 remoteInfo["batteryVoltageLargeJumpCounter"]    = JsonValue((int)ctrlStatus.status.battery_voltage_large_jump_counter);
@@ -2087,7 +2087,7 @@ namespace WPEFramework {
             remoteInfo["bHasDSP"]                        = JsonValue((bool)ctrlStatus.status.has_dsp);
             if((bool)ctrlStatus.status.has_dsp)
             {
-                remoteInfo["averageTimeInPrivacyMode"]       = JsonValue((long long)ctrlStatus.status.average_time_in_privacy_mode);
+                remoteInfo["averageTimeInPrivacyMode"]       = JsonValue((int64_t)ctrlStatus.status.average_time_in_privacy_mode);
                 remoteInfo["bInPrivacyMode"]                 = JsonValue((bool)ctrlStatus.status.in_privacy_mode);
                 remoteInfo["averageSNR"]                     = JsonValue((int)ctrlStatus.status.average_snr);
                 remoteInfo["averageKeywordConfidence"]       = JsonValue((int)ctrlStatus.status.average_keyword_confidence);
@@ -2095,9 +2095,9 @@ namespace WPEFramework {
                 remoteInfo["totalNumberOfSpeakersWorking"]   = JsonValue((int)ctrlStatus.status.total_number_of_speakers_working);
                 remoteInfo["endOfSpeechInitialTimeoutCount"] = JsonValue((int)ctrlStatus.status.end_of_speech_initial_timeout_count);
                 remoteInfo["endOfSpeechTimeoutCount"]        = JsonValue((int)ctrlStatus.status.end_of_speech_timeout_count);
-                remoteInfo["uptimeStartTime"]                = JsonValue((long long)ctrlStatus.status.time_uptime_start * 1000LL);
-                remoteInfo["uptimeInSeconds"]                = JsonValue((long long)ctrlStatus.status.uptime_seconds);
-                remoteInfo["privacyTimeInSeconds"]           = JsonValue((long long)ctrlStatus.status.privacy_time_seconds);
+                remoteInfo["uptimeStartTime"]                = JsonValue((int64_t)(ctrlStatus.status.time_uptime_start * 1000LL));
+                remoteInfo["uptimeInSeconds"]                = JsonValue((int64_t)ctrlStatus.status.uptime_seconds);
+                remoteInfo["privacyTimeInSeconds"]           = JsonValue((int64_t)ctrlStatus.status.privacy_time_seconds);
                 remoteInfo["versionDSPBuildId"]              = std::string(ctrlStatus.status.version_dsp_build_id);
             }
 

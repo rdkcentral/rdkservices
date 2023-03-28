@@ -106,7 +106,6 @@ IARM_Bus_PWRMgr_PowerState_t XCast::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_ST
 XCast::XCast() : PluginHost::JSONRPC()
 , m_apiVersionNumber(1), m_isDynamicRegistrationsRequired(false)
 {
-    InitializeIARM();
     XCast::checkRFCServiceStatus();
     if(XCast::isCastEnabled)
     {
@@ -181,6 +180,7 @@ void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *dat
 const string XCast::Initialize(PluginHost::IShell* /* service */)
 {
     LOGINFO("XCast:: Initialize  plugin called \n");
+    InitializeIARM();
     _rtConnector  = RtXcastConnector::getInstance();
     _rtConnector->setService(this);
     if (XCast::isCastEnabled)
@@ -381,7 +381,7 @@ bool XCast::getEntryFromAppLaunchParamList (const char* appName, DynamicAppConfi
 void XCast::dumpDynamicAppConfigCache(string strListName, std::vector<DynamicAppConfig*> appConfigList) {
     /*Check if existing cache need to be updated*/
     std::vector<int> entriesTodelete;
-    LOGINFO ("=================Current dynamic %s size: %d is:===========================", strListName.c_str(), appConfigList.size());
+    LOGINFO ("=================Current dynamic %s size: %d is:===========================", strListName.c_str(), (int)appConfigList.size());
     for (DynamicAppConfig* pDynamicAppConfig : appConfigList) {
         LOGINFO ("Apps: appName:%s, prefixes:%s, cors:%s, allowStop:%d, query:%s, payload:%s",
                   pDynamicAppConfig->appName,
@@ -416,7 +416,7 @@ bool XCast::deleteFromDynamicAppCache(vector<string>& appsToDelete) {
         }
         std::sort(entriesTodelete.begin(), entriesTodelete.end(), std::greater<int>());
         for (int indexToDelete : entriesTodelete) {
-            LOGINFO("Going to delete the entry: %d from m_appConfigCache size: %d", indexToDelete, m_appConfigCache.size());
+            LOGINFO("Going to delete the entry: %d from m_appConfigCache size: %d", indexToDelete, (int)m_appConfigCache.size());
             //Delete the old unwanted item here.
             DynamicAppConfig* pDynamicAppConfigOld = m_appConfigCache[indexToDelete];
             m_appConfigCache.erase (m_appConfigCache.begin()+indexToDelete);
@@ -436,7 +436,7 @@ bool XCast::deleteFromDynamicAppCache(JsonArray applications)
     vector<string> appsToDelete;
     for (int iIndex = 0; iIndex < applications.Length(); iIndex++) {
         itrName = applications[iIndex].String();
-        LOGINFO("App name to delete: %s, size:%d", itrName.c_str(), strlen (itrName.c_str()));
+        LOGINFO("App name to delete: %s, size:%d", itrName.c_str(), (int)strlen (itrName.c_str()));
         appsToDelete.push_back(itrName);
     }
     //If empty list is passed, dynamic cache is cleared. This will clear static list also
@@ -495,7 +495,7 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 jNames = itrApp["names"].Array();
                 for (int i = 0; i < jNames.Length(); i++) {
                     itrName = jNames[i].String().c_str();
-                    LOGINFO("%s, size:%d", itrName.c_str(), strlen (itrName.c_str()));
+                    LOGINFO("%s, size:%d", itrName.c_str(), (int)strlen (itrName.c_str()));
                     DynamicAppConfig* pDynamicAppConfig = (DynamicAppConfig*) malloc (sizeof(DynamicAppConfig));
                     memset ((void*)pDynamicAppConfig, '0', sizeof(DynamicAppConfig));
                     memset (pDynamicAppConfig->appName, '\0', sizeof(pDynamicAppConfig->appName));
@@ -515,7 +515,7 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 jPrefixes = itrApp["prefixes"].Array();
                 for (int i = 0; i < jPrefixes.Length(); i++) {
                     itrPrefix = jPrefixes[i].String().c_str();
-                    LOGINFO("%s, size:%d", itrPrefix.c_str(), strlen (itrPrefix.c_str()));
+                    LOGINFO("%s, size:%d", itrPrefix.c_str(), (int)strlen (itrPrefix.c_str()));
                     for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
                         strcpy (pDynamicAppConfig->prefixes, itrPrefix.c_str());
                     }
@@ -530,7 +530,7 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 jCors = itrApp["cors"].Array();
                 for (int i = 0; i < jCors.Length(); i++) {
                     itrCor = jCors[i].String().c_str();
-                    LOGINFO("%s, size:%d", itrCor.c_str(), strlen (itrCor.c_str()));
+                    LOGINFO("%s, size:%d", itrCor.c_str(), (int)strlen (itrCor.c_str()));
                     for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
                         strcpy (pDynamicAppConfig->cors, itrCor.c_str());
                     }
@@ -564,14 +564,14 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 }
                 else {
                     jQuery = itrApp["query"].String();
-                    LOGINFO("query: %s, size:%d", jQuery.c_str(), strlen (jQuery.c_str()));
+                    LOGINFO("query: %s, size:%d", jQuery.c_str(), (int)strlen (jQuery.c_str()));
                 }
                 if (!jLaunchParam.HasLabel("payload")) {
                     LOGINFO ("Invalid payload format at application index %d", iIndex);
                 }
                 else {
                     jPayload = itrApp["payload"].String();
-                    LOGINFO("payload: %s, size:%d", jPayload.c_str(), strlen (jPayload.c_str()));
+                    LOGINFO("payload: %s, size:%d", jPayload.c_str(), (int)strlen (jPayload.c_str()));
                 }
                 //Set launchParameters in list for later usage
                 for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
@@ -596,13 +596,13 @@ void XCast::updateDynamicAppCache(JsonArray applications)
         }
         deleteFromDynamicAppCache (appsToDelete);
 
-        LOGINFO("appConfigList count: %d", appConfigList.size());
+        LOGINFO("appConfigList count: %d", (int)appConfigList.size());
         //Update the new entries here.
         {lock_guard<mutex> lck(m_appConfigMutex);
             for (DynamicAppConfig* pDynamicAppConfig : appConfigList) {
                 m_appConfigCache.push_back(pDynamicAppConfig);
             }
-            LOGINFO("m_appConfigCache count: %d", m_appConfigCache.size());
+            LOGINFO("m_appConfigCache count: %d", (int)m_appConfigCache.size());
         }
         //Clear the tempopary list here
         appsToDelete.clear();

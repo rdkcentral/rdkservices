@@ -76,6 +76,10 @@ include_directories(../LocationSync
         ../FrontPanel
         ../OCIContainer
         ../HdmiCecSink
+        ../XCast
+        ../VoiceControl
+        ../ControlService
+        ../RemoteActionMapping
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -106,6 +110,10 @@ link_directories(../LocationSync
         ../FrontPanel
         ../OCIContainer
         ../HdmiCecSink
+        ../XCast
+        ../VoiceControl
+        ../ControlService
+        ../RemoteActionMapping
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -140,6 +148,10 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}FrontPanel
         ${NAMESPACE}OCIContainer
         ${NAMESPACE}HdmiCecSink
+        ${NAMESPACE}XCast
+        ${NAMESPACE}VoiceControl
+        ${NAMESPACE}ControlService
+        ${NAMESPACE}RemoteActionMapping
         )
 
 target_include_directories(${PROJECT_NAME}
