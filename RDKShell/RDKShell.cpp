@@ -1412,14 +1412,8 @@ namespace WPEFramework {
                       uint32_t size;
                       string screenshotBase64;
                       CompositorController::screenShot(data, size);
-                      size_t encodedImageSize = b64_get_encoded_buffer_size(size);
-                      uint8_t *encodedImage = (uint8_t*)malloc(encodedImageSize);
-                      b64_encode(&data[0], size, encodedImage);
-                      std::stringstream list1;
-                      for (unsigned int i=0; i<encodedImageSize; ++i){
-                         list1 << encodedImage[i];
-                      }
-                      screenshotBase64 = list1.str();
+		      uint16_t length = (uint16_t) (size & 0xFFFF);
+		      Core::ToString(&data[0], length, true, screenshotBase64);
                       std::cout << "Screenshot success size:" << size << std::endl;
                       JsonObject params;
                       params["imageData"] = screenshotBase64;
@@ -1432,7 +1426,6 @@ namespace WPEFramework {
                       if (CompositorController::getScreenResolution(width, height))
                           mScreenCapture.onScreenCapture(&data[0], width, height);
 
-                      free(encodedImage);
                       free(data);
                       needsScreenshot = false;
                   }
