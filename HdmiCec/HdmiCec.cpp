@@ -249,11 +249,12 @@ namespace WPEFramework
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
+#ifndef LGI_CUSTOM_IMPL
                 //IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE,cecDeviceStatusEventHandler) ); // It didn't do anything in original service
                 IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
                 IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
                 IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
-#ifdef LGI_CUSTOM_IMPL
+#else
                 IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_ACTIVESTATUSCHANGE,cecActiveSourceEventHandler) );
 #endif
             }
@@ -264,11 +265,12 @@ namespace WPEFramework
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-		//IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE, cecDeviceStatusEventHandler) );
+#ifndef LGI_CUSTOM_IMPL
+                //IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE, cecDeviceStatusEventHandler) );
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
-#ifdef LGI_CUSTOM_IMPL
+#else
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_ACTIVESTATUSCHANGE,cecActiveSourceEventHandler) );
 #endif
             }
@@ -474,6 +476,7 @@ namespace WPEFramework
                 return;
             }
 
+#ifndef LGI_CUSTOM_IMPL
             char c;
             IARM_Result_t retVal = IARM_RESULT_SUCCESS;
             retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_API_isAvailable, (void *)&c, sizeof(c), 15000);
@@ -508,7 +511,6 @@ namespace WPEFramework
             if(smConnection)
             {
 
-#ifndef LGI_CUSTOM_IMPL
                 LOGWARN("Start Update thread %p", smConnection );
                 m_updateThreadExit = false;
                 _instance->m_lockUpdate = PTHREAD_MUTEX_INITIALIZER;
@@ -535,9 +537,9 @@ namespace WPEFramework
 		} catch (const std::system_error& e) {
                     LOGERR("exception in creating threadRun %s", e.what());
 	        }
-#endif
 
             }
+#endif
             cecEnableStatus = true;
             return;
         }
@@ -551,10 +553,9 @@ namespace WPEFramework
                 LOGWARN("CEC Already Disabled ");
                 return;
             }
-
+#ifndef LGI_CUSTOM_IMPL
             if (smConnection != NULL)
             {
-#ifndef LGI_CUSTOM_IMPL
                 LOGWARN("Stop Thread %p", smConnection );
 
                 m_updateThreadExit = true;
@@ -578,7 +579,6 @@ namespace WPEFramework
                     m_pollThread.get().join();
                 }
                 LOGWARN("Deleted Thread %p", smConnection );
-#endif
                 //Clear cec device cache.
                 removeAllCecDevices();
 
@@ -598,7 +598,9 @@ namespace WPEFramework
             {
                 libcecInitStatus--;
             }
-
+#else
+            cecEnableStatus = false;
+#endif
             return;
         }
 
@@ -750,7 +752,7 @@ namespace WPEFramework
         void HdmiCec::sendMessage(std::string message)
         {
             LOGINFO("sendMessage ");
-
+#ifndef LGI_CUSTOM_IMPL
             if(true == cecEnableStatus)
             {
                 std::vector <unsigned char> buf;
@@ -776,6 +778,7 @@ namespace WPEFramework
             else
                 LOGWARN("cecEnableStatus=false");
             return;
+#endif
         }
 
         void HdmiCec::sendActiveSourceEvent()
