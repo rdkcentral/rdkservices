@@ -182,6 +182,7 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setPowerState")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPowerStateIsManagedByDevice")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPowerStateBeforeReboot")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDeviceInfo")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setWakeupSrcConfiguration")));
 }
 
@@ -1306,3 +1307,279 @@ TEST_F(SystemServicesEventIarmTest, onRebootRequest)
 
     handler.Unsubscribe(0, _T("onRebootRequest"), _T("org.rdk.System"), message);
 }
+
+ /*******************************************************************************************************************
+ * Test function for :getDeviceInfo
+ * getDeviceInfo :
+ *                The API which Collects device details such as bluetooth_mac, boxIP, build_type, estb_mac,
+ *                imageVersion, rf4ce_mac, and wifi_mac.
+ *
+ *                @return An object containing the device details.
+ * Use case coverage:
+ *                @Success :12
+ *                @Failure :7
+ ********************************************************************************************************************/
+
+/**
+ * @brief : getDeviceInfo when QueryParam Contains Unallowable Character.
+ *          Check if input query Param passed with unallowable characters,
+ *          then  getDeviceInfo shall be failed and returns an error message
+ *          in the response
+ *
+ * @param[in]   :  "params":{"params": {"abc#$"}}
+ * @return      :  {"message":"Input has unallowable characters","success":false}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoFailed_OnQueryParamContainsUnallowableCharacter)
+{
+}
+
+/**
+ * @brief : getDeviceInfo with Invalid query Param
+ *          Check if Invalid query  parameters passed ,
+ *          then getDeviceInfo shall be failed without giving any response
+ *
+ * @param[in]   :  "params":{"params": {friendId"}}
+ * @return      :  {"success":false}")
+ */
+TEST_F(SystemServicesTest, getDeviceInfoFailed_OnInvalidQueryParam)
+{
+}
+
+/**
+ * @brief : getDeviceInfo When QueryParam is Empty  and DevicePropertyFile Not Exist
+ *          Check if (i)No input query param passed/ query Param = {make}
+ *          & (ii) device property file doesnot exist,
+ *          then,getDeviceInfo shall be failed and  returns an error message in the response
+ *
+ * @param[in]   : "params": "{}"
+ * @return      : {"message":"Expected file not found","success":false}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileNotExist)
+{
+}
+
+/**
+ * @brief : getDeviceInfo When QueryParam is Empty  and DevicePropertyFile Not Exist
+ *          Check if (i)No input query param passed/ query Param = {make}
+ *          & (ii) Failed to open the device property file ,
+ *          then,getDeviceInfo shall be failed and  returns an error message in the response
+ *
+ * @param[in]   : "params": "{}"
+ * @return      :  {"message":"File access failed","success":false}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileFailedToOpen)
+{
+}
+
+/**
+ * @brief : getDeviceInfo  When Query Parameter is make ,but Missing Key in property File
+ *          Check if 'make' parameter contains missing key: MFG_NAME
+ *          then ,getDeviceInfo shall be failed and returns an error message in the response
+ *
+ * @param[in]   : "params":{"params": "make"}
+ * @return      : {"message":"Missing required key/value(s)","success":false}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoFailed_OnMissingKeyInDevicePropertyFile)
+{
+}
+
+/**
+ * @brief : getDeviceInfo  When Query Parameter is make ,but Missing KeyValue in property File
+ *          check if   'make' parameter contains missing key value
+ *          then ,getDeviceInfo shall be failed and returns an error message in the response
+ *
+ * @param[in]   :  "params":{"params": "make"}
+ * @return      :  {"message":"Missing required key/value(s)","success":false}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoFailed_OnMissingKeyValueInDevicePropertyFile)
+{
+}
+
+/**
+ * @brief : getDeviceInfo When ManufactureDataReadAPI Failed For GetModelName/HardwareID
+ *          Check if (i) input parametr as Model name/Hardware ID and
+ *          (ii)If there is no manufacturer data available
+ *          then, getDeviceInfo shall be failed and returns an error message in the response
+ * @param[in]   : "params":{"params": "modelName"}
+ * @return      :  {"message":"Manufacturer Data Read Failed","success":false}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoFailed_OnManufactureDataReadAPIFailed)
+{
+}
+
+/**
+ * @brief : getDeviceInfo When QueryParam is Make
+ *          Check if query parameter = make
+ *          then,  getDeviceInfo shall succesfully retrieve the information from device property file
+ * @param[in]   :  "params":{"params": "make"}
+ * @return      : {"make":"SKY","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_onMakeParameter)
+{
+}
+
+/**
+ * @brief : getDeviceInfo With Valid QueryParam other than make
+ *          Check if valid query parameter is passed,
+ *          then getDeviceInfo shall successfully retrieve  the corresponding value from getDeviceDetails script file
+ *          and returns it in the response.
+ *          Check if valid query parameter string contains  any of the following characters [\"] ,
+ *          then  getDeviceInfo shall remove those characters from input param
+ *          and then successfully retrieve  the corresponding value and returns it in the response
+ *          Tested with following valid input params: {"bluetooth_mac","boxIP","build_type","estb_mac","eth_mac","friendly_id","imageVersion","version","software_version","model_number","wifi_mac"}
+ * @param[in]   : "params":{"params": "estb_mac"}i
+ *              : "params":{"params": "[estb_mac]"}
+ * @return      : {"estb_mac":"20:F1:9E:EE:62:08","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_onValidInput)
+{
+}
+
+/**
+ * @brief : getDeviceInfo  When QueryParam is ModelName
+ *          Check if device's Model Name as input query param,
+ *          then getDeviceInfo shall succeed and retrieves the information from  the external Bus device API
+ *          and returns it in the response.
+ * @param[in]   :  "params":{"params": "modelName"}
+ * @return      :  {"modelName":"IP061-ec","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParamModelName)
+{
+}
+
+/**
+ * @brief : getDeviceInfo  When QueryParam is HardwareId
+ *          Check if device's HardwareId as input query param,
+ *          then getDeviceInfo shall succeed and retrieves the information from  the external Bus device API
+ *          and returns it in the response.
+ * @param[in]   : "params":{"params": "hardwareID"}
+ * @return      :  {"hardwareId":"5678","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParamHardwareId)
+{
+}
+
+/**
+ * @brief : getDeviceInfo  When QueryParam is FriendlyId
+ *          Check if device's FriendlyId as input query param,
+ *          then getDeviceInfo shall succeed and retrieves the information from  the external Bus device API
+ *          and returns it in the response.
+ * @param[in]   : "params": {"params": "friendly_id"}
+ * @return      :  {"friendly_id":"IP061-ec","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParamFriendlyId)
+{
+}
+
+/**
+ * @brief : getDeviceInfo returns Cached data When QueryParam is HardwareId
+ *          Check (i) If input query param is  device's Hardware ID
+ *          and (ii) if cached data of  hardware Id is available
+ *          then , getDeviceInfo shall successfully retrieves the cached information and returns it in the response
+ * @param[in]   : "params": {"params": "hardwareID"}
+ * @return      : {"hardwareId":"5678","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedHardwareId)
+{
+}
+
+/**
+ * @brief : getDeviceInfo returns Cached data When QueryParam is ModelName
+ *          Check (i) If input query param is  device's ModelName
+ *          and (ii) if cached data of  Model Name is available
+ *          then , getDeviceInfo shall successfully retrieves the cached information and returns it in the response
+ * @param[in]   :  "params": {"params": "modelName"}
+ * @return      :  {"modelName":"IP061-ec","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedModelName)
+{
+}
+
+/**
+ * @brief : getDeviceInfo  When QueryParam passed without label "param"
+ *          Check if QueryParams  contains no label as "params"
+ *          then getDeviceInfo shall successfully retrieve the device info and  returns it in the response
+ * @param[in]   :   "params" :{}
+ * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
+ *                                     "boxIP":"192.168.1.100","build_type":"VBN",
+ *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
+ *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "cable_card_firmware_version":"ABCD1234",
+ *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParameterHasNoLabelParam)
+{
+}
+
+/**
+ * @brief : getDeviceInfo  When QueryParam passed without any value for "params"
+ *          Check if no value is passed with input query param,
+ *          then getDeviceInfo shall succesfully retrieve the information from both device property file and
+ *          getDeviceDetails script file ,then returns it in the response
+ * @param[in]   : "params": {"params": }
+ * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
+ *                                     "boxIP":"192.168.1.100","build_type":"VBN",
+ *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
+ *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_onNoValueForQueryParameter)
+{
+}
+
+/**
+ * @brief : getDeviceInfo When QueryParams Value is Empty and getDeviceDetails Script contains ImageVersion
+ *          Check if No value in input parameter and getDeviceDetails Script Contain key value = ImageVersion
+ *          then getDeviceInfo shall successfully retrieve the device info and returns it in the response where
+ *          ImageVersion stored in keys, "version" and "software_version"
+ * @param[in]   :  "params" : {}
+ * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
+ *                                     "boxIP":"192.168.1.100","build_type":"VBN",
+ *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
+ *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_getImageVersionOnEmptyParameter)
+{
+}
+
+/**
+ * @brief : getDeviceInfo When QueryParams Value is Empty and getDeviceDetails Script contains CableCardVersion
+ *          Check if No value in input parameter and getDeviceDetails Script Contain key value = CableCardVersion
+ *          then getDeviceInfo shall successfully retrieve the device info and   returns it in the response where CableCardVersion
+ *          stored in keys "cable_card_firmware_version"
+ * @param[in]   :   "params" :{}
+ * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
+ *                                     "boxIP":"192.168.1.100","build_type":"VBN",
+ *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
+ *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "cable_card_firmware_version":"ABCD1234",
+ *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCableCardVersionOnEmptyParameter)
+{
+}
+
+/**
+ * @brief : getDeviceInfo when QueryParams Value is Empty and getDeviceDetails Script contains ModelNumber
+ *          Check if No value in input parameter and getDeviceDetails Script Contain key value = ModelNumber
+ *          then getDeviceInfo shall successfully retrieve the device info and  returns it in the response where ModelNumber
+ *          stored in key "model_number"
+ * @param[in]   :   "params" :{}
+ * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
+ *                                     "boxIP":"192.168.1.100","build_type":"VBN",
+ *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
+ *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_getModelNumberOnEmptyParameter)
+{
+}
+
+/*Test cases for getDeviceInfo ends here*/
