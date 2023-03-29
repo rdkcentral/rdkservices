@@ -225,9 +225,6 @@ namespace WPEFramework {
             if (Utils::fileExists(TZ_FILE)) {
                 if(readFromFile(TZ_FILE, timezone)) {
                     LOGWARN("Fetch TimeZone: %s\n", timezone.c_str());
-                    for(const char c : timezone) {
-                        LOGWARN("Fetch TimeZone: %c\n", c);
-                    }
                     response["timeZone"] = timezone;
                     response["accuracy"] = "FINAL";
                     resp = true;
