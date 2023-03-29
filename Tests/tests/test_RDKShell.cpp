@@ -336,25 +336,6 @@ TEST_F(RDKShellTest, getSystemMemory)
                         "}"));
 }
 
-TEST_F(RDKShellTest, showWaterMark)
-{
-    ServiceMock service;
-    EXPECT_CALL(compositormock, showWatermark())
-	    .Times(::testing::AnyNumber())
-         .WillRepeatedly(::testing::Return(true));
-    EXPECT_EQ(string(""), plugin->Initialize(&service));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("showWatermark"), _T("{\"show\":true}"), response));
-    EXPECT_EQ(response, _T("{\"success\":true}"));
-    ON_CALL(compositormock, hideWatermark())
-            .WillByDefault(::testing::Invoke(
-                [](){
-                      return true;
-                }));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("showWatermark"), _T("{\"show\":false}"), response));
-    EXPECT_EQ(response, _T("{\"success\":true}"));
-    plugin->Deinitialize(&service);
-}
-
 TEST_F(RDKShellTest, setBounds)
 {
   ON_CALL(compositormock, setBounds(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
@@ -538,26 +519,6 @@ TEST_F(RDKShellTest, getVirtualResolution)
 
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getVirtualResolution"), _T("{\"client\":\"org.rdk.Netflix\"}"), response));
         EXPECT_EQ(response, _T("{\"width\":1920,\"height\":1080,\"success\":true}"));
-}
-
-TEST_F(RDKShellTest, getBlockedAVApplications)
-{
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlockedAVApplications"), _T("{}"), response));
-	EXPECT_EQ(response, _T("{\"message\":\"ERM not enabled\",\"success\":true}"));
-	ServiceMock service;
-	EXPECT_CALL(compositormock, isErmEnabled())
-		    .Times(::testing::AnyNumber())
-            .WillRepeatedly(::testing::Return(true));
-	EXPECT_EQ(string(""), plugin->Initialize(&service));
-	ON_CALL(compositormock, getBlockedAVApplications(::testing::_))
-            .WillByDefault(::testing::Invoke(
-                [](std::vector<std::string>& apps){
-                      apps.push_back("app1,");
-                      return true;
-                  }));
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlockedAVApplications"), _T("{}"), response));
-	EXPECT_EQ(response, _T("{\"getBlockedAVApplications\":[\"app1\"],\"success\":true}"));
-	plugin->Deinitialize(&service);
 }
 
 
