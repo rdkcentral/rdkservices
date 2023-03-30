@@ -30,7 +30,6 @@ enum {
     ROUTING_CHANGE = 0x80,
 	ROUTING_INFORMATION = 0x81,
 	SET_STREAM_PATH = 0x86,
-    UNKNOWN = 0xFFFF
 };
 
 typedef struct _dsHdmiInGetNumberOfInputsParam_t {
