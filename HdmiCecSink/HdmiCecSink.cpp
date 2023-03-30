@@ -1380,24 +1380,34 @@ namespace WPEFramework
         	returnResponse(true);
         }
 
-		uint32_t HdmiCecSink::setActivePathWrapper(const JsonObject& parameters, JsonObject& response)
+        uint32_t HdmiCecSink::setActivePathWrapper(const JsonObject& parameters, JsonObject& response)
         {
-         	if (parameters.HasLabel("activePath"))
+            if (parameters.HasLabel("activePath"))
             {
                 std::string id = parameters["activePath"].String();
-				PhysicalAddress phy_addr = PhysicalAddress(id);
-
-                LOGINFO("Addr = %s, length = %zu", id.c_str(), id.length());
-
-				setStreamPath(phy_addr);
-				returnResponse(true);
+                try {
+                    PhysicalAddress phy_addr = PhysicalAddress(id);
+                    LOGINFO("Addr = %s, length = %d", id.c_str(), id.length());
+                    setStreamPath(phy_addr);
+                }catch(std::invalid_argument& e){
+                    // if no conversion could be performed
+                    LOGWARN("Invaild physical address: addr: %s\n", id.c_str());
+                    returnResponse(false);
+                }
+                catch(std::exception &e){
+                    LOGWARN("Physical address issue: addr: %s. Exception: %s\n", id.c_str(), e.what());
+                    returnResponse(false);
+                } catch (...) {
+                    LOGWARN("Physical address generic failure: addr: %s\n", id.c_str());
+                    returnResponse(false);
+                }
+                returnResponse(true);
             }
             else
             {
                 returnResponse(false);
             }
         }
-
 		uint32_t HdmiCecSink::getActiveRouteWrapper(const JsonObject& parameters, JsonObject& response)
         {
       	    std::vector<uint8_t> route;	
