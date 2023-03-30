@@ -182,6 +182,12 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setPowerState")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPowerStateIsManagedByDevice")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPowerStateBeforeReboot")));
+	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getMfgSerialNumber")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDeviceInfo")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBootLoaderPattern")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getXconfParams")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("clearLastDeepSleepReason")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getStateInfo")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setWakeupSrcConfiguration")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDeviceInfo")));
 }
@@ -1197,6 +1203,255 @@ TEST_F(SystemServicesTest, deletePersistentPath)
     EXPECT_FALSE(Core::File(amazonPersistentPath).Exists());
 
     plugin->Deinitialize(&service);
+}
+
+TEST_F(SystemServicesTest, getMfgSerialNumber)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "F00020CE000003";
+                param->bufLen = strlen(str);
+	        strncpy(param->buffer, str, param->bufLen);
+                param->type =  mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMfgSerialNumber"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"mfgSerialNumber\":\"F00020CE000003\",\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, getDeviceInfo_ModelName)
+{
+
+    ofstream file("/etc/device.properties");
+    file << "MFG_NAME=\"SKY\"";
+    file.close();
+
+    file.open("/lib/rdk/getDeviceDetails.sh");
+    file << "FRIENDLY_ID: IP061-ec\n";
+    file.close();
+
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"make\":\"\\\"SKY\\\"\",\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
+    EXPECT_EQ(response, string("{\"make\":\"\\\"SKY\\\"\",\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":abc#$}"), response));
+
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+         .Times(::testing::AnyNumber())
+         .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                  EXPECT_EQ(string(command), string("sh /lib/rdk/getDeviceDetails.sh read model_number"));
+                  const char modelNumberOutput[] = "SKXI11ANS\n";
+                  char buffer[1024];
+                  memset(buffer, 0, sizeof(buffer));
+                  strcpy(buffer, modelNumberOutput);
+                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                  return pipe;
+               }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":model_number}"), response));
+    EXPECT_EQ(response, string("{\"model_number\":\"SKXI11ANS\",\"success\":true}"));
+
+ 
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "IP061-ec";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, sizeof(param->buffer));
+                param->type =  mfrSERIALIZED_TYPE_SKYMODELNAME;
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":friendly_id}"), response));
+    EXPECT_EQ(response, string("{\"friendly_id\":\"IP061-ec\",\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), response));
+    EXPECT_EQ(response, string("{\"modelName\":\"IP061-ec\",\"success\":true}"));
+
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+    .Times(::testing::AnyNumber())
+    .WillRepeatedly(::testing::Invoke(
+        [&](const char* command, const char* type) {
+         EXPECT_EQ(string(command), string("sh /lib/rdk/getDeviceDetails.sh read"));
+         const char str[] ="imageVersion=SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI";
+         char buffer[1024];
+         memset(buffer, 0, sizeof(buffer));
+         strcpy(buffer, str);
+         FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+         return pipe;
+    }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":}"), response));
+    EXPECT_EQ(response, string("{\"make\":\"\\\"SKY\\\"\",\"imageVersion\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"software_version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"friendly_id\":\"IP061-ec\",\"success\":true}"));
+
+}
+
+TEST_F(SystemServicesTest, getDeviceInfo_HardwareId)
+{
+    ofstream file("/etc/device.properties");
+    file << "MFG_NAME=\"SKY\"";
+    file.close();
+
+    file.open("/lib/rdk/getDeviceDetails.sh");
+    file << "HARDWARE_ID";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"make\":\"\\\"SKY\\\"\",\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
+    EXPECT_EQ(response, string("{\"make\":\"\\\"SKY\\\"\",\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":abc#$}"), response));
+
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "5678";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, sizeof(param->buffer));
+                param->type =  mfrSERIALIZED_TYPE_HWID;
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), response));
+    EXPECT_EQ(response, string("{\"hardwareID\":\"5678\",\"success\":true}"));
+
+}
+
+TEST_F(SystemServicesTest,setBootLoaderPattern)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetBootLoaderPattern)));
+                auto param = static_cast<IARM_Bus_MFRLib_SetBLPattern_Param_t*>(arg);
+                EXPECT_EQ(param->pattern, mfrBL_PATTERN_SILENT_LED_ON);
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBootLoaderPattern"), _T("{\"pattern\":SILENT_LED_ON}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest,getXconfParams)
+{
+    ofstream file("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+ 
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSystemVersions"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"stbVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\",\"receiverVersion\":\"000.36.0.0\",\"stbTimestamp\":\"Fri 05 Aug 2022 16:14:54 AP UTC\",\"success\":true}"));
+ 
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](const char* command, const char* type){
+                EXPECT_THAT(string(command), string("PATH=${PATH}:/sbin:/usr/sbin /lib/rdk/getDeviceDetails.sh read"));
+                std::string filename = "getDeviceDetail.sh";
+                std::ofstream file_stream(filename);
+                file_stream << "model=AX061AEI\n";
+                file_stream.close();
+                FILE *fp = __real_popen(("cat " + filename).c_str(), "r");
+                return fp;
+    }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"AX061AEI\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest,clearLastDeepSleepReason)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("clearLastDeepSleepReason"), _T("{}"), response));
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](const char* command, const char* type) -> FILE* {
+                EXPECT_THAT(string(command), string("rm -f /opt/standbyReason.txt"));
+                return __real_popen(command, type);
+            }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("clearLastDeepSleepReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(SystemServicesTest, getStateInfo)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getStateInfo"), _T("{}"), response));
+
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_SYSMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_SYSMGR_API_GetSystemStates)));
+                auto* paramGetSysState = static_cast<IARM_Bus_SYSMgr_GetSystemStates_Param_t*>(arg);
+                paramGetSysState->channel_map.state = 2;
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"), _T("{\"param\":com.comcast.channel_map}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.channel_map\":2,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.card.disconnected}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.card.disconnected\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.tune_ready}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.tune_ready\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.cmac}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.cmac\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.card.moto.entitlements}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.card.moto.entitlements\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.card.moto.hrv_rx}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.card.moto.hrv_rx\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.card.cisco.status}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.card.cisco.status\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.video_presenting}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.video_presenting\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.hdmi_out}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.hdmi_out\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.hdcp_enabled}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.hdcp_enabled\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.hdmi_edid_read}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.hdmi_edid_read\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.firmware_download}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.firmware_download\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.time_source}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.time_source\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.time_zone_available}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.time_zone_available\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.ca_system}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.ca_system\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.estb_ip}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.estb_ip\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.ecm_ip}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.ecm_ip\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.lan_ip}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.lan_ip\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.moca}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.moca\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.docsis}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.docsis\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.dsg_broadcast_tunnel}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.dsg_broadcast_tunnel\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.dsg_ca_tunnel}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.dsg_ca_tunnel\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.cable_card}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.cable_card\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.cable_card_download}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.cable_card_download\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.cvr_subsystem}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.cvr_subsystem\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.download}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.download\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.vod_ad}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.vod_ad\":0,\"success\":true}"));
 }
 
 TEST_F(SystemServicesEventIarmTest, onSystemPowerStateChanged)
