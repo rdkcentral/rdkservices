@@ -45,8 +45,10 @@ protected:
                     *physAddress = (uint32_t)0x12345678;
                 }));
 
-        ON_CALL(messageEncoderMock, encode(::testing::_))
+        ON_CALL(messageEncoderMock, encode(::testing::Matcher<const DataBlock&>(::testing::_)))
             .WillByDefault(::testing::ReturnRef(CECFrame::getInstance()));
+        ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+           .WillByDefault(::testing::ReturnRef(CECFrame::getInstance()));
 
         ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(

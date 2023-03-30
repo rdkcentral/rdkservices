@@ -11,6 +11,7 @@ public:
     MOCK_METHOD(void, term, (), (const, override));
     MOCK_METHOD(void, getPhysicalAddress, (unsigned int *physicalAddress), (const, override));
     MOCK_METHOD(int, addLogicalAddress, (const LogicalAddress &source), (const, override));
+    MOCK_METHOD(int, getLogicalAddress, (int devType), (const, override));
 };
 
 class SystemAudioStatusImplMock : public SystemAudioStatusImpl {
@@ -61,6 +62,7 @@ public:
     MOCK_METHOD(void, sendTo, (const LogicalAddress &to, const CECFrame &frame), (const, override));
     MOCK_METHOD(void, sendTo, (const LogicalAddress &to, const CECFrame &frame, int timeout), (const, override));
     MOCK_METHOD(void, poll, (const LogicalAddress &from, const Throw_e &doThrow), (const, override));
+    MOCK_METHOD(void, sendAsync, (const CECFrame &frame), (const, override));
 };
 
 class LogicalAddressImplMock : public LogicalAddressImpl {
@@ -75,5 +77,6 @@ public:
     virtual ~MessageEncoderMock() = default;
 
     MOCK_METHOD(CECFrame&, encode, (const DataBlock &m), (const, override));
+    MOCK_METHOD(CECFrame&, encode, (const UserControlPressed &m), (const, override));
 };
 
