@@ -2334,18 +2334,7 @@ namespace WPEFramework {
                     return false;
                 }
             }
-            LOGINFO("response <%s>", findMyRemoteParams.response);
-            response.FromString(findMyRemoteParams.response);
-
-            if (response.HasLabel(paramKey))
-            {
-                bool       value      = 0;
-                JsonObject parameters = response;
-                getBoolParameter(paramKey, value);
-                return value;
-            }
-
-            return false;
+            return true;
         }
         // End private method implementations
 
