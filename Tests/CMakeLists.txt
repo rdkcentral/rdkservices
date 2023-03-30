@@ -35,6 +35,7 @@ add_executable(${PROJECT_NAME}
         mocks/thunder/Module.cpp
         mocks/Wraps.cpp
         mocks/Dobby.cpp
+	mocks/rdkshell.cpp
         )
 
 set_source_files_properties(
@@ -43,6 +44,8 @@ set_source_files_properties(
         tests/test_SystemServices.cpp
         tests/test_Warehouse.cpp
         tests/test_HdmiCec.cpp
+        tests/test_HdmiCec2.cpp
+        tests/test_HdmiCecSource.cpp
         tests/test_FrontPanel.cpp
         tests/test_HdmiCecSink.cpp
         PROPERTIES COMPILE_FLAGS "-fexceptions")
@@ -75,6 +78,8 @@ include_directories(../LocationSync
         ../MotionDetection
         ../CompositeInput
         ../HdmiCec
+        ../HdmiCec_2
+        ../HdmiCecSource
         ../FrontPanel
         ../OCIContainer
         ../HdmiCecSink
@@ -82,6 +87,7 @@ include_directories(../LocationSync
         ../VoiceControl
         ../ControlService
         ../RemoteActionMapping
+	../RDKShell
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -110,6 +116,8 @@ link_directories(../LocationSync
         ../MotionDetection
         ../CompositeInput
         ../HdmiCec
+        ../HdmiCec_2
+        ../HdmiCecSource
         ../FrontPanel
         ../OCIContainer
         ../HdmiCecSink
@@ -117,6 +125,7 @@ link_directories(../LocationSync
         ../VoiceControl
         ../ControlService
         ../RemoteActionMapping
+	../RDKShell
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -149,6 +158,8 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}MotionDetection
         ${NAMESPACE}CompositeInput
         ${NAMESPACE}HdmiCec
+        ${NAMESPACE}HdmiCec_2
+        ${NAMESPACE}HdmiCecSource
         ${NAMESPACE}FrontPanel
         ${NAMESPACE}OCIContainer
         ${NAMESPACE}HdmiCecSink
@@ -156,6 +167,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}VoiceControl
         ${NAMESPACE}ControlService
         ${NAMESPACE}RemoteActionMapping
+	${NAMESPACE}RDKShell
         )
 
 target_include_directories(${PROJECT_NAME}

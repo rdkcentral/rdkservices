@@ -767,6 +767,31 @@ public:
 
 }
 
+namespace device{
+	class DisplayImpl{
+		public:
+		virtual ~DisplayImpl() = default;
+
+		virtual void getEDIDBytes(std::vector<uint8_t> &edid) const = 0;
+	};
+	class Display{
+		public:
+		DisplayImpl* impl;
+        static Display& getInstance()
+        {
+            static Display instance;
+            return instance;
+        }
+
+		void getEDIDBytes(std::vector<uint8_t> &edid){
+			return impl->getEDIDBytes(edid);
+		}
+
+	};
+
+
+}
+
 namespace device {
 
 class VideoOutputPortImpl {
@@ -783,11 +808,19 @@ public:
     virtual AudioOutputPort& getAudioOutputPort() const = 0;
     virtual bool isDisplayConnected() = 0;
     virtual bool isContentProtected() = 0;
+    virtual Display& getDisplay() = 0;
+
 };
 
 class VideoOutputPort {
 public:
     VideoOutputPortImpl* impl;
+
+    static VideoOutputPort& getInstance()
+    {
+        static VideoOutputPort instance;
+        return instance;
+    }
 
     const VideoOutputPortType& getType() const
     {
@@ -837,6 +870,9 @@ public:
     bool isContentProtected()
     {
         return impl->isContentProtected();
+    }
+    Display& getDisplay(){
+	    return impl->getDisplay();
     }
 };
 
