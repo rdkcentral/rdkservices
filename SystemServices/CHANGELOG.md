@@ -16,20 +16,23 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.12] - 2023-03-28
+### Fixed
+- Fix for onTimeZoneDSTChanged events with the same data.
 
-## [1.0.11] - 2023-01-24
+## [1.1.11] - 2023-01-24
 ### Fixed
 - Added setting of "TZ" env variable to setTimeZoneDST call.
 
-## [1.0.10] - 2023-01-13
+## [1.1.10] - 2023-01-13
 ### Fixed
 - Fix for setTimeZoneDST API to avoid invalid input 
 
-## [1.0.9] - 2023-01-10
+## [1.1.9] - 2023-01-10
 ### Fixed
 - Fix one global definition
 
-## [1.0.8] - 2022-11-28
+## [1.1.8] - 2022-11-28
 ### Fixed
 - Treat warnings as errors for unit tests workflow
 
