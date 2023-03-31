@@ -70,6 +70,8 @@ public:
     MOCK_METHOD(uint32_t, ConfigLine, (const string& config), (override));
     MOCK_METHOD(string, SystemRootPath, (), (const, override));
     MOCK_METHOD(uint32_t, SystemRootPath, (const string& systemRootPath), (override));
+    MOCK_METHOD(uint32_t, Hibernate, (const string &processSequence, const uint32_t timeout), (override));
+    MOCK_METHOD(uint32_t, Wakeup, (const string &processSequence, const uint32_t timeout), (override));
 };
 
 #endif //SERVICEMOCK_H

@@ -25,9 +25,11 @@ enum {
     REPORT_ARC_TERMINATED = 0XC2,
     REQUEST_ARC_INITIATION = 0XC3,
     REQUEST_ARC_TERMINATION = 0XC4,
-    REQUEST_CURRENT_LATENCY = 0xA7,
-    REPORT_CURRENT_LATENCY = 0xA8,
-    UNKNOWN = 0xFFFF
+	REQUEST_CURRENT_LATENCY = 0xA7,
+	REPORT_CURRENT_LATENCY = 0xA8,
+    ROUTING_CHANGE = 0x80,
+	ROUTING_INFORMATION = 0x81,
+	SET_STREAM_PATH = 0x86,
 };
 
 typedef struct _dsHdmiInGetNumberOfInputsParam_t {
@@ -86,8 +88,8 @@ public:
 
     void getBuffer(const uint8_t** buf, size_t* len) const
     {
-        *len = this->len_;
-        *buf = this->buf_;
+		*len = this->len_;
+		*buf = this->buf_;
     }
 
 private:
@@ -99,8 +101,8 @@ class CECBytes {
 protected:
     std::vector<uint8_t> str;
     CECBytes(const uint8_t val){
-        str.push_back(val);
-    }
+		str.push_back(val);
+	}
     CECBytes(const uint8_t* buf, size_t len) {
         if(buf && len){
             for(size_t i =0; i < len; i++){
@@ -143,7 +145,9 @@ class OSDString : public CECBytes {
 
 class OSDName : public CECBytes {
 public:
-    OSDName(const char* str1): CECBytes((const uint8_t*)str1, strlen(str1)) {}
+    OSDName(const char* str1)
+        : CECBytes((const uint8_t*)str1, strlen(str1)){
+    }
 
     const std::string toString(void) const {
         return std::string(str.begin(), str.end());
@@ -161,8 +165,10 @@ public:
         UNRECOGNIZED_OPCODE,
     };
 
-    AbortReason(int reason): CECBytes((uint8_t)reason){}
-    
+    AbortReason(int reason)
+        : CECBytes((uint8_t)reason){
+    }
+
     AbortReason();
 
     AbortReason* impl;
@@ -183,13 +189,45 @@ public:
     enum {
         MAX_LEN = 1,
     };
+
     enum {
         TV = 0x0,
-        RESERVED = 0x02,
+		RECORDING_DEVICE,
+		RESERVED,
+		TUNER,
+		PLAYBACK_DEVICE,
+		AUDIO_SYSTEM,
+		PURE_CEC_SWITCH,
+		VIDEO_PROCESSOR,
     };
 
-    DeviceType(const CECFrame& frame, size_t startPos): CECBytes(frame, startPos, MAX_LEN){}
-    DeviceType(int type): CECBytes((uint8_t)type){}
+    DeviceType(const CECFrame& frame, size_t startPos)
+        : CECBytes(frame, startPos, MAX_LEN)
+    {
+    }
+    DeviceType(int type)
+        : CECBytes((uint8_t)type)
+    {
+    }
+
+    const std::string toString(void) const {
+            static const char *names_[] = {
+                "TV",
+                "Recording Device",
+                "Reserved",
+                "Tuner",
+                "Playback Device",
+                "Audio System",
+                "Pure CEC Switch",
+                "Video Processor",
+            };
+            if((str[0] <= VIDEO_PROCESSOR)){
+                return names_[str[0]];
+            }
+            else{
+                return "Unknown";
+            }
+        }
 };
 
 class Language : public CECBytes {
@@ -198,11 +236,13 @@ public:
         MAX_LEN = 3,
     };
 
-    Language(const char* str1): CECBytes((const uint8_t*)str1, MAX_LEN){};
+    Language(const char* str1)
+        : CECBytes((const uint8_t*)str1, MAX_LEN){};
 };
 
 
 class VendorID : public CECBytes{
+
 public:
     enum {
         MAX_LEN = 3,
@@ -214,10 +254,12 @@ public:
         bytes[1] = byte1;
         bytes[2] = byte2;
         str.insert(str.begin(), bytes, bytes + MAX_LEN);
-    };
 
+    };
     VendorID(const uint8_t* buf, size_t len): CECBytes (NULL,0){};
     VendorID(): CECBytes (NULL,0){};
+
+
 };
 
 class PhysicalAddress : public CECBytes {
@@ -225,9 +267,12 @@ public:
     enum {
         MAX_LEN = 2,
     };
-    PhysicalAddress(const CECFrame& frame, size_t startPos): CECBytes(frame, startPos, MAX_LEN){};
-    PhysicalAddress(uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3): CECBytes(NULL, 0){};
-    PhysicalAddress(std::string& addr): CECBytes(NULL, 0){};
+    PhysicalAddress(const CECFrame& frame, size_t startPos)
+        : CECBytes(frame, startPos, MAX_LEN){};
+    PhysicalAddress(uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3)
+        : CECBytes(NULL, 0){};
+    PhysicalAddress(std::string& addr): CECBytes(NULL, 0){
+    }
     PhysicalAddress(): CECBytes(NULL, 0){};
 
     static PhysicalAddress& getInstance()
@@ -264,14 +309,35 @@ public:
         return instance;
     }
 
-    LogicalAddress(int addr = UNREGISTERED): CECBytes((uint8_t)addr){};
+    LogicalAddress(int addr = UNREGISTERED)
+        : CECBytes((uint8_t)addr){};
 
-    int toInt() const
+	int toInt() const
     {
         return str[0];
     }
 
-    int getType() const;
+    int getType(void) const {
+		static int _type[] = {
+            DeviceType::TV,
+            DeviceType::RECORDING_DEVICE,
+            DeviceType::RECORDING_DEVICE,
+            DeviceType::TUNER,
+            DeviceType::PLAYBACK_DEVICE,
+            DeviceType::AUDIO_SYSTEM,
+            DeviceType::TUNER,
+            DeviceType::TUNER,
+            DeviceType::PLAYBACK_DEVICE,
+            DeviceType::RECORDING_DEVICE,
+            DeviceType::TUNER,
+            DeviceType::PLAYBACK_DEVICE,
+            DeviceType::RESERVED,
+            DeviceType::RESERVED,
+            DeviceType::RESERVED,
+            DeviceType::RESERVED,
+        };
+        return _type[str[0]];
+	}
 };
 
 class Version : public CECBytes {
@@ -280,7 +346,8 @@ public:
         V_1_4 = 0x05
     };
 
-    Version(int version): CECBytes((uint8_t)version){};
+    Version(int version)
+        : CECBytes((uint8_t)version){};
 };
 
 class PowerStatusImpl {
@@ -297,7 +364,9 @@ public:
         POWER_STATUS_FEATURE_ABORT = 0x05,
     };
 
-    PowerStatus(int status): CECBytes((uint8_t)status){};
+    PowerStatus(int status)
+        : CECBytes((uint8_t)status){};
+
     PowerStatus();
 
     PowerStatus* impl;
@@ -413,7 +482,13 @@ public:
         UI_COMMAND_NUM_9 = 0x29,
     };
 
-    UICommand(int command): CECBytes((uint8_t)command){};
+    UICommand(int command)
+        : CECBytes((uint8_t)command){};
+
+    int toInt() const
+    {
+        return str[0];
+    }
 };
 
 class DataBlock {
@@ -430,7 +505,9 @@ class ActiveSource : public DataBlock {
 public:
     Op_t opCode(void) const { return ACTIVE_SOURCE; }
 
-    ActiveSource(PhysicalAddress& phyAddress): physicalAddress(phyAddress){}
+    ActiveSource(PhysicalAddress& phyAddress)
+        : physicalAddress(phyAddress){
+    }
 
     PhysicalAddress physicalAddress;
 };
@@ -450,10 +527,12 @@ public:
     LogicalAddress to;
 };
 
-class ImageViewOn {
+class ImageViewOn : public DataBlock{
+
+
 };
 
-class TextViewOn {
+class TextViewOn : public DataBlock{
 };
 
 class RequestActiveSource : public DataBlock {
@@ -464,19 +543,23 @@ class Standby : public DataBlock {
 
 class CECVersion : public DataBlock {
 public:
-    CECVersion(const Version& ver): version(ver){};
+    CECVersion(const Version& ver)
+        : version(ver){
+    }
+
     Version version;
 };
 
 class GetCECVersion : public DataBlock {
 };
 
-class GetMenuLanguage {
+class GetMenuLanguage : public DataBlock{
 };
 
 class SetMenuLanguage : public DataBlock {
 public:
-    SetMenuLanguage(const Language& lan): language(lan){};
+    SetMenuLanguage(const Language& lan)
+        : language(lan){};
     const Language language;
 };
 
@@ -512,8 +595,13 @@ public:
 
 class SetStreamPath : public DataBlock {
 public:
-    SetStreamPath(const PhysicalAddress& toSink1): toSink(toSink1){}
-    SetStreamPath(const CECFrame& frame, int startPos = 0): toSink(frame, startPos){}
+    SetStreamPath(const PhysicalAddress& toSink1)
+        : toSink(toSink1){
+    }
+
+    SetStreamPath(const CECFrame& frame, int startPos = 0)
+        : toSink(frame, startPos){
+    }
 
     PhysicalAddress toSink;
 };
@@ -584,7 +672,7 @@ public:
 class UserControlReleased : public DataBlock {
 };
 
-class Polling {
+class Polling : public DataBlock{
 };
 
 class RequestShortAudioDescriptor : public DataBlock {
@@ -596,7 +684,9 @@ public:
 
 class UserControlPressed : public DataBlock {
 public:
-    UserControlPressed(const UICommand& command): uiCommand(command){}
+    UserControlPressed(const UICommand& command)
+        : uiCommand(command){
+    }
 
     UICommand uiCommand;
 };
@@ -672,6 +762,7 @@ public:
     virtual void sendTo(const LogicalAddress& to, const CECFrame& frame) const = 0;
     virtual void sendTo(const LogicalAddress& to, const CECFrame& frame, int timeout) const = 0;
     virtual void poll(const LogicalAddress& from, const Throw_e& doThrow) const = 0;
+    virtual void sendAsync(const CECFrame &frame) const = 0;
 };
 
 class Connection {
@@ -717,6 +808,10 @@ public:
         return getInstance().impl->poll(from, doThrow);
     }
 
+    void sendAsync(const CECFrame &frame){
+		return getInstance().impl->sendAsync(frame);
+	}
+
     void setSource(LogicalAddress& from) {
     }
 };
@@ -742,6 +837,7 @@ public:
     virtual void term() const = 0;
     virtual void getPhysicalAddress(uint32_t* physicalAddress) const = 0;
     virtual int addLogicalAddress(const LogicalAddress& source) const = 0;
+    virtual int getLogicalAddress(int devType) const = 0;
 };
 
 class LibCCEC {
@@ -773,6 +869,10 @@ public:
     int addLogicalAddress(const LogicalAddress& source){
         return impl->addLogicalAddress(source);
     }
+
+    int getLogicalAddress(int devType){
+        return impl->getLogicalAddress(devType);
+    }
 };
 
 class RequestArcInitiation : public DataBlock {
@@ -798,7 +898,7 @@ public:
 class RequestCurrentLatency : public DataBlock
 {
 public:
-    Op_t opCode(void) const {return REQUEST_CURRENT_LATENCY;}
+	Op_t opCode(void) const {return REQUEST_CURRENT_LATENCY;}
     RequestCurrentLatency(const PhysicalAddress &physicaladdres = {0xf,0xf,0xf,0xf} ): physicaladdress(physicaladdres) {}
     PhysicalAddress physicaladdress;
 };
@@ -813,6 +913,7 @@ public:
 class MessageEncoderImpl {
 public:
     virtual CECFrame& encode(const DataBlock& m) const = 0;
+    virtual CECFrame& encode(const UserControlPressed& m) const = 0;
 };
 
 class MessageEncoder {
@@ -824,8 +925,21 @@ public:
         static MessageEncoder instance;
         return instance;
     }
+    CECFrame& encode(const UserControlPressed m)
+    {
+        return getInstance().impl->encode(m);
+    }
     CECFrame& encode(const DataBlock m)
     {
         return getInstance().impl->encode(m);
     }
+};
+
+class IOException : public Exception
+{
+	public:
+		virtual const char* what() const throw()
+		{
+			return "IO Exception..";
+		}
 };
