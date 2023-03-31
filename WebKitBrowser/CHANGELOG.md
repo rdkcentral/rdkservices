@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.15] - 2023-04-11
+### Fixed
+- Change clock type to monotonic based
+
 ## [1.1.14] - 2023-03-27
 ### Fixed
 - Check load percentage before triggering LoadFinished notification
