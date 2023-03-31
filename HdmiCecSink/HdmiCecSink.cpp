@@ -1380,17 +1380,24 @@ namespace WPEFramework
         	returnResponse(true);
         }
 
-		uint32_t HdmiCecSink::setActivePathWrapper(const JsonObject& parameters, JsonObject& response)
+        uint32_t HdmiCecSink::setActivePathWrapper(const JsonObject& parameters, JsonObject& response)
         {
-         	if (parameters.HasLabel("activePath"))
+            if (parameters.HasLabel("activePath"))
             {
                 std::string id = parameters["activePath"].String();
-				PhysicalAddress phy_addr = PhysicalAddress(id);
-
+                //Check if valid physical address
+                int bb = 0;
+                int cc = 0;
+                int dd = 0;
+                int ee = 0;
+                if (sscanf(id.c_str(), "%x.%x.%x.%x", &bb, &cc, &dd, &ee) != 4){
+                    LOGWARN("Invaild physical address: addr: %s\n", id.c_str());
+                    returnResponse(false);
+                }
+                PhysicalAddress phy_addr = PhysicalAddress(id);
                 LOGINFO("Addr = %s, length = %zu", id.c_str(), id.length());
-
-				setStreamPath(phy_addr);
-				returnResponse(true);
+                setStreamPath(phy_addr);
+                returnResponse(true);
             }
             else
             {
