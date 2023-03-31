@@ -2297,7 +2297,6 @@ namespace WPEFramework {
             ctrlm_iarm_call_FindMyRemote_params_t           findMyRemoteParams;
             IARM_Result_t                                   res;
             ctrlm_network_id_t                              networkId;
-            const char*                                     paramKey = "success";
 
             if(netType==CTRLM_NETWORK_TYPE_RF4CE)
             {
