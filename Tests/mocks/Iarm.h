@@ -319,6 +319,7 @@ typedef enum _mfrSerializedType_t {
     mfrSERIALIZED_TYPE_PANEL_ALS_CALIBRATION_INDEX0,
     mfrSERIALIZED_TYPE_PANEL_ALS_CALIBRATION_INDEX1,
     mfrSERIALIZED_TYPE_MAX_PANEL,
+#endif    
 } mfrSerializedType_t;
 
 typedef enum _mfrBlPattern_t {
