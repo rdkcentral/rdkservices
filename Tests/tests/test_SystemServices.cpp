@@ -1540,7 +1540,7 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParamFriendlyIdOrModelNam
                 const char* str = "IP061-ec";
                 param->bufLen = strlen(str);
                 strncpy(param->buffer, str, sizeof(param->buffer));
-                param->type =  mfrSERIALIZED_TYPE_SKYMODELNAME;
+                param->type =  mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
                 return IARM_RESULT_SUCCESS;
             });
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":friendly_id}"), response));
@@ -1608,7 +1608,7 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedModelName)
                 const char* str = "IP061-ec";
                 param->bufLen = strlen(str);
                 strncpy(param->buffer, str, sizeof(param->buffer));
-                param->type =  mfrSERIALIZED_TYPE_SKYMODELNAME;
+                param->type =  mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
                 return IARM_RESULT_SUCCESS;
             });
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), response));
