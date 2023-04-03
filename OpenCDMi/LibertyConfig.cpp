@@ -44,10 +44,27 @@ ASConfig::ASConfig() {
     rdk_logger_init("/etc/debug.ini");
     const std::string asURI = "ws://127.0.0.1:10415";
     _ASConnector = std::make_shared<ASConnector>(asURI, *this);
+    _ASConnector->WatchAPIServices("ready", ASAPI::APIServices::ready);
     _ASConnector->WatchAPIConfig("Company", "apps.youtube.brandName", "");
     _ASConnector->WatchAPIConfig("Model", "cpe.modelName", "");
     _ASConnector->WatchAPIConfig("BuildInfo", "cpe.firmwareVersion", "");
     _ASConnector->Connect();
+}
+
+bool ASConfig::waitForReady(std::unique_lock<std::mutex>& lck)
+{
+    // must be called with _ConfigMtx held!
+    if (!_AsReady)
+    {
+        TRACE(WPEFramework::Trace::Information, (_T("ASConfig: start waiting for 'ready' from lgias")));
+        _ASConnCv.wait_for(lck, std::chrono::seconds(30), [this](){return _AsReady;});
+        TRACE(WPEFramework::Trace::Information, (_T("ASConfig: ended waiting for 'ready' from lgias; ready: %d"), _AsReady));
+    }
+    if (!_AsReady)
+    {
+        TRACE(WPEFramework::Trace::Warning, (_T("ASConfig: timedout waiting for 'ready' from lgias")));
+    }
+    return _AsReady;
 }
 
 std::string ASConfig::getCompany()
@@ -55,6 +72,7 @@ std::string ASConfig::getCompany()
     std::string ret;
     {
         std::unique_lock<std::mutex> lck(_ConfigMtx);
+        if (!waitForReady(lck)) return ret;
         if(_Company.empty()) {
             _ASConnCv.wait_for(lck, std::chrono::seconds(5), [this](){return !_Company.empty();});
         }
@@ -68,6 +86,7 @@ std::string ASConfig::getModel()
     std::string ret;
     {
         std::unique_lock<std::mutex> lck(_ConfigMtx);
+        if (!waitForReady(lck)) return ret;
         if(_Model.empty()) {
             _ASConnCv.wait_for(lck, std::chrono::seconds(5), [this](){return !_Model.empty();});
         }
@@ -81,6 +100,7 @@ std::string ASConfig::getBuildInfo()
     std::string ret;
     {
         std::unique_lock<std::mutex> lck(_ConfigMtx);
+        if (!waitForReady(lck)) return ret;
         if(_BuildInfo.empty()) {
             _ASConnCv.wait_for(lck, std::chrono::seconds(5), [this](){return !_BuildInfo.empty();});
         }
@@ -91,7 +111,12 @@ std::string ASConfig::getBuildInfo()
 
 void ASConfig::OnWatchData(ASConnector::DataSource src, const std::string& alias, json_t* data)
 {
-    if(alias == "Company") {
+    TRACE(WPEFramework::Trace::Information, (_T("ASConfig: received '%s' from lgias; data: '%s'"), alias.c_str(), json_is_string(data) ? json_string_value(data) : "<not-a-string>"));
+    if(alias == "ready") {
+        std::lock_guard<std::mutex> lck(_ConfigMtx);
+        TRACE(WPEFramework::Trace::Information, (_T("ASConfig: received 'ready' from lgias")));
+        _AsReady = true;
+    } else if(alias == "Company") {
         if (!json_is_string(data)) {
             return;
         }
@@ -109,6 +134,8 @@ void ASConfig::OnWatchData(ASConnector::DataSource src, const std::string& alias
         }
         std::lock_guard<std::mutex> lck(_ConfigMtx);
         _BuildInfo = json_string_value(data);
+    } else {
+        return; // do not notify _ASConnCv on uninteresting data
     }
     _ASConnCv.notify_all();
 }
