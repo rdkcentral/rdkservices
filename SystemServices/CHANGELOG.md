@@ -18,7 +18,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.3.0] - 2023-04-03
 ### Added
-- Added new API to get Wakeup Source configuration and updated setWakeupsourceConfiuration API to use for all platforms.
+- Added new API getWakeupSrcConfiguration and updated setWakeupSrcConfiuration API to use across all platforms.
 
 ## [1.2.1] - 2023-03-28
 ### Fixed
