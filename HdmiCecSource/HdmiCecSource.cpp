@@ -388,6 +388,8 @@ namespace WPEFramework
        : PluginHost::JSONRPC()
        {
            LOGWARN("ctor");
+           smConnection = NULL;
+           cecEnableStatus = false;
            IsCecMgrActivated = false;
            Register(HDMICECSOURCE_METHOD_SET_ENABLED, &HdmiCecSource::setEnabledWrapper, this);
            Register(HDMICECSOURCE_METHOD_GET_ENABLED, &HdmiCecSource::getEnabledWrapper, this);

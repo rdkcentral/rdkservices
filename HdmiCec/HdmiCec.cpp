@@ -174,6 +174,9 @@ namespace WPEFramework
         HdmiCec::HdmiCec()
         : PluginHost::JSONRPC(),cecEnableStatus(false),smConnection(nullptr)
         {
+            LOGWARN("ctor");
+            smConnection = NULL;
+            cecEnableStatus = false;
             HdmiCec::_instance = this;
             InitializeIARM();
 
