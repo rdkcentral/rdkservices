@@ -1103,15 +1103,16 @@ TEST_F(SystemServicesTest, setWakeupSrcConfiguration)
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
                 EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetWakeupSrcConfig)));
-                auto param = static_cast<IARM_Bus_PWRMgr_SetWakeupSrcConfig_Param_t*>(arg);
-                EXPECT_EQ(param->srcType, WAKEUPSRC_WIFI);
-                EXPECT_EQ(param->config, true);
+                auto param = static_cast<IARM_Bus_PWRMgr_WakeupSrcConfig_Param_t*>(arg);
+                EXPECT_EQ(param->pwrMode, (1<<IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP));
+                EXPECT_EQ(param->srcType, (1<<WAKEUPSRC_VOICE));
+                EXPECT_EQ(param->config, (1<<WAKEUPSRC_VOICE));
                 return IARM_RESULT_SUCCESS;
             });
 
     // TODO: BUG. enum should be used
     // TODO: BUG. boolean should not be number string
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setWakeupSrcConfiguration"), _T("{\"wakeupSrc\":3,\"config\":\"1\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setWakeupSrcConfiguration"), _T("{\"powerState\":\"DEEP_SLEEP\",\"wakeupSources\":[{\"WAKEUPSRC_VOICE\":true}]}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
