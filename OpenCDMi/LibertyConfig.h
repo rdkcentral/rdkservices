@@ -57,6 +57,7 @@ class ASConfig: public ASConnector::events {
 
   private:
     void OnWatchData(ASConnector::DataSource src, const std::string& alias, json_t* data) override final;
+    bool waitForReady(std::unique_lock<std::mutex>& lck);
 
     std::shared_ptr<ASConnector> _ASConnector;
     std::mutex _ConfigMtx;
@@ -64,6 +65,7 @@ class ASConfig: public ASConnector::events {
     std::string _Company;
     std::string _Model;
     std::string _BuildInfo;
+    bool _AsReady {false};
 };
 
 std::string updateWidevineConfig(const std::string& widevineConfigStr, ASConfig& asConfig);
