@@ -61,7 +61,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 10
+#define API_VERSION_NUMBER_PATCH 11
 
 enum {
 	HDMICEC2_EVENT_DEVICE_ADDED=0,
@@ -388,6 +388,8 @@ namespace WPEFramework
        : PluginHost::JSONRPC(),cecEnableStatus(false),smConnection(nullptr), m_sendKeyEventThreadRun(false)
        {
            LOGWARN("ctor");
+           smConnection = NULL;
+          cecEnableStatus = false;
            IsCecMgrActivated = false;
            Register(HDMICEC2_METHOD_SET_ENABLED, &HdmiCec_2::setEnabledWrapper, this);
            Register(HDMICEC2_METHOD_GET_ENABLED, &HdmiCec_2::getEnabledWrapper, this);

@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.4] - 2023-04-20
+### Fixed
+- Fixed CEC crash by initializing status variables inside the ctor.
+
 ## [1.0.3] - 2023-04-11
 ### Fixed
 - Updated Logging, and initialize function to be more verbose for testing purposes
