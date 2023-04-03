@@ -97,6 +97,7 @@ RemoteControl interface methods:
 | [startPairing](#method.startPairing) | Initiates pairing a remote with the STB on the specified network |
 | [setIRCode](#method.setIRCode) | Programs an IR code into the specified remote control |
 | [initializeIRDB](#method.initializeIRDB) | Initializes the IR database |
+| [findMyRemote](#method.findMyRemote) | Triggers a `Find Me` operation on the most recently used remote |
 
 
 <a name="method.clearIRCodes"></a>
@@ -823,6 +824,54 @@ Initializes the IR database.
     "method": "org.rdk.RemoteControl.1.initializeIRDB",
     "params": {
         "netType": 1
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.findMyRemote"></a>
+## *findMyRemote [<sup>method</sup>](#head.Methods)*
+
+Triggers a `Find Me` operation on the most recently used remote.
+ 
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.netType | integer | The type of network |
+| params.level | string | The level at which the remote will beep (must be one of the following: *off*, *mid*, *high*) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RemoteControl.1.findMyRemote",
+    "params": {
+        "netType": 1,
+        "level": "high"
     }
 }
 ```
