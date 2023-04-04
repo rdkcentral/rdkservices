@@ -658,6 +658,34 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
+        },
+        "findMyRemote": {
+            "summary": "Tells the most recently used remote to beep.\n  \n### Events \n\n No events",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "netType": {
+                        "$ref": "#/definitions/netType"
+                    },
+                    "level": {
+                        "summary": "The level at which the remote will beep",
+                        "type": "string",
+                        "enum": [
+                            "off",
+                            "mid",
+                            "high"
+                        ],
+                        "example": "mid"
+                    }
+                },
+                "required": [
+                    "netType",
+                    "level"
+                ]
+            },
+            "result": {
+                "$ref": "#/definitions/result"
+            }
         }
     },
     "events": {
