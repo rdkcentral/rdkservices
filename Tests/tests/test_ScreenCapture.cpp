@@ -170,7 +170,7 @@ TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
         std::string reqHeader(buffer);
         EXPECT_TRUE(std::string::npos != reqHeader.find("Content-Type: image/png"));
 
-        std::string response = _T("HTTP/1.0 200 OK\r\n\r\n");                                
+        std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
         send(connection, response.c_str(), response.size(), 0);
 
         close(connection);

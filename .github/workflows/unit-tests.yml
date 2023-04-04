@@ -3,15 +3,11 @@ name: unit-tests
 on:
   push:
     branches: [ main, 'sprint/**', 'release/**' ]
-
   pull_request:
-    # By default: opened, synchronize, or reopened.
     branches: [ main, 'sprint/**', 'release/**' ]
 
 env:
   BUILD_TYPE: Debug
-
-  # Refs for 22Q4_sprint
   THUNDER_REF: "R2-v1.12"
   INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
 
@@ -19,6 +15,17 @@ jobs:
   unit-tests:
     name: Build and run unit tests
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [ gcc, clang ]
+        coverage: [ with-coverage, without-coverage ]
+        exclude:
+          - compiler: clang
+            coverage: with-coverage
+          - compiler: clang
+            coverage: without-coverage
+          - compiler: gcc
+            coverage: without-coverage
 
     steps:
       - name: Set up cache
@@ -58,14 +65,15 @@ jobs:
       - run: pip install jsonref
 
       - name: Set up CMake
-        # 3.16.x To support flow control commands to be overridden.
-        # Installs in: find /opt -ipath *bin/cmake
         uses: jwlawson/actions-setup-cmake@v1.13
         with:
           cmake-version: '3.16.x'
 
       - name: Install packages
-        run: sudo apt update && sudo apt install -y libsqlite3-dev libcurl4-openssl-dev
+        run: >
+          sudo apt update
+          &&
+          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang
 
       - name: Checkout Thunder
         if: steps.cache.outputs.cache-hit != 'true'
@@ -75,7 +83,7 @@ jobs:
           path: Thunder
           ref: ${{env.THUNDER_REF}}
 
-      - name: Configure ThunderTools
+      - name: Build Thunder
         if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
@@ -84,18 +92,11 @@ jobs:
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DGENERIC_CMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
-
-      - name: Build ThunderTools
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: cmake --build build/ThunderTools -j8
-
-      - name: Install ThunderTools
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: cmake --install build/ThunderTools
-
-      - name: Configure Thunder
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: >
+          &&
+          cmake --build build/ThunderTools -j8
+          &&
+          cmake --install build/ThunderTools
+          &&
           cmake
           -S "${{github.workspace}}/Thunder"
           -B build/Thunder
@@ -104,14 +105,10 @@ jobs:
           -DBUILD_TYPE=${{env.BUILD_TYPE}}
           -DBINDING=127.0.0.1
           -DPORT=55555
-
-      - name: Build Thunder
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: cmake --build build/Thunder -j8
-
-      - name: Install Thunder
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: cmake --install build/Thunder
+          &&
+          cmake --build build/Thunder -j8
+          &&
+          cmake --install build/Thunder
 
       - name: Checkout ThunderInterfaces
         if: steps.cache.outputs.cache-hit != 'true'
@@ -121,7 +118,7 @@ jobs:
           path: ThunderInterfaces
           ref: ${{env.INTERFACES_REF}}
 
-      - name: Configure ThunderInterfaces
+      - name: Build ThunderInterfaces
         if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
@@ -129,14 +126,10 @@ jobs:
           -B build/ThunderInterfaces
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
-
-      - name: Build ThunderInterfaces
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: cmake --build build/ThunderInterfaces -j8
-
-      - name: Install ThunderInterfaces
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: cmake --install build/ThunderInterfaces
+          &&
+          cmake --build build/ThunderInterfaces -j8
+          &&
+          cmake --install build/ThunderInterfaces
 
       - name: Checkout rdkservices
         uses: actions/checkout@v3
@@ -146,7 +139,8 @@ jobs:
       - name: Generate external headers
         # Empty headers to mute errors
         run: >
-          cd "${{github.workspace}}/rdkservices/Tests/" &&
+          cd "${{github.workspace}}/rdkservices/Tests/"
+          &&
           mkdir -p
           headers
           headers/audiocapturemgr
@@ -154,8 +148,10 @@ jobs:
           headers/rdk/iarmbus
           headers/rdk/iarmmgrs-hal
           headers/ccec/drivers
-          headers/network &&
-          cd headers &&
+          headers/network
+          &&
+          cd headers
+          &&
           touch
           audiocapturemgr/audiocapturemgr_iarm.h
           ccec/drivers/CecIARMBusMgr.h
@@ -177,6 +173,9 @@ jobs:
           rdk/ds/videoOutputPortConfig.hpp
           rdk/ds/videoOutputPortType.hpp
           rdk/ds/videoResolution.hpp
+          rdk/ds/frontPanelIndicator.hpp
+          rdk/ds/frontPanelConfig.hpp
+          rdk/ds/frontPanelTextDisplay.hpp
           rdk/iarmbus/libIARM.h
           rdk/iarmbus/libIBus.h
           rdk/iarmbus/libIBusDaemon.h
@@ -192,11 +191,20 @@ jobs:
           rbus.h
           telemetry_busmessage_sender.h
 
-      - name: Configure rdkservices
+      - name: Set clang toolchain
+        if: ${{ matrix.compiler == 'clang' }}
+        run: echo "TOOLCHAIN_FILE=${{github.workspace}}/rdkservices/Tests/clang.cmake" >> $GITHUB_ENV
+
+      - name: Set gcc/with-coverage toolchain
+        if: ${{ matrix.compiler == 'gcc' && matrix.coverage == 'with-coverage' }}
+        run: echo "TOOLCHAIN_FILE=${{github.workspace}}/rdkservices/Tests/gcc-with-coverage.cmake" >> $GITHUB_ENV
+
+      - name: Build rdkservices
         run: >
           cmake
           -S "${{github.workspace}}/rdkservices"
           -B build/rdkservices
+          -DCMAKE_TOOLCHAIN_FILE="${{ env.TOOLCHAIN_FILE }}"
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCMAKE_CXX_FLAGS="
@@ -214,9 +222,11 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
-          --coverage -Wall -Werror -Wno-unused-parameter -Wno-unused-result -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
+          -Wall -Werror
+          -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
           -DUSE_IARMBUS
+          -DUSE_DS
           -DENABLE_SYSTEM_GET_STORE_DEMO_LINK
           -DENABLE_DEEP_SLEEP
           -DENABLE_SET_WAKEUP_SRC_CONFIG
@@ -224,6 +234,8 @@ jobs:
           -DUSE_FRAMEBUFFER_SCREENCAPTURE
           -DHAS_API_SYSTEM
           -DHAS_API_POWERSTATE
+          -DCLOCK_BRIGHTNESS_ENABLED
+          -DHAS_RBUS
           -DENABLE_DEVICE_MANUFACTURER_INFO"
           -DCOMCAST_CONFIG=OFF
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
@@ -231,6 +243,8 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
+          -DDS_FOUND=ON
+          -DHAS_FRONT_PANEL=ON
           -DPLUGIN_DATACAPTURE=ON
           -DPLUGIN_DEVICEDIAGNOSTICS=ON
           -DPLUGIN_LOCATIONSYNC=ON
@@ -250,38 +264,64 @@ jobs:
           -DPLUGIN_SYSTEMSERVICES=ON
           -DRDK_SERVICES_TEST=ON
           -DPLUGIN_HDMIINPUT=ON
+          -DPLUGIN_FRONTPANEL=ON
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_TRACECONTROL=ON
+          -DPLUGIN_NETWORK=ON
           -DPLUGIN_WIFIMANAGER=ON
           -DPLUGIN_WAREHOUSE=ON
+          -DPLUGIN_ACTIVITYMONITOR=ON
           -DDS_FOUND=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          &&
+          cmake --build build/rdkservices -j8
+          &&
+          cmake --install build/rdkservices
 
-      - name: Build rdkservices
-        run: cmake --build build/rdkservices -j8
-
-      - name: Install rdkservices
-        run: cmake --install build/rdkservices
-
-      - name: Install valgrind
-        run: sudo apt update && sudo apt install -y valgrind
+      - name: List files
+        run: >
+          ls -l
+          "${{github.workspace}}/install/usr/bin/RdkServicesTest"
+          "${{github.workspace}}/install/usr/lib/wpeframework/plugins/"
+          &&
+          du -hs
+          "${{github.workspace}}/install/usr/bin/RdkServicesTest"
+          "${{github.workspace}}/install/usr/lib/wpeframework/plugins/"
 
       - name: Set up files
         run: >
           sudo mkdir -p -m 777
           /opt/persistent
-          /opt/secure /opt/secure/reboot /opt/secure/persistent /opt/secure/persistent/System
-          /opt/logs /lib/rdk &&
+          /opt/secure
+          /opt/secure/reboot
+          /opt/secure/persistent
+          /opt/secure/persistent/System
+          /opt/logs
+          /lib/rdk
+          &&
           sudo touch
-          /opt/standbyReason.txt /opt/tmtryoptout /opt/fwdnldstatus.txt
-          /etc/device.properties /etc/authService.conf
-          /version.txt &&
+          /opt/standbyReason.txt
+          /opt/tmtryoptout
+          /opt/fwdnldstatus.txt
+          /etc/device.properties
+          /etc/authService.conf
+          /version.txt
+          &&
           sudo chmod 777
-          /opt/standbyReason.txt /opt/tmtryoptout /opt/fwdnldstatus.txt
-          /etc/device.properties /etc/authService.conf
+          /opt/standbyReason.txt
+          /opt/tmtryoptout
+          /opt/fwdnldstatus.txt
+          /etc/device.properties
+          /etc/authService.conf
           /version.txt
 
-      - name: Run unit tests
+      - name: Run unit tests without valgrind
+        run: >
+          PATH=${{github.workspace}}/install/usr/bin:${PATH}
+          LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
+          RdkServicesTest
+
+      - name: Run unit tests with valgrind
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
@@ -292,20 +332,16 @@ jobs:
           --show-reachable=yes
           --track-fds=yes
           --fair-sched=try
+          --track-origins=yes
           RdkServicesTest
 
-      - name: Install lcov
-        run: sudo apt update && sudo apt install -y lcov
-
       - name: Generate coverage
+        if: ${{ matrix.coverage == 'with-coverage' }}
         run: >
           lcov -c
           -o coverage.info
           -d build/rdkservices
-
-      - name: Filter coverage
-        # Absolute path patterns.
-        run: >
+          &&
           lcov
           -r coverage.info
           '/usr/include/*'
@@ -314,11 +350,8 @@ jobs:
           '*/Tests/headers/*'
           '*/Tests/mocks/*'
           '*/Tests/tests/*'
-          '*/DeviceIdentification/Implementation/Realtek/*'
           -o filtered_coverage.info
-
-      - name: Generate HTML
-        run: >
+          &&
           genhtml
           -o coverage
           -t "rdkservices coverage"
@@ -332,3 +365,4 @@ jobs:
           path: |
             coverage/
             valgrind_log
+          if-no-files-found: warn

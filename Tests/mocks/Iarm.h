@@ -26,8 +26,10 @@ public:
     virtual IARM_Result_t IARM_Bus_IsConnected(const char* memberName, int* isRegistered) = 0;
     virtual IARM_Result_t IARM_Bus_RegisterEventHandler(const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) = 0;
     virtual IARM_Result_t IARM_Bus_UnRegisterEventHandler(const char* ownerName, IARM_EventId_t eventId) = 0;
+    virtual IARM_Result_t IARM_Bus_RemoveEventHandler(const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) = 0;
     virtual IARM_Result_t IARM_Bus_Call(const char* ownerName, const char* methodName, void* arg, size_t argLen) = 0;
     virtual IARM_Result_t IARM_Bus_RegisterCall(const char* methodName, IARM_BusCall_t handler) = 0;
+    virtual IARM_Result_t IARM_Bus_Call_with_IPCTimeout(const char *ownerName,  const char *methodName, void *arg, size_t argLen, int timeout) = 0;
 };
 
 class IarmBus {
@@ -64,6 +66,12 @@ public:
     {
         return getInstance().impl->IARM_Bus_UnRegisterEventHandler(ownerName, eventId);
     }
+
+    static IARM_Result_t IARM_Bus_RemoveEventHandler(const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler)
+    {
+        return getInstance().impl->IARM_Bus_RemoveEventHandler(ownerName, eventId, handler);
+    }
+
     static IARM_Result_t IARM_Bus_Call(const char* ownerName, const char* methodName, void* arg, size_t argLen)
     {
         return getInstance().impl->IARM_Bus_Call(ownerName, methodName, arg, argLen);
@@ -73,6 +81,11 @@ public:
     {
         return getInstance().impl->IARM_Bus_RegisterCall(methodName, handler);
     }
+
+    static IARM_Result_t IARM_Bus_Call_with_IPCTimeout(const char *ownerName,  const char *methodName, void *arg, size_t argLen, int timeout)
+    {
+        return getInstance().impl->IARM_Bus_Call_with_IPCTimeout(ownerName, methodName, arg, argLen, timeout);
+    }
 };
 
 constexpr auto IARM_Bus_Init = &IarmBus::IARM_Bus_Init;
@@ -80,8 +93,10 @@ constexpr auto IARM_Bus_Connect = &IarmBus::IARM_Bus_Connect;
 constexpr auto IARM_Bus_IsConnected = &IarmBus::IARM_Bus_IsConnected;
 constexpr auto IARM_Bus_RegisterEventHandler = &IarmBus::IARM_Bus_RegisterEventHandler;
 constexpr auto IARM_Bus_UnRegisterEventHandler = &IarmBus::IARM_Bus_UnRegisterEventHandler;
+constexpr auto IARM_Bus_RemoveEventHandler = &IarmBus::IARM_Bus_RemoveEventHandler;
 constexpr auto IARM_Bus_Call = &IarmBus::IARM_Bus_Call;
 constexpr auto IARM_Bus_RegisterCall = &IarmBus::IARM_Bus_RegisterCall;
+constexpr auto IARM_Bus_Call_with_IPCTimeout = &IarmBus::IARM_Bus_Call_with_IPCTimeout;
 
 #define IARM_BUS_COMMON_API_SysModeChange "SysModeChange"
 
@@ -796,17 +811,45 @@ typedef enum _IARM_Bus_NMgr_WiFi_EventId_t {
     IARM_BUS_WIFI_MGR_EVENT_MAX, /*!< Maximum event id*/
 } IARM_Bus_NMgr_WiFi_EventId_t;
 
-/* ############################# netsrvmgrIarm.h ################################# */
-
+/* ############################## Network Manager ####################### */
+#define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
 #define INTERFACE_SIZE 10
-
+#define INTERFACE_LIST 50
+#define MAX_IP_ADDRESS_LEN 46
+#define MAX_IP_FAMILY_SIZE 10
+#define MAX_HOST_NAME_LEN 128
+#define MAX_ENDPOINT_SIZE 260 // 253 + 1 + 5 + 1 (domain name max length + ':' + port number max chars + '\0')
+#define IARM_BUS_NETSRVMGR_API_getActiveInterface "getActiveInterface"
+#define IARM_BUS_NETSRVMGR_API_getNetworkInterfaces "getNetworkInterfaces"
+#define IARM_BUS_NETSRVMGR_API_getInterfaceList "getInterfaceList"
+#define IARM_BUS_NETSRVMGR_API_getDefaultInterface "getDefaultInterface"
+#define IARM_BUS_NETSRVMGR_API_setDefaultInterface "setDefaultInterface"
+#define IARM_BUS_NETSRVMGR_API_isInterfaceEnabled "isInterfaceEnabled"
 #define IARM_BUS_NETSRVMGR_API_setInterfaceEnabled "setInterfaceEnabled"
+#define IARM_BUS_NETSRVMGR_API_getSTBip "getSTBip"
+#define IARM_BUS_NETSRVMGR_API_setIPSettings "setIPSettings"
+#define IARM_BUS_NETSRVMGR_API_getIPSettings "getIPSettings"
+#define IARM_BUS_NETSRVMGR_API_getSTBip_family "getSTBip_family"
+#define IARM_BUS_NETSRVMGR_API_isConnectedToInternet "isConnectedToInternet"
+#define IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints "setConnectivityTestEndpoints"
+#define IARM_BUS_NETSRVMGR_API_isAvailable "isAvailable"
+#define IARM_BUS_NETSRVMGR_API_getPublicIP "getPublicIP"
 
+// TODO: remove this
+#define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
+
+/* Netsrvmgr Based Macros & Structures */
 typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     union {
+        char activeIface[INTERFACE_SIZE];
+        char allNetworkInterfaces[INTERFACE_LIST];
         char setInterface[INTERFACE_SIZE];
+        char activeIfaceIpaddr[MAX_IP_ADDRESS_LEN];
     };
+    char interfaceCount;
     bool isInterfaceEnabled;
+    bool persist;
+    char ipfamily[MAX_IP_FAMILY_SIZE];
 } IARM_BUS_NetSrvMgr_Iface_EventData_t;
 
 #define IARM_BUS_SYSMGR_API_RunScript "RunScript"
