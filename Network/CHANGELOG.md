@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.7] - 2023-04-04
+### Fixed
+- Fixed traceroute command error.
+
 ## [1.0.6] - 2022-12-13
 ### Fixed
 - Fixed empty IP Address value being returned.
