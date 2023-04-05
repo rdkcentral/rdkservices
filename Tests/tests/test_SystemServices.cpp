@@ -186,10 +186,7 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("reboot")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getStateInfo")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBootLoaderPattern")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("reboot")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getStateInfo")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBootLoaderPattern")));
-}
+  }
 
 TEST_F(SystemServicesTest, SystemUptime)
 {
