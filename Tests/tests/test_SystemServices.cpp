@@ -186,6 +186,9 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("reboot")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getStateInfo")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBootLoaderPattern")))
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("reboot")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getStateInfo")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBootLoaderPattern")));
 }
 
 TEST_F(SystemServicesTest, SystemUptime)
@@ -2557,5 +2560,4 @@ TEST_F(SystemServicesTest, setBootLoaderPatternSuccess_onPatterntypeSILENTLEDON)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBootLoaderPattern"), _T("{\"pattern\":SILENT_LED_ON}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
-
 /*Test cases for setBootLoaderPattern ends here*/
