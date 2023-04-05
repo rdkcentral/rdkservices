@@ -14,4 +14,5 @@
   - [Overview of Clients](userguide/clients.md)
   - [Creating ThunderJS Clients](userguide/thunderjs.md)
   - [Creating Native Clients](userguide/native.md)
+- [**Developer Guide**](./developerguide/develperguidefornewplugin.md)
 - [**API Reference**](api/ActivityMonitorPlugin.md)

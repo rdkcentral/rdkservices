@@ -60,7 +60,7 @@ namespace WPEFramework {
 	        bool m_isVendorIDUpdated;
 
 		CECDeviceInfo()
-		: m_logicalAddress(0),m_vendorID(0,0,0),m_osdName("NA"), m_isOSDNameUpdated (false), m_isVendorIDUpdated (false)
+		: m_logicalAddress(0),m_vendorID(0,0,0),m_osdName("NA"), m_deviceInfoStatus(0), m_isOSDNameUpdated (false), m_isVendorIDUpdated (false)
 		{
 			BITMASK_CLEAR(m_deviceInfoStatus, 0xFFFF); //Clear all bits
 		}
@@ -135,7 +135,7 @@ namespace WPEFramework {
         public:
             HdmiCec();
             virtual ~HdmiCec();
-            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
+            virtual const string Initialize(PluginHost::IShell* shell) override; 
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override { return {}; }
             void addDevice(const int logicalAddress);

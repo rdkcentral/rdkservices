@@ -30,7 +30,9 @@ namespace UploadLogs
 {
     enum err_t { OK = 0, BadUrl, FilenameFail, SsrFail, TarFail, UploadFail, };
     err_t upload(const std::string& ssrUrl = std::string());
+    std::int32_t getUploadLogParameters();
     int32_t LogUploadBeforeDeepSleep(void);
+    pid_t logUploadAsync(void);
     std::string errToText(err_t err);
 } // namespace UploadLogs
 } // namespace Plugin

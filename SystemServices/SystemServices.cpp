@@ -357,6 +357,8 @@ namespace WPEFramework {
 	    m_ManufacturerDataModelNameValid = false;
             m_MfgSerialNumberValid = false;
 #endif
+            m_uploadLogsPid = -1;
+
             regcomp (&m_regexUnallowedChars, REGEX_UNALLOWABLE_INPUT, REG_EXTENDED);
 
             /**
@@ -459,6 +461,9 @@ namespace WPEFramework {
 #endif
             registerMethod("uploadLogs", &SystemServices::uploadLogs, this);
 
+            registerMethod("uploadLogsAsync", &SystemServices::uploadLogsAsync, this);
+            registerMethod("abortLogUpload", &SystemServices::abortLogUpload, this);
+
             registerMethod("getPowerStateBeforeReboot", &SystemServices::getPowerStateBeforeReboot,
                     this);
             registerMethod("getLastFirmwareFailureReason", &SystemServices::getLastFirmwareFailureReason, this);
@@ -477,6 +482,11 @@ namespace WPEFramework {
                 &SystemServices::getPlatformConfiguration, this);
         }
 
+#define RFC_LOG_UPLOAD "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadBeforeDeepSleep.Enable"
+
+#define LOG_UPLOAD_STATUS_SUCCESS "UPLOAD_SUCCESS"
+#define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
+#define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
 
         SystemServices::~SystemServices()
         {
@@ -793,6 +803,35 @@ namespace WPEFramework {
          */
         void SystemServices::onSystemPowerStateChanged(string currentPowerState, string powerState)
         {
+
+            if ("LIGHT_SLEEP" == powerState || "STANDBY" == powerState) {
+                if ("ON" == currentPowerState) {
+                    RFC_ParamData_t param = {0};
+                    WDMP_STATUS status = getRFCParameter(NULL, RFC_LOG_UPLOAD, &param);
+                    if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+                    {
+                        JsonObject p;
+                        JsonObject r;
+                        uploadLogsAsync(p, r);
+                    }
+                }
+            } else if ("DEEP_SLEEP" == powerState) {
+
+                pid_t uploadLogsPid = -1;
+
+                {
+                    lock_guard<mutex> lck(m_uploadLogsMutex);
+                    uploadLogsPid = m_uploadLogsPid;
+                }
+
+                if (-1 != uploadLogsPid)
+                {
+                    JsonObject p;
+                    JsonObject r;
+                    abortLogUpload(p, r);
+                }
+            }
+
             JsonObject params;
             params["powerState"] = powerState;
             params["currentPowerState"] = currentPowerState;
@@ -1035,7 +1074,7 @@ namespace WPEFramework {
 		LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
 		IARM_Bus_MFRLib_GetSerializedData_Param_t param;
 		param.bufLen = 0;
-		param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+		param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
 		IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 		param.buffer[param.bufLen] = '\0';
 		LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
@@ -1108,7 +1147,7 @@ namespace WPEFramework {
             param.bufLen = 0;
             param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
             if (!parameter.compare(MODEL_NAME)) {
-                param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+                param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
             } else if (!parameter.compare(HARDWARE_ID)) {
                 param.type = mfrSERIALIZED_TYPE_HWID;
             }
@@ -2159,6 +2198,36 @@ namespace WPEFramework {
         }
 
         /***
+         * @brief : sends notification when time source state has changed.
+         *
+         */
+        void SystemServices::onLogUpload(int newState)
+        {
+            lock_guard<mutex> lck(m_uploadLogsMutex);
+
+            if (-1 != m_uploadLogsPid) {
+                JsonObject params;
+
+                params["logUploadStatus"] = newState == IARM_BUS_SYSMGR_LOG_UPLOAD_SUCCESS ? LOG_UPLOAD_STATUS_SUCCESS :
+                    newState == IARM_BUS_SYSMGR_LOG_UPLOAD_ABORTED ? LOG_UPLOAD_STATUS_ABORTED : LOG_UPLOAD_STATUS_FAILURE;
+
+                sendNotify(EVT_ONLOGUPLOAD, params);
+                GetHandler(2)->Notify(EVT_ONLOGUPLOAD, params);
+
+                pid_t wp;
+                int status;
+
+                if ((wp = waitpid(m_uploadLogsPid, &status, 0)) != m_uploadLogsPid) {
+                    LOGERR("Waitpid for failed: %d, status: %d", m_uploadLogsPid, status);
+                }
+
+                m_uploadLogsPid = -1;
+            } else {
+                LOGERR("Upload Logs script isn't runing");
+            }
+        }
+
+        /***
          * @brief : Worker to fetch details of various MAC addresses.
          * @Event : {"ecm_mac":"<MAC>","estb_mac":"<MAC>","moca_mac":"<MAC>",
          *     "eth_mac":"<MAC>","wifi_mac":"<MAC>","info":"Details fetch status",
@@ -2263,7 +2332,7 @@ namespace WPEFramework {
         uint32_t SystemServices::setTimeZoneDST(const JsonObject& parameters,
                 JsonObject& response)
 	{
-		bool resp = false;
+		bool resp = true;
 		if (parameters.HasLabel("timeZone")) {
 			std::string dir = dirnameOf(TZ_FILE);
 			std::string timeZone = "";
@@ -2291,49 +2360,56 @@ namespace WPEFramework {
 							//Do nothing//
 						}
 						std::string oldTimeZoneDST = getTimeZoneDSTHelper();
-
-						FILE *f = fopen(TZ_FILE, "w");
-						if (f) {
-							if (timeZone.size() != fwrite(timeZone.c_str(), 1, timeZone.size(), f))
-								LOGERR("Failed to write %s", TZ_FILE);
-
-							fflush(f);
-							fsync(fileno(f));
-							fclose(f);
-
-							std::string oldAccuracy = getTimeZoneAccuracyDSTHelper();
-							std::string accuracy = oldAccuracy;
-
-							if (parameters.HasLabel("accuracy")) {
-								accuracy = parameters["accuracy"].String();
-								if (accuracy != TZ_ACCURACY_INITIAL && accuracy != TZ_ACCURACY_INTERIM && accuracy != TZ_ACCURACY_FINAL) {
-									LOGERR("Wrong TimeZone Accuracy: %s", accuracy.c_str());
-									accuracy = oldAccuracy;
+						
+						if (oldTimeZoneDST != timeZone) {
+							FILE *f = fopen(TZ_FILE, "w");
+							if (f) {
+								if (timeZone.size() != fwrite(timeZone.c_str(), 1, timeZone.size(), f))
+								{
+									LOGERR("Failed to write %s", TZ_FILE);
+									resp = false;
 								}
+
+								fflush(f);
+								fsync(fileno(f));
+								fclose(f);
+
+							} else {
+								LOGERR("Unable to open %s file.\n", TZ_FILE);
+								populateResponseWithError(SysSrv_FileAccessFailed, response);
+								resp = false;
 							}
-
-							if (accuracy != oldAccuracy) {
-								f = fopen(TZ_ACCURACY_FILE, "w");
-								if (f) {
-									if (accuracy.size() != fwrite(accuracy.c_str(), 1, accuracy.size(), f))
-										LOGERR("Failed to write %s", TZ_ACCURACY_FILE);
-
-									fflush(f);
-									fsync(fileno(f));
-									fclose(f);
-								}
-							}
-
-
-							if (SystemServices::_instance)
-								SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone,oldAccuracy, accuracy);
-
-							resp = true;
-						} else {
-							LOGERR("Unable to open %s file.\n", TZ_FILE);
-							populateResponseWithError(SysSrv_FileAccessFailed, response);
-							resp = false;
 						}
+
+						std::string oldAccuracy = getTimeZoneAccuracyDSTHelper();
+						std::string accuracy = oldAccuracy;
+
+						if (parameters.HasLabel("accuracy")) {
+							accuracy = parameters["accuracy"].String();
+							if (accuracy != TZ_ACCURACY_INITIAL && accuracy != TZ_ACCURACY_INTERIM && accuracy != TZ_ACCURACY_FINAL) {
+								LOGERR("Wrong TimeZone Accuracy: %s", accuracy.c_str());
+								accuracy = oldAccuracy;
+							}
+						}
+
+						if (accuracy != oldAccuracy) {
+							FILE *f = fopen(TZ_ACCURACY_FILE, "w");
+							if (f) {
+								if (accuracy.size() != fwrite(accuracy.c_str(), 1, accuracy.size(), f))
+								{
+									LOGERR("Failed to write %s", TZ_ACCURACY_FILE);
+									resp = false;
+								}
+
+								fflush(f);
+								fsync(fileno(f));
+								fclose(f);
+							}
+						}
+
+						if (SystemServices::_instance && (oldTimeZoneDST != timeZone || oldAccuracy != accuracy))
+							SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone,oldAccuracy, accuracy);
+
 					}
 					else{
 						LOGERR("Invalid timeZone  %s received. Timezone not supported in TZ Database. \n", timeZone.c_str());
@@ -2539,6 +2615,79 @@ namespace WPEFramework {
 		//Notify TimeZone changed
 		sendNotify(EVT_ONTIMEZONEDSTCHANGED, params);
 	}
+
+    uint32_t SystemServices::uploadLogsAsync(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGWARN("");
+
+        pid_t uploadLogsPid = -1;
+
+        {
+            lock_guard<mutex> lck(m_uploadLogsMutex);
+            uploadLogsPid = m_uploadLogsPid;
+        }
+
+        if (-1 != uploadLogsPid) {
+            LOGWARN("Another instance of log upload script is running");
+            abortLogUpload(parameters, response);
+        }
+
+        lock_guard<mutex> lck(m_uploadLogsMutex);
+        m_uploadLogsPid = UploadLogs::logUploadAsync();
+
+        returnResponse(true);
+    }
+
+    uint32_t SystemServices::abortLogUpload(const JsonObject& parameters, JsonObject& response)
+    {
+
+        lock_guard<mutex> lck(m_uploadLogsMutex);
+
+        if (-1 != m_uploadLogsPid) {
+
+            // Kill child processes
+            std::stringstream cmd;
+            cmd << "pgrep -P " << m_uploadLogsPid;
+
+            FILE* fp = popen(cmd.str().c_str(), "r");
+            if (NULL != fp) {
+
+                char output[1024];
+                while (NULL != fgets (output, sizeof(output) - 1, fp)) {
+                    std::string line = output;
+                    line = trim(line);
+
+                    char *end;
+                    int pid = strtol(line.c_str(), &end, 10);
+
+                    if (line.c_str() != end && 0 != pid && 1 != pid) {
+                        kill(pid, SIGKILL);
+                    } else
+                        LOGERR("Bad pid: %d", pid);
+                }
+
+                pclose(fp);
+            } else {
+                LOGERR("Cannot run command\n");
+            }
+
+            kill(m_uploadLogsPid, SIGKILL);
+
+            int status;
+            waitpid(m_uploadLogsPid, &status, 0);
+
+            m_uploadLogsPid = -1;
+
+            JsonObject params;
+            params["logUploadStatus"] = LOG_UPLOAD_STATUS_ABORTED;
+            sendNotify(EVT_ONLOGUPLOAD, params);
+
+            returnResponse(true);
+        }
+
+        LOGERR("Upload logs script is not running");
+        returnResponse(false);
+    }
 
         /***
          * @brief : To fetch timezone from TZ_FILE.
@@ -3435,22 +3584,6 @@ namespace WPEFramework {
 			reason = ((reason.length()) ? reason : "application");
             LOGINFO("SystemServices::setDevicePowerState state: %s\n", state.c_str());
 
-#if defined(LOGUPLOAD_BEFORE_DEEPSLEEP)
-            if ( "LIGHT_SLEEP" == state || "STANDBY" == state){
-                if ( "ON" == m_current_state){
-
-                    /* only if transition from ON -> LIGHT_SLEEP
-                     * perform logupload when state change to Standby */
-                    int32_t uploadStatus = UploadLogs::LogUploadBeforeDeepSleep();
-                    if ( E_NOK == uploadStatus ){
-                        LOGERR("SystemServices Logupload Disabled \n");
-                    }
-                    else {
-                        LOGINFO("LogUploadBeforeDeepSleep Success \n");
-                    }
-                }
-            }
-#endif
             if (state == "STANDBY") {
                 if (SystemServices::_instance) {
 					SystemServices::_instance->getPreferredStandbyMode(paramIn, paramOut);
@@ -3822,6 +3955,10 @@ namespace WPEFramework {
                             {
                                 config |= (1<<src);
                             }
+                            if((src == WAKEUPSRC_WIFI) || (src == WAKEUPSRC_LAN))
+                            {
+                                m_networkStandbyModeValid = false;
+                            }
                             break;
                         }
                     }
@@ -4053,6 +4190,17 @@ namespace WPEFramework {
                             }
                         }
                     } break;
+                case IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD:
+                    {
+                        LOGWARN("IARMEvt: IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD = '%d'", state);
+                        if (SystemServices::_instance)
+                        {
+                            SystemServices::_instance->onLogUpload(state);
+                        } else {
+                            LOGERR("SystemServices::_instance is NULL.\n");
+                        }
+                    } break;
+
 
                 default:
                     /* Nothing to do. */;

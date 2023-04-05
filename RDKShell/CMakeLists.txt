@@ -22,6 +22,7 @@ set(PLUGIN_RDKSHELL_EXTRA_LIBRARIES "")
 set(PLUGIN_RDKSHELL_STARTUPORDER "" CACHE STRING "Automatically start RDKShell plugin")
 
 option(PLUGIN_RDKSHELL_READ_MAC_ON_STARTUP "PLUGIN_RDKSHELL_READ_MAC_ON_STARTUP" OFF)
+option(PLUGIN_HIBERNATESUPPORT "Include hibernate support in the build." OFF)
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(IARMBus)
@@ -42,12 +43,21 @@ endif (PLUGIN_RDKSHELL_READ_MAC_ON_STARTUP)
 
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 
+if(PLUGIN_HIBERNATESUPPORT)
+        target_compile_definitions(${MODULE_NAME} PRIVATE HIBERNATE_SUPPORT_ENABLED=1)
+endif()
+
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${IARMBUS_INCLUDE_DIRS} )
 
+set_source_files_properties(RDKShell.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 set(RDKSHELL_INCLUDES $ENV{RDKSHELL_INCLUDES})
 separate_arguments(RDKSHELL_INCLUDES)
 include_directories(BEFORE ${RDKSHELL_INCLUDES})
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lrdkshell ${PLUGIN_RDKSHELL_EXTRA_LIBRARIES} trower-base64)
+if (NOT RDK_SERVICES_TEST)
+        target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lrdkshell ${PLUGIN_RDKSHELL_EXTRA_LIBRARIES})
+else(RDK_SERVICES_TEST)
+        target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${PLUGIN_RDKSHELL_EXTRA_LIBRARIES})
+endif(RDK_SERVICES_TEST)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

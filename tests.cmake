@@ -11,15 +11,34 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/rdk/iarmbus
         ${BASEDIR}/rdk/iarmmgrs-hal
         ${BASEDIR}/ccec/drivers
+        ${BASEDIR}/ccec/drivers/iarmbus
+        ${BASEDIR}/ccec/host
         ${BASEDIR}/network
         ${BASEDIR}/Dobby
         ${BASEDIR}/Dobby/Public/Dobby
         ${BASEDIR}/Dobby/IpcService
+        ${BASEDIR}/ccec/drivers/iarmbus
+        ${BASEDIR}/ccec/host
+        ${BASEDIR}/websocket
+        ${BASEDIR}/rdk/control
+        ${BASEDIR}/rdk/iarmmgrs
+	${BASEDIR}/rdkshell
         )
 
 set(EMPTY_HEADERS
         ${BASEDIR}/audiocapturemgr/audiocapturemgr_iarm.h
         ${BASEDIR}/ccec/drivers/CecIARMBusMgr.h
+        ${BASEDIR}/ccec/drivers/CecIARMBusMgr.h
+        ${BASEDIR}/ccec/drivers/iarmbus/CecIARMBusMgr.h
+        ${BASEDIR}/ccec/FrameListener.hpp
+        ${BASEDIR}/ccec/Connection.hpp
+        ${BASEDIR}/ccec/Assert.hpp
+        ${BASEDIR}/ccec/Messages.hpp
+        ${BASEDIR}/ccec/MessageDecoder.hpp
+        ${BASEDIR}/ccec/MessageProcessor.hpp
+        ${BASEDIR}/ccec/CECFrame.hpp
+        ${BASEDIR}/ccec/host/RDK.hpp
+        ${BASEDIR}/ccec/MessageEncoder.hpp
         ${BASEDIR}/rdk/ds/audioOutputPort.hpp
         ${BASEDIR}/rdk/ds/compositeIn.hpp
         ${BASEDIR}/rdk/ds/dsDisplay.h
@@ -50,6 +69,13 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdk/iarmmgrs-hal/sysMgr.h
         ${BASEDIR}/network/wifiSrvMgrIarmIf.h
         ${BASEDIR}/network/netsrvmgrIarm.h
+	${BASEDIR}/rdkshell/rdkshellevents.h
+        ${BASEDIR}/rdkshell/rdkshell.h
+        ${BASEDIR}/rdkshell/compositorcontroller.h
+        ${BASEDIR}/rdkshell/logger.h
+        ${BASEDIR}/rdkshell/eastereggs.h
+        ${BASEDIR}/rdkshell/application.h
+        ${BASEDIR}/rdkshell/linuxkeys.h
         ${BASEDIR}/framebuffer-api.h
         ${BASEDIR}/libudev.h
         ${BASEDIR}/rfcapi.h
@@ -60,6 +86,29 @@ set(EMPTY_HEADERS
         ${BASEDIR}/Dobby/DobbyProxy.h
         ${BASEDIR}/Dobby/Public/Dobby/IDobbyProxy.h
         ${BASEDIR}/Dobby/IpcService/IpcFactory.h
+        ${BASEDIR}/ccec/FrameListener.hpp
+	${BASEDIR}/ccec/Connection.hpp
+	${BASEDIR}/ccec/Assert.hpp
+	${BASEDIR}/ccec/Messages.hpp
+	${BASEDIR}/ccec/MessageDecoder.hpp
+	${BASEDIR}/ccec/MessageProcessor.hpp
+	${BASEDIR}/ccec/CECFrame.hpp
+	${BASEDIR}/ccec/MessageEncoder.hpp
+	${BASEDIR}/ccec/host/RDK.hpp
+	${BASEDIR}/ccec/drivers/iarmbus/CecIARMBusMgr.h
+	${BASEDIR}/dsRpc.h
+	${BASEDIR}/websocket/URL.h
+        ${BASEDIR}/rtRemote.h
+        ${BASEDIR}/rtObject.h
+        ${BASEDIR}/rtError.h
+        ${BASEDIR}/rtNotifier.h
+        ${BASEDIR}/rdk/iarmmgrs/irMgr.h
+        ${BASEDIR}/rdk/iarmmgrs/comcastIrKeyCodes.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc_voice.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc_rcu.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc_key_codes.h
+	${BASEDIR}/rdk_logger_milestone.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -88,6 +137,10 @@ set(FAKE_HEADERS
         ${BASEDIR}/Udev.h
         ${BASEDIR}/MotionDetection.h
         ${BASEDIR}/Dobby.h
+        ${BASEDIR}/HdmiCec.h
+        ${BASEDIR}/Ctrlm.h
+	${BASEDIR}/rdkshell.h
+	${BASEDIR}/RdkLoggerMilestone.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -112,6 +165,8 @@ add_definitions(
         -DENABLE_DEVICE_MANUFACTURER_INFO
         -DCLOCK_BRIGHTNESS_ENABLED
         -DUSE_DS
+        -DRFC_ENABLED
+        -DXCAST_ENABLED_BY_DEFAULT
 )
 
 message("Setting build options")
@@ -121,7 +176,9 @@ set(CMAKE_DISABLE_FIND_PACKAGE_IARMBus ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_Udev ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_RFC ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_RBus ON)
+set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_Dobby ON)
+set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 
 set(PLUGIN_DATACAPTURE ON)
 set(PLUGIN_DEVICEDIAGNOSTICS ON)
@@ -149,7 +206,17 @@ set(PLUGIN_WAREHOUSE ON)
 set(PLUGIN_ACTIVITYMONITOR ON)
 set(PLUGIN_MOTION_DETECTION ON)
 set(PLUGIN_COMPOSITEINPUT ON)
+set(PLUGIN_HDMICEC ON)
+set(PLUGIN_HDMICEC2 ON)
+set(PLUGIN_HDMICECSOURCE ON)
 set(HAS_FRONT_PANEL ON)
 set(PLUGIN_OCICONTAINER ON)
+set(PLUGIN_HDMICECSINK ON)
+set(PLUGIN_XCAST ON)
+set(PLUGIN_VOICECONTROL ON)
+set(PLUGIN_CONTROLSERVICE ON)
+set(PLUGIN_REMOTEACTIONMAPPING ON)
+set(PLUGIN_RDKSHELL ON)
+
 
 set(DS_FOUND ON)

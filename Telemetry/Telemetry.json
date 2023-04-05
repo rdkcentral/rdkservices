@@ -84,6 +84,26 @@
                     "$ref": "#/common/errors/notexist"
                 }
             ]
+        },
+        "abortReport": {
+            "summary": "Makes request to Telemetry service to abort report upload",
+            "result": {
+                "$ref": "#/common/results/void"
+            },
+            "errors": [
+                {
+                    "description": "RBus call report uploading failed",
+                    "$ref": "#/common/errors/rpccallfailed"
+                },
+                {
+                    "description": "Failed to open RBus handle",
+                    "$ref": "#/common/errors/openingfailed"
+                },
+                {
+                    "description": "Built with no support for RBus",
+                    "$ref": "#/common/errors/notexist"
+                }
+            ]
         }
     },
     "events":{

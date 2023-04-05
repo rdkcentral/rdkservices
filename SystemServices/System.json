@@ -1708,7 +1708,7 @@
             }            
         },
         "setNetworkStandbyMode":{
-            "summary": "Enables or disables the network standby mode of the device. If network standby is enabled, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.",
+            "summary": "This API will be deprecated in the future. Please refer setWakeupSrcConfiguration to Migrate. This API Enables or disables the network standby mode of the device. If network standby is enabled, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1877,7 +1877,7 @@
             }
         },
         "setWakeupSrcConfiguration":{
-            "summary": "Sets the wakeup source configuration for the input powerState",
+            "summary": "Sets the wakeup source configuration for the input powerState. if you are using setNetworkStandbyMode API, Please do not use this API to set LAN and WIFI wakeup. Please migrate to setWakeupSrcConfiguration API to control all wakeup source settings. This API does not persist. Please call this API on Every bootup to set the values.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -1937,6 +1937,24 @@
                 },
                 "required": [
                 ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "uploadLogsAsync": {
+            "summary": "Starts background process to upload logs",
+            "events": {
+                "onLogUpload" : "Triggered when logs upload process is done"
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "abortLogUpload": {
+            "summary": "Stops background process to upload logs",
+            "events": {
+                "onLogUpload" : "Triggered when logs upload process is stopped"
             },
             "result": {
                 "$ref": "#/common/result"
@@ -2259,6 +2277,27 @@
                     "oldAccuracy",
                     "newAccuracy"
                     ]
+            }
+        },
+        "onLogUpload":{
+            "summary": "Triggered when logs upload process is done or stopped",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "logUploadStatus":{
+                        "summary": "Upload status",
+                        "type":"string",
+                        "enum": [
+                            "UPLOAD_SUCCESS",
+                            "UPLOAD_FAILURE",
+                            "UPLOAD_ABORTED"
+                        ],
+                        "example":"UPLOAD_SUCCESS"
+                    }
+                },
+                "required":[
+                    "logUploadStatus"
+                ]
             }
         }
     }
