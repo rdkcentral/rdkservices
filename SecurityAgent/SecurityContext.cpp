@@ -54,15 +54,11 @@ namespace Plugin {
 
     SecurityContext::SecurityContext(const AccessControlList* acl, const uint16_t length, const uint8_t payload[], const string& servicePrefix)
         : _token(string(reinterpret_cast<const TCHAR*>(payload), length))
-        , _accessControlList(nullptr)
+        , _accessControlList(acl)
         , _servicePrefix(servicePrefix)
     {
         if (_context.FromString(_token) == false) {
             _context.URL = _token;
-        }
-
-        if ( (_context.URL.IsSet() == true) && (acl != nullptr) ) {
-            _accessControlList = acl->FilterMapFromURL(_context.URL.Value());
         }
     }
 
@@ -83,7 +79,7 @@ namespace Plugin {
         string method = "";
 
         if ((request.Path.find(_servicePrefix, 0) != 0) || (_servicePrefix.length() > request.Path.length())) {
-            return ((_accessControlList != nullptr) && (_accessControlList->Allowed("","")));
+            return (_accessControlList != nullptr);
         }
 
         Core::TextSegmentIterator index(Core::TextFragment(request.Path, _servicePrefix.length(), static_cast<uint32_t>(request.Path.length() - _servicePrefix.length())), false, '/');
@@ -95,13 +91,13 @@ namespace Plugin {
             }
         }
 
-        return ((_accessControlList != nullptr) && (_accessControlList->Allowed(callsign, method)));
+        return ((_accessControlList != nullptr) && (_accessControlList->Allowed(_context.URL.Value(), callsign, method)));
     }
 
     //! Allow a JSONRPC message to be checked before it is offered for processing.
     bool SecurityContext::Allowed(const Core::JSONRPC::Message& message) const /* override */ 
     {
-        bool bAllowed = ((_accessControlList != nullptr) && (_accessControlList->Allowed(message.Callsign(), message.Method())));
+        bool bAllowed = ((_accessControlList != nullptr) && (_accessControlList->Allowed(_context.URL.Value(), message.Callsign(), message.Method())));
         if(!bAllowed)
             SYSLOG(Logging::Notification, ("Access for token url [%s], plugin [%s], method [%s] not allowed", _context.URL.Value().c_str(),message.Callsign().c_str(),message.Method().c_str()));
         
