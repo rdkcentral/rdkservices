@@ -16,7 +16,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.2.0] - 2023-04-03
+## [1.2.0] - 2023-04-05
 ### Added
 - Typo in RPC response to AVInput call org.rdk.AVInput.getSupportedGameFeatures
 
