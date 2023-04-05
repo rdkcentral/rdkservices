@@ -183,7 +183,7 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPowerStateBeforeReboot")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setWakeupSrcConfiguration")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDeviceInfo")));
-	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("reboot")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("reboot")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getStateInfo")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBootLoaderPattern")));
   }
@@ -1324,7 +1324,7 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnQueryParamContainsUnallowableCh
 TEST_F(SystemServicesTest, getDeviceInfoFailed_OnInvalidQueryParam)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":friendId}"), response));
-    EXPECT_THAT(response, Eq("{\"success\":false}"));
+    EXPECT_THAT(response, string("{\"success\":false}"));
 }
 
 /**
@@ -1377,7 +1377,7 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnMissingKeyInDevicePropertyFile)
     file.close();
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
-    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_THAT(response, string("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 }
 
 /**
@@ -1395,7 +1395,7 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnMissingKeyValueInDeviceProperty
     file.close();
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
-    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_THAT(response, string("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 }
 
 /**
@@ -1417,7 +1417,7 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnManufactureDataReadAPIFailed)
                return IARM_RESULT_IPCCORE_FAIL;
             });
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), response));
-    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":11,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_THAT(response, string("{\"SysSrv_Status\":11,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 }
 
 /**
@@ -1945,7 +1945,7 @@ TEST_F(SystemServicesTest,  requestSystemRebootSuccess_onRebootBusAPIFailed)
 TEST_F(SystemServicesTest, getStateInfoFailed_onEmptyParamList)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"), _T("{}"), response));
-    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_THAT(response, string("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 
 }
 
@@ -1960,7 +1960,7 @@ TEST_F(SystemServicesTest, getStateInfoFailed_onEmptyParamList)
 TEST_F(SystemServicesTest, getStateInfoFailed_OnInvalidQueryParam)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"), _T("{}"), response));
-    EXPECT_THAT(response, Eq("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+    EXPECT_THAT(response, string("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 }
 
 /**
