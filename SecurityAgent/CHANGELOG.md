@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.0] - 2023-04-05
+### Added
+- DAC token type support
+
 ## [1.0.3] - 2023-01-25
 ### Changed
 - Upstream logging changes to GitHub instead of using patches
