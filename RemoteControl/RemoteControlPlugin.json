@@ -5,7 +5,7 @@
       "callsign": "org.rdk.RemoteControl",
       "locator": "libWPEFrameworkRemoteControl.so",
       "status": "production",
-      "description": "The `RemoteControl` plugin provides the ability to pair and IR-program remote controls.",
+      "description": "The `RemoteControl` plugin provides the ability to pair and IR-program remote controls."
     },
     "interface": {
       "$ref": "RemoteControl.json#"
