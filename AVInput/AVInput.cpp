@@ -166,30 +166,30 @@ void AVInput::DeinitializeIARM()
 {
     if (Utils::IARM::isConnected()) {
         IARM_Result_t res;
-        IARM_CHECK(IARM_Bus_UnRegisterEventHandler(
+        IARM_CHECK(IARM_Bus_RemoveEventHandler(
             IARM_BUS_DSMGR_NAME,
-            IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG));
-        IARM_CHECK(IARM_Bus_UnRegisterEventHandler(
+            IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsAVEventHandler));
+        IARM_CHECK(IARM_Bus_RemoveEventHandler(
             IARM_BUS_DSMGR_NAME,
-            IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS));
-        IARM_CHECK(IARM_Bus_UnRegisterEventHandler(
+            IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS, dsAVSignalStatusEventHandler));
+        IARM_CHECK(IARM_Bus_RemoveEventHandler(
             IARM_BUS_DSMGR_NAME,
-            IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS));
-        IARM_CHECK(IARM_Bus_UnRegisterEventHandler(
+            IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsAVStatusEventHandler));
+        IARM_CHECK(IARM_Bus_RemoveEventHandler(
             IARM_BUS_DSMGR_NAME,
-            IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE));
-        IARM_CHECK(IARM_Bus_UnRegisterEventHandler(
+            IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsAVVideoModeEventHandler));
+        IARM_CHECK(IARM_Bus_RemoveEventHandler(
             IARM_BUS_DSMGR_NAME,
-            IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS));
-        IARM_CHECK(IARM_Bus_UnRegisterEventHandler(
+            IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS, dsAVGameFeatureStatusEventHandler));
+        IARM_CHECK(IARM_Bus_RemoveEventHandler(
             IARM_BUS_DSMGR_NAME,
-            IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG));
-        IARM_CHECK(IARM_Bus_UnRegisterEventHandler(
+            IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG, dsAVEventHandler));
+        IARM_CHECK(IARM_Bus_RemoveEventHandler(
             IARM_BUS_DSMGR_NAME,
-            IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS));
-        IARM_CHECK(IARM_Bus_UnRegisterEventHandler(
+            IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS, dsAVSignalStatusEventHandler));
+        IARM_CHECK(IARM_Bus_RemoveEventHandler(
             IARM_BUS_DSMGR_NAME,
-            IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS));
+            IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS, dsAVStatusEventHandler));
     }
 }
 
