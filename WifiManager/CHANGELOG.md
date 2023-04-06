@@ -23,6 +23,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Added
 - Added WifiManager plugin unitTest cases.
 
+## [1.0.4] - 2023-04-12
+### Fixed
+- Fixed IARM_Bus_UnRegisterEventHandler  call to IARM_Bus_RemoveEventHandler
+
 ## [1.0.3] - 2022-11-17
 ### Fixed
 - Avoid throw invalid argument error

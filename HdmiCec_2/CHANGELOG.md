@@ -40,6 +40,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Fixed
 - RAII thread midifications
 
+## [1.0.4] - 2023-04-12
+### Fixed
+- Fixed IARM_Bus_UnRegisterEventHandler  call to IARM_Bus_RemoveEventHandler
+
 ## [1.0.3] - 2022-10-04
 ### Fixed
 - Fixed warnings that are treated as errors with "-Wall -Werror"
