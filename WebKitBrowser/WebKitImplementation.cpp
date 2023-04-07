@@ -78,6 +78,14 @@ WK_EXPORT void WKPreferencesSetPageCacheEnabled(WKPreferencesRef preferences, bo
 #include "LoggingUtils.h"
 #endif
 
+
+#if !WEBKIT_GLIB_API
+#define HAS_MEMORY_PRESSURE_SETTINGS_API 0
+#else
+#define HAS_MEMORY_PRESSURE_SETTINGS_API WEBKIT_CHECK_VERSION(2, 38, 0)
+#endif
+
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -2188,7 +2196,7 @@ static GSourceFuncs _handlerIntervention =
             }
 
             // Memory Pressure
-#if !(WEBKIT_CHECK_VERSION(2, 38, 0))
+#if !HAS_MEMORY_PRESSURE_SETTINGS_API
             std::stringstream limitStr;
             if ((_config.Memory.IsSet() == true) && (_config.Memory.NetworkProcessLimit.IsSet() == true)) {
                 limitStr << "networkprocess:" << _config.Memory.NetworkProcessLimit.Value() << "m";
@@ -2745,7 +2753,7 @@ static GSourceFuncs _handlerIntervention =
                     indexedDBSizeBytes = _config.IndexedDBSize.Value() * 1024;
                 }
 
-#if WEBKIT_CHECK_VERSION(2, 38, 0)
+#if HAS_MEMORY_PRESSURE_SETTINGS_API
                 if ((_config.Memory.IsSet() == true) && (_config.Memory.NetworkProcessLimit.IsSet() == true)) {
                     WebKitMemoryPressureSettings* memoryPressureSettings = webkit_memory_pressure_settings_new();
                     webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.NetworkProcessLimit.Value());
@@ -2764,7 +2772,7 @@ static GSourceFuncs _handlerIntervention =
                 g_free(wpeDiskCachePath);
                 g_free(indexedDBPath);
 
-#if WEBKIT_CHECK_VERSION(2, 38, 0)
+#if HAS_MEMORY_PRESSURE_SETTINGS_API
                 if ((_config.Memory.IsSet() == true) && (_config.Memory.WebProcessLimit.IsSet() == true)) {
                     WebKitMemoryPressureSettings* memoryPressureSettings = webkit_memory_pressure_settings_new();
                     webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.WebProcessLimit.Value());
