@@ -2,7 +2,7 @@
 <a name="System_Plugin"></a>
 # System Plugin
 
-**Version: [1.2.0](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
+**Version: [1.3.0](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -103,7 +103,7 @@ SystemServices interface methods:
 | [setFirmwareRebootDelay](#setFirmwareRebootDelay) | Delays the firmware reboot |
 | [setGzEnabled](#setGzEnabled) | Enables or disables GZ |
 | [setMode](#setMode) | Sets the mode of the set-top box for a specific duration before returning to normal mode |
-| [setNetworkStandbyMode](#setNetworkStandbyMode) | Enables or disables the network standby mode of the device |
+| [setNetworkStandbyMode](#setNetworkStandbyMode) | This API will be deprecated in the future |
 | [setOptOutTelemetry](#setOptOutTelemetry) | Sets the telemetry opt-out status |
 | [setOvertempGraceInterval](#setOvertempGraceInterval) | Sets the over-temperature grace interval value |
 | [setPowerState](#setPowerState) | Sets the power state of the device |
@@ -111,7 +111,8 @@ SystemServices interface methods:
 | [setTemperatureThresholds](#setTemperatureThresholds) | Sets the temperature threshold values |
 | [setTerritory](#setTerritory) | Sets the system territory and region |
 | [setTimeZoneDST](#setTimeZoneDST) | Sets the system time zone |
-| [setWakeupSrcConfiguration](#setWakeupSrcConfiguration) | Sets the wakeup source configuration |
+| [setWakeupSrcConfiguration](#setWakeupSrcConfiguration) | Sets the wakeup source configuration for the input powerState |
+| [getWakeupSrcConfiguration](#getWakeupSrcConfiguration) | Returns all the supported wakeup configurations and powerState |
 | [updateFirmware](#updateFirmware) | Initiates a firmware update |
 | [uploadLogs](#uploadLogs) | Uploads logs to a URL returned by SSR |
 
@@ -2958,7 +2959,7 @@ Sets the mode of the set-top box for a specific duration before returning to nor
 <a name="setNetworkStandbyMode"></a>
 ## *setNetworkStandbyMode*
 
-Enables or disables the network standby mode of the device. If network standby is enabled, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.
+This API will be deprecated in the future. Please refer setWakeupSrcConfiguration to Migrate. This API Enables or disables the network standby mode of the device. If network standby is enabled, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.
 
 ### Events
 
@@ -3372,7 +3373,7 @@ Sets the system time zone. See `getTimeZones` to get a list of available timezon
 <a name="setWakeupSrcConfiguration"></a>
 ## *setWakeupSrcConfiguration*
 
-Sets the wakeup source configuration.
+Sets the wakeup source configuration for the input powerState. if you are using setNetworkStandbyMode API, Please do not use this API to set LAN and WIFI wakeup. Please migrate to setWakeupSrcConfiguration API to control all wakeup source settings. This API does not persist. Please call this API on Every bootup to set the values.
 
 ### Events
 
@@ -3383,8 +3384,18 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.wakeupSrc | string | The wakeup source |
-| params.config | string | The source configuration |
+| params?.powerState | string | <sup>*(optional)*</sup> The power state (must be one of the following: *STANDBY*, *DEEP_SLEEP*, *LIGHT_SLEEP*, *ON*) |
+| params.wakeupSources | array | Array of Key value pair with wake up sources and its configurations |
+| params.wakeupSources[#] | object |  |
+| params.wakeupSources[#]?.WAKEUPSRC_VOICE | boolean | <sup>*(optional)*</sup> Voice Wake up |
+| params.wakeupSources[#]?.WAKEUPSRC_PRESENCE_DETECTION | boolean | <sup>*(optional)*</sup> Presense detection wake up |
+| params.wakeupSources[#]?.WAKEUPSRC_BLUETOOTH | boolean | <sup>*(optional)*</sup> Bluetooth Wakeup |
+| params.wakeupSources[#]?.WAKEUPSRC_WIFI | boolean | <sup>*(optional)*</sup> WiFi Wake up |
+| params.wakeupSources[#]?.WAKEUPSRC_IR | boolean | <sup>*(optional)*</sup> IR Remote Wake up |
+| params.wakeupSources[#]?.WAKEUPSRC_POWER_KEY | boolean | <sup>*(optional)*</sup> Power Button Wake up - GPIO |
+| params.wakeupSources[#]?.WAKEUPSRC_CEC | boolean | <sup>*(optional)*</sup> HDMI CEC commadn Wake up |
+| params.wakeupSources[#]?.WAKEUPSRC_LAN | boolean | <sup>*(optional)*</sup> LAN wake up |
+| params.wakeupSources[#]?.WAKEUPSRC_TIMER | boolean | <sup>*(optional)*</sup> TImer Wake up |
 
 ### Result
 
@@ -3403,8 +3414,20 @@ No Events
     "id": 42,
     "method": "org.rdk.System.setWakeupSrcConfiguration",
     "params": {
-        "wakeupSrc": "3",
-        "config": "1"
+        "powerState": "ON",
+        "wakeupSources": [
+            {
+                "WAKEUPSRC_VOICE": true,
+                "WAKEUPSRC_PRESENCE_DETECTION": true,
+                "WAKEUPSRC_BLUETOOTH": true,
+                "WAKEUPSRC_WIFI": true,
+                "WAKEUPSRC_IR": true,
+                "WAKEUPSRC_POWER_KEY": true,
+                "WAKEUPSRC_CEC": true,
+                "WAKEUPSRC_LAN": true,
+                "WAKEUPSRC_TIMER": true
+            }
+        ]
     }
 }
 ```
@@ -3416,6 +3439,76 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "success": true
+    }
+}
+```
+
+<a name="getWakeupSrcConfiguration"></a>
+## *getWakeupSrcConfiguration*
+
+Returns all the supported wakeup configurations and powerState.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.powerState | string | The power state (must be one of the following: *STANDBY*, *DEEP_SLEEP*, *LIGHT_SLEEP*, *ON*) |
+| result.wakeupSources | array | Array of Key value pair with wake up sources and its configurations |
+| result.wakeupSources[#] | object |  |
+| result.wakeupSources[#]?.WAKEUPSRC_VOICE | boolean | <sup>*(optional)*</sup> Voice Wake up |
+| result.wakeupSources[#]?.WAKEUPSRC_PRESENCE_DETECTION | boolean | <sup>*(optional)*</sup> Presense detection wake up |
+| result.wakeupSources[#]?.WAKEUPSRC_BLUETOOTH | boolean | <sup>*(optional)*</sup> Bluetooth Wakeup |
+| result.wakeupSources[#]?.WAKEUPSRC_WIFI | boolean | <sup>*(optional)*</sup> WiFi Wake up |
+| result.wakeupSources[#]?.WAKEUPSRC_IR | boolean | <sup>*(optional)*</sup> IR Remote Wake up |
+| result.wakeupSources[#]?.WAKEUPSRC_POWER_KEY | boolean | <sup>*(optional)*</sup> Power Button Wake up - GPIO |
+| result.wakeupSources[#]?.WAKEUPSRC_CEC | boolean | <sup>*(optional)*</sup> HDMI CEC commadn Wake up |
+| result.wakeupSources[#]?.WAKEUPSRC_LAN | boolean | <sup>*(optional)*</sup> LAN wake up |
+| result.wakeupSources[#]?.WAKEUPSRC_TIMER | boolean | <sup>*(optional)*</sup> TImer Wake up |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.getWakeupSrcConfiguration"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "powerState": "ON",
+        "wakeupSources": [
+            {
+                "WAKEUPSRC_VOICE": true,
+                "WAKEUPSRC_PRESENCE_DETECTION": true,
+                "WAKEUPSRC_BLUETOOTH": true,
+                "WAKEUPSRC_WIFI": true,
+                "WAKEUPSRC_IR": true,
+                "WAKEUPSRC_POWER_KEY": true,
+                "WAKEUPSRC_CEC": true,
+                "WAKEUPSRC_LAN": true,
+                "WAKEUPSRC_TIMER": true
+            }
+        ],
         "success": true
     }
 }
