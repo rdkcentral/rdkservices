@@ -70,6 +70,9 @@ include_directories(../LocationSync
         ../Warehouse
         ../ActivityMonitor
         ../OCIContainer
+        ../VoiceControl
+        ../ControlService
+        ../RemoteActionMapping
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -96,6 +99,9 @@ link_directories(../LocationSync
         ../Warehouse
         ../ActivityMonitor
         ../OCIContainer
+        ../VoiceControl
+        ../ControlService
+        ../RemoteActionMapping
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -126,6 +132,9 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}Warehouse
         ${NAMESPACE}ActivityMonitor
         ${NAMESPACE}OCIContainer
+        ${NAMESPACE}VoiceControl
+        ${NAMESPACE}ControlService
+        ${NAMESPACE}RemoteActionMapping
         )
 
 target_include_directories(${PROJECT_NAME}
