@@ -17,6 +17,8 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/Dobby
         ${BASEDIR}/Dobby/Public/Dobby
         ${BASEDIR}/Dobby/IpcService
+        ${BASEDIR}/rdk/control
+        ${BASEDIR}/rdk/iarmmgrs
         )
 
 set(EMPTY_HEADERS
@@ -85,6 +87,11 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rtObject.h
         ${BASEDIR}/rtError.h
         ${BASEDIR}/rtNotifier.h
+        ${BASEDIR}/rdk/iarmmgrs/irMgr.h
+        ${BASEDIR}/rdk/iarmmgrs/comcastIrKeyCodes.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc_voice.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc_rcu.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -113,6 +120,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/Udev.h
         ${BASEDIR}/Dobby.h
         ${BASEDIR}/HdmiCec.h
+        ${BASEDIR}/Ctrlm.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -181,5 +189,8 @@ set(PLUGIN_XCAST ON)
 set(PLUGIN_HDMICEC ON)
 set(PLUGIN_HDMICEC2 ON)
 set(PLUGIN_HDMICECSOURCE ON)
+set(PLUGIN_VOICECONTROL ON)
+set(PLUGIN_CONTROLSERVICE ON)
+set(PLUGIN_REMOTEACTIONMAPPING ON)
 
 set(DS_FOUND ON)

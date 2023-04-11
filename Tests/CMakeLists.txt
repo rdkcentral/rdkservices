@@ -79,6 +79,9 @@ include_directories(../LocationSync
         ../HdmiCecSource
         ../XCast
         ../FrontPanel
+        ../VoiceControl
+        ../ControlService
+        ../RemoteActionMapping
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -110,6 +113,9 @@ link_directories(../LocationSync
         ../HdmiCecSource
         ../XCast
         ../FrontPanel
+        ../VoiceControl
+        ../ControlService
+        ../RemoteActionMapping
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -145,6 +151,9 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}HdmiCecSource
         ${NAMESPACE}XCast
         ${NAMESPACE}FrontPanel
+        ${NAMESPACE}VoiceControl
+        ${NAMESPACE}ControlService
+        ${NAMESPACE}RemoteActionMapping
         )
 
 target_include_directories(${PROJECT_NAME}
