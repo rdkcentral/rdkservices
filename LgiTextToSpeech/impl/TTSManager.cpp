@@ -19,6 +19,25 @@
 
 #include "TTSManager.h"
 
+namespace {
+    std::string convertDialectToLanguage(const std::string &dialect) {
+        std::map<std::string, std::string> dialectToLanguage = {
+            {"eng-GBR", "en-GB"},
+            {"nld-NLD", "nl-NL"},
+            {"fra-FRA", "fr-FR"},
+            {"deu-DEU", "de-DE"},
+            {"ita-ITA", "it-IT"},
+        };
+        auto it = dialectToLanguage.find(dialect);
+        if(it != dialectToLanguage.end()) {
+            return it->second;
+        }
+
+        TTSLOG_ERROR("%s no mapping for %s!!", __func__, dialect.c_str());
+        return "";
+    }
+}
+
 namespace TTS {
 
 std::map<std::string, std::string> TTSConfiguration::m_others;
@@ -63,8 +82,13 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
 }
 
 TTS_Error TTSManager::getConfiguration(Configuration &configuration) {
-    TTSLOG_ERROR("%s is not supported", __func__);
-    return TTS_FAIL;
+    std::string dialect;
+    m_proxy.getLanguageConfiguration(dialect);
+    configuration.language = convertDialectToLanguage(dialect);
+    if(configuration.language.empty()) {
+        configuration.language = dialect;
+    }
+    return TTS_OK;
 }
 
 TTS_Error TTSManager::speak(int& speechId, std::string text) {
