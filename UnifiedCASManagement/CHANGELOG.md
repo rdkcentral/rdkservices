@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.0.0] - 2023-05-26
+### Added
+- Added missing changes of UnfiedCASManagement(CMI) service
+
 ## [1.0.0] - 2022-10-06
 ### Added
 - Merged UnifiedCASManagement pluging
