@@ -11,6 +11,8 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/rdk/iarmbus
         ${BASEDIR}/rdk/iarmmgrs-hal
         ${BASEDIR}/ccec/drivers
+        ${BASEDIR}/ccec/drivers/iarmbus
+        ${BASEDIR}/ccec/host
         ${BASEDIR}/network
         ${BASEDIR}/Dobby
         ${BASEDIR}/Dobby/Public/Dobby
