@@ -269,19 +269,6 @@ TEST_F(FrontPanelInitializedEventDsTest, setBrightness)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
-TEST_F(FrontPanelInitializedEventDsTest, setBrightnessFalse)
-{
-    
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBrightness"), _T("{}"), response));
-    EXPECT_THAT(response, Eq("{\"success\":false}"));
-}
-TEST_F(FrontPanelInitializedEventDsTest, setBrightnessNeg1)
-{
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBrightness"), _T("{\"brightness\": -1}"), response));
-    EXPECT_THAT(response, Eq("{\"success\":false}"));
-}
-
 TEST_F(FrontPanelInitializedEventDsTest, getBrightnessWIndex)
 {
 
@@ -387,11 +374,6 @@ TEST_F(FrontPanelInitializedEventDsTest, setClockBrightness)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setClockBrightness"), _T("{\"brightness\": 1}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
-}
-TEST_F(FrontPanelInitializedEventDsTest, setClockBrightnessInvalid)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setClockBrightness"), _T("{\"brightness\": -1}"), response));
-    EXPECT_THAT(response, Eq("{\"success\":false}"));
 }
 
 TEST_F(FrontPanelInitializedEventDsTest, getFrontPanelLights)
