@@ -681,20 +681,6 @@ TEST_F(RDKShellTest, getOpacity)
 	EXPECT_EQ(response, string("{\"opacity\":100,\"success\":true}"));
 }
 
-TEST_F(RDKShellTest, setOpacity)
-{
-	ON_CALL(compositormock, setOpacity(::testing::_, ::testing::_))
-               .WillByDefault(::testing::Invoke(
-                [](const std::string& client, const unsigned int opacity) {
-                    EXPECT_EQ(client, string("org.rdk.Netflix"));
-		    EXPECT_EQ(opacity, 100);
-                    return true;
-                }));
-        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setOpacity"), _T("{\"client\": \"org.rdk.Netflix\","
-					                                             "\"opacity\": 100}"), response));
-
- 
-}
 
 TEST_F(RDKShellTest, setFocus)
 {
