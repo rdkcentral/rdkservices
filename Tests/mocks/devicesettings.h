@@ -421,6 +421,15 @@ typedef enum _dsDisplayEvent_t {
     dsDISPLAY_EVENT_MAX
 } dsDisplayEvent_t;
 
+typedef uint32_t dsFPDColor_t;
+#define dsFPDColor_Make(R8,G8,B8) (((R8)<< 8)|((G8)<<8)|((B8) ))
+#define dsFPD_COLOR_WHITE dsFPDColor_Make(0xFF, 0xFF, 0xFF)
+
+typedef struct _dsFPDColorConfig_t{
+	int id;
+	dsFPDColor_t color;
+}dsFPDColorConfig_t;
+
 namespace device {
 
 template <class T>
@@ -758,6 +767,31 @@ public:
 
 }
 
+namespace device{
+	class DisplayImpl{
+		public:
+		virtual ~DisplayImpl() = default;
+
+		virtual void getEDIDBytes(std::vector<uint8_t> &edid) const = 0;
+	};
+	class Display{
+		public:
+		DisplayImpl* impl;
+        static Display& getInstance()
+        {
+            static Display instance;
+            return instance;
+        }
+
+		void getEDIDBytes(std::vector<uint8_t> &edid){
+			return impl->getEDIDBytes(edid);
+		}
+
+	};
+
+
+}
+
 namespace device {
 
 class VideoOutputPortImpl {
@@ -774,11 +808,19 @@ public:
     virtual AudioOutputPort& getAudioOutputPort() const = 0;
     virtual bool isDisplayConnected() = 0;
     virtual bool isContentProtected() = 0;
+    virtual Display& getDisplay() = 0;
+
 };
 
 class VideoOutputPort {
 public:
     VideoOutputPortImpl* impl;
+
+    static VideoOutputPort& getInstance()
+    {
+        static VideoOutputPort instance;
+        return instance;
+    }
 
     const VideoOutputPortType& getType() const
     {
@@ -828,6 +870,9 @@ public:
     bool isContentProtected()
     {
         return impl->isContentProtected();
+    }
+    Display& getDisplay(){
+	    return impl->getDisplay();
     }
 };
 
@@ -992,6 +1037,7 @@ public:
         virtual ~ColorImpl() = default;
         virtual const Color& getInstanceById(int id) = 0;
         virtual const Color& getInstanceByName(const std::string& name) = 0;
+        virtual std::string getName() const = 0;
     };
 
     class Color {
@@ -1012,6 +1058,13 @@ public:
         {
             return getInstance().impl->getInstanceByName(name);
         }
+        static const int kWhite = dsFPD_COLOR_WHITE;
+
+	std::string getName() const
+	{
+	    return impl->getName();
+	}
+	virtual ~Color(){};
     };
 
     static FrontPanelIndicator& getInstance()
@@ -1022,21 +1075,30 @@ public:
 
     class FrontPanelIndicatorImpl {
     public:
-        virtual ~FrontPanelIndicatorImpl() = default;
-        virtual FrontPanelIndicator& getInstance(const std::string& name) = 0;
-        virtual void setState(const bool bState) const = 0;
-        virtual const std::string& getName() const = 0;
-        virtual void setBrightness(const int& brightness, const bool toPersist) = 0;
-        virtual int getBrightness() = 0;
-        virtual void setColor(const Color& newColor, bool toPersist) = 0;
-        virtual void setColor(const uint32_t color, const bool toPersist) = 0;
+	virtual ~FrontPanelIndicatorImpl() = default;
+        virtual FrontPanelIndicator& getInstanceInt(int id) = 0;
+        virtual FrontPanelIndicator& getInstanceString(const std::string& name) = 0;
+	virtual void setState(const bool bState) const = 0;
+        virtual std::string getName() const = 0;
+        virtual void setBrightness(const int brightness, const bool toPersist) const = 0;
+	virtual int getBrightness() const = 0;
+        virtual void setColor(const Color &newColor, const bool toPersist) const = 0;
+        virtual void setColorInt(const uint32_t color, const bool toPersist) const = 0;
+        virtual void getBrightnessLevels(int &levels,int &min,int &max) const = 0;
+	virtual int getColorMode() const = 0;
+	virtual std::string getColorName() const = 0;
+	virtual List<Color> getSupportedColors() const =0;
     };
 
     FrontPanelIndicatorImpl* impl;
-
+	
+    static FrontPanelIndicator& getInstance(int id)
+    {
+        return getInstance().impl->getInstanceInt(id);
+    }
     static FrontPanelIndicator& getInstance(const std::string& name)
     {
-        return getInstance().impl->getInstance(name);
+        return getInstance().impl->getInstanceString(name);
     }
 
     void setState(const bool bState) const
@@ -1044,11 +1106,11 @@ public:
         return impl->setState(bState);
     }
 
-    const std::string & getName() const
+    std::string getName() const
     {
         return impl->getName();
     }
-    void setBrightness(const int &brightness, const bool toPersist = true)
+    void setBrightness(const int brightness, const bool toPersist = true)
     {
         return impl->setBrightness(brightness, toPersist);
     }
@@ -1056,13 +1118,25 @@ public:
     {
         return impl->getBrightness();
     }
-    void setColor(const Color & newColor,bool toPersist = true)
+    void setColor(const Color &newColor, bool toPersist = true)
     {
         return impl->setColor(newColor, toPersist);
     }
-    void setColor(const uint32_t color,const bool toPersist = true)
+    void setColor(const uint32_t color, const bool toPersist = true)
     {
-        return impl->setColor(color, toPersist);
+        return impl->setColorInt(color, toPersist);
+    }
+    void getBrightnessLevels(int &levels,int &min,int &max) const
+    {	
+    	return impl->getBrightnessLevels( levels, min, max);
+    }
+    List<Color> getSupportedColors()
+    {
+	return impl->getSupportedColors();
+    }
+    int getColorMode() const
+    {
+        return impl->getColorMode();
     }
 };
 
@@ -1070,24 +1144,59 @@ class FrontPanelTextDisplay;
 class FrontPanelTextDisplayImpl {
 public:
     virtual ~FrontPanelTextDisplayImpl() = default;
-    virtual int getCurrentTimeFormat() = 0;
-    virtual void setTimeFormat(const int iTimeFormat) = 0;
+    virtual int getCurrentTimeFormat() const = 0;
+    virtual void setTimeFormat(const int iTimeFormat) const = 0;
+    virtual void setText(const std::string text) const = 0;
+    virtual void setMode(int mode) const = 0;
+    virtual int getTextBrightness() const = 0;
+    virtual void setTextBrightness(const int brightness) const = 0;
+    virtual FrontPanelTextDisplay& getInstanceById(int id) = 0;
+    virtual FrontPanelTextDisplay& getInstanceByName(const std::string& name) = 0;
 };
 
-class FrontPanelTextDisplay {
+class FrontPanelTextDisplay : public FrontPanelIndicator{
 public:
     static const int kModeClock12Hr = dsFPD_TIME_12_HOUR;
     static const int kModeClock24Hr = dsFPD_TIME_24_HOUR;
 
     FrontPanelTextDisplayImpl* impl;
 
-    int getCurrentTimeFormat()
+    int getCurrentTimeFormat() const
     {
         return impl->getCurrentTimeFormat();
     }
     void setTimeFormat(const int iTimeFormat)
     {
-        impl->setTimeFormat(iTimeFormat);
+        return impl->setTimeFormat(iTimeFormat);
+    }
+    static FrontPanelTextDisplay& getInstance(const std::string& name)
+    {
+    	return getInstance().impl->getInstanceByName(name);
+    }
+    static FrontPanelTextDisplay& getInstance(int id)
+    {
+        return getInstance().impl->getInstanceById(id);
+    }
+    static FrontPanelTextDisplay& getInstance()
+    {
+        static FrontPanelTextDisplay instance;
+        return instance;
+    }
+    void setText(const std::string text)
+    {
+	return impl->setText(text);
+    }
+    void setMode(int mode)
+    {
+        return impl->setMode(mode);
+    }
+	int getTextBrightness() const
+    {
+        return impl->getTextBrightness();
+    }
+	void setTextBrightness(const int brightness) const
+    {
+        return impl->setTextBrightness(brightness);
     }
 };
 
@@ -1095,8 +1204,11 @@ class FrontPanelConfig;
 class FrontPanelConfigImpl {
 public:
     virtual ~FrontPanelConfigImpl() = default;
-    virtual List<FrontPanelIndicator> getIndicators() = 0;
-    virtual FrontPanelTextDisplay& getTextDisplay(const std::string &name) = 0;
+    virtual List<FrontPanelIndicator> getIndicators() const = 0;
+    virtual FrontPanelTextDisplay& getTextDisplay() const = 0;
+    virtual FrontPanelTextDisplay& getTextDisplay(const std::string &name) const = 0;
+    virtual List<FrontPanelTextDisplay> getTextDisplays() const = 0;
+    virtual FrontPanelTextDisplay& getTextDisplay(int id) const = 0;
 };
 
 class FrontPanelConfig {
@@ -1116,7 +1228,340 @@ public:
     {
         return impl->getTextDisplay(name);
     }
+    List<FrontPanelTextDisplay> getTextDisplays()
+    {
+        return impl->getTextDisplays();
+    }
+    FrontPanelTextDisplay& getTextDisplay(int id) 
+    {
+        return impl->getTextDisplay(id);
+    }
+    FrontPanelTextDisplay& getTextDisplay() const
+    {
+        return impl->getTextDisplay();
+    }
 };
 
 }
 
+
+#define RT_OK 0
+#define RT_ERROR 1
+#define RT_ERROR_QUEUE_EMPTY 1006
+
+
+typedef uint32_t rtError;
+typedef void(*remoteDisconnectCallback)(void *data);
+
+class rtValue;
+
+class rtIObject 
+{
+  public:
+    typedef unsigned long refcount_t;
+    
+    virtual ~rtIObject(){
+    }
+};
+
+class rtString{
+    public:
+        std::string mData;
+        rtString(const char* s){
+            mData = s;
+        }
+        rtString(const rtString& s){
+            mData = s.mData;
+        }
+        rtString(){
+            mData = "";
+        }
+        const char* cString() const{
+            return mData.c_str();
+        }
+        rtString& operator=(const char* s){
+            mData = s;
+            return *this;
+        }
+
+        rtString& operator=(const rtString& s){
+            mData = s.mData;
+            return *this;
+        }
+
+};
+typedef rtError (*rtFunctionCB)(int numArgs, const rtValue* args, rtValue* result, void* context);
+
+class rtFunctionCallback{
+    public:
+        rtFunctionCallback(rtFunctionCB cb, void* context = NULL){
+
+        }
+        ~rtFunctionCallback() = default;
+        
+};
+
+/*
+Based on pxCore, Copyright 2015-2018 John Robinson
+Licensed under the Apache License, Version 2.0
+*/
+template <class T>
+class rtRef
+{
+public:
+  rtRef():                  mRef(NULL) {}
+  rtRef(const T* p):        mRef(NULL) {asn(p);         }
+  rtRef(const rtRef<T>& r): mRef(NULL) {asn(r.getPtr());}
+  rtRef(rtRef<T>&& r) noexcept: mRef(r.mRef) {r.mRef = nullptr;}
+  virtual ~rtRef()                     {
+  }
+
+  T* operator->()   const {return mRef;}
+  operator T* ()    const {return mRef;}
+  T* getPtr()       const {return mRef;}
+  T* ptr()          const {return mRef;}
+  T& operator*()    const {return *mRef;}
+ 
+  bool operator! () const {return mRef == NULL; }  
+  inline rtRef<T>& operator=(const T* p)                                  {asn(p);      return *this;}
+  inline rtRef<T>& operator=(const rtRef<T>& r)                           {asn(r.mRef); return *this;}
+
+  inline friend bool operator==(const T* lhs,const rtRef<T>& rhs)         {return lhs==rhs.mRef;}
+  inline friend bool operator==(const rtRef<T>& lhs,const T* rhs)         {return lhs.mRef==rhs;}
+  inline friend bool operator==(const rtRef<T>& lhs,const rtRef<T>& rhs)  {return lhs.mRef==rhs.mRef;}
+  
+  void asn(const T* p) 
+  {
+    if (mRef != p) 
+    {
+      if (mRef) 
+      {
+        delete mRef;
+        mRef = NULL;
+      }
+      mRef = const_cast<T*>(p);
+      
+    }
+  }
+
+  T* mRef;
+};
+
+class rtObjectBaseImpl{
+    public:
+    virtual ~rtObjectBaseImpl() = default;
+    virtual rtError set(const char* name, const char* value) const = 0;
+    virtual rtError set(const char* name, bool value) const = 0;
+    virtual rtError set(const char* name, const rtValue& value) const = 0;
+    virtual rtString get(const char* name) const = 0;
+    virtual rtError sendReturns(const char* messageName, rtString& result) const  = 0;
+};
+
+class rtObjectBase{
+    public:
+    rtObjectBaseImpl* impl;
+    static rtObjectBase& getInstance()
+    {
+        static rtObjectBase instance;
+        return instance;
+    }
+    rtError set(const char* name, const char* value){
+        return getInstance().impl->set(name, value);
+    }
+    rtError set(const char* name, bool value){
+        return getInstance().impl->set(name, value);
+    }
+    rtError set(const char* name, const rtValue& value){
+        return getInstance().impl->set(name, value);
+    }
+    
+    template <typename T>
+    rtError sendReturns(const char* messageName, T& result){
+        return getInstance().impl->sendReturns(messageName, result);
+    }
+
+    template <typename T>
+    T get(const char* name) {
+        return getInstance().impl->get(name);
+    };
+    virtual ~rtObjectBase() = default;
+};
+
+class rtMapObject: public rtObjectBase, public rtIObject{
+    public:
+     virtual ~rtMapObject() = default;
+
+};
+
+class rtObjectRef;
+class rtObjectRefImpl{
+    public:
+        virtual rtError send(const char* messageName, const rtValue& arg1)  = 0;
+        virtual rtError send(const char* messageName)  = 0;
+        virtual rtError send(const char* messageName, const char* method, rtFunctionCallback* callback)  = 0;
+        virtual rtError send(const char* messageName, rtObjectRef& base)  = 0;
+
+};
+
+class rtObjectRef : public rtRef<rtIObject>, public rtObjectBase{
+    public:
+        rtObjectRefImpl* impl;
+        static rtObjectRef& getInstance()
+        {
+            static rtObjectRef instance;
+            return instance;
+        }
+        rtObjectRef(){}
+        rtObjectRef(const rtObjectRef&) = default;
+        rtObjectRef(const rtMapObject* o) {delete o; o = nullptr; };
+        rtObjectRef& operator=(rtMapObject* o){delete o; o = nullptr; return *this;};
+        rtObjectRef& operator=(const rtObjectRef&){return *this;};
+        rtObjectRef& operator=(rtIObject* o){asn(o);return *this;};
+        rtObjectRef& operator=(rtObjectRef&&) = default;
+
+        rtError send(const char* messageName){
+            return getInstance().impl->send(messageName);
+        }
+        rtError send(const char* messageName, const char* method, rtFunctionCallback* callback){
+            return getInstance().impl->send(messageName, method, callback);
+        }
+        rtError send(const char* messageName, const rtValue& arg1){
+            return getInstance().impl->send(messageName, arg1);
+        }
+        rtError send(const char* messageName, rtObjectRef& base){
+            return getInstance().impl->send(messageName, base);
+        }
+        virtual ~rtObjectRef(){
+        }
+};
+
+class rtArrayObject;
+
+struct rtValue_{
+    std::string stringValue;
+    bool boolValue;
+};
+
+class rtValueImpl{
+    public:
+        virtual void rtValueConstructor(bool v) const = 0;
+        virtual void rtValueConstructor(const char* v) const = 0;
+        virtual void rtValueConstructor(rtArrayObject* v) const = 0;
+        virtual void rtValueConstructor(const rtString& v) const = 0;
+};
+
+class rtValue
+{
+ public:
+  rtValue_ mValue;
+  rtValueImpl* impl;
+  static rtValue& getInstance()
+    {
+        static rtValue instance;
+        return instance;
+    }
+  rtValue(){}
+  rtValue(bool v){mValue.boolValue =v;}
+  rtValue(const char* v){mValue.stringValue = (char*)v;}
+  rtValue(const rtString& v){mValue.stringValue = v.cString();}
+  rtValue(rtIObject* v){
+    if(v){
+        delete v;
+        v = nullptr;
+    }
+  }
+  rtValue(const rtObjectRef& v){}
+  rtValue(const rtValue& v){}
+  ~rtValue(){}
+  rtValue& operator=(bool v)                { mValue.boolValue = v; return *this; }
+  rtValue& operator=(const char* v)         { mValue.stringValue = (char*)v;   return *this; }
+  rtValue& operator=(const rtString& v)     { mValue.stringValue = v.cString();  return *this; }
+  rtValue& operator=(const rtIObject* v)    { delete v; v = nullptr;   return *this; }
+  rtValue& operator=(const rtObjectRef& v)  {    return *this; }
+  rtValue& operator=(const rtValue& v)      {     return *this; }
+  
+    rtObjectRef toObject() const {
+        rtObjectRef v;
+        return v;
+    }
+    void setString (const char* v){
+        mValue.stringValue = (char*)v;
+    }
+    void setString (const rtString& v){
+        mValue.stringValue = v.cString();
+    }
+    
+};
+
+class rtArrayObjectImpl{
+    public:
+        virtual void pushBack(const char* v) const = 0;
+        virtual void pushBack(rtValue v) const = 0;
+};
+
+
+class rtArrayObject : public rtObjectBase, public rtIObject{
+    public:
+    rtArrayObjectImpl* impl;
+    static rtArrayObject& getInstance()
+    {
+        static rtArrayObject instance;
+        return instance;
+    }
+    void pushBack(const char* v){
+        getInstance().impl->pushBack(v);
+    }
+    void pushBack(rtValue v){
+        getInstance().impl->pushBack(v);
+    }
+    virtual ~rtArrayObject() = default;
+
+};
+
+class rtRemoteEnvironment{
+
+
+};
+
+class floatingRtFunctionsImpl{
+    public:
+        virtual ~floatingRtFunctionsImpl() = default;
+        virtual rtError rtRemoteLocateObject(rtRemoteEnvironment *env, const char* str, rtObjectRef& obj, int x, remoteDisconnectCallback back, void *cbdata=NULL) = 0;
+        virtual rtRemoteEnvironment* rtEnvironmentGetGlobal() = 0;
+        virtual rtError rtRemoteShutdown(rtRemoteEnvironment *env) = 0;
+        virtual rtError rtRemoteInit(rtRemoteEnvironment *env) = 0;
+        virtual rtError rtRemoteProcessSingleItem() = 0;
+        virtual char* rtStrError(rtError err) = 0;
+
+};
+
+class floatingRtFunctions{
+    public:
+    floatingRtFunctionsImpl* impl;
+    static floatingRtFunctions& getInstance()
+    {
+        static floatingRtFunctions instance;
+        return instance;
+    }
+
+
+};
+
+inline rtError rtRemoteProcessSingleItem(){
+    return floatingRtFunctions::getInstance().impl->rtRemoteProcessSingleItem();
+}
+inline rtError rtRemoteLocateObject(rtRemoteEnvironment *env, const char* str, rtObjectRef& obj, int x, remoteDisconnectCallback back, void *cbdata=NULL){
+    return floatingRtFunctions::getInstance().impl->rtRemoteLocateObject(env, str, obj, x, back, cbdata);
+}
+inline rtRemoteEnvironment* rtEnvironmentGetGlobal(){
+    return floatingRtFunctions::getInstance().impl->rtEnvironmentGetGlobal();
+}
+inline rtError rtRemoteInit(rtRemoteEnvironment *env){
+    return floatingRtFunctions::getInstance().impl->rtRemoteInit(env);
+}
+inline rtError rtRemoteShutdown(rtRemoteEnvironment *env){
+    return floatingRtFunctions::getInstance().impl->rtRemoteShutdown(env);
+}
+inline char* rtStrError(rtError err){
+    return floatingRtFunctions::getInstance().impl->rtStrError(err);
+}
