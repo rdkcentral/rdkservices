@@ -16,7 +16,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.2]
+## [1.0.2] - 2023-04-11
 ### Fixed
 - Updated Logging, and initialize function to be more verbose for testing purposes
 
