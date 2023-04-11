@@ -43,6 +43,8 @@ set_source_files_properties(
         tests/test_SystemServices.cpp
         tests/test_Warehouse.cpp
         tests/test_HdmiCec.cpp
+        tests/test_HdmiCec2.cpp
+        tests/test_HdmiCecSource.cpp
         tests/test_FrontPanel.cpp
         PROPERTIES COMPILE_FLAGS "-fexceptions")
 
@@ -73,6 +75,8 @@ include_directories(../LocationSync
         ../ActivityMonitor
         ../OCIContainer
         ../HdmiCec
+        ../HdmiCec_2
+        ../HdmiCecSource
         ../XCast
         ../FrontPanel
         )
@@ -102,6 +106,8 @@ link_directories(../LocationSync
         ../ActivityMonitor
         ../OCIContainer
         ../HdmiCec
+        ../HdmiCec_2
+        ../HdmiCecSource
         ../XCast
         ../FrontPanel
         )
@@ -135,6 +141,8 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}ActivityMonitor
         ${NAMESPACE}OCIContainer
         ${NAMESPACE}HdmiCec
+        ${NAMESPACE}HdmiCec_2
+        ${NAMESPACE}HdmiCecSource
         ${NAMESPACE}XCast
         ${NAMESPACE}FrontPanel
         )
