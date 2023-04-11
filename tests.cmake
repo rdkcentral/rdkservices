@@ -20,6 +20,16 @@ set(EMPTY_HEADERS_DIRS
 set(EMPTY_HEADERS
         ${BASEDIR}/audiocapturemgr/audiocapturemgr_iarm.h
         ${BASEDIR}/ccec/drivers/CecIARMBusMgr.h
+        ${BASEDIR}/ccec/drivers/iarmbus/CecIARMBusMgr.h
+        ${BASEDIR}/ccec/FrameListener.hpp
+        ${BASEDIR}/ccec/Connection.hpp
+        ${BASEDIR}/ccec/Assert.hpp
+        ${BASEDIR}/ccec/Messages.hpp
+        ${BASEDIR}/ccec/MessageDecoder.hpp
+        ${BASEDIR}/ccec/MessageProcessor.hpp
+        ${BASEDIR}/ccec/CECFrame.hpp
+        ${BASEDIR}/ccec/host/RDK.hpp
+        ${BASEDIR}/ccec/MessageEncoder.hpp
         ${BASEDIR}/rdk/ds/audioOutputPort.hpp
         ${BASEDIR}/rdk/ds/compositeIn.hpp
         ${BASEDIR}/rdk/ds/dsDisplay.h
@@ -56,6 +66,16 @@ set(EMPTY_HEADERS
         ${BASEDIR}/Dobby/DobbyProxy.h
         ${BASEDIR}/Dobby/Public/Dobby/IDobbyProxy.h
         ${BASEDIR}/Dobby/IpcService/IpcFactory.h
+        ${BASEDIR}/ccec/FrameListener.hpp
+	${BASEDIR}/ccec/Connection.hpp
+	${BASEDIR}/ccec/Assert.hpp
+	${BASEDIR}/ccec/Messages.hpp
+	${BASEDIR}/ccec/MessageDecoder.hpp
+	${BASEDIR}/ccec/MessageProcessor.hpp
+	${BASEDIR}/ccec/CECFrame.hpp
+	${BASEDIR}/ccec/MessageEncoder.hpp
+	${BASEDIR}/ccec/host/RDK.hpp
+	${BASEDIR}/ccec/drivers/iarmbus/CecIARMBusMgr.h
         ${BASEDIR}/rtRemote.h
         ${BASEDIR}/rtObject.h
         ${BASEDIR}/rtError.h
@@ -87,6 +107,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/Telemetry.h
         ${BASEDIR}/Udev.h
         ${BASEDIR}/Dobby.h
+        ${BASEDIR}/HdmiCec.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -121,6 +142,7 @@ set(CMAKE_DISABLE_FIND_PACKAGE_Udev ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_RFC ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_RBus ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_Dobby ON)
+set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 
 set(PLUGIN_DATACAPTURE ON)
 set(PLUGIN_DEVICEDIAGNOSTICS ON)
@@ -148,5 +170,6 @@ set(PLUGIN_WAREHOUSE ON)
 set(PLUGIN_ACTIVITYMONITOR ON)
 set(PLUGIN_OCICONTAINER ON)
 set(PLUGIN_XCAST ON)
+set(PLUGIN_HDMICEC ON)
 
 set(DS_FOUND ON)
