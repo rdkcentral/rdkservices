@@ -7,7 +7,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 using namespace std;
 
@@ -127,7 +127,7 @@ namespace WPEFramework {
 
                 if ((data == NULL) || (len <= sizeof(ctrlm_voice_iarm_event_json_t)))
                 {
-                    LOGERR("ERROR - got eventId(%u) with INVALID DATA: data: %p, len: %d.", (unsigned)eventId, data, len);
+                    LOGERR("ERROR - got eventId(%u) with INVALID DATA: data: %p, len: %zu.", (unsigned)eventId, data, len);
                     return;
                 }
 
@@ -180,14 +180,14 @@ namespace WPEFramework {
                         break;
 
                     default:
-                        LOGERR("ERROR - unexpected ControlMgr event: eventId: %u, data: %p, size: %d.",
+                        LOGERR("ERROR - unexpected ControlMgr event: eventId: %u, data: %p, size: %zu.",
                                (unsigned)eventId, data, len);
                         break;
                 }
             }
             else
             {
-                LOGERR("ERROR - unexpected event: owner %s, eventId: %u, data: %p, size: %d.",
+                LOGERR("ERROR - unexpected event: owner %s, eventId: %u, data: %p, size: %zu.",
                        owner, (unsigned)eventId, data, len);
             }
         }  // End iarmEventHandler()
