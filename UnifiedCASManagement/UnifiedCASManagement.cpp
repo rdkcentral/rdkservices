@@ -19,7 +19,7 @@
 
 #include "UnifiedCASManagement.h"
 
-#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MAJOR 2
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
 
@@ -39,6 +39,26 @@ namespace WPEFramework {
         UnifiedCASManagement::~UnifiedCASManagement() {
             UnregisterAll();
             UnifiedCASManagement::_instance = nullptr;
+        }
+
+        const string UnifiedCASManagement::Initialize(PluginHost::IShell * /* service */)
+        {
+           // AVInput::_instance = this;
+           // InitializeIARM();
+
+            return (string());
+        }
+
+        void UnifiedCASManagement::Deinitialize(PluginHost::IShell * /* service */)
+        {
+           // DeinitializeIARM();
+            //AVInput::_instance = nullptr;
+            UnifiedCASManagement::_instance = nullptr;
+        }
+
+        string UnifiedCASManagement::Information() const
+        {
+            return (string());
         }
     } // namespace
 } // namespace
