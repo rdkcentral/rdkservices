@@ -42,6 +42,7 @@ set_source_files_properties(
         tests/test_DeviceVideoCapabilities.cpp
         tests/test_SystemServices.cpp
         tests/test_Warehouse.cpp
+        tests/test_HdmiCec.cpp
         PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 include_directories(../LocationSync
@@ -70,6 +71,8 @@ include_directories(../LocationSync
         ../Warehouse
         ../ActivityMonitor
         ../OCIContainer
+        ../HdmiCec
+        ../XCast
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -96,6 +99,8 @@ link_directories(../LocationSync
         ../Warehouse
         ../ActivityMonitor
         ../OCIContainer
+        ../HdmiCec
+        ../XCast
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -126,6 +131,8 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}Warehouse
         ${NAMESPACE}ActivityMonitor
         ${NAMESPACE}OCIContainer
+        ${NAMESPACE}HdmiCec
+        ${NAMESPACE}XCast
         )
 
 target_include_directories(${PROJECT_NAME}

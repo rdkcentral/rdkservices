@@ -175,7 +175,6 @@ namespace WPEFramework
         : PluginHost::JSONRPC(),cecEnableStatus(false),smConnection(nullptr)
         {
             HdmiCec::_instance = this;
-            InitializeIARM();
 
             Register(HDMICEC_METHOD_SET_ENABLED, &HdmiCec::setEnabledWrapper, this);
             Register(HDMICEC_METHOD_GET_ENABLED, &HdmiCec::getEnabledWrapper, this);
@@ -204,7 +203,14 @@ namespace WPEFramework
         HdmiCec::~HdmiCec()
         {
         }
+        const std::string  HdmiCec::Initialize(PluginHost::IShell* /* service */)
+	{
+		HdmiCec::_instance = this;
 
+		InitializeIARM();
+		return(std::string());
+
+	}
         void HdmiCec::Deinitialize(PluginHost::IShell* /* service */)
         {
             isDeviceActiveSource = false;
@@ -817,7 +823,7 @@ namespace WPEFramework
             } else {
                 LOGWARN("HdmiCec::_instance NULL Cec msg decoding failed.");
             }
-            LOGINFO("recvMessage :%d  :%s ",bufbase64.length(),bufbase64.c_str());
+            LOGINFO("recvMessage :%d  :%s ",(int)bufbase64.length(),bufbase64.c_str());
             (const_cast<HdmiCec*>(this))->onMessage(bufbase64.c_str());
             return;
         }
