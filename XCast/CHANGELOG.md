@@ -18,6 +18,7 @@ All notable changes to this RDK Service will be documented in this file.
 ## [1.0.12] - 2023-04-11
 ### Fixed
 - Removed CJson dependency from XCast plugin.
+- Updated Logging, and initialize function to be more verbose for testing purposes
 
 ## [1.0.11] - 2023-03-16
 ### Fixed
