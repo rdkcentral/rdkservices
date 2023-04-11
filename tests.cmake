@@ -92,6 +92,7 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdk/control/ctrlm_ipc.h
         ${BASEDIR}/rdk/control/ctrlm_ipc_voice.h
         ${BASEDIR}/rdk/control/ctrlm_ipc_rcu.h
+        ${BASEDIR}/rdk/control/ctrlm_ipc_key_codes.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
