@@ -4199,6 +4199,8 @@ namespace WPEFramework {
 			       {
 				   if(m_arcEarcAudioEnabled == false ) 
 			 	   {
+                                        LOGINFO("%s: Audio Port : [HDMI_ARC0] sendHdmiCecSinkAudioDevicePowerOn !!! \n", __FUNCTION__);
+                                        sendMsgToQueue(SEND_AUDIO_DEVICE_POWERON_MSG, NULL);
 					/* Check SAD for passthru and Auto mode only */
 					if ((mode == device::AudioStereoMode::kPassThru)  || (aPort.getStereoAuto() == true))
 					{
