@@ -106,7 +106,6 @@ IARM_Bus_PWRMgr_PowerState_t XCast::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_ST
 XCast::XCast() : PluginHost::JSONRPC()
 , m_apiVersionNumber(1), m_isDynamicRegistrationsRequired(false)
 {
-    InitializeIARM();
     XCast::checkRFCServiceStatus();
     if(XCast::isCastEnabled)
     {
@@ -181,6 +180,7 @@ void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *dat
 const string XCast::Initialize(PluginHost::IShell* /* service */)
 {
     LOGINFO("XCast:: Initialize  plugin called \n");
+    InitializeIARM();
     _rtConnector  = RtXcastConnector::getInstance();
     _rtConnector->setService(this);
     if (XCast::isCastEnabled)
@@ -381,7 +381,7 @@ bool XCast::getEntryFromAppLaunchParamList (const char* appName, DynamicAppConfi
 void XCast::dumpDynamicAppConfigCache(string strListName, std::vector<DynamicAppConfig*> appConfigList) {
     /*Check if existing cache need to be updated*/
     std::vector<int> entriesTodelete;
-    LOGINFO ("=================Current dynamic %s size: %d is:===========================", strListName.c_str(), appConfigList.size());
+    LOGINFO ("=================Current dynamic %s size: %d is:===========================", strListName.c_str(), (int)appConfigList.size());
     for (DynamicAppConfig* pDynamicAppConfig : appConfigList) {
         LOGINFO ("Apps: appName:%s, prefixes:%s, cors:%s, allowStop:%d, query:%s, payload:%s",
                   pDynamicAppConfig->appName,
@@ -416,7 +416,7 @@ bool XCast::deleteFromDynamicAppCache(vector<string>& appsToDelete) {
         }
         std::sort(entriesTodelete.begin(), entriesTodelete.end(), std::greater<int>());
         for (int indexToDelete : entriesTodelete) {
-            LOGINFO("Going to delete the entry: %d from m_appConfigCache size: %d", indexToDelete, m_appConfigCache.size());
+            LOGINFO("Going to delete the entry: %d from m_appConfigCache size: %d", indexToDelete, (int)m_appConfigCache.size());
             //Delete the old unwanted item here.
             DynamicAppConfig* pDynamicAppConfigOld = m_appConfigCache[indexToDelete];
             m_appConfigCache.erase (m_appConfigCache.begin()+indexToDelete);
