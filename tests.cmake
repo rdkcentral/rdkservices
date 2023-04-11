@@ -48,6 +48,9 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdk/ds/videoOutputPortConfig.hpp
         ${BASEDIR}/rdk/ds/videoOutputPortType.hpp
         ${BASEDIR}/rdk/ds/videoResolution.hpp
+        ${BASEDIR}/rdk/ds/frontPanelIndicator.hpp
+        ${BASEDIR}/rdk/ds/frontPanelConfig.hpp
+        ${BASEDIR}/rdk/ds/frontPanelTextDisplay.hpp
         ${BASEDIR}/rdk/iarmbus/libIARM.h
         ${BASEDIR}/rdk/iarmbus/libIBus.h
         ${BASEDIR}/rdk/iarmbus/libIBusDaemon.h
@@ -132,6 +135,8 @@ add_definitions(
         -DENABLE_DEVICE_MANUFACTURER_INFO
         -DRFC_ENABLED
         -DXCAST_ENABLED_BY_DEFAULT
+        -DCLOCK_BRIGHTNESS_ENABLED
+        -DUSE_DS
 )
 
 message("Setting build options")
@@ -169,6 +174,7 @@ set(PLUGIN_TRACECONTROL ON)
 set(PLUGIN_WAREHOUSE ON)
 set(PLUGIN_ACTIVITYMONITOR ON)
 set(PLUGIN_OCICONTAINER ON)
+set(HAS_FRONT_PANEL ON)
 set(PLUGIN_XCAST ON)
 set(PLUGIN_HDMICEC ON)
 
