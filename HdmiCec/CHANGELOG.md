@@ -20,10 +20,6 @@ All notable changes to this RDK Service will be documented in this file.
 ### Fixed
 - Fixed IARM_Bus_UnRegisterEventHandler  call to IARM_Bus_RemoveEventHandler
 
-## [1.0.6] - 2023-02-09
-### Fixed
-- Fixed IARM_Bus_UnRegisterEventHandler  call to IARM_Bus_RemoveEventHandler
-
 ## [1.0.2] - 2022-10-04
 ### Fixed
 - Fixed warnings that are treated as errors with "-Wall -Werror"
