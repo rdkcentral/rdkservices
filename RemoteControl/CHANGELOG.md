@@ -15,7 +15,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.0.1] - 2023-04-12
 ### Added
-- Added findMyRemote method and added irProgState to status structure for the IR programming state
+- Added findMyRemote method
+- Added irProgState to status structure for the IR programming state
+- Fixed netTypesSupported to be an array and not a string
 
 ## [1.0.0] - 2022-07-20
 ### Added
