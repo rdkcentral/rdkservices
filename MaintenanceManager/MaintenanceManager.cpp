@@ -66,7 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 15
+#define API_VERSION_NUMBER_PATCH 16
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -215,7 +215,7 @@ namespace WPEFramework {
         string task_names_foreground[]={
             "/lib/rdk/StartDCM_maintaince.sh",
             "/lib/rdk/RFCbase.sh",
-            "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
+            "/lib/rdk/swupdate_utility.sh",
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
 
@@ -224,7 +224,7 @@ namespace WPEFramework {
         string script_names[]={
             "DCMscript_maintaince.sh",
             "RFCbase.sh",
-            "deviceInitiatedFWDnld.sh",
+            "swupdate_utility.sh",
             "uploadSTBLogs.sh"
         };
 
@@ -1290,88 +1290,65 @@ namespace WPEFramework {
         }
 
         bool MaintenanceManager::stopMaintenanceTasks(){
-            pid_t pid_num=-1;
-
+	        string codeDLtask;
             int k_ret=EINVAL;
             int i=0;
-
             bool task_status[4]={false};
             bool result=false;
-	    bool rdkvfwrfc=false;
-	    string rdkvfw="rdkvfwupgrader";
 
-                LOGINFO("Stopping maintenance activities");
-                /* run only when the maintenance status is MAINTENANCE_STARTED */
-                m_statusMutex.lock();
-                if ( MAINTENANCE_STARTED == m_notify_status  ){
+            LOGINFO("Stopping maintenance activities");
+            /* run only when the maintenance status is MAINTENANCE_STARTED */
+            m_statusMutex.lock();
+            if ( MAINTENANCE_STARTED == m_notify_status  ){
 
-                    // Set the condition flag m_abort_flag to true
-                    m_abort_flag = true;
+                // Set the condition flag m_abort_flag to true
+                m_abort_flag = true;
 
-                    auto task_status_DCM=m_task_map.find(task_names_foreground[0].c_str());
-                    auto task_status_RFC=m_task_map.find(task_names_foreground[1].c_str());
-                    auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
-                    auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[3].c_str());
+                auto task_status_DCM=m_task_map.find(task_names_foreground[0].c_str());
+                auto task_status_RFC=m_task_map.find(task_names_foreground[1].c_str());
+                auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
+                auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[3].c_str());
 
-                    task_status[0] = task_status_DCM->second;
-                    task_status[1] = task_status_RFC->second;
-                    task_status[2] = task_status_FWDLD->second;
-                    task_status[3] = task_status_LOGUPLD->second;
+                task_status[0] = task_status_DCM->second;
+                task_status[1] = task_status_RFC->second;
+                task_status[2] = task_status_FWDLD->second;
+                task_status[3] = task_status_LOGUPLD->second;
 
-		    /*Read rfc firmware upgrader and if rfc is true add rdkvfwupgrader to script_names[i].c_str() and rfc is false no need any change*/
-                    rdkvfwrfc = readRFC(TR181_RDKVFWUPGRADER);
-		    if (rdkvfwrfc == true) {
-                        //Update script_names[2].c_str() Which is deviceInitiated.sh value to rdkvfwupgrader
-			script_names[2].swap(rdkvfw);
-		        LOGINFO(" %s rdkvfw rfc is true so script_names change to\n",script_names[2].c_str());
-		    }
-                    for (i=0;i<4;i++)
-                        LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
-                    for (i=0;i<4;i++){
-                        if(task_status[i]){
-                            LOGINFO("Checking the Task PID\n");
-                            pid_num=getTaskPID(script_names[i].c_str());
-                            LOGINFO("PID of script_name [%d] = %s is %d \n", i,script_names[i].c_str(),pid_num);
-                            if( pid_num != -1){
-                                /* send the signal to task to terminate */
-                                k_ret=kill(pid_num,SIGABRT);
-                                if (k_ret == 0){
-                                    LOGINFO(" %s Termimated\n",script_names[i].c_str());
-                                    /*this means we killed the task currently running */
-                                    m_task_map[task_names_foreground[i].c_str()]=false;
-                                }
-                                else{
-                                    LOGINFO("Failed to terminate with error %s - %d \n",script_names[i].c_str(),k_ret);
-                                }
-                            }
-                            else {
-                                LOGINFO("Didnt find PID for %s\n",script_names[i].c_str());
-                            }
+                for (i=0;i<4;i++) {
+                    LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
+                }
+                for (i=0;i<4;i++){
+                    if(task_status[i]){
 
-                            /* No need to loop again */
-                            break;
+                        k_ret = abortTask( script_names[i].c_str() );        // default signal is SIGABRT
+
+                        if( k_ret == 0 ) {                                      // if task(s) was(were) killed successfully ...                    
+                            m_task_map[task_names_foreground[i].c_str()]=false; // set it to false 
                         }
-                        else{
-                            LOGINFO("Task[%d] is false \n",i);
-                        }
+                        /* No need to loop again */
+                        break;
                     }
-
-                    result=true;
+                    else{
+                        LOGINFO("Task[%d] is false \n",i);
+                    }
                 }
-                else {
-                    LOGERR("Failed to stopMaintenance without starting maintenance \n");
-                }
-                task_thread.notify_one();
 
-                if(m_thread.joinable()){
-                    m_thread.join();
-                    LOGINFO("Thread joined successfully\n");
-                }
-                LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR\n");
-                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
-		m_statusMutex.unlock();
+                result=true;
+            }
+            else {
+                LOGERR("Failed to stopMaintenance without starting maintenance \n");
+            }
+            task_thread.notify_one();
 
-                return result;
+            if(m_thread.joinable()){
+                m_thread.join();
+                LOGINFO("Thread joined successfully\n");
+            }
+            LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR\n");
+            MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
+            m_statusMutex.unlock();
+
+            return result;
         }
 
         bool MaintenanceManager::readRFC(const char *rfc){
@@ -1393,6 +1370,30 @@ namespace WPEFramework {
             }
             LOGINFO(" %s = %s , call value %d ", rfc, (ret == true)?"true":"false", wdmpStatus);
             return ret;
+        }
+
+
+        int MaintenanceManager::abortTask(const char* taskname, int sig_to_send){
+            int k_ret=EINVAL;
+            pid_t pid_num;
+
+            pid_num=getTaskPID( taskname );
+            LOGINFO("PID of %s is %d \n", taskname , (int)pid_num);
+            if( pid_num != -1){
+                /* send the signal to task to terminate */
+                k_ret = kill( pid_num, sig_to_send );
+                LOGINFO(" %s sent signal %d\n", taskname, sig_to_send );
+                if (k_ret == 0){
+                   LOGINFO(" %s Terminated\n", taskname );
+                }
+                else{
+                    LOGINFO("Failed to terminate with error %s - %d \n", taskname, k_ret);
+                }
+            }
+            else {
+                LOGINFO("Didnt find PID for %s\n", taskname);
+            }
+            return k_ret;
         }
 
         /* Helper function to find the Script/Task PID*/
@@ -1431,7 +1432,7 @@ namespace WPEFramework {
                 }
             }
             closedir(dir);
-            return -1;
+            return (pid_t)-1;
         }
 
         void MaintenanceManager::onMaintenanceStatusChange(Maint_notify_status_t status) {
