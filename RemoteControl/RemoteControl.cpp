@@ -1380,7 +1380,7 @@ namespace WPEFramework {
             }
 
             status["netType"]              = JsonValue((int)CTRLM_NETWORK_TYPE_BLUETOOTH_LE);
-            status["netTypesSupported"]    = JsonValue(m_netTypesArray);
+            status["netTypesSupported"]    = m_netTypesArray;
             status["pairingState"]         = std::string(ctrlm_ble_state_str(statusEvt->status));
             status["irProgState"]          = std::string(ctrlm_ir_prog_state_str(statusEvt->ir_state));
             status["remoteData"]           = remoteArray;
@@ -1648,7 +1648,7 @@ namespace WPEFramework {
             }
 
             status["netType"]              = JsonValue((int)CTRLM_NETWORK_TYPE_BLUETOOTH_LE);
-            status["netTypesSupported"]    = JsonValue(m_netTypesArray);
+            status["netTypesSupported"]    = m_netTypesArray;
             status["pairingState"]         = std::string(ctrlm_ble_state_str(netStatus.status));
             status["irProgState"]          = std::string(ctrlm_ir_prog_state_str(netStatus.ir_state));
             status["remoteData"]           = remoteArray;
@@ -2574,7 +2574,7 @@ namespace WPEFramework {
 
             // Store the STB-based information from the RF4CE network
             status["netType"]              = JsonValue((int)CTRLM_NETWORK_TYPE_RF4CE);
-            status["netTypesSupported"]    = JsonValue(m_netTypesArray);
+            status["netTypesSupported"]    = m_netTypesArray;
             if(netStatus.status.rf4ce.controller_qty > 0)
                 status["pairingState"]     = std::string("COMPLETE");
             else
