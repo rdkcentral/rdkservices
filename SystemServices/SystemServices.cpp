@@ -76,6 +76,7 @@ using namespace std;
 #define RFC_PWRMGR2 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.PwrMgr2.Enable"
 
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
+#define LOCALTIME_FILE "/opt/persistent/localtime"
 
 #define DEVICE_PROPERTIES_FILE "/etc/device.properties"
 
@@ -2285,7 +2286,7 @@ namespace WPEFramework {
 								if (Utils::fileExists(LOCALTIME_FILE)) {
 									remove(LOCALTIME_FILE);
 								}
-								LOGWARN("Linux local time linked to %s\n", zoneInfoFile);
+								LOGWARN("Linux local time linked to %s\n", zoneInfoFile.c_str());
 								symlink(zoneInfoFile.c_str(), LOCALTIME_FILE);
 #endif
 							} else {
