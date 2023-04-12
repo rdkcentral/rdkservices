@@ -21,7 +21,6 @@
 #include "Module.h"
 #include "UtilsJsonRpc.h"
 #include "rfcapi.h"
-#include <cjson/cJSON.h>
 
 using namespace std;
 using namespace WPEFramework;
