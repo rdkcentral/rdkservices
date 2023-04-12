@@ -37,7 +37,7 @@ pthread_mutex_t WPEFramework::Plugin::DataCapture::_mutex = PTHREAD_MUTEX_INITIA
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 using namespace std;
 using namespace audiocapturemgr;
@@ -144,7 +144,7 @@ namespace WPEFramework {
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARMBUS_AUDIOCAPTUREMGR_NAME, DATA_CAPTURE_IARM_EVENT_AUDIO_CLIP_READY));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARMBUS_AUDIOCAPTUREMGR_NAME, DATA_CAPTURE_IARM_EVENT_AUDIO_CLIP_READY, iarmEventHandler));
             }
         }
 

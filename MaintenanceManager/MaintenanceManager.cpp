@@ -66,7 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 11
+#define API_VERSION_NUMBER_PATCH 12
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -883,8 +883,8 @@ namespace WPEFramework {
         {
             if (Utils::IARM::isConnected()){
                 IARM_Result_t res;
-                IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE));
-                IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT));
+                IARM_CHECK(IARM_Bus_RemoveEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, _MaintenanceMgrEventHandler));
+                IARM_CHECK(IARM_Bus_RemoveEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT, _MaintenanceMgrEventHandler));
                 MaintenanceManager::_instance = nullptr;
             }
         }
