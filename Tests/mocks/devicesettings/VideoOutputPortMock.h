@@ -18,4 +18,5 @@ public:
     MOCK_METHOD(bool, isDisplayConnected, (), (override));
     MOCK_METHOD(int, getHDCPStatus, (), (override));
     MOCK_METHOD(bool, isContentProtected, (), (override));
+    MOCK_METHOD(device::Display&, getDisplay, (), (override));
 };

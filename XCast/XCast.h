@@ -115,9 +115,9 @@ private:
     void getUrlFromAppLaunchParams (const char *app_name, const char *payload, const char *query_string, const char *additional_data_url, char *url);
     bool getEntryFromAppLaunchParamList (const char* appName, DynamicAppConfig& retAppConfig);
     void dumpDynamicAppConfigCache(string strListName, std::vector<DynamicAppConfig*> appConfigList);
-    bool deleteFromDynamicAppCache(string strAppNames);
+    bool deleteFromDynamicAppCache(JsonArray applications);
     bool deleteFromDynamicAppCache(vector<string>& appsToDelete);
-    void updateDynamicAppCache(string strApps);
+    void updateDynamicAppCache(JsonArray applications);
 
     /**
      * Check whether the xdial service is allowed in this device.

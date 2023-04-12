@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.1] - 2023-04-10
+### Fixed
+- Fixed warnings treated as errors for unit tests workflow
+
 ## [1.3.0] - 2022-10-06
 ### Added
 - Updated API version to 1.3.0
