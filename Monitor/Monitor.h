@@ -935,12 +935,13 @@ namespace Plugin {
         private:
             friend Core::ThreadPool::JobType<MonitorObjects&>;
 
-            // Dispatch can be run in an unlocked state as the destruction of the observer list
-            // is always done if the thread that calls the Dispatch is blocked (paused)
             void Dispatch()
             {
                 uint64_t scheduledTime(Core::Time::Now().Ticks());
                 uint64_t nextSlot(static_cast<uint64_t>(~0));
+
+                // Other methods (like StateChange()) can modify internals of MonitorObjects elements that is not thread safe
+                _adminLock.Lock();
 
                 std::map<string, MonitorObject>::iterator index(_monitor.begin());
 
@@ -982,6 +983,8 @@ namespace Plugin {
 
                     index++;
                 }
+
+                _adminLock.Unlock();
 
                 if (nextSlot != static_cast<uint64_t>(~0)) {
                     if (nextSlot < Core::Time::Now().Ticks()) {
