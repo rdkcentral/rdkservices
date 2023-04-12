@@ -1286,10 +1286,10 @@ namespace WPEFramework {
             int                netType  = CTRLM_NETWORK_TYPE_RF4CE;
 
             // The "netType" parameter is mandatory.
-            if (!parameters.IsSet() || !parameters.HasLabel("netType"))
+            if (!parameters.IsSet() || !parameters.HasLabel("netType") || !parameters.HasLabel("level"))
             {
                 // There are either NO parameters, or the one we need is missing.  We will treat this as a fatal error. Exit now.
-                LOGERR("ERROR - this method requires 'netType' parameter!");
+                LOGERR("ERROR - this method requires 'netType' and 'level' parameters!");
                 returnResponse(false);
             }
 
