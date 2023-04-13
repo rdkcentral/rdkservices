@@ -1941,6 +1941,24 @@
             "result": {
                 "$ref": "#/common/result"
             }
+        },
+        "uploadLogsAsync": {
+            "summary": "Starts background process to upload logs",
+            "events": {
+                "onLogUpload" : "Triggered when logs upload process is done"
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "abortLogUpload": {
+            "summary": "Stops background process to upload logs",
+            "events": {
+                "onLogUpload" : "Triggered when logs upload process is stopped"
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
         }
     },
     "events": {
@@ -2259,6 +2277,27 @@
                     "oldAccuracy",
                     "newAccuracy"
                     ]
+            }
+        },
+        "onLogUpload":{
+            "summary": "Triggered when logs upload process is done or stopped",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "logUploadStatus":{
+                        "summary": "Upload status",
+                        "type":"string",
+                        "enum": [
+                            "UPLOAD_SUCCESS",
+                            "UPLOAD_FAILURE",
+                            "UPLOAD_ABORTED"
+                        ],
+                        "example":"UPLOAD_SUCCESS"
+                    }
+                },
+                "required":[
+                    "logUploadStatus"
+                ]
             }
         }
     }
