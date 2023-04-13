@@ -1303,8 +1303,8 @@ TEST_F(SystemServicesEventIarmTest, onRebootRequest)
  *          Check if  If the file for the last deep sleep reason cannot be found or failed to remove,
  *          then  clearLastDeepSleepReason shall be failed and an error message is returned in the response.
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
  */
 TEST_F(SystemServicesTest, clearLastDeepSleepReasonFailed_WhenFileFailedToRemove)
 {
@@ -1324,8 +1324,8 @@ TEST_F(SystemServicesTest, clearLastDeepSleepReasonFailed_WhenFileFailedToRemove
  *          then clearLastDeepSleepReason shall be failed and
  *          an error message is returned in the response.
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
  */
 TEST_F(SystemServicesTest, clearLastDeepSleepReasonFailed_WhenPcloseFailed)
 {
@@ -1345,8 +1345,8 @@ TEST_F(SystemServicesTest, clearLastDeepSleepReasonFailed_WhenPcloseFailed)
  *          Check if the file for the last deep sleep reason is successfully removed using popen,
  *          then clearLastDeepSleepReason shall be succeeded.
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {"success": true}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"success": true}
  */
 TEST_F(SystemServicesTest, clearLastDeepSleepReasonSuccess_whenFileSuccessfullyRemoved)
 {
@@ -1379,9 +1379,9 @@ TEST_F(SystemServicesTest, clearLastDeepSleepReasonSuccess_whenFileSuccessfullyR
  *        and value of firmwareVersion= "unknown" if STB_VERSION_STRING not defined,
  *        and value of firmwareVersion = value defined in STB_VERSION_STRING if STB_VERSION_STRING is defined.
  *
- * @param[in]   :  This method takes no parameters.
- * @return[if STB_VERSION_STRING defined] : {\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"\",\"firmwareVersion\":\"string[STB_VERSION_STRING]\"},\"success\":true}
- * @return[if STB_VERSION_STRING not defined] : {\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"\",\"firmwareVersion\":\"unknown\"},\"success\":true}
+ * @param[in]   :  This method takes no parameters.
+ * @return[if STB_VERSION_STRING defined] : {\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"\",\"firmwareVersion\":\"string[STB_VERSION_STRING]\"},\"success\":true}
+ * @return[if STB_VERSION_STRING not defined] : {\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"\",\"firmwareVersion\":\"unknown\"},\"success\":true}
  */
 #ifdef STB_VERSION_STRING
 TEST_F(SystemServicesTest, getXconfParamsSuccess_whenStbVersionNotFound_withVersionDefined)
@@ -1391,9 +1391,15 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_whenStbVersionNotFound_withVers
     ofstream file("/version.txt");
     file << "";
     file.close();
+    
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+    
     string firmwareVersion = STB_VERSION_STRING;
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"ERROR\",\"firmwareVersion\":\""+firmwareVersion+"\"},\"success\":true}"));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\""+firmwareVersion+"\"},\"success\":true}"));
 }
 
 #else
@@ -1404,8 +1410,14 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_whenStbVersionNotFoundwith_Vers
     ofstream file("/version.txt");
     file << "";
     file.close();
+    
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"ERROR\",\"firmwareVersion\":\"unknown\"},\"success\":true}"));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"unknown\"},\"success\":true}"));
 }
 #endif
 
@@ -1414,8 +1426,8 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_whenStbVersionNotFoundwith_Vers
  *        Check if stb version string does not contain env information,
  *        then getXconfParams shall be succeeded and returns xconfParams with env="dev" and firmwareVersion=stb version string .
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
  */
 TEST_F(SystemServicesTest, getXconfParamsSuccess_whenVersionStringWithoutEnvInfo)
 {
@@ -1423,8 +1435,13 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_whenVersionStringWithoutEnvInfo
     file << "imagename:PX051AEI_2203_sprint_20220331225312sdy_NG";
     file.close();
 
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
 }
 
 /**
@@ -1432,8 +1449,8 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_whenVersionStringWithoutEnvInfo
  *        check if all the configiration parameters are provided in respective files,
  *        then getXconfParams shall be Succeeded and all the values for xconfParams shall be populated.
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  "{\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"AX061AEI\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  "{\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"AX061AEI\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"
  */
 TEST_F(SystemServicesTest, getXconfParamsSuccess_withAllXConfparams)
 {
@@ -1467,8 +1484,8 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_withAllXConfparams)
  *        Check if the firm value is "VBN"
  *        then getXconfParams shall be succeeded and returns xconfParam with env="vbn".
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
  */
 TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvalueVBN)
 {
@@ -1489,8 +1506,8 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvalueVBN)
  *        Check if the firm value is "PROD"
  *        then getXconfParams shall be succeeded and returns xconfParam with env="prod".
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {\"xconfParams\":{\"env\":\"prod\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_PROD_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"xconfParams\":{\"env\":\"prod\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_PROD_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
  */
 TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvaluePROD)
 {
@@ -1511,8 +1528,8 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvaluePROD)
  *        Check if the firm value is "QA"
  *        then getXconfParams shall be succeeded and returns xconfParam with env="qa".
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {\"xconfParams\":{\"env\":\"qa\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_QA_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"xconfParams\":{\"env\":\"qa\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_QA_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
  */
 TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvalueQA)
 {
@@ -1545,8 +1562,8 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvalueQA)
  *        Check if BUS call to retrieve the manufacturing serial number is failed,
  *        then getMfgSerialNumber shall be failed and returns an error message in the response.
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {"success":false}")
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"success":false}")
  */
 TEST_F(SystemServicesTest, getMfgSerialNumberFailed_whenBusCallFailed)
 {
@@ -1569,8 +1586,8 @@ TEST_F(SystemServicesTest, getMfgSerialNumberFailed_whenBusCallFailed)
  *        then getMfgSerialNumber shall be succeeded and
  *        returns retrieved manufacture serial number in the response.
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {"mfgSerialNumber": "F00020CE000003","success": true}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"mfgSerialNumber": "F00020CE000003","success": true}
  */
 TEST_F(SystemServicesTest, getMfgSerialNumberSuccess_whenBusCallSuccess)
 {
@@ -1596,8 +1613,8 @@ TEST_F(SystemServicesTest, getMfgSerialNumberSuccess_whenBusCallSuccess)
  *        Check if cached data of  mfg serial number is available
  *        then , getMfgSerialNumber shall successfully retrieves the cached information and returns it.
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  "result": {"mfgSerialNumber": "F00020CE000003","success": true}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  "result": {"mfgSerialNumber": "F00020CE000003","success": true}
  */
 TEST_F(SystemServicesTest, getMfgSerialNumberSuccess_getCachedMfgSerialNumber)
 {
@@ -1645,8 +1662,8 @@ TEST_F(SystemServicesTest, getMfgSerialNumberSuccess_getCachedMfgSerialNumber)
  *        Check if GetRFCParameter returns other than Success,
  *        then getSerialNumber shall be failed and return error message in the response.
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
  */
 TEST_F(SystemServicesTest, getSerialNumberTR069Failed_OnGetRFCParameterFailed)
 {
@@ -1664,8 +1681,8 @@ TEST_F(SystemServicesTest, getSerialNumberTR069Failed_OnGetRFCParameterFailed)
  *        then  getSerialNumber shall be Succeeded and
  *        returns the retrieved serial number in the response.
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {"serialNumber":"32E10400103240447","success":true}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"serialNumber":"32E10400103240447","success":true}
  */
 TEST_F(SystemServicesTest, getSerialNumberTR069Success_OnGetRFCParameterSuccess)
 {
@@ -1687,11 +1704,16 @@ TEST_F(SystemServicesTest, getSerialNumberTR069Success_OnGetRFCParameterSuccess)
  *        Check if /lib/rdk/getStateDetails.sh file doesn't exist,
  *        then getSerialNumber shall be failed and return the error message in response.
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {"SysSrv_Status":4,"errorMessage":"Unexpected Error","success":false}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":4,"errorMessage":"Unexpected Error","success":false}
  */
 TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenScriptFileNotExist)
 {
+    const string deviceStateInfoScript = _T("/lib/rdk/getStateDetails.sh");
+    Core::File file(deviceStateInfoScript);
+    file.Create();
+    // Remove the file to simulate it is  not-existing
+    file.Destroy();
     EXPECT_FALSE(Core::File(string(_T("/lib/rdk/getStateDetails.sh"))).Exists());
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
 }
@@ -1701,14 +1723,20 @@ TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenScriptFileNotExist)
  *        Check if TMP_SERIAL_NUMBER_FILE doesn't exist,then getSerialNumber shall be failed and
  *        return the error message in response
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {"SysSrv_Status":4,"errorMessage":"Expected file not found","success":false}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":4,"errorMessage":"Expected file not found","success":false}
  */
 TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenTmpSerialNumberFileNotExist)
 {
     const string deviceStateInfoScript = _T("/lib/rdk/getStateDetails.sh");
     Core::File file(deviceStateInfoScript);
     file.Create();
+    
+    ofstream file2("/tmp/.STB_SER_NO");
+    file2 << "32E10400103240447";
+    file2.close();
+    // Remove the file to simulate it is  not-existing
+    std::remove("/tmp/.STB_SER_NO");
 
     EXPECT_TRUE(Core::File(string(_T("/lib/rdk/getStateDetails.sh"))).Exists());
     EXPECT_CALL(wrapsImplMock, system(::testing::_))
@@ -1726,8 +1754,8 @@ TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenTmpSerialNumberFileNotE
  *        Check if contents of TMP_SERIAL_NUMBER_FILE can not be open,
  *        then getSerialNumber shall be failed
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {"SysSrv_Status":6,"errorMessage":"Unsupported file content","success":false}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":6,"errorMessage":"Unsupported file content","success":false}
  */
 TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenFailedToReadFromTmpFile)
 {
@@ -1743,8 +1771,8 @@ TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenFailedToReadFromTmpFile
  *        Check if file /lib/rdk/getStateDetails.sh and TMP_SERIAL_NUMBER_FILE file[/tmp/.STB_SER_NO] exist,
  *        then getSerialNumber shall be succeeded and returns serial number in response.
  *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {"serialNumber":"32E10400103240447","success":true}
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"serialNumber":"32E10400103240447","success":true}
  */
 TEST_F(SystemServicesTest, getSerialNumberSnmpSuccess_whenSerialNumberIsInTmpFile)
 {
@@ -1768,4 +1796,3 @@ TEST_F(SystemServicesTest, getSerialNumberSnmpSuccess_whenSerialNumberIsInTmpFil
 }
 #endif
 /*Test cases for getSerialNumber ends here*/
-
