@@ -22,6 +22,7 @@
 #include <vector>
 #include <algorithm>
 #include <mutex>
+#include <set>
 
 #include "Module.h"
 #include "CENCParser.h"
@@ -828,6 +829,17 @@ namespace Plugin {
             {
                  CDMi::IMediaKeys *system = _parent.KeySystem(keySystem);
 
+                 if(_parent.widevineAwaitingConfig) {
+                     LockGuard lock(_parent.widevineInitMutex);
+                     if (_parent.widevineDesignators.count(keySystem) != 0) {
+                        SYSLOG(Logging::Startup, (_T("WideVine initialization: apply the config")));
+                        auto factory = _parent._systemToFactory.find(keySystem);
+                        _parent.widevineInitialConfig = Lgi::updateWidevineConfig(_parent.widevineInitialConfig, _parent._asConfig);
+                        factory->second.Factory->Initialize(_parent._shell, _parent.widevineInitialConfig);
+                        _parent.widevineAwaitingConfig = false;
+                     }
+                 }
+
                  session = nullptr;
                  bool hadInitializationError = false;
                  if (system != nullptr)
@@ -1361,9 +1373,18 @@ namespace Plugin {
                     if (factory != factories.end()) {
                         string configuration(index.Current().Configuration.Value());
                         if(system == "WideVine") {
-                            configuration = Lgi::updateWidevineConfig(configuration, _asConfig);
+                            // WideVine will be configured later, at CreateSession
+                            SYSLOG(Logging::Startup, (_T("Initialization for WideVine defered")));
+                            LockGuard lock(widevineInitMutex);
+                            widevineInitialConfig = configuration;
+                            Core::JSON::ArrayType<Core::JSON::String>::ConstIterator designators(static_cast<const Core::JSON::ArrayType<Core::JSON::String>&>(index.Current().Designators).Elements());
+                            while (designators.Next() == true) {
+                                widevineDesignators.insert(designators.Current().Value());
+                            }
+                            widevineAwaitingConfig = true;
+                        } else {
+                            factory->second.Factory->Initialize(_shell, configuration);
                         }
-                        factory->second.Factory->Initialize(_shell, configuration);
                     }
                 }
 
@@ -1656,6 +1677,10 @@ namespace Plugin {
         std::list<Exchange::IContentDecryption::INotification *> _notificationCallbacks{};
         std::mutex notificationMutex{};
         Lgi::ASConfig _asConfig;
+        std::string widevineInitialConfig;
+        std::set<std::string> widevineDesignators;
+        std::atomic_bool widevineAwaitingConfig {false};
+        std::mutex widevineInitMutex;
     };
 
     SERVICE_REGISTRATION(OCDMImplementation, 1, 0);
