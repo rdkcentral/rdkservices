@@ -76,6 +76,7 @@ using namespace std;
 #define RFC_PWRMGR2 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.PwrMgr2.Enable"
 
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
+#define LOCALTIME_FILE "/opt/persistent/localtime"
 
 #define DEVICE_PROPERTIES_FILE "/etc/device.properties"
 
@@ -2279,7 +2280,15 @@ namespace WPEFramework {
 								fflush(f);
 								fsync(fileno(f));
 								fclose(f);
-
+#ifdef ENABLE_LINK_LOCALTIME
+								// Now create the linux link back to the zone info file to our writeable localtime
+								std::string zoneInfoFile = ZONEINFO_DIR + timeZone;
+								if (Utils::fileExists(LOCALTIME_FILE)) {
+									remove(LOCALTIME_FILE);
+								}
+								LOGWARN("Linux local time linked to %s\n", zoneInfoFile.c_str());
+								symlink(zoneInfoFile.c_str(), LOCALTIME_FILE);
+#endif
 							} else {
 								LOGERR("Unable to open %s file.\n", TZ_FILE);
 								populateResponseWithError(SysSrv_FileAccessFailed, response);
