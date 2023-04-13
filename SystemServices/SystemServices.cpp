@@ -90,6 +90,12 @@ using namespace std;
 #define STORE_DEMO_FILE "/opt/persistent/store-mode-video/videoFile.mp4"
 #define STORE_DEMO_LINK "file:///opt/persistent/store-mode-video/videoFile.mp4"
 
+#define RFC_LOG_UPLOAD "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadBeforeDeepSleep.Enable"
+
+#define LOG_UPLOAD_STATUS_SUCCESS "UPLOAD_SUCCESS"
+#define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
+#define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
+
 /**
  * @struct firmwareUpdate
  * @brief This structure contains information of firmware update.
@@ -481,10 +487,6 @@ namespace WPEFramework {
             GetHandler(2)->Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
                 &SystemServices::getPlatformConfiguration, this);
         }
-
-#define LOG_UPLOAD_STATUS_SUCCESS "UPLOAD_SUCCESS"
-#define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
-#define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
 
         SystemServices::~SystemServices()
         {
