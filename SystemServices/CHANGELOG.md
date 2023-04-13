@@ -16,9 +16,15 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.3.1] - 2023-04-12
+
+## [1.4.1] - 2023-04-12
 ### Fixed
 - Fixed IARM_Bus_UnRegisterEventHandler  call to IARM_Bus_RemoveEventHandler
+
+## [1.4.0] - 2023-04-13
+### Added
+- Added new API's uploadLogsAsync and abortLogUpload.
+- Added listener for power state changes to call uploadLogsAsync and abortLogUpload.
 
 ## [1.3.0] - 2023-04-03
 ### Added
