@@ -101,8 +101,8 @@ void WifiManagerScan::Deinitialize(PluginHost::IShell* service)
     LOGINFO("deinitializing");
 
     IARM_Result_t res;
-    IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs));
-    IARM_CHECK(IARM_Bus_UnRegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDsIncr));
+    IARM_CHECK(IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs, WifiManagerScan::iarmEventHandler));
+    IARM_CHECK(IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDsIncr,  WifiManagerScan::iarmEventHandler));
 }
 
 /**
