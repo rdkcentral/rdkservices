@@ -17,8 +17,9 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/Dobby
         ${BASEDIR}/Dobby/Public/Dobby
         ${BASEDIR}/Dobby/IpcService
-        ${BASEDIR}/rdk/control
+	      ${BASEDIR}/rdk/control
         ${BASEDIR}/rdk/iarmmgrs
+        ${BASEDIR}/rdkshell
         )
 
 set(EMPTY_HEADERS
@@ -64,6 +65,13 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdk/iarmmgrs-hal/sysMgr.h
         ${BASEDIR}/network/wifiSrvMgrIarmIf.h
         ${BASEDIR}/network/netsrvmgrIarm.h
+	      ${BASEDIR}/rdkshell/rdkshellevents.h
+        ${BASEDIR}/rdkshell/rdkshell.h
+        ${BASEDIR}/rdkshell/compositorcontroller.h
+        ${BASEDIR}/rdkshell/logger.h
+        ${BASEDIR}/rdkshell/eastereggs.h
+        ${BASEDIR}/rdkshell/application.h
+        ${BASEDIR}/rdkshell/linuxkeys.h
         ${BASEDIR}/framebuffer-api.h
         ${BASEDIR}/libudev.h
         ${BASEDIR}/rfcapi.h
@@ -74,15 +82,15 @@ set(EMPTY_HEADERS
         ${BASEDIR}/Dobby/Public/Dobby/IDobbyProxy.h
         ${BASEDIR}/Dobby/IpcService/IpcFactory.h
         ${BASEDIR}/ccec/FrameListener.hpp
-	${BASEDIR}/ccec/Connection.hpp
-	${BASEDIR}/ccec/Assert.hpp
-	${BASEDIR}/ccec/Messages.hpp
-	${BASEDIR}/ccec/MessageDecoder.hpp
-	${BASEDIR}/ccec/MessageProcessor.hpp
-	${BASEDIR}/ccec/CECFrame.hpp
-	${BASEDIR}/ccec/MessageEncoder.hpp
-	${BASEDIR}/ccec/host/RDK.hpp
-	${BASEDIR}/ccec/drivers/iarmbus/CecIARMBusMgr.h
+      	${BASEDIR}/ccec/Connection.hpp
+	      ${BASEDIR}/ccec/Assert.hpp
+	      ${BASEDIR}/ccec/Messages.hpp
+	      ${BASEDIR}/ccec/MessageDecoder.hpp
+	      ${BASEDIR}/ccec/MessageProcessor.hpp
+	      ${BASEDIR}/ccec/CECFrame.hpp
+	      ${BASEDIR}/ccec/MessageEncoder.hpp
+	      ${BASEDIR}/ccec/host/RDK.hpp
+	      ${BASEDIR}/ccec/drivers/iarmbus/CecIARMBusMgr.h
         ${BASEDIR}/rtRemote.h
         ${BASEDIR}/rtObject.h
         ${BASEDIR}/rtError.h
@@ -93,6 +101,7 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdk/control/ctrlm_ipc_voice.h
         ${BASEDIR}/rdk/control/ctrlm_ipc_rcu.h
         ${BASEDIR}/rdk/control/ctrlm_ipc_key_codes.h
+        ${BASEDIR}/rdk_logger_milestone.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -122,6 +131,8 @@ set(FAKE_HEADERS
         ${BASEDIR}/Dobby.h
         ${BASEDIR}/HdmiCec.h
         ${BASEDIR}/Ctrlm.h
+        ${BASEDIR}/rdkshell.h
+	      ${BASEDIR}/RdkLoggerMilestone.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -193,5 +204,6 @@ set(PLUGIN_HDMICECSOURCE ON)
 set(PLUGIN_VOICECONTROL ON)
 set(PLUGIN_CONTROLSERVICE ON)
 set(PLUGIN_REMOTEACTIONMAPPING ON)
+set(PLUGIN_RDKSHELL ON)
 
 set(DS_FOUND ON)
