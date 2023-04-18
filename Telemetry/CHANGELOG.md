@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.2.0] - 2023-4-18
+### Added
+- Added abortReport call (stops uploading of telemetry report)
+- Added listener for power state changes, it calls uploadReport for STANDBY or LIGHTSLEEP state and abortReport for DEEPSLEEP.
+
 ## [1.1.0] - 2022-10-21
 ### Added
 - Added uploadReport call (triggers processing and uploading of telemetry report for legacy Xconf based configuration)

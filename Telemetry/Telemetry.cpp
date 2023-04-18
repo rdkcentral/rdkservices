@@ -54,7 +54,7 @@
 #define DEFAULT_PROFILES_FILE "/etc/t2profiles/default.json"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_MINOR 2
 #define API_VERSION_NUMBER_PATCH 0
 
 #ifdef HAS_RBUS
