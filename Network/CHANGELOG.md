@@ -19,6 +19,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Fixed
 - Fixed IARM_Bus_UnRegisterEventHandler  call to IARM_Bus_RemoveEventHandler
 
+## [1.0.8] - 2023-04-12
+### Added
+- Added Captive Portal specific access methods.
+
 ## [1.0.7] - 2023-04-04
 ### Fixed
 - Fixed traceroute command error.
