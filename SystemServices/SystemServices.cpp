@@ -2282,13 +2282,12 @@ namespace WPEFramework {
 								fclose(f);
 #ifdef ENABLE_LINK_LOCALTIME
 								// Now create the linux link back to the zone info file to our writeable localtime
-                                				std::string zoneInfoFile = ZONEINFO_DIR + '/' + timeZone;
                                 				if (Utils::fileExists(LOCALTIME_FILE)) {
                                 					remove (LOCALTIME_FILE);
                                 				}
 
-								LOGWARN("Linux localtime linked to %s\n", zoneInfoFile.c_str());
-								symlink(zoneInfoFile.c_str(), LOCALTIME_FILE);
+								LOGWARN("Linux localtime linked to %s\n", city.c_str());
+								symlink(city.c_str(), LOCALTIME_FILE);
 #endif
 							} else {
 								LOGERR("Unable to open %s file.\n", TZ_FILE);
