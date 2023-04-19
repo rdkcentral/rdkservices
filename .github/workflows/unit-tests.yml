@@ -8,8 +8,8 @@ on:
 
 env:
   BUILD_TYPE: Debug
-  THUNDER_REF: "0731e67a8c9dea37a728201c9d19df5fbdfcbfe5"
-  INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
+  THUNDER_REF: "39c82df24c7b4a4a10663cf527a3b289e7c1ceae"
+  INTERFACES_REF: "8d3bd0ddd187c6104543699041ec53e1e186d49a"
 
 jobs:
   unit-tests:
