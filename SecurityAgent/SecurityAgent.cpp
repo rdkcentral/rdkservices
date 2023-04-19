@@ -22,8 +22,8 @@
 #include "TokenFactory.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 3
+#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_PATCH 0
 
 namespace WPEFramework {
 
@@ -40,6 +40,10 @@ namespace {
         {}
     );
 }
+
+ENUM_CONVERSION_BEGIN(Plugin::SecurityAgent::tokentype)
+    { Plugin::SecurityAgent::DAC, _TXT("dac") },
+ENUM_CONVERSION_END(Plugin::SecurityAgent::tokentype)
 
 namespace Plugin {
 
@@ -124,6 +128,15 @@ namespace Plugin {
             }
         }
 
+        _dacDir = config.DAC.Value();
+        if (!_dacDir.empty()) {
+            _dacDirCallback = Core::ProxyType<DirectoryCallback>::Create(_dacDir, _dac);
+            _dacDirCallback->Updated();
+
+            Core::Directory(_dacDir.c_str()).CreatePath();
+            Core::FileSystemMonitor::Instance().Register(&(*_dacDirCallback), _dacDir);
+        }
+
         ASSERT(_dispatcher == nullptr);
         ASSERT(subSystem != nullptr);
 
@@ -177,6 +190,12 @@ namespace Plugin {
         _engine.Release();
 
         _acl.Clear();
+
+        if (_dacDirCallback.IsValid()) {
+            Core::FileSystemMonitor::Instance().Unregister(&(*_dacDirCallback), _dacDir);
+            _dacDirCallback.Release();
+        }
+        _dac.Clear();
     }
 
     /* virtual */ string SecurityAgent::Information() const
@@ -211,7 +230,14 @@ namespace Plugin {
 
             if (load != static_cast<uint16_t>(~0)) {
                 // Seems like we extracted a valid payload, time to create an security context
-                result = Core::Service<SecurityContext>::Create<SecurityContext>(&_acl, load, payload, _servicePrefix);
+                Payload payloadJson;
+                payloadJson.FromString(string(reinterpret_cast<const TCHAR*>(payload), load));
+
+                if (payloadJson.Type.IsSet() && (payloadJson.Type == tokentype::DAC)) {
+                    result = Core::Service<SecurityContext>::Create<SecurityContext>(&_dac, load, payload, _servicePrefix);
+                } else {
+                    result = Core::Service<SecurityContext>::Create<SecurityContext>(&_acl, load, payload, _servicePrefix);
+                }
             }
         }
         return (result);
