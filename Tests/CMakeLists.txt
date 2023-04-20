@@ -35,6 +35,7 @@ add_executable(${PROJECT_NAME}
         mocks/thunder/Module.cpp
         mocks/Wraps.cpp
         mocks/Dobby.cpp
+	mocks/rdkshell.cpp
         )
 
 set_source_files_properties(
@@ -70,6 +71,10 @@ include_directories(../LocationSync
         ../Warehouse
         ../ActivityMonitor
         ../OCIContainer
+        ../VoiceControl
+        ../ControlService
+        ../RemoteActionMapping
+	../RDKShell
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -96,6 +101,10 @@ link_directories(../LocationSync
         ../Warehouse
         ../ActivityMonitor
         ../OCIContainer
+        ../VoiceControl
+        ../ControlService
+        ../RemoteActionMapping
+	../RDKShell
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -126,6 +135,10 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}Warehouse
         ${NAMESPACE}ActivityMonitor
         ${NAMESPACE}OCIContainer
+        ${NAMESPACE}VoiceControl
+        ${NAMESPACE}ControlService
+        ${NAMESPACE}RemoteActionMapping
+	${NAMESPACE}RDKShell
         )
 
 target_include_directories(${PROJECT_NAME}

@@ -76,6 +76,7 @@ using namespace std;
 #define RFC_PWRMGR2 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.PwrMgr2.Enable"
 
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
+#define LOCALTIME_FILE "/opt/persistent/localtime"
 
 #define DEVICE_PROPERTIES_FILE "/etc/device.properties"
 
@@ -544,10 +545,13 @@ namespace WPEFramework {
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE));
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED,_powerEventHandler ));
+
     #ifdef ENABLE_THERMAL_PROTECTION
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler));
     #endif //ENABLE_THERMAL_PROTECTION
             }
         }
@@ -2276,7 +2280,15 @@ namespace WPEFramework {
 								fflush(f);
 								fsync(fileno(f));
 								fclose(f);
+#ifdef ENABLE_LINK_LOCALTIME
+								// Now create the linux link back to the zone info file to our writeable localtime
+                                				if (Utils::fileExists(LOCALTIME_FILE)) {
+                                					remove (LOCALTIME_FILE);
+                                				}
 
+								LOGWARN("Linux localtime linked to %s\n", city.c_str());
+								symlink(city.c_str(), LOCALTIME_FILE);
+#endif
 							} else {
 								LOGERR("Unable to open %s file.\n", TZ_FILE);
 								populateResponseWithError(SysSrv_FileAccessFailed, response);

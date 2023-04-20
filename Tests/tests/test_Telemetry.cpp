@@ -7,6 +7,7 @@
 #include "ServiceMock.h"
 #include "TelemetryMock.h"
 #include "RBusMock.h"
+#include "IarmBusMock.h"
 
 namespace {
 const string profileFN = _T("/tmp/DefaultProfile.json");
@@ -38,9 +39,11 @@ protected:
 class TelemetryTest : public T2Test {
 protected:
     NiceMock<ServiceMock> service;
+    NiceMock<IarmBusImplMock> iarmBusImplMock;
     Core::ProxyType<Plugin::Telemetry> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
+    IARM_EventHandler_t powerEventHandler;
     string response;
 
     TelemetryTest()
@@ -49,9 +52,24 @@ protected:
         , handler(*plugin)
         , connection(1, 0)
     {
+        IarmBus::getInstance().impl = &iarmBusImplMock;
         Core::Directory(t2PpersistentFolder.c_str()).Destroy(true);
+
+        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
+                    if ((string(IARM_BUS_PWRMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_PWRMGR_EVENT_MODECHANGED)) {
+                        EXPECT_TRUE(handler != nullptr);
+                        powerEventHandler = handler;
+                    }
+                    return IARM_RESULT_SUCCESS;
+                }));
+
     }
-    virtual ~TelemetryTest() override = default;
+    virtual ~TelemetryTest() override
+    {
+        IarmBus::getInstance().impl = nullptr;
+    }
 };
 
 class TelemetryRfcTest : public TelemetryTest {
@@ -534,6 +552,66 @@ TEST_F(TelemetryRBusTest, uploadLogs)
     EXPECT_EQ(Core::ERROR_NONE, onReportUpload.Lock());
 
     handler.Unsubscribe(0, _T("onReportUpload"), _T("org.rdk.Telemetry"), message);
+
+    plugin->Deinitialize(nullptr);
+}
+
+TEST_F(TelemetryRBusTest, uploadLogsOnStandby)
+{
+    ON_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
+        .WillByDefault(
+            ::testing::Return(RBUS_ERROR_SUCCESS));
+
+    EXPECT_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](rbusHandle_t handle, char const* methodName, rbusObject_t inParams, rbusMethodAsyncRespHandler_t callback,  int timeout) {
+                EXPECT_EQ(string(methodName), _T("Device.X_RDKCENTRAL-COM_T2.UploadDCMReport"));
+                return RBUS_ERROR_SUCCESS;
+            }));
+
+    ON_CALL(rBusApiImplMock, rbus_close(::testing::_))
+        .WillByDefault(
+            ::testing::Return(RBUS_ERROR_SUCCESS));
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    ASSERT_TRUE(powerEventHandler != nullptr);
+
+    IARM_Bus_PWRMgr_EventData_t eventData;
+    eventData.data.state.curState = IARM_BUS_PWRMGR_POWERSTATE_ON;
+    eventData.data.state.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP;
+    powerEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
+
+    plugin->Deinitialize(nullptr);
+}
+
+TEST_F(TelemetryRBusTest, uploadLogsOnDeepSleep)
+{
+    ON_CALL(rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
+        .WillByDefault(
+            ::testing::Return(RBUS_ERROR_SUCCESS));
+
+    EXPECT_CALL(rBusApiImplMock, rbusMethod_InvokeAsync(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](rbusHandle_t handle, char const* methodName, rbusObject_t inParams, rbusMethodAsyncRespHandler_t callback,  int timeout) {
+                EXPECT_EQ(string(methodName), _T("Device.X_RDKCENTRAL-COM_T2.AbortDCMReport"));
+                return RBUS_ERROR_SUCCESS;
+            }));
+
+    ON_CALL(rBusApiImplMock, rbus_close(::testing::_))
+        .WillByDefault(
+            ::testing::Return(RBUS_ERROR_SUCCESS));
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
+    ASSERT_TRUE(powerEventHandler != nullptr);
+
+    IARM_Bus_PWRMgr_EventData_t eventData;
+    eventData.data.state.curState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP;
+    eventData.data.state.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
+    powerEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData , 0);
 
     plugin->Deinitialize(nullptr);
 }
