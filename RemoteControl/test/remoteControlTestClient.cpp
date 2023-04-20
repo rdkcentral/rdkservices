@@ -70,6 +70,7 @@ void showMenu()
     std::cout<<"9.getIRCodesByAutoLookup\n";
     std::cout<<"10.getLastKeypressSource\n";
     std::cout<<"11.initializeIRDB\n";
+    std::cout<<"12.findMyRemote\n";
 
     std::cout<<"\nEnter your choice: ";
 }
@@ -786,8 +787,31 @@ int main(int argc, char** argv)
                                 }
                                 std::cout<<"result : "<<res<<"\n";
                             }
-                            break;
+                            break;         
+                            
+                        case 12:
+                            {
+                                JsonObject params;
+                                string res;
+                                int remoteId;
 
+                                std::cout<<"\nEnter a 'remoteId' integer [SINGLE_REMOTE(1 thru 9), LAST_USED_REMOTE(253), ALL_REMOTES(254)] : ";
+                                std::cin>> remoteId;
+                                params["remoteId"] = remoteId;
+
+                                ret = remoteObject->Invoke<JsonObject, JsonObject>(INVOKE_TIMEOUT,
+                                                    _T("findMyRemote"), params, result);
+                                std::cout<<"RemoteControl Invoke ret : "<< ret <<"\n";
+                                result.ToString(res);
+                                if (result["success"].Boolean()) {
+                                    std::cout<<"RemoteControl findMyRemote call - Success!\n";
+                                } else {
+                                    std::cout<<"RemoteControl findMyRemote call - failed!\n";
+                                }
+                                std::cout<<"result : "<<res<<"\n";
+                            }
+                            break;
+                            
                         default:
                             std::cout<<"Entry not recognized!\n";
                             break;
