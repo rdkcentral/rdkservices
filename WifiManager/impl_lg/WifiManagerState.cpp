@@ -130,21 +130,66 @@ bool WifiManagerState::fetchSsid(std::string &out_ssid)
    return ret;
 }
 
+// compare onemw-src/networking/om-netconfig/src/wpa/WifiUtils.cpp, WifiUtils::decibels2quality(int aDB), where lQuality = 2 * (aDB + 100), for aDB in (-100,-50)
+std::string WifiManagerState::quality2decibels(const std::string& qualityStr) {
+   if (qualityStr.empty()) {
+      return "";
+   }
+   float quality = std::stof(qualityStr);
+   if (quality >= 100) {
+      return "-50.0";
+   } else if (quality <= 0) {
+      return "-100.0";
+   } else {
+      return std::to_string((quality - 200)/2.f);
+   }
+}
+
+bool WifiManagerState::getWifiParams(std::map<std::string, std::string> &params)
+{
+   const std::string& wifiInterface = WifiManagerState::getWifiInterfaceName();
+   if (wifiInterface.empty()) {
+      return false;
+   }
+   std::string netid;
+   if (DBusClient::getInstance().networkconfig1_GetParam(wifiInterface, "netid", netid)) {
+      if (DBusClient::getInstance().wifimanagement1_GetSSIDParams(wifiInterface, netid, params)) {
+         return true;
+      } else {
+         LOGWARN("failed to retrieve ssid '%s' params", netid.c_str());
+      }
+   } else {
+      LOGWARN("failed to retrieve wifi netid param");
+   }
+   return false;
+}
+
+
 uint32_t WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonObject &response)
 {
-   // this is used by Amazon, but only 'ssid' is used by Amazon app and needs to be returned; the rest is not important
    LOGINFOMETHOD();
    std::string ssid;
    if (fetchSsid(ssid))
    {
       // only 'ssid' is used by Amazon app and needs to be returned; the rest can be empty for now
       response["ssid"] = ssid;
-      response["bssid"] = string("");
-      response["rate"] = string("");
-      response["noise"] = string("");
-      response["security"] = string("");
-      response["signalStrength"] = string("");
-      response["frequency"] = string("");
+      std::map<std::string, std::string> params;
+      if (getWifiParams(params))
+      {
+         response["bssid"] = params["bssid"];
+         response["rate"] = string(""); // no mapping
+         response["noise"] = string(""); // no mapping
+         response["security"] = params["security"];
+         response["signalStrength"] = quality2decibels(params["strength"]);
+         response["frequency"] = params["band"];
+      } else {
+         response["bssid"] = string("");
+         response["rate"] = string("");
+         response["noise"] = string("");
+         response["security"] = string("");
+         response["signalStrength"] = string("");
+         response["frequency"] = string("");
+      }
       returnResponse(true);
    }
    else
