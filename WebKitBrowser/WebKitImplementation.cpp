@@ -56,6 +56,9 @@
 #include "odhlog.h"
 #include "tracing/Logging.h"
 
+#include <dbus/dbus.h>
+#include <gio/gio.h>
+
 #define URL_LOAD_RESULT_TIMEOUT_MS                                   (15 * 1000)
 
 #ifdef __cplusplus
@@ -111,6 +114,53 @@ void onURLChangeWorkarounds(const std::string &url, WKPageRef page)
         WKContextSetEnv(WKPageGetContext(page), WKStringCreateWithUTF8CString("CONVERT_PLAYREADY_KEY_ID_FOR_SHAKA"), WKStringCreateWithUTF8CString("0"), true, false);
     }
 }
+
+std::string getMainConfigValue(const std::string& key)
+{
+    std::string result;
+
+    GDBusProxy* proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SYSTEM,
+                                                        (GDBusProxyFlags) (G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES | G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS),
+                                                        nullptr,
+                                                        "com.lgi.rdk.as",
+                                                        "/com/lgi/rdk/as/Configuration1",
+                                                        "com.lgi.rdk.as.Configuration1",
+                                                        nullptr,
+                                                        nullptr);
+    if (proxy) {
+        GVariant* gv_result = g_dbus_proxy_call_sync(proxy,
+                                                        "GetConfig",
+                                                        g_variant_new("(s)", key.c_str()),
+                                                        G_DBUS_CALL_FLAGS_NONE,
+                                                        -1,
+                                                        nullptr,
+                                                        nullptr);
+        if (gv_result) {
+            if (g_variant_is_of_type(gv_result, G_VARIANT_TYPE_TUPLE) && 1 == g_variant_n_children(gv_result)) {
+                gchar* gchar_result;
+                g_variant_get(gv_result, "(s)", &gchar_result);
+                result.assign(gchar_result);
+                g_free(gchar_result);
+                // strip enclosing ""
+                if ('"' == result.front() && '"' == result.back()) {
+                    result.assign(result, 1, result.size() - 2);
+                }
+                SYSLOG(Logging::Notification, (_T("Config value for %s : %s"), key.c_str(), result.c_str()));
+            } else {
+                SYSLOG(Logging::Error, (_T("Unexpected result type: %s"), g_variant_get_type_string(gv_result)));
+            }
+            g_variant_unref(gv_result);
+        } else {
+            SYSLOG(Logging::Error, (_T("g_dbus_proxy_call_sync result is null!")));
+        }
+        g_object_unref(proxy);
+    } else {
+        SYSLOG(Logging::Error, (_T("Failed to get DBus proxy!")));
+    }
+    return result;
+}
+
+
 
 } // namespace
 
@@ -758,6 +808,8 @@ static GSourceFuncs _handlerIntervention =
     private:
         WebKitImplementation(const WebKitImplementation&) = delete;
         WebKitImplementation& operator=(const WebKitImplementation&) = delete;
+
+        std::string _bootUrl;
 
     public:
         WebKitImplementation()
@@ -1749,6 +1801,12 @@ static GSourceFuncs _handlerIntervention =
         {
             TRACE_L1("%s", url.c_str());
 
+            bool isCurrentUrlBootUrl = urlValue() == _bootUrl;
+            bool isNewUrlBootUrl = url == _bootUrl;
+            if(!isCurrentUrlBootUrl && isNewUrlBootUrl && !_bootUrl.empty()) {
+                ODH_WARNING("WPE0040", WPE_CONTEXT_WITH_URL(url.c_str()), "New URL: %s", url.c_str());
+            }
+
             urlValue(url);
 
             if(!navigationStart)
@@ -2070,6 +2128,8 @@ static GSourceFuncs _handlerIntervention =
             _service = service;
 
             _dataPath = service->DataPath();
+
+            _bootUrl = getMainConfigValue("app.metroBootPath");
 
             string configLine = service->ConfigLine();
             Core::OptionalType<Core::JSON::Error> error;

@@ -132,6 +132,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(GLIB REQUIRED)
+find_package(DBus REQUIRED)
 find_package(WPEWebKit REQUIRED)
 find_package(WPEBackend REQUIRED)
 find_package(OpenSSL REQUIRED)
@@ -188,6 +189,8 @@ target_include_directories(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
         ${GLIB_INCLUDE_DIRS}
         ${LIBSOUP_INCLUDE_DIRS}
         ${OPENSSL_INCLUDE_DIRS}
+        ${DBUS_INCLUDE_DIR}
+        ${DBUS_ARCH_INCLUDE_DIR}
 )
 
 target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
@@ -199,6 +202,7 @@ target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
         ${OPENSSL_LIBRARIES}
         ${ODHERR}
         Threads::Threads
+        dbus-1
 )
 
 if(WPE_WEBKIT_DEPRECATED_API)
