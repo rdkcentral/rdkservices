@@ -147,7 +147,7 @@ namespace WPEFramework
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS, dsHdmiSignalStatusEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_CONTENT_TYPE, dsHdmiContentTypeEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE, dsHdmiAviContentTypeEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS, dsHdmiGameFeatureStatusEventHandler) );
             }
         }
@@ -162,7 +162,7 @@ namespace WPEFramework
 		IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
 		IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
 		IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS, dsHdmiGameFeatureStatusEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_CONTENT_TYPE,dsHdmiContentTypeEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE,dsHdmiAviContentTypeEventHandler) );
 
             }
 
@@ -683,19 +683,19 @@ namespace WPEFramework
                 HdmiInput::_instance->hdmiInputALLMChange(hdmi_in_port, allm_mode);
             }
         }
-        void HdmiInput::dsHdmiContentTypeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        void HdmiInput::dsHdmiAviContentTypeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             if(!HdmiInput::_instance)
                 return;
 
-            if (IARM_BUS_DSMGR_EVENT_HDMI_IN_CONTENT_TYPE == eventId)
+            if (IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE == eventId)
             {
                 IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                 int hdmi_in_port = eventData->data.hdmi_in_content_type.port;
-                bool content_type = eventData->data.hdmi_in_content_type.content_type;
-                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_CONTENT_TYPE  event  port: %d, Content Type : %d", hdmi_in_port,content_type);
+                bool avi_content_type = eventData->data.hdmi_in_content_type.aviContentType;
+                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE  event  port: %d, Content Type : %d", hdmi_in_port,content_type);
 
-                HdmiInput::_instance->hdmiInputContentTypeChange(hdmi_in_port, content_type);
+                HdmiInput::_instance->hdmiInputAviContentTypeChange(hdmi_in_port, avi_content_type);
             }
         }
 
@@ -709,14 +709,13 @@ namespace WPEFramework
             sendNotify(HDMIINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED, params);
         }
 
-        void HdmiInput::hdmiInputContentTypeChange( int port , int content_type)
+        void HdmiInput::hdmiInputAviContentTypeChange( int port , int content_type)
         {
             JsonObject params;
             params["id"] = port;
-            params["Feature"] = "FMM";
-            params["contentType"] = content_type;
+            params["aviContentType"] = content_type;
 
-            sendNotify(HDMIINPUT_EVENT_ON_CONTENT_TYPE_CHANGED, params);
+            sendNotify(HDMIINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED, params);
         }
 
 	uint32_t HdmiInput::getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response)
