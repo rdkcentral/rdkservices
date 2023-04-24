@@ -33,6 +33,12 @@
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
 #define HDMI_HOT_PLUG_EVENT_DISCONNECTED 1
 
+#define HDMICECSINK_CALLSIGN "org.rdk.HdmiCecSink"
+#define HDMICECSINK_CALLSIGN_VER HDMICECSINK_CALLSIGN".1"
+#define TVSETTINGS_CALLSIGN "org.rdk.tv.ControlSettings"
+#define TVSETTINGS_CALLSIGN_VER TVSETTINGS_CALLSIGN".2"
+
+
 #define HDMIINPUT_METHOD_GET_HDMI_INPUT_DEVICES "getHDMIInputDevices"
 #define HDMIINPUT_METHOD_WRITE_EDID "writeEDID"
 #define HDMIINPUT_METHOD_READ_EDID "readEDID"
@@ -45,12 +51,14 @@
 #define HDMIINPUT_METHOD_SCALE_HDMI_INPUT "setVideoRectangle"
 #define HDMIINPUT_METHOD_SUPPORTED_GAME_FEATURES "getSupportedGameFeatures"
 #define HDMIINPUT_METHOD_GAME_FEATURE_STATUS "getHdmiGameFeatureStatus"
+#define HDMIINPUT_METHOD_GET_LOW_LATENCY_MODE "getTVLowLatencyMode"
 
 #define HDMIINPUT_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define HDMIINPUT_EVENT_ON_SIGNAL_CHANGED "onSignalChanged"
 #define HDMIINPUT_EVENT_ON_STATUS_CHANGED "onInputStatusChanged"
 #define HDMIINPUT_EVENT_ON_VIDEO_MODE_UPDATED "videoStreamInfoUpdate"
 #define HDMIINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED "hdmiGameFeatureStatusUpdate"
+#define HDMIINPUT_METHOD_GET_AV_LATENCY "getAVLatency"
 
 // TODO: remove this
 #define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
@@ -87,7 +95,7 @@ namespace WPEFramework
         : PluginHost::JSONRPC()
         {
             HdmiInput::_instance = this;
-
+            m_tv_client = nullptr;
             //InitializeIARM();
 
             CreateHandler({2});
@@ -105,14 +113,23 @@ namespace WPEFramework
 
             registerMethod(HDMIINPUT_METHOD_SUPPORTED_GAME_FEATURES, &HdmiInput::getSupportedGameFeatures, this);
             registerMethod(HDMIINPUT_METHOD_GAME_FEATURE_STATUS, &HdmiInput::getHdmiGameFeatureStatusWrapper, this);
-        }
+        
+	    registerMethod(HDMIINPUT_METHOD_GET_AV_LATENCY, &HdmiInput::getAVLatency, this);
+            registerMethod(HDMIINPUT_METHOD_GET_LOW_LATENCY_MODE, &HdmiInput::getTVLowLatencyMode, this);
+	}
 
         HdmiInput::~HdmiInput()
         {
         }
 	    
-	const string HdmiInput::Initialize(PluginHost::IShell * /* service */)
+	const string HdmiInput::Initialize(PluginHost::IShell * service)
 	{
+	    ASSERT(service != nullptr);
+            ASSERT(m_service == nullptr);
+
+            m_service = service;
+            m_service->AddRef();
+
   	    HdmiInput::_instance = this;
 	    InitializeIARM();
 
@@ -130,8 +147,11 @@ namespace WPEFramework
             response.ToString(json);
         }
 
-        void HdmiInput::Deinitialize(PluginHost::IShell* /* service */)
+        void HdmiInput::Deinitialize(PluginHost::IShell* service)
         {
+	    ASSERT(service == m_service);
+            m_service->Release();
+            m_service = nullptr;
             HdmiInput::_instance = nullptr;
 
             DeinitializeIARM();
@@ -147,6 +167,8 @@ namespace WPEFramework
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS, dsHdmiGameFeatureStatusEventHandler) );
+		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_AV_LATENCY, dsHdmiAVLatencyEventHandler) );
+		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_TVMGR_NAME,IARM_BUS_TVMGR_EVENT_TV_LOW_LATENCY_MODE, tvLowLatencyModeEventHandler) );
             }
         }
 
@@ -160,7 +182,9 @@ namespace WPEFramework
 		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS) );
 		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE) );
 		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS) );
-            }
+            	IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_AV_LATENCY) );
+	    	IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_TVMGR_NAME,IARM_BUS_TVMGR_EVENT_TV_LOW_LATENCY_MODE) );
+	    }
         }
 
         uint32_t HdmiInput::startHdmiInput(const JsonObject& parameters, JsonObject& response)
@@ -761,6 +785,127 @@ namespace WPEFramework
             }
             return allm;
         }
+	void HdmiInput::getHdmiCecSinkPlugin()
+       {
+
+            if(m_client == nullptr)
+            {
+                string token;
+
+                // TODO: use interfaces and remove token
+                auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+                if (security != nullptr) {
+                    string payload = "http://localhost";
+                    if (security->CreateToken(
+                            static_cast<uint16_t>(payload.length()),
+                            reinterpret_cast<const uint8_t*>(payload.c_str()),
+                            token)
+                        == Core::ERROR_NONE) {
+                        std::cout << "HdmiInput got security token" << std::endl;
+                    } else {
+                        std::cout << "HdmiInput failed to get security token" << std::endl;
+                    }
+                    security->Release();
+                } else {
+                    std::cout << "No security agent" << std::endl;
+                }
+
+                string query = "token=" + token;
+                Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
+                m_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(HDMICECSINK_CALLSIGN_VER), (_T(HDMICECSINK_CALLSIGN_VER)), false, query);
+                LOGINFO("HdmiInput getHdmiCecSinkPlugin init m_client\n");
+            }
+        }
+        void  HdmiInput::dsHdmiAVLatencyEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if(!HdmiInput::_instance)
+                return;
+
+            if (IARM_BUS_DSMGR_EVENT_HDMI_IN_AV_LATENCY == eventId)
+            {
+                   LOGINFO("received the latency mode change event in dsHdmiAVLatencyEventHandler\n");
+                IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                int audio_output_delay = eventData->data.hdmi_in_av_latency.audio_output_delay;
+                int video_latency= eventData->data.hdmi_in_av_latency.video_latency;
+
+                HdmiInput::_instance->hdmiInAVLatencyChange(audio_output_delay,video_latency);
+            }
+        }
+	void HdmiInput::hdmiInAVLatencyChange(int audio_output_delay,int video_latency)
+        {
+
+
+          PluginHost::IShell::state state;
+           if ((getServiceState(m_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+               LOGINFO("%s is active", HDMICECSINK_CALLSIGN);
+
+               getHdmiCecSinkPlugin();
+               if (!m_client) {
+                   LOGERR("HdmiCecSink Initialisation failed\n");
+               }
+               else {
+                   JsonObject hdmiCecSinkResult;
+                   JsonObject param;
+
+                                       param["audio_output_delay"] = audio_output_delay;
+                                       param["video_latency"] = video_latency;
+                   LOGINFO("latency: %d : %d\n",audio_output_delay,video_latency);
+                                      m_client->Invoke<JsonObject, JsonObject>(2000, "Report_AudioVideoLatency", param, hdmiCecSinkResult);
+                   if (!hdmiCecSinkResult["success"].Boolean()) {
+                       LOGERR("HdmiCecSink Plugin returned error\n");
+                   }
+               }
+           }
+           else {
+               LOGERR("HdmiCecSink plugin not ready\n");
+           }
+
+       }
+       
+       void HdmiInput::tvLowLatencyChange(bool low_latency)
+       {
+
+               LOGINFO("Entered tvLowLatencyChange:%d\n",low_latency);
+               PluginHost::IShell::state state;
+            if ((getServiceState(m_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+                LOGINFO("%s is active", HDMICECSINK_CALLSIGN);
+
+                getHdmiCecSinkPlugin();
+                if (!m_client) {
+                    LOGERR("HdmiCecSink Initialisation failed\n");
+                }
+                else {
+                    JsonObject hdmiCecSinkResult;
+                    JsonObject param;
+
+                    param["lowLatencyMode"] = low_latency;
+                   LOGINFO("reporting hdmicecsink with value:%d\n",low_latency);
+                    m_client->Invoke<JsonObject, JsonObject>(2000, "Report_LowLatencyMode", param, hdmiCecSinkResult);
+                    if (!hdmiCecSinkResult["success"].Boolean()) {
+                        LOGERR("HdmiCecSink Plugin returned error\n");
+                    }
+                }
+            }
+            else {
+                LOGERR("HdmiCecSink plugin not ready\n");
+            }
+       }
+        
+        void  HdmiInput::tvLowLatencyModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            LOGINFO("Entered in tvLowLatencyModeEventHandler\n");
+           if(!HdmiInput::_instance)
+                return;
+
+            if (IARM_BUS_TVMGR_EVENT_TV_LOW_LATENCY_MODE == eventId)
+            {
+
+               IARM_Bus_TVMgr_EventData_t *eventData = (IARM_Bus_TVMgr_EventData_t *)data;
+                bool lowLatencyMode = eventData->data.mode.low_latency_mode;
+               LOGINFO("calling tvLowLatencyChange with value: %d\n",lowLatencyMode);
+                HdmiInput::_instance->tvLowLatencyChange(lowLatencyMode);
+            }
+        }
 
         uint32_t HdmiInput::getRawHDMISPDWrapper(const JsonObject& parameters, JsonObject& response)
         {
@@ -888,6 +1033,142 @@ namespace WPEFramework
             }
             return spdbase64;
         }
+       uint32_t HdmiInput::getAVLatency(const JsonObject& parameters, JsonObject& response)
+       {
+               int audio_output_delay = 0;
+               int video_latency = 0;
+
+                       LOGINFO("calling HdmiInput::getHdmiDAL_AudioVideoLatency \n");
+               try
+               {
+                       device::HdmiInput::getInstance().getAVLatency(&audio_output_delay,&video_latency);
+                       LOGINFO("HdmiInput::getHdmiDAL_AudioVideoLatency Audio Latency: %d, Video Latency: %d\n", audio_output_delay,video_latency);
+                       response["AudioLatency"] = audio_output_delay;
+                       response["VideoLatency"] = video_latency;
+                       returnResponse(true);
+               }
+               catch(const device::Exception& err)
+               {
+                       std::string api = "getHdmiDAL_AudioVideoLatency";
+                        LOG_DEVICE_EXCEPTION1(std::string(api));
+                       response["message"] = "Invalid response from getHdmiDAL_AudioVideoLatency";
+                       LOGINFO("ERROR:HdmiInput::getHdmiDAL_AudioVideoLatency Audio Latency: %d, Video Latency: %d\n", audio_output_delay,video_latency);
+                       returnResponse(false);
+               }
+
+       }
+       	   uint32_t HdmiInput::getServiceState(PluginHost::IShell* shell, const string& callsign, PluginHost::IShell::state& state)
+            {
+                   LOGINFO("entering getServiceState\n");
+                uint32_t result;
+                auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
+               LOGINFO("received interface:\n");
+
+                if (interface == nullptr) {
+                    result = Core::ERROR_UNAVAILABLE;
+                    std::cout << "no IShell for " << callsign << std::endl;
+                   LOGINFO("no IShell\n");
+                } else {
+                    result = Core::ERROR_NONE;
+                    state = interface->State();
+                    std::cout << "IShell state " << state << " for " << callsign << std::endl;
+                   LOGINFO("IShell state\n");
+                    interface->Release();
+                }
+               LOGINFO("at the end of getSErviceState\n");
+                return result;
+            }
+        void HdmiInput::getControlSettingsPlugin()
+        {
+           LOGINFO("entering getControlSettingsPlugin\n");
+            if(m_tv_client == nullptr)
+            {
+                   LOGINFO("in if case\n");
+                string token;
+
+                // TODO: use interfaces and remove token
+                auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+                LOGINFO("received security code\n");
+				if (security != nullptr) {
+                    string payload = "http://localhost";
+                    if (security->CreateToken(
+                            static_cast<uint16_t>(payload.length()),
+                            reinterpret_cast<const uint8_t*>(payload.c_str()),
+                            token)
+                        == Core::ERROR_NONE) {
+                        std::cout << "HdmiInput got security token" << std::endl;
+                    } else {
+                        std::cout << "HdmiInput failed to get security token" << std::endl;
+                    }
+                    security->Release();
+                } else {
+                    std::cout << "No security agent" << std::endl;
+                }
+
+                string query = "token=" + token;
+                Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
+                m_tv_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(TVSETTINGS_CALLSIGN_VER), (_T(TVSETTINGS_CALLSIGN_VER)), false, query);
+                LOGINFO("HdmiInput getControlSettingsPlugin init m_tv_client\n");
+            }
+        }
+ 	
+       	uint32_t HdmiInput::getTVLowLatencyMode(const JsonObject& parameters, JsonObject& response)
+        {
+            PluginHost::IShell::state state;
+            LOGINFOMETHOD();
+            if ((getServiceState(m_service, TVSETTINGS_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+                       {
+                LOGINFO("%s is active", TVSETTINGS_CALLSIGN);
+
+               getControlSettingsPlugin();
+               if(!m_tv_client)
+               {
+                       LOGERR("TV SEttings Initialisation failed\n");
+               }
+               else{
+
+                               JsonObject result;
+                               JsonObject param;
+
+
+                               int llmode = 0;
+                               m_tv_client->Invoke<JsonObject, JsonObject>(2000, "getLowLatencyState", param, result);
+
+                               if(result["success"].Boolean())
+                               {
+                                       string value = result.HasLabel("lowLatencyState") ? result["lowLatencyState"].String() : "";
+                                       llmode = stoi(value);
+
+                                       LOGINFO("value of the result: %d\n",llmode);
+
+                                       if(llmode){
+                                               response["lowLatencyMode"] = true;
+                                               LOGINFO("Low Latency Mode is enabled\n");
+                                               returnResponse(true);
+                                        }
+                                        else{
+                                               response["lowLatencyMode"] = false;
+                                               LOGINFO("Low Latency Mode is disabled\n");
+                                               returnResponse(true);
+                                        }
+                               }
+                               else{
+
+                                       LOGERR("control settings Plugin returned error\n");
+                                       returnResponse(false);
+
+                               }
+                       }
+                       else
+                       {
+                               LOGERR("control settings Plugin not ready\n");
+                               returnResponse(false);
+                       }
+
+               returnResponse(true);
+       }
+       }
+
 
         uint32_t HdmiInput::setEdidVersionWrapper(const JsonObject& parameters, JsonObject& response)
         {
