@@ -37,16 +37,11 @@ namespace {
         if (wifiInterface.empty()) {
             return "";
         }
-        std::string netid;
-        if (DBusClient::getInstance().networkconfig1_GetParam(wifiInterface, "netid", netid)) {
-            std::map<std::string, std::string> params;
-            if (DBusClient::getInstance().wifimanagement1_GetSSIDParams(wifiInterface, netid, params)) {
-                return WifiManagerState::quality2decibels(params["strength"]);
-            } else {
-                LOGWARN("failed to retrieve ssid '%s' params", netid.c_str());
-            }
+        std::string result = "";
+        if (DBusClient::getInstance().networkconfig1_GetParam(wifiInterface, "wifi.rssi", result)) {
+            return result;
         } else {
-            LOGWARN("failed to retrieve wifi netid param");
+            LOGWARN("failed to retrieve wifi.rssi param");
         }
         return "";
     }

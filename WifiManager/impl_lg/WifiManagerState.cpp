@@ -130,19 +130,17 @@ bool WifiManagerState::fetchSsid(std::string &out_ssid)
    return ret;
 }
 
-// compare onemw-src/networking/om-netconfig/src/wpa/WifiUtils.cpp, WifiUtils::decibels2quality(int aDB), where lQuality = 2 * (aDB + 100), for aDB in (-100,-50)
-std::string WifiManagerState::quality2decibels(const std::string& qualityStr) {
-   if (qualityStr.empty()) {
-      return "";
+std::string WifiManagerState::getWifiRssi()
+{
+   std::string result = "";
+   const std::string& wifiInterface = WifiManagerState::getWifiInterfaceName();
+   if (wifiInterface.empty()) {
+      return result;
    }
-   float quality = std::stof(qualityStr);
-   if (quality >= 100) {
-      return "-50.0";
-   } else if (quality <= 0) {
-      return "-100.0";
-   } else {
-      return std::to_string((quality - 200)/2.f);
+   if (!DBusClient::getInstance().networkconfig1_GetParam(wifiInterface, "wifi.rssi", result)) {
+      LOGWARN("failed to retrieve wifi.rssi for interface '%s' ", wifiInterface.c_str());
    }
+   return result;
 }
 
 bool WifiManagerState::getWifiParams(std::map<std::string, std::string> &params)
@@ -180,7 +178,7 @@ uint32_t WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonOb
          response["rate"] = string(""); // no mapping
          response["noise"] = string(""); // no mapping
          response["security"] = params["security"];
-         response["signalStrength"] = quality2decibels(params["strength"]);
+         response["signalStrength"] = getWifiRssi();
          response["frequency"] = params["band"];
       } else {
          response["bssid"] = string("");
