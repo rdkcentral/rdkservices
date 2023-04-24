@@ -343,6 +343,7 @@ public:
     uint32_t SoundMode(Exchange::Dolby::IOutput::SoundModes& mode /* @out */) const override
     {
         /* For implementation details, please refer to Flow diagram attached in RDKTV-10066*/
+        LOGINFO("Amit SoundMode ");
 
         string audioPort;
         if (device::Host::getInstance().isHDMIOutPortPresent())
@@ -352,6 +353,8 @@ public:
 
         device::AudioStereoMode soundmode = device::AudioStereoMode::kStereo;
         mode = UNKNOWN;
+        LOGINFO("Amit SoundMode port: %s ",audioPort.c_str());
+        LOGINFO("Amit mode : %d ",static_cast<int>(mode));
 
         try
         {
@@ -376,17 +379,21 @@ public:
                     break;
                 }
             }
-
+            LOGINFO("Amit SoundMode port: %s ",audioPort.c_str());
             /*When we reach here, we have determined the audio output port correctly. Now, check the sound mode on that port */
             device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+            LOGINFO("Amit aPort.isConnected :  %d ",aPort.isConnected());
             if (aPort.isConnected())
             {
                 soundmode = aPort.getStereoMode();
+                LOGINFO("Amit soundmode : %s ",soundmode.toString().c_str());
                 if (soundmode == device::AudioStereoMode::kSurround) mode = SURROUND;
                 else if(soundmode == device::AudioStereoMode::kStereo) mode = STEREO;
                 else if(soundmode == device::AudioStereoMode::kMono) mode = MONO;
                 else if(soundmode == device::AudioStereoMode::kPassThru) mode = PASSTHRU;
                 else mode = UNKNOWN;
+        
+                LOGINFO("Amit xxx mode : %d ",static_cast<int>(mode));
 
                 /* Auto mode applicable for HDMI Arc and SPDIF */
                 if((aPort.getType().getId() == device::AudioOutputPortType::kARC || aPort.getType().getId() == device::AudioOutputPortType::kSPDIF)
@@ -400,6 +407,7 @@ public:
         {
             TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
         }
+        LOGINFO("Amit abc mode : %d ",static_cast<int>(mode));
 
         return (Core::ERROR_NONE);
     }
