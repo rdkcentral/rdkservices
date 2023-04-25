@@ -2,7 +2,7 @@
 <a name="VoiceControl_Plugin"></a>
 # VoiceControl Plugin
 
-**Version: [1.3.0](https://github.com/rdkcentral/rdkservices/blob/main/VoiceControl/CHANGELOG.md)**
+**Version: [1.4.0](https://github.com/rdkcentral/rdkservices/blob/main/VoiceControl/CHANGELOG.md)**
 
 A org.rdk.VoiceControl plugin for Thunder framework.
 
@@ -54,6 +54,7 @@ VoiceControl interface methods:
 | [voiceSessionTypes](#voiceSessionTypes) | Retrieves the types of voice sessions which are supported by the platform |
 | [voiceSessionRequest](#voiceSessionRequest) | Requests a voice session using the specified request type and optional parameters |
 | [voiceSessionTerminate](#voiceSessionTerminate) | Terminates a voice session using the specified session identifier |
+| [voiceSessionAudioStreamStart](#voiceSessionAudioStreamStart) | Starts a subsequent audio stream for the voice session indicated by the session identifier |
 | [voiceStatus](#voiceStatus) | Returns the current status of the RDK voice stack |
 
 
@@ -461,6 +462,56 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.VoiceControl.voiceSessionTerminate",
+    "params": {
+        "sessionId": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="voiceSessionAudioStreamStart"></a>
+## *voiceSessionAudioStreamStart*
+
+Starts a subsequent audio stream for the voice session indicated by the session identifier.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.sessionId | string | The session identifier of the session from the [onSessionBegin](#onSessionBegin) event |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.VoiceControl.voiceSessionAudioStreamStart",
     "params": {
         "sessionId": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
     }

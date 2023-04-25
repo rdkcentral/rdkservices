@@ -49,7 +49,13 @@ namespace WPEFramework {
             uint32_t setReportProfileStatus(const JsonObject& parameters, JsonObject& response);
             uint32_t logApplicationEvent(const JsonObject& parameters, JsonObject& response);
             uint32_t uploadReport(const JsonObject& parameters, JsonObject& response);
+            uint32_t abortReport(const JsonObject& parameters, JsonObject& response);
             //End methods
+
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+            void InitializeIARM();
+            void DeinitializeIARM();
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
         public:
             Telemetry();
@@ -57,6 +63,9 @@ namespace WPEFramework {
             virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override { return {}; }
+
+            uint32_t UploadReport();
+            uint32_t AbortReport();
 
             BEGIN_INTERFACE_MAP(Telemetry)
             INTERFACE_ENTRY(PluginHost::IPlugin)
