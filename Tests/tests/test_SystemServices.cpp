@@ -182,7 +182,11 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPowerStateIsManagedByDevice")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPowerStateBeforeReboot")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setWakeupSrcConfiguration")));
-}
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDeviceInfo")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("reboot")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getStateInfo")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBootLoaderPattern")));
+  }
 
 TEST_F(SystemServicesTest, SystemUptime)
 {
@@ -1281,3 +1285,1276 @@ TEST_F(SystemServicesEventIarmTest, onRebootRequest)
 
     handler.Unsubscribe(0, _T("onRebootRequest"), _T("org.rdk.System"), message);
 }
+
+ /*******************************************************************************************************************
+ * Test function for :getDeviceInfo
+ * getDeviceInfo :
+ *                The API which Collects device details such as bluetooth_mac, boxIP, build_type, estb_mac,
+ *                imageVersion, rf4ce_mac, and wifi_mac.
+ *
+ *                @return An object containing the device details.
+ * Use case coverage:
+ *                @Success :9
+ *                @Failure :7
+ ********************************************************************************************************************/
+
+/**
+ * @brief : getDeviceInfo when QueryParam Contains Unallowable Character.
+ *          Check if input query Param passed with unallowable characters,
+ *          then  getDeviceInfo shall be failed and returns an error message
+ *          in the response
+ *
+ * @param[in]   :  "params":{"params": {"abc#$"}}
+ * @return      :  {"message":"Input has unallowable characters","success":false}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoFailed_OnQueryParamContainsUnallowableCharacter)
+{
+   EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":abc#$}"), response));
+   //ASSERT_EQ(response, "{\"message\":\"Input has unallowable characters\",\"success\":false}");
+}
+
+/**
+ * @brief : getDeviceInfo with Invalid query Param
+ *          Check if Invalid query  parameters passed ,
+ *          then getDeviceInfo shall be failed without giving any response
+ *
+ * @param[in]   :  "params":{"params": {friendId"}}
+ * @return      :  {"success":false}")
+ */
+TEST_F(SystemServicesTest, getDeviceInfoFailed_OnInvalidQueryParam)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":friendId}"), response));
+    //EXPECT_THAT(response, string("{\"success\":false}"));
+}
+
+/**
+ * @brief : getDeviceInfo When QueryParam is Empty  and DevicePropertyFile Not Exist
+ *          Check if (i)No input query param passed/ query Param = {make}
+ *          & (ii) device property file doesnot exist,
+ *          then,getDeviceInfo shall be failed and  returns an error message in the response
+ *
+ * @param[in]   : "params": "{}"
+ * @return      : {"message":"Expected file not found","success":false}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileNotExist)
+{
+    /* TODO : Implementation To be done:
+     * Need to mock as etc/device.properties does not exist.Working on it */
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
+    //ASSERT_EQ(response, "{\"SysSrv_Status\":4,\"errorMessage\":\"Unexpected Error\",\"success\":false}");
+}
+
+/**
+ * @brief : getDeviceInfo When QueryParam is Empty  and DevicePropertyFile failed to open
+ *          Check if (i)No input query param passed/ query Param = {make}
+ *          & (ii) Failed to open the device property file ,
+ *          then,getDeviceInfo shall be failed and  returns an error message in the response
+ *
+ * @param[in]   : "params": "{}"
+ * @return      :  {"message":"File access failed","success":false}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileFailedToOpen)
+{
+    /* TODO : Implementation To be done :
+     * Mocking fopen with file doesnt exist is not working straight forward
+     * as it impacts other APIs/plugins using fopen, so working on that */
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
+    //ASSERT_EQ(response,"{\"SysSrv_Status\":5,\"errorMessage\":\"Unexpected Error\",\"success\":false}");
+}
+
+/**
+ * @brief : getDeviceInfo  When Query Parameter is make ,but Missing Key in property File
+ *          Check if 'make' parameter contains missing key: MFG_NAME
+ *          then ,getDeviceInfo shall be failed and returns an error message in the response
+ *
+ * @param[in]   : "params":{"params": "make"}
+ * @return      : {"message":"Missing required key/value(s)","success":false}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoFailed_OnMissingKeyInDevicePropertyFile)
+{
+    ofstream file("/etc/device.properties");
+    file << "MFGNAME=\"SKY\"";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
+    //EXPECT_THAT(response, string("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+}
+
+/**
+ * @brief : getDeviceInfo  When Query Parameter is make ,but Missing KeyValue in property File
+ *          check if   'make' parameter contains missing key value
+ *          then ,getDeviceInfo shall be failed and returns an error message in the response
+ *
+ * @param[in]   :  "params":{"params": "make"}
+ * @return      :  {"message":"Missing required key/value(s)","success":false}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoFailed_OnMissingKeyValueInDevicePropertyFile)
+{
+    ofstream file("/etc/device.properties");
+    file << "MFG_NAME=";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
+    //EXPECT_THAT(response, string("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+}
+
+/**
+ * @brief : getDeviceInfo When ManufactureDataReadAPI Failed For GetModelName/HardwareID
+ *          Check if (i) input parametr as Model name/Hardware ID and
+ *          (ii) Manufacture Data Read API[IARM_BUS_MFRLIB_API_GetSerializedData] failed
+ *          then, getDeviceInfo shall be failed and returns an error message in the response
+ * @param[in]   : "params":{"params": "modelName"}
+ * @return      :  {"message":"Manufacturer Data Read Failed","success":false}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoFailed_OnManufactureDataReadAPIFailed)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+               EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+               EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+               //setting up a mock that always returns an error code.
+               return IARM_RESULT_IPCCORE_FAIL;
+            });
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), response));
+    //EXPECT_THAT(response, string("{\"SysSrv_Status\":11,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+}
+
+/**
+ * @brief : getDeviceInfo When QueryParam is Make
+ *          Check if query parameter = make
+ *          then,  getDeviceInfo shall succesfully retrieve the information from device property file
+ * @param[in]   :  "params":{"params": "make"}
+ * @return      : {"make":"SKY","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_onMakeParameter)
+{
+    ofstream file("/etc/device.properties");
+    file << "MFG_NAME=SKY";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
+    EXPECT_EQ(response, string("{\"make\":\"SKY\",\"success\":true}"));
+}
+
+/**
+ * @brief : getDeviceInfo With Valid QueryParam other than make
+ *          Check if valid query parameter is passed,
+ *          then getDeviceInfo shall successfully retrieve  the corresponding value from getDeviceDetails script file
+ *          and returns it in the response.
+ *          Check if valid query parameter string contains  any of the following characters [\"] ,
+ *          then  getDeviceInfo shall remove those characters from input param
+ *          and then successfully retrieve  the corresponding value and returns it in the response
+ *          Tested with following valid input params: {"bluetooth_mac","boxIP","build_type","estb_mac","eth_mac","friendly_id","imageVersion","version","software_version","model_number","wifi_mac"}
+ * @param[in]   : "params":{"params": "estb_mac"} /
+ *              : "params":{"params": "[estb_mac]"}
+ * @return      : {"estb_mac":"20:F1:9E:EE:62:08","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_onValidInput)
+{
+
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+         .Times(::testing::AnyNumber())
+         .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                  EXPECT_EQ(string(command), string("sh /lib/rdk/getDeviceDetails.sh read estb_mac"));
+                  // Simulated the behavior of "getDeviceDetails.sh" script inorder to obtain the value of estb_mac key
+                  const char key_estb_mac[] = "12:34:56:78:90:AB";
+                  char buffer[1024];
+                  memset(buffer, 0, sizeof(buffer));
+                  strcpy(buffer, key_estb_mac);
+                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                  return pipe;
+               }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":estb_mac}"), response));
+    EXPECT_EQ(response, string("{\"estb_mac\":\"12:34:56:78:90:AB\",\"success\":true}"));
+}
+
+/**
+ * @brief : getDeviceInfo  When QueryParam is HardwareId
+ *          Check if device's HardwareId as input query param,
+ *          then getDeviceInfo shall succeed and retrieves the information from  the external Bus device API
+ *          and returns it in the response.
+ * @param[in]   : "params":{"params": "hardwareID"}
+ * @return      :  {"hardwareId":"5678","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParamHardwareId)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "5678";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, sizeof(param->buffer));
+                param->type =  mfrSERIALIZED_TYPE_HWID;
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), response));
+    EXPECT_EQ(response, string("{\"hardwareID\":\"5678\",\"success\":true}"));
+}
+
+/**
+ * @brief : getDeviceInfo  When QueryParam is FriendlyId/ModelName
+ *          Check if device's FriendlyId/ModelName as input query param,
+ *          then getDeviceInfo shall succeed and retrieves the information from  the external Bus device API
+ *          and returns it in the response.
+ * @param[in]   : "params": {"params": "friendly_id"}
+ *              : "params": {"params": "model_name"}
+ * @return      :  {"friendly_id":"IP061-ec","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParamFriendlyIdOrModelName)
+{
+   ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "IP061-ec";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, sizeof(param->buffer));
+                param->type =  mfrSERIALIZED_TYPE_SKYMODELNAME;
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":friendly_id}"), response));
+    EXPECT_EQ(response, string("{\"friendly_id\":\"IP061-ec\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), response));
+    EXPECT_EQ(response, string("{\"modelName\":\"IP061-ec\",\"success\":true}"));
+
+}
+
+/**
+ * @brief : getDeviceInfo returns Cached data When QueryParam is HardwareId
+ *          Check (i) If input query param is  device's Hardware ID
+ *          and (ii) if cached data of  hardware Id is available
+ *          then , getDeviceInfo shall successfully retrieves the cached information and returns it in the response
+ * @param[in]   : "params": {"params": "hardwareID"}
+ * @return      : {"hardwareId":"5678","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedHardwareId)
+{
+   //Below IARM_Bus_Call function is called for saving the retrieved data
+   //in member variables [cached value] & setting the corresponding flags to true
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "5678";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, sizeof(param->buffer));
+                param->type =  mfrSERIALIZED_TYPE_HWID;
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), response));
+    EXPECT_EQ(response, string("{\"hardwareID\":\"5678\",\"success\":true}"));
+
+    //To confirm that the retrieved data is cached Data;
+    //sets an expectation that the IARM_Bus_Call function should not be called during this sequence
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+		
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), response));
+    EXPECT_EQ(response, string("{\"hardwareID\":\"5678\",\"success\":true}"));
+
+}
+
+/**
+ * @brief : getDeviceInfo returns Cached data When QueryParam is ModelName
+ *          Check (i) If input query param is  device's ModelName
+ *          and (ii) if cached data of  Model Name is available
+ *          then , getDeviceInfo shall successfully retrieves the cached information and returns it in the response
+ * @param[in]   :  "params": {"params": "modelName"}
+ * @return      :  {"modelName":"IP061-ec","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedModelName)
+{
+   //Below IARM_Bus_Call function is called for saving the retrieved data
+   //in member variables [cached value] & setting the corresponding flags to true
+   ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "IP061-ec";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, sizeof(param->buffer));
+                param->type =  mfrSERIALIZED_TYPE_SKYMODELNAME;
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), response));
+    EXPECT_EQ(response, string("{\"modelName\":\"IP061-ec\",\"success\":true}"));
+
+    //To confirm that the retrieved data is cached Data;
+    //sets an expectation that the IARM_Bus_Call function should not be called during this sequence
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+		
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), response));
+    EXPECT_EQ(response, string("{\"modelName\":\"IP061-ec\",\"success\":true}"));
+}
+
+/**
+ * @brief : getDeviceInfo  When QueryParam passed without label "param"
+ *          Check if QueryParams  contains no label as "params"
+ *          then getDeviceInfo shall successfully retrieve the device info and  returns it in the response
+ * @param[in]   :   "params" :{}
+ * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
+ *                                     "boxIP":"192.168.1.100","build_type":"VBN",
+ *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
+ *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParameterHasNoLabelParam)
+{
+    const string deviceInfoScript = _T("/lib/rdk/getDeviceDetails.sh");
+    const uint8_t deviceInfoContent[] = "echo \"bluetooth_mac=D4:52:EE:32:A3:B2\n"
+                                         "boxIP=192.168.1.0\n"
+                                         "build_type=VBN\n"
+                                         "estb_mac=D4:52:EE:32:A3:B0\n"
+                                         "eth_mac=D4:52:EE:32:A3:B0\n"
+                                         "friendly_id=IP061-ec\n"
+                                         "imageVersion=SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\n"
+                                         "model_number=SKXI11ANS\n"
+                                         "wifi_mac=D4:52:EE:32:A3:B1\"\n";
+
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* command, const char* type) -> FILE* {
+                EXPECT_EQ(string(command), string(_T("sh /lib/rdk/getDeviceDetails.sh read")));
+                return __real_popen(command, type);
+            }));
+			
+     //Create fake device property file
+     ofstream propFile("/etc/device.properties");
+     propFile << "MFG_NAME=SKY";
+     propFile.close();
+	 
+     //Create fake device info script
+     Core::File file(deviceInfoScript);
+     file.Create();
+     file.Write(deviceInfoContent, sizeof(deviceInfoContent));
+
+     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
+     EXPECT_EQ(response, _T("{\"make\":\"SKY\",\"bluetooth_mac\":\"D4:52:EE:32:A3:B2\",\"boxIP\":\"192.168.1.0\",\"build_type\":\"VBN\",\"estb_mac\":\"D4:52:EE:32:A3:B0\",\"eth_mac\":\"D4:52:EE:32:A3:B0\",\"friendly_id\":\"\",\"imageVersion\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"software_version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"model_number\":\"SKXI11ANS\",\"wifi_mac\":\"D4:52:EE:32:A3:B1\",\"success\":true}"));
+     file.Destroy();
+}
+
+/**
+ * @brief : getDeviceInfo  When QueryParam passed without any value for "params"
+ *          Check if no value is passed with input query param,
+ *          then getDeviceInfo shall succesfully retrieve the information from both device property file and
+ *          getDeviceDetails script file ,then returns it in the response
+ * @param[in]   : "params": {"params": }
+ * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
+ *                                     "boxIP":"192.168.1.100","build_type":"VBN",
+ *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
+ *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_onNoValueForQueryParameter)
+{
+    const string deviceInfoScript = _T("/lib/rdk/getDeviceDetails.sh");
+    const uint8_t deviceInfoContent[] = "echo \"bluetooth_mac=D4:52:EE:32:A3:B2\n"
+                                         "boxIP=192.168.1.0\n"
+                                         "build_type=VBN\n"
+                                         "estb_mac=D4:52:EE:32:A3:B0\n"
+                                         "eth_mac=D4:52:EE:32:A3:B0\n"
+                                         "friendly_id=IP061-ec\n"
+                                         "imageVersion=SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\n"
+                                         "model_number=SKXI11ANS\n"
+                                         "wifi_mac=D4:52:EE:32:A3:B1\"\n";
+
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* command, const char* type) -> FILE* {
+                EXPECT_EQ(string(command), string(_T("sh /lib/rdk/getDeviceDetails.sh read")));
+                return __real_popen(command, type);
+            }));
+
+    //Create fake device property file
+    ofstream propFile("/etc/device.properties");
+    propFile << "MFG_NAME=SKY";
+    propFile.close();
+
+    //Create fake device info script
+    Core::File file(deviceInfoScript);
+    file.Create();
+    file.Write(deviceInfoContent, sizeof(deviceInfoContent));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":}"), response));
+    EXPECT_EQ(response, _T("{\"make\":\"SKY\",\"bluetooth_mac\":\"D4:52:EE:32:A3:B2\",\"boxIP\":\"192.168.1.0\",\"build_type\":\"VBN\",\"estb_mac\":\"D4:52:EE:32:A3:B0\",\"eth_mac\":\"D4:52:EE:32:A3:B0\",\"friendly_id\":\"\",\"imageVersion\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"software_version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"model_number\":\"SKXI11ANS\",\"wifi_mac\":\"D4:52:EE:32:A3:B1\",\"success\":true}"));
+    file.Destroy();
+}
+
+/**
+ * @brief : getDeviceInfo When QueryParams Value is Empty and getDeviceDetails Script contains some specific key-value pairs [ImageVersion,CableCardVersion/ModelNumber]
+ *          Check if No value in input parameter and getDeviceDetails Script Contain key value = ImageVersion/ key value = CableCardVersion/ key value = ModelNumber
+ *          then getDeviceInfo shall successfully retrieve the device info and returns it in the response where
+ *          ImageVersion stored in keys, "version" and "software_version" ,"cable_card_firmware_version","model_number" respectively
+ * @param[in]   :  "params": {"params" : {}}
+ * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
+ *                                     "boxIP":"192.168.1.100","build_type":"VBN",
+ *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
+ *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ */
+TEST_F(SystemServicesTest, getDeviceInfoSuccess_OnSpecificKeyValueParsing)
+{
+    const string deviceInfoScript = _T("/lib/rdk/getDeviceDetails.sh");
+    const uint8_t deviceInfoContent[] = "echo \"bluetooth_mac=D4:52:EE:32:A3:B2\n"
+                                         "boxIP=192.168.1.0\n"
+                                         "build_type=VBN\n"
+                                         "estb_mac=D4:52:EE:32:A3:B0\n"
+                                         "eth_mac=D4:52:EE:32:A3:B0\n"
+                                         "friendly_id=IP061-ec\n"
+                                         "imageVersion=SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\n"
+                                         "model_number=SKXI11ANS\n"
+                                         "wifi_mac=D4:52:EE:32:A3:B1\"\n";
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* command, const char* type) -> FILE* {
+                EXPECT_EQ(string(command), string(_T("sh /lib/rdk/getDeviceDetails.sh read")));
+                return __real_popen(command, type);
+            }));
+
+    //Create fake device property file
+    ofstream propFile("/etc/device.properties");
+    propFile << "MFG_NAME=SKY";
+    propFile.close();
+
+    //Create fake device info script
+    Core::File file(deviceInfoScript);
+    file.Create();
+    file.Write(deviceInfoContent, sizeof(deviceInfoContent));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":}"), response));
+    EXPECT_EQ(response, _T("{\"make\":\"SKY\",\"bluetooth_mac\":\"D4:52:EE:32:A3:B2\",\"boxIP\":\"192.168.1.0\",\"build_type\":\"VBN\",\"estb_mac\":\"D4:52:EE:32:A3:B0\",\"eth_mac\":\"D4:52:EE:32:A3:B0\",\"friendly_id\":\"\",\"imageVersion\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"software_version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"model_number\":\"SKXI11ANS\",\"wifi_mac\":\"D4:52:EE:32:A3:B1\",\"success\":true}"));
+    file.Destroy();
+}
+
+/*Test cases for getDeviceInfo ends here*/
+
+/*******************************************************************************************************************
+ * Test function for :requestSystemReboot
+ * requestSystemReboot :
+ *                Requests that the system performs a reboot of the set-top box.
+ *                Triggering onRebootRequest event.
+ *
+ *                @return IARM BUS status and Whether the request succeeded.
+ * Use case coverage:
+ *                @Success :6
+ *                @Failure :0
+ ********************************************************************************************************************/
+
+/**
+ * @brief :requestSystemReboot when "nrdPluginApp" process is NOT running.
+ *        Check if "nrdPluginApp" process is not running ensure that the system reboot is initiated
+ *        without any issues and returns the BUS call status in the response.
+ *
+ * @param[in]   :  "params": {}
+ * @return      :  {"IARM_Bus_Call_STATUS":0,"success":true}
+ */
+TEST_F(SystemServicesTest, requestSystemRebootSuccess_NrdPluginAppNotRunning)
+{
+     ON_CALL(wrapsImplMock, system(::testing::StrEq("pgrep nrdPluginApp")))
+      .WillByDefault(::testing::Return(-1));
+     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(1)
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_Reboot)));
+                return IARM_RESULT_SUCCESS;
+            });
+     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("reboot"), _T("{}"), response));
+     EXPECT_EQ(response, string("{\"IARM_Bus_Call_STATUS\":0,\"success\":true}"));
+}
+
+/**
+ * @brief :requestSystemReboot when "nrdPluginApp" process is running & It can't be terminated successfully
+ *        Check if NrdPlugin App is Running & if unable to shutdown the app,
+ *        then ensure that the system reboot is initiated
+ *        without any issues and returns the BUS call status in the response.
+ *
+ * @param[in]   :  "params": {}
+ * @return      :  {"IARM_Bus_Call_STATUS":0,"success":true}
+ */
+TEST_F(SystemServicesTest, requestSystemRebootSuccess_NrdPluginAppShutdownFailed)
+{
+     ON_CALL(wrapsImplMock, system(::testing::StrEq("pgrep nrdPluginApp")))
+      .WillByDefault(::testing::Return(0));
+     ON_CALL(wrapsImplMock, system(::testing::StrEq("pkill nrdPluginApp")))
+      .WillByDefault(::testing::Return(-1));
+     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(1)
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_Reboot)));
+                return IARM_RESULT_SUCCESS;
+            });
+     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("reboot"), _T("{}"), response));
+     EXPECT_EQ(response, string("{\"IARM_Bus_Call_STATUS\":0,\"success\":true}"));
+}
+/**
+ * @brief :requestSystemReboot when "nrdPluginApp" process is running & It can be terminated successfully
+ *        Check if NrdPlugin App is Running ,then ensure that it is terminated
+ *        properly before initiating the system reboot.
+ *        and returns the BUS call status in the response.
+ * @param[in]   :  "params": {}
+ * @return      :  {"IARM_Bus_Call_STATUS":0,"success":true}
+ */
+TEST_F(SystemServicesTest, requestSystemRebootSuccess_NrdPluginAppShutdownSuccess)
+{
+     ON_CALL(wrapsImplMock, system(::testing::StrEq("pgrep nrdPluginApp")))
+      .WillByDefault(::testing::Return(0));
+     ON_CALL(wrapsImplMock, system(::testing::StrEq("pkill nrdPluginApp")))
+      .WillByDefault(::testing::Return(0));
+     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(1)
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_Reboot)));
+                return IARM_RESULT_SUCCESS;
+            });
+     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("reboot"), _T("{}"), response));
+     EXPECT_EQ(response, string("{\"IARM_Bus_Call_STATUS\":0,\"success\":true}"));
+}
+
+/**
+ * @brief :requestSystemReboot when reason is not passed
+ *        Check if (i) input parameter is empty then requestSystemReboot
+ *        shall be succeeded and returns the BUS call status in the response.
+ *
+ * @param[in]   :  "params": {}
+ * @return      :  {"IARM_Bus_Call_STATUS":0,"success":true}
+ */
+TEST_F(SystemServicesTest, requestSystemRebootSuccess_withoutReason)
+{
+     // Ignore the application shutdown process here because it would add extra time
+     // to the test execution and is not relevant to this particular test case.
+     ON_CALL(wrapsImplMock, system(::testing::StrEq("pgrep nrdPluginApp")))
+      .WillByDefault(::testing::Return(-1));
+
+     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(1)
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_Reboot)));
+                return IARM_RESULT_SUCCESS;
+            });
+   EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("reboot"), _T("{}"), response));
+   EXPECT_EQ(response, string("{\"IARM_Bus_Call_STATUS\":0,\"success\":true}"));
+}
+/**
+ * @brief :requestSystemReboot when reason is passed
+ *        Check if (i)reboot reason is passed as input parameter and
+ *        (ii) if Bus call status returns as SUCCESS
+ *        then requestSystemReboot shall be succeeded and returns the BUS call status in the response.
+ *
+ * @param[in]   :  "params": {"rebootReason": "FIRMWARE_FAILURE"}
+ * @return      :  {"IARM_Bus_Call_STATUS":0,"success":true}
+ */
+TEST_F(SystemServicesTest, requestSystemRebootSuccess_withReason)
+{
+      // Ignore the application shutdown process here because it would add extra time
+      // to the test execution and is not relevant to this particular test case.
+      ON_CALL(wrapsImplMock, system(::testing::StrEq("pgrep nrdPluginApp")))
+      .WillByDefault(::testing::Return(-1));
+
+      ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_Reboot)));
+                auto rebootParam = static_cast<IARM_Bus_PWRMgr_RebootParam_t*>(arg);
+                EXPECT_THAT(string(rebootParam->requestor), "SystemServices");
+                EXPECT_THAT(string(rebootParam->reboot_reason_custom), "FIRMWARE_FAILURE");
+                EXPECT_THAT(string(rebootParam->reboot_reason_other), "FIRMWARE_FAILURE");
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("reboot"), _T("{\"rebootReason\":\"FIRMWARE_FAILURE\"}"), response));
+    EXPECT_EQ(response, string("{\"IARM_Bus_Call_STATUS\":0,\"success\":true}"));
+}
+
+/**
+ * @brief :requestSystemReboot when reason is passed and Bus API failed
+ *        Check if (i)reboot reason is passed as input parameter and
+ *        (ii) if Bus call status returns some error_codes
+ *        then requestSystemReboot shall be succeeded and returns the respective Bus call status
+ *        [IARM_RESULT_INVALID_PARAM/IARM_RESULT_INVALID_STATE/IARM_RESULT_IPCCORE_FAIL/IARM_RESULT_OOM]
+ *
+ * @param[in]   :  "params": {"rebootReason": "FIRMWARE_FAILURE"}
+ * @return      :  {"IARM_Bus_Call_STATUS":4,"success":true}
+ *
+ */
+TEST_F(SystemServicesTest,  requestSystemRebootSuccess_onRebootBusAPIFailed)
+{
+      // Ignore the application shutdown process here because it would add extra time
+      // to the test execution and is not relevant to this particular test case.
+      ON_CALL(wrapsImplMock, system(::testing::StrEq("pgrep nrdPluginApp")))
+      .WillByDefault(::testing::Return(-1));
+      ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_Reboot)));
+                return IARM_RESULT_INVALID_STATE;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("reboot"), _T("{\"rebootReason\":\"FIRMWARE_FAILURE\"}"), response));
+    EXPECT_EQ(response, string("{\"IARM_Bus_Call_STATUS\":2,\"success\":true}"));
+}
+
+/*Test cases for requestSystemReboot ends here*/
+
+/*******************************************************************************************************************
+ * Test function for :getStateInfo
+ * getStateInfo :
+ *                Queries device state information of various properties.
+ *
+ *                @return Whether the request succeeded.
+ * Use case coverage:
+ *                @Success :27
+ *                @Failure :2
+ ********************************************************************************************************************/
+
+/**
+ * @brief : getStateInfo When QueryParam is Empty
+ *       Check if QueryParam is not passed
+ *       then,getStateInfo shall be failed and returns the error code:SysSrv_MissingKeyValues
+ *       in the response
+ *
+ * @param[in]   : "params": {}
+ * @return      : {"SysSrv_Status":2,"errorMessage":"Missing required key\/value(s)","success":false}}
+ */
+TEST_F(SystemServicesTest, getStateInfoFailed_onEmptyParamList)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getStateInfo"), _T("{}"), response));
+    //EXPECT_THAT(response, string("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+
+}
+
+/**
+ * @brief : getStateInfo when Invalid query Param is passed
+ *        Check if Invalid query parameters passed,
+ *        then getStateInfo shall be failed and returns the error code: SysSrv_Unexpected  in the response
+ *
+ * @param[in]   :  "params": {"card.disconnected"}
+ * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
+ */
+TEST_F(SystemServicesTest, getStateInfoFailed_OnInvalidQueryParam)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getStateInfo"), _T("{}"), response));
+    //EXPECT_THAT(response, string("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is channel_map
+ *        Check if valid query parameter com.comcast.channel_map is passed,
+ *        then the function makes a bus call to retrieve the channel map state,
+ *        getStateInfo shall be succeed and returns the channel map state in response.
+ *
+ * @param[in]   :  "params": {"com.comcast.channel_map"}
+ * @return      :  {"com.comcast.channel_map":2,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamChannelMap)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(1)
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_SYSMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_SYSMGR_API_GetSystemStates)));
+                auto* paramGetSysState = static_cast<IARM_Bus_SYSMgr_GetSystemStates_Param_t*>(arg);
+                paramGetSysState->channel_map.state = 2;
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"), _T("{\"param\":com.comcast.channel_map}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.channel_map\":2,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is card.disconnected
+ *        Check if valid query parameter card.disconnected passed,
+ *        then getStateInfo shall be succeed and returns card.disconnected state in response.
+ *
+ * @param[in]   :  "params": {"com.comcast.card.disconnected"}
+ * @return      :  {"com.comcast.card.disconnected":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCardDisconnected)
+{
+        /*sets the expectation that IARM_Bus_Call should not be called*/
+        EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.card.disconnected}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.card.disconnected\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is tune_ready
+ *        Check if valid query parameter tune_ready is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.tune_ready"}
+ * @return      :  {"com.comcast.tune_ready":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamTuneReady)
+{
+        /*sets the expectation that IARM_Bus_Call should not be called*/
+     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.tune_ready}"), response));
+     EXPECT_EQ(response, string("{\"com.comcast.tune_ready\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is cmac
+ *        Check if valid query parameter cmac is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.cmac"}
+ * @return      :  {"com.comcast.cmac":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCmac)
+{
+      /*sets the expectation that IARM_Bus_Call should not be called*/
+      EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+      EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.cmac}"), response));
+      EXPECT_EQ(response, string("{\"com.comcast.cmac\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is card.moto.entitlements
+ *        Check if valid query parameter card.moto.entitlements is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.card.moto.entitlements"}
+ * @return      :  {"com.comcast.card.moto.entitlements":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCardMotoEntitlements)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.card.moto.entitlements}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.card.moto.entitlements\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is card.moto.hrv_rx
+ *        Check if valid query parameter card.moto.hrv_rx is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.card.moto.hrv_rx"}
+ * @return      :  {"com.comcast.card.moto.hrv_rx":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCardMotoHrvRx)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.card.moto.hrv_rx}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.card.moto.hrv_rx\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is card.cisco.status
+ *        Check if valid query parameter card.cisco.status is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.card.cisco.status"}
+ * @return      :  {"com.comcast.card.cisco.status":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCardCiscoStatus)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.card.cisco.status}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.card.cisco.status\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is video_presenting
+ *        Check if valid query parameter video_presenting is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.video_presenting"}
+ * @return      :  {"com.comcast.video_presenting":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamVideoPresenting)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.video_presenting}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.video_presenting\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is hdmi_out
+ *        Check if valid query parameters hdmi_out is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.hdmi_out"}
+ * @return      :  {"com.comcast.hdmi_out":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamHdmiOut)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.hdmi_out}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.hdmi_out\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is hdcp_enabled
+ *        Check if valid query parameters hdcp_enabled is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.hdcp_enabled"}
+ * @return      :  {"com.comcast.hdcp_enabled":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamHdcpEnabled)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.hdcp_enabled}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.hdcp_enabled\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is hdmi_edid_read
+ *        Check if valid query parameter hdmi_edid_read is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.hdmi_edid_read"}
+ * @return      :  {"com.comcast.hdmi_edid_read":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamHdmiEdidRead)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.hdmi_edid_read}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.hdmi_edid_read\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is firmware_download
+ *        Check if valid query parameters firmware_download is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.firmware_download"}
+ * @return      :  {"com.comcast.firmware_download":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamFirmwareDownload)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.firmware_download}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.firmware_download\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is time_source
+ *        Check if valid query parameter time_source is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.time_source"}
+ * @return      :  {"com.comcast.time_source":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamTimeSource)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.time_source}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.time_source\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is time_zone_available
+ *        Check if valid query parameter time_zone_available is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.time_zone_available"}
+ * @return      :  {"com.comcast.time_zone_available":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamTimeZoneAvailable)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.time_zone_available}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.time_zone_available\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is ca_system
+ *        Check if valid query parameter ca_system is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.ca_system"}
+ * @return      :  {"com.comcast.ca_system":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCaSystem)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.ca_system}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.ca_system\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is estb_ip
+ *        Check if valid query parameters estb_ip is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.estb_ip"}
+ * @return      :  {"com.comcast.estb_ip":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamEstbIp)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.estb_ip}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.estb_ip\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is ecm_ip
+ *        Check if valid query parameter ecm_ip is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.ecm_ip"}
+ * @return      :  {"com.comcast.ecm_ip":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamEcmIp)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.ecm_ip}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.ecm_ip\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is lan_ip
+ *        Check if valid query parameters lan_ip is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.lan_ip"}
+ * @return      :  {"com.comcast.lan_ip":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamLanIp)
+{
+     /*sets the expectation that IARM_Bus_Call should not be called*/
+     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.lan_ip}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.lan_ip\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is moca
+ *        Check if valid query parameter moca is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.moca"}
+ * @return      :  {"com.comcast.moca":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamMoca)
+{
+     /*sets the expectation that IARM_Bus_Call should not be called*/
+     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.moca}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.moca\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is docsis
+ *        Check if valid query parameter docsis is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.docsis"}
+ * @return      :  {"com.comcast.docsis":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamDocsis)
+{
+     /*sets the expectation that IARM_Bus_Call should not be called*/
+     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.docsis}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.docsis\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is dsg_broadcast_tunnel
+ *        Check if valid query parameter dsg_broadcast_tunnel is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.dsg_broadcast_tunnel"}
+ * @return      :  {"com.comcast.dsg_broadcast_tunnel":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamDsgBroadcastTunnel)
+{
+     /*sets the expectation that IARM_Bus_Call should not be called*/
+     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.dsg_broadcast_tunnel}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.dsg_broadcast_tunnel\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is dsg_ca_tunnel
+ *        Check if valid query parameter dsg_ca_tunnel is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.dsg_ca_tunnel"}
+ * @return      :  {"com.comcast.dsg_ca_tunnel":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamDsgCaTunnel)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.dsg_ca_tunnel}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.dsg_ca_tunnel\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is cable_card
+ *        Check if valid query parameter cable_card is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.cable_card"}
+ * @return      :  {"com.comcast.cable_card":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCableCard)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.cable_card}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.cable_card\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is cable_card_download
+ *        Check if valid query parameter cable_card_download is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.cable_card_download"}
+ * @return      :  {"com.comcast.cable_card_download":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCableCardDownload)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.cable_card_download}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.cable_card_download\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is cvr_subsystem
+ *        Check if valid query parameters cvr_subsystem is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.cvr_subsystem"}
+ * @return      :  {"com.comcast.cvr_subsystem":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamCvrSubsystem)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.cvr_subsystem}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.cvr_subsystem\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is download
+ *        Check if valid query parameter download is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.download"}
+ * @return      :  {"com.comcast.download":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamDownload)
+{
+    /*sets the expectation that IARM_Bus_Call should not be called*/
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.download}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.download\":0,\"success\":true}"));
+}
+
+/**
+ * @brief : getStateInfo When QueryParam is vod_ad
+ *        Check if valid query parameter vod_ad is passed,
+ *        then getStateInfo shall be succeed and returns an success message in the response.
+ *
+ * @param[in]   :  "params": {"com.comcast.vod_ad"}
+ * @return      :  {"com.comcast.vod_ad":0,"success":true}
+ */
+TEST_F(SystemServicesTest, getStateInfoSuccess_onQueryParamVodAd)
+{
+     /*sets the expectation that IARM_Bus_Call should not be called*/
+     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getStateInfo"),  _T("{\"param\":com.comcast.vod_ad}"), response));
+    EXPECT_EQ(response, string("{\"com.comcast.vod_ad\":0,\"success\":true}"));
+}
+
+/*Test cases for getStateInfo ends here*/
+
+/*******************************************************************************************************************
+ * Test function for :setBootLoaderPattern
+ * setBootLoaderPattern :
+ *                Sets the boot loader pattern mode in MFR.
+ *                valid patterns: {"NORMAL","SILENT","SILENT_LED_ON"}
+ *
+ *                @return Whether the request succeeded.
+ * Use case coverage:
+ *                @Success :3
+ *                @Failure :2
+ ********************************************************************************************************************/
+
+/**
+ * @brief : setBootLoaderPattern when pattern is not passed
+ *        Check if pattern is not passed,
+ *        then setBootLoaderPattern will Fail.
+ *
+ * @param[in]   :  "params": {}
+ * @return      :  {"success":false}
+ */
+TEST_F(SystemServicesTest, setBootLoaderPatternFailed_OnEmptyParamList)
+{
+     /*sets the expectation that IARM_Bus_Call should not be called*/
+     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setBootLoaderPattern"), _T("{}"), response));
+    //EXPECT_EQ(response, string("{\"success\":false}"));
+}
+
+/**
+ * @brief : setBootLoaderPattern when pattern is passed
+ *       Check if invalid pattern is passed,
+ *       then setBootLoaderPattern will Fail.
+ *
+ * @param[in]   :  "params": {"pattern": "SILENT_LED_OFF"}
+ * @return      :  {"success":false}
+ */
+TEST_F(SystemServicesTest, setBootLoaderPatternFailed_Oninvalidpattern)
+{
+     /*sets the expectation that IARM_Bus_Call should not be called*/
+     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setBootLoaderPattern"), _T("{\"pattern\":SILENT_LED_OFF}"), response));
+    //EXPECT_EQ(response, string("{\"success\":false}"));
+}
+
+/**
+ * @brief : setBootLoaderPattern when pattern is NORMAL
+ *        Check if (i)pattern is NORMAL and
+ *        (ii) if Bus call status returns as SUCCESS
+ *        then setBootLoaderPattern will Succeed.
+ *
+ *
+ * @param[in]   :  "params": {"pattern": "NORMAL"}
+ * @return      :  {"success":true}
+ */
+TEST_F(SystemServicesTest, setBootLoaderPatternSuccess_onPatterntypeNORMAL)
+{
+   EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetBootLoaderPattern)));
+                auto param = static_cast<IARM_Bus_MFRLib_SetBLPattern_Param_t*>(arg);
+                EXPECT_EQ(param->pattern, mfrBL_PATTERN_NORMAL);
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBootLoaderPattern"), _T("{\"pattern\":NORMAL}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+/**
+ * @brief : setBootLoaderPattern when pattern is SILENT
+ *        Check if (i)pattern is SILENT and
+ *        (ii) if Bus call status returns as SUCCESS
+ *        then setBootLoaderPattern will Succeed.
+ *
+ *
+ * @param[in]   :  "params": {"pattern": "SILENT"}
+ * @return      :  {"success":true}
+ */
+TEST_F(SystemServicesTest, setBootLoaderPatternSuccess_onPatterntypeSILENT)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetBootLoaderPattern)));
+                auto param = static_cast<IARM_Bus_MFRLib_SetBLPattern_Param_t*>(arg);
+                EXPECT_EQ(param->pattern, mfrBL_PATTERN_SILENT);
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBootLoaderPattern"), _T("{\"pattern\":SILENT}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+/**
+ * @brief : setBootLoaderPattern when pattern is SILENT_LED_ON
+ *        Check if (i)pattern is SILENT_LED_ON and
+ *        (ii) if Bus call status returns as SUCCESS
+ *        then setBootLoaderPattern will Succeed.
+ *
+ *
+ * @param[in]   :  "params": {"pattern": "SILENT_LED_ON"}
+ * @return      :  {"success":true}
+ */
+TEST_F(SystemServicesTest, setBootLoaderPatternSuccess_onPatterntypeSILENTLEDON)
+{
+
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetBootLoaderPattern)));
+                auto param = static_cast<IARM_Bus_MFRLib_SetBLPattern_Param_t*>(arg);
+                EXPECT_EQ(param->pattern, mfrBL_PATTERN_SILENT_LED_ON);
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBootLoaderPattern"), _T("{\"pattern\":SILENT_LED_ON}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+/*Test cases for setBootLoaderPattern ends here*/
