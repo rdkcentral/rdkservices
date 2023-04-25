@@ -2539,7 +2539,7 @@ namespace WPEFramework {
 				retValue = true;
 				m_strTerritory = str.substr(str.find(":")+1,str.length());
 				int index = m_strStandardTerritoryList.find(m_strTerritory);
-				if((territoryStr.length() == 3) && (index >=0 && index <= 1100) ){
+				if((m_strTerritory.length() == 3) && (index >=0 && index <= 1100) ){
 					getline (inFile, str);
 					if(str.length() > 0){
 					    m_strRegion = str.substr(str.find(":")+1,str.length());
@@ -2547,14 +2547,16 @@ namespace WPEFramework {
 					    {
 						    m_strTerritory = "";
 						    m_strRegion = "";
-						    LOGERR("Territory file corrupted");
+						    LOGERR("Territory file corrupted  - region : %s",m_strRegion.c_str());
+						    LOGERR("Returning empty values");
 					    }
 					}
 				}
 				else{
 					m_strTerritory = "";
 					m_strRegion = "";
-					LOGERR("Territory file corrupted");
+					LOGERR("Territory file corrupted - territory : %s",m_strTerritory.c_str());
+					LOGERR("Returning empty values");
 				}
 			}
 			else{
