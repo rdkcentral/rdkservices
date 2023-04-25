@@ -106,7 +106,9 @@ void UnloadJSBindings(WebKitScriptWorld* world, WebKitFrame* frame) {
 // Just pass headers json to aamp plugin. SetHttpHeaders Called from RequestHeaders.cpp
 void SetHttpHeaders(const char * headerJson)
 {
+#ifdef RDK6_SUPPORT
        aamp_SetPageHttpHeaders(headerJson);
+#endif
 }
 
 }  // namespace AAMP

@@ -115,6 +115,7 @@ namespace Plugin {
             RegisterAll();
             Exchange::JWebBrowser::Register(*this, _browser);
 
+#ifdef RDK6_SUPPORT
             _cookieJar = _browser->QueryInterface<Exchange::IBrowserCookieJar>();
             if (_cookieJar) {
                 _cookieJar->Register(&_notification);
@@ -125,6 +126,7 @@ namespace Plugin {
             if (_browserScripting) {
                 Exchange::JBrowserScripting::Register(*this, _browserScripting);
             }
+#endif
         }
 
         return message;
@@ -146,6 +148,7 @@ namespace Plugin {
         _memory->Release();
         _application->Release();
         Exchange::JWebBrowser::Unregister(*this);
+#ifdef RDK6_SUPPORT
         if (_browserScripting) {
             Exchange::JBrowserScripting::Unregister(*this);
             _browserScripting->Release();
@@ -155,6 +158,7 @@ namespace Plugin {
             _cookieJar->Unregister(&_notification);
             _cookieJar->Release();
         }
+#endif
         UnregisterAll();
 
         PluginHost::IStateControl* stateControl(_browser->QueryInterface<PluginHost::IStateControl>());
@@ -335,7 +339,9 @@ namespace Plugin {
 
     void WebKitBrowser::CookieJarChanged()
     {
+#ifdef RDK6_SUPPORT
         Exchange::JBrowserCookieJar::Event::CookieJarChanged(*this);
+#endif
     }
 
     void WebKitBrowser::StateChange(const PluginHost::IStateControl::state state)

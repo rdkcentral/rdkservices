@@ -368,7 +368,9 @@ static GSourceFuncs _handlerIntervention =
                                  public Exchange::IBrowser,
                                  public Exchange::IWebBrowser,
                                  public Exchange::IApplication,
+                                 #ifdef RDK6_SUPPORT
                                  public Exchange::IBrowserScripting,
+                                 #endif
                                  #if defined(ENABLE_CLOUD_COOKIE_JAR)
                                  public Exchange::IBrowserCookieJar,
                                  #endif
@@ -1216,6 +1218,7 @@ static GSourceFuncs _handlerIntervention =
             return Core::ERROR_NONE;
         }
 
+#ifdef RDK6_SUPPORT
         uint32_t RunJavaScript(const string& script) override
         {
             if (_context == nullptr)
@@ -1293,6 +1296,7 @@ static GSourceFuncs _handlerIntervention =
                 nullptr);
             return Core::ERROR_NONE;
         }
+#endif
 
 #if defined(ENABLE_CLOUD_COOKIE_JAR)
         uint32_t CookieJar(uint32_t& version /* @out */, uint32_t& checksum /* @out */, string& payload /* @out */) const override
@@ -2448,7 +2452,9 @@ static GSourceFuncs _handlerIntervention =
         INTERFACE_ENTRY(Exchange::IWebBrowser)
         INTERFACE_ENTRY(Exchange::IBrowser)
         INTERFACE_ENTRY (Exchange::IApplication)
+#ifdef RDK6_SUPPORT
         INTERFACE_ENTRY (Exchange::IBrowserScripting)
+#endif
 #if defined(ENABLE_CLOUD_COOKIE_JAR)
         INTERFACE_ENTRY (Exchange::IBrowserCookieJar)
 #endif
@@ -2690,7 +2696,9 @@ static GSourceFuncs _handlerIntervention =
         }
 #if defined(ENABLE_CLOUD_COOKIE_JAR)
         static void cookieManagerChangedCallback(WebKitCookieManager* manager, WebKitImplementation* browser) {
+#ifdef RDK6_SUPPORT
             browser->NotifyCookieJarChanged();
+#endif
         }
 #endif
         uint32_t Worker() override
