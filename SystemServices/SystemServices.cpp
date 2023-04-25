@@ -2469,7 +2469,7 @@ namespace WPEFramework {
 						}
 					}else{
 						resp = writeTerritory(territoryStr,regionStr);
-						LOGWARN(" territory name %s ", territoryStr.c_str());
+						LOGWARN(" Region is empty, only territory is updated. territory name %s ", territoryStr.c_str());
 					}
 				}else{
 					JsonObject error;
@@ -2538,11 +2538,26 @@ namespace WPEFramework {
 			if(str.length() > 0){
 				retValue = true;
 				m_strTerritory = str.substr(str.find(":")+1,str.length());
-				getline (inFile, str);
-				if(str.length() > 0){
-					m_strRegion = str.substr(str.find(":")+1,str.length());
+				int index = m_strStandardTerritoryList.find(m_strTerritory);
+				if((territoryStr.length() == 3) && (index >=0 && index <= 1100) ){
+					getline (inFile, str);
+					if(str.length() > 0){
+					    m_strRegion = str.substr(str.find(":")+1,str.length());
+					    if(!isRegionValid(m_strRegion))
+					    {
+						    m_strTerritory = "";
+						    m_strRegion = "";
+						    LOGERR("Territory file corrupted");
+					    }
+					}
 				}
-			}else{
+				else{
+					m_strTerritory = "";
+					m_strRegion = "";
+					LOGERR("Territory file corrupted");
+				}
+			}
+			else{
 				LOGERR("Invalid territory file");
 			}
 			inFile.close();
