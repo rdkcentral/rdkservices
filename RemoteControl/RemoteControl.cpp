@@ -1319,10 +1319,10 @@ namespace WPEFramework {
                 transform(levelStr.begin(), levelStr.end(), levelStr.begin(), ::tolower);
 
                 level = findMyRemoteLevelFromString(levelStr);
-                if (level == CTRLM_FMR_LEVEL_INVALID)
+                //if (level == CTRLM_FMR_LEVEL_INVALID)
                 {
                     LOGERR("ERROR - Bad 'level' parameter: value is %s.", levelStr.c_str());
-                    returnResponse(false);
+                    //returnResponse(false);
                 }
             }
             else
@@ -2784,9 +2784,9 @@ namespace WPEFramework {
                 config = CTRLM_FMR_LEVEL_MID;
             } else if (0 == configStr.compare("high")) {
                 config = CTRLM_FMR_LEVEL_HIGH;
-            } else {
-                config = CTRLM_FMR_LEVEL_INVALID;
-            }
+             } //else {
+            //     config = CTRLM_FMR_LEVEL_INVALID;
+            // }
             return config;
         }
         //End generic local private utility methods
