@@ -91,6 +91,7 @@ namespace WPEFramework {
             uint32_t getLastKeypressSourceWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t configureWakeupKeysWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t initializeIRDBWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t findMyRemoteWrapper(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             //Begin events
@@ -143,12 +144,15 @@ namespace WPEFramework {
             bool getLastKeypressSource(JsonObject& keypressInfo, int netType);
             bool configureWakeupKeys(int netType, ctrlm_rcu_wakeup_config_t config, int *customList, int customListSize, JsonObject& response);
             bool initializeIRDB(int netType, JsonObject& response);
+            bool findMyRemote(int netType, ctrlm_fmr_alarm_level_t level, JsonObject& response);
 
             // Local utility methods
             void setApiVersionNumber(uint32_t apiVersionNumber);
 
             // BLE methods
             const char *ctrlm_ble_state_str(ctrlm_ble_state_t status);
+            const char *ctrlm_ir_prog_state_str(ctrlm_ir_state_t status);
+
             ctrlm_network_id_t getBleNetworkID();
 
             // Rf4ce methods
@@ -167,6 +171,7 @@ namespace WPEFramework {
             std::string                 wakeupConfigToString(ctrlm_rcu_wakeup_config_t config);
             ctrlm_rcu_wakeup_config_t   wakeupConfigFromString(std::string configStr);
             JsonArray                   wakeupCustomListToArray(int *list, int listSize);
+            ctrlm_fmr_alarm_level_t     findMyRemoteLevelFromString(std::string configStr);
 
         public:
             static RemoteControl* _instance;
