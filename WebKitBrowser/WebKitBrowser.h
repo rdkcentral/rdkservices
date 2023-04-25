@@ -29,8 +29,10 @@
 #include <interfaces/json/JsonData_WebKitBrowser.h>
 #include <interfaces/json/JsonData_StateControl.h>
 #include <interfaces/json/JWebBrowser.h>
+#ifdef RDK6_SUPPORT
 #include <interfaces/json/JBrowserScripting.h>
 #include <interfaces/json/JBrowserCookieJar.h>
+#endif
 
 namespace WPEFramework {
 
@@ -72,8 +74,11 @@ namespace Plugin {
 
         class Notification : public RPC::IRemoteConnection::INotification,
                              public PluginHost::IStateControl::INotification,
-                             public Exchange::IWebBrowser::INotification,
-                             public Exchange::IBrowserCookieJar::INotification {
+                             public Exchange::IWebBrowser::INotification
+                             #ifdef RDK6_SUPPORT
+                             public Exchange::IBrowserCookieJar::INotification
+                             #endif
+        {
         private:
             Notification() = delete;
             Notification(const Notification&) = delete;
@@ -125,16 +130,20 @@ namespace Plugin {
             {
                 _parent.Deactivated(connection);
             }
+#ifdef RDK6_SUPPORT
             void CookieJarChanged() override
             {
                 _parent.CookieJarChanged();
             }
+#endif
 
             BEGIN_INTERFACE_MAP(Notification)
             INTERFACE_ENTRY(Exchange::IWebBrowser::INotification)
             INTERFACE_ENTRY(PluginHost::IStateControl::INotification)
             INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
+#ifdef RDK6_SUPPORT
             INTERFACE_ENTRY(Exchange::IBrowserCookieJar::INotification)
+#endif
             END_INTERFACE_MAP
 
         private:
@@ -182,8 +191,10 @@ namespace Plugin {
             , _browser(nullptr)
             , _memory(nullptr)
             , _application(nullptr)
+#ifdef RDK6_SUPPORT
             , _browserScripting(nullptr)
             , _cookieJar(nullptr)
+#endif
             , _notification(this)
             , _jsonBodyDataFactory(2)
         {
@@ -214,8 +225,10 @@ namespace Plugin {
         INTERFACE_AGGREGATE(Exchange::IBrowser, _browser)
         INTERFACE_AGGREGATE(Exchange::IApplication, _application)
         INTERFACE_AGGREGATE(Exchange::IWebBrowser, _browser)
+#ifdef RDK6_SUPPORT
         INTERFACE_AGGREGATE(Exchange::IBrowserScripting, _browserScripting)
         INTERFACE_AGGREGATE(Exchange::IBrowserCookieJar, _cookieJar)
+#endif
         INTERFACE_AGGREGATE(Exchange::IMemory, _memory)
         END_INTERFACE_MAP
 
@@ -280,8 +293,10 @@ namespace Plugin {
         Exchange::IWebBrowser* _browser;
         Exchange::IMemory* _memory;
         Exchange::IApplication* _application;
+#ifdef RDK6_SUPPORT
         Exchange::IBrowserScripting* _browserScripting;
         Exchange::IBrowserCookieJar* _cookieJar;
+#endif
         Core::Sink<Notification> _notification;
         Core::ProxyPoolType<Web::JSONBodyType<WebKitBrowser::Data>> _jsonBodyDataFactory;
         string _persistentStoragePath;

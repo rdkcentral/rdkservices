@@ -177,6 +177,7 @@ namespace Plugin {
     //  - ERROR_NONE: Success
     uint32_t WebKitBrowser::get_cookiejar(CookieJarParamsData& response) const
     {
+#ifdef RDK6_SUPPORT
         if (_cookieJar == nullptr)
             return Core::ERROR_UNAVAILABLE;
 
@@ -194,6 +195,8 @@ namespace Plugin {
         }
 
         return result;
+#endif
+        return 0;
     }
 
     // Property: cookiejar
@@ -201,6 +204,7 @@ namespace Plugin {
     //  - ERROR_NONE: Success
     uint32_t WebKitBrowser::set_cookiejar(const CookieJarParamsData& param)
     {
+#ifdef RDK6_SUPPORT
         if (_cookieJar == nullptr)
             return Core::ERROR_UNAVAILABLE;
 
@@ -209,6 +213,8 @@ namespace Plugin {
         const string& payload = param.Payload.Value();
 
         return _cookieJar->CookieJar(version, checksum, payload);
+#endif
+        return 0;
     }
 
     // Event: statechange - Signals a state change of the service

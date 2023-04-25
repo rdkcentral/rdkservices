@@ -82,6 +82,8 @@ set(PLUGIN_WEBKITBROWSER_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign
 set(PLUGIN_WEBKITBROWSER_PTSOFFSET "0" CACHE STRING "Set ptsoffset for webkit")
 set(PLUGIN_WEBKITBROWSER_USE_EXACT_PATHS "false" CACHE STRING "Use paths specified in configuration options without further modifying them") 
 
+set(RDK6_SUPPORT "false" CACHE STRING "Support RDK6 API")
+
 set(PLUGIN_YOUTUBE_AUTOSTART "false" CACHE STRING "Automatically start Youtube plugin")
 set(PLUGIN_YOUTUBE_STARTUPORDER "" CACHE STRING "To configure startup order of YouTube plugin")
 set(PLUGIN_YOUTUBE_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
@@ -241,6 +243,10 @@ endif()
 
 if(PLUGIN_WEBKITBROWSER_USE_EXACT_PATHS)
     target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE USE_EXACT_PATHS)
+endif()
+
+if(RDK6_SUPPORT)
+    target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE RDK6_SUPPORT)
 endif()
 
 set_target_properties(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PROPERTIES
