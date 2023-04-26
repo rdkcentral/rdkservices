@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.17] - 2023-04-25
+### Fixed
+- Software update start and stop works through single access point, swupdate_utility.sh
+
 ## [1.0.16] - 2023-04-12
 ### Fixed
 - Fixed IARM_Bus_UnRegisterEventHandler  call to IARM_Bus_RemoveEventHandler
