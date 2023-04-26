@@ -16,7 +16,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-##[1.2.2] - 2023-04-25
+## [1.2.2] - 2023-04-25
 ### Fixed
 - Added the condition check while reading territory from file
 
