@@ -2451,6 +2451,7 @@ namespace WPEFramework {
 			if(str.length() > 0){
 				retValue = true;
 				m_strTerritory = str.substr(str.find(":")+1,str.length());
+				int index = m_strStandardTerritoryList.find(m_strTerritory);
 				if((m_strTerritory.length() == 3) && (index >=0 && index <= 1100) ){
 
 					getline (inFile, str);
