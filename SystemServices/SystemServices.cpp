@@ -2382,7 +2382,6 @@ namespace WPEFramework {
 					}else{
 						resp = writeTerritory(territoryStr,regionStr);
 						LOGWARN(" Region is empty, only territory is updated. territory name %s ", territoryStr.c_str());
-
 					}
 				}else{
 					JsonObject error;
