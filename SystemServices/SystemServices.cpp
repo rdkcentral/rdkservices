@@ -2459,7 +2459,6 @@ namespace WPEFramework {
 						if(!isRegionValid(m_strRegion)){
 							m_strTerritory = "";
 							m_strRegion = "";
-							LOGERR("Territory file corrupted");
 							LOGERR("Territory file corrupted  - region : %s",m_strRegion.c_str());
 							LOGERR("Returning empty values");
 						}
@@ -2468,7 +2467,6 @@ namespace WPEFramework {
 				else{
 					m_strTerritory = "";
 					m_strRegion = "";
-					LOGERR("Territory file corrupted");
 					LOGERR("Territory file corrupted - territory : %s",m_strTerritory.c_str());
 					LOGERR("Returning empty values");
 				}
