@@ -2583,15 +2583,12 @@ TEST_F(SystemServicesTest, setBootLoaderPatternSuccess_onPatterntypeSILENTLEDON)
  */
 TEST_F(SystemServicesTest,getMacAddressesFailed_WhenFileNotExist)
 {
-    //ofstream file("/lib/rdk/getDeviceDetails.sh");
-    //file.close();
-	const string deviceInfoScript = _T("/lib/rdk/getDeviceDetails.sh");
+    const string deviceInfoScript = _T("/lib/rdk/getDeviceDetails.sh");
 	Core::File file(deviceInfoScript);
 	remove("/lib/rdk/getDeviceDetails.sh");
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getMacAddresses"), _T("{}"), response));
 	file.Destroy();
 }
-
 
 /**
  * @brief :   onMacAddressesRetrieved event triggered when getMacAddresses is successful
@@ -2603,9 +2600,7 @@ TEST_F(SystemServicesTest,getMacAddressesFailed_WhenFileNotExist)
 TEST_F(SystemServicesEventTest, onMacAddressesRetrieved)
 {
     Core::Event onMacAddressesRetreived(false, true);
-    //ofstream file("/lib/rdk/getDeviceDetails.sh");
-    //file.close();
-	const string deviceInfoScript = _T("/lib/rdk/getDeviceDetails.sh");
+    const string deviceInfoScript = _T("/lib/rdk/getDeviceDetails.sh");
 	Core::File file(deviceInfoScript);
 	file.Create();
 
