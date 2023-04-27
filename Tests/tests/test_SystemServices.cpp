@@ -2656,7 +2656,7 @@ TEST_F(SystemServicesEventTest, onMacAddressesRetrieved)
     handler.Unsubscribe(0, _T("onMacAddressesRetreived"), _T("org.rdk.System"), message);
 	file.Destroy();
 }
-/*Test cases for getmacAddresses ends here*/
+/*Test cases for getMacAddresses ends here*/
 
 /********************************************************************************************************
 * Test function for :getFirmwareUpdateInfo
