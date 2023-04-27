@@ -321,7 +321,9 @@ Retrieves the types of voice sessions which are supported by the platform.
 | Request Type | Description |
 | :-------- | :-------- |
 | ptt_transcription | A text-only session using the urlPtt routing url and the text transcription |
+| ptt_audio_file | A session using the urlPtt routing url and the specified audio file |
 | mic_transcription | A text-only session using the urlHf routing url and the text transcription |
+| mic_audio_file | A session using the urlHf routing url and the specified audio file |
 | mic_stream_default | An audio based session using the urlHf routing url and the platform's default audio output format |
 | mic_stream_single | An audio based session using the urlHf routing url and the platform's single channel audio input format |
 | mic_stream_multi | An audio based session using the urlHf routing url and the platform's multi-channel audio input format |
@@ -393,6 +395,7 @@ Requests a voice session using the specified request type and optional parameter
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params?.transcription | string | <sup>*(optional)*</sup> The transcription text to be sent to the voice server for request types "ptt_transcription" and "mic_transcription" |
+| params?.audio_file | string | <sup>*(optional)*</sup> The full path to the audio file to be sent to the voice server for request types "ptt_audio_file" and "mic_audio_file" |
 | params.type | string | The request type to initiate the voice session (see [voiceSessionTypes](#voiceSessionTypes) API for list of request types) |
 
 ### Result
@@ -413,6 +416,7 @@ Requests a voice session using the specified request type and optional parameter
     "method": "org.rdk.VoiceControl.voiceSessionRequest",
     "params": {
         "transcription": "Watch Comedy Central",
+        "audio_file": "/opt/audio_file.wav",
         "type": "ptt_transcription"
     }
 }
