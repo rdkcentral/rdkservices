@@ -93,7 +93,6 @@ namespace Plugin {
 SERVICE_REGISTRATION(XCast, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
 static RtXcastConnector * _rtConnector  = RtXcastConnector::getInstance();
-static int locateCastObjectRetryCount = 0;
 bool XCast::isCastEnabled = false;
 #ifdef XCAST_ENABLED_BY_DEFAULT
 bool XCast::m_xcastEnable = true;
@@ -818,33 +817,10 @@ void XCast::onLocateCastTimer()
     int status = _rtConnector->connectToRemoteService();
     if(status != 0)
     {
-        if(locateCastObjectRetryCount < 4)
-        {
-            locateCastObjectRetryCount++;
-        }
-        if(locateCastObjectRetryCount == 1)
-        {
-            LOGINFO("Retry after 5 sec...");
-            m_locateCastTimer.setInterval(LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS);
-        }
-        if(locateCastObjectRetryCount == 2)
-        {
-            LOGINFO("Retry after 15 sec...");
-            m_locateCastTimer.setInterval(LOCATE_CAST_SECOND_TIMEOUT_IN_MILLIS);
-        }
-        if(locateCastObjectRetryCount == 3)
-        {
-            LOGINFO("Retry after 30 sec...");
-            m_locateCastTimer.setInterval(LOCATE_CAST_THIRD_TIMEOUT_IN_MILLIS);
-        }
-        if(locateCastObjectRetryCount == 4)
-        {
-            LOGINFO("Retry after 60 sec...");
-            m_locateCastTimer.setInterval(LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS);
-        }
+        LOGINFO("Retry after 5 sec...");
+        m_locateCastTimer.setInterval(LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS);
         return ;
     }// err != RT_OK
-    locateCastObjectRetryCount = 0;
     m_locateCastTimer.stop();
 
     if (NULL != _rtConnector) {
