@@ -2587,6 +2587,7 @@ TEST_F(SystemServicesTest,getMacAddressesFailed_WhenFileNotExist)
     file.close();
     remove("/lib/rdk/getDeviceDetails.sh");
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getMacAddresses"), _T("{}"), response));
+	file.Destroy();
 }
 
 
@@ -2648,6 +2649,7 @@ TEST_F(SystemServicesEventTest, onMacAddressesRetrieved)
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onMacAddressesRetreived.Lock());
     handler.Unsubscribe(0, _T("onMacAddressesRetreived"), _T("org.rdk.System"), message);
+	file.Destroy();
 }
 /*Test cases for getmacAddresses ends here*/
 
