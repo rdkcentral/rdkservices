@@ -2672,9 +2672,9 @@ TEST_F(SystemServicesEventTest, onMacAddressesRetrieved)
 TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode460)
 {
     Core::Event onFirmwareUpdateInfoReceived(false, true);
-    ofstream file("/version.txt");
-    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
-    file.close();
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
     EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
           .Times(::testing::AnyNumber())
           .WillRepeatedly(::testing::Invoke(
@@ -2707,6 +2707,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode4
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
 }
 
 /**
@@ -2717,9 +2721,9 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode4
 TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode403)
 {
     Core::Event onFirmwareUpdateInfoReceived(false, true);
-    ofstream file("/version.txt");
-    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
-    file.close();
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
     EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
           .Times(::testing::AnyNumber())
           .WillRepeatedly(::testing::Invoke(
@@ -2752,6 +2756,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode4
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
 }
 
 /**
@@ -2762,9 +2770,9 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode4
 TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCodeOther)
 {
     Core::Event onFirmwareUpdateInfoReceived(false, true);
-    ofstream file("/version.txt");
-    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
-    file.close();
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
     EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
           .Times(::testing::AnyNumber())
           .WillRepeatedly(::testing::Invoke(
@@ -2797,6 +2805,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCodeO
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+    // Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
 }
 
 /**
@@ -2807,9 +2819,9 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCodeO
 TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvPROD)
 {
     Core::Event onFirmwareUpdateInfoReceived(false, true);
-    ofstream file("/version.txt");
-    file << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
-    file.close();
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
     EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
           .Times(::testing::AnyNumber())
           .WillRepeatedly(::testing::Invoke(
@@ -2842,6 +2854,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvPROD)
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
 }
 
 /**
@@ -2852,9 +2868,9 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvPROD)
 TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvDev)
 {
     Core::Event onFirmwareUpdateInfoReceived(false, true);
-    ofstream file("/version.txt");
-    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
-    file.close();
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
     EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
           .Times(::testing::AnyNumber())
           .WillRepeatedly(::testing::Invoke(
@@ -2888,6 +2904,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvDev)
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
 }
 
 /**
@@ -2898,9 +2918,9 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvDev)
 TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvVBN)
 {
     Core::Event onFirmwareUpdateInfoReceived(false, true);
-    ofstream file("/version.txt");
-    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
-    file.close();
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
     EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
           .Times(::testing::AnyNumber())
           .WillRepeatedly(::testing::Invoke(
@@ -2934,6 +2954,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvVBN)
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
 }
 
 /**
@@ -2944,9 +2968,9 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvVBN)
 TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvCqa)
 {
     Core::Event onFirmwareUpdateInfoReceived(false, true);
-    ofstream file("/version.txt");
-    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
-    file.close();
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
     EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
           .Times(::testing::AnyNumber())
           .WillRepeatedly(::testing::Invoke(
@@ -2980,6 +3004,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvCqa)
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
 }
 
 /**
@@ -2990,9 +3018,9 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvCqa)
 TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvNotProdWithoutConfFile)
 {
     Core::Event onFirmwareUpdateInfoReceived(false, true);
-    ofstream file("/version.txt");
-    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
-    file.close();
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
     EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
           .Times(::testing::AnyNumber())
           .WillRepeatedly(::testing::Invoke(
@@ -3025,6 +3053,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvNotProdWitho
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
 }
 
 /**
@@ -3035,9 +3067,9 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvNotProdWitho
 TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithConfFileEmptyUrl)
 {
     Core::Event onFirmwareUpdateInfoReceived(false, true);
-    ofstream file("/version.txt");
-    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
-    file.close();
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
     const string  swUpdateFile = _T("/opt/swupdate.conf");
     Core::File file2(swUpdateFile);
     file2.Destroy();
@@ -3074,6 +3106,10 @@ TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithC
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
 }
 
 /**
@@ -3084,9 +3120,9 @@ TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithC
 TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithConfFileOverrideUrl)
 {
     Core::Event onFirmwareUpdateInfoReceived(false, true);
-    ofstream file("/version.txt");
-    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
-    file.close();
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
     const string  swUpdateFile = _T("/opt/swupdate.conf");
     const uint8_t swUpdateUrl[] = "test_url";
     Core::File file2(swUpdateFile);
@@ -3125,6 +3161,9 @@ TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithC
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
 }
 
 /**
@@ -3135,9 +3174,9 @@ TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithC
 TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithoutHttpStatusCode)
 {
     Core::Event onFirmwareUpdateInfoReceived(false, true);
-    ofstream file("/version.txt");
-    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
-    file.close();
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
 
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
@@ -3154,6 +3193,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithoutHttpStatusCo
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
 }
 
 /**
@@ -3164,9 +3207,9 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithoutHttpStatusCo
 TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenResponseEmpty)
 {
     Core::Event onFirmwareUpdateInfoReceived(false, true);
-    ofstream file("/version.txt");
-    file << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
-    file.close();
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
     EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
           .Times(::testing::AnyNumber())
           .WillRepeatedly(::testing::Invoke(
@@ -3199,6 +3242,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenResponseEmpty)
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
 }
 
 /*
@@ -3209,9 +3256,9 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenResponseEmpty)
 TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenErrorInParsingResponse)
 {
     Core::Event onFirmwareUpdateInfoReceived(false, true);
-    ofstream file("/version.txt");
-    file << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
-    file.close();
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
     EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
           .Times(::testing::AnyNumber())
           .WillRepeatedly(::testing::Invoke(
@@ -3244,6 +3291,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenErrorInParsingR
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
 }
 
 /**
@@ -3254,9 +3305,9 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenErrorInParsingR
 TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenInvalidResponse)
 {
     Core::Event onFirmwareUpdateInfoReceived(false, true);
-    ofstream file("/version.txt");
-    file << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
-    file.close();
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
     EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
           .Times(::testing::AnyNumber())
           .WillRepeatedly(::testing::Invoke(
@@ -3289,5 +3340,9 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenInvalidResponse
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
 }
 
