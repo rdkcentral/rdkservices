@@ -42,6 +42,7 @@ if(${PLUGIN_WIFI_IMPL} STREQUAL "impl_lg")
         target_sources(${MODULE_NAME} PRIVATE ${DBUS_SOURCES_CPP} ${DBUS_SOURCES_C})
         include_directories(${LIBGLIB_INCLUDE_DIRS})
         include_directories(${LIBGIO_INCLUDE_DIRS})
+        include_directories(./)
         target_link_libraries(${MODULE_NAME}
         PRIVATE
                 ${LIBGIO_LIBRARIES}
