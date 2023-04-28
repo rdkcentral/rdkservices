@@ -173,6 +173,7 @@ namespace WPEFramework {
             void onARCTerminationEventHandler(const JsonObject& parameters);
 	    void onShortAudioDescriptorEventHandler(const JsonObject& parameters);
 	    void onSystemAudioModeEventHandler(const JsonObject& parameters);
+            void onArcAudioStatusEventHandler(const JsonObject& parameters);
 	    void onAudioDeviceConnectedStatusEventHandler(const JsonObject& parameters);
 	    void onCecEnabledEventHandler(const JsonObject& parameters);
             void onAudioDevicePowerStatusEventHandler(const JsonObject& parameters);
