@@ -693,7 +693,7 @@ namespace WPEFramework
                 IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                 int hdmi_in_port = eventData->data.hdmi_in_content_type.port;
                 bool avi_content_type = eventData->data.hdmi_in_content_type.aviContentType;
-                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE  event  port: %d, Content Type : %d", hdmi_in_port,content_type);
+                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE  event  port: %d, Content Type : %d", hdmi_in_port,avi_content_type);
 
                 HdmiInput::_instance->hdmiInputAviContentTypeChange(hdmi_in_port, avi_content_type);
             }
