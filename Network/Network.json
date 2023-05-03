@@ -481,7 +481,7 @@
                 ]
             }
         },
-        "monitorConnectivity":{
+        "startConnectivityMonitoring":{
             "summary": "Enable a continuous monitoring of internet connectivity with heart beat interval thats given.",
             "events":{
                  "onInternetStatusChange" : "Triggered when internet connection state changed."
@@ -490,9 +490,9 @@
                 "type":"object",
                 "properties": {
                     "interval": {
-                        "summary": "Interval in sec. Default value 600 sec and Minium intervale should be 600 sec",
+                        "summary": "Interval in sec. Default value 600 sec and interval should be greater than 5 sec",
                         "type": "number",
-                        "example": "900"
+                        "example": "30"
                     }
                 },
                 "required": [
@@ -1104,18 +1104,24 @@
             }
         },
         "onInternetStatusChange":{
-            "summary": "Triggered when internet connection state changed.The possible internet connection state are `NO_INTERNET`, `LIMITED_INTERNET`, `CAPTIVE_PORTAL`, `FULLY_CONNECTED`",
+            "summary": "Triggered when internet connection state changed.The possible internet connection status are `NO_INTERNET`, `LIMITED_INTERNET`, `CAPTIVE_PORTAL`, `FULLY_CONNECTED`",
             "params": {
                 "type": "object",
                 "properties": {
                     "state":{
                         "summary": "The internet connection state",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "status":{
+                        "summary": "The internet connection status",
                         "type": "string",
                         "example": "NO_INTERNET"
                     }
                 },
                 "required": [
-                    "state"
+                    "state",
+                    "status"
                 ]
             }
         }
