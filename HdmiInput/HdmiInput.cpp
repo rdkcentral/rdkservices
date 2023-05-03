@@ -1167,7 +1167,6 @@ namespace WPEFramework
                        }
 
                returnResponse(true);
-       
        }
 
 
