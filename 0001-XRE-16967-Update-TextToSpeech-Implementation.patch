@@ -1,0 +1,1387 @@
+From 16963f15b2adb24d7a4055af35a85db0440c2038 Mon Sep 17 00:00:00 2001
+From: "Vivek.A" <Vivek_Arumugam@comcast.com>
+Date: Fri, 28 Apr 2023 13:28:00 +0000
+Subject: [PATCH] XRE-16967: Update TextToSpeech Implementation
+
+Reason for change: Testing
+Test Procedure: None
+Priority: P1
+Risks: None
+
+Signed-off-by: Vivek.A <vivek_arumugam@comcast.com>
+---
+ TextToSpeech/CMakeLists.txt                 |   14 +-
+ TextToSpeech/ITextToSpeech.h                |   56 -
+ TextToSpeech/ProxyStubs_TextToSpeech.cpp    | 1043 -------------------
+ TextToSpeech/TextToSpeech.cpp               |   27 +-
+ TextToSpeech/TextToSpeech.h                 |   16 +-
+ TextToSpeech/TextToSpeechImplementation.cpp |   28 +-
+ TextToSpeech/TextToSpeechImplementation.h   |   17 +-
+ TextToSpeech/TextToSpeechJsonRpc.cpp        |    2 +
+ 8 files changed, 89 insertions(+), 1114 deletions(-)
+ delete mode 100644 TextToSpeech/ITextToSpeech.h
+ delete mode 100644 TextToSpeech/ProxyStubs_TextToSpeech.cpp
+
+diff --git a/TextToSpeech/CMakeLists.txt b/TextToSpeech/CMakeLists.txt
+index a34192e7..cfca8df1 100644
+--- a/TextToSpeech/CMakeLists.txt
++++ b/TextToSpeech/CMakeLists.txt
+@@ -13,7 +13,6 @@ add_library(${MODULE_NAME} SHARED
+         Module.cpp
+         TextToSpeech.cpp
+         TextToSpeechJsonRpc.cpp
+-        ProxyStubs_TextToSpeech.cpp
+         TextToSpeechImplementation.cpp
+         impl/TTSManager.cpp
+         impl/TTSSpeaker.cpp
+@@ -28,9 +27,10 @@ set_target_properties(${MODULE_NAME} PROPERTIES
+ list(APPEND CMAKE_MODULE_PATH
+         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+ 
+-find_package(GSTREAMER REQUIRED)
+-
+ find_package(Curl)
++find_package(GSTREAMER REQUIRED)
++find_package(${NAMESPACE}Plugins REQUIRED)
++find_package(${NAMESPACE}Definitions REQUIRED)
+ 
+ set(AUDIO_CLIENT_LIB "")
+ if (BUILD_AMLOGIC)
+@@ -40,7 +40,13 @@ elseif (BUILD_REALTEK)
+ endif()
+ 
+ target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${GSTREAMER_INCLUDES})
+-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${CURL_LIBRARY} ${GSTREAMER_LIBRARIES} ${AUDIO_CLIENT_LIB})
++
++target_link_libraries(${MODULE_NAME}
++    PRIVATE
++        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
++        ${NAMESPACE}Definitions::${NAMESPACE}Definitions
++        ${CURL_LIBRARY} ${GSTREAMER_LIBRARIES} ${AUDIO_CLIENT_LIB}
++        )
+ 
+ install(TARGETS ${MODULE_NAME}
+         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
+diff --git a/TextToSpeech/ITextToSpeech.h b/TextToSpeech/ITextToSpeech.h
+deleted file mode 100644
+index cff9ed6f..00000000
+--- a/TextToSpeech/ITextToSpeech.h
++++ /dev/null
+@@ -1,56 +0,0 @@
+-
+-#ifndef __ITEXTTOSPEECH_H
+-#define __ITEXTTOSPEECH_H
+-
+-#include "Module.h"
+-#include <interfaces/Ids.h>
+-
+-namespace WPEFramework {
+-namespace Exchange {
+-
+-    struct EXTERNAL ITextToSpeech : virtual public Core::IUnknown {
+-        enum { ID = ID_BROWSER + 0x10000 };
+-
+-        struct INotification : virtual public Core::IUnknown {
+-            enum { ID = ITextToSpeech::ID + 1};
+-
+-            virtual ~INotification() {}
+-
+-            virtual void StateChanged(const string &data) = 0;
+-            virtual void VoiceChanged(const string &data) = 0;
+-            virtual void WillSpeak(const string &data) = 0;
+-            virtual void SpeechStart(const string &data) = 0;
+-            virtual void SpeechPause(const string &data) = 0;
+-            virtual void SpeechResume(const string &data) = 0;
+-            virtual void SpeechCancelled(const string &data) = 0;
+-            virtual void SpeechInterrupted(const string &data) = 0;
+-            virtual void NetworkError(const string &data) = 0;
+-            virtual void PlaybackError(const string &data) = 0;
+-            virtual void SpeechComplete(const string &data) = 0;
+-        };
+-
+-        virtual ~ITextToSpeech() {}
+-
+-        virtual uint32_t Configure(PluginHost::IShell* service) = 0;
+-        virtual void Register(INotification* sink) = 0;
+-        virtual void Unregister(INotification* sink) = 0;
+-
+-        virtual uint32_t Enable(const string &input, string &output /* @out */) = 0;
+-        virtual uint32_t ListVoices(const string &input, string &output /* @out */) = 0;
+-        virtual uint32_t SetConfiguration(const string &input, string &output /* @out */) = 0;
+-        virtual uint32_t GetConfiguration(const string &input, string &output /* @out */) = 0;
+-        virtual uint32_t IsEnabled(const string &input, string &output /* @out */) = 0;
+-        virtual uint32_t Speak(const string &input, string &output /* @out */) = 0;
+-        virtual uint32_t Cancel(const string &input, string &output /* @out */) = 0;
+-        virtual uint32_t Pause(const string &input, string &output /* @out */) = 0;
+-        virtual uint32_t Resume(const string &input, string &output /* @out */) = 0;
+-        virtual uint32_t IsSpeaking(const string &input, string &output /* @out */) = 0;
+-        virtual uint32_t GetSpeechState(const string &input, string &output /* @out */) = 0;
+-
+-    };
+-
+-} // Exchange
+-} // WPEFramework
+-
+-#endif //__ITEXTTOSPEECH_H
+-
+diff --git a/TextToSpeech/ProxyStubs_TextToSpeech.cpp b/TextToSpeech/ProxyStubs_TextToSpeech.cpp
+deleted file mode 100644
+index 9a5b3ac1..00000000
+--- a/TextToSpeech/ProxyStubs_TextToSpeech.cpp
++++ /dev/null
+@@ -1,1043 +0,0 @@
+-//
+-// generated automatically from "ITextToSpeech.h"
+-//
+-// implements RPC proxy stubs for:
+-//   - class ITextToSpeech
+-//   - class ITextToSpeech::INotification
+-//
+-
+-#include "ITextToSpeech.h"
+-#include "Module.h"
+-
+-namespace WPEFramework {
+-
+-namespace ProxyStubs {
+-
+-    using namespace Exchange;
+-
+-    // -----------------------------------------------------------------
+-    // STUB
+-    // -----------------------------------------------------------------
+-
+-    //
+-    // ITextToSpeech interface stub definitions
+-    //
+-    // Methods:
+-    //  (0) virtual uint32_t Configure(PluginHost::IShell*) = 0
+-    //  (1) virtual void Register(ITextToSpeech::INotification*) = 0
+-    //  (2) virtual void Unregister(ITextToSpeech::INotification*) = 0
+-    //  (3) virtual uint32_t Enable(const string&, string&) = 0
+-    //  (4) virtual uint32_t ListVoices(const string&, string&) = 0
+-    //  (5) virtual uint32_t SetConfiguration(const string&, string&) = 0
+-    //  (6) virtual uint32_t GetConfiguration(const string&, string&) = 0
+-    //  (7) virtual uint32_t IsEnabled(const string&, string&) = 0
+-    //  (8) virtual uint32_t Speak(const string&, string&) = 0
+-    //  (9) virtual uint32_t Cancel(const string&, string&) = 0
+-    //  (10) virtual uint32_t Pause(const string&, string&) = 0
+-    //  (11) virtual uint32_t Resume(const string&, string&) = 0
+-    //  (12) virtual uint32_t IsSpeaking(const string&, string&) = 0
+-    //  (13) virtual uint32_t GetSpeechState(const string&, string&) = 0
+-    //
+-
+-    ProxyStub::MethodHandler TextToSpeechStubMethods[] = {
+-        // virtual uint32_t Configure(PluginHost::IShell*) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            RPC::instance_id param0 = reader.Number<RPC::instance_id>();
+-            PluginHost::IShell* param0_proxy = nullptr;
+-            ProxyStub::UnknownProxy* param0_proxy_inst = nullptr;
+-            if (param0 != 0) {
+-                param0_proxy_inst = RPC::Administrator::Instance().ProxyInstance(channel, param0, false, param0_proxy);
+-                ASSERT((param0_proxy_inst != nullptr) && (param0_proxy != nullptr) && "Failed to get instance of PluginHost::IShell proxy");
+-
+-                if ((param0_proxy_inst == nullptr) || (param0_proxy == nullptr)) {
+-                    TRACE_L1("Failed to get instance of PluginHost::IShell proxy");
+-                }
+-            }
+-
+-            // write return value
+-            RPC::Data::Frame::Writer writer(message->Response().Writer());
+-
+-            // call implementation
+-            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
+-            const uint32_t output = implementation->Configure(param0_proxy);
+-            writer.Number<const uint32_t>(output);
+-
+-            if (param0_proxy_inst != nullptr) {
+-                RPC::Administrator::Instance().Release(param0_proxy_inst, message->Response());
+-            }
+-        },
+-
+-        // virtual void Register(ITextToSpeech::INotification*) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            RPC::instance_id param0 = reader.Number<RPC::instance_id>();
+-            ITextToSpeech::INotification* param0_proxy = nullptr;
+-            ProxyStub::UnknownProxy* param0_proxy_inst = nullptr;
+-            if (param0 != 0) {
+-                param0_proxy_inst = RPC::Administrator::Instance().ProxyInstance(channel, param0, false, param0_proxy);
+-                ASSERT((param0_proxy_inst != nullptr) && (param0_proxy != nullptr) && "Failed to get instance of ITextToSpeech::INotification proxy");
+-
+-                if ((param0_proxy_inst == nullptr) || (param0_proxy == nullptr)) {
+-                    TRACE_L1("Failed to get instance of ITextToSpeech::INotification proxy");
+-                }
+-            }
+-
+-            // call implementation
+-            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
+-            implementation->Register(param0_proxy);
+-
+-            if (param0_proxy_inst != nullptr) {
+-                RPC::Administrator::Instance().Release(param0_proxy_inst, message->Response());
+-            }
+-        },
+-
+-        // virtual void Unregister(ITextToSpeech::INotification*) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            RPC::instance_id param0 = reader.Number<RPC::instance_id>();
+-            ITextToSpeech::INotification* param0_proxy = nullptr;
+-            ProxyStub::UnknownProxy* param0_proxy_inst = nullptr;
+-            if (param0 != 0) {
+-                param0_proxy_inst = RPC::Administrator::Instance().ProxyInstance(channel, param0, false, param0_proxy);
+-                ASSERT((param0_proxy_inst != nullptr) && (param0_proxy != nullptr) && "Failed to get instance of ITextToSpeech::INotification proxy");
+-
+-                if ((param0_proxy_inst == nullptr) || (param0_proxy == nullptr)) {
+-                    TRACE_L1("Failed to get instance of ITextToSpeech::INotification proxy");
+-                }
+-            }
+-
+-            // call implementation
+-            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
+-            implementation->Unregister(param0_proxy);
+-
+-            if (param0_proxy_inst != nullptr) {
+-                RPC::Administrator::Instance().Release(param0_proxy_inst, message->Response());
+-            }
+-        },
+-
+-        // virtual uint32_t Enable(const string&, string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
+-
+-            // call implementation
+-            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
+-            const uint32_t output = implementation->Enable(param0, param1);
+-
+-            // write return values
+-            RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
+-        },
+-
+-        // virtual uint32_t ListVoices(const string&, string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
+-
+-            // call implementation
+-            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
+-            const uint32_t output = implementation->ListVoices(param0, param1);
+-
+-            // write return values
+-            RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
+-        },
+-
+-        // virtual uint32_t SetConfiguration(const string&, string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
+-
+-            // call implementation
+-            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
+-            const uint32_t output = implementation->SetConfiguration(param0, param1);
+-
+-            // write return values
+-            RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
+-        },
+-
+-        // virtual uint32_t GetConfiguration(const string&, string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
+-
+-            // call implementation
+-            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
+-            const uint32_t output = implementation->GetConfiguration(param0, param1);
+-
+-            // write return values
+-            RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
+-        },
+-
+-        // virtual uint32_t IsEnabled(const string&, string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
+-
+-            // call implementation
+-            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
+-            const uint32_t output = implementation->IsEnabled(param0, param1);
+-
+-            // write return values
+-            RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
+-        },
+-
+-        // virtual uint32_t Speak(const string&, string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
+-
+-            // call implementation
+-            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
+-            const uint32_t output = implementation->Speak(param0, param1);
+-
+-            // write return values
+-            RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
+-        },
+-
+-        // virtual uint32_t Cancel(const string&, string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
+-
+-            // call implementation
+-            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
+-            const uint32_t output = implementation->Cancel(param0, param1);
+-
+-            // write return values
+-            RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
+-        },
+-
+-        // virtual uint32_t Pause(const string&, string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
+-
+-            // call implementation
+-            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
+-            const uint32_t output = implementation->Pause(param0, param1);
+-
+-            // write return values
+-            RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
+-        },
+-
+-        // virtual uint32_t Resume(const string&, string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
+-
+-            // call implementation
+-            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
+-            const uint32_t output = implementation->Resume(param0, param1);
+-
+-            // write return values
+-            RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
+-        },
+-
+-        // virtual uint32_t IsSpeaking(const string&, string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
+-
+-            // call implementation
+-            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
+-            const uint32_t output = implementation->IsSpeaking(param0, param1);
+-
+-            // write return values
+-            RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
+-        },
+-
+-        // virtual uint32_t GetSpeechState(const string&, string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
+-
+-            // call implementation
+-            ITextToSpeech* implementation = reinterpret_cast<ITextToSpeech*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech implementation pointer");
+-            const uint32_t output = implementation->GetSpeechState(param0, param1);
+-
+-            // write return values
+-            RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
+-        },
+-
+-        nullptr
+-    }; // TextToSpeechStubMethods[]
+-
+-    //
+-    // ITextToSpeech::INotification interface stub definitions
+-    //
+-    // Methods:
+-    //  (0) virtual void StateChanged(const string&) = 0
+-    //  (1) virtual void VoiceChanged(const string&) = 0
+-    //  (2) virtual void WillSpeak(const string&) = 0
+-    //  (3) virtual void SpeechStart(const string&) = 0
+-    //  (4) virtual void SpeechPause(const string&) = 0
+-    //  (5) virtual void SpeechResume(const string&) = 0
+-    //  (6) virtual void SpeechCancelled(const string&) = 0
+-    //  (7) virtual void SpeechInterrupted(const string&) = 0
+-    //  (8) virtual void NetworkError(const string&) = 0
+-    //  (9) virtual void PlaybackError(const string&) = 0
+-    //  (10) virtual void SpeechComplete(const string&) = 0
+-    //
+-
+-    ProxyStub::MethodHandler TextToSpeechNotificationStubMethods[] = {
+-        // virtual void StateChanged(const string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-
+-            // call implementation
+-            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
+-            implementation->StateChanged(param0);
+-        },
+-
+-        // virtual void VoiceChanged(const string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-
+-            // call implementation
+-            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
+-            implementation->VoiceChanged(param0);
+-        },
+-
+-        // virtual void WillSpeak(const string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-
+-            // call implementation
+-            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
+-            implementation->WillSpeak(param0);
+-        },
+-
+-        // virtual void SpeechStart(const string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-
+-            // call implementation
+-            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
+-            implementation->SpeechStart(param0);
+-        },
+-
+-        // virtual void SpeechPause(const string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-
+-            // call implementation
+-            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
+-            implementation->SpeechPause(param0);
+-        },
+-
+-        // virtual void SpeechResume(const string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-
+-            // call implementation
+-            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
+-            implementation->SpeechResume(param0);
+-        },
+-
+-        // virtual void SpeechCancelled(const string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-
+-            // call implementation
+-            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
+-            implementation->SpeechCancelled(param0);
+-        },
+-
+-        // virtual void SpeechInterrupted(const string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-
+-            // call implementation
+-            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
+-            implementation->SpeechInterrupted(param0);
+-        },
+-
+-        // virtual void NetworkError(const string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-
+-            // call implementation
+-            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
+-            implementation->NetworkError(param0);
+-        },
+-
+-        // virtual void PlaybackError(const string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-
+-            // call implementation
+-            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
+-            implementation->PlaybackError(param0);
+-        },
+-
+-        // virtual void SpeechComplete(const string&) = 0
+-        //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-
+-            // call implementation
+-            ITextToSpeech::INotification* implementation = reinterpret_cast<ITextToSpeech::INotification*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ITextToSpeech::INotification implementation pointer");
+-            implementation->SpeechComplete(param0);
+-        },
+-
+-        nullptr
+-    }; // TextToSpeechNotificationStubMethods[]
+-
+-    // -----------------------------------------------------------------
+-    // PROXY
+-    // -----------------------------------------------------------------
+-
+-    //
+-    // ITextToSpeech interface proxy definitions
+-    //
+-    // Methods:
+-    //  (0) virtual uint32_t Configure(PluginHost::IShell*) = 0
+-    //  (1) virtual void Register(ITextToSpeech::INotification*) = 0
+-    //  (2) virtual void Unregister(ITextToSpeech::INotification*) = 0
+-    //  (3) virtual uint32_t Enable(const string&, string&) = 0
+-    //  (4) virtual uint32_t ListVoices(const string&, string&) = 0
+-    //  (5) virtual uint32_t SetConfiguration(const string&, string&) = 0
+-    //  (6) virtual uint32_t GetConfiguration(const string&, string&) = 0
+-    //  (7) virtual uint32_t IsEnabled(const string&, string&) = 0
+-    //  (8) virtual uint32_t Speak(const string&, string&) = 0
+-    //  (9) virtual uint32_t Cancel(const string&, string&) = 0
+-    //  (10) virtual uint32_t Pause(const string&, string&) = 0
+-    //  (11) virtual uint32_t Resume(const string&, string&) = 0
+-    //  (12) virtual uint32_t IsSpeaking(const string&, string&) = 0
+-    //  (13) virtual uint32_t GetSpeechState(const string&, string&) = 0
+-    //
+-
+-    class TextToSpeechProxy final : public ProxyStub::UnknownProxyType<ITextToSpeech> {
+-    public:
+-        TextToSpeechProxy(const Core::ProxyType<Core::IPCChannel>& channel, RPC::instance_id implementation, const bool otherSideInformed)
+-            : BaseClass(channel, implementation, otherSideInformed)
+-        {
+-        }
+-
+-        uint32_t Configure(PluginHost::IShell* param0) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(0));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Number<RPC::instance_id>(RPC::instance_cast<PluginHost::IShell*>(param0));
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return value
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-
+-                Complete(reader);
+-            }
+-
+-            return output;
+-        }
+-
+-        void Register(ITextToSpeech::INotification* param0) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(1));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Number<RPC::instance_id>(RPC::instance_cast<ITextToSpeech::INotification*>(param0));
+-
+-            // invoke the method handler
+-            if (Invoke(newMessage) == Core::ERROR_NONE) {
+-                // read return value
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                Complete(reader);
+-            }
+-        }
+-
+-        void Unregister(ITextToSpeech::INotification* param0) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(2));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Number<RPC::instance_id>(RPC::instance_cast<ITextToSpeech::INotification*>(param0));
+-
+-            // invoke the method handler
+-            if (Invoke(newMessage) == Core::ERROR_NONE) {
+-                // read return value
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                Complete(reader);
+-            }
+-        }
+-
+-        uint32_t Enable(const string& param0, string& /* out */ param1) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(3));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
+-
+-            return output;
+-        }
+-
+-        uint32_t ListVoices(const string& param0, string& /* out */ param1) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(4));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
+-
+-            return output;
+-        }
+-
+-        uint32_t SetConfiguration(const string& param0, string& /* out */ param1) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(5));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
+-
+-            return output;
+-        }
+-
+-        uint32_t GetConfiguration(const string& param0, string& /* out */ param1) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(6));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
+-
+-            return output;
+-        }
+-
+-        uint32_t IsEnabled(const string& param0, string& /* out */ param1) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(7));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
+-
+-            return output;
+-        }
+-
+-        uint32_t Speak(const string& param0, string& /* out */ param1) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(8));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
+-
+-            return output;
+-        }
+-
+-        uint32_t Cancel(const string& param0, string& /* out */ param1) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(9));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
+-
+-            return output;
+-        }
+-
+-        uint32_t Pause(const string& param0, string& /* out */ param1) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(10));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
+-
+-            return output;
+-        }
+-
+-        uint32_t Resume(const string& param0, string& /* out */ param1) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(11));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
+-
+-            return output;
+-        }
+-
+-        uint32_t IsSpeaking(const string& param0, string& /* out */ param1) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(12));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
+-
+-            return output;
+-        }
+-
+-        uint32_t GetSpeechState(const string& param0, string& /* out */ param1) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(13));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
+-
+-            return output;
+-        }
+-    }; // class TextToSpeechProxy
+-
+-    //
+-    // ITextToSpeech::INotification interface proxy definitions
+-    //
+-    // Methods:
+-    //  (0) virtual void StateChanged(const string&) = 0
+-    //  (1) virtual void VoiceChanged(const string&) = 0
+-    //  (2) virtual void WillSpeak(const string&) = 0
+-    //  (3) virtual void SpeechStart(const string&) = 0
+-    //  (4) virtual void SpeechPause(const string&) = 0
+-    //  (5) virtual void SpeechResume(const string&) = 0
+-    //  (6) virtual void SpeechCancelled(const string&) = 0
+-    //  (7) virtual void SpeechInterrupted(const string&) = 0
+-    //  (8) virtual void NetworkError(const string&) = 0
+-    //  (9) virtual void PlaybackError(const string&) = 0
+-    //  (10) virtual void SpeechComplete(const string&) = 0
+-    //
+-
+-    class TextToSpeechNotificationProxy final : public ProxyStub::UnknownProxyType<ITextToSpeech::INotification> {
+-    public:
+-        TextToSpeechNotificationProxy(const Core::ProxyType<Core::IPCChannel>& channel, RPC::instance_id implementation, const bool otherSideInformed)
+-            : BaseClass(channel, implementation, otherSideInformed)
+-        {
+-        }
+-
+-        void StateChanged(const string& param0) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(0));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            Invoke(newMessage);
+-        }
+-
+-        void VoiceChanged(const string& param0) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(1));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            Invoke(newMessage);
+-        }
+-
+-        void WillSpeak(const string& param0) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(2));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            Invoke(newMessage);
+-        }
+-
+-        void SpeechStart(const string& param0) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(3));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            Invoke(newMessage);
+-        }
+-
+-        void SpeechPause(const string& param0) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(4));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            Invoke(newMessage);
+-        }
+-
+-        void SpeechResume(const string& param0) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(5));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            Invoke(newMessage);
+-        }
+-
+-        void SpeechCancelled(const string& param0) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(6));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            Invoke(newMessage);
+-        }
+-
+-        void SpeechInterrupted(const string& param0) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(7));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            Invoke(newMessage);
+-        }
+-
+-        void NetworkError(const string& param0) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(8));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            Invoke(newMessage);
+-        }
+-
+-        void PlaybackError(const string& param0) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(9));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            Invoke(newMessage);
+-        }
+-
+-        void SpeechComplete(const string& param0) override
+-        {
+-            IPCMessage newMessage(BaseClass::Message(10));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            Invoke(newMessage);
+-        }
+-    }; // class TextToSpeechNotificationProxy
+-
+-    // -----------------------------------------------------------------
+-    // REGISTRATION
+-    // -----------------------------------------------------------------
+-
+-    namespace {
+-
+-        typedef ProxyStub::UnknownStubType<ITextToSpeech, TextToSpeechStubMethods> TextToSpeechStub;
+-        typedef ProxyStub::UnknownStubType<ITextToSpeech::INotification, TextToSpeechNotificationStubMethods> TextToSpeechNotificationStub;
+-
+-        static class Instantiation {
+-        public:
+-            Instantiation()
+-            {
+-                RPC::Administrator::Instance().Announce<ITextToSpeech, TextToSpeechProxy, TextToSpeechStub>();
+-                RPC::Administrator::Instance().Announce<ITextToSpeech::INotification, TextToSpeechNotificationProxy, TextToSpeechNotificationStub>();
+-            }
+-            ~Instantiation()
+-            {
+-                RPC::Administrator::Instance().Recall<ITextToSpeech>();
+-                RPC::Administrator::Instance().Recall<ITextToSpeech::INotification>();
+-            }
+-        } ProxyStubRegistration;
+-
+-    } // namespace
+-
+-} // namespace ProxyStubs
+-
+-}
+diff --git a/TextToSpeech/TextToSpeech.cpp b/TextToSpeech/TextToSpeech.cpp
+index 3c62b547..f7702c47 100644
+--- a/TextToSpeech/TextToSpeech.cpp
++++ b/TextToSpeech/TextToSpeech.cpp
+@@ -63,8 +63,25 @@ namespace Plugin {
+         if(_tts != nullptr) {
+             ASSERT(_connectionId != 0);
+ 
+-            _tts->Configure(_service);
+-            _tts->Register(&_notification);
++            PluginHost::IStateControl* stateControl(_tts->QueryInterface<PluginHost::IStateControl>());
++
++            if (stateControl == nullptr) {
++                _tts->Release();
++                _tts = nullptr;
++            } else {
++                _tts->Register(&_notification);
++                if (stateControl->Configure(_service) != Core::ERROR_NONE) {
++                    _tts->Unregister(&_notification);
++                    _tts->Release();
++                    _tts = nullptr;
++                } else {
++                    stateControl->Register(&_notification);
++                }
++                stateControl->Release();
++            }
++        }
++
++        if(_tts != nullptr) {
+             RegisterAll();
+         } else {
+             message = _T("TextToSpeech could not be instantiated.");
+@@ -86,6 +103,12 @@ namespace Plugin {
+         _tts->Unregister(&_notification);
+         _service->Unregister(&_notification);
+ 
++        PluginHost::IStateControl* stateControl(_tts->QueryInterface<PluginHost::IStateControl>());
++        if (stateControl != nullptr) {
++            stateControl->Unregister(&_notification);
++            stateControl->Release();
++        }
++
+         if(_tts->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+             ASSERT(_connectionId != 0);
+             TRACE_L1("TextToSpeech Plugin is not properly destructed. %d", _connectionId);
+diff --git a/TextToSpeech/TextToSpeech.h b/TextToSpeech/TextToSpeech.h
+index 1f10ab30..b7fbd86a 100644
+--- a/TextToSpeech/TextToSpeech.h
++++ b/TextToSpeech/TextToSpeech.h
+@@ -32,9 +32,12 @@
+ #pragma once
+ 
+ #include "Module.h"
+-#include "tracing/Logging.h"
++#include <interfaces/ITextToSpeech.h>
+ 
+-#include "TextToSpeechImplementation.h"
++#include "tracing/Logging.h"
++#include "impl/logger.h"
++#include <mutex>
++#include <map>
+ 
+ namespace WPEFramework {
+ namespace Plugin {
+@@ -42,7 +45,9 @@ namespace Plugin {
+     class TextToSpeech: public PluginHost::IPlugin, public PluginHost::JSONRPC {
+     public:
+         class Notification : public RPC::IRemoteConnection::INotification,
+-                             public Exchange::ITextToSpeech::INotification {
++                             public Exchange::ITextToSpeech::INotification,
++                             public PluginHost::IStateControl::INotification
++        {
+             private:
+                 Notification() = delete;
+                 Notification(const Notification&) = delete;
+@@ -58,6 +63,11 @@ namespace Plugin {
+                 }
+ 
+             public:
++                // IStateControl::INotification
++                virtual void StateChange(const PluginHost::IStateControl::state state) {
++                }
++
++                // ITextToSpeech::INotification
+                 virtual void StateChanged(const string &data) {
+                     _parent.dispatchJsonEvent("onttsstatechanged", data);
+                 }
+diff --git a/TextToSpeech/TextToSpeechImplementation.cpp b/TextToSpeech/TextToSpeechImplementation.cpp
+index 2620de38..911395cb 100644
+--- a/TextToSpeech/TextToSpeechImplementation.cpp
++++ b/TextToSpeech/TextToSpeechImplementation.cpp
+@@ -138,6 +138,33 @@ namespace Plugin {
+         _adminLock.Unlock();
+     }
+ 
++    uint32_t TextToSpeechImplementation::Request(PluginHost::IStateControl::command command)
++    {
++        uint32_t result = Core::ERROR_ILLEGAL_STATE;
++
++        if (_state == PluginHost::IStateControl::UNINITIALIZED) {
++            _state = (command == PluginHost::IStateControl::SUSPEND ? PluginHost::IStateControl::SUSPENDED : PluginHost::IStateControl::RESUMED);
++            result = Core::ERROR_NONE;
++        } else {
++            switch (command) {
++            case PluginHost::IStateControl::SUSPEND:
++                _state = PluginHost::IStateControl::SUSPENDED;
++                result = Core::ERROR_NONE;
++                break;
++
++            case PluginHost::IStateControl::RESUME:
++                _state = PluginHost::IStateControl::SUSPENDED;
++                result = Core::ERROR_NONE;
++                break;
++
++            default:
++                break;
++            }
++        }
++
++        return (result);
++    }
++
+     uint32_t TextToSpeechImplementation::Enable(const string &input, string &output)
+     {
+         CONVERT_PARAMETERS_TOJSON();
+@@ -584,6 +611,5 @@ namespace Plugin {
+         file.Close();
+         return true;
+     }
+-
+ } // namespace Plugin
+ } // namespace WPEFramework
+diff --git a/TextToSpeech/TextToSpeechImplementation.h b/TextToSpeech/TextToSpeechImplementation.h
+index 97b8219d..fa893bfe 100644
+--- a/TextToSpeech/TextToSpeechImplementation.h
++++ b/TextToSpeech/TextToSpeechImplementation.h
+@@ -21,9 +21,9 @@
+ 
+ #include "Module.h"
+ #include <interfaces/Ids.h>
++#include <interfaces/ITextToSpeech.h>
+ #include "tracing/Logging.h"
+ 
+-#include "ITextToSpeech.h"
+ #include "impl/TTSManager.h"
+ #include "impl/TTSConfiguration.h"
+ #include <vector>
+@@ -31,7 +31,7 @@
+ namespace WPEFramework {
+ namespace Plugin {
+ 
+-    class TextToSpeechImplementation : public Exchange::ITextToSpeech, public TTS::TTSEventCallback {
++    class TextToSpeechImplementation : public Exchange::ITextToSpeech, public PluginHost::IStateControl, public TTS::TTSEventCallback {
+     public:
+         enum Event {
+                 STATE_CHANGED,
+@@ -88,9 +88,14 @@ namespace Plugin {
+         TextToSpeechImplementation(const TextToSpeechImplementation&) = delete;
+         TextToSpeechImplementation& operator=(const TextToSpeechImplementation&) = delete;
+ 
+-        virtual uint32_t Configure(PluginHost::IShell* service);
+-        virtual void Register(INotification* sink) override ;
+-        virtual void Unregister(INotification* sink) override ;
++        virtual uint32_t Configure(PluginHost::IShell* service) override;
++        virtual void Register(Exchange::ITextToSpeech::INotification* sink) override ;
++        virtual void Unregister(Exchange::ITextToSpeech::INotification* sink) override ;
++
++        virtual PluginHost::IStateControl::state State() const override { return PluginHost::IStateControl::RESUMED; }
++        virtual uint32_t Request(const command state) override;
++        virtual void Register(IStateControl::INotification* notification) override {}
++        virtual void Unregister(IStateControl::INotification* notification) override {}
+ 
+         virtual uint32_t Enable(const string &input, string &output /* @out */) override ;
+         virtual uint32_t ListVoices(const string &input, string &output /* @out */) override ;
+@@ -118,12 +123,14 @@ namespace Plugin {
+ 
+         BEGIN_INTERFACE_MAP(TextToSpeechImplementation)
+         INTERFACE_ENTRY(Exchange::ITextToSpeech)
++        INTERFACE_ENTRY(PluginHost::IStateControl)
+         END_INTERFACE_MAP
+ 
+     private:
+         static TTS::TTSManager* _ttsManager;
+         mutable Core::CriticalSection _adminLock;
+         std::list<Exchange::ITextToSpeech::INotification*> _notificationClients;
++        PluginHost::IStateControl::state _state;
+ 
+         void dispatchEvent(Event, JsonObject &params);
+         void Dispatch(Event event, string data);
+diff --git a/TextToSpeech/TextToSpeechJsonRpc.cpp b/TextToSpeech/TextToSpeechJsonRpc.cpp
+index f136fb3e..451086d4 100644
+--- a/TextToSpeech/TextToSpeechJsonRpc.cpp
++++ b/TextToSpeech/TextToSpeechJsonRpc.cpp
+@@ -20,6 +20,7 @@
+ #include "TextToSpeech.h"
+ #include "UtilsJsonRpc.h"
+ #include "UtilsUnused.h"
++#include "impl/TTSCommon.h"
+ 
+ namespace WPEFramework {
+ namespace Plugin {
+@@ -36,6 +37,7 @@ namespace Plugin {
+         Register("pause", &TextToSpeech::Pause, this);
+         Register("resume", &TextToSpeech::Resume, this);
+         Register("isspeaking", &TextToSpeech::IsSpeaking, this);
++
+         Register("getspeechstate", &TextToSpeech::GetSpeechState, this);
+         Register("setACL", &TextToSpeech::SetACL, this);
+         Register("getapiversion", &TextToSpeech::getapiversion, this);
+-- 
+2.17.1
+
