@@ -136,7 +136,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             registerMethod("isConnectedToInternet", &Network::isConnectedToInternet, this);
             registerMethod("setConnectivityTestEndpoints", &Network::setConnectivityTestEndpoints, this);
             registerMethod("getInternetConnectionState", &Network::getInternetConnectionState, this);
-            registerMethod("monitorConnectivity", &Network::monitorConnectivity, this);
+            registerMethod("startConnectivityMonitoring", &Network::startConnectivityMonitoring, this);
             registerMethod("getCaptivePortalURI", &Network::getCaptivePortalURI, this);
             registerMethod("stopConnectivityMonitoring", &Network::stopConnectivityMonitoring, this);
             registerMethod("getPublicIP", &Network::getPublicIP, this);
@@ -256,7 +256,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             Unregister("setConnectivityTestEndpoints");
             Unregister("getInternetConnectionState");
             Unregister("getCaptivePortalURI");
-            Unregister("monitorConnectivity");
+            Unregister("startConnectivityMonitoring");
             Unregister("stopConnectivityMonitoring");
             Unregister("getPublicIP");
             Unregister("setStunEndPoint");
@@ -1279,7 +1279,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             returnResponse(result);
         }
 
-        uint32_t Network::monitorConnectivity(const JsonObject& parameters, JsonObject& response)
+        uint32_t Network::startConnectivityMonitoring(const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
             IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t iarmData;
@@ -1290,7 +1290,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 iarmData.monitorInterval = parameters["interval"].Number();
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_monitorConnectivity, (void *)&iarmData, sizeof(iarmData)))
                 {
-                    LOGINFO ("enabled Connectivity Monitor %d sec interval", iarmData.monitorInterval);
+                    LOGINFO ("starting connectivity monitor with %d sec interval", iarmData.monitorInterval);
                     result = true;
                 }
                 else
@@ -1447,6 +1447,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
         void Network::onInternetStatusChange(InternetConnectionState_t InternetConnectionState)
         {
             JsonObject params;
+            params["state"] = static_cast <int> (InternetConnectionState);
             switch (InternetConnectionState)
             {
                 case NO_INTERNET:
