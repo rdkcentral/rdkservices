@@ -51,7 +51,7 @@
 #define HDMIINPUT_EVENT_ON_STATUS_CHANGED "onInputStatusChanged"
 #define HDMIINPUT_EVENT_ON_VIDEO_MODE_UPDATED "videoStreamInfoUpdate"
 #define HDMIINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED "hdmiGameFeatureStatusUpdate"
-#define HDMIINPUT_EVENT_ON_CONTENT_TYPE_CHANGED "hdmiContentTypeUpdate"
+#define HDMIINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED "hdmiContentTypeUpdate"
 
 // TODO: remove this
 #define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
