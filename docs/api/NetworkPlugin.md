@@ -58,7 +58,7 @@ Network interface methods:
 | [isConnectedToInternet](#method.isConnectedToInternet) | Whether the device has internet connectivity |
 | [getInternetConnectionState](#method.getInternetConnectionState) | Returns the internet connection state |
 | [getCaptivePortalURI](#method.getCaptivePortalURI) | Returns the captive portal URI if connected to any captive portal network |
-| [monitorConnectivity](#method.monitorConnectivity) | Enable a continuous monitoring of internet connectivity with heart beat interval thats given |
+| [startConnectivityMonitoring](#method.startConnectivityMonitoring) | Enable a continuous monitoring of internet connectivity with heart beat interval thats given |
 | [stopConnectivityMonitoring](#method.stopConnectivityMonitoring) | Stops the connectivity monitoring |
 | [isInterfaceEnabled](#method.isInterfaceEnabled) | Whether the specified interface is enabled |
 | [ping](#method.ping) | Pings the specified endpoint with the specified number of packets |
@@ -636,8 +636,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.monitorConnectivity"></a>
-## *monitorConnectivity [<sup>method</sup>](#head.Methods)*
+<a name="method.startConnectivityMonitoring"></a>
+## *startConnectivityMonitoring [<sup>method</sup>](#head.Methods)*
 
 Enable a continuous monitoring of internet connectivity with heart beat interval thats given.
 
@@ -651,7 +651,7 @@ Enable a continuous monitoring of internet connectivity with heart beat interval
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interval | number | Interval in sec. Default value 600 sec and Minium intervale should be 600 sec |
+| params.interval | number | Interval in sec. Default value 600 sec and interval should be greater than 5 sec |
 
 ### Result
 
@@ -668,9 +668,9 @@ Enable a continuous monitoring of internet connectivity with heart beat interval
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.monitorConnectivity",
+    "method": "org.rdk.Network.startConnectivityMonitoring",
     "params": {
-        "interval": 900
+        "interval": 30
     }
 }
 ```
@@ -1466,14 +1466,15 @@ Triggered when the default interface changes, regardless if it's from a system o
 <a name="event.onInternetStatusChange"></a>
 ## *onInternetStatusChange [<sup>event</sup>](#head.Notifications)*
 
-Triggered when internet connection state changed.The possible internet connection state are `NO_INTERNET`, `LIMITED_INTERNET`, `CAPTIVE_PORTAL`, `FULLY_CONNECTED`.
+Triggered when internet connection state changed.The possible internet connection status are `NO_INTERNET`, `LIMITED_INTERNET`, `CAPTIVE_PORTAL`, `FULLY_CONNECTED`.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.state | string | The internet connection state |
+| params.state | integer | The internet connection state |
+| params.status | string | The internet connection status |
 
 ### Example
 
@@ -1482,7 +1483,8 @@ Triggered when internet connection state changed.The possible internet connectio
     "jsonrpc": "2.0",
     "method": "client.events.onInternetStatusChange",
     "params": {
-        "state": "NO_INTERNET"
+        "state": 0,
+        "status": "NO_INTERNET"
     }
 }
 ```
