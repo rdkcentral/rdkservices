@@ -109,6 +109,7 @@ namespace WPEFramework {
            void hdmiInAVLatencyChange(int audio_output_delay,int video_latency);
            static void dsHdmiAVLatencyEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
+	   void reportLatencyInfoToHdmiCecSink();
         public:
             HdmiInput();
             virtual ~HdmiInput();

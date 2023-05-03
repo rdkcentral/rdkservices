@@ -67,6 +67,10 @@
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 3
 
+static int audio_output_delay;
+static int video_latency;
+static bool lowLatencyMode;
+
 using namespace std;
 
 namespace WPEFramework
@@ -816,6 +820,39 @@ namespace WPEFramework
                 LOGINFO("HdmiInput getHdmiCecSinkPlugin init m_client\n");
             }
         }
+
+	void HdmiInput::reportLatencyInfoToHdmiCecSink()
+	{
+
+          PluginHost::IShell::state state;
+           if ((getServiceState(m_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+               LOGINFO("%s is active", HDMICECSINK_CALLSIGN);
+
+               getHdmiCecSinkPlugin();
+               if (!m_client) {
+                   LOGERR("HdmiCecSink Initialisation failed\n");
+               }
+               else {
+                   JsonObject hdmiCecSinkResult;
+                   JsonObject param;
+
+                   param["audioOutputDelay"] = audio_output_delay;
+                   param["videoLatency"] = video_latency;
+		   param["lowLatencyMode"] = lowLatencyMode;
+		   param["audioOutputCompensated"] = 3;//hard-coded for now
+                   LOGINFO("latency - Info: %d : %d, %d\n",audio_output_delay,video_latency,lowLatencyMode);
+                   m_client->Invoke<JsonObject, JsonObject>(2000, "setLatencyInfoWrapper", param, hdmiCecSinkResult);
+                   if (!hdmiCecSinkResult["success"].Boolean()) {
+                       LOGERR("HdmiCecSink Plugin returned error\n");
+                   }
+               }
+           }
+           else {
+               LOGERR("HdmiCecSink plugin not ready\n");
+           }
+
+
+	}
         void  HdmiInput::dsHdmiAVLatencyEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             if(!HdmiInput::_instance)
@@ -825,15 +862,17 @@ namespace WPEFramework
             {
                    LOGINFO("received the latency mode change event in dsHdmiAVLatencyEventHandler\n");
                 IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
-                int audio_output_delay = eventData->data.hdmi_in_av_latency.audio_output_delay;
-                int video_latency= eventData->data.hdmi_in_av_latency.video_latency;
+                audio_output_delay = eventData->data.hdmi_in_av_latency.audio_output_delay;
+                video_latency= eventData->data.hdmi_in_av_latency.video_latency;
 
-                HdmiInput::_instance->hdmiInAVLatencyChange(audio_output_delay,video_latency);
+         //       HdmiInput::_instance->hdmiInAVLatencyChange(audio_output_delay,video_latency);
+	  	LOGINFO("Latency Info Change occurs -- Report to HdmiCecSink\n");
+	  	reportLatencyInfoToHdmiCecSink();
             }
         }
+#if 0
 	void HdmiInput::hdmiInAVLatencyChange(int audio_output_delay,int video_latency)
         {
-
 
           PluginHost::IShell::state state;
            if ((getServiceState(m_service, HDMICECSINK_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
@@ -859,9 +898,9 @@ namespace WPEFramework
            else {
                LOGERR("HdmiCecSink plugin not ready\n");
            }
-
        }
        
+
        void HdmiInput::tvLowLatencyChange(bool low_latency)
        {
 
@@ -890,7 +929,7 @@ namespace WPEFramework
                 LOGERR("HdmiCecSink plugin not ready\n");
             }
        }
-        
+#endif 
         void  HdmiInput::tvLowLatencyModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             LOGINFO("Entered in tvLowLatencyModeEventHandler\n");
@@ -901,9 +940,12 @@ namespace WPEFramework
             {
 
                IARM_Bus_TVMgr_EventData_t *eventData = (IARM_Bus_TVMgr_EventData_t *)data;
-                bool lowLatencyMode = eventData->data.mode.low_latency_mode;
-               LOGINFO("calling tvLowLatencyChange with value: %d\n",lowLatencyMode);
-                HdmiInput::_instance->tvLowLatencyChange(lowLatencyMode);
+                lowLatencyMode = eventData->data.mode.low_latency_mode;
+                LOGINFO("LowLatency change with value: %d\n",lowLatencyMode);
+               
+	  	LOGINFO("Latency Info Change occurs -- Report to HdmiCecSink\n");
+	  	reportLatencyInfoToHdmiCecSink();
+	      // HdmiInput::_instance->tvLowLatencyChange(lowLatencyMode);
             }
         }
 
@@ -1167,7 +1209,6 @@ namespace WPEFramework
                        }
 
                returnResponse(true);
-       
        }
 
 
