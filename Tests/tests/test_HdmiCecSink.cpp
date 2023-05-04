@@ -179,8 +179,8 @@ TEST_F(HdmiCecSinkTest, RegisteredMethods)
 
 TEST_F(HdmiCecSinkDsTest, setOSDNameParamMissing)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setOSDName"), _T("{}"), response));
-    EXPECT_EQ(response,  string("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setOSDName"), _T("{}"), response));
+    EXPECT_EQ(response,  string(""));
 }
 
 TEST_F(HdmiCecSinkDsTest, getOSDName)
@@ -194,8 +194,8 @@ TEST_F(HdmiCecSinkDsTest, getOSDName)
 
 TEST_F(HdmiCecSinkDsTest, setVendorIdParamMissing)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVendorId"), _T("{}"), response));
-    EXPECT_EQ(response,  string("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setVendorId"), _T("{}"), response));
+    EXPECT_EQ(response,  string(""));
 }
 
 TEST_F(HdmiCecSinkDsTest, getVendorId)
@@ -209,8 +209,8 @@ TEST_F(HdmiCecSinkDsTest, getVendorId)
 
 TEST_F(HdmiCecSinkDsTest, setActivePathMissingParam)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setActivePath"), _T("{}"), response));
-    EXPECT_EQ(response,  string("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setActivePath"), _T("{}"), response));
+    EXPECT_EQ(response,  string(""));
 }
 
 TEST_F(HdmiCecSinkDsTest, setActivePath)
@@ -228,8 +228,8 @@ TEST_F(HdmiCecSinkDsTest, setActivePath)
 
 TEST_F(HdmiCecSinkDsTest, setRoutingChangeInvalidParam)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setRoutingChange"), _T("{\"oldPort\":\"HDMI0\"}"), response));
-    EXPECT_EQ(response,  string("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setRoutingChange"), _T("{\"oldPort\":\"HDMI0\"}"), response));
+    EXPECT_EQ(response,  string(""));
 }
 
 TEST_F(HdmiCecSinkDsTest, setRoutingChange)
@@ -249,8 +249,8 @@ TEST_F(HdmiCecSinkDsTest, setRoutingChange)
 
 TEST_F(HdmiCecSinkDsTest, setMenuLanguageInvalidParam)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMenuLanguage"), _T("{\"language\":""}"), response));
-    EXPECT_EQ(response,  string("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMenuLanguage"), _T("{\"language\":""}"), response));
+    EXPECT_EQ(response,  string(""));
 }
 
 TEST_F(HdmiCecSinkDsTest, setMenuLanguage)
@@ -268,8 +268,8 @@ TEST_F(HdmiCecSinkDsTest, setMenuLanguage)
 
 TEST_F(HdmiCecSinkDsTest, setupARCRoutingInvalidParam)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setupARCRouting"), _T("{}"), response));
-    EXPECT_EQ(response,  string("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setupARCRouting"), _T("{}"), response));
+    EXPECT_EQ(response,  string(""));
 }
 
 TEST_F(HdmiCecSinkDsTest, setupARCRouting)
@@ -280,8 +280,8 @@ TEST_F(HdmiCecSinkDsTest, setupARCRouting)
 
 TEST_F(HdmiCecSinkDsTest, sendKeyPressEventMissingParam)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": }"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": }"), response));
+    EXPECT_EQ(response, string(""));
 }
 
 TEST_F(HdmiCecSinkDsTest, sendKeyPressEvent)
