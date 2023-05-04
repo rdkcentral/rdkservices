@@ -545,7 +545,6 @@ namespace WPEFramework
        HdmiCecSink::HdmiCecSink()
        : PluginHost::JSONRPC()
        {
-       	   int err;
            LOGWARN("Initlaizing HdmiCecSink");
            HdmiCecSink::_instance = this;
            smConnection=NULL;
@@ -558,9 +557,6 @@ namespace WPEFramework
                    m_audioDevicePowerStatusRequested = false;
 		   m_pollNextState = POLL_THREAD_STATE_NONE;
 		   m_pollThreadState = POLL_THREAD_STATE_NONE;
-		   dsHdmiInGetNumberOfInputsParam_t hdmiInput;
-
-           InitializeIARM();
 
            Register(HDMICECSINK_METHOD_SET_ENABLED, &HdmiCecSink::setEnabledWrapper, this);
            Register(HDMICECSINK_METHOD_GET_ENABLED, &HdmiCecSink::getEnabledWrapper, this);
