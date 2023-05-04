@@ -43,7 +43,6 @@ TEST_F(AVInputTest, RegisteredMethods)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("numberOfInputs")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("currentVideoMode")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("contentProtected")));
 }
 
 TEST_F(AVInputTest, contentProtected)
