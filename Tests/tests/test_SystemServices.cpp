@@ -186,7 +186,11 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("reboot")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getStateInfo")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBootLoaderPattern")));
-  }
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("clearLastDeepSleepReason")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getMfgSerialNumber")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getXconfParams")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getSerialNumber")));
+}
 
 TEST_F(SystemServicesTest, SystemUptime)
 {
@@ -1286,6 +1290,7 @@ TEST_F(SystemServicesEventIarmTest, onRebootRequest)
     handler.Unsubscribe(0, _T("onRebootRequest"), _T("org.rdk.System"), message);
 }
 
+
  /*******************************************************************************************************************
  * Test function for :getDeviceInfo
  * getDeviceInfo :
@@ -1517,7 +1522,7 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParamFriendlyIdOrModelNam
                 const char* str = "IP061-ec";
                 param->bufLen = strlen(str);
                 strncpy(param->buffer, str, sizeof(param->buffer));
-                param->type =  mfrSERIALIZED_TYPE_SKYMODELNAME;
+                param->type =  mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
                 return IARM_RESULT_SUCCESS;
             });
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":friendly_id}"), response));
@@ -1558,7 +1563,7 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedHardwareId)
     //sets an expectation that the IARM_Bus_Call function should not be called during this sequence
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .Times(0);
-		
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), response));
     EXPECT_EQ(response, string("{\"hardwareID\":\"5678\",\"success\":true}"));
 
@@ -1585,7 +1590,7 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedModelName)
                 const char* str = "IP061-ec";
                 param->bufLen = strlen(str);
                 strncpy(param->buffer, str, sizeof(param->buffer));
-                param->type =  mfrSERIALIZED_TYPE_SKYMODELNAME;
+                param->type =  mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
                 return IARM_RESULT_SUCCESS;
             });
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), response));
@@ -1595,7 +1600,7 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedModelName)
     //sets an expectation that the IARM_Bus_Call function should not be called during this sequence
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .Times(0);
-		
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), response));
     EXPECT_EQ(response, string("{\"modelName\":\"IP061-ec\",\"success\":true}"));
 }
@@ -1606,12 +1611,12 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedModelName)
  *          then getDeviceInfo shall successfully retrieve the device info and  returns it in the response
  * @param[in]   :   "params" :{}
  * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
- *                                     "boxIP":"192.168.1.100","build_type":"VBN",
- *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
- *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ *                                     "boxIP":"192.168.1.100","build_type":"VBN",
+ *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
+ *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
  */
 TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParameterHasNoLabelParam)
 {
@@ -1632,12 +1637,12 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParameterHasNoLabelParam)
                 EXPECT_EQ(string(command), string(_T("sh /lib/rdk/getDeviceDetails.sh read")));
                 return __real_popen(command, type);
             }));
-			
+
      //Create fake device property file
      ofstream propFile("/etc/device.properties");
      propFile << "MFG_NAME=SKY";
      propFile.close();
-	 
+
      //Create fake device info script
      Core::File file(deviceInfoScript);
      file.Create();
@@ -1655,12 +1660,12 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParameterHasNoLabelParam)
  *          getDeviceDetails script file ,then returns it in the response
  * @param[in]   : "params": {"params": }
  * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
- *                                     "boxIP":"192.168.1.100","build_type":"VBN",
- *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
- *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ *                                     "boxIP":"192.168.1.100","build_type":"VBN",
+ *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
+ *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
  */
 TEST_F(SystemServicesTest, getDeviceInfoSuccess_onNoValueForQueryParameter)
 {
@@ -1704,12 +1709,12 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onNoValueForQueryParameter)
  *          ImageVersion stored in keys, "version" and "software_version" ,"cable_card_firmware_version","model_number" respectively
  * @param[in]   :  "params": {"params" : {}}
  * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
- *                                     "boxIP":"192.168.1.100","build_type":"VBN",
- *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
- *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ *                                     "boxIP":"192.168.1.100","build_type":"VBN",
+ *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
+ *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
  */
 TEST_F(SystemServicesTest, getDeviceInfoSuccess_OnSpecificKeyValueParsing)
 {
@@ -2558,3 +2563,514 @@ TEST_F(SystemServicesTest, setBootLoaderPatternSuccess_onPatterntypeSILENTLEDON)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 /*Test cases for setBootLoaderPattern ends here*/
+
+/****************************************************************************************************
+ * Test functions for :clearLastDeepSleepReason
+ * clearLastDeepSleepReason :
+ *                clear the last deep sleep reason by removing the file that stores it.
+ *                This method takes no parameters.
+ *
+ *                @return Whether the request succeeded.
+ * Use case coverage:
+ *                @Success :1
+ *                @Failure :2
+ ***************************************************************************************************/
+
+/**
+ * @brief : clearLastDeepSleepReason when file doesn't exists/failed to remove.
+ *          Check if  If the file for the last deep sleep reason cannot be found or failed to remove,
+ *          then  clearLastDeepSleepReason shall be failed and an error message is returned in the response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
+ */
+TEST_F(SystemServicesTest, clearLastDeepSleepReasonFailed_WhenFileFailedToRemove)
+{
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const char* command, const char* type) {
+                EXPECT_EQ(string(command), string(_T("rm -f /opt/standbyReason.txt")));
+                return nullptr;
+            }));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("clearLastDeepSleepReason"), _T("{}"), response));
+}
+
+/**
+ * @brief : clearLastDeepSleepReason when pclose fails to close the opened pipe.
+ *          Check if the pclose failed to close the opened pipe,
+ *          then clearLastDeepSleepReason shall be failed and
+ *          an error message is returned in the response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
+ */
+TEST_F(SystemServicesTest, clearLastDeepSleepReasonFailed_WhenPcloseFailed)
+{
+    //popen mock returns a fake file pointer value.
+    FILE* fakePipe = reinterpret_cast<FILE*>(0x1234);
+    EXPECT_CALL(wrapsImplMock, popen(testing::_, testing::_))
+        .WillOnce(testing::Return(fakePipe));
+    //pclose mock returns -1 to simulate a failure to close the file
+    EXPECT_CALL(wrapsImplMock, pclose(fakePipe))
+        .WillOnce(testing::Return(-1));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("clearLastDeepSleepReason"), _T("{}"), response));
+}
+
+/**
+ * @brief : clearLastDeepSleepReason when file successfully removed.
+ *          Check if the file for the last deep sleep reason is successfully removed using popen,
+ *          then clearLastDeepSleepReason shall be succeeded.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"success": true}
+ */
+TEST_F(SystemServicesTest, clearLastDeepSleepReasonSuccess_whenFileSuccessfullyRemoved)
+{
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const char* command, const char* type) {
+                EXPECT_EQ(string(command), string(_T("rm -f /opt/standbyReason.txt")));
+                return __real_popen(command, type);
+            }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("clearLastDeepSleepReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+/*Test cases for clearLastDeepSleepReason ends here*/
+
+/*********************************************************************************************************
+ * Test function for :getXconfParams
+ * getXconfParams :
+ *                Returns XCONF configuration parameters for the device.
+ *
+ *                @return XconfParams, whether the request succeeded.
+ * Use case coverage:
+ *                @Success :7
+ ******************************************************************************************************/
+/**
+ * @brief : getXconfParams when stb version not found.
+ *        Check if stb version is not found in VERSION_FILE
+ *        then getXconfParams shall be succeeded and returns XconfParams with value env = "dev"
+ *        and value of firmwareVersion= "unknown" if STB_VERSION_STRING not defined,
+ *        and value of firmwareVersion = value defined in STB_VERSION_STRING if STB_VERSION_STRING is defined.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return[if STB_VERSION_STRING defined] : {\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"\",\"firmwareVersion\":\"string[STB_VERSION_STRING]\"},\"success\":true}
+ * @return[if STB_VERSION_STRING not defined] : {\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"\",\"firmwareVersion\":\"unknown\"},\"success\":true}
+ */
+#ifdef STB_VERSION_STRING
+TEST_F(SystemServicesTest, getXconfParamsSuccess_whenStbVersionNotFound_withVersionDefined)
+{
+    //stb version information
+    //Simulated as version not provided in the vesion.txt file
+    ofstream file("/version.txt");
+    file << "";
+    file.close();
+    
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+    
+    string firmwareVersion = STB_VERSION_STRING;
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\""+firmwareVersion+"\"},\"success\":true}"));
+}
+
+#else
+TEST_F(SystemServicesTest, getXconfParamsSuccess_whenStbVersionNotFoundwith_VersionNotDefined)
+{
+    //stb version information
+    //Simulated as version not provided in the vesion.txt file
+    ofstream file("/version.txt");
+    file << "";
+    file.close();
+    
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+    
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"unknown\"},\"success\":true}"));
+}
+#endif
+
+/**
+ * @brief : getXconfParams when STB version string does not contain environment information like VBN/PROD/QA.
+ *        Check if stb version string does not contain env information,
+ *        then getXconfParams shall be succeeded and returns xconfParams with env="dev" and firmwareVersion=stb version string .
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
+ */
+TEST_F(SystemServicesTest, getXconfParamsSuccess_whenVersionStringWithoutEnvInfo)
+{
+    ofstream file("/version.txt");
+    file << "imagename:PX051AEI_2203_sprint_20220331225312sdy_NG";
+    file.close();
+
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+    
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
+}
+
+/**
+ * @brief : getXconfParams getting all  XCONF configuration parameters
+ *        check if all the configiration parameters are provided in respective files,
+ *        then getXconfParams shall be Succeeded and all the values for xconfParams shall be populated.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  "{\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"AX061AEI\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"
+ */
+TEST_F(SystemServicesTest, getXconfParamsSuccess_withAllXConfparams)
+{
+    ofstream file("/version.txt");
+    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    file.close();
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+
+    //model information
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* command, const char* type) -> FILE* {
+                EXPECT_EQ(string(command), string(_T("PATH=${PATH}:/sbin:/usr/sbin /lib/rdk/getDeviceDetails.sh read")));
+                std::string filename = "getDeviceDetail.sh";
+                std::ofstream file_stream(filename);
+                file_stream << "model=AX061AEI\n";
+                file_stream.close();
+                FILE *fp = __real_popen(("cat " + filename).c_str(), "r");
+                return fp;
+            }));
+
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"AX061AEI\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
+}
+/**
+ * @brief : getXconfParams when firm value is "VBN".
+ *        Check if the firm value is "VBN"
+ *        then getXconfParams shall be succeeded and returns xconfParam with env="vbn".
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
+ */
+TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvalueVBN)
+{
+    ofstream file("/version.txt");
+    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    file.close();
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
+}
+
+/**
+ * @brief : getXconfParams when firm value is "PROD".
+ *        Check if the firm value is "PROD"
+ *        then getXconfParams shall be succeeded and returns xconfParam with env="prod".
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"xconfParams\":{\"env\":\"prod\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_PROD_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
+ */
+TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvaluePROD)
+{
+    ofstream file("/version.txt");
+    file << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
+    file.close();
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"prod\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_PROD_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
+}
+
+/**
+ * @brief : getXconfParams when firm value is "QA".
+ *        Check if the firm value is "QA"
+ *        then getXconfParams shall be succeeded and returns xconfParam with env="qa".
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"xconfParams\":{\"env\":\"qa\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_QA_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
+ */
+TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvalueQA)
+{
+    ofstream file("/version.txt");
+    file << "imagename:PX051AEI_QA_2203_sprint_20220331225312sdy_NG";
+    file.close();
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"qa\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_QA_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
+}
+
+/*Test cases for getXconfParams ends here*/
+
+/*****************************************************************************************************
+ * Test function for :getMfgSerialNumber
+ * getMfgSerialNumber :
+ *                Gets the Manufacturing Serial Number.
+ *
+ *                @return Manufacturing Serial Number, whether the request succeeded.
+ * Use case coverage:
+ *                @Success :2
+ *                @Failure :1
+ ******************************************************************************************************/
+/**
+ * @brief : getMfgSerialNumber when Bus call for retrieving the serial number failed.
+ *        Check if BUS call to retrieve the manufacturing serial number is failed,
+ *        then getMfgSerialNumber shall be failed and returns an error message in the response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"success":false}")
+ */
+TEST_F(SystemServicesTest, getMfgSerialNumberFailed_whenBusCallFailed)
+{
+
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                //setting up a mock that always returns an error code.
+                return IARM_RESULT_IPCCORE_FAIL;
+            });
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getMfgSerialNumber"), _T("{}"), response));
+}
+
+/**
+ * @brief : getMfgSerialNumber when Bus call for retrieving the serial number succeeded.
+ *        Check if BUS call to retrieve the manufacturing serial number succeeded,
+ *        then getMfgSerialNumber shall be succeeded and
+ *        returns retrieved manufacture serial number in the response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"mfgSerialNumber": "F00020CE000003","success": true}
+ */
+TEST_F(SystemServicesTest, getMfgSerialNumberSuccess_whenBusCallSuccess)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "F00020CE000003";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, param->bufLen);
+                param->type =  mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMfgSerialNumber"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"mfgSerialNumber\":\"F00020CE000003\",\"success\":true}"));
+}
+
+/**
+ * @brief : getMfgSerialNumber when cached value available.
+ *        Check if cached data of  mfg serial number is available
+ *        then , getMfgSerialNumber shall successfully retrieves the cached information and returns it.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  "result": {"mfgSerialNumber": "F00020CE000003","success": true}
+ */
+TEST_F(SystemServicesTest, getMfgSerialNumberSuccess_getCachedMfgSerialNumber)
+{
+    //Below IARM_Bus_Call function is called for saving the retrieved data
+    //in member variables [cached value]
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "F00020CE000003";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, param->bufLen);
+                param->type =  mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMfgSerialNumber"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"mfgSerialNumber\":\"F00020CE000003\",\"success\":true}"));
+    //To confirm that the retrieved data is cached Data;
+    //sets an expectation that the IARM_Bus_Call function should not be called during this sequence
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+       .Times(0);
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMfgSerialNumber"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"mfgSerialNumber\":\"F00020CE000003\",\"success\":true}"));
+}
+/*Test cases for getMfgSerialNumber ends here*/
+
+/*************************************************************************************************************
+ * Test function for :getSerialNumber
+ * getSerialNumber :
+ *                Returns the device serial number.
+ *
+ *                @return Whether the request succeeded.
+ * Use case coverage:
+ *                @Success :2
+ *                @Failure :4
+ ************************************************************************************************************/
+
+#ifdef USE_TR_69
+/**
+ * @brief : getSerialNumber when GetRFCParameter return failure
+ *        Check if GetRFCParameter returns other than Success,
+ *        then getSerialNumber shall be failed and return error message in the response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
+ */
+TEST_F(SystemServicesTest, getSerialNumberTR069Failed_OnGetRFCParameterFailed)
+{
+    ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                return WDMP_FAILURE;
+            }));
+     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
+}
+
+/**
+ * @brief : getSerialNumber when  GetRFCParameter return Success
+ *        Check if GetRFCParameter returns Success,
+ *        then  getSerialNumber shall be Succeeded and
+ *        returns the retrieved serial number in the response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"serialNumber":"32E10400103240447","success":true}
+ */
+TEST_F(SystemServicesTest, getSerialNumberTR069Success_OnGetRFCParameterSuccess)
+{
+    ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                 // Define the expected serial number
+                 const char* expectedSerialNumber = "32E10400103240447";
+                 strncpy(pstParamData->value, expectedSerialNumber, sizeof(pstParamData->value));
+                 return WDMP_SUCCESS;
+            }));
+     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
+     EXPECT_THAT(response, string("{\"serialNumber\":\"32E10400103240447\",\"success\":true}"));
+}
+
+#else
+/**
+ * @brief : getSerialNumber when getStateDetails.sh does not exist
+ *        Check if /lib/rdk/getStateDetails.sh file doesn't exist,
+ *        then getSerialNumber shall be failed and return the error message in response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":4,"errorMessage":"Unexpected Error","success":false}
+ */
+TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenScriptFileNotExist)
+{
+    const string deviceStateInfoScript = _T("/lib/rdk/getStateDetails.sh");
+    Core::File file(deviceStateInfoScript);
+    file.Create();
+    // Remove the file to simulate it is  not-existing
+    file.Destroy();
+    EXPECT_FALSE(Core::File(string(_T("/lib/rdk/getStateDetails.sh"))).Exists());
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
+}
+
+/**
+ * @brief : getSerialNumber when TMP_SERIAL_NUMBER_FILE does not exist.
+ *        Check if TMP_SERIAL_NUMBER_FILE doesn't exist,then getSerialNumber shall be failed and
+ *        return the error message in response
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":4,"errorMessage":"Expected file not found","success":false}
+ */
+TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenTmpSerialNumberFileNotExist)
+{
+    const string deviceStateInfoScript = _T("/lib/rdk/getStateDetails.sh");
+    Core::File file(deviceStateInfoScript);
+    file.Create();
+    
+    ofstream file2("/tmp/.STB_SER_NO");
+    file2 << "32E10400103240447";
+    file2.close();
+    // Remove the file to simulate it is  not-existing
+    std::remove("/tmp/.STB_SER_NO");
+
+    EXPECT_TRUE(Core::File(string(_T("/lib/rdk/getStateDetails.sh"))).Exists());
+    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/getStateDetails.sh STB_SER_NO")));
+                return 0;
+            }));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
+}
+
+/**
+ * @brief : getSerialNumber when TMP_SERIAL_NUMBER_FILE failed to read.
+ *        Check if contents of TMP_SERIAL_NUMBER_FILE can not be open,
+ *        then getSerialNumber shall be failed
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":6,"errorMessage":"Unsupported file content","success":false}
+ */
+TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenFailedToReadFromTmpFile)
+{
+     /*TODO : Implementation To be done :
+     * Mocking fopen with file can not open and read has not been working straight forward
+     * as it impacts other APIs/plugins using fopen, so working on that */
+
+    //EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
+}
+
+/**
+ * @brief : getSerialNumber when serial number successfully read from  /tmp/.STB_SER_NO .
+ *        Check if file /lib/rdk/getStateDetails.sh and TMP_SERIAL_NUMBER_FILE file[/tmp/.STB_SER_NO] exist,
+ *        then getSerialNumber shall be succeeded and returns serial number in response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"serialNumber":"32E10400103240447","success":true}
+ */
+TEST_F(SystemServicesTest, getSerialNumberSnmpSuccess_whenSerialNumberIsInTmpFile)
+{
+    const string deviceStateInfoScript = _T("/lib/rdk/getStateDetails.sh");
+    Core::File file(deviceStateInfoScript);
+    file.Create();
+    ofstream file2("/tmp/.STB_SER_NO");
+    file2 << "32E10400103240447";
+    file2.close();
+
+    EXPECT_TRUE(Core::File(string(_T("/lib/rdk/getStateDetails.sh"))).Exists());
+    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/getStateDetails.sh STB_SER_NO")));
+                return 0;
+            }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
+    EXPECT_THAT(response, string("{\"serialNumber\":\"32E10400103240447\",\"success\":true}"));
+}
+#endif
+/*Test cases for getSerialNumber ends here*/

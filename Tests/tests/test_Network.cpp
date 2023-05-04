@@ -117,7 +117,7 @@ TEST_F(NetworkTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getSTBIPFamily")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setConnectivityTestEndpoints")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCaptivePortalURI")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("monitorConnectivity")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("startConnectivityMonitoring")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("stopConnectivityMonitoring")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setDefaultInterface")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setIPSettings")));
@@ -436,7 +436,7 @@ TEST_F(NetworkTest, getCaptivePortalURI)
 	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
 }
 
-TEST_F(NetworkTest, monitorConnectivity)
+TEST_F(NetworkTest, startConnectivityMonitoring)
 {
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
@@ -446,9 +446,9 @@ TEST_F(NetworkTest, monitorConnectivity)
                 EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_monitorConnectivity)));
                 return IARM_RESULT_SUCCESS;
             });
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("monitorConnectivity"), _T("{\"interval\": 900}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startConnectivityMonitoring"), _T("{\"interval\": 900}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("monitorConnectivity"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("startConnectivityMonitoring"), _T("{}"), response));
     EXPECT_THAT(response, ::testing::ContainsRegex(_T("")));
 }
 
