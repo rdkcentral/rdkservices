@@ -43,6 +43,7 @@ set_source_files_properties(
         tests/test_DeviceVideoCapabilities.cpp
         tests/test_SystemServices.cpp
         tests/test_Warehouse.cpp
+        tests/test_HdmiCecSink.cpp
         PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 include_directories(../LocationSync
@@ -70,7 +71,10 @@ include_directories(../LocationSync
         ../TraceControl
         ../Warehouse
         ../ActivityMonitor
+        ../MotionDetection
+        ../CompositeInput
         ../OCIContainer
+        ../HdmiCecSink
         ../VoiceControl
         ../ControlService
         ../RemoteActionMapping
@@ -100,7 +104,10 @@ link_directories(../LocationSync
         ../TraceControl
         ../Warehouse
         ../ActivityMonitor
+        ../MotionDetection
+        ../CompositeInput
         ../OCIContainer
+        ../HdmiCecSink
         ../VoiceControl
         ../ControlService
         ../RemoteActionMapping
@@ -134,7 +141,10 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}TraceControl
         ${NAMESPACE}Warehouse
         ${NAMESPACE}ActivityMonitor
+        ${NAMESPACE}MotionDetection
+        ${NAMESPACE}CompositeInput
         ${NAMESPACE}OCIContainer
+        ${NAMESPACE}HdmiCecSink
         ${NAMESPACE}VoiceControl
         ${NAMESPACE}ControlService
         ${NAMESPACE}RemoteActionMapping
