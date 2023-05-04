@@ -49,6 +49,10 @@ int timeout = 0;
 int remoteId = 1;
 string manufacturer;
 
+const std::vector<std::string> beepLevels = {"off","mid","high"};
+size_t beepLevelIdx = 0;
+string beepLevel    = beepLevels[0];
+
 /* Declare module name */
 MODULE_NAME_DECLARATION(BUILD_REFERENCE)
 
@@ -65,11 +69,12 @@ void showMenu()
     std::cout<<"4.getIRDBManufacturers                 e.Enter the 'tvCode' value: " << currentTVCode << "\n";
     std::cout<<"5.getIRDBModels                        f.Enter the 'avrCode' value: " << currentAMPCode << "\n";
     std::cout<<"6.getIRCodesByNames                    g.Enter the 'model' value (for getIRCodesByNames only): " << currentModel << "\n";
-    std::cout<<"7.setIRCode\n";
+    std::cout<<"7.setIRCode                            h.Cycle thru 'level' values (for findMyRemote only): " << beepLevel << "\n";
     std::cout<<"8.clearIRCodes\n";
     std::cout<<"9.getIRCodesByAutoLookup\n";
     std::cout<<"10.getLastKeypressSource\n";
     std::cout<<"11.initializeIRDB\n";
+    std::cout<<"12.findMyRemote\n";
 
     std::cout<<"\nEnter your choice: ";
 }
@@ -390,8 +395,19 @@ void handleParams(string& cmd)
             }
         }
         break;
+
+        case 'h':
+        {
+            // Cycle through level values
+            beepLevelIdx++;
+            if (beepLevelIdx >= beepLevels.size())
+            {
+                beepLevelIdx = 0;
+            }
+            beepLevel = beepLevels[beepLevelIdx];
+        }
+        break;
     }
-    
 }
 
 /* This section is related to the event handler implementation for RemoteControl Plugin Events. */
@@ -786,8 +802,28 @@ int main(int argc, char** argv)
                                 }
                                 std::cout<<"result : "<<res<<"\n";
                             }
-                            break;
+                            break;         
+                            
+                        case 12:
+                            {
+                                JsonObject params;
+                                string res;
+                                params["netType"] = netType;
+                                params["level"] = beepLevel;
 
+                                ret = remoteObject->Invoke<JsonObject, JsonObject>(INVOKE_TIMEOUT,
+                                                    _T("findMyRemote"), params, result);
+                                std::cout<<"RemoteControl Invoke ret : "<< ret <<"\n";
+                                result.ToString(res);
+                                if (result["success"].Boolean()) {
+                                    std::cout<<"RemoteControl findMyRemote call - Success!\n";
+                                } else {
+                                    std::cout<<"RemoteControl findMyRemote call - failed!\n";
+                                }
+                                std::cout<<"result : "<<res<<"\n";
+                            }
+                            break;
+                            
                         default:
                             std::cout<<"Entry not recognized!\n";
                             break;
@@ -810,7 +846,7 @@ int main(int argc, char** argv)
                     choice = stoi(cmd);
                     lastCmd = cmd;
                 }
-                else if ((cmd[0] >= 'a') && (cmd[0] <= 'g'))
+                else if ((cmd[0] >= 'a') && (cmd[0] <= 'h'))
                 {
                 }
                 else
