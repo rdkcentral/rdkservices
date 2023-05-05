@@ -129,7 +129,7 @@ protected:
 TEST_F(CompositeInputTest, RegisteredMethods)
 {
  
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCompositeInputDevices")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCompositeInputDevices")))
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("startCompositeInput")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("stopCompositeInput")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setVideoRectangle")));
