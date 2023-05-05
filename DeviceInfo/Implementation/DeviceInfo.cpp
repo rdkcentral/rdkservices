@@ -109,7 +109,7 @@ namespace Plugin {
         return
         // TYPE_SKYMODELNAME exists for oem-sky-realtek
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
-            (GetMFRData(mfrSERIALIZED_TYPE_SKYMODELNAME, model) == Core::ERROR_NONE)
+            (GetMFRData(mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME, model) == Core::ERROR_NONE)
             ? Core::ERROR_NONE
             :
 #endif
