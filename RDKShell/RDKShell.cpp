@@ -4256,14 +4256,14 @@ namespace WPEFramework {
 
                     // We know where the app lives and are ready to start it,
                     // create a display with rdkshell
-                    if (!createDisplay(client, uri))
+                    if (!createDisplay(client, "wst-"+uri))
                     {
                         response["message"] = "Could not create display";
                         returnResponse(false);
                     }
 
                     string runtimeDir = getenv("XDG_RUNTIME_DIR");
-                    string display = runtimeDir + "/" + (gRdkShellSurfaceModeEnabled ? RDKSHELL_SURFACECLIENT_DISPLAYNAME : uri);
+                    string display = runtimeDir + "/" + (gRdkShellSurfaceModeEnabled ? RDKSHELL_SURFACECLIENT_DISPLAYNAME : "wst-"+uri);
 
                     // Set mime type
                     if (!setMimeType(client, mimeType))

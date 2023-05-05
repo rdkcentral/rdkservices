@@ -35,6 +35,7 @@ namespace WPEFramework
  
     void RialtoConnector::initialize(std::string & env,const std::string & debug)
     {
+        LOGWARN(" Rialto Bridge version 1.0");
         std::list<std::string> envList = getEnvironmentVariables(env,debug);
         m_serverManagerService = create(shared_from_this(), envList);
         isInitialized = true;
@@ -92,7 +93,7 @@ namespace WPEFramework
         }
         m_stateCond.notify_one();
 
-        LOGINFO("[RialtoConnector::stateChanged] State change announced for %s", appId.c_str());
+        LOGINFO("[RialtoConnector::stateChanged] State change announced for %s, isActive ? %d ", appId.c_str(), (state == RialtoServerStates::ACTIVE));
     }
 
     bool RialtoConnector::waitForStateChange(const std::string &appId, const RialtoServerStates &state, int timeout)
