@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkAudienceIntelligence.so",
+ "classname":"AudienceIntelligence",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"com.comcast.AudienceIntelligence",
+ "autostart":false
+}

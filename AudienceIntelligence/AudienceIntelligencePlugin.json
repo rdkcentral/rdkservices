@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "AudienceIntelligence Plugin",
+      "callsign": "com.comcast.AudienceIntelligence",
+      "locator": "libWPEFrameworkAudienceIntelligence.so",
+      "status": "production",
+      "description": "The `AudienceIntelligence` plugin provide the interfaces to applications to control the behavior of the ACR and LAR functionality.",
+      "version": "2.0"
+    },
+    "interface": {
+      "$ref": "AudienceIntelligence.json#"
+    }
+}
