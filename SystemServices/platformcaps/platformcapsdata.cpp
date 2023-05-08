@@ -238,8 +238,8 @@ PlatformCapsData::BrowserInfo PlatformCapsData::GetBrowser() const {
 
   if (type == "rdkbrowser") {
     result = {"WPE", "1.0.0.0",
-              "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 "
-              "(KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"};
+              "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/605.1.15 "
+              "(KHTML, like Gecko) Version/13.0 Safari/605.1.15 WPE/1.0"};
   } else if (type == "cef") {
     result = {"CEF", "1.0.0.0",
               "Mozilla/5.0 (Unknown; Linux i686) AppleWebKit/537.21 "
@@ -250,8 +250,8 @@ PlatformCapsData::BrowserInfo PlatformCapsData::GetBrowser() const {
               "(KHTML, like Gecko) NativeXREReceiver"};
   } else {
     result = {"WPE", "1.0.0.0",
-              "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 "
-              "(KHTML, like Gecko) Version/8.0 Safari/601.1 WPE"};
+              "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/605.1.15 "
+              "(KHTML, like Gecko) Version/13.0 Safari/605.1.15 WPE/1.0"};
   }
 
   return result;
