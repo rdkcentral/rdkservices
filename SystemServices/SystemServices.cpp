@@ -3403,8 +3403,14 @@ namespace WPEFramework {
                 if (res == IARM_RESULT_SUCCESS) {
                     if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON)
                         currentState = "ON";
-                    else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
-                        currentState = "STANDBY";
+		    else if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_OFF)
+			currentState = "OFF"
+		    else if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)
+			currentState = "STANDBY";
+		    else if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)
+			currentState = "LIGHT_SLEEP";
+		    else if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP)
+			currentState = "DEEP_SLEEP";
                 }
                 
                 powerState = currentState;
