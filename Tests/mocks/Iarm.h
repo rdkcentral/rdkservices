@@ -265,9 +265,61 @@ typedef enum _mfrSerializedType_t {
     mfrSERIALIZED_TYPE_BLUETOOTHMAC,
     mfrSERIALIZED_TYPE_WPSPIN,
     mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER,
-    mfrSERIALIZED_TYPE_SKYMODELNAME,
+    mfrSERIALIZED_TYPE_ETHERNETMAC,
+    mfrSERIALIZED_TYPE_ESTBMAC,
+    mfrSERIALIZED_TYPE_RF4CEMAC,
+    mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME,
+    mfrSERIALIZED_TYPE_PMI,
     mfrSERIALIZED_TYPE_HWID,
+    mfrSERIALIZED_TYPE_MODELNUMBER,
+    /* boot data */
+    mfrSERIALIZED_TYPE_SOC_ID,
+    mfrSERIALIZED_TYPE_IMAGENAME,
+    mfrSERIALIZED_TYPE_IMAGETYPE,
+    mfrSERIALIZED_TYPE_BLVERSION,
+    /* provisional data */
+    mfrSERIALIZED_TYPE_REGION,
+    /* other data */
+    mfrSERIALIZED_TYPE_BDRIVERSION,
+    /* led data */
+    mfrSERIALIZED_TYPE_LED_WHITE_LEVEL,
+    mfrSERIALIZED_TYPE_LED_PATTERN,
     mfrSERIALIZED_TYPE_MAX,
+#ifdef PANEL_SERIALIZATION_TYPES
+    mfrSERIALIZED_TYPE_COREBOARD_SERIALNUMBER=0x51,
+    mfrSERIALIZED_TYPE_FACTORYBOOT,
+    mfrSERIALIZED_TYPE_COUNTRYCODE,
+    mfrSERIALIZED_TYPE_LANGUAGECODE,
+    mfrSERIALIZED_TYPE_MANUFACTURERDATA,
+    mfrSERIALIZED_TYPE_CPD_SIZE,
+    mfrSERIALIZED_TYPE_PANEL_ID,
+    mfrSERIALIZED_TYPE_PANEL_TYPE,
+    mfrSERIALIZED_TYPE_PANEL_HDMI_WB_DATA_NORMAL,
+    mfrSERIALIZED_TYPE_PANEL_HDMI_WB_DATA_COLD,
+    mfrSERIALIZED_TYPE_PANEL_HDMI_WB_DATA_WARM,
+    mfrSERIALIZED_TYPE_PANEL_HDMI_WB_DATA_USER,
+    mfrSERIALIZED_TYPE_PANEL_TV_WB_DATA_NORMAL,
+    mfrSERIALIZED_TYPE_PANEL_TV_WB_DATA_COLD,
+    mfrSERIALIZED_TYPE_PANEL_TV_WB_DATA_WARM,
+    mfrSERIALIZED_TYPE_PANEL_TV_WB_DATA_USER,
+    mfrSERIALIZED_TYPE_PANEL_AV_WB_DATA_NORMAL,
+    mfrSERIALIZED_TYPE_PANEL_AV_WB_DATA_COLD,
+    mfrSERIALIZED_TYPE_PANEL_AV_WB_DATA_WARM,
+    mfrSERIALIZED_TYPE_PANEL_AV_WB_DATA_USER,
+    mfrSERIALIZED_TYPE_PANEL_DTB_VERSION,
+    mfrSERIALIZED_TYPE_PANEL_DTB_DATA_SIZE,
+    mfrSERIALIZED_TYPE_PANEL_DTB_DATA,
+    /* panel data*/
+    mfrSERIALIZED_TYPE_PANEL_DATA_FUNCTION_STATUS,
+    mfrSERIALIZED_TYPE_PANEL_DATA_AGEING_TIME,
+    mfrSERIALIZED_TYPE_PANEL_DATA_POWER_ON_TIME,
+    mfrSERIALIZED_TYPE_PANEL_DATA_BACKLIGHT_TIME,
+    mfrSERIALIZED_TYPE_PANEL_DATA_VALID,
+    mfrSERIALIZED_TYPE_PANEL_DATA_TPV_APP_VERSION,
+    mfrSERIALIZED_TYPE_PANEL_ALS_CALIBRATION_INDEX0,
+    mfrSERIALIZED_TYPE_PANEL_ALS_CALIBRATION_INDEX1,
+    mfrSERIALIZED_TYPE_MAX_PANEL,
+#endif
 } mfrSerializedType_t;
 
 typedef enum _mfrBlPattern_t {
@@ -835,7 +887,6 @@ typedef enum _IARM_Bus_NMgr_WiFi_EventId_t {
 #define MAX_IP_ADDRESS_LEN 46
 #define MAX_IP_FAMILY_SIZE 10
 #define MAX_HOST_NAME_LEN 128
-#define MAX_ENDPOINT_SIZE 260 // 253 + 1 + 5 + 1 (domain name max length + ':' + port number max chars + '\0')
 #define IARM_BUS_NETSRVMGR_API_getActiveInterface "getActiveInterface"
 #define IARM_BUS_NETSRVMGR_API_getNetworkInterfaces "getNetworkInterfaces"
 #define IARM_BUS_NETSRVMGR_API_getInterfaceList "getInterfaceList"
@@ -849,6 +900,9 @@ typedef enum _IARM_Bus_NMgr_WiFi_EventId_t {
 #define IARM_BUS_NETSRVMGR_API_getSTBip_family "getSTBip_family"
 #define IARM_BUS_NETSRVMGR_API_isConnectedToInternet "isConnectedToInternet"
 #define IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints "setConnectivityTestEndpoints"
+#define IARM_BUS_NETSRVMGR_API_getInternetConnectionState "getInternetConnectionState"
+#define IARM_BUS_NETSRVMGR_API_monitorConnectivity "monitorConnectivity"
+#define IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring "stopConnectivityMonitoring"
 #define IARM_BUS_NETSRVMGR_API_isAvailable "isAvailable"
 #define IARM_BUS_NETSRVMGR_API_getPublicIP "getPublicIP"
 
@@ -876,6 +930,22 @@ typedef struct _IARM_Bus_SYSMgr_RunScript_t{
     int  return_value;        //[out] Returns the ret value of system.
 } IARM_Bus_SYSMgr_RunScript_t;
 
+typedef enum _CECMgr_EventId_t {
+    IARM_BUS_CECMGR_EVENT_SEND,
+    IARM_BUS_CECMGR_EVENT_RECV,
+    IARM_BUS_CECMGR_EVENT_ENABLE,
+    IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,
+    IARM_BUS_CECMGR_EVENT_MAX,
+    IARM_BUS_CECMGR_EVENT_STATUS_UPDATED
+} IARM_Bus_CECMgr_EventId_t;
+typedef struct _IARM_Bus_CECMgr_Status_Updated_Param_t
+{
+    int logicalAddress;
+}IARM_Bus_CECMgr_Status_Updated_Param_t;
+#define IARM_BUS_CECMGR_API_isAvailable "isAvailable"
+#define IARM_BUS_DSMGR_API_dsHdmiInGetNumberOfInputs    "dsHdmiInGetNumberOfInputs"
+#define IARM_BUS_DSMGR_API_dsHdmiInGetStatus            "dsHdmiInGetStatus"
+#define IARM_BUS_DSMGR_API_dsGetHDMIARCPortId  "dsGetHDMIARCPortId"
 /* irMgr */
 #define IARM_BUS_IRMGR_NAME 						"IRMgr" /*!< IR Manager IARM -bus name */
 
