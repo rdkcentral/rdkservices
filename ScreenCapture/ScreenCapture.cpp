@@ -29,10 +29,8 @@
 #include <png.h>
 #include <curl/curl.h>
 
-#ifdef USE_FRAMEBUFFER_SCREENCAPTURE
-extern "C" {
-#include "framebuffer-api.h"
-}
+#ifdef USE_DRM_SCREENCAPTURE
+#include "Implementation/Realtek/Realtek.h"
 #endif
 
 // Methods
@@ -227,8 +225,8 @@ namespace WPEFramework
             got_screenshot = getScreenshotIntel(png_data);
             #endif
 
-            #ifdef USE_FRAMEBUFFER_SCREENCAPTURE
-            got_screenshot = getScreenshotRealtek(png_data);
+            #ifdef USE_DRM_SCREENCAPTURE
+            got_screenshot = getScreenshotDrm(png_data);
             #endif
 
             return doUploadScreenCapture(png_data, got_screenshot);
@@ -455,114 +453,75 @@ namespace WPEFramework
         }
 #endif
 
-#ifdef USE_FRAMEBUFFER_SCREENCAPTURE
-        static vnc_bool_t FakeVNCServerFramebufferUpdateReady(void* ctx) {
-            LOGWARN("FakeVNCServerFramebufferUpdateReady called");
-            return vnc_true;
-        }
-
-        static void FakeVNCServerFramebufferDetailsChanged(void* ctx, vnc_uint8_t* fb, vnc_uint16_t width, vnc_uint16_t height, vnc_uint16_t stride, PixelFormat* pf) {
-            LOGWARN("FakeVNCServerFramebufferDetailsChanged called");
-        }
-
-        static void FakeVNCServerPaletteChanged(void* ctx, Palette* palette) {
-            LOGWARN("FakeVNCServerPaletteChanged called");
-        }
-
-        static void FakeVNCServerLogMessage(void* ctx_, const char* fmt, ...) {
-            LOGWARN("VNCServerLogMessage called");
-        }
-
-        bool ScreenCapture::getScreenshotRealtek(std::vector<unsigned char> &png_out_data)
+#ifdef USE_DRM_SCREENCAPTURE
+        bool ScreenCapture::getScreenshotDrm(std::vector<unsigned char> &png_out_data)
         {
-            ErrCode err;
-            vnc_uint8_t* buffer; 
-            VncServerFramebufferAPI api;
+            bool ret = true;
+            uint8_t *buffer = nullptr;
+            DRMScreenCapture* handle = nullptr;
+            uint32_t size;
+            do {
+                handle = DRMScreenCapture_Init();
+                if(handle == nullptr) {
+                    LOGERR("[SCREENCAP] fail to DRMScreenCapture_Init ");
+                    ret = false;
+                    break;
+                }
 
-            api.framebufferUpdateReady = FakeVNCServerFramebufferUpdateReady;
-            api.framebufferDetailsChanged = FakeVNCServerFramebufferDetailsChanged;
-            api.paletteChanged = FakeVNCServerPaletteChanged;
-            api.logMsg = FakeVNCServerLogMessage;
+                // get screen size
+                ret = DRMScreenCapture_GetScreenInfo(handle);
+                if(!ret) {
+                    LOGERR("[SCREENCAP] fail to DRMScreenCapture_GetScreenInfo ");
+                    break;
+                }
 
-            FBContext *context = NULL;
-            err = fbCreate(&context);
-            if (err != ErrNone) {
-                LOGERR("fbCreate fail");
-                return false;
-            }
+                 // allocate buffer
+                size = handle->pitch * handle->height;
+                buffer = (uint8_t *)malloc(size);
+                if(!buffer) {
+                    LOGERR("[SCREENCAP] out of memory, fail to allocate buffer size=%d", size);
+                    ret = false;
+                    break;
+                }
 
-            err = fbInit(context, &api, NULL);
-            if (err != ErrNone) {
-                LOGERR("fbInit fail");
-                fbDestroy(context);
-                return false;
-            }
+                ret = DRMScreenCapture_ScreenCapture(handle, buffer, size);
+                if(!ret) {
+                    LOGERR("[SCREENCAP] fail to DRMScreenCapture_ScreenCapture ");
+                    break;
+                }
 
-            PixelFormat *pf = fbGetPixelFormat(context);
-            if(pf) {
-                LOGINFO("fbGetPixelFormat:");
-                LOGINFO("\tbitsPerPixel=%d", pf->bitsPerPixel );
-                LOGINFO("\tdepth=%d", pf->depth);
-                LOGINFO("\tbigEndian=%s", (pf->bigEndian)?"true":"false");
-                LOGINFO("\ttrueColour=%s", (pf->trueColour)?"true":"false");
-                LOGINFO("\tredMax=%d", pf->redMax);
-                LOGINFO("\tgreenMax=%d", pf->greenMax);
-                LOGINFO("\tblueMax=%d", pf->blueMax);
-                LOGINFO("\tredShift=%d", pf->redShift);
-                LOGINFO("\tgreenShift=%d", pf->greenShift);
-                LOGINFO("\tblueShift=%d", pf->blueShift);
-            }
-
-            if (32 != pf->bitsPerPixel)
-            {
-                LOGERR("Unsupported bits per pixel: %d", pf->bitsPerPixel);
-                fbDestroy(context);
-                return false;
-            }
-
-            vnc_uint16_t w = fbGetWidth(context);
-            LOGINFO("fbGetWidth=%d", w);
-            vnc_uint16_t h = fbGetHeight(context);
-            LOGINFO("fbGetHeight=%d", h);
-            vnc_uint16_t s = fbGetStride(context);
-            LOGINFO("fbGetStride=%d", s);
-
-            buffer = fbGetFramebuffer(context);
-
-            if(buffer) {
-                LOGINFO("fbGetFramebuffer=ok"); 
-
-                for(unsigned int n = 0; n < h; n++)
+                // process the rgb buffer
+                for(unsigned int n = 0; n < handle->height; n++)
                 {
-                    for(unsigned int i = 0; i < w; i++)
+                    for(unsigned int i = 0; i < handle->width; i++)
                     {
-                        unsigned char *color = buffer + n * s + i * 4;
-
+                        unsigned char *color = buffer + n * handle->pitch + i * 4;
                         unsigned char blue = color[0];
-                        color[0] =  color[2];
+                        color[0] = color[2];
                         color[2] = blue;
                     }
                 }
-
-                if(!saveToPng(buffer, w, h, png_out_data))
+                if(!saveToPng(buffer, handle->width, handle->height, png_out_data))
                 {
-                    LOGERR("could not convert Nexus screenshot to png");
-                    fbDestroy(context);
-                    return false;
+                    LOGERR("[SCREENCAP] could not convert screenshot to png");
+                    ret = false;
+                    break;
                 }
-                LOGINFO("[Done]");
+                
+                LOGINFO("[SCREENCAP] done");
+            } while(false);
 
-            } else {
-                LOGERR("fbGetFramebuffer=null");
-                fbDestroy(context);
-                return false;
+            // Finish and clean up
+            if(buffer) {
+                free(buffer);
+            }
+            if(handle) {
+                ret = DRMScreenCapture_Destroy(handle);
+                if(!ret)
+                    LOGERR("[SCREENCAP] fail to DRMScreenCapture_Destroy ");
             }
 
-            err = fbDestroy(context);
-            if (err != ErrNone)
-                LOGERR("fbDestroy fail");
-
-            return true;
+            return ret;
         }
 #endif
 
