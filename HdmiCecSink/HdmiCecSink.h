@@ -517,7 +517,7 @@ private:
         public:
             HdmiCecSink();
             virtual ~HdmiCecSink();
-            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
+            virtual const string Initialize(PluginHost::IShell* shell) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override { return {}; }
             static HdmiCecSink* _instance;
