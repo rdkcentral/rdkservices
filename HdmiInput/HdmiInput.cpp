@@ -867,7 +867,7 @@ namespace WPEFramework
 
          //       HdmiInput::_instance->hdmiInAVLatencyChange(audio_output_delay,video_latency);
 	  	LOGINFO("Latency Info Change occurs -- Report to HdmiCecSink\n");
-	  	reportLatencyInfoToHdmiCecSink();
+	  	HdmiInput::_instance->reportLatencyInfoToHdmiCecSink();
             }
         }
 #if 0
