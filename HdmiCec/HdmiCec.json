@@ -318,6 +318,20 @@
                     "message"
                 ]
             }
+        },
+        "standbyMessageReceived":{
+            "summary": "Triggered when the source device changes status to `STANDBY`",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            }
         }
     }
 }

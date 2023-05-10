@@ -143,6 +143,7 @@ namespace WPEFramework {
             void sendUnencryptMsg(unsigned char* msg, int size);
             void sendDeviceUpdateInfo(const int logicalAddress);
             void sendActiveSourceEvent();
+            void sendStandbyMessageReceived(const int logicalAddress);
 
             void process (const ActiveSource &msg, const Header &header);
             void process (const ImageViewOn &msg, const Header &header);
@@ -227,6 +228,7 @@ namespace WPEFramework {
 #ifdef LGI_CUSTOM_IMPL
             bool checkActiveSource();
             static void cecActiveSourceEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+            static void cecStandbyEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void updateActiveSource(bool activeSource);
             uint32_t triggerActionWrapper(const JsonObject& parameters, JsonObject& response);
 #endif
