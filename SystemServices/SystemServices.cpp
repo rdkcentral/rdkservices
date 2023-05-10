@@ -66,7 +66,7 @@
 using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 6
+#define API_VERSION_NUMBER_MINOR 7
 #define API_VERSION_NUMBER_PATCH 0
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
@@ -1235,7 +1235,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             LOGWARN("SystemService updatingFirmware\n");
-            string command("/lib/rdk/deviceInitiatedFWDnld.sh 0 4 >> /opt/logs/swupdate.log &");
+            string command("/lib/rdk/swupdate_utility.sh 0 4 >> /opt/logs/swupdate.log &");
             Utils::cRunScript(command.c_str());
             returnResponse(true);
         }
