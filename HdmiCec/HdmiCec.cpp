@@ -51,6 +51,7 @@
 #define HDMICEC_EVENT_ON_MESSAGE "onMessage"
 #define HDMICEC_EVENT_ON_HDMI_HOT_PLUG "onHdmiHotPlug"
 #define HDMICEC_EVENT_ON_CEC_ADDRESS_CHANGE "cecAddressesChanged"
+#define HDMICEC_EVENT_ON_STANDBY_MSG_RECEIVED "standbyMessageReceived"
 
 #define PHYSICAL_ADDR_CHANGED 1
 #define LOGICAL_ADDR_CHANGED 2
@@ -63,17 +64,19 @@
 #define API_VERSION_NUMBER_PATCH 11
 
 enum {
-	HDMICEC_EVENT_DEVICE_ADDED=0,
-	HDMICEC_EVENT_DEVICE_REMOVED,
-	HDMICEC_EVENT_DEVICE_INFO_UPDATED,
-        HDMICEC_EVENT_ACTIVE_SOURCE_STATUS_UPDATED,
+    HDMICEC_EVENT_DEVICE_ADDED=0,
+    HDMICEC_EVENT_DEVICE_REMOVED,
+    HDMICEC_EVENT_DEVICE_INFO_UPDATED,
+    HDMICEC_EVENT_ACTIVE_SOURCE_STATUS_UPDATED,
+    HDMICEC_EVENT_STANDBY_MESSAGE_RECEIVED,
 };
 
 static const char *eventString[] = {
-	"onDeviceAdded",
-	"onDeviceRemoved",
-	"onDeviceInfoUpdated",
-        "onActiveSourceStatusUpdated"
+    "onDeviceAdded",
+    "onDeviceRemoved",
+    "onDeviceInfoUpdated",
+    "onActiveSourceStatusUpdated",
+    "standbyMessageReceived"
 };
 
 static bool isDeviceActiveSource = false;
@@ -256,6 +259,7 @@ namespace WPEFramework
                 IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
 #else
                 IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_ACTIVESTATUSCHANGE,cecActiveSourceEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_STANDBYREQUESTRECEIVED, cecStandbyEventHandler) );
 #endif
             }
         }
@@ -272,6 +276,7 @@ namespace WPEFramework
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
 #else
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_ACTIVESTATUSCHANGE,cecActiveSourceEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_STANDBYREQUESTRECEIVED, cecStandbyEventHandler) );
 #endif
             }
         }
@@ -789,6 +794,14 @@ namespace WPEFramework
             sendNotify(eventString[HDMICEC_EVENT_ACTIVE_SOURCE_STATUS_UPDATED], params);
         }
 
+        void HdmiCec::sendStandbyMessageReceived(int logicalAddress)
+        {
+            JsonObject params;
+            params["logicalAddress"] = logicalAddress;
+            LOGWARN("sendStandbyMessageReceived logicalAddress: %d", logicalAddress);
+            sendNotify(eventString[HDMICEC_EVENT_STANDBY_MESSAGE_RECEIVED], params);
+        }
+
         void HdmiCec::cecAddressesChanged(int changeStatus)
         {
             JsonObject params;
@@ -1219,6 +1232,25 @@ namespace WPEFramework
                 _IARM_Bus_CECHost_ActiveStatusChanged_EventData_t *eventData = (_IARM_Bus_CECHost_ActiveStatusChanged_EventData_t *)data;
                 LOGINFO("eventData->isActiveStatus=%d", eventData->isActiveStatus);
                 HdmiCec::_instance->updateActiveSource(eventData->isActiveStatus);
+            }
+        }
+    }
+
+    void HdmiCec::cecStandbyEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    {
+        LOGINFO("owner=%s eventId=%d", owner, eventId);
+        if(!HdmiCec::_instance)
+        {
+            return;
+        }
+
+        if(!strcmp(owner, IARM_BUS_CECHOST_NAME))
+        {
+            if (IARM_BUS_CECHost_EVENT_STANDBYREQUESTRECEIVED == eventId)
+            {
+                IARM_Bus_CECHost_StandbyRequestReceived_t *eventData = (IARM_Bus_CECHost_StandbyRequestReceived_t *)data;
+                LOGINFO("eventData->from=%d", eventData->from);
+                HdmiCec::_instance->sendStandbyMessageReceived(eventData->from);
             }
         }
     }
