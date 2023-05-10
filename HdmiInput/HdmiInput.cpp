@@ -944,7 +944,7 @@ namespace WPEFramework
                 LOGINFO("LowLatency change with value: %d\n",lowLatencyMode);
                
 	  	LOGINFO("Latency Info Change occurs -- Report to HdmiCecSink\n");
-	  	reportLatencyInfoToHdmiCecSink();
+	  	HdmiInput::_instance->reportLatencyInfoToHdmiCecSink();
 	      // HdmiInput::_instance->tvLowLatencyChange(lowLatencyMode);
             }
         }
