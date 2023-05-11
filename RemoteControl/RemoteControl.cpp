@@ -1383,9 +1383,8 @@ namespace WPEFramework {
             status["netTypesSupported"]    = m_netTypesArray;
             status["pairingState"]         = std::string(ctrlm_ble_state_str(statusEvt->status));
             status["irProgState"]          = std::string(ctrlm_ir_prog_state_str(statusEvt->ir_state));
+            status["irSignalTagValue"]     = JsonValue((int)statusEvt->ir_signal_tag);
             status["remoteData"]           = remoteArray;
-//            status["fmrState"]             = std::string("Optional");
-//            status["fmrSource"]            = std::string("Optional");
             response["status"] = status;
 
             LOGINFO("Sending Thunder event - status: %d, number of remotes: %d.",
@@ -1651,6 +1650,7 @@ namespace WPEFramework {
             status["netTypesSupported"]    = m_netTypesArray;
             status["pairingState"]         = std::string(ctrlm_ble_state_str(netStatus.status));
             status["irProgState"]          = std::string(ctrlm_ir_prog_state_str(netStatus.ir_state));
+            status["irSignalTagValue"]     = JsonValue((int)netStatus.ir_signal_tag);
             status["remoteData"]           = remoteArray;
 //            status["fmrState"]             = std::string("Optional");
 //            status["fmrSource"]            = std::string("Optional");
