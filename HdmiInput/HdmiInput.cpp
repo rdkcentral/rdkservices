@@ -841,7 +841,7 @@ namespace WPEFramework
 		   param["lowLatencyMode"] = lowLatencyMode;
 		   param["audioOutputCompensated"] = 3;//hard-coded for now
                    LOGINFO("latency - Info: %d : %d, %d\n",audio_output_delay,video_latency,lowLatencyMode);
-                   m_client->Invoke<JsonObject, JsonObject>(2000, "setLatencyInfoWrapper", param, hdmiCecSinkResult);
+                   m_client->Invoke<JsonObject, JsonObject>(2000, "setLatencyInfo", param, hdmiCecSinkResult);
                    if (!hdmiCecSinkResult["success"].Boolean()) {
                        LOGERR("HdmiCecSink Plugin returned error\n");
                    }
