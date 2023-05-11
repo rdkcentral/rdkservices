@@ -215,7 +215,7 @@ namespace WPEFramework {
         string task_names_foreground[]={
             "/lib/rdk/StartDCM_maintaince.sh",
             "/lib/rdk/RFCbase.sh",
-            "/lib/rdk/swupdate_utility.sh",
+            "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
 
