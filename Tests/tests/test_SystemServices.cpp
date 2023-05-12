@@ -3943,7 +3943,7 @@ TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_withEmptyQuery)
                     mockResponse->Result = resp.Result;
                     return mockResponse;
                 }));
-EXPECT_CALL(*dispatcher, Release())
+    EXPECT_CALL(*dispatcher, Release())
     .Times(::testing::AnyNumber());
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\"}"), response));
@@ -3977,7 +3977,10 @@ TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_withQueryAccountInfo)
                 return (reinterpret_cast<void*>(dispatcher));
             }));
 
-
+    bool firmwareUpdateDisabled = false;
+    if (Core::File(string("/opt/swupdate.conf")).Exists()) {
+        firmwareUpdateDisabled = true;
+    }
     Core::ProxyType<Core::JSONRPC::Message> mockResponse = Core::ProxyType<Core::JSONRPC::Message>::Create();
     Core::JSONRPC::Message resp;
 
@@ -4009,7 +4012,7 @@ TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_withQueryAccountInfo)
      .Times(::testing::AnyNumber());
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"AccountInfo\"}"), response));
-    EXPECT_EQ(response, string("{\"AccountInfo\":{\"accountId\":\"1234567890\",\"x1DeviceId\":\"1000000000000000000\",\"XCALSessionTokenAvailable\":true,\"experience\":\"test_experience_string\",\"deviceMACAddress\":\"test_estb_mac_string\",\"firmwareUpdateDisabled\":false},\"success\":true}"));
+    EXPECT_EQ(response, string("{\"AccountInfo\":{\"accountId\":\"1234567890\",\"x1DeviceId\":\"1000000000000000000\",\"XCALSessionTokenAvailable\":true,\"experience\":\"test_experience_string\",\"deviceMACAddress\":\"test_estb_mac_string\",\"firmwareUpdateDisabled\":" + std::string(firmwareUpdateDisabled ? "true" : "false") + "},\"success\":true}"));
 
     delete dispatcher;
     plugin->Deinitialize(&service);
