@@ -100,7 +100,8 @@ namespace WPEFramework
         {
             HdmiInput::_instance = this;
             m_tv_client = nullptr;
-            //InitializeIARM();
+            m_client = nullptr;
+	    //InitializeIARM();
 
             CreateHandler({2});
 
@@ -794,6 +795,7 @@ namespace WPEFramework
 
             if(m_client == nullptr)
             {
+		LOGINFO("getting the hdmicecsink client\n");
                 string token;
 
                 // TODO: use interfaces and remove token
