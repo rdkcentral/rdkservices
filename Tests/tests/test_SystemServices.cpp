@@ -598,7 +598,7 @@ TEST_F(SystemServicesTest, updateFirmware)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(::testing::Invoke(
             [&](const char* command, const char* type) {
-                EXPECT_EQ(string(command), string(_T("/lib/rdk/deviceInitiatedFWDnld.sh 0 4 >> /opt/logs/swupdate.log &")));
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/swupdate_utility.sh 0 4 >> /opt/logs/swupdate.log &")));
                 return nullptr;
             }));
 
@@ -3927,3 +3927,4 @@ TEST_F(SystemServicesEventIarmTest, onSystemModeChanged)
     handler.Unsubscribe(0, _T("onSystemModeChanged"), _T("org.rdk.System"), message);
 }
 /*Test cases for onSystemModeChanged ends here*/
+
