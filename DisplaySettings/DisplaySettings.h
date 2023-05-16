@@ -69,6 +69,9 @@ namespace WPEFramework {
             uint32_t setZoomSetting(const JsonObject& parameters, JsonObject& response);
             uint32_t getCurrentResolution(const JsonObject& parameters, JsonObject& response);
             uint32_t setCurrentResolution(const JsonObject& parameters, JsonObject& response);
+            uint32_t setCurrentResolutionOwner(const JsonObject& parameters, JsonObject& response);
+            uint32_t getEnableVideoPort (const JsonObject& parameters, JsonObject& response);
+            uint32_t setEnableVideoPort (const JsonObject& parameters, JsonObject& response);
             uint32_t getSoundMode(const JsonObject& parameters, JsonObject& response);
             uint32_t setSoundMode(const JsonObject& parameters, JsonObject& response);
             uint32_t readEDID(const JsonObject& parameters, JsonObject& response);

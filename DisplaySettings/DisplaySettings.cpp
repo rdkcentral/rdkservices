@@ -259,6 +259,9 @@ namespace WPEFramework {
             registerMethodLockedApi("setZoomSetting", &DisplaySettings::setZoomSetting, this);
             registerMethodLockedApi("getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
             registerMethodLockedApi("setCurrentResolution", &DisplaySettings::setCurrentResolution, this);
+            registerMethodLockedApi("setCurrentResolutionOwner", &DisplaySettings::setCurrentResolutionOwner, this);
+            registerMethodLockedApi("getEnableVideoPort", &DisplaySettings::getEnableVideoPort, this);
+            registerMethodLockedApi("setEnableVideoPort", &DisplaySettings::setEnableVideoPort, this);
             registerMethodLockedApi("getSoundMode", &DisplaySettings::getSoundMode, this);
             registerMethodLockedApi("setSoundMode", &DisplaySettings::setSoundMode, this);
             registerMethodLockedApi("readEDID", &DisplaySettings::readEDID, this);
@@ -1351,7 +1354,7 @@ namespace WPEFramework {
             bool hasPersist = parameters.HasLabel("persist");
             bool persist = hasPersist ? parameters["persist"].Boolean() : true;
             if (!hasPersist) LOGINFO("persist: true");
- 
+
             bool isIgnoreEdidArg = parameters.HasLabel("ignoreEdid");
             bool isIgnoreEdid = isIgnoreEdidArg ? parameters["ignoreEdid"].Boolean() : false;
             if (!isIgnoreEdidArg) LOGINFO("isIgnoreEdid: false"); else LOGINFO("isIgnoreEdid: %d", isIgnoreEdid);
@@ -1360,7 +1363,17 @@ namespace WPEFramework {
             try
             {
                 device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
-                vPort.setResolution(resolution, persist, isIgnoreEdid);
+
+                if (parameters.HasLabel("owner")) {
+                  string owner = parameters["owner"].String();
+                  if (parameters.HasLabel("timeout")) {
+                    uint32_t timeout = parameters["timeout"].Number();
+                    vPort.setResolutionOwner(owner.c_str(), timeout);
+                  }
+                  vPort.setResolutionByOwner(resolution, owner.c_str());
+                } else {
+                  vPort.setResolution(resolution, persist, isIgnoreEdid);
+                }
             }
             catch (const device::Exception& err)
             {
@@ -1369,6 +1382,88 @@ namespace WPEFramework {
             }
             returnResponse(success);
         }
+
+        uint32_t DisplaySettings::getEnableVideoPort (const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+
+            returnIfParamNotFound(parameters, "videoDisplay");
+            string videoDisplay = parameters["videoDisplay"].String();
+
+            try
+            {
+                device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
+                bool isEnabled;
+
+                isEnabled = vPort.isEnabled();
+                response["enabled"] = isEnabled;
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(videoDisplay);
+                success = false;
+            }
+
+            returnResponse(success);
+        }
+
+        uint32_t DisplaySettings::setEnableVideoPort (const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool success = true;
+
+
+            returnIfParamNotFound(parameters, "videoDisplay");
+            returnIfParamNotFound(parameters, "enabled");
+
+            string  videoDisplay = parameters["videoDisplay"].String();
+            bool    isEnabled    = parameters["enabled"].Boolean();
+
+            try
+            {
+                device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
+                if (isEnabled) {
+                  vPort.enable();
+                } else {
+                  vPort.disable();
+                }
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(videoDisplay);
+                success = false;
+            }
+
+            returnResponse(success);
+        }
+
+
+        uint32_t DisplaySettings::setCurrentResolutionOwner(const JsonObject& parameters, JsonObject& response)
+        {   //sample servicemanager response:
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "videoDisplay");
+            returnIfParamNotFound(parameters, "owner");
+            returnIfParamNotFound(parameters, "timeout");
+
+            string   videoDisplay = parameters["videoDisplay"].String();
+            string   owner        = parameters["owner"].String();
+            uint32_t timeout      = parameters["timeout"].Number();
+
+            bool success = true;
+            try
+            {
+                device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
+                vPort.setResolutionOwner(owner.c_str(), timeout);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION2(videoDisplay, owner);
+                success = false;
+            }
+            returnResponse(success);
+        }
+
 
         uint32_t DisplaySettings::getSoundMode(const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:{"success":true,"soundMode":"AUTO (Dolby Digital 5.1)"}
