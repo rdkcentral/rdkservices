@@ -590,7 +590,7 @@ TEST_F(SystemServicesTest, updateFirmware)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(::testing::Invoke(
             [&](const char* command, const char* type) {
-                EXPECT_EQ(string(command), string(_T("/lib/rdk/deviceInitiatedFWDnld.sh 0 4 >> /opt/logs/swupdate.log &")));
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/swupdate_utility.sh 0 4 >> /opt/logs/swupdate.log &")));
                 return nullptr;
             }));
 
@@ -3866,6 +3866,7 @@ TEST_F(SystemServicesTest, getSerialNumberSnmpSuccess_whenSerialNumberIsInTmpFil
 }
 #endif
 /*Test cases for getSerialNumber ends here*/
+
 /********************************************************************************************************
  * Test function for :getPlatformConfiguration
  * getPlatformConfiguration :
