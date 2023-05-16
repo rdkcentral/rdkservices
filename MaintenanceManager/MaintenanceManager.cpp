@@ -1344,6 +1344,11 @@ namespace WPEFramework {
                 m_thread.join();
                 LOGINFO("Thread joined successfully\n");
             }
+
+            if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete){
+                g_unsolicited_complete = true;
+	    }
+
             LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR\n");
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
             m_statusMutex.unlock();
