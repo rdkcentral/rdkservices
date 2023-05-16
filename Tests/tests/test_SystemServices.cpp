@@ -3930,7 +3930,6 @@ TEST_F(SystemServicesEventIarmTest, onSystemModeChanged)
 }
 /*Test cases for onSystemModeChanged ends here*/
 
-=======
 /********************************************************************************************************
  * Test function for :getPlatformConfiguration
  * getPlatformConfiguration :
