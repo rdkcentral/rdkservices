@@ -26,6 +26,7 @@
 #include "IarmBusMock.h"
 #include "RfcApiMock.h"
 #include "ServiceMock.h"
+#include "DispatcherMock.h"
 #include "SleepModeMock.h"
 #include "WrapsMock.h"
 
@@ -202,6 +203,7 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getMfgSerialNumber")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getXconfParams")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getSerialNumber")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPlatformConfiguration")));
 }
 
 TEST_F(SystemServicesTest, SystemUptime)
@@ -3928,3 +3930,415 @@ TEST_F(SystemServicesEventIarmTest, onSystemModeChanged)
 }
 /*Test cases for onSystemModeChanged ends here*/
 
+=======
+/********************************************************************************************************
+ * Test function for :getPlatformConfiguration
+ * getPlatformConfiguration :
+ *                Returns the supported features and device/account info.
+ *
+ *                @return Whether the request succeeded.
+ * Use case coverage:
+ *                @Success :8
+ *                @Failure :1
+*********************************************************************************************************/
+
+/**
+ * @brief : getPlatformConfiguration when called with Invalid Query Parameter
+ *         Check if getPlatformConfiguration api called with Invalid query then getPlatformConfiguration
+ *          shall be failed and the PlatformCaps object shall NOT be populated with information
+ *
+ * @param[in]   :  This method takes query parameters other than "accountInfo"/"deviceInfo" which considered as Invalid
+ * @return      :  Returns the response string as success:false.
+ */
+TEST_F(SystemServicesTest, getPlatformConfigurationFailed_withBadQuery)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"InvalidQueryParam\"}"), response));
+   EXPECT_EQ(response, string("{\"success\":false}"));
+}
+/**
+ * @brief : getPlatformConfiguration when called with empty Query Parameter
+ *         Check if getPlatformConfiguration api called with empty query then getPlatformConfiguration
+ *          shall be succeeded  and the PlatformCaps object shall be populated with information
+ *          about both the account and device.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  Returns a PlatformCaps object containing the retrieved configuration information.
+ */
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_withEmptyQuery)
+{
+    NiceMock<ServiceMock> service;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    PluginHost::IFactories::Assign(&factoriesImplementation);
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    DispatcherMock* dispatcher = new DispatcherMock();
+    EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const uint32_t, const string& name) -> void* {
+                return (reinterpret_cast<void*>(dispatcher));
+            }));
+
+    bool firmwareUpdateDisabled = false;
+    if (Core::File(string("/opt/swupdate.conf")).Exists()) {
+        firmwareUpdateDisabled = true;
+    }
+
+    Core::ProxyType<Core::JSONRPC::Message> mockResponse = Core::ProxyType<Core::JSONRPC::Message>::Create();
+    Core::JSONRPC::Message resp;
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const std::string&,
+                uint32_t,
+                const Core::JSONRPC::Message& message) ->Core::ProxyType<Core::JSONRPC::Message> {
+                    if (message.Designator == "org.rdk.AuthService.1.getAlternateIds") {
+                    resp.Result = Core::JSON::String("{\"alternateIds\":{\"_xbo_account_id\":\"1234567890\"}}");
+                      }
+                    if (message.Designator == "org.rdk.AuthService.1.getXDeviceId") {
+                    resp.Result = Core::JSON::String("{\"xDeviceId\":\"1000000000000000000\"}");
+                      }
+                    if (message.Designator == "org.rdk.AuthService.1.getExperience") {
+                    resp.Result = Core::JSON::String("{\"experience\":\"test_experience_string\"}");
+                      }
+                    if (message.Designator == "org.rdk.Network.1.getPublicIP") {
+                    resp.Result = Core::JSON::String("{\"public_ip\":\"test_publicIp_string\"}");
+                      }
+                    mockResponse->Result = resp.Result;
+                    return mockResponse;
+                }));
+    EXPECT_CALL(*dispatcher, Release())
+    .Times(::testing::AnyNumber());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\"}"), response));
+    EXPECT_EQ(response, string( "{\"AccountInfo\":{\"accountId\":\"1234567890\",\"x1DeviceId\":\"1000000000000000000\",\"XCALSessionTokenAvailable\":true,\"experience\":\"test_experience_string\",\"deviceMACAddress\":\"null\",\"firmwareUpdateDisabled\":" + std::string(firmwareUpdateDisabled ? "true" : "false") + "},\"DeviceInfo\":{\"quirks\":[\"XRE-4621\",\"XRE-4826\",\"XRE-4896\",\"XRE-5553\",\"XRE-5743\",\"XRE-6350\",\"XRE-6827\",\"XRE-7267\",\"XRE-7366\",\"XRE-7415\",\"XRE-7389\",\"DELIA-6142\",\"RDK-2222\",\"XRE-7924\",\"DELIA-8978\",\"XRE-7711\",\"RDK-2849\",\"DELIA-9338\",\"ZYN-172\",\"XRE-8970\",\"XRE-9001\",\"DELIA-17939\",\"DELIA-17204\",\"CPC-1594\",\"DELIA-21775\",\"XRE-11602\",\"CPC-1767\",\"CPC-1824\",\"XRE-10057\",\"RDK-21197\",\"CPC-2004\",\"DELIA-27583\",\"XRE-12919\",\"DELIA-28101\",\"XRE-13590\",\"XRE-13692\",\"XRE-13722\",\"DELIA-30269\",\"RDK-22801\",\"CPC-2404\",\"XRE-14664\",\"XRE-14921\",\"XRE-14963\",\"RDK-26425\",\"RDK-28990\",\"RDK-32261\"],\"mimeTypeExclusions\":{\"CDVR\":[\"application\\/dash+xml\"],\"DVR\":[\"application\\/dash+xml\"],\"EAS\":[\"application\\/dash+xml\"],\"IPDVR\":[\"application\\/dash+xml\"],\"IVOD\":[\"application\\/dash+xml\"],\"LINEAR_TV\":[\"application\\/dash+xml\"],\"VOD\":[\"application\\/dash+xml\"]},\"features\":{\"allowSelfSignedWithIPAddress\":1,\"connection.supportsSecure\":1,\"htmlview.callJavaScriptWithResult\":1,\"htmlview.cookies\":1,\"htmlview.disableCSSAnimations\":1,\"htmlview.evaluateJavaScript\":1,\"htmlview.headers\":1,\"htmlview.httpCookies\":1,\"htmlview.postMessage\":1,\"htmlview.urlpatterns\":1,\"keySource\":1,\"uhd_4k_decode\":0},\"model\":\"null\",\"deviceType\":\"\",\"supportsTrueSD\":true,\"webBrowser\":{\"browserType\":\"WPE\",\"version\":\"1.0.0.0\",\"userAgent\":\"Mozilla\\/5.0 (Linux; x86_64 GNU\\/Linux) AppleWebKit\\/601.1 (KHTML, like Gecko) Version\\/8.0 Safari\\/601.1 WPE\"},\"HdrCapability\":\"\",\"canMixPCMWithSurround\":false,\"publicIP\":\"test_publicIp_string\"},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+    PluginHost::IFactories::Assign(nullptr);
+}
+
+/**
+ * @brief : getPlatformConfiguration when called with  Query Parameter as AccountInfo
+ *         Check if getPlatformConfiguration api called with query :AccountInfo then getPlatformConfiguration
+ *          shall be succeeded  and the PlatformCaps object shall be populated with Account information
+ *
+ * @param[in]   :  query:"AccountInfo"
+ * @return      :  Returns a PlatformCaps object containing the retrieved configuration information.
+ */
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_withQueryAccountInfo)
+{
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    PluginHost::IFactories::Assign(&factoriesImplementation);
+
+    DispatcherMock* dispatcher = new DispatcherMock();
+    EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const uint32_t, const string& name) -> void* {
+                return (reinterpret_cast<void*>(dispatcher));
+            }));
+
+    bool firmwareUpdateDisabled = false;
+    if (Core::File(string("/opt/swupdate.conf")).Exists()) {
+        firmwareUpdateDisabled = true;
+    }
+    Core::ProxyType<Core::JSONRPC::Message> mockResponse = Core::ProxyType<Core::JSONRPC::Message>::Create();
+    Core::JSONRPC::Message resp;
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const std::string&,
+                uint32_t,
+                const Core::JSONRPC::Message& message) ->Core::ProxyType<Core::JSONRPC::Message> {
+                    if (message.Designator == "org.rdk.AuthService.1.getAlternateIds") {
+                    resp.Result = Core::JSON::String("{\"alternateIds\":{\"_xbo_account_id\":\"1234567890\"}}");
+                      }
+                    if (message.Designator == "org.rdk.AuthService.1.getXDeviceId") {
+                    resp.Result = Core::JSON::String("{\"xDeviceId\":\"1000000000000000000\"}");
+                      }
+                    if (message.Designator == "org.rdk.AuthService.1.getExperience") {
+                    resp.Result = Core::JSON::String("{\"experience\":\"test_experience_string\"}");
+                      }
+                    if (message.Designator == "org.rdk.AuthService.1.getSessionToken") {
+                    resp.Result = Core::JSON::String("{\"token\":\"12345\"}");
+                      }
+                    if (message.Designator == "org.rdk.System.1.getDeviceInfo") {
+                    resp.Result = Core::JSON::String("{\"estb_mac\":\"test_estb_mac_string\"}");
+                      }
+                    mockResponse->Result = resp.Result;
+                    return mockResponse;
+                }));
+    EXPECT_CALL(*dispatcher, Release())
+     .Times(::testing::AnyNumber());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"AccountInfo\"}"), response));
+    EXPECT_EQ(response, string("{\"AccountInfo\":{\"accountId\":\"1234567890\",\"x1DeviceId\":\"1000000000000000000\",\"XCALSessionTokenAvailable\":true,\"experience\":\"test_experience_string\",\"deviceMACAddress\":\"test_estb_mac_string\",\"firmwareUpdateDisabled\":" + std::string(firmwareUpdateDisabled ? "true" : "false") + "},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+    PluginHost::IFactories::Assign(nullptr);
+}
+
+/**
+ * @brief : getPlatformConfiguration when called with  Query Parameter as DeviceInfo
+ *         Check if getPlatformConfiguration api called with query :DeviceInfo then getPlatformConfiguration
+ *          shall be succeeded  and the PlatformCaps object shall be populated with Device information
+ *
+ * @param[in]   :  query:"DeviceInfo"
+ * @return      :  Returns a PlatformCaps object containing the retrieved configuration information.
+ */
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_withQueryDeviceInfo)
+{
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    PluginHost::IFactories::Assign(&factoriesImplementation);
+
+    DispatcherMock* dispatcher = new DispatcherMock();
+    EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const uint32_t, const string& name) -> void* {
+                return (reinterpret_cast<void*>(dispatcher));
+            }));
+
+
+    Core::ProxyType<Core::JSONRPC::Message> mockResponse = Core::ProxyType<Core::JSONRPC::Message>::Create();
+    Core::JSONRPC::Message resp;
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const std::string&,
+                uint32_t,
+                const Core::JSONRPC::Message& message) ->Core::ProxyType<Core::JSONRPC::Message> {
+                    if (message.Designator == "org.rdk.System.1.getDeviceInfo") {
+                    resp.Result = Core::JSON::String("{\"model_number\":\"PX051AEI\"}");
+                      }
+                    if (message.Designator == "org.rdk.AuthService.1.getDeviceInfo") {
+                    //Hex value for Json Resp -> "deviceInfo": "deviceType=IpStb",
+                    resp.Result = Core::JSON::String("{\"deviceInfo\":\"646576696365547970653d49705374622c20646576696365547970653d4969505374622c20766f69636549643d312c206d616e7566616374757265723d496e74656c\"}");
+                      }
+                    if (message.Designator == "org.rdk.Network.1.getPublicIP") {
+                    resp.Result = Core::JSON::String("{\"public_ip\":\"test_publicIp_string\"}");
+                      }
+                    mockResponse->Result = resp.Result;
+                    return mockResponse;
+                }));
+    EXPECT_CALL(*dispatcher, Release())
+     .Times(::testing::AnyNumber());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"DeviceInfo\"}"), response));
+    EXPECT_EQ(response, string("{\"DeviceInfo\":{\"quirks\":[\"XRE-4621\",\"XRE-4826\",\"XRE-4896\",\"XRE-5553\",\"XRE-5743\",\"XRE-6350\",\"XRE-6827\",\"XRE-7267\",\"XRE-7366\",\"XRE-7415\",\"XRE-7389\",\"DELIA-6142\",\"RDK-2222\",\"XRE-7924\",\"DELIA-8978\",\"XRE-7711\",\"RDK-2849\",\"DELIA-9338\",\"ZYN-172\",\"XRE-8970\",\"XRE-9001\",\"DELIA-17939\",\"DELIA-17204\",\"CPC-1594\",\"DELIA-21775\",\"XRE-11602\",\"CPC-1767\",\"CPC-1824\",\"XRE-10057\",\"RDK-21197\",\"CPC-2004\",\"DELIA-27583\",\"XRE-12919\",\"DELIA-28101\",\"XRE-13590\",\"XRE-13692\",\"XRE-13722\",\"DELIA-30269\",\"RDK-22801\",\"CPC-2404\",\"XRE-14664\",\"XRE-14921\",\"XRE-14963\",\"RDK-26425\",\"RDK-28990\",\"RDK-32261\"],\"mimeTypeExclusions\":{\"CDVR\":[\"application\\/dash+xml\"],\"DVR\":[\"application\\/dash+xml\"],\"EAS\":[\"application\\/dash+xml\"],\"IPDVR\":[\"application\\/dash+xml\"],\"IVOD\":[\"application\\/dash+xml\"],\"LINEAR_TV\":[\"application\\/dash+xml\"],\"VOD\":[\"application\\/dash+xml\"]},\"features\":{\"allowSelfSignedWithIPAddress\":1,\"connection.supportsSecure\":1,\"htmlview.callJavaScriptWithResult\":1,\"htmlview.cookies\":1,\"htmlview.disableCSSAnimations\":1,\"htmlview.evaluateJavaScript\":1,\"htmlview.headers\":1,\"htmlview.httpCookies\":1,\"htmlview.postMessage\":1,\"htmlview.urlpatterns\":1,\"keySource\":1,\"uhd_4k_decode\":0},\"model\":\"PX051AEI\",\"deviceType\":\"IpStb\",\"supportsTrueSD\":true,\"webBrowser\":{\"browserType\":\"WPE\",\"version\":\"1.0.0.0\",\"userAgent\":\"Mozilla\\/5.0 (Linux; x86_64 GNU\\/Linux) AppleWebKit\\/601.1 (KHTML, like Gecko) Version\\/8.0 Safari\\/601.1 WPE\"},\"HdrCapability\":\"\",\"canMixPCMWithSurround\":false,\"publicIP\":\"test_publicIp_string\"},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+    PluginHost::IFactories::Assign(nullptr);
+}
+
+/**
+ * @brief : getPlatformConfiguration when called with a specific DeviceInfo /AccountInfo Query Parameter
+ *         Check if getPlatformConfiguration api called with passing any specified configuration parameter
+ *         of DeviceInfo /AccountInfo; then getPlatformConfiguration shall be succeeded
+ *         and the PlatformCaps object shall be populated with the value for that
+ *         specfic configuration parameter
+ *
+ * @param[in]   :  This method takes  any specific configuration parameter of AccountInfo/DeviceInfo
+ * @return      :  Returns a PlatformCaps object containing the requested configuration information.
+ */
+
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_withQueryParameterValue)
+{
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    PluginHost::IFactories::Assign(&factoriesImplementation);
+
+    DispatcherMock* dispatcher = new DispatcherMock();
+    EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const uint32_t, const string& name) -> void* {
+                return (reinterpret_cast<void*>(dispatcher));
+            }));
+
+
+    Core::ProxyType<Core::JSONRPC::Message> mockResponse = Core::ProxyType<Core::JSONRPC::Message>::Create();
+    Core::JSONRPC::Message resp;
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const std::string&,
+                uint32_t,
+                const Core::JSONRPC::Message& message) ->Core::ProxyType<Core::JSONRPC::Message> {
+                    if (message.Designator == "org.rdk.AuthService.1.getXDeviceId") {
+                    resp.Result = Core::JSON::String("{\"xDeviceId\":\"1000000000000000000\"}");
+                      }
+                    mockResponse->Result = resp.Result;
+                    return mockResponse;
+                }));
+    EXPECT_CALL(*dispatcher, Release())
+     .Times(::testing::AnyNumber());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"AccountInfo.x1DeviceId\"}"), response));
+    EXPECT_EQ(response, string("{\"AccountInfo\":{\"x1DeviceId\":\"1000000000000000000\"},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+    PluginHost::IFactories::Assign(nullptr);
+
+}
+
+
+ /* @brief : getPlatformConfiguration when the dispatcher object is null.
+ *         Check if getPlatformConfiguration api called and if dispatcher object is null;
+ *         then getPlatformConfiguration shall be succeeded .
+ *         But PlatformCaps object shall be populated with Null/empty
+ *
+ * @param[in]   :  This method takes parameter :AccountInfo/DeviceInfo/Empty param
+ * @return      :  Returns PlatformCaps object with empty/Null value.
+ */
+
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_whenDispatcherNull)
+{
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    DispatcherMock* dispatcher = new DispatcherMock();
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+      .Times(0);
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"AccountInfo.x1DeviceId\"}"), response));
+    EXPECT_EQ(response, string("{\"AccountInfo\":{\"x1DeviceId\":\"null\"},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+}
+
+ /* @brief : getPlatformConfiguration when pass invalid callsign.
+ *         Check if getPlatformConfiguration api called with invalid callsign;
+ *         then getPlatformConfiguration shall be succeeded .
+ *         But PlatformCaps object shall be populated with Null/empty
+ *
+ * @param[in]   :  This method takes Invalid callsign
+ * @return      :  Returns PlatformCaps object with empty/Null value.
+ */
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_whenInvalidCallsign)
+{
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    DispatcherMock* dispatcher = new DispatcherMock();
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+      .Times(0);
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"auth\",\"query\":\"AccountInfo.x1DeviceId\"}"), response));
+    EXPECT_EQ(response, string("{\"AccountInfo\":{\"x1DeviceId\":\"null\"},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+
+}
+ /* @brief : getPlatformConfiguration when the response JSON RPC message is unable to parse.
+ *         Check if getPlatformConfiguration api called and if the JSON RPC response message is failed to parse *         then getPlatformConfiguration shall be succeeded .
+ *         But PlatformCaps object shall be populated with Null/empty
+ *
+ * @param[in]   :  This method takes parameter :AccountInfo/DeviceInfo/Empty param
+ * @return      :  Returns PlatformCaps object with empty/Null value.
+ */
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_whenParseError)
+{
+    NiceMock<ServiceMock> service;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    PluginHost::IFactories::Assign(&factoriesImplementation);
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    DispatcherMock* dispatcher = new DispatcherMock();
+
+    EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const uint32_t, const string& name) -> void* {
+                return (reinterpret_cast<void*>(dispatcher));
+            }));
+
+
+    Core::ProxyType<Core::JSONRPC::Message> mockResponse = Core::ProxyType<Core::JSONRPC::Message>::Create();
+    Core::JSONRPC::Message resp;
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const std::string&,
+                uint32_t,
+                const Core::JSONRPC::Message& message) ->Core::ProxyType<Core::JSONRPC::Message> {
+                    if (message.Designator == "org.rdk.AuthService.1.getXDeviceId") {
+                    resp.Result = Core::JSON::String("1000000000000000000");
+                      }
+                    mockResponse->Result = resp.Result;
+                    return mockResponse;
+                }));
+    EXPECT_CALL(*dispatcher, Release())
+     .Times(::testing::AnyNumber());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"AccountInfo.x1DeviceId\"}"), response));
+    EXPECT_EQ(response, string("{\"AccountInfo\":{\"x1DeviceId\":\"null\"},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+    PluginHost::IFactories::Assign(nullptr);
+}
+
+ /* @brief : getPlatformConfiguration when the dispatcher Invoke method returns an error in Response object.
+ *         Check if getPlatformConfiguration api called and
+ *         if dispatcher Invoke method returns an error in Response object;
+ *         then getPlatformConfiguration shall be succeeded .
+ *         But PlatformCaps object shall be populated with Null/empty
+ *
+ * @param[in]   :  This method takes parameter :AccountInfo/DeviceInfo/Empty param
+ * @return      :  Returns PlatformCaps object with empty/Null value.
+ */
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_withDispatcherInvokeError)
+{
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    PluginHost::IFactories::Assign(&factoriesImplementation);
+
+    DispatcherMock* dispatcher = new DispatcherMock();
+    EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const uint32_t, const string& name) -> void* {
+                return (reinterpret_cast<void*>(dispatcher));
+            }));
+
+
+    Core::ProxyType<Core::JSONRPC::Message> mockResponse = Core::ProxyType<Core::JSONRPC::Message>::Create();
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const std::string&,
+                uint32_t,
+                const Core::JSONRPC::Message& message) ->Core::ProxyType<Core::JSONRPC::Message> {
+                    mockResponse->Error.SetError(3);
+                    return mockResponse;
+                }));
+    EXPECT_CALL(*dispatcher, Release())
+     .Times(::testing::AnyNumber());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"AccountInfo.x1DeviceId\"}"), response));
+    EXPECT_EQ(response, string("{\"AccountInfo\":{\"x1DeviceId\":\"null\"},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+    PluginHost::IFactories::Assign(nullptr);
+}
+/*Test cases for getPlatformConfiguration ends here*/
