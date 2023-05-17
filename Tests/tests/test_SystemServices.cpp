@@ -98,6 +98,7 @@ protected:
 
 class SystemServicesEventIarmTest : public SystemServicesEventTest {
 protected:
+    IARM_BusCall_t SysModeChange;
     IARM_EventHandler_t systemStateChanged;
     IARM_EventHandler_t thermMgrEventsHandler;
     IARM_EventHandler_t powerEventHandler;
@@ -119,6 +120,14 @@ protected:
                     }
                     return IARM_RESULT_SUCCESS;
                 }));
+        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterCall(::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [&](const char* methodName, IARM_BusCall_t handler) {
+                    if (string(IARM_BUS_COMMON_API_SysModeChange) == string(methodName)) {
+                        SysModeChange = handler;
+                    }
+                    return IARM_RESULT_SUCCESS;
+                }));
 
         EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
@@ -130,6 +139,7 @@ protected:
 
     virtual void SetUp()
     {
+        ASSERT_TRUE(SysModeChange != nullptr);
         ASSERT_TRUE(systemStateChanged != nullptr);
         ASSERT_TRUE(thermMgrEventsHandler != nullptr);
         ASSERT_TRUE(powerEventHandler != nullptr);
@@ -4916,6 +4926,59 @@ TEST_F(SystemServicesTest, getSerialNumberSnmpSuccess_whenSerialNumberIsInTmpFil
 #endif
 
 /*Test cases for getSerialNumber ends here*/
+
+/*************************************************************************************************************
+ * Test function for :onSystemModeChanged
+ * onSystemModeChanged :
+ *                Triggered when the device operating mode changes.
+ *
+ *                @return Whether the mode change is succeeded.
+ * Use case coverage:
+ *                @Success :1
+ *                @Failure :0
+ ************************************************************************************************************/
+
+/**
+ * @brief : Check when the system mode is changed from IARM,
+ *        the onSystemModeChanged event is triggered with the expected JSON string containing the new mode.
+ *
+ * @param[in]   :  This method takes mode as parameter.
+ */
+TEST_F(SystemServicesEventIarmTest, onSystemModeChanged)
+{
+    Core::Event onSystemModeChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onSystemModeChanged\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"mode\":\"NORMAL\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                onSystemModeChanged.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onSystemModeChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_CommonAPI_SysModeChange_Param_t param;
+    param.newMode = IARM_BUS_SYS_MODE_NORMAL;
+    SysModeChange(&param);
+
+    EXPECT_EQ(Core::ERROR_NONE, onSystemModeChanged.Lock());
+
+    handler.Unsubscribe(0, _T("onSystemModeChanged"), _T("org.rdk.System"), message);
+}
+/*Test cases for onSystemModeChanged ends here*/
 
 /********************************************************************************************************
  * Test function for :getPlatformConfiguration
