@@ -158,7 +158,10 @@ namespace WPEFramework {
         // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
         // this class exposes a public method called, Notify(), using this methods, all subscribed clients
         // will receive a JSONRPC message as a notification, in case this method is called.
-        class Network : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+        class Network : public PluginHost::IPlugin
+            , public PluginHost::JSONRPC
+            , public PluginHost::ISubSystem::IInternet
+        {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -232,7 +235,22 @@ namespace WPEFramework {
             BEGIN_INTERFACE_MAP(Network)
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
+            INTERFACE_ENTRY(PluginHost::ISubSystem::IInternet)
             END_INTERFACE_MAP
+            
+            /*
+            * ------------------------------------------------------------------------------------------------------------
+            * ISubSystem::INetwork methods
+            * ------------------------------------------------------------------------------------------------------------
+            */
+            string PublicIPAddress() const override
+            {
+                return m_publicIPAddress;
+            }
+            network_type NetworkType() const override
+            {
+                return (m_publicIPAddress.empty() == true ? PluginHost::ISubSystem::IInternet::UNKNOWN : (m_ipversion == "IPV6" ? PluginHost::ISubSystem::IInternet::IPV6 : PluginHost::ISubSystem::IInternet::IPV4));
+            }
 
             //IPlugin methods
             virtual const std::string Initialize(PluginHost::IShell* service) override;
@@ -245,11 +263,14 @@ namespace WPEFramework {
             static Network *getInstance() {return _instance;}
 
         private:
+            PluginHost::IShell* m_service;
             NetUtils m_netUtils;
             string m_stunEndPoint;
             string m_isHybridDevice;
             string m_defaultInterface;
             string m_gatewayInterface;
+            string m_publicIPAddress;
+            string m_ipversion;
             uint16_t m_stunPort;
             uint16_t m_stunBindTimeout;
             uint16_t m_stunCacheTimeout;
