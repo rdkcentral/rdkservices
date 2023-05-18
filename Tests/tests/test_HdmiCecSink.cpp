@@ -6,6 +6,7 @@
 #include "devicesettings.h"
 #include "HdmiCec.h"
 #include "HdmiCecMock.h"
+#include "WrapsMock.h"
 
 using namespace WPEFramework;
 using ::testing::NiceMock;
@@ -19,6 +20,7 @@ protected:
     NiceMock<IarmBusImplMock> iarmBusImplMock;
     NiceMock<ConnectionImplMock> connectionImplMock;
     NiceMock<MessageEncoderMock> messageEncoderMock;
+	NiceMock<WrapsImplMock> wrapsImplMock;
     IARM_EventHandler_t pwrMgrModeChangeEventHandler;
     IARM_EventHandler_t dsHdmiEventHandler;
     IARM_EventHandler_t dsHdmiCecSinkEventHandler;
@@ -32,6 +34,7 @@ protected:
         LibCCEC::getInstance().impl = &libCCECImplMock;
         Connection::getInstance().impl = &connectionImplMock;
         MessageEncoder::getInstance().impl = &messageEncoderMock;
+		Wraps::getInstance().impl = &wrapsImplMock;
 
         ON_CALL(connectionImplMock, poll(::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
@@ -81,6 +84,7 @@ protected:
         LibCCEC::getInstance().impl = nullptr;
         Connection::getInstance().impl = nullptr;
         MessageEncoder::getInstance().impl = nullptr;
+		Wraps::getInstance().impl = nullptr;
     }
 };
 
@@ -177,6 +181,8 @@ TEST_F(HdmiCecSinkTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("requestAudioDevicePowerStatus")));
 }
 
+extern "C" FILE* __real_fopen(const char* filename, const char* mode);
+
 TEST_F(HdmiCecSinkDsTest, setOSDNameParamMissing)
 {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setOSDName"), _T("{}"), response));
@@ -185,6 +191,13 @@ TEST_F(HdmiCecSinkDsTest, setOSDNameParamMissing)
 
 TEST_F(HdmiCecSinkDsTest, getOSDName)
 {
+	ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setOSDName"), _T("{\"name\":\"CECTEST\"}"), response));
     EXPECT_EQ(response,  string("{\"success\":true}"));
 

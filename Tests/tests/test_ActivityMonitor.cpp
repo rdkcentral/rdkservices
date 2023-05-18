@@ -24,10 +24,12 @@
 #include "FactoriesImplementation.h"
 #include "ServiceMock.h"
 #include "IarmBusMock.h"
+#include "WrapsMock.h"
 #include <fstream>
 #include <unistd.h>
 
 using namespace WPEFramework;
+using ::testing::NiceMock;
 
 namespace {
 const string regFile = _T("/opt/waylandregistry.conf");
@@ -40,16 +42,19 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
+	NiceMock<WrapsImplMock> wrapsImplMock;
 
     ActivityMonitorTest()
         : plugin(Core::ProxyType<Plugin::ActivityMonitor>::Create())
         , handler(*(plugin))
         , connection(1, 0)
     {
+		Wraps::getInstance().impl = &wrapsImplMock;
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
     }
     virtual ~ActivityMonitorTest() override
     {
+		Wraps::getInstance().impl = nullptr;
         plugin->Deinitialize(nullptr);
     }
 };
@@ -61,6 +66,8 @@ TEST_F(ActivityMonitorTest, registeredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getApplicationMemoryUsage")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getAllMemoryUsage")));
 }
+
+extern "C" FILE* __real_fopen(const char* filename, const char* mode);
 
 TEST_F(ActivityMonitorTest, enableMonitoringEmptyConfig)
 {
@@ -79,6 +86,13 @@ TEST_F(ActivityMonitorTest, getAllMemoryUsage)
     Core::File fileApps(regFile);
     fileApps.Create();
     fileApps.Write(regFileData, sizeof(regFileData));
+
+    ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAllMemoryUsage"), _T(""), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{"

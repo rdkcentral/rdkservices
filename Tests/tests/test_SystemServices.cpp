@@ -206,6 +206,9 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPlatformConfiguration")));
 }
 
+extern "C" FILE* __real_fopen(const char* filename, const char* mode);
+extern "C" int __real_fclose(FILE* stream);
+
 TEST_F(SystemServicesTest, SystemUptime)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("requestSystemUptime"), _T("{}"), response));
@@ -410,6 +413,14 @@ TEST_F(SystemServicesEventTest, Timezone)
 
     handler.Subscribe(0, _T("onTimeZoneDSTChanged"), _T("org.rdk.System"), message);
 
+
+    ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
+			
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"America/New_York\",\"accuracy\":\"INITIAL\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
@@ -1050,6 +1061,13 @@ TEST_F(SystemServicesTest, getRFCConfig)
 
 TEST_F(SystemServicesTest, enableXREConnectionRetention)
 {
+	ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
+			
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("enableXREConnectionRetention"), _T("{\"enable\":true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
     EXPECT_TRUE(Core::File(string(_T("/tmp/retainConnection"))).Exists());
@@ -1374,10 +1392,10 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileNotExist)
  */
 TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileFailedToOpen)
 {
-    /* TODO : Implementation To be done :
-     * Mocking fopen with file doesnt exist is not working straight forward
-     * as it impacts other APIs/plugins using fopen, so working on that */
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
+   	EXPECT_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+      .WillOnce(::testing::Return(nullptr));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
     //ASSERT_EQ(response,"{\"SysSrv_Status\":5,\"errorMessage\":\"Unexpected Error\",\"success\":false}");
 }
 
@@ -1451,7 +1469,14 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onMakeParameter)
     ofstream file("/etc/device.properties");
     file << "MFG_NAME=SKY";
     file.close();
-
+	
+    ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
+			
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
     EXPECT_EQ(response, string("{\"make\":\"SKY\",\"success\":true}"));
 }
@@ -1661,6 +1686,13 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParameterHasNoLabelParam)
      Core::File file(deviceInfoScript);
      file.Create();
      file.Write(deviceInfoContent, sizeof(deviceInfoContent));
+	 
+	ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
 
      EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
      EXPECT_EQ(response, _T("{\"make\":\"SKY\",\"bluetooth_mac\":\"D4:52:EE:32:A3:B2\",\"boxIP\":\"192.168.1.0\",\"build_type\":\"VBN\",\"estb_mac\":\"D4:52:EE:32:A3:B0\",\"eth_mac\":\"D4:52:EE:32:A3:B0\",\"friendly_id\":\"\",\"imageVersion\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"software_version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"model_number\":\"SKXI11ANS\",\"wifi_mac\":\"D4:52:EE:32:A3:B1\",\"success\":true}"));
@@ -1710,6 +1742,13 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onNoValueForQueryParameter)
     Core::File file(deviceInfoScript);
     file.Create();
     file.Write(deviceInfoContent, sizeof(deviceInfoContent));
+	
+	ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":}"), response));
     EXPECT_EQ(response, _T("{\"make\":\"SKY\",\"bluetooth_mac\":\"D4:52:EE:32:A3:B2\",\"boxIP\":\"192.168.1.0\",\"build_type\":\"VBN\",\"estb_mac\":\"D4:52:EE:32:A3:B0\",\"eth_mac\":\"D4:52:EE:32:A3:B0\",\"friendly_id\":\"\",\"imageVersion\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"software_version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"model_number\":\"SKXI11ANS\",\"wifi_mac\":\"D4:52:EE:32:A3:B1\",\"success\":true}"));
@@ -1758,6 +1797,13 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_OnSpecificKeyValueParsing)
     Core::File file(deviceInfoScript);
     file.Create();
     file.Write(deviceInfoContent, sizeof(deviceInfoContent));
+	
+	ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":}"), response));
     EXPECT_EQ(response, _T("{\"make\":\"SKY\",\"bluetooth_mac\":\"D4:52:EE:32:A3:B2\",\"boxIP\":\"192.168.1.0\",\"build_type\":\"VBN\",\"estb_mac\":\"D4:52:EE:32:A3:B0\",\"eth_mac\":\"D4:52:EE:32:A3:B0\",\"friendly_id\":\"\",\"imageVersion\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"software_version\":\"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI\",\"model_number\":\"SKXI11ANS\",\"wifi_mac\":\"D4:52:EE:32:A3:B1\",\"success\":true}"));
@@ -3121,6 +3167,14 @@ TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithC
           onFirmwareUpdateInfoReceived.SetEvent();
           return Core::ERROR_NONE;
           }));
+	
+	ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
+			
     handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
@@ -3166,7 +3220,15 @@ TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithC
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
               }));
-      EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+			  
+	ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
+			
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
@@ -3495,6 +3557,13 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_whenStbVersionNotFoundwith_Vers
     file.open("/tmp/.estb_mac");
     file << "D4:52:EE:32:A3:B0";
     file.close();
+	
+	ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
     
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"unknown\"},\"success\":true}"));
@@ -3519,6 +3588,13 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_whenVersionStringWithoutEnvInfo
     file.open("/tmp/.estb_mac");
     file << "D4:52:EE:32:A3:B0";
     file.close();
+	
+	ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
     
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
@@ -3555,7 +3631,13 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_withAllXConfparams)
                 return fp;
             }));
 
-
+    ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
+			
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"AX061AEI\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
 }
@@ -3576,6 +3658,13 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvalueVBN)
     file.open("/tmp/.estb_mac");
     file << "D4:52:EE:32:A3:B0";
     file.close();
+	
+	ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
@@ -3598,6 +3687,13 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvaluePROD)
     file.open("/tmp/.estb_mac");
     file << "D4:52:EE:32:A3:B0";
     file.close();
+	
+	ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"prod\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_PROD_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
@@ -3620,6 +3716,13 @@ TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvalueQA)
     file.open("/tmp/.estb_mac");
     file << "D4:52:EE:32:A3:B0";
     file.close();
+	
+	ON_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* filename, const char* mode) -> FILE* {
+                FILE *fp = __real_fopen(filename,mode);
+                return fp;
+            }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"qa\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_QA_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
@@ -3840,7 +3943,7 @@ TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenTmpSerialNumberFileNotE
 TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenFailedToReadFromTmpFile)
 {
      /*TODO : Implementation To be done :
-     * Mocking fopen with file can not open and read has not been working straight forward
+     * Mocking is_open with file can not open and read has not been working straight forward
      * as it impacts other APIs/plugins using fopen, so working on that */
 
     //EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
