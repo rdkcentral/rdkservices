@@ -18,7 +18,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.0.1] - 2023-5-18
 ### Fixed
-- Fixed setApplicationToken call by regeneration of the key if it or cipher faild to load.
+- Fixed setApplicationToken call by regeneration of the key if it or cipher fails to load.
 
 ## [1.0.0] - 2022-05-11
 ### Added
