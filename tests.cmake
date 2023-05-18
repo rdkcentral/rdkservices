@@ -15,6 +15,9 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/Dobby
         ${BASEDIR}/Dobby/Public/Dobby
         ${BASEDIR}/Dobby/IpcService
+        ${BASEDIR}/ccec/drivers/iarmbus
+        ${BASEDIR}/ccec/host
+        ${BASEDIR}/websocket
         ${BASEDIR}/rdk/control
         ${BASEDIR}/rdk/iarmmgrs
 	${BASEDIR}/rdkshell
@@ -57,15 +60,27 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdkshell/eastereggs.h
         ${BASEDIR}/rdkshell/application.h
         ${BASEDIR}/rdkshell/linuxkeys.h
-        ${BASEDIR}/framebuffer-api.h
         ${BASEDIR}/libudev.h
         ${BASEDIR}/rfcapi.h
         ${BASEDIR}/rbus.h
         ${BASEDIR}/telemetry_busmessage_sender.h
+        ${BASEDIR}/motionDetector.h
         ${BASEDIR}/Dobby/DobbyProtocol.h
         ${BASEDIR}/Dobby/DobbyProxy.h
         ${BASEDIR}/Dobby/Public/Dobby/IDobbyProxy.h
         ${BASEDIR}/Dobby/IpcService/IpcFactory.h
+        ${BASEDIR}/ccec/FrameListener.hpp
+	${BASEDIR}/ccec/Connection.hpp
+	${BASEDIR}/ccec/Assert.hpp
+	${BASEDIR}/ccec/Messages.hpp
+	${BASEDIR}/ccec/MessageDecoder.hpp
+	${BASEDIR}/ccec/MessageProcessor.hpp
+	${BASEDIR}/ccec/CECFrame.hpp
+	${BASEDIR}/ccec/MessageEncoder.hpp
+	${BASEDIR}/ccec/host/RDK.hpp
+	${BASEDIR}/ccec/drivers/iarmbus/CecIARMBusMgr.h
+	${BASEDIR}/dsRpc.h
+	${BASEDIR}/websocket/URL.h
         ${BASEDIR}/rdk/iarmmgrs/irMgr.h
         ${BASEDIR}/rdk/iarmmgrs/comcastIrKeyCodes.h
         ${BASEDIR}/rdk/control/ctrlm_ipc.h
@@ -93,13 +108,14 @@ message("Adding compiler and linker options for all targets")
 file(GLOB BASEDIR Tests/mocks)
 set(FAKE_HEADERS
         ${BASEDIR}/devicesettings.h
-        ${BASEDIR}/FrameBuffer.h
         ${BASEDIR}/Iarm.h
         ${BASEDIR}/Rfc.h
         ${BASEDIR}/RBus.h
         ${BASEDIR}/Telemetry.h
         ${BASEDIR}/Udev.h
+        ${BASEDIR}/MotionDetection.h
         ${BASEDIR}/Dobby.h
+        ${BASEDIR}/HdmiCec.h
         ${BASEDIR}/Ctrlm.h
 	${BASEDIR}/rdkshell.h
 	${BASEDIR}/RdkLoggerMilestone.h
@@ -111,7 +127,7 @@ endforeach ()
 
 add_compile_options(-Wall -Werror)
 
-add_link_options(-Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog)
+add_link_options(-Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,-wrap,pclose)
 
 add_definitions(
         -DENABLE_TELEMETRY_LOGGING
@@ -120,7 +136,7 @@ add_definitions(
         -DENABLE_DEEP_SLEEP
         -DENABLE_SET_WAKEUP_SRC_CONFIG
         -DENABLE_THERMAL_PROTECTION
-        -DUSE_FRAMEBUFFER_SCREENCAPTURE
+        -DUSE_DRM_SCREENCAPTURE
         -DHAS_API_SYSTEM
         -DHAS_API_POWERSTATE
         -DHAS_RBUS
@@ -134,7 +150,9 @@ set(CMAKE_DISABLE_FIND_PACKAGE_IARMBus ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_Udev ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_RFC ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_RBus ON)
+set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_Dobby ON)
+set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 
 set(PLUGIN_DATACAPTURE ON)
 set(PLUGIN_DEVICEDIAGNOSTICS ON)
@@ -160,7 +178,10 @@ set(PLUGIN_WIFIMANAGER ON)
 set(PLUGIN_TRACECONTROL ON)
 set(PLUGIN_WAREHOUSE ON)
 set(PLUGIN_ACTIVITYMONITOR ON)
+set(PLUGIN_MOTION_DETECTION ON)
+set(PLUGIN_COMPOSITEINPUT ON)
 set(PLUGIN_OCICONTAINER ON)
+set(PLUGIN_HDMICECSINK ON)
 set(PLUGIN_VOICECONTROL ON)
 set(PLUGIN_CONTROLSERVICE ON)
 set(PLUGIN_REMOTEACTIONMAPPING ON)

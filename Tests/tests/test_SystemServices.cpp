@@ -26,6 +26,7 @@
 #include "IarmBusMock.h"
 #include "RfcApiMock.h"
 #include "ServiceMock.h"
+#include "DispatcherMock.h"
 #include "SleepModeMock.h"
 #include "WrapsMock.h"
 
@@ -97,6 +98,7 @@ protected:
 
 class SystemServicesEventIarmTest : public SystemServicesEventTest {
 protected:
+    IARM_BusCall_t SysModeChange;
     IARM_EventHandler_t systemStateChanged;
     IARM_EventHandler_t thermMgrEventsHandler;
     IARM_EventHandler_t powerEventHandler;
@@ -118,6 +120,14 @@ protected:
                     }
                     return IARM_RESULT_SUCCESS;
                 }));
+        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterCall(::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [&](const char* methodName, IARM_BusCall_t handler) {
+                    if (string(IARM_BUS_COMMON_API_SysModeChange) == string(methodName)) {
+                        SysModeChange = handler;
+                    }
+                    return IARM_RESULT_SUCCESS;
+                }));
 
         EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
@@ -129,6 +139,7 @@ protected:
 
     virtual void SetUp()
     {
+        ASSERT_TRUE(SysModeChange != nullptr);
         ASSERT_TRUE(systemStateChanged != nullptr);
         ASSERT_TRUE(thermMgrEventsHandler != nullptr);
         ASSERT_TRUE(powerEventHandler != nullptr);
@@ -186,7 +197,14 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("reboot")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getStateInfo")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBootLoaderPattern")));
-  }
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getMacAddresses")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFirmwareUpdateInfo")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("clearLastDeepSleepReason")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getMfgSerialNumber")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getXconfParams")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getSerialNumber")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPlatformConfiguration")));
+}
 
 TEST_F(SystemServicesTest, SystemUptime)
 {
@@ -582,7 +600,7 @@ TEST_F(SystemServicesTest, updateFirmware)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(::testing::Invoke(
             [&](const char* command, const char* type) {
-                EXPECT_EQ(string(command), string(_T("/lib/rdk/deviceInitiatedFWDnld.sh 0 4 >> /opt/logs/swupdate.log &")));
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/swupdate_utility.sh 0 4 >> /opt/logs/swupdate.log &")));
                 return nullptr;
             }));
 
@@ -1286,6 +1304,7 @@ TEST_F(SystemServicesEventIarmTest, onRebootRequest)
     handler.Unsubscribe(0, _T("onRebootRequest"), _T("org.rdk.System"), message);
 }
 
+
  /*******************************************************************************************************************
  * Test function for :getDeviceInfo
  * getDeviceInfo :
@@ -1517,7 +1536,7 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParamFriendlyIdOrModelNam
                 const char* str = "IP061-ec";
                 param->bufLen = strlen(str);
                 strncpy(param->buffer, str, sizeof(param->buffer));
-                param->type =  mfrSERIALIZED_TYPE_SKYMODELNAME;
+                param->type =  mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
                 return IARM_RESULT_SUCCESS;
             });
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":friendly_id}"), response));
@@ -1558,7 +1577,7 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedHardwareId)
     //sets an expectation that the IARM_Bus_Call function should not be called during this sequence
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .Times(0);
-		
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), response));
     EXPECT_EQ(response, string("{\"hardwareID\":\"5678\",\"success\":true}"));
 
@@ -1585,7 +1604,7 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedModelName)
                 const char* str = "IP061-ec";
                 param->bufLen = strlen(str);
                 strncpy(param->buffer, str, sizeof(param->buffer));
-                param->type =  mfrSERIALIZED_TYPE_SKYMODELNAME;
+                param->type =  mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
                 return IARM_RESULT_SUCCESS;
             });
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), response));
@@ -1595,7 +1614,7 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedModelName)
     //sets an expectation that the IARM_Bus_Call function should not be called during this sequence
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .Times(0);
-		
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":modelName}"), response));
     EXPECT_EQ(response, string("{\"modelName\":\"IP061-ec\",\"success\":true}"));
 }
@@ -1606,12 +1625,12 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_getCachedModelName)
  *          then getDeviceInfo shall successfully retrieve the device info and  returns it in the response
  * @param[in]   :   "params" :{}
  * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
- *                                     "boxIP":"192.168.1.100","build_type":"VBN",
- *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
- *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ *                                     "boxIP":"192.168.1.100","build_type":"VBN",
+ *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
+ *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
  */
 TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParameterHasNoLabelParam)
 {
@@ -1632,12 +1651,12 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParameterHasNoLabelParam)
                 EXPECT_EQ(string(command), string(_T("sh /lib/rdk/getDeviceDetails.sh read")));
                 return __real_popen(command, type);
             }));
-			
+
      //Create fake device property file
      ofstream propFile("/etc/device.properties");
      propFile << "MFG_NAME=SKY";
      propFile.close();
-	 
+
      //Create fake device info script
      Core::File file(deviceInfoScript);
      file.Create();
@@ -1655,12 +1674,12 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onQueryParameterHasNoLabelParam)
  *          getDeviceDetails script file ,then returns it in the response
  * @param[in]   : "params": {"params": }
  * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
- *                                     "boxIP":"192.168.1.100","build_type":"VBN",
- *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
- *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ *                                     "boxIP":"192.168.1.100","build_type":"VBN",
+ *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
+ *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
  */
 TEST_F(SystemServicesTest, getDeviceInfoSuccess_onNoValueForQueryParameter)
 {
@@ -1704,12 +1723,12 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onNoValueForQueryParameter)
  *          ImageVersion stored in keys, "version" and "software_version" ,"cable_card_firmware_version","model_number" respectively
  * @param[in]   :  "params": {"params" : {}}
  * @return      : {"make":"SKY","bluetooth_mac":"D4:52:EE:32:A3:B2",
- *                                     "boxIP":"192.168.1.100","build_type":"VBN",
- *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
- *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
- *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
+ *                                     "boxIP":"192.168.1.100","build_type":"VBN",
+ *                                     "estb_mac":"D4:52:EE:32:A3:B0","eth_mac":"D4:52:EE:32:A3:B0",
+ *                                     "friendly_id":"IP061-ec","imageVersion":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "software_version":"SKXI11ANS_VBN_23Q1_sprint_20230129224229sdy_SYNA_CI",
+ *                                     "model_number":"SKXI11ANS","wifi_mac":"D4:52:EE:32:A3:B1","success":true}
  */
 TEST_F(SystemServicesTest, getDeviceInfoSuccess_OnSpecificKeyValueParsing)
 {
@@ -2558,3 +2577,1767 @@ TEST_F(SystemServicesTest, setBootLoaderPatternSuccess_onPatterntypeSILENTLEDON)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 /*Test cases for setBootLoaderPattern ends here*/
+
+/*************************************************************************************************************
+* Test function for :getMacAddresses
+* getMacAddresses :
+*                Gets the MAC address of the device.
+*                @input  GUID[Optional] /Can run without input params
+*                @return Whether the request succeeded.
+* Event : onMacAddressesRetreived
+*                Triggers when the MAC addresses are requested
+* Use case coverage:
+*                @Failure :1
+*                @Success :1
+************************************************************************************************************/
+
+/**
+ * @brief :getMacAddresses when getDeviceDetails.sh not exist.
+ *            Check if the file getDeviceDetails.sh not present,
+ *            then getMacAddresses shall be failed.
+ *
+ * @param[in]   : "params": "{}" 
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesTest,getMacAddressesFailed_WhenFileNotExist)
+{
+    const string deviceInfoScript = _T("/lib/rdk/getDeviceDetails.sh");
+	Core::File file(deviceInfoScript);
+	remove("/lib/rdk/getDeviceDetails.sh");
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getMacAddresses"), _T("{}"), response));
+	file.Destroy();
+}
+
+/**
+ * @brief :   onMacAddressesRetrieved event triggered when getMacAddresses is successful
+ *            Check if the onMacAddressesRetrieved event is correctly triggered with expected Json params
+ *            when MAC addresses are requested successfully.
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, onMacAddressesRetrieved)
+{
+    Core::Event onMacAddressesRetreived(false, true);
+    const string deviceInfoScript = _T("/lib/rdk/getDeviceDetails.sh");
+	Core::File file(deviceInfoScript);
+	file.Create();
+
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+     .WillByDefault(::testing::Invoke(
+        [&](const char* command, const char* type) -> FILE* {
+            const char* valueToReturn = NULL;
+            if (strcmp(command, "/lib/rdk/getDeviceDetails.sh read ecm_mac") == 0) {
+                valueToReturn = "A8:11:XX:FD:0C:XX";
+            } else if (strcmp(command, "/lib/rdk/getDeviceDetails.sh read estb_mac") == 0) {
+                valueToReturn = "A8:11:XX:FD:0C:XX";
+            } else if (strcmp(command, "/lib/rdk/getDeviceDetails.sh read moca_mac") == 0) {
+                valueToReturn = "00:15:5F:XX:20:5E:57:XX";
+            } else if (strcmp(command, "/lib/rdk/getDeviceDetails.sh read eth_mac") == 0) {
+                valueToReturn = "A8:11:XX:FD:0C:XX";
+            } else if (strcmp(command, "/lib/rdk/getDeviceDetails.sh read wifi_mac") == 0) {
+                valueToReturn = "A8:11:XX:FD:0C:XX";
+            } else if (strcmp(command, "/lib/rdk/getDeviceDetails.sh read bluetooth_mac") == 0) {
+                valueToReturn = "AA:AA:AA:AA:AA:AA";
+            } else if (strcmp(command, "/lib/rdk/getDeviceDetails.sh read rf4ce_mac") == 0) {
+                valueToReturn = "00:00:00:00:00:00";
+            }
+            if (valueToReturn != NULL) {
+                  char buffer[1024];
+                  memset(buffer, 0, sizeof(buffer));
+                  strcpy(buffer, valueToReturn);
+                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                  return pipe;
+            } else {
+                 return __real_popen(command, type);
+            }
+        }));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onMacAddressesRetreived\",\"params\":\\{\"ecm_mac\":\"A8:11:XX:FD:0C:XX\",\"estb_mac\":\"A8:11:XX:FD:0C:XX\",\"moca_mac\":\"00:15:5F:XX:20:5E:57:XX\",\"eth_mac\":\"A8:11:XX:FD:0C:XX\",\"wifi_mac\":\"A8:11:XX:FD:0C:XX\",\"bluetooth_mac\":\"AA:AA:AA:AA:AA:AA\",\"rf4ce_mac\":\"00:00:00:00:00:00\",\"success\":true\\}}")));
+          onMacAddressesRetreived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onMacAddressesRetreived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMacAddresses"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onMacAddressesRetreived.Lock());
+    handler.Unsubscribe(0, _T("onMacAddressesRetreived"), _T("org.rdk.System"), message);
+	file.Destroy();
+}
+/*Test cases for getMacAddresses ends here*/
+
+/********************************************************************************************************
+* Test function for :getFirmwareUpdateInfo
+* getFirmwareUpdateInfo :
+*                Checks the firmware update information
+*                @input  GUID[Optional] /Can run without input params
+*                @return Whether the request succeeded.
+* Event : onFirmwareUpdateInfoReceived
+*                Triggers when the firmware update information is requested
+* Use case coverage:
+*                @Failure :0
+*                @Success :14
+************************************************************************************************************/
+
+/**
+ * @brief :  Test that onFirmwareUpdateInfoReceived event is triggered correctly when getFirmwareUpdateInfo is successful with HTTP status code 460.
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode460)
+{
+    Core::Event onFirmwareUpdateInfoReceived(false, true);
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+          .Times(::testing::AnyNumber())
+          .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                      char buffer[1024];
+                      memset(buffer, 0, sizeof(buffer));
+                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
+                      const char http_code_str[] = "460";
+                      strcpy(buffer, http_code_str);
+                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
+                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
+                      strcpy(buffer, response_str);
+                  }
+                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                 return pipe;
+              }));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":0,\"responseString\":\"{\\\"firmwareVersion\\\":\\\"1234\\\"}\",\"rebootImmediately\":null,\"updateAvailable\":false,\"updateAvailableEnum\":3,\"success\":true}}");
+          onFirmwareUpdateInfoReceived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
+    handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+}
+
+/**
+ * @brief :   Test that onFirmwareUpdateInfoReceived event is triggered correctly when getFirmwareUpdateInfo is successful with HTTP status code 403.
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode403)
+{
+    Core::Event onFirmwareUpdateInfoReceived(false, true);
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+          .Times(::testing::AnyNumber())
+          .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                      char buffer[1024];
+                      memset(buffer, 0, sizeof(buffer));
+                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
+                      const char http_code_str[] = "403";
+                      strcpy(buffer, http_code_str);
+                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
+                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
+                      strcpy(buffer, response_str);
+                  }
+                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                 return pipe;
+              }));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":403,\"responseString\":\"{\\\"firmwareVersion\\\":\\\"1234\\\"}\",\"rebootImmediately\":null,\"firmwareUpdateVersion\":\"1234\",\"updateAvailable\":true,\"updateAvailableEnum\":0,\"success\":true}}");
+          onFirmwareUpdateInfoReceived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
+    handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+}
+
+/**
+ * @brief :  onFirmwareUpdateInfoReceived event is triggered correctly when getFirmwareUpdateInfo is successful with an HTTP status code other than 460 or 403.
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCodeOther)
+{
+    Core::Event onFirmwareUpdateInfoReceived(false, true);
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+          .Times(::testing::AnyNumber())
+          .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                      char buffer[1024];
+                      memset(buffer, 0, sizeof(buffer));
+                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
+                      const char http_code_str[] = "400";
+                      strcpy(buffer, http_code_str);
+                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
+                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
+                      strcpy(buffer, response_str);
+                  }
+                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                 return pipe;
+              }));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":400,\"responseString\":\"{\\\"firmwareVersion\\\":\\\"1234\\\"}\",\"rebootImmediately\":null,\"firmwareUpdateVersion\":\"1234\",\"updateAvailable\":true,\"updateAvailableEnum\":0,\"success\":true}}");
+          onFirmwareUpdateInfoReceived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
+    handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+    // Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+}
+
+/**
+ * @brief :   onFirmwareUpdateInfoReceived event is triggered correctly when getFirmwareUpdateInfo is successful and the environment is PROD.
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvPROD)
+{
+    Core::Event onFirmwareUpdateInfoReceived(false, true);
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+          .Times(::testing::AnyNumber())
+          .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                      char buffer[1024];
+                      memset(buffer, 0, sizeof(buffer));
+                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
+                      const char http_code_str[] = "460";
+                      strcpy(buffer, http_code_str);
+                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
+                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
+                      strcpy(buffer, response_str);
+                  }
+                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                 return pipe;
+              }));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":0,\"responseString\":\"{\\\"firmwareVersion\\\":\\\"1234\\\"}\",\"rebootImmediately\":null,\"updateAvailable\":false,\"updateAvailableEnum\":3,\"success\":true}}");
+          onFirmwareUpdateInfoReceived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
+    handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+}
+
+/**
+ * @brief :   onFirmwareUpdateInfoReceived event is triggered correctly when getFirmwareUpdateInfo is successful and the environment is DEV.
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvDev)
+{
+    Core::Event onFirmwareUpdateInfoReceived(false, true);
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+          .Times(::testing::AnyNumber())
+          .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                      char buffer[1024];
+                      memset(buffer, 0, sizeof(buffer));
+                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
+                      const char http_code_str[] = "460";
+                      strcpy(buffer, http_code_str);
+                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
+                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
+                      strcpy(buffer, response_str);
+                  }
+                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                 return pipe;
+              }));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":0,\"responseString\":\"{\\\"firmwareVersion\\\":\\\"1234\\\"}\",\"rebootImmediately\":null,\"updateAvailable\":false,\"updateAvailableEnum\":3,\"success\":true}}");
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":0,\"responseString\":\"{\\\"firmwareVersion\\\":\\\"1234\\\"}\",\"rebootImmediately\":null,\"updateAvailable\":false,\"updateAvailableEnum\":3,\"success\":true}}");
+          onFirmwareUpdateInfoReceived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
+    handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+}
+
+/**
+ * @brief :   onFirmwareUpdateInfoReceived event is triggered correctly when getFirmwareUpdateInfo is successful and the environment is VBN.
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvVBN)
+{
+    Core::Event onFirmwareUpdateInfoReceived(false, true);
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+          .Times(::testing::AnyNumber())
+          .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                      char buffer[1024];
+                      memset(buffer, 0, sizeof(buffer));
+                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
+                      const char http_code_str[] = "460";
+                      strcpy(buffer, http_code_str);
+                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
+                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
+                      strcpy(buffer, response_str);
+                  }
+                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                 return pipe;
+              }));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":0,\"responseString\":\"{\\\"firmwareVersion\\\":\\\"1234\\\"}\",\"rebootImmediately\":null,\"updateAvailable\":false,\"updateAvailableEnum\":3,\"success\":true}}");
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":0,\"responseString\":\"{\\\"firmwareVersion\\\":\\\"1234\\\"}\",\"rebootImmediately\":null,\"updateAvailable\":false,\"updateAvailableEnum\":3,\"success\":true}}");
+          onFirmwareUpdateInfoReceived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
+    handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+}
+
+/**
+ * @brief :   onFirmwareUpdateInfoReceived event is triggered correctly when getFirmwareUpdateInfo is successful and the environment is CQA.
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvCqa)
+{
+    Core::Event onFirmwareUpdateInfoReceived(false, true);
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+          .Times(::testing::AnyNumber())
+          .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                      char buffer[1024];
+                      memset(buffer, 0, sizeof(buffer));
+                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
+                      const char http_code_str[] = "460";
+                      strcpy(buffer, http_code_str);
+                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
+                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
+                      strcpy(buffer, response_str);
+                  }
+                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                 return pipe;
+              }));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":0,\"responseString\":\"{\\\"firmwareVersion\\\":\\\"1234\\\"}\",\"rebootImmediately\":null,\"updateAvailable\":false,\"updateAvailableEnum\":3,\"success\":true}}");
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":0,\"responseString\":\"{\\\"firmwareVersion\\\":\\\"1234\\\"}\",\"rebootImmediately\":null,\"updateAvailable\":false,\"updateAvailableEnum\":3,\"success\":true}}");
+          onFirmwareUpdateInfoReceived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
+    handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+}
+
+/**
+ * @brief :   onFirmwareUpdateInfoReceived event is triggered correctly when getFirmwareUpdateInfo is successful with the environment is other than PROD[eg:VBN] and /opt/swupdate.conf is NOT present
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvNotProdWithoutConfFile)
+{
+    Core::Event onFirmwareUpdateInfoReceived(false, true);
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+          .Times(::testing::AnyNumber())
+          .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                      char buffer[1024];
+                      memset(buffer, 0, sizeof(buffer));
+                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
+                      const char http_code_str[] = "460";
+                      strcpy(buffer, http_code_str);
+                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
+                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
+                      strcpy(buffer, response_str);
+                  }
+                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                 return pipe;
+              }));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":0,\"responseString\":\"{\\\"firmwareVersion\\\":\\\"1234\\\"}\",\"rebootImmediately\":null,\"updateAvailable\":false,\"updateAvailableEnum\":3,\"success\":true}}");
+          onFirmwareUpdateInfoReceived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
+    handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+}
+
+/**
+ * @brief :   onFirmwareUpdateInfoReceived event is triggered correctly when getFirmwareUpdateInfo is successful with the environment is other than PROD[eg:VBN] and /opt/swupdate.conf is present and contains empty URL
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithConfFileEmptyUrl)
+{
+    Core::Event onFirmwareUpdateInfoReceived(false, true);
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
+    const string  swUpdateFile = _T("/opt/swupdate.conf");
+    Core::File file2(swUpdateFile);
+    file2.Destroy();
+    file2.Create();
+
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+          .Times(::testing::AnyNumber())
+          .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                      char buffer[1024];
+                      memset(buffer, 0, sizeof(buffer));
+                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
+                      const char http_code_str[] = "460";
+                      strcpy(buffer, http_code_str);
+                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
+                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
+                      strcpy(buffer, response_str);
+                  }
+                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                 return pipe;
+              }));
+      EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":0,\"responseString\":\"\",\"rebootImmediately\":false,\"updateAvailable\":false,\"updateAvailableEnum\":3,\"success\":true}}");
+          onFirmwareUpdateInfoReceived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
+    handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+}
+
+/**
+ * @brief :   onFirmwareUpdateInfoReceived event is triggered correctly when getFirmwareUpdateInfo is successful and the environment is other than PROD[eg:VBN] with /opt/swupdate.conf is present and contains URL to override
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithConfFileOverrideUrl)
+{
+    Core::Event onFirmwareUpdateInfoReceived(false, true);
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
+    const string  swUpdateFile = _T("/opt/swupdate.conf");
+    const uint8_t swUpdateUrl[] = "test_url";
+    Core::File file2(swUpdateFile);
+    file2.Destroy();
+    file2.Create();
+    file2.Write(swUpdateUrl, sizeof(swUpdateUrl));
+
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+          .Times(::testing::AnyNumber())
+          .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                      char buffer[1024];
+                      memset(buffer, 0, sizeof(buffer));
+                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
+                      const char http_code_str[] = "460";
+                      strcpy(buffer, http_code_str);
+                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
+                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
+                      strcpy(buffer, response_str);
+                  }
+                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                 return pipe;
+              }));
+      EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":0,\"responseString\":\"{\\\"firmwareVersion\\\":\\\"1234\\\"}\",\"rebootImmediately\":null,\"updateAvailable\":false,\"updateAvailableEnum\":3,\"success\":true}}");
+          onFirmwareUpdateInfoReceived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
+    handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+}
+
+/**
+ * @brief :    onFirmwareUpdateInfoReceived event triggered when getFirmwareUpdateInfo is successful with missing HTTP status code
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithoutHttpStatusCode)
+{
+    Core::Event onFirmwareUpdateInfoReceived(false, true);
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":\\{\"status\":0,\"responseString\":\"\",\"rebootImmediately\":false,\"firmwareUpdateVersion\":\"\",\"updateAvailable\":false,\"updateAvailableEnum\":2,\"success\":false\\}}")));
+          onFirmwareUpdateInfoReceived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
+    handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+}
+
+/**
+ * @brief :    onFirmwareUpdateInfoReceived event triggered when getFirmwareUpdateInfo is successful with Repsonse string is empty
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenResponseEmpty)
+{
+    Core::Event onFirmwareUpdateInfoReceived(false, true);
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+          .Times(::testing::AnyNumber())
+          .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                      char buffer[1024];
+                      memset(buffer, 0, sizeof(buffer));
+                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
+                      const char http_code_str[] = "460";
+                      strcpy(buffer, http_code_str);
+                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
+                      const char response_str[] = "";
+                      strcpy(buffer, response_str);
+                  }
+                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                 return pipe;
+              }));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":0,\"responseString\":\"\",\"rebootImmediately\":false,\"updateAvailable\":false,\"updateAvailableEnum\":3,\"success\":true}}");
+          onFirmwareUpdateInfoReceived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
+    handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+}
+
+/*
+ * @brief: onFirmwareUpdateInfoReceived event triggered when there is an error parsing the response from getFirmwareUpdateInfo.
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenErrorInParsingResponse)
+{
+    Core::Event onFirmwareUpdateInfoReceived(false, true);
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+          .Times(::testing::AnyNumber())
+          .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                      char buffer[1024];
+                      memset(buffer, 0, sizeof(buffer));
+                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
+                      const char http_code_str[] = "460";
+                      strcpy(buffer, http_code_str);
+                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
+                      const char response_str[] = "firmwareVersion:1234";
+                      strcpy(buffer, response_str);
+                  }
+                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                 return pipe;
+              }));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":0,\"responseString\":\"firmwareVersion:1234\",\"rebootImmediately\":false,\"updateAvailable\":false,\"updateAvailableEnum\":3,\"success\":true}}");
+          onFirmwareUpdateInfoReceived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
+    handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+}
+
+/**
+ *  @brief: onFirmwareUpdateInfoReceived event triggered when the ixconf response is not valid json and/or doesn't contain firmwareVersion
+ *  @param[in]   :  This method takes no parameters.
+ *  @return      :  {\"asyncResponse\":true,\"success\":true}
+ */
+TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenInvalidResponse)
+{
+    Core::Event onFirmwareUpdateInfoReceived(false, true);
+    std::ofstream fileVer("/version.txt");
+    fileVer << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
+    fileVer.close();
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+          .Times(::testing::AnyNumber())
+          .WillRepeatedly(::testing::Invoke(
+              [&](const char* command, const char* type) {
+                      char buffer[1024];
+                      memset(buffer, 0, sizeof(buffer));
+                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
+                      const char http_code_str[] = "460";
+                      strcpy(buffer, http_code_str);
+                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
+                      const char response_str[] = "{}";
+                      strcpy(buffer, response_str);
+                  }
+                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
+                 return pipe;
+              }));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.System.onFirmwareUpdateInfoReceived\",\"params\":{\"status\":0,\"responseString\":\"\",\"rebootImmediately\":false,\"updateAvailable\":false,\"updateAvailableEnum\":3,\"success\":true}}");
+          onFirmwareUpdateInfoReceived.SetEvent();
+          return Core::ERROR_NONE;
+          }));
+    handler.Subscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFirmwareUpdateInfo"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
+    handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
+	
+	// Clear file contents
+    fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
+    fileVer.close();
+}
+
+/****************************************************************************************************
+ * Test functions for :clearLastDeepSleepReason
+ * clearLastDeepSleepReason :
+ *                clear the last deep sleep reason by removing the file that stores it.
+ *                This method takes no parameters.
+ *
+ *                @return Whether the request succeeded.
+ * Use case coverage:
+ *                @Success :1
+ *                @Failure :2
+ ***************************************************************************************************/
+
+/**
+ * @brief : clearLastDeepSleepReason when file doesn't exists/failed to remove.
+ *          Check if  If the file for the last deep sleep reason cannot be found or failed to remove,
+ *          then  clearLastDeepSleepReason shall be failed and an error message is returned in the response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
+ */
+TEST_F(SystemServicesTest, clearLastDeepSleepReasonFailed_WhenFileFailedToRemove)
+{
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const char* command, const char* type) {
+                EXPECT_EQ(string(command), string(_T("rm -f /opt/standbyReason.txt")));
+                return nullptr;
+            }));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("clearLastDeepSleepReason"), _T("{}"), response));
+}
+
+/**
+ * @brief : clearLastDeepSleepReason when pclose fails to close the opened pipe.
+ *          Check if the pclose failed to close the opened pipe,
+ *          then clearLastDeepSleepReason shall be failed and
+ *          an error message is returned in the response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
+ */
+TEST_F(SystemServicesTest, clearLastDeepSleepReasonFailed_WhenPcloseFailed)
+{
+    //popen mock returns a fake file pointer value.
+    FILE* fakePipe = reinterpret_cast<FILE*>(0x1234);
+    EXPECT_CALL(wrapsImplMock, popen(testing::_, testing::_))
+        .WillOnce(testing::Return(fakePipe));
+    //pclose mock returns -1 to simulate a failure to close the file
+    EXPECT_CALL(wrapsImplMock, pclose(fakePipe))
+        .WillOnce(testing::Return(-1));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("clearLastDeepSleepReason"), _T("{}"), response));
+}
+
+/**
+ * @brief : clearLastDeepSleepReason when file successfully removed.
+ *          Check if the file for the last deep sleep reason is successfully removed using popen,
+ *          then clearLastDeepSleepReason shall be succeeded.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"success": true}
+ */
+TEST_F(SystemServicesTest, clearLastDeepSleepReasonSuccess_whenFileSuccessfullyRemoved)
+{
+    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const char* command, const char* type) {
+                EXPECT_EQ(string(command), string(_T("rm -f /opt/standbyReason.txt")));
+                return __real_popen(command, type);
+            }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("clearLastDeepSleepReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+/*Test cases for clearLastDeepSleepReason ends here*/
+
+/*********************************************************************************************************
+ * Test function for :getXconfParams
+ * getXconfParams :
+ *                Returns XCONF configuration parameters for the device.
+ *
+ *                @return XconfParams, whether the request succeeded.
+ * Use case coverage:
+ *                @Success :7
+ ******************************************************************************************************/
+/**
+ * @brief : getXconfParams when stb version not found.
+ *        Check if stb version is not found in VERSION_FILE
+ *        then getXconfParams shall be succeeded and returns XconfParams with value env = "dev"
+ *        and value of firmwareVersion= "unknown" if STB_VERSION_STRING not defined,
+ *        and value of firmwareVersion = value defined in STB_VERSION_STRING if STB_VERSION_STRING is defined.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return[if STB_VERSION_STRING defined] : {\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"\",\"firmwareVersion\":\"string[STB_VERSION_STRING]\"},\"success\":true}
+ * @return[if STB_VERSION_STRING not defined] : {\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"\",\"firmwareVersion\":\"unknown\"},\"success\":true}
+ */
+#ifdef STB_VERSION_STRING
+TEST_F(SystemServicesTest, getXconfParamsSuccess_whenStbVersionNotFound_withVersionDefined)
+{
+    //stb version information
+    //Simulated as version not provided in the vesion.txt file
+    ofstream file("/version.txt");
+    file << "";
+    file.close();
+    
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+    
+    string firmwareVersion = STB_VERSION_STRING;
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\""+firmwareVersion+"\"},\"success\":true}"));
+}
+
+#else
+TEST_F(SystemServicesTest, getXconfParamsSuccess_whenStbVersionNotFoundwith_VersionNotDefined)
+{
+    //stb version information
+    //Simulated as version not provided in the vesion.txt file
+    ofstream file("/version.txt");
+    file << "";
+    file.close();
+    
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+    
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"unknown\"},\"success\":true}"));
+}
+#endif
+
+/**
+ * @brief : getXconfParams when STB version string does not contain environment information like VBN/PROD/QA.
+ *        Check if stb version string does not contain env information,
+ *        then getXconfParams shall be succeeded and returns xconfParams with env="dev" and firmwareVersion=stb version string .
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
+ */
+TEST_F(SystemServicesTest, getXconfParamsSuccess_whenVersionStringWithoutEnvInfo)
+{
+    ofstream file("/version.txt");
+    file << "imagename:PX051AEI_2203_sprint_20220331225312sdy_NG";
+    file.close();
+
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+    
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"dev\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
+}
+
+/**
+ * @brief : getXconfParams getting all  XCONF configuration parameters
+ *        check if all the configiration parameters are provided in respective files,
+ *        then getXconfParams shall be Succeeded and all the values for xconfParams shall be populated.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  "{\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"AX061AEI\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"
+ */
+TEST_F(SystemServicesTest, getXconfParamsSuccess_withAllXConfparams)
+{
+    ofstream file("/version.txt");
+    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    file.close();
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+
+    //model information
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+           [&](const char* command, const char* type) -> FILE* {
+                EXPECT_EQ(string(command), string(_T("PATH=${PATH}:/sbin:/usr/sbin /lib/rdk/getDeviceDetails.sh read")));
+                std::string filename = "getDeviceDetail.sh";
+                std::ofstream file_stream(filename);
+                file_stream << "model=AX061AEI\n";
+                file_stream.close();
+                FILE *fp = __real_popen(("cat " + filename).c_str(), "r");
+                return fp;
+            }));
+
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"AX061AEI\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
+}
+/**
+ * @brief : getXconfParams when firm value is "VBN".
+ *        Check if the firm value is "VBN"
+ *        then getXconfParams shall be succeeded and returns xconfParam with env="vbn".
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
+ */
+TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvalueVBN)
+{
+    ofstream file("/version.txt");
+    file << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
+    file.close();
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"vbn\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
+}
+
+/**
+ * @brief : getXconfParams when firm value is "PROD".
+ *        Check if the firm value is "PROD"
+ *        then getXconfParams shall be succeeded and returns xconfParam with env="prod".
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"xconfParams\":{\"env\":\"prod\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_PROD_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
+ */
+TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvaluePROD)
+{
+    ofstream file("/version.txt");
+    file << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
+    file.close();
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"prod\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_PROD_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
+}
+
+/**
+ * @brief : getXconfParams when firm value is "QA".
+ *        Check if the firm value is "QA"
+ *        then getXconfParams shall be succeeded and returns xconfParam with env="qa".
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {\"xconfParams\":{\"env\":\"qa\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_QA_2203_sprint_20220331225312sdy_NG\"},\"success\":true}
+ */
+TEST_F(SystemServicesTest, getXconfParamsSuccess_onFirmvalueQA)
+{
+    ofstream file("/version.txt");
+    file << "imagename:PX051AEI_QA_2203_sprint_20220331225312sdy_NG";
+    file.close();
+    //estb_mac information
+    file.open("/tmp/.estb_mac");
+    file << "D4:52:EE:32:A3:B0";
+    file.close();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getXconfParams"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"xconfParams\":{\"env\":\"qa\",\"eStbMac\":\"D4:52:EE:32:A3:B0\",\"model\":\"ERROR\",\"firmwareVersion\":\"PX051AEI_QA_2203_sprint_20220331225312sdy_NG\"},\"success\":true}"));
+}
+
+/*Test cases for getXconfParams ends here*/
+
+/*****************************************************************************************************
+ * Test function for :getMfgSerialNumber
+ * getMfgSerialNumber :
+ *                Gets the Manufacturing Serial Number.
+ *
+ *                @return Manufacturing Serial Number, whether the request succeeded.
+ * Use case coverage:
+ *                @Success :2
+ *                @Failure :1
+ ******************************************************************************************************/
+/**
+ * @brief : getMfgSerialNumber when Bus call for retrieving the serial number failed.
+ *        Check if BUS call to retrieve the manufacturing serial number is failed,
+ *        then getMfgSerialNumber shall be failed and returns an error message in the response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"success":false}")
+ */
+TEST_F(SystemServicesTest, getMfgSerialNumberFailed_whenBusCallFailed)
+{
+
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                //setting up a mock that always returns an error code.
+                return IARM_RESULT_IPCCORE_FAIL;
+            });
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getMfgSerialNumber"), _T("{}"), response));
+}
+
+/**
+ * @brief : getMfgSerialNumber when Bus call for retrieving the serial number succeeded.
+ *        Check if BUS call to retrieve the manufacturing serial number succeeded,
+ *        then getMfgSerialNumber shall be succeeded and
+ *        returns retrieved manufacture serial number in the response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"mfgSerialNumber": "F00020CE000003","success": true}
+ */
+TEST_F(SystemServicesTest, getMfgSerialNumberSuccess_whenBusCallSuccess)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "F00020CE000003";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, param->bufLen);
+                param->type =  mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMfgSerialNumber"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"mfgSerialNumber\":\"F00020CE000003\",\"success\":true}"));
+}
+
+/**
+ * @brief : getMfgSerialNumber when cached value available.
+ *        Check if cached data of  mfg serial number is available
+ *        then , getMfgSerialNumber shall successfully retrieves the cached information and returns it.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  "result": {"mfgSerialNumber": "F00020CE000003","success": true}
+ */
+TEST_F(SystemServicesTest, getMfgSerialNumberSuccess_getCachedMfgSerialNumber)
+{
+    //Below IARM_Bus_Call function is called for saving the retrieved data
+    //in member variables [cached value]
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "F00020CE000003";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, param->bufLen);
+                param->type =  mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMfgSerialNumber"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"mfgSerialNumber\":\"F00020CE000003\",\"success\":true}"));
+    //To confirm that the retrieved data is cached Data;
+    //sets an expectation that the IARM_Bus_Call function should not be called during this sequence
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+       .Times(0);
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMfgSerialNumber"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"mfgSerialNumber\":\"F00020CE000003\",\"success\":true}"));
+}
+/*Test cases for getMfgSerialNumber ends here*/
+
+/*************************************************************************************************************
+ * Test function for :getSerialNumber
+ * getSerialNumber :
+ *                Returns the device serial number.
+ *
+ *                @return Whether the request succeeded.
+ * Use case coverage:
+ *                @Success :2
+ *                @Failure :4
+ ************************************************************************************************************/
+
+#ifdef USE_TR_69
+/**
+ * @brief : getSerialNumber when GetRFCParameter return failure
+ *        Check if GetRFCParameter returns other than Success,
+ *        then getSerialNumber shall be failed and return error message in the response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
+ */
+TEST_F(SystemServicesTest, getSerialNumberTR069Failed_OnGetRFCParameterFailed)
+{
+    ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                return WDMP_FAILURE;
+            }));
+     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
+}
+
+/**
+ * @brief : getSerialNumber when  GetRFCParameter return Success
+ *        Check if GetRFCParameter returns Success,
+ *        then  getSerialNumber shall be Succeeded and
+ *        returns the retrieved serial number in the response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"serialNumber":"32E10400103240447","success":true}
+ */
+TEST_F(SystemServicesTest, getSerialNumberTR069Success_OnGetRFCParameterSuccess)
+{
+    ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                 // Define the expected serial number
+                 const char* expectedSerialNumber = "32E10400103240447";
+                 strncpy(pstParamData->value, expectedSerialNumber, sizeof(pstParamData->value));
+                 return WDMP_SUCCESS;
+            }));
+     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
+     EXPECT_THAT(response, string("{\"serialNumber\":\"32E10400103240447\",\"success\":true}"));
+}
+
+#else
+/**
+ * @brief : getSerialNumber when getStateDetails.sh does not exist
+ *        Check if /lib/rdk/getStateDetails.sh file doesn't exist,
+ *        then getSerialNumber shall be failed and return the error message in response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":4,"errorMessage":"Unexpected Error","success":false}
+ */
+TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenScriptFileNotExist)
+{
+    const string deviceStateInfoScript = _T("/lib/rdk/getStateDetails.sh");
+    Core::File file(deviceStateInfoScript);
+    file.Create();
+    // Remove the file to simulate it is  not-existing
+    file.Destroy();
+    EXPECT_FALSE(Core::File(string(_T("/lib/rdk/getStateDetails.sh"))).Exists());
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
+}
+
+/**
+ * @brief : getSerialNumber when TMP_SERIAL_NUMBER_FILE does not exist.
+ *        Check if TMP_SERIAL_NUMBER_FILE doesn't exist,then getSerialNumber shall be failed and
+ *        return the error message in response
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":4,"errorMessage":"Expected file not found","success":false}
+ */
+TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenTmpSerialNumberFileNotExist)
+{
+    const string deviceStateInfoScript = _T("/lib/rdk/getStateDetails.sh");
+    Core::File file(deviceStateInfoScript);
+    file.Create();
+    
+    ofstream file2("/tmp/.STB_SER_NO");
+    file2 << "32E10400103240447";
+    file2.close();
+    // Remove the file to simulate it is  not-existing
+    std::remove("/tmp/.STB_SER_NO");
+
+    EXPECT_TRUE(Core::File(string(_T("/lib/rdk/getStateDetails.sh"))).Exists());
+    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/getStateDetails.sh STB_SER_NO")));
+                return 0;
+            }));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
+}
+
+/**
+ * @brief : getSerialNumber when TMP_SERIAL_NUMBER_FILE failed to read.
+ *        Check if contents of TMP_SERIAL_NUMBER_FILE can not be open,
+ *        then getSerialNumber shall be failed
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":6,"errorMessage":"Unsupported file content","success":false}
+ */
+TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenFailedToReadFromTmpFile)
+{
+     /*TODO : Implementation To be done :
+     * Mocking fopen with file can not open and read has not been working straight forward
+     * as it impacts other APIs/plugins using fopen, so working on that */
+
+    //EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
+}
+
+/**
+ * @brief : getSerialNumber when serial number successfully read from  /tmp/.STB_SER_NO .
+ *        Check if file /lib/rdk/getStateDetails.sh and TMP_SERIAL_NUMBER_FILE file[/tmp/.STB_SER_NO] exist,
+ *        then getSerialNumber shall be succeeded and returns serial number in response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"serialNumber":"32E10400103240447","success":true}
+ */
+TEST_F(SystemServicesTest, getSerialNumberSnmpSuccess_whenSerialNumberIsInTmpFile)
+{
+    const string deviceStateInfoScript = _T("/lib/rdk/getStateDetails.sh");
+    Core::File file(deviceStateInfoScript);
+    file.Create();
+    ofstream file2("/tmp/.STB_SER_NO");
+    file2 << "32E10400103240447";
+    file2.close();
+
+    EXPECT_TRUE(Core::File(string(_T("/lib/rdk/getStateDetails.sh"))).Exists());
+    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/getStateDetails.sh STB_SER_NO")));
+                return 0;
+            }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
+    EXPECT_THAT(response, string("{\"serialNumber\":\"32E10400103240447\",\"success\":true}"));
+}
+#endif
+/*Test cases for getSerialNumber ends here*/
+
+/*************************************************************************************************************
+ * Test function for :onSystemModeChanged
+ * onSystemModeChanged :
+ *                Triggered when the device operating mode changes.
+ *
+ *                @return Whether the mode change is succeeded.
+ * Use case coverage:
+ *                @Success :1
+ *                @Failure :0
+ ************************************************************************************************************/
+
+/**
+ * @brief : Check when the system mode is changed from IARM,
+ *        the onSystemModeChanged event is triggered with the expected JSON string containing the new mode.
+ *
+ * @param[in]   :  This method takes mode as parameter.
+ */
+TEST_F(SystemServicesEventIarmTest, onSystemModeChanged)
+{
+    Core::Event onSystemModeChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onSystemModeChanged\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"mode\":\"NORMAL\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                onSystemModeChanged.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onSystemModeChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_CommonAPI_SysModeChange_Param_t param;
+    param.newMode = IARM_BUS_SYS_MODE_NORMAL;
+    SysModeChange(&param);
+
+    EXPECT_EQ(Core::ERROR_NONE, onSystemModeChanged.Lock());
+
+    handler.Unsubscribe(0, _T("onSystemModeChanged"), _T("org.rdk.System"), message);
+}
+/*Test cases for onSystemModeChanged ends here*/
+
+/********************************************************************************************************
+ * Test function for :getPlatformConfiguration
+ * getPlatformConfiguration :
+ *                Returns the supported features and device/account info.
+ *
+ *                @return Whether the request succeeded.
+ * Use case coverage:
+ *                @Success :8
+ *                @Failure :1
+*********************************************************************************************************/
+
+/**
+ * @brief : getPlatformConfiguration when called with Invalid Query Parameter
+ *         Check if getPlatformConfiguration api called with Invalid query then getPlatformConfiguration
+ *          shall be failed and the PlatformCaps object shall NOT be populated with information
+ *
+ * @param[in]   :  This method takes query parameters other than "accountInfo"/"deviceInfo" which considered as Invalid
+ * @return      :  Returns the response string as success:false.
+ */
+TEST_F(SystemServicesTest, getPlatformConfigurationFailed_withBadQuery)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"InvalidQueryParam\"}"), response));
+   EXPECT_EQ(response, string("{\"success\":false}"));
+}
+/**
+ * @brief : getPlatformConfiguration when called with empty Query Parameter
+ *         Check if getPlatformConfiguration api called with empty query then getPlatformConfiguration
+ *          shall be succeeded  and the PlatformCaps object shall be populated with information
+ *          about both the account and device.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  Returns a PlatformCaps object containing the retrieved configuration information.
+ */
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_withEmptyQuery)
+{
+    NiceMock<ServiceMock> service;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    PluginHost::IFactories::Assign(&factoriesImplementation);
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    DispatcherMock* dispatcher = new DispatcherMock();
+    EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const uint32_t, const string& name) -> void* {
+                return (reinterpret_cast<void*>(dispatcher));
+            }));
+
+    bool firmwareUpdateDisabled = false;
+    if (Core::File(string("/opt/swupdate.conf")).Exists()) {
+        firmwareUpdateDisabled = true;
+    }
+
+    Core::ProxyType<Core::JSONRPC::Message> mockResponse = Core::ProxyType<Core::JSONRPC::Message>::Create();
+    Core::JSONRPC::Message resp;
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const std::string&,
+                uint32_t,
+                const Core::JSONRPC::Message& message) ->Core::ProxyType<Core::JSONRPC::Message> {
+                    if (message.Designator == "org.rdk.AuthService.1.getAlternateIds") {
+                    resp.Result = Core::JSON::String("{\"alternateIds\":{\"_xbo_account_id\":\"1234567890\"}}");
+                      }
+                    if (message.Designator == "org.rdk.AuthService.1.getXDeviceId") {
+                    resp.Result = Core::JSON::String("{\"xDeviceId\":\"1000000000000000000\"}");
+                      }
+                    if (message.Designator == "org.rdk.AuthService.1.getExperience") {
+                    resp.Result = Core::JSON::String("{\"experience\":\"test_experience_string\"}");
+                      }
+                    if (message.Designator == "org.rdk.Network.1.getPublicIP") {
+                    resp.Result = Core::JSON::String("{\"public_ip\":\"test_publicIp_string\"}");
+                      }
+                    mockResponse->Result = resp.Result;
+                    return mockResponse;
+                }));
+    EXPECT_CALL(*dispatcher, Release())
+    .Times(::testing::AnyNumber());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\"}"), response));
+    EXPECT_EQ(response, string( "{\"AccountInfo\":{\"accountId\":\"1234567890\",\"x1DeviceId\":\"1000000000000000000\",\"XCALSessionTokenAvailable\":true,\"experience\":\"test_experience_string\",\"deviceMACAddress\":\"null\",\"firmwareUpdateDisabled\":" + std::string(firmwareUpdateDisabled ? "true" : "false") + "},\"DeviceInfo\":{\"quirks\":[\"XRE-4621\",\"XRE-4826\",\"XRE-4896\",\"XRE-5553\",\"XRE-5743\",\"XRE-6350\",\"XRE-6827\",\"XRE-7267\",\"XRE-7366\",\"XRE-7415\",\"XRE-7389\",\"DELIA-6142\",\"RDK-2222\",\"XRE-7924\",\"DELIA-8978\",\"XRE-7711\",\"RDK-2849\",\"DELIA-9338\",\"ZYN-172\",\"XRE-8970\",\"XRE-9001\",\"DELIA-17939\",\"DELIA-17204\",\"CPC-1594\",\"DELIA-21775\",\"XRE-11602\",\"CPC-1767\",\"CPC-1824\",\"XRE-10057\",\"RDK-21197\",\"CPC-2004\",\"DELIA-27583\",\"XRE-12919\",\"DELIA-28101\",\"XRE-13590\",\"XRE-13692\",\"XRE-13722\",\"DELIA-30269\",\"RDK-22801\",\"CPC-2404\",\"XRE-14664\",\"XRE-14921\",\"XRE-14963\",\"RDK-26425\",\"RDK-28990\",\"RDK-32261\"],\"mimeTypeExclusions\":{\"CDVR\":[\"application\\/dash+xml\"],\"DVR\":[\"application\\/dash+xml\"],\"EAS\":[\"application\\/dash+xml\"],\"IPDVR\":[\"application\\/dash+xml\"],\"IVOD\":[\"application\\/dash+xml\"],\"LINEAR_TV\":[\"application\\/dash+xml\"],\"VOD\":[\"application\\/dash+xml\"]},\"features\":{\"allowSelfSignedWithIPAddress\":1,\"connection.supportsSecure\":1,\"htmlview.callJavaScriptWithResult\":1,\"htmlview.cookies\":1,\"htmlview.disableCSSAnimations\":1,\"htmlview.evaluateJavaScript\":1,\"htmlview.headers\":1,\"htmlview.httpCookies\":1,\"htmlview.postMessage\":1,\"htmlview.urlpatterns\":1,\"keySource\":1,\"uhd_4k_decode\":0},\"model\":\"null\",\"deviceType\":\"\",\"supportsTrueSD\":true,\"webBrowser\":{\"browserType\":\"WPE\",\"version\":\"1.0.0.0\",\"userAgent\":\"Mozilla\\/5.0 (Linux; x86_64 GNU\\/Linux) AppleWebKit\\/601.1 (KHTML, like Gecko) Version\\/8.0 Safari\\/601.1 WPE\"},\"HdrCapability\":\"\",\"canMixPCMWithSurround\":false,\"publicIP\":\"test_publicIp_string\"},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+    PluginHost::IFactories::Assign(nullptr);
+}
+
+/**
+ * @brief : getPlatformConfiguration when called with  Query Parameter as AccountInfo
+ *         Check if getPlatformConfiguration api called with query :AccountInfo then getPlatformConfiguration
+ *          shall be succeeded  and the PlatformCaps object shall be populated with Account information
+ *
+ * @param[in]   :  query:"AccountInfo"
+ * @return      :  Returns a PlatformCaps object containing the retrieved configuration information.
+ */
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_withQueryAccountInfo)
+{
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    PluginHost::IFactories::Assign(&factoriesImplementation);
+
+    DispatcherMock* dispatcher = new DispatcherMock();
+    EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const uint32_t, const string& name) -> void* {
+                return (reinterpret_cast<void*>(dispatcher));
+            }));
+
+    bool firmwareUpdateDisabled = false;
+    if (Core::File(string("/opt/swupdate.conf")).Exists()) {
+        firmwareUpdateDisabled = true;
+    }
+    Core::ProxyType<Core::JSONRPC::Message> mockResponse = Core::ProxyType<Core::JSONRPC::Message>::Create();
+    Core::JSONRPC::Message resp;
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const std::string&,
+                uint32_t,
+                const Core::JSONRPC::Message& message) ->Core::ProxyType<Core::JSONRPC::Message> {
+                    if (message.Designator == "org.rdk.AuthService.1.getAlternateIds") {
+                    resp.Result = Core::JSON::String("{\"alternateIds\":{\"_xbo_account_id\":\"1234567890\"}}");
+                      }
+                    if (message.Designator == "org.rdk.AuthService.1.getXDeviceId") {
+                    resp.Result = Core::JSON::String("{\"xDeviceId\":\"1000000000000000000\"}");
+                      }
+                    if (message.Designator == "org.rdk.AuthService.1.getExperience") {
+                    resp.Result = Core::JSON::String("{\"experience\":\"test_experience_string\"}");
+                      }
+                    if (message.Designator == "org.rdk.AuthService.1.getSessionToken") {
+                    resp.Result = Core::JSON::String("{\"token\":\"12345\"}");
+                      }
+                    if (message.Designator == "org.rdk.System.1.getDeviceInfo") {
+                    resp.Result = Core::JSON::String("{\"estb_mac\":\"test_estb_mac_string\"}");
+                      }
+                    mockResponse->Result = resp.Result;
+                    return mockResponse;
+                }));
+    EXPECT_CALL(*dispatcher, Release())
+     .Times(::testing::AnyNumber());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"AccountInfo\"}"), response));
+    EXPECT_EQ(response, string("{\"AccountInfo\":{\"accountId\":\"1234567890\",\"x1DeviceId\":\"1000000000000000000\",\"XCALSessionTokenAvailable\":true,\"experience\":\"test_experience_string\",\"deviceMACAddress\":\"test_estb_mac_string\",\"firmwareUpdateDisabled\":" + std::string(firmwareUpdateDisabled ? "true" : "false") + "},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+    PluginHost::IFactories::Assign(nullptr);
+}
+
+/**
+ * @brief : getPlatformConfiguration when called with  Query Parameter as DeviceInfo
+ *         Check if getPlatformConfiguration api called with query :DeviceInfo then getPlatformConfiguration
+ *          shall be succeeded  and the PlatformCaps object shall be populated with Device information
+ *
+ * @param[in]   :  query:"DeviceInfo"
+ * @return      :  Returns a PlatformCaps object containing the retrieved configuration information.
+ */
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_withQueryDeviceInfo)
+{
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    PluginHost::IFactories::Assign(&factoriesImplementation);
+
+    DispatcherMock* dispatcher = new DispatcherMock();
+    EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const uint32_t, const string& name) -> void* {
+                return (reinterpret_cast<void*>(dispatcher));
+            }));
+
+
+    Core::ProxyType<Core::JSONRPC::Message> mockResponse = Core::ProxyType<Core::JSONRPC::Message>::Create();
+    Core::JSONRPC::Message resp;
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const std::string&,
+                uint32_t,
+                const Core::JSONRPC::Message& message) ->Core::ProxyType<Core::JSONRPC::Message> {
+                    if (message.Designator == "org.rdk.System.1.getDeviceInfo") {
+                    resp.Result = Core::JSON::String("{\"model_number\":\"PX051AEI\"}");
+                      }
+                    if (message.Designator == "org.rdk.AuthService.1.getDeviceInfo") {
+                    //Hex value for Json Resp -> "deviceInfo": "deviceType=IpStb",
+                    resp.Result = Core::JSON::String("{\"deviceInfo\":\"646576696365547970653d49705374622c20646576696365547970653d4969505374622c20766f69636549643d312c206d616e7566616374757265723d496e74656c\"}");
+                      }
+                    if (message.Designator == "org.rdk.Network.1.getPublicIP") {
+                    resp.Result = Core::JSON::String("{\"public_ip\":\"test_publicIp_string\"}");
+                      }
+                    mockResponse->Result = resp.Result;
+                    return mockResponse;
+                }));
+    EXPECT_CALL(*dispatcher, Release())
+     .Times(::testing::AnyNumber());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"DeviceInfo\"}"), response));
+    EXPECT_EQ(response, string("{\"DeviceInfo\":{\"quirks\":[\"XRE-4621\",\"XRE-4826\",\"XRE-4896\",\"XRE-5553\",\"XRE-5743\",\"XRE-6350\",\"XRE-6827\",\"XRE-7267\",\"XRE-7366\",\"XRE-7415\",\"XRE-7389\",\"DELIA-6142\",\"RDK-2222\",\"XRE-7924\",\"DELIA-8978\",\"XRE-7711\",\"RDK-2849\",\"DELIA-9338\",\"ZYN-172\",\"XRE-8970\",\"XRE-9001\",\"DELIA-17939\",\"DELIA-17204\",\"CPC-1594\",\"DELIA-21775\",\"XRE-11602\",\"CPC-1767\",\"CPC-1824\",\"XRE-10057\",\"RDK-21197\",\"CPC-2004\",\"DELIA-27583\",\"XRE-12919\",\"DELIA-28101\",\"XRE-13590\",\"XRE-13692\",\"XRE-13722\",\"DELIA-30269\",\"RDK-22801\",\"CPC-2404\",\"XRE-14664\",\"XRE-14921\",\"XRE-14963\",\"RDK-26425\",\"RDK-28990\",\"RDK-32261\"],\"mimeTypeExclusions\":{\"CDVR\":[\"application\\/dash+xml\"],\"DVR\":[\"application\\/dash+xml\"],\"EAS\":[\"application\\/dash+xml\"],\"IPDVR\":[\"application\\/dash+xml\"],\"IVOD\":[\"application\\/dash+xml\"],\"LINEAR_TV\":[\"application\\/dash+xml\"],\"VOD\":[\"application\\/dash+xml\"]},\"features\":{\"allowSelfSignedWithIPAddress\":1,\"connection.supportsSecure\":1,\"htmlview.callJavaScriptWithResult\":1,\"htmlview.cookies\":1,\"htmlview.disableCSSAnimations\":1,\"htmlview.evaluateJavaScript\":1,\"htmlview.headers\":1,\"htmlview.httpCookies\":1,\"htmlview.postMessage\":1,\"htmlview.urlpatterns\":1,\"keySource\":1,\"uhd_4k_decode\":0},\"model\":\"PX051AEI\",\"deviceType\":\"IpStb\",\"supportsTrueSD\":true,\"webBrowser\":{\"browserType\":\"WPE\",\"version\":\"1.0.0.0\",\"userAgent\":\"Mozilla\\/5.0 (Linux; x86_64 GNU\\/Linux) AppleWebKit\\/601.1 (KHTML, like Gecko) Version\\/8.0 Safari\\/601.1 WPE\"},\"HdrCapability\":\"\",\"canMixPCMWithSurround\":false,\"publicIP\":\"test_publicIp_string\"},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+    PluginHost::IFactories::Assign(nullptr);
+}
+
+/**
+ * @brief : getPlatformConfiguration when called with a specific DeviceInfo /AccountInfo Query Parameter
+ *         Check if getPlatformConfiguration api called with passing any specified configuration parameter
+ *         of DeviceInfo /AccountInfo; then getPlatformConfiguration shall be succeeded
+ *         and the PlatformCaps object shall be populated with the value for that
+ *         specfic configuration parameter
+ *
+ * @param[in]   :  This method takes  any specific configuration parameter of AccountInfo/DeviceInfo
+ * @return      :  Returns a PlatformCaps object containing the requested configuration information.
+ */
+
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_withQueryParameterValue)
+{
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    PluginHost::IFactories::Assign(&factoriesImplementation);
+
+    DispatcherMock* dispatcher = new DispatcherMock();
+    EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const uint32_t, const string& name) -> void* {
+                return (reinterpret_cast<void*>(dispatcher));
+            }));
+
+
+    Core::ProxyType<Core::JSONRPC::Message> mockResponse = Core::ProxyType<Core::JSONRPC::Message>::Create();
+    Core::JSONRPC::Message resp;
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const std::string&,
+                uint32_t,
+                const Core::JSONRPC::Message& message) ->Core::ProxyType<Core::JSONRPC::Message> {
+                    if (message.Designator == "org.rdk.AuthService.1.getXDeviceId") {
+                    resp.Result = Core::JSON::String("{\"xDeviceId\":\"1000000000000000000\"}");
+                      }
+                    mockResponse->Result = resp.Result;
+                    return mockResponse;
+                }));
+    EXPECT_CALL(*dispatcher, Release())
+     .Times(::testing::AnyNumber());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"AccountInfo.x1DeviceId\"}"), response));
+    EXPECT_EQ(response, string("{\"AccountInfo\":{\"x1DeviceId\":\"1000000000000000000\"},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+    PluginHost::IFactories::Assign(nullptr);
+
+}
+
+
+ /* @brief : getPlatformConfiguration when the dispatcher object is null.
+ *         Check if getPlatformConfiguration api called and if dispatcher object is null;
+ *         then getPlatformConfiguration shall be succeeded .
+ *         But PlatformCaps object shall be populated with Null/empty
+ *
+ * @param[in]   :  This method takes parameter :AccountInfo/DeviceInfo/Empty param
+ * @return      :  Returns PlatformCaps object with empty/Null value.
+ */
+
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_whenDispatcherNull)
+{
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    DispatcherMock* dispatcher = new DispatcherMock();
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+      .Times(0);
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"AccountInfo.x1DeviceId\"}"), response));
+    EXPECT_EQ(response, string("{\"AccountInfo\":{\"x1DeviceId\":\"null\"},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+}
+
+ /* @brief : getPlatformConfiguration when pass invalid callsign.
+ *         Check if getPlatformConfiguration api called with invalid callsign;
+ *         then getPlatformConfiguration shall be succeeded .
+ *         But PlatformCaps object shall be populated with Null/empty
+ *
+ * @param[in]   :  This method takes Invalid callsign
+ * @return      :  Returns PlatformCaps object with empty/Null value.
+ */
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_whenInvalidCallsign)
+{
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    DispatcherMock* dispatcher = new DispatcherMock();
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+      .Times(0);
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"auth\",\"query\":\"AccountInfo.x1DeviceId\"}"), response));
+    EXPECT_EQ(response, string("{\"AccountInfo\":{\"x1DeviceId\":\"null\"},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+
+}
+ /* @brief : getPlatformConfiguration when the response JSON RPC message is unable to parse.
+ *         Check if getPlatformConfiguration api called and if the JSON RPC response message is failed to parse *         then getPlatformConfiguration shall be succeeded .
+ *         But PlatformCaps object shall be populated with Null/empty
+ *
+ * @param[in]   :  This method takes parameter :AccountInfo/DeviceInfo/Empty param
+ * @return      :  Returns PlatformCaps object with empty/Null value.
+ */
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_whenParseError)
+{
+    NiceMock<ServiceMock> service;
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    PluginHost::IFactories::Assign(&factoriesImplementation);
+
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    DispatcherMock* dispatcher = new DispatcherMock();
+
+    EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const uint32_t, const string& name) -> void* {
+                return (reinterpret_cast<void*>(dispatcher));
+            }));
+
+
+    Core::ProxyType<Core::JSONRPC::Message> mockResponse = Core::ProxyType<Core::JSONRPC::Message>::Create();
+    Core::JSONRPC::Message resp;
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const std::string&,
+                uint32_t,
+                const Core::JSONRPC::Message& message) ->Core::ProxyType<Core::JSONRPC::Message> {
+                    if (message.Designator == "org.rdk.AuthService.1.getXDeviceId") {
+                    resp.Result = Core::JSON::String("1000000000000000000");
+                      }
+                    mockResponse->Result = resp.Result;
+                    return mockResponse;
+                }));
+    EXPECT_CALL(*dispatcher, Release())
+     .Times(::testing::AnyNumber());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"AccountInfo.x1DeviceId\"}"), response));
+    EXPECT_EQ(response, string("{\"AccountInfo\":{\"x1DeviceId\":\"null\"},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+    PluginHost::IFactories::Assign(nullptr);
+}
+
+ /* @brief : getPlatformConfiguration when the dispatcher Invoke method returns an error in Response object.
+ *         Check if getPlatformConfiguration api called and
+ *         if dispatcher Invoke method returns an error in Response object;
+ *         then getPlatformConfiguration shall be succeeded .
+ *         But PlatformCaps object shall be populated with Null/empty
+ *
+ * @param[in]   :  This method takes parameter :AccountInfo/DeviceInfo/Empty param
+ * @return      :  Returns PlatformCaps object with empty/Null value.
+ */
+TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_withDispatcherInvokeError)
+{
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+    NiceMock<FactoriesImplementation> factoriesImplementation;
+    PluginHost::IFactories::Assign(&factoriesImplementation);
+
+    DispatcherMock* dispatcher = new DispatcherMock();
+    EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const uint32_t, const string& name) -> void* {
+                return (reinterpret_cast<void*>(dispatcher));
+            }));
+
+
+    Core::ProxyType<Core::JSONRPC::Message> mockResponse = Core::ProxyType<Core::JSONRPC::Message>::Create();
+
+    EXPECT_CALL(*dispatcher, Invoke(::testing::_, ::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const std::string&,
+                uint32_t,
+                const Core::JSONRPC::Message& message) ->Core::ProxyType<Core::JSONRPC::Message> {
+                    mockResponse->Error.SetError(3);
+                    return mockResponse;
+                }));
+    EXPECT_CALL(*dispatcher, Release())
+     .Times(::testing::AnyNumber());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPlatformConfiguration"), _T("{\"callsign\":\"authService\",\"query\":\"AccountInfo.x1DeviceId\"}"), response));
+    EXPECT_EQ(response, string("{\"AccountInfo\":{\"x1DeviceId\":\"null\"},\"success\":true}"));
+
+    delete dispatcher;
+    plugin->Deinitialize(&service);
+    PluginHost::IFactories::Assign(nullptr);
+}
+/*Test cases for getPlatformConfiguration ends here*/

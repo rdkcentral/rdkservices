@@ -66,7 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 16
+#define API_VERSION_NUMBER_PATCH 18
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -215,7 +215,7 @@ namespace WPEFramework {
         string task_names_foreground[]={
             "/lib/rdk/StartDCM_maintaince.sh",
             "/lib/rdk/RFCbase.sh",
-            "/lib/rdk/swupdate_utility.sh",
+            "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
 
@@ -307,7 +307,7 @@ namespace WPEFramework {
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-                tasks.push_back("/lib/rdk/StartDCM_maintaince.sh");
+                tasks.push_back(task_names_foreground[0].c_str());
             }
             else if( SOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
@@ -322,18 +322,18 @@ namespace WPEFramework {
                     SET_STATUS(g_task_status,DIFD_COMPLETE);
 
                     /* Add tasks */
-                    tasks.push_back("/lib/rdk/RFCbase.sh");
-                    tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
+                    tasks.push_back(task_names_foreground[1].c_str());
+                    tasks.push_back(task_names_foreground[3].c_str());
                 }else{
-                    tasks.push_back("/lib/rdk/RFCbase.sh");
-                    tasks.push_back("/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log");
-                    tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
+                    tasks.push_back(task_names_foreground[1].c_str());
+                    tasks.push_back(task_names_foreground[2].c_str());
+                    tasks.push_back(task_names_foreground[3].c_str());
                 }
             }
 #else
-            tasks.push_back("/lib/rdk/RFCbase.sh");
-            tasks.push_back("/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log");
-            tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
+            tasks.push_back(task_names_foreground[1].c_str());
+            tasks.push_back(task_names_foreground[2].c_str());
+            tasks.push_back(task_names_foreground[3].c_str());
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
 
@@ -1344,6 +1344,11 @@ namespace WPEFramework {
                 m_thread.join();
                 LOGINFO("Thread joined successfully\n");
             }
+
+            if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete){
+                g_unsolicited_complete = true;
+	    }
+
             LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR\n");
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
             m_statusMutex.unlock();
