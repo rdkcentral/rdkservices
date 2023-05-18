@@ -357,6 +357,7 @@ namespace WPEFramework {
 
 			try
 			{
+			
 				result = SecProcessor_GetInstance_Directories(&sec_proc, "/opt/drm", "/opt/drm/servicemgr");
 				if(result != SEC_RESULT_SUCCESS)
 					throw "Failure to get SecAPI Processor Instance!";
@@ -369,11 +370,46 @@ namespace WPEFramework {
 
 				result = SecKey_GetInstance(sec_proc, mSecObjectId, &sec_key);
 				if(result != SEC_RESULT_SUCCESS)
-					throw "Failure to get SecAPI key handle!";
+				{
+					result = SecKey_Generate(sec_proc, mSecObjectId, SEC_KEYTYPE_AES_128,loc);
+					if(result != SEC_RESULT_SUCCESS)
+					{
+						throw "Failure to generate new key! on Sec Instance";
+					}
+					else
+					{
+						result = SecKey_GetInstance(sec_proc, mSecObjectId, &sec_key);
+					
+						if(result != SEC_RESULT_SUCCESS)
+							throw "Failure to get SecAPI key handle!";
+					}
+				}
 
 				result = SecCipher_GetInstance(sec_proc, algorithm, mode, sec_key, iv, &sec_cipher);
 				if(result != SEC_RESULT_SUCCESS)
-					throw "Failure to get SecAPI cipher handler!";
+				{
+
+					char buf[64];
+					snprintf(buf, sizeof(buf), "%016llX.*", mSecObjectId);
+					std::string cmd = "rm /opt/drm/servicemgr/";
+					cmd += buf;
+					LOGWARN("Removing %s.", buf);
+					int res = system(cmd.c_str());
+					LOGWARN("Command exit code = %d.", res);
+
+					result = SecKey_Generate(sec_proc, mSecObjectId, SEC_KEYTYPE_AES_128,loc);
+					if(result != SEC_RESULT_SUCCESS)
+					{
+						throw "Failure to generate new key! on SecCipher Instance";
+					}
+					else
+					{
+						result = SecCipher_GetInstance(sec_proc, algorithm, mode, sec_key, iv, &sec_cipher);
+					
+						if(result != SEC_RESULT_SUCCESS)
+							throw "Failure to get SecAPI cipher handler!";
+					}
+				}
 
 				result = SecCipher_Process(sec_cipher, clearData, clearDataLength, 1, protectedData, protectedDataLength, (SEC_SIZE*)&bytesWritten);
 				if(result != SEC_RESULT_SUCCESS)
