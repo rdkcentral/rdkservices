@@ -71,9 +71,17 @@ using namespace std;
 
 
 #define PROC_DIR "/proc"
+#define MAINTENANCE_MANAGER_RFC_CALLER_ID "MaintenanceManager"
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define TR181_STOP_MAINTENANCE  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StopMaintenance.Enable"
 #define TR181_RDKVFWUPGRADER  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKFirmwareUpgrader.Enable"
+#define TR181_PARTNER_ID "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName"
+#define TR181_TARGET_PROPOSITION "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.TargetProposition"
+#define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
+
+#define SECMANAGER_CALLSIGN "org.rdk.SecManager"
+#define SECMANAGER_CALLSIGN_VER "org.rdk.SecManager.1"
+#define SECMANAGER_ACTIVATION_RETRY 5
 
 string notifyStatusToString(Maint_notify_status_t &status)
 {
@@ -228,6 +236,12 @@ namespace WPEFramework {
             "uploadSTBLogs.sh"
         };
 
+        string deviceInitializationContext[]={
+            "partnerId",
+            "targetProposition",
+            "reginalConfigService"
+        };
+
         /**
          * Register MaintenanceManager module as wpeframework plugin
          */
@@ -235,6 +249,8 @@ namespace WPEFramework {
             :PluginHost::JSONRPC()
         {
             MaintenanceManager::_instance = this;
+
+            thunder_client = nullptr;
 
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
@@ -255,7 +271,13 @@ namespace WPEFramework {
             MaintenanceManager::m_task_map[task_names_foreground[2].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[3].c_str()]=false;
 
+            MaintenanceManager::m_param_map[deviceInitializationContext[0].c_str()]=TR181_PARTNER_ID;
+            MaintenanceManager::m_param_map[deviceInitializationContext[1].c_str()]=TR181_TARGET_PROPOSITION;
+            MaintenanceManager::m_param_map[deviceInitializationContext[2].c_str()]=TR181_XCONFURL;
 
+            MaintenanceManager::m_paramType_map[deviceInitializationContext[0].c_str()]=DATA_TYPE::WDMP_STRING;
+	    MaintenanceManager::m_paramType_map[deviceInitializationContext[1].c_str()]=DATA_TYPE::WDMP_STRING;
+            MaintenanceManager::m_paramType_map[deviceInitializationContext[2].c_str()]=DATA_TYPE::WDMP_STRING;
          }
 
         void MaintenanceManager::task_execution_thread(){
@@ -273,8 +295,17 @@ namespace WPEFramework {
                 tasks.erase (tasks.begin(),tasks.end());
             }
 
-            /* Controlled by CFLAGS */
-#if defined(SUPPRESS_MAINTENANCE)
+#if defined(ENABLE_WHOAMI)
+            if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
+                bool whoAmIStatus = false;
+
+                /* Network check */
+                internetConnectStatus = isDeviceOnline();
+
+                /* WhoAmI check*/
+                whoAmIStatus = knowWhoAmI();
+            }
+#elif defined(SUPPRESS_MAINTENANCE)
             bool activationStatus=false;
             bool skipFirmwareCheck=false;
 
@@ -312,7 +343,10 @@ namespace WPEFramework {
             else if( SOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
             }
-
+#if defined(ENABLE_WHOAMI)
+    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
+        
+    }   
 #if defined(SUPPRESS_MAINTENANCE)
             /* decide which all tasks are needed based on the activation status */
             if (activationStatus){
@@ -354,6 +388,107 @@ namespace WPEFramework {
 
 	    m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
+        }
+
+        bool MaintenanceManager::knowWhoAmI()
+        {
+            bool success = false;
+            PluginHost::IShell::state state;
+
+            do {
+	        if ((getServiceState(m_service, SECMANAGER_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+                    LOGINFO("%s is active", SECMANAGER_CALLSIGN);
+
+		    getSecManagerPlugin();
+                    if (!thunder_client) {
+                        LOGERR("SecManager Initialization failed\n");
+                    } else {
+                        JsonObject params;
+                        JsonObject joGetResult;
+
+                        params["clientId"] = "gdi";
+                        params["distributedTraceType"] = "money";
+                        params["distributedTraceId"] = "trace-id=8e44ec3c-7aa1-404d-a1e5-1dde72114ca3;parent-id=123;span-id=456";
+
+                        thunder_client->Invoke<JsonObject, JsonObject>(5000, "getDeviceInitializationContext", params, joGetResult);
+			if (joGetResult.HasLabel("success")) {
+                            if (joGetResult.HasLabel("partnerProvisioningContext")) {
+                                JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
+                                
+                                for (int i=0; i < deviceInitializationContext.length(); i++) {
+                                    string key = deviceInitializationContext[i];
+                                    const char* param = key.c_str();
+
+                                    // Retrive partnerProvisioningContext Values
+                                    string value=getProvisioningContext[param].String();
+                                    LOGINFO("%s : %s", param, value.c_str());
+
+                                    // Retrieve tr181 parameter from m_param_map
+                                    string rfc_parameter = m_param_map[deviceInitializationContext[i]];
+                                    LOGINFO("TR181 Parameter for %s : %s", param, rfc_parameter.c_str());
+
+                                    //  Retrieve parameter data type from m_paramType_map
+                                    DATA_TYPE rfc_dataType = m_paramType_map[deviceInitializationContext[i]];
+
+                                    LOGINFO("Set RFC paramters values for partnerProvisioningContext");
+                                    setRFC(rfc_parameter.c_str(), value.c_str(), rfc_dataType);
+                                }
+                                success = true;
+                            }
+                        } else {
+                            // Get retryDelay value and sleep for that much seconds
+                            if (joGetResult.HasLabel("retryDelay")) {
+                                int retryDelay = joGetResult["retryDelay"].Number();
+                                LOGINFO("Failed to getDeviceInitializationContext response. Retrying in %d seconds", retryDelay);
+                                sleep(retryDelay);
+                            }
+                        }
+		    }
+                else {
+                    LOGINFO("%s is not active, Retrying in %d seconds", SECMANAGER_CALLSIGN, SECMANAGER_ACTIVATION_RETRY);
+                    sleep(SECMANAGER_ACTIVATION_RETRY);
+                }
+            while (!success);
+        }
+
+        // SecManager thunder plugin communication
+	void MaintenanceManager::getSecManagerPlugin()
+        {
+            string token;
+
+            auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+            if (security != nullptr) {
+                string payload = "http://localhost";
+                if (security->CreateToken(
+                        static_cast<uint16_t>(payload.length()),
+                        reinterpret_cast<const uint8_t*>(payload.c_str()),
+                        token)
+                    == Core::ERROR_NONE) {
+                    std::cout << "MaintenanceManager got security token" << std::endl;
+                } else {
+                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                }
+                security->Release();
+            } else {
+                std::cout << "No security agent" << std::endl;
+            }
+
+            string query = "token=" + token;
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
+            thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(_T(SECMANAGER_CALLSIGN_VER), "", false, query);
+            LOGINFO("Maintenance Manager initialized SecManagerPlugin");
+        }
+
+        void MaintenanceManager::setRFC(const char* rfc, const char* value, DATA_TYPE dataType)
+        {
+            WDMP_STATUS status;
+            status = setRFCParameter((char *)MAINTENANCE_MANAGER_RFC_CALLER_ID, rfc, value, dataType);
+
+            if ( WDMP_SUCCESS == status ){
+                LOGINFO("Successfuly set the tr181 parameter %s with value %s", rfc, value);
+            } else {
+                LOGINFO("Failed setting %s value", rfc);
+            }
         }
 
         const string MaintenanceManager::checkActivatedStatus()
