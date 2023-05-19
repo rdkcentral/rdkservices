@@ -338,16 +338,21 @@ namespace WPEFramework {
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-                tasks.push_back(task_names_foreground[0].c_str());
+                #ifndef ENABLE_WHOAMI
+                     tasks.push_back(task_names_foreground[0].c_str());
+                #endif
             }
             else if( SOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
             }
 #if defined(ENABLE_WHOAMI)
     if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
-        
+            tasks.push_back(task_names_foreground[1].c_str());
+            tasks.push_back(task_names_foreground[2].c_str());
+            tasks.push_back(task_names_foreground[0].c_str());
+            tasks.push_back(task_names_foreground[3].c_str());
     }   
-#if defined(SUPPRESS_MAINTENANCE)
+#elif defined(SUPPRESS_MAINTENANCE)
             /* decide which all tasks are needed based on the activation status */
             if (activationStatus){
                 if(skipFirmwareCheck){
