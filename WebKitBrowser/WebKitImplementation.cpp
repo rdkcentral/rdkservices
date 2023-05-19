@@ -2641,7 +2641,11 @@ static GSourceFuncs _handlerIntervention =
             {
                 virtual void Dispatch() { exit(1); }
             };
+#ifndef USE_THUNDER_R4
             Core::IWorkerPool::Instance().Submit(Core::proxy_cast<Core::IDispatch>(Core::ProxyType<ExitJob>::Create()));
+#else
+            Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<ExitJob>::Create()));
+#endif /* USE_THUNDER_R4*/
         }
         static void closeCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitImplementation* browser)
         {
