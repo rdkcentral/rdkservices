@@ -138,8 +138,8 @@ namespace WPEFramework {
                 std::thread m_thread;
 
                 std::map<string, bool> m_task_map;
-                std::map<string, string> m_rfc_map;
-                std::map<string, DATA_TYPE> m_rfcDatatype_map;
+                std::map<string, string> m_param_map;
+                std::map<string, DATA_TYPE> m_paramType_map;
 
                 WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client;
                 PluginHost::IShell* m_service;
