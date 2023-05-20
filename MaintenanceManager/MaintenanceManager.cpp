@@ -250,8 +250,6 @@ namespace WPEFramework {
         {
             MaintenanceManager::_instance = this;
 
-            thunder_client = nullptr;
-
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
              */
@@ -294,18 +292,9 @@ namespace WPEFramework {
             if(!tasks.empty()){
                 tasks.erase (tasks.begin(),tasks.end());
             }
-
-#if defined(ENABLE_WHOAMI)
-            if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
-                //bool whoAmIStatus = false;
-
-                /* Network check */
-                internetConnectStatus = isDeviceOnline();
-
-                /* WhoAmI check*/
-                knowWhoAmI();
-            }
-#elif defined(SUPPRESS_MAINTENANCE)
+		
+            /* Controlled by CFLAGS */
+#if defined(SUPPRESS_MAINTENANCE)
             bool activationStatus=false;
             bool skipFirmwareCheck=false;
 
@@ -321,6 +310,13 @@ namespace WPEFramework {
             }
 #else
             internetConnectStatus = isDeviceOnline();
+#endif
+		
+#if defined(ENABLE_WHOAMI)
+        if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
+                /* WhoAmI check*/
+                knowWhoAmI();
+        }
 #endif
 
             if ( false == internetConnectStatus ) {
@@ -402,14 +398,17 @@ namespace WPEFramework {
         void MaintenanceManager::knowWhoAmI()
         {
             bool success = false;
+            bool thunder_clientStatus;
+            string secMgr_callsign = "org.rdk.Network";
+            string secMgr_callsign_ver = "org.rdk.Network.1";
             PluginHost::IShell::state state;
 
             do {
-	        if ((getServiceState(m_service, SECMANAGER_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
-                    LOGINFO("%s is active", SECMANAGER_CALLSIGN);
+	        if ((getServiceState(m_service, secMgr_callsign.c_str(), state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+                    LOGINFO("%s is active", secMgr_callsign.c_str());
 
-		    getSecManagerPlugin();
-                    if (!thunder_client) {
+		    thunder_clientStatus = getSecManagerPlugin(secMgr_callsign_ver.c_str());
+                    if (!thunder_clientStatus) {
                         LOGERR("SecManager Initialization failed\n");
                     } else {
                         JsonObject params;
@@ -426,22 +425,23 @@ namespace WPEFramework {
                                     JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
                                 
                                     for (int i=0; i <  sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]); i++) {
-                                        string key = deviceInitializationContext[i];
-                                        const char* param = key.c_str();
+                                        //string key = deviceInitializationContext[i].c_str();
+                                        //const char* param = key.c_str();
+                                        const char* key = deviceInitializationContext[i].c_str();
 
                                         // Retrive partnerProvisioningContext Values
-                                        string value=getProvisioningContext[param].String();
-                                        LOGINFO("%s : %s", param, value.c_str());
+                                        string paramValue=getProvisioningContext[key].String();
+                                        LOGINFO("%s : %s", key, paramValue.c_str());
 
                                         // Retrieve tr181 parameter from m_param_map
                                         string rfc_parameter = m_param_map[deviceInitializationContext[i]];
-                                        LOGINFO("TR181 Parameter for %s : %s", param, rfc_parameter.c_str());
+                                        LOGINFO("TR181 Parameter for %s : %s", key, rfc_parameter.c_str());
 
                                         //  Retrieve parameter data type from m_paramType_map
                                         DATA_TYPE rfc_dataType = m_paramType_map[deviceInitializationContext[i]];
 
                                         LOGINFO("Set RFC paramters values for partnerProvisioningContext");
-                                        setRFC(rfc_parameter.c_str(), value.c_str(), rfc_dataType);
+                                        setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
                                     }
                                     success = true;
 				}
@@ -449,7 +449,7 @@ namespace WPEFramework {
                                 // Get retryDelay value and sleep for that much seconds
                                 if (joGetResult.HasLabel("retryDelay")) {
                                     int retryDelay = joGetResult["retryDelay"].Number();
-                                    LOGINFO("Failed to getDeviceInitializationContext response. Retrying in %d seconds", retryDelay);
+                                    LOGINFO("getDeviceInitializationContext failed. Retrying in %d seconds", retryDelay);
                                     sleep(retryDelay);
 				}
                             }
@@ -463,9 +463,10 @@ namespace WPEFramework {
         }
 
         // SecManager thunder plugin communication
-	void MaintenanceManager::getSecManagerPlugin()
+	bool MaintenanceManager::getThunderPluginHandle(const char* callsign)
         {
             string token;
+            bool result = false;
 
             auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
             if (security != nullptr) {
@@ -486,8 +487,11 @@ namespace WPEFramework {
 
             string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
-            thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(_T(SECMANAGER_CALLSIGN_VER), "", false, query);
-            LOGINFO("Maintenance Manager initialized SecManagerPlugin");
+            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign, "", false, query);
+            if (thunder_client != nullptr) {
+                result=true;
+            }
+            return result;
         }
 
         void MaintenanceManager::setRFC(const char* rfc, const char* value, DATA_TYPE dataType)
