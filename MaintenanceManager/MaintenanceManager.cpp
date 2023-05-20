@@ -235,7 +235,7 @@ namespace WPEFramework {
         string deviceInitializationContext[]={
             "partnerId",
             "targetProposition",
-            "reginalConfigService"
+            "regionalConfigService"
         };
 
         /**
@@ -426,8 +426,13 @@ namespace WPEFramework {
                                         //const char* param = key.c_str();
                                         const char* key = deviceInitializationContext[i].c_str();
 
-                                        // Retrive partnerProvisioningContext Values
-                                        string paramValue=getProvisioningContext[key].String();
+                                        // Retrive partnerProvisioningContext Value
+                                        if (key == "regionalConfigService") {
+                                            string Value=getProvisioningContext[key].String();
+                                            string paramValue = "https://" + Value;
+					} else {
+                                            string paramValue=getProvisioningContext[key].String();
+					}
                                         LOGINFO("%s : %s", key, paramValue.c_str());
 
                                         // Retrieve tr181 parameter from m_param_map
