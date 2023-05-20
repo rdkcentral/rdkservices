@@ -484,7 +484,7 @@ namespace WPEFramework {
 
             string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
-            thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign, "", false, query);
+            thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(callsign, "", false, query);
             if (thunder_client != nullptr) {
                 result=true;
             }
