@@ -297,13 +297,13 @@ namespace WPEFramework {
 
 #if defined(ENABLE_WHOAMI)
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
-                bool whoAmIStatus = false;
+                //bool whoAmIStatus = false;
 
                 /* Network check */
                 internetConnectStatus = isDeviceOnline();
 
                 /* WhoAmI check*/
-                whoAmIStatus = knowWhoAmI();
+                knowWhoAmI();
             }
 #elif defined(SUPPRESS_MAINTENANCE)
             bool activationStatus=false;
@@ -351,6 +351,10 @@ namespace WPEFramework {
             tasks.push_back(task_names_foreground[2].c_str());
             tasks.push_back(task_names_foreground[0].c_str());
             tasks.push_back(task_names_foreground[3].c_str());
+    else {
+            tasks.push_back(task_names_foreground[1].c_str());
+            tasks.push_back(task_names_foreground[2].c_str());
+            tasks.push_back(task_names_foreground[3].c_str());
     }   
 #elif defined(SUPPRESS_MAINTENANCE)
             /* decide which all tasks are needed based on the activation status */
@@ -395,7 +399,7 @@ namespace WPEFramework {
             LOGINFO("Worker Thread Completed");
         }
 
-        bool MaintenanceManager::knowWhoAmI()
+        void MaintenanceManager::knowWhoAmI()
         {
             bool success = false;
             PluginHost::IShell::state state;
@@ -417,39 +421,41 @@ namespace WPEFramework {
 
                         thunder_client->Invoke<JsonObject, JsonObject>(5000, "getDeviceInitializationContext", params, joGetResult);
 			if (joGetResult.HasLabel("success")) {
-                            if (joGetResult.HasLabel("partnerProvisioningContext")) {
-                                JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
+                            if (joGetResult["success"].Boolean()) {
+                                if (joGetResult.HasLabel("partnerProvisioningContext")) {
+                                    JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
                                 
-                                for (int i=0; i < deviceInitializationContext.length(); i++) {
-                                    string key = deviceInitializationContext[i];
-                                    const char* param = key.c_str();
+                                    for (int i=0; i <  sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]); i++) {
+                                        string key = deviceInitializationContext[i];
+                                        const char* param = key.c_str();
 
-                                    // Retrive partnerProvisioningContext Values
-                                    string value=getProvisioningContext[param].String();
-                                    LOGINFO("%s : %s", param, value.c_str());
+                                        // Retrive partnerProvisioningContext Values
+                                        string value=getProvisioningContext[param].String();
+                                        LOGINFO("%s : %s", param, value.c_str());
 
-                                    // Retrieve tr181 parameter from m_param_map
-                                    string rfc_parameter = m_param_map[deviceInitializationContext[i]];
-                                    LOGINFO("TR181 Parameter for %s : %s", param, rfc_parameter.c_str());
+                                        // Retrieve tr181 parameter from m_param_map
+                                        string rfc_parameter = m_param_map[deviceInitializationContext[i]];
+                                        LOGINFO("TR181 Parameter for %s : %s", param, rfc_parameter.c_str());
 
-                                    //  Retrieve parameter data type from m_paramType_map
-                                    DATA_TYPE rfc_dataType = m_paramType_map[deviceInitializationContext[i]];
+                                        //  Retrieve parameter data type from m_paramType_map
+                                        DATA_TYPE rfc_dataType = m_paramType_map[deviceInitializationContext[i]];
 
-                                    LOGINFO("Set RFC paramters values for partnerProvisioningContext");
-                                    setRFC(rfc_parameter.c_str(), value.c_str(), rfc_dataType);
-                                }
-                                success = true;
-                            }
-                        } else {
-                            // Get retryDelay value and sleep for that much seconds
-                            if (joGetResult.HasLabel("retryDelay")) {
-                                int retryDelay = joGetResult["retryDelay"].Number();
-                                LOGINFO("Failed to getDeviceInitializationContext response. Retrying in %d seconds", retryDelay);
-                                sleep(retryDelay);
+                                        LOGINFO("Set RFC paramters values for partnerProvisioningContext");
+                                        setRFC(rfc_parameter.c_str(), value.c_str(), rfc_dataType);
+                                    }
+                                    success = true;
+				}
+                            } else {
+                                // Get retryDelay value and sleep for that much seconds
+                                if (joGetResult.HasLabel("retryDelay")) {
+                                    int retryDelay = joGetResult["retryDelay"].Number();
+                                    LOGINFO("Failed to getDeviceInitializationContext response. Retrying in %d seconds", retryDelay);
+                                    sleep(retryDelay);
+				}
                             }
                         }
 		    }
-                else {
+		} else {
                     LOGINFO("%s is not active, Retrying in %d seconds", SECMANAGER_CALLSIGN, SECMANAGER_ACTIVATION_RETRY);
                     sleep(SECMANAGER_ACTIVATION_RETRY);
                 }
