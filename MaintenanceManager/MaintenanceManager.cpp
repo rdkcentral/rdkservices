@@ -79,10 +79,6 @@ using namespace std;
 #define TR181_TARGET_PROPOSITION "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.TargetProposition"
 #define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
 
-#define SECMANAGER_CALLSIGN "org.rdk.SecManager"
-#define SECMANAGER_CALLSIGN_VER "org.rdk.SecManager.1"
-#define SECMANAGER_ACTIVATION_RETRY 5
-
 string notifyStatusToString(Maint_notify_status_t &status)
 {
     string ret_status="";
@@ -249,6 +245,7 @@ namespace WPEFramework {
             :PluginHost::JSONRPC()
         {
             MaintenanceManager::_instance = this;
+            thunder_client = nullptr;
 
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
@@ -347,7 +344,7 @@ namespace WPEFramework {
             tasks.push_back(task_names_foreground[2].c_str());
             tasks.push_back(task_names_foreground[0].c_str());
             tasks.push_back(task_names_foreground[3].c_str());
-    else {
+    } else {
             tasks.push_back(task_names_foreground[1].c_str());
             tasks.push_back(task_names_foreground[2].c_str());
             tasks.push_back(task_names_foreground[3].c_str());
@@ -407,7 +404,7 @@ namespace WPEFramework {
 	        if ((getServiceState(m_service, secMgr_callsign.c_str(), state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                     LOGINFO("%s is active", secMgr_callsign.c_str());
 
-		    thunder_clientStatus = getSecManagerPlugin(secMgr_callsign_ver.c_str());
+		    thunder_clientStatus = getThunderPluginHandle(secMgr_callsign_ver.c_str());
                     if (!thunder_clientStatus) {
                         LOGERR("SecManager Initialization failed\n");
                     } else {
@@ -424,7 +421,7 @@ namespace WPEFramework {
                                 if (joGetResult.HasLabel("partnerProvisioningContext")) {
                                     JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
                                 
-                                    for (int i=0; i <  sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]); i++) {
+                                    for (unsigned int i=0; i <  sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]); i++) {
                                         //string key = deviceInitializationContext[i].c_str();
                                         //const char* param = key.c_str();
                                         const char* key = deviceInitializationContext[i].c_str();
@@ -456,8 +453,8 @@ namespace WPEFramework {
                         }
 		    }
 		} else {
-                    LOGINFO("%s is not active, Retrying in %d seconds", SECMANAGER_CALLSIGN, SECMANAGER_ACTIVATION_RETRY);
-                    sleep(SECMANAGER_ACTIVATION_RETRY);
+                    LOGINFO("%s is not active, Retrying in 5 seconds", secMgr_callsign.c_str());
+                    sleep(5);
                 }
             while (!success);
         }
@@ -487,7 +484,7 @@ namespace WPEFramework {
 
             string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
-            auto thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign, "", false, query);
+            thunder_client = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(callsign, "", false, query);
             if (thunder_client != nullptr) {
                 result=true;
             }
