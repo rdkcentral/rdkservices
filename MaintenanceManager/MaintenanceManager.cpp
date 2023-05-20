@@ -456,7 +456,7 @@ namespace WPEFramework {
                     LOGINFO("%s is not active, Retrying in 5 seconds", secMgr_callsign.c_str());
                     sleep(5);
                 }
-            while (!success);
+	    } while (!success);
         }
 
         // SecManager thunder plugin communication
