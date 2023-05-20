@@ -396,8 +396,8 @@ namespace WPEFramework {
         {
             bool success = false;
             bool thunder_clientStatus;
-            string secMgr_callsign = "org.rdk.Network";
-            string secMgr_callsign_ver = "org.rdk.Network.1";
+            string secMgr_callsign = "org.rdk.SecManager";
+            string secMgr_callsign_ver = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
 
             do {
