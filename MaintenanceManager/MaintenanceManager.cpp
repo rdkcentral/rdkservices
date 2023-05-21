@@ -427,11 +427,12 @@ namespace WPEFramework {
                                         const char* key = deviceInitializationContext[i].c_str();
 
                                         // Retrive partnerProvisioningContext Value
+                                        string paramValue;
                                         if (strcmp(key, "regionalConfigService") == 0) {
                                             string Value=getProvisioningContext[key].String();
-                                            string paramValue = "https://" + Value;
+                                            paramValue = "https://" + Value;
 					} else {
-                                            string paramValue=getProvisioningContext[key].String();
+                                            paramValue=getProvisioningContext[key].String();
 					}
                                         LOGINFO("%s : %s", key, paramValue.c_str());
 
