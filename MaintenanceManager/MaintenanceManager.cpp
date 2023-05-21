@@ -331,9 +331,9 @@ namespace WPEFramework {
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-                #ifndef ENABLE_WHOAMI
+#ifndef ENABLE_WHOAMI
                      tasks.push_back(task_names_foreground[0].c_str());
-                #endif
+#endif
             }
             else if( SOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
@@ -422,8 +422,6 @@ namespace WPEFramework {
                                     JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
                                 
                                     for (unsigned int i=0; i <  sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]); i++) {
-                                        //string key = deviceInitializationContext[i].c_str();
-                                        //const char* param = key.c_str();
                                         const char* key = deviceInitializationContext[i].c_str();
 
                                         // Retrive partnerProvisioningContext Value
@@ -434,16 +432,14 @@ namespace WPEFramework {
 					} else {
                                             paramValue=getProvisioningContext[key].String();
 					}
-                                        LOGINFO("%s : %s", key, paramValue.c_str());
 
                                         // Retrieve tr181 parameter from m_param_map
                                         string rfc_parameter = m_param_map[deviceInitializationContext[i]];
-                                        LOGINFO("TR181 Parameter for %s : %s", key, rfc_parameter.c_str());
 
                                         //  Retrieve parameter data type from m_paramType_map
                                         DATA_TYPE rfc_dataType = m_paramType_map[deviceInitializationContext[i]];
 
-                                        LOGINFO("Set RFC paramters values for partnerProvisioningContext");
+                                        // Set the RFC values for partnerProvisioningContext parameters
                                         setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
                                     }
                                     success = true;
@@ -465,7 +461,7 @@ namespace WPEFramework {
 	    } while (!success);
         }
 
-        // SecManager thunder plugin communication
+        // Thunder plugin communication
 	bool MaintenanceManager::getThunderPluginHandle(const char* callsign)
         {
             string token;
