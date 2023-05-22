@@ -245,7 +245,6 @@ namespace WPEFramework {
             :PluginHost::JSONRPC()
         {
             MaintenanceManager::_instance = this;
-            thunder_client = nullptr;
 
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
@@ -289,7 +288,7 @@ namespace WPEFramework {
             if(!tasks.empty()){
                 tasks.erase (tasks.begin(),tasks.end());
             }
-		
+
             /* Controlled by CFLAGS */
 #if defined(SUPPRESS_MAINTENANCE)
             bool activationStatus=false;
