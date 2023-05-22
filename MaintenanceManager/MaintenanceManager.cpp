@@ -424,8 +424,8 @@ namespace WPEFramework {
                                 if (joGetResult.HasLabel("partnerProvisioningContext")) {
                                     JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
 					
-                                    int size = (int)sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0];
-                                    for (int i=0; i < size); i++) {
+                                    int size = (int)sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]);
+                                    for (int i=0; i < size; i++) {
                                         const char* key = deviceInitializationContext[i].c_str();
 
                                         // Retrive partnerProvisioningContext Value
@@ -433,16 +433,19 @@ namespace WPEFramework {
                                         if (strcmp(key, "regionalConfigService") == 0) {
                                             paramValue = "https://" + paramValue;
 					}
-                                        LOGINFO("%s : %s", key, paramValue.c_str());
 					    
-                                        // Retrieve tr181 parameter from m_param_map
-                                        string rfc_parameter = m_param_map[key];
+                                        if(!paramValue.empty()) {
+                                            LOGINFO("%s : %s", key, paramValue.c_str());
+					    
+                                            // Retrieve tr181 parameter from m_param_map
+                                            string rfc_parameter = m_param_map[key];
 
-                                        //  Retrieve parameter data type from m_paramType_map
-                                        DATA_TYPE rfc_dataType = m_paramType_map[key];
+                                            //  Retrieve parameter data type from m_paramType_map
+                                            DATA_TYPE rfc_dataType = m_paramType_map[key];
 
-                                        // Set the RFC values for partnerProvisioningContext parameters
-                                        setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
+                                            // Set the RFC values for partnerProvisioningContext parameters
+                                            setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
+                                        }
                                     }
                                     success = true;
 				}
@@ -453,7 +456,6 @@ namespace WPEFramework {
                                 }
                                 LOGINFO("getDeviceInitializationContext failed. Retrying in %d seconds", retryDelay);
                                 sleep(retryDelay);
-				}
                             }
                         } else {
                             LOGINFO("Unable to get success response from getDeviceInitializationContext");
