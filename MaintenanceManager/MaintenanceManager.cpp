@@ -397,27 +397,24 @@ namespace WPEFramework {
         bool MaintenanceManager::knowWhoAmI()
         {
             bool success = false;
-            int retryDelay = 60;
+            int retryDelay = 10;
+            int retryCount = 0;
             const char* secMgr_callsign = "org.rdk.SecManager";
             const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 
             do {
+
                 if ((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                     LOGINFO("%s is active", secMgr_callsign);
 
                     thunder_client=getThunderPluginHandle(secMgr_callsign_ver);
                     if (thunder_client == nullptr) {
                         LOGINFO("Failed to get plugin handle");
-                        sleep(5);
                     } else {
                         JsonObject params;
                         JsonObject joGetResult;
-
-                        params["clientId"] = "gdi";
-                        params["distributedTraceType"] = "money";
-                        params["distributedTraceId"] = "trace-id=8e44ec3c-7aa1-404d-a1e5-1dde72114ca3;parent-id=123;span-id=456";
 
                         thunder_client->Invoke<JsonObject, JsonObject>(5000, "getDeviceInitializationContext", params, joGetResult);
                         if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
@@ -430,7 +427,7 @@ namespace WPEFramework {
                                     // Retrive partnerProvisioningContext Value
                                     string paramValue = getProvisioningContext[key].String();
 
-                                    if(!paramValue.empty()) {
+                                    if (!paramValue.empty()) {
                                         if (strcmp(key, "regionalConfigService") == 0) {
                                             paramValue = "https://" + paramValue;
                                         }
@@ -450,22 +447,32 @@ namespace WPEFramework {
                                 }
                                 success = true;
                             } else {
-                                LOGINFO("partnerProvisioningContext is not available in the response. Retrying in %d seconds", retryDelay);
-                                sleep(retryDelay);
+                                LOGINFO("partnerProvisioningContext is not available in the response");
                             }
                         } else {
                             // Get retryDelay value and sleep for that much seconds
                             if (joGetResult.HasLabel("retryDelay")) {
                                 retryDelay = joGetResult["retryDelay"].Number();
                             }
-                            LOGINFO("getDeviceInitializationContext failed. Retrying in %d seconds", retryDelay);
-                            sleep(retryDelay);
+                            LOGINFO("getDeviceInitializationContext failed");
                         }
                     }
                 } else {
-                    LOGINFO("%s is not active, Retrying in 5 seconds", secMgr_callsign);
-                    sleep(5);
+                    LOGINFO("%s is not active", secMgr_callsign);
                 }
+
+		retryCount++;
+                if (retryCount == 4 && !success) {
+                    if (checkActivatedStatus() == "activated") {
+                        success = true;
+                    }
+                }
+
+		if (!success) {
+                    LOGINFO("Retrying in %d seconds", retryDelay);
+                    sleep(retryDelay);
+                }
+
             } while (!success);
             return success;
         }
