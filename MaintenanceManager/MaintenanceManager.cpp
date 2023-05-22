@@ -398,10 +398,10 @@ namespace WPEFramework {
         {
             bool success = false;
             int retryDelay = 60;
-            m_handle thunder_client = nullptr;
             const char* secMgr_callsign = "org.rdk.SecManager";
             const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 
             do {
 	        if ((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
@@ -472,10 +472,10 @@ namespace WPEFramework {
         }
 
         // Thunder plugin communication
-	m_handle MaintenanceManager::getThunderPluginHandle(const char* callsign)
+	WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* MaintenanceManager::getThunderPluginHandle(const char* callsign)
         {
             string token;
-            m_handle thunder_client = nullptr;
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 		
             auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
             if (security != nullptr) {
