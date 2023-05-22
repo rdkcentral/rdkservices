@@ -4,7 +4,7 @@
 
 #include "FactoriesImplementation.h"
 #include "ServiceMock.h"
-#include "FrameBufferMock.h"
+#include "DRMScreenCaptureMock.h"
 
 using namespace WPEFramework;
 
@@ -55,71 +55,57 @@ protected:
     }
 };
 
-class ScreenCaptureFrameBufferTest : public ScreenCaptureEventTest {
+class ScreenCaptureDRMTest : public ScreenCaptureEventTest {
 protected:
-    NiceMock<FrameBufferApiImplMock> frameBufferApiImplMock;
+    NiceMock<DRMScreenCaptureApiImplMock> drmScreenCaptureApiImplMock;
 
-    ScreenCaptureFrameBufferTest()
+    ScreenCaptureDRMTest()
         : ScreenCaptureEventTest()
     {
-        FrameBufferApi::getInstance().impl = &frameBufferApiImplMock;
+        DRMScreenCaptureApi::getInstance().impl = &drmScreenCaptureApiImplMock;
     }
-    virtual ~ScreenCaptureFrameBufferTest() override
+    virtual ~ScreenCaptureDRMTest() override
     {
-        FrameBufferApi::getInstance().impl = nullptr;
+        DRMScreenCaptureApi::getInstance().impl = nullptr;
     }
 };
+
 
 TEST_F(ScreenCaptureTest, RegisteredMethods)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadScreenCapture")));
 }
 
-TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
-{
-    FBContext fbcontext;
-    PixelFormat pixelFormat = {32, 24, 0, 1, 255, 255, 255, 16, 8, 0};
-    vnc_uint8_t* frameBuffer = (vnc_uint8_t*) malloc(5120 * 720);
-    memset(frameBuffer, 0xff, 5120 * 720);
-    
+TEST_F(ScreenCaptureDRMTest, Upload)
+{   
+    DRMScreenCapture drmHandle = {0, 1280, 720, 5120, 32};
+    uint8_t* buffer = (uint8_t*) malloc(5120 * 720);
+    memset(buffer, 0xff, 5120 * 720);
+
     Core::Event uploadComplete(false, true);
-    
-    EXPECT_CALL(frameBufferApiImplMock, fbCreate(::testing::_))
+
+    EXPECT_CALL(drmScreenCaptureApiImplMock, Init())
         .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&](FBContext** fbctx) {
-                *fbctx = &fbcontext;
-                return ErrNone;
+        .WillOnce(
+            ::testing::Return(&drmHandle));
+
+    ON_CALL(drmScreenCaptureApiImplMock, GetScreenInfo(::testing::_))
+        .WillByDefault(
+            ::testing::Return(true));
+
+    ON_CALL(drmScreenCaptureApiImplMock, ScreenCapture(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(
+            ::testing::Invoke(
+            [&](DRMScreenCapture* handle, uint8_t* output, uint32_t size) {
+                memcpy(output, buffer, size);
+                return true;
             }));
 
-    ON_CALL(frameBufferApiImplMock, fbInit(::testing::_, ::testing::_, ::testing::_))
-        .WillByDefault(
-            ::testing::Return(ErrNone));
-
-    ON_CALL(frameBufferApiImplMock, fbGetPixelFormat(::testing::_))
-        .WillByDefault(
-            ::testing::Return(&pixelFormat));
-
-    ON_CALL(frameBufferApiImplMock, fbGetWidth(::testing::_))
-        .WillByDefault(
-            ::testing::Return(1280));
-
-    ON_CALL(frameBufferApiImplMock, fbGetHeight(::testing::_))
-        .WillByDefault(
-            ::testing::Return(720));
-
-    ON_CALL(frameBufferApiImplMock, fbGetStride(::testing::_))
-        .WillByDefault(
-            ::testing::Return(5120));
-
-    EXPECT_CALL(frameBufferApiImplMock, fbGetFramebuffer(::testing::_))
+    EXPECT_CALL(drmScreenCaptureApiImplMock, Destroy(::testing::_))
         .Times(1)
-        .WillOnce(::testing::Return(frameBuffer));
+        .WillOnce(::testing::Return(true));
 
-    EXPECT_CALL(frameBufferApiImplMock, fbDestroy(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Return(ErrNone));
-
+    
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -170,8 +156,7 @@ TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
 
     handler.Unsubscribe(0, _T("uploadComplete"), _T("org.rdk.ScreenCapture"), message);
 
-    free(frameBuffer);
-
+    free(buffer);
     thread.join();
     close(sockfd);
 }

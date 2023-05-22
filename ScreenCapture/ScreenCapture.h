@@ -32,14 +32,9 @@
 #define USE_INTEL_SCREENCAPTURE 1
 #endif
 
-#ifdef HAS_FRAMEBUFFER_API_HEADER
-#define USE_FRAMEBUFFER_SCREENCAPTURE 1
-#endif
-
 #if defined(PLATFORM_AMLOGIC)
 #define USE_AMLOGIC_SCREENCAPTURE 1
 #endif
-
 
 #if defined(USE_AMLOGIC_SCREENCAPTURE)
 #include <interfaces/ICapture.h>
@@ -117,8 +112,8 @@ namespace WPEFramework {
             bool getScreenshotIntel(std::vector<unsigned char> &png_data);
             #endif
 
-            #ifdef USE_FRAMEBUFFER_SCREENCAPTURE
-            bool getScreenshotRealtek(std::vector<unsigned char> &png_data);
+            #ifdef USE_DRM_SCREENCAPTURE
+            bool getScreenshotDrm(std::vector<unsigned char> &png_data);
             #endif
 
             bool saveToPng(unsigned char *bytes, int w, int h, std::vector<unsigned char> &png_out_data);

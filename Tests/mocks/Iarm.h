@@ -574,7 +574,9 @@ typedef enum _SYSMgr_SystemState_t {
     IARM_BUS_SYSMGR_SYSSTATE_LP_CONNECTION_RESET, //40
     IARM_BUS_SYSMGR_SYSSTATE_RWS_CONNECTION_RESET, //41
     IARM_BUS_SYSMGR_SYSSTATE_QAM_READY, //42
-    IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE //43, Added as part of RDK-19978, As the IARM
+    IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE, //43, Added as part of RDK-19978, As the IARM
+    IARM_BUS_SYSMGR_SYSSTATE_USB_DETECTED, //44
+    IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD, //45
 } IARM_Bus_SYSMgr_SystemState_t;
 
 typedef enum _SYSMgr_FirmwareUpdateState_t {
@@ -588,6 +590,13 @@ typedef enum _SYSMgr_FirmwareUpdateState_t {
     IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_ONHOLD_FOR_OPTOUT = 7, /* On Hold for opt-out */
     IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_CRITICAL_REBOOT = 8
 } IARM_Bus_SYSMGR_FirmwareUpdateState_t;
+
+typedef enum _SYSMgr_LogUpload_t
+{
+  IARM_BUS_SYSMGR_LOG_UPLOAD_SUCCESS = 0,
+  IARM_BUS_SYSMGR_LOG_UPLOAD_FAILED = 1,
+  IARM_BUS_SYSMGR_LOG_UPLOAD_ABORTED = 2,
+} IARM_Bus_SYSMGR_SYSMgr_LogUpload_t;
 
 typedef struct _IARM_BUS_SYSMgr_EventData_t {
     union {
@@ -921,6 +930,22 @@ typedef struct _IARM_Bus_SYSMgr_RunScript_t{
     int  return_value;        //[out] Returns the ret value of system.
 } IARM_Bus_SYSMgr_RunScript_t;
 
+typedef enum _CECMgr_EventId_t {
+    IARM_BUS_CECMGR_EVENT_SEND,
+    IARM_BUS_CECMGR_EVENT_RECV,
+    IARM_BUS_CECMGR_EVENT_ENABLE,
+    IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,
+    IARM_BUS_CECMGR_EVENT_MAX,
+    IARM_BUS_CECMGR_EVENT_STATUS_UPDATED
+} IARM_Bus_CECMgr_EventId_t;
+typedef struct _IARM_Bus_CECMgr_Status_Updated_Param_t
+{
+    int logicalAddress;
+}IARM_Bus_CECMgr_Status_Updated_Param_t;
+#define IARM_BUS_CECMGR_API_isAvailable "isAvailable"
+#define IARM_BUS_DSMGR_API_dsHdmiInGetNumberOfInputs    "dsHdmiInGetNumberOfInputs"
+#define IARM_BUS_DSMGR_API_dsHdmiInGetStatus            "dsHdmiInGetStatus"
+#define IARM_BUS_DSMGR_API_dsGetHDMIARCPortId  "dsGetHDMIARCPortId"
 /* irMgr */
 #define IARM_BUS_IRMGR_NAME 						"IRMgr" /*!< IR Manager IARM -bus name */
 
