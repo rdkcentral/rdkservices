@@ -308,7 +308,7 @@ namespace WPEFramework {
         /* WhoAmI check*/
         bool whoAmIStatus = knowWhoAmI();
         if (whoAmIStatus) {
-            LOGINFO("knowWhoAmI() returned true");
+            LOGINFO("knowWhoAmI() returned successfully");
         }
     }
 #endif
@@ -421,8 +421,8 @@ namespace WPEFramework {
                             if (joGetResult.HasLabel("partnerProvisioningContext")) {
                                 JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
                                 int size = (int)(sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]));
-                                for (int i=0; i < size; i++) {
-                                    const char* key = deviceInitializationContext[i].c_str();
+                                for (int idx=0; idx < size; idx++) {
+                                    const char* key = deviceInitializationContext[idx].c_str();
 
                                     // Retrive partnerProvisioningContext Value
                                     string paramValue = getProvisioningContext[key].String();
@@ -431,7 +431,7 @@ namespace WPEFramework {
                                         if (strcmp(key, "regionalConfigService") == 0) {
                                             paramValue = "https://" + paramValue;
                                         }
-                                        LOGINFO("%s : %s", key, paramValue.c_str());
+                                        LOGINFO("[partnerProvisioningContext] %s : %s", key, paramValue.c_str());
 
                                         // Retrieve tr181 parameter from m_param_map
                                         string rfc_parameter = m_param_map[key];
@@ -464,6 +464,7 @@ namespace WPEFramework {
 		retryCount++;
                 if (retryCount == 4 && !success) {
                     if (checkActivatedStatus() == "activated") {
+                        LOGINFO("Device is already activated. Exiting from knowWhoAmI()");
                         success = true;
                     }
                 }
