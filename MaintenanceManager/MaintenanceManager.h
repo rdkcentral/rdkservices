@@ -151,7 +151,7 @@ namespace WPEFramework {
                 bool checkAutoRebootFlag();
                 bool readRFC(const char *);
                 void setRFC(const char*, const char*, DATA_TYPE);
-                void getThunderPluginHandle(const char*);
+                t_client getThunderPluginHandle(const char*);
                 bool knowWhoAmI();	
                 bool stopMaintenanceTasks();
                 bool checkNetwork();
