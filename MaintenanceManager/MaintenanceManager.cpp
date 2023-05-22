@@ -313,7 +313,7 @@ namespace WPEFramework {
                 /* WhoAmI check*/
                 bool whoAmIStatus = knowWhoAmI();
                 if (whoAmIStatus) {
-                    LOGINFO("WhoAmI returns true ");
+                    LOGINFO("knowWhoAmI() returned true");
                 }
         }
 #endif
@@ -464,7 +464,7 @@ namespace WPEFramework {
                         }
 		    }
 		} else {
-                    LOGINFO("%s is not active, Retrying in 5 seconds", secMgr_callsign.c_str());
+                    LOGINFO("%s is not active, Retrying in 5 seconds", secMgr_callsign);
                     sleep(5);
                 }
 	    } while (!success);
