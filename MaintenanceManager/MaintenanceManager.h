@@ -142,7 +142,7 @@ namespace WPEFramework {
                 std::map<string, DATA_TYPE> m_paramType_map;
 
                 PluginHost::IShell* m_service;
-                typedef WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> t_client;
+                typedef WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* t_client;
 
                 bool isDeviceOnline();
                 void task_execution_thread();
