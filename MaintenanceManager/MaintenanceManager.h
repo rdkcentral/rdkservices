@@ -142,6 +142,7 @@ namespace WPEFramework {
                 std::map<string, DATA_TYPE> m_paramType_map;
 
                 PluginHost::IShell* m_service;
+                typedef WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> t_client;
 
                 bool isDeviceOnline();
                 void task_execution_thread();
@@ -158,7 +159,7 @@ namespace WPEFramework {
                 const string checkActivatedStatus(void);
                 int abortTask(const char*, int sig = SIGABRT);
                 pid_t getTaskPID(const char*);
-
+            
                 string getLastRebootReason();
                 void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
                 static void _MaintenanceMgrEventHandler(const char *owner,IARM_EventId_t eventId, void *data, size_t len);
