@@ -232,7 +232,7 @@ namespace WPEFramework {
             "uploadSTBLogs.sh"
         };
 
-        string deviceInitializationContext[]={
+        string deviceInitializationContext[] = {
             "partnerId",
             "targetProposition",
             "regionalConfigService"
@@ -265,13 +265,13 @@ namespace WPEFramework {
             MaintenanceManager::m_task_map[task_names_foreground[2].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[3].c_str()]=false;
 
-            MaintenanceManager::m_param_map[deviceInitializationContext[0].c_str()]=TR181_PARTNER_ID;
-            MaintenanceManager::m_param_map[deviceInitializationContext[1].c_str()]=TR181_TARGET_PROPOSITION;
-            MaintenanceManager::m_param_map[deviceInitializationContext[2].c_str()]=TR181_XCONFURL;
+            MaintenanceManager::m_param_map[deviceInitializationContext[0].c_str()] = TR181_PARTNER_ID;
+            MaintenanceManager::m_param_map[deviceInitializationContext[1].c_str()] = TR181_TARGET_PROPOSITION;
+            MaintenanceManager::m_param_map[deviceInitializationContext[2].c_str()] = TR181_XCONFURL;
 
-            MaintenanceManager::m_paramType_map[deviceInitializationContext[0].c_str()]=DATA_TYPE::WDMP_STRING;
-	    MaintenanceManager::m_paramType_map[deviceInitializationContext[1].c_str()]=DATA_TYPE::WDMP_STRING;
-            MaintenanceManager::m_paramType_map[deviceInitializationContext[2].c_str()]=DATA_TYPE::WDMP_STRING;
+            MaintenanceManager::m_paramType_map[deviceInitializationContext[0].c_str()] = DATA_TYPE::WDMP_STRING;
+	    MaintenanceManager::m_paramType_map[deviceInitializationContext[1].c_str()] = DATA_TYPE::WDMP_STRING;
+            MaintenanceManager::m_paramType_map[deviceInitializationContext[2].c_str()] = DATA_TYPE::WDMP_STRING;
          }
 
         void MaintenanceManager::task_execution_thread(){
@@ -410,6 +410,7 @@ namespace WPEFramework {
 		    thunder_client=getThunderPluginHandle(secMgr_callsign_ver);
                     if (thunder_client == nullptr) {
                         LOGERR("Failed to get plugin handle\n");
+                        sleep(5);
                     } else {
                         JsonObject params;
                         JsonObject joGetResult;
@@ -429,7 +430,7 @@ namespace WPEFramework {
                                         const char* key = deviceInitializationContext[i].c_str();
 
                                         // Retrive partnerProvisioningContext Value
-                                        string paramValue=getProvisioningContext[key].String();
+                                        string paramValue = getProvisioningContext[key].String();
 					    
                                         if(!paramValue.empty()) {
                                             if (strcmp(key, "regionalConfigService") == 0) {
@@ -451,7 +452,7 @@ namespace WPEFramework {
                                     }
                                     success = true;
 				} else {
-                                        LOGINFO("partnerProvisioningContext is not available from response. Retrying in %d seconds", retryDelay);
+                                        LOGINFO("partnerProvisioningContext is not available in the response. Retrying in %d seconds", retryDelay);
 					sleep(retryDelay);
 				}
                         } else {
