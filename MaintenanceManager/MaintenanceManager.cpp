@@ -407,7 +407,7 @@ namespace WPEFramework {
 	        if ((getServiceState(m_service, secMgr_callsign.c_str(), state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                     LOGINFO("%s is active", secMgr_callsign.c_str());
 
-		    getThunderPluginHandle(secMgr_callsign_ver.c_str());
+		    thunder_client=getThunderPluginHandle(secMgr_callsign_ver.c_str());
                     if (thunder_client == nullptr) {
                         LOGERR("SecManager Initialization failed\n");
                     } else {
@@ -473,7 +473,8 @@ namespace WPEFramework {
 	t_client MaintenanceManager::getThunderPluginHandle(const char* callsign)
         {
             string token;
-
+            t_client *thunder_client;
+		
             auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
             if (security != nullptr) {
                 string payload = "http://localhost";
@@ -494,6 +495,7 @@ namespace WPEFramework {
             string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
             thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(callsign, "", false, query);
+            return thunder_client;
         }
 
         void MaintenanceManager::setRFC(const char* rfc, const char* value, DATA_TYPE dataType)
