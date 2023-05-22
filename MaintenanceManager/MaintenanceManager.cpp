@@ -398,7 +398,7 @@ namespace WPEFramework {
         {
             bool success = false;
             int retryDelay = 60;
-            t_client* thunder_client=nullptr;
+            t_client thunder_client=nullptr;
             string secMgr_callsign = "org.rdk.SecManager";
             string secMgr_callsign_ver = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
@@ -473,7 +473,7 @@ namespace WPEFramework {
 	t_client MaintenanceManager::getThunderPluginHandle(const char* callsign)
         {
             string token;
-            t_client *thunder_client;
+            t_client thunder_client;
 		
             auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
             if (security != nullptr) {
