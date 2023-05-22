@@ -18,7 +18,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.0.19] - 2023-05-23
 ### Added
-- Added startup service configuration changes to support flex2 activation
+- Implementation to get the partner provisioning context from whoAmI
 
 ## [1.0.18] - 2023-05-16
 ### Fixed
