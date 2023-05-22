@@ -398,7 +398,7 @@ namespace WPEFramework {
         {
             bool success = false;
             int retryDelay = 60;
-            t_client thunder_client = nullptr;
+            m_handle thunder_client = nullptr;
             const char* secMgr_callsign = "org.rdk.SecManager";
             const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
@@ -409,7 +409,7 @@ namespace WPEFramework {
 
 		    thunder_client=getThunderPluginHandle(secMgr_callsign_ver);
                     if (thunder_client == nullptr) {
-                        LOGERR("SecManager Initialization failed\n");
+                        LOGERR("Failed to get plugin handle\n");
                     } else {
                         JsonObject params;
                         JsonObject joGetResult;
@@ -445,6 +445,8 @@ namespace WPEFramework {
 
                                             // Set the RFC values for partnerProvisioningContext parameters
                                             setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
+                                        } else {
+                                            LOGINFO("Not able to fetch %s value from partnerProvisioningContext", key);
                                         }
                                     }
                                     success = true;
@@ -470,10 +472,10 @@ namespace WPEFramework {
         }
 
         // Thunder plugin communication
-	t_client MaintenanceManager::getThunderPluginHandle(const char* callsign)
+	m_handle MaintenanceManager::getThunderPluginHandle(const char* callsign)
         {
             string token;
-            t_client thunder_client = nullptr;
+            m_handle thunder_client = nullptr;
 		
             auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
             if (security != nullptr) {
