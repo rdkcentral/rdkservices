@@ -142,7 +142,6 @@ namespace WPEFramework {
                 std::map<string, DATA_TYPE> m_paramType_map;
 
                 PluginHost::IShell* m_service;
-                WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client;
 
                 bool isDeviceOnline();
                 void task_execution_thread();
@@ -151,8 +150,8 @@ namespace WPEFramework {
                 bool checkAutoRebootFlag();
                 bool readRFC(const char *);
                 void setRFC(const char*, const char*, DATA_TYPE);
-                bool getThunderPluginHandle(const char*);
-                void knowWhoAmI();	
+                void getThunderPluginHandle(const char*);
+                bool knowWhoAmI();	
                 bool stopMaintenanceTasks();
                 bool checkNetwork();
                 bool getActivatedStatus(bool &skipFirmwareCheck);
