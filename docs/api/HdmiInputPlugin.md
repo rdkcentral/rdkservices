@@ -902,7 +902,7 @@ Triggered whenever AVI content type changed for a HDMI Input.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.id | integer | An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
-| params.aviContentType | integer | Content type info of a Hdmi Input |
+| params.aviContentType | integer | Content type info of a Hdmi Input of type dsAviContentType_t and the integer values indicates following accordingly 0 - Graphics, 1 - Photo, 2 - Cinema, 3 - Game, 4 - Invalid data|
 
 ### Example
 
