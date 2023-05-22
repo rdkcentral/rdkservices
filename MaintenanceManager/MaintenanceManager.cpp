@@ -398,16 +398,16 @@ namespace WPEFramework {
         {
             bool success = false;
             int retryDelay = 60;
-            t_client thunder_client=nullptr;
-            string secMgr_callsign = "org.rdk.SecManager";
-            string secMgr_callsign_ver = "org.rdk.SecManager.1";
+            t_client thunder_client = nullptr;
+            const char* secMgr_callsign = "org.rdk.SecManager";
+            const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
 
             do {
-	        if ((getServiceState(m_service, secMgr_callsign.c_str(), state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
-                    LOGINFO("%s is active", secMgr_callsign.c_str());
+	        if ((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+                    LOGINFO("%s is active", secMgr_callsign);
 
-		    thunder_client=getThunderPluginHandle(secMgr_callsign_ver.c_str());
+		    thunder_client=getThunderPluginHandle(secMgr_callsign_ver);
                     if (thunder_client == nullptr) {
                         LOGERR("SecManager Initialization failed\n");
                     } else {
@@ -419,22 +419,22 @@ namespace WPEFramework {
                         params["distributedTraceId"] = "trace-id=8e44ec3c-7aa1-404d-a1e5-1dde72114ca3;parent-id=123;span-id=456";
 
                         thunder_client->Invoke<JsonObject, JsonObject>(5000, "getDeviceInitializationContext", params, joGetResult);
-			if (joGetResult.HasLabel("success")) {
-                            if (joGetResult["success"].Boolean()) {
+			if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) 
+                        {
                                 if (joGetResult.HasLabel("partnerProvisioningContext")) {
                                     JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
 					
-                                    int size = (int)sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]);
+                                    int size = (int)(sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]));
                                     for (int i=0; i < size; i++) {
                                         const char* key = deviceInitializationContext[i].c_str();
 
                                         // Retrive partnerProvisioningContext Value
                                         string paramValue=getProvisioningContext[key].String();
-                                        if (strcmp(key, "regionalConfigService") == 0) {
-                                            paramValue = "https://" + paramValue;
-					}
 					    
                                         if(!paramValue.empty()) {
+                                            if (strcmp(key, "regionalConfigService") == 0) {
+                                                paramValue = "https://" + paramValue;
+                                            }
                                             LOGINFO("%s : %s", key, paramValue.c_str());
 					    
                                             // Retrieve tr181 parameter from m_param_map
@@ -448,17 +448,17 @@ namespace WPEFramework {
                                         }
                                     }
                                     success = true;
+				} else {
+                                        LOGINFO("partnerProvisioningContext is not available from response. Retrying in %d seconds", retryDelay);
+					sleep(retryDelay);
 				}
-                            } else {
+                        } else {
                                 // Get retryDelay value and sleep for that much seconds
                                 if (joGetResult.HasLabel("retryDelay")) {
                                     retryDelay = joGetResult["retryDelay"].Number();
                                 }
                                 LOGINFO("getDeviceInitializationContext failed. Retrying in %d seconds", retryDelay);
                                 sleep(retryDelay);
-                            }
-                        } else {
-                            LOGINFO("Unable to get success response from getDeviceInitializationContext");
                         }
 		    }
 		} else {
@@ -473,7 +473,7 @@ namespace WPEFramework {
 	t_client MaintenanceManager::getThunderPluginHandle(const char* callsign)
         {
             string token;
-            t_client thunder_client;
+            t_client thunder_client = nullptr;
 		
             auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
             if (security != nullptr) {
@@ -498,16 +498,19 @@ namespace WPEFramework {
             return thunder_client;
         }
 
-        void MaintenanceManager::setRFC(const char* rfc, const char* value, DATA_TYPE dataType)
+        bool MaintenanceManager::setRFC(const char* rfc, const char* value, DATA_TYPE dataType)
         {
+            bool result = false;
             WDMP_STATUS status;
             status = setRFCParameter((char *)MAINTENANCE_MANAGER_RFC_CALLER_ID, rfc, value, dataType);
 
             if ( WDMP_SUCCESS == status ){
                 LOGINFO("Successfuly set the tr181 parameter %s with value %s", rfc, value);
+                result = true;
             } else {
-                LOGINFO("Failed setting %s value", rfc);
+                LOGINFO("Failed setting %s parameter", rfc);
             }
+            return result;
         }
 
         const string MaintenanceManager::checkActivatedStatus()
