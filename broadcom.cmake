@@ -56,6 +56,11 @@ if (BUILD_DONT_SET_POWER_BRIGHTNESS)
     add_definitions (-DDONT_SET_POWER_BRIGHTNESS)
 endif()
 
+if (ENABLE_WHOAMI)
+    message("Enable WHOAMI")
+    add_definitions (-DENABLE_WHOAMI=ON)
+endif()
+
 if (BUILD_ENABLE_HDCP)
     message("Building with hdcp profile")
     add_definitions (-DBUILD_ENABLE_HDCP)

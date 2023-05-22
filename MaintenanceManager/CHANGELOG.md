@@ -16,6 +16,18 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.15] - 2023-08-11
+### Added
+- MM subscription to network event
+
+## [1.0.14] - 2023-08-11
+### Added
+- Implementation to get the partner provisioning context from whoAmI
+
+## [1.0.13] - 2023-08-11
+### Fixed
+- Fixed deadlock in Maintenance Manager code
+
 ## [1.0.12] - 2023-04-12
 ### Fixed
 - Fixed IARM_Bus_UnRegisterEventHandler  call to IARM_Bus_RemoveEventHandler
