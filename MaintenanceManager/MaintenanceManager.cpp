@@ -312,7 +312,10 @@ namespace WPEFramework {
 #if defined(ENABLE_WHOAMI)
         if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
                 /* WhoAmI check*/
-                knowWhoAmI();
+                bool whoAmIStatus = knowWhoAmI();
+                if (whoAmIStatus) {
+                    LOGINFO("WhoAmI returns true ");
+                }
         }
 #endif
 
@@ -392,10 +395,11 @@ namespace WPEFramework {
             LOGINFO("Worker Thread Completed");
         }
 
-        void MaintenanceManager::knowWhoAmI()
+        bool MaintenanceManager::knowWhoAmI()
         {
             bool success = false;
-            bool thunder_clientStatus;
+            int retryDelay = 60;
+            auto thunder_client=nullptr;
             string secMgr_callsign = "org.rdk.SecManager";
             string secMgr_callsign_ver = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
@@ -404,8 +408,8 @@ namespace WPEFramework {
 	        if ((getServiceState(m_service, secMgr_callsign.c_str(), state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                     LOGINFO("%s is active", secMgr_callsign.c_str());
 
-		    thunder_clientStatus = getThunderPluginHandle(secMgr_callsign_ver.c_str());
-                    if (!thunder_clientStatus) {
+		    getThunderPluginHandle(secMgr_callsign_ver.c_str());
+                    if (thunder_client == nullptr) {
                         LOGERR("SecManager Initialization failed\n");
                     } else {
                         JsonObject params;
@@ -420,24 +424,23 @@ namespace WPEFramework {
                             if (joGetResult["success"].Boolean()) {
                                 if (joGetResult.HasLabel("partnerProvisioningContext")) {
                                     JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
-                                
-                                    for (unsigned int i=0; i <  sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]); i++) {
+					
+                                    int size = (int)sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0];
+                                    for (int i=0; i < size); i++) {
                                         const char* key = deviceInitializationContext[i].c_str();
 
                                         // Retrive partnerProvisioningContext Value
-                                        string paramValue;
+                                        string paramValue=getProvisioningContext[key].String();
                                         if (strcmp(key, "regionalConfigService") == 0) {
-                                            string Value=getProvisioningContext[key].String();
-                                            paramValue = "https://" + Value;
-					} else {
-                                            paramValue=getProvisioningContext[key].String();
+                                            paramValue = "https://" + paramValue;
 					}
-
+                                        LOGINFO("%s : %s", key, paramValue.c_str());
+					    
                                         // Retrieve tr181 parameter from m_param_map
-                                        string rfc_parameter = m_param_map[deviceInitializationContext[i]];
+                                        string rfc_parameter = m_param_map[key];
 
                                         //  Retrieve parameter data type from m_paramType_map
-                                        DATA_TYPE rfc_dataType = m_paramType_map[deviceInitializationContext[i]];
+                                        DATA_TYPE rfc_dataType = m_paramType_map[key];
 
                                         // Set the RFC values for partnerProvisioningContext parameters
                                         setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
@@ -447,11 +450,14 @@ namespace WPEFramework {
                             } else {
                                 // Get retryDelay value and sleep for that much seconds
                                 if (joGetResult.HasLabel("retryDelay")) {
-                                    int retryDelay = joGetResult["retryDelay"].Number();
-                                    LOGINFO("getDeviceInitializationContext failed. Retrying in %d seconds", retryDelay);
-                                    sleep(retryDelay);
+                                    retryDelay = joGetResult["retryDelay"].Number();
+                                }
+                                LOGINFO("getDeviceInitializationContext failed. Retrying in %d seconds", retryDelay);
+                                sleep(retryDelay);
 				}
                             }
+                        } else {
+                            LOGINFO("Unable to get success response from getDeviceInitializationContext");
                         }
 		    }
 		} else {
@@ -459,13 +465,13 @@ namespace WPEFramework {
                     sleep(5);
                 }
 	    } while (!success);
+	    return success;
         }
 
         // Thunder plugin communication
-	bool MaintenanceManager::getThunderPluginHandle(const char* callsign)
+	void MaintenanceManager::getThunderPluginHandle(const char* callsign)
         {
             string token;
-            bool result = false;
 
             auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
             if (security != nullptr) {
@@ -486,11 +492,7 @@ namespace WPEFramework {
 
             string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
-            thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(callsign, "", false, query);
-            if (thunder_client != nullptr) {
-                result=true;
-            }
-            return result;
+            auto thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(callsign, "", false, query);
         }
 
         void MaintenanceManager::setRFC(const char* rfc, const char* value, DATA_TYPE dataType)
