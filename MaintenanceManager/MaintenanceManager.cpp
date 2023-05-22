@@ -398,7 +398,7 @@ namespace WPEFramework {
         {
             bool success = false;
             int retryDelay = 60;
-            auto thunder_client=nullptr;
+            t_client* thunder_client=nullptr;
             string secMgr_callsign = "org.rdk.SecManager";
             string secMgr_callsign_ver = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
@@ -468,7 +468,7 @@ namespace WPEFramework {
         }
 
         // Thunder plugin communication
-	void MaintenanceManager::getThunderPluginHandle(const char* callsign)
+	t_client MaintenanceManager::getThunderPluginHandle(const char* callsign)
         {
             string token;
 
@@ -491,7 +491,7 @@ namespace WPEFramework {
 
             string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
-            auto thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(callsign, "", false, query);
+            thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(callsign, "", false, query);
         }
 
         void MaintenanceManager::setRFC(const char* rfc, const char* value, DATA_TYPE dataType)
