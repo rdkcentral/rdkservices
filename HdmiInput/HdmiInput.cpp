@@ -712,7 +712,6 @@ namespace WPEFramework
             JsonObject params;
             params["id"] = port;
             params["aviContentType"] = content_type;
-
             sendNotify(HDMIINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED, params);
         }
         uint32_t HdmiInput::getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response)
