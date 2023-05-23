@@ -115,6 +115,12 @@ namespace Plugin {
             RegisterAll();
             Exchange::JWebBrowser::Register(*this, _browser);
 
+            _browserResources = _browser->QueryInterface<Exchange::IBrowserResources>();
+            if (!_browserResources) {
+                TRACE(Trace::Error, (_T("Failed to get IBrowserResources interface")));
+            } else {
+                Exchange::JBrowserResources::Register(*this, _browserResources);
+            }
 #ifdef RDK6_SUPPORT
             _cookieJar = _browser->QueryInterface<Exchange::IBrowserCookieJar>();
             if (_cookieJar) {
@@ -159,6 +165,12 @@ namespace Plugin {
             _cookieJar->Release();
         }
 #endif
+        if(_browserResources) {
+            Exchange::JBrowserResources::Unregister(*this);
+            _browserResources->Release();
+            _browserResources = nullptr;
+        }
+
         UnregisterAll();
 
         PluginHost::IStateControl* stateControl(_browser->QueryInterface<PluginHost::IStateControl>());
