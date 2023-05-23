@@ -2627,6 +2627,16 @@ namespace WPEFramework
 					}
 					else
 					{
+						for(int i=0;i<LogicalAddress::UNREGISTERED + TEST_ADD;i++)
+						{
+							if(i != _instance->m_logicalAddressAllocated &&
+								_instance->deviceList[i].m_isDevicePresent &&
+								!_instance->deviceList[i].isAllUpdated() )
+							{
+								_instance->m_pollNextState = POLL_THREAD_STATE_INFO;
+								_instance->m_sleepTime = 0;
+							}
+						}
 						/* Check for any update required */
 						_instance->m_pollThreadState = POLL_THREAD_STATE_UPDATE;
 						_instance->m_sleepTime = 0;
