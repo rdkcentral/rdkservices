@@ -1374,10 +1374,14 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileNotExist)
  */
 TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileFailedToOpen)
 {
-    /* TODO : Implementation To be done :
-     * Mocking fopen with file doesnt exist is not working straight forward
-     * as it impacts other APIs/plugins using fopen, so working on that */
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
+	ofstream file("/etc/device.properties");
+    file << "MFG_NAME=SKY";
+    file.close();
+    
+    EXPECT_CALL(wrapsImplMock, fopen(::testing::_, ::testing::_))
+        .WillOnce(::testing::Return(nullptr));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
     //ASSERT_EQ(response,"{\"SysSrv_Status\":5,\"errorMessage\":\"Unexpected Error\",\"success\":false}");
 }
 
