@@ -2897,7 +2897,6 @@ static GSourceFuncs _handlerIntervention =
                      "allow-display-of-insecure-content", !enableWebSecurity, nullptr);
 #else
             g_object_set(G_OBJECT(preferences),
-                     "enable-websecurity", enableWebSecurity,
                      "allow-running-of-insecure-content", !enableWebSecurity,
                      "allow-display-of-insecure-content", !enableWebSecurity, nullptr);
 #endif
