@@ -10,11 +10,12 @@ class WrapsImplMock : public WrapsImpl {
 public:
     WrapsImplMock():WrapsImpl()
     {
-       /*default behavior for fopen */
+       /*Setting up Default behavior for fopen: 
+        * We are mocking fopen in this file below with __wrap_fopen,
+        * and the actual fopen will be called via this interface */
         ON_CALL(*this, fopen(::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
            [](const char* filename, const char* mode) -> FILE* {
-                std::cout << "SETHU inside "  << std::endl;
                 FILE *fp = __real_fopen(filename,mode);
                 return fp;
             }));
