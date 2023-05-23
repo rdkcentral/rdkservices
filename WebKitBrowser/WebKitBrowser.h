@@ -28,6 +28,7 @@
 #include <interfaces/json/JsonData_Browser.h>
 #include <interfaces/json/JsonData_WebKitBrowser.h>
 #include <interfaces/json/JsonData_StateControl.h>
+#include <interfaces/json/JBrowserResources.h>
 #include <interfaces/json/JWebBrowser.h>
 #ifdef RDK6_SUPPORT
 #include <interfaces/json/JBrowserScripting.h>
@@ -191,6 +192,7 @@ namespace Plugin {
             , _browser(nullptr)
             , _memory(nullptr)
             , _application(nullptr)
+            , _browserResources(nullptr)
 #ifdef RDK6_SUPPORT
             , _browserScripting(nullptr)
             , _cookieJar(nullptr)
@@ -230,6 +232,7 @@ namespace Plugin {
         INTERFACE_AGGREGATE(Exchange::IBrowserCookieJar, _cookieJar)
 #endif
         INTERFACE_AGGREGATE(Exchange::IMemory, _memory)
+        INTERFACE_AGGREGATE(Exchange::IBrowserResources, _browser)
         END_INTERFACE_MAP
 
     public:
@@ -293,6 +296,7 @@ namespace Plugin {
         Exchange::IWebBrowser* _browser;
         Exchange::IMemory* _memory;
         Exchange::IApplication* _application;
+        Exchange::IBrowserResources* _browserResources;
 #ifdef RDK6_SUPPORT
         Exchange::IBrowserScripting* _browserScripting;
         Exchange::IBrowserCookieJar* _cookieJar;
