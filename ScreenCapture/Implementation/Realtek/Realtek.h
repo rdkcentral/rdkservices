@@ -16,26 +16,18 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
+#pragma once
+#include <stdint.h>
 
-#ifndef RDKSERVICES_UPLOADLOGS_H
-#define RDKSERVICES_UPLOADLOGS_H
+typedef struct DRMScreenCapture_s {
+	void *context;
+	uint32_t width;
+	uint32_t height;
+	uint32_t pitch;
+	uint8_t bpp;
+}DRMScreenCapture;
 
-#include <string>
-
-namespace WPEFramework
-{
-namespace Plugin
-{
-namespace UploadLogs
-{
-    enum err_t { OK = 0, BadUrl, FilenameFail, SsrFail, TarFail, UploadFail, };
-    err_t upload(const std::string& ssrUrl = std::string());
-    std::int32_t getUploadLogParameters();
-    int32_t LogUploadBeforeDeepSleep(void);
-    pid_t logUploadAsync(void);
-    std::string errToText(err_t err);
-} // namespace UploadLogs
-} // namespace Plugin
-} // namespace WPEFramework
-
-#endif //RDKSERVICES_UPLOADLOGS_H
+DRMScreenCapture* DRMScreenCapture_Init();
+bool DRMScreenCapture_GetScreenInfo(DRMScreenCapture* handle);
+bool DRMScreenCapture_ScreenCapture(DRMScreenCapture* handle, uint8_t* output, uint32_t size);
+bool DRMScreenCapture_Destroy(DRMScreenCapture* handle);

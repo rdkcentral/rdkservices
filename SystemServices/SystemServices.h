@@ -32,6 +32,7 @@ using std::ofstream;
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <mutex>
 
 #include "Module.h"
 #include "tracing/Logging.h"
@@ -65,6 +66,7 @@ using std::ofstream;
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
 #define EVT_ONTERRITORYCHANGED            "onTerritoryChanged"
 #define EVT_ONTIMEZONEDSTCHANGED          "onTimeZoneDSTChanged"
+#define EVT_ONLOGUPLOAD                   "onLogUpload"
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
 namespace WPEFramework {
@@ -151,8 +153,10 @@ namespace WPEFramework {
 		bool m_ManufacturerDataModelNameValid;
                 std::string m_MfgSerialNumber;
                 bool m_MfgSerialNumberValid;
-		
 #endif
+                pid_t m_uploadLogsPid;
+                std::mutex m_uploadLogsMutex;
+
             public:
                 SystemServices();
                 virtual ~SystemServices();
@@ -187,6 +191,7 @@ namespace WPEFramework {
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
                 void onClockSet();
+                void onLogUpload(int newState);
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
                 void onRebootRequest(string reason);
@@ -244,6 +249,8 @@ namespace WPEFramework {
 		bool isStrAlphaUpper(string strVal);
 		bool isRegionValid(string regionStr);
 		uint32_t writeTerritory(string territory, string region);
+        uint32_t uploadLogsAsync(const JsonObject& parameters, JsonObject& response);
+        uint32_t abortLogUpload(const JsonObject& parameters, JsonObject& response);
                 uint32_t getXconfParams(const JsonObject& parameters, JsonObject& response);
                 uint32_t getSerialNumber(const JsonObject& parameters, JsonObject& response);
                 bool getSerialNumberTR069(JsonObject& response);
