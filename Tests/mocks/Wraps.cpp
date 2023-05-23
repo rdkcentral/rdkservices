@@ -12,6 +12,11 @@ extern "C" FILE* __wrap_popen(const char* command, const char* type)
     return Wraps::getInstance().popen(command, type);
 }
 
+extern "C" int __wrap_pclose(FILE* pipe)
+{
+    return Wraps::getInstance().pclose(pipe);
+}
+
 //This function will be called for syslog() in the code (added -Wl,-wrap,syslog)
 extern  "C" void __wrap_syslog(int pri, const char *fmt, ...)
 {

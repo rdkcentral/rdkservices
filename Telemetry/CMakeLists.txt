@@ -51,8 +51,10 @@ if (NOT ${RBUS_LIBRARY} STREQUAL "RBUS_LIBRARY-NOTFOUND")
     set(RBUS_LIBRARIES ${RBUS_LIBRARY})
 endif()
 
-target_include_directories(${MODULE_NAME} PRIVATE ${RFC_INCLUDE_DIRS} ${RBUS_API_HEADERS} ../helpers)
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${RFC_LIBRARIES} ${RBUS_LIBRARIES})
+find_package(IARMBus)
+
+target_include_directories(${MODULE_NAME} PRIVATE ${RFC_INCLUDE_DIRS} ${RBUS_API_HEADERS} ${IARMBUS_INCLUDE_DIRS} ../helpers)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${RFC_LIBRARIES} ${RBUS_LIBRARIES} ${IARMBUS_LIBRARIES} )
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

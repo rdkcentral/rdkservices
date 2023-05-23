@@ -66,8 +66,8 @@
 using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_MINOR 4
+#define API_VERSION_NUMBER_PATCH 0
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -76,6 +76,7 @@ using namespace std;
 #define RFC_PWRMGR2 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.PwrMgr2.Enable"
 
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
+#define LOCALTIME_FILE "/opt/persistent/localtime"
 
 #define DEVICE_PROPERTIES_FILE "/etc/device.properties"
 
@@ -89,6 +90,13 @@ using namespace std;
 
 #define STORE_DEMO_FILE "/opt/persistent/store-mode-video/videoFile.mp4"
 #define STORE_DEMO_LINK "file:///opt/persistent/store-mode-video/videoFile.mp4"
+
+#define RFC_LOG_UPLOAD "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadBeforeDeepSleep.Enable"
+
+#define LOG_UPLOAD_STATUS_SUCCESS "UPLOAD_SUCCESS"
+#define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
+#define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
+
 
 /**
  * @struct firmwareUpdate
@@ -329,6 +337,8 @@ namespace WPEFramework {
 	    m_ManufacturerDataModelNameValid = false;
             m_MfgSerialNumberValid = false;
 #endif
+            m_uploadLogsPid = -1;
+
             regcomp (&m_regexUnallowedChars, REGEX_UNALLOWABLE_INPUT, REG_EXTENDED);
 
             /**
@@ -432,6 +442,9 @@ namespace WPEFramework {
 #endif
             registerMethod("uploadLogs", &SystemServices::uploadLogs, this);
 
+            registerMethod("uploadLogsAsync", &SystemServices::uploadLogsAsync, this);
+            registerMethod("abortLogUpload", &SystemServices::abortLogUpload, this);
+
             registerMethod("getPowerStateBeforeReboot", &SystemServices::getPowerStateBeforeReboot,
                     this);
             registerMethod("getLastFirmwareFailureReason", &SystemServices::getLastFirmwareFailureReason, this);
@@ -449,7 +462,6 @@ namespace WPEFramework {
             GetHandler(2)->Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
                 &SystemServices::getPlatformConfiguration, this);
         }
-
 
         SystemServices::~SystemServices()
         {
@@ -544,10 +556,13 @@ namespace WPEFramework {
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE));
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED,_powerEventHandler ));
+
     #ifdef ENABLE_THERMAL_PROTECTION
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler));
     #endif //ENABLE_THERMAL_PROTECTION
             }
         }
@@ -766,6 +781,35 @@ namespace WPEFramework {
          */
         void SystemServices::onSystemPowerStateChanged(string currentPowerState, string powerState)
         {
+
+            if ("LIGHT_SLEEP" == powerState || "STANDBY" == powerState) {
+                if ("ON" == currentPowerState) {
+                    RFC_ParamData_t param = {0};
+                    WDMP_STATUS status = getRFCParameter(NULL, RFC_LOG_UPLOAD, &param);
+                    if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+                    {
+                        JsonObject p;
+                        JsonObject r;
+                        uploadLogsAsync(p, r);
+                    }
+                }
+            } else if ("DEEP_SLEEP" == powerState) {
+
+                pid_t uploadLogsPid = -1;
+
+                {
+                    lock_guard<mutex> lck(m_uploadLogsMutex);
+                    uploadLogsPid = m_uploadLogsPid;
+                }
+
+                if (-1 != uploadLogsPid)
+                {
+                    JsonObject p;
+                    JsonObject r;
+                    abortLogUpload(p, r);
+                }
+            }
+
             JsonObject params;
             params["powerState"] = powerState;
             params["currentPowerState"] = currentPowerState;
@@ -1008,7 +1052,7 @@ namespace WPEFramework {
 		LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
 		IARM_Bus_MFRLib_GetSerializedData_Param_t param;
 		param.bufLen = 0;
-		param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+		param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
 		IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 		param.buffer[param.bufLen] = '\0';
 		LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
@@ -1081,7 +1125,7 @@ namespace WPEFramework {
             param.bufLen = 0;
             param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
             if (!parameter.compare(MODEL_NAME)) {
-                param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+                param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
             } else if (!parameter.compare(HARDWARE_ID)) {
                 param.type = mfrSERIALIZED_TYPE_HWID;
             }
@@ -1151,7 +1195,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             LOGWARN("SystemService updatingFirmware\n");
-            string command("/lib/rdk/deviceInitiatedFWDnld.sh 0 4 >> /opt/logs/swupdate.log &");
+            string command("/lib/rdk/swupdate_utility.sh 0 4 >> /opt/logs/swupdate.log &");
             Utils::cRunScript(command.c_str());
             returnResponse(true);
         }
@@ -2132,6 +2176,36 @@ namespace WPEFramework {
         }
 
         /***
+         * @brief : sends notification when time source state has changed.
+         *
+         */
+        void SystemServices::onLogUpload(int newState)
+        {
+            lock_guard<mutex> lck(m_uploadLogsMutex);
+
+            if (-1 != m_uploadLogsPid) {
+                JsonObject params;
+
+                params["logUploadStatus"] = newState == IARM_BUS_SYSMGR_LOG_UPLOAD_SUCCESS ? LOG_UPLOAD_STATUS_SUCCESS :
+                    newState == IARM_BUS_SYSMGR_LOG_UPLOAD_ABORTED ? LOG_UPLOAD_STATUS_ABORTED : LOG_UPLOAD_STATUS_FAILURE;
+
+                sendNotify(EVT_ONLOGUPLOAD, params);
+                GetHandler(2)->Notify(EVT_ONLOGUPLOAD, params);
+
+                pid_t wp;
+                int status;
+
+                if ((wp = waitpid(m_uploadLogsPid, &status, 0)) != m_uploadLogsPid) {
+                    LOGERR("Waitpid for failed: %d, status: %d", m_uploadLogsPid, status);
+                }
+
+                m_uploadLogsPid = -1;
+            } else {
+                LOGERR("Upload Logs script isn't runing");
+            }
+        }
+
+        /***
          * @brief : Worker to fetch details of various MAC addresses.
          * @Event : {"ecm_mac":"<MAC>","estb_mac":"<MAC>","moca_mac":"<MAC>",
          *     "eth_mac":"<MAC>","wifi_mac":"<MAC>","info":"Details fetch status",
@@ -2276,7 +2350,15 @@ namespace WPEFramework {
 								fflush(f);
 								fsync(fileno(f));
 								fclose(f);
+#ifdef ENABLE_LINK_LOCALTIME
+								// Now create the linux link back to the zone info file to our writeable localtime
+                                				if (Utils::fileExists(LOCALTIME_FILE)) {
+                                					remove (LOCALTIME_FILE);
+                                				}
 
+								LOGWARN("Linux localtime linked to %s\n", city.c_str());
+								symlink(city.c_str(), LOCALTIME_FILE);
+#endif
 							} else {
 								LOGERR("Unable to open %s file.\n", TZ_FILE);
 								populateResponseWithError(SysSrv_FileAccessFailed, response);
@@ -2369,7 +2451,7 @@ namespace WPEFramework {
 						}
 					}else{
 						resp = writeTerritory(territoryStr,regionStr);
-						LOGWARN(" territory name %s ", territoryStr.c_str());
+						LOGWARN(" Region is empty, only territory is updated. territory name %s ", territoryStr.c_str());
 					}
 				}else{
 					JsonObject error;
@@ -2438,11 +2520,28 @@ namespace WPEFramework {
 			if(str.length() > 0){
 				retValue = true;
 				m_strTerritory = str.substr(str.find(":")+1,str.length());
-				getline (inFile, str);
-				if(str.length() > 0){
-					m_strRegion = str.substr(str.find(":")+1,str.length());
+				int index = m_strStandardTerritoryList.find(m_strTerritory);
+				if((m_strTerritory.length() == 3) && (index >=0 && index <= 1100) ){
+
+					getline (inFile, str);
+					if(str.length() > 0){
+						m_strRegion = str.substr(str.find(":")+1,str.length());
+						if(!isRegionValid(m_strRegion)){
+							m_strTerritory = "";
+							m_strRegion = "";
+							LOGERR("Territory file corrupted  - region : %s",m_strRegion.c_str());
+							LOGERR("Returning empty values");
+						}
+					}
 				}
-			}else{
+				else{
+					m_strTerritory = "";
+					m_strRegion = "";
+					LOGERR("Territory file corrupted - territory : %s",m_strTerritory.c_str());
+					LOGERR("Returning empty values");
+				}
+			}
+			else{
 				LOGERR("Invalid territory file");
 			}
 			inFile.close();
@@ -2518,6 +2617,79 @@ namespace WPEFramework {
 		//Notify TimeZone changed
 		sendNotify(EVT_ONTIMEZONEDSTCHANGED, params);
 	}
+
+    uint32_t SystemServices::uploadLogsAsync(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGWARN("");
+
+        pid_t uploadLogsPid = -1;
+
+        {
+            lock_guard<mutex> lck(m_uploadLogsMutex);
+            uploadLogsPid = m_uploadLogsPid;
+        }
+
+        if (-1 != uploadLogsPid) {
+            LOGWARN("Another instance of log upload script is running");
+            abortLogUpload(parameters, response);
+        }
+
+        lock_guard<mutex> lck(m_uploadLogsMutex);
+        m_uploadLogsPid = UploadLogs::logUploadAsync();
+
+        returnResponse(true);
+    }
+
+    uint32_t SystemServices::abortLogUpload(const JsonObject& parameters, JsonObject& response)
+    {
+
+        lock_guard<mutex> lck(m_uploadLogsMutex);
+
+        if (-1 != m_uploadLogsPid) {
+
+            // Kill child processes
+            std::stringstream cmd;
+            cmd << "pgrep -P " << m_uploadLogsPid;
+
+            FILE* fp = popen(cmd.str().c_str(), "r");
+            if (NULL != fp) {
+
+                char output[1024];
+                while (NULL != fgets (output, sizeof(output) - 1, fp)) {
+                    std::string line = output;
+                    line = trim(line);
+
+                    char *end;
+                    int pid = strtol(line.c_str(), &end, 10);
+
+                    if (line.c_str() != end && 0 != pid && 1 != pid) {
+                        kill(pid, SIGKILL);
+                    } else
+                        LOGERR("Bad pid: %d", pid);
+                }
+
+                pclose(fp);
+            } else {
+                LOGERR("Cannot run command\n");
+            }
+
+            kill(m_uploadLogsPid, SIGKILL);
+
+            int status;
+            waitpid(m_uploadLogsPid, &status, 0);
+
+            m_uploadLogsPid = -1;
+
+            JsonObject params;
+            params["logUploadStatus"] = LOG_UPLOAD_STATUS_ABORTED;
+            sendNotify(EVT_ONLOGUPLOAD, params);
+
+            returnResponse(true);
+        }
+
+        LOGERR("Upload logs script is not running");
+        returnResponse(false);
+    }
 
         /***
          * @brief : To fetch timezone from TZ_FILE.
@@ -3414,22 +3586,6 @@ namespace WPEFramework {
 			reason = ((reason.length()) ? reason : "application");
             LOGINFO("SystemServices::setDevicePowerState state: %s\n", state.c_str());
 
-#if defined(LOGUPLOAD_BEFORE_DEEPSLEEP)
-            if ( "LIGHT_SLEEP" == state || "STANDBY" == state){
-                if ( "ON" == m_current_state){
-
-                    /* only if transition from ON -> LIGHT_SLEEP
-                     * perform logupload when state change to Standby */
-                    int32_t uploadStatus = UploadLogs::LogUploadBeforeDeepSleep();
-                    if ( E_NOK == uploadStatus ){
-                        LOGERR("SystemServices Logupload Disabled \n");
-                    }
-                    else {
-                        LOGINFO("LogUploadBeforeDeepSleep Success \n");
-                    }
-                }
-            }
-#endif
             if (state == "STANDBY") {
                 if (SystemServices::_instance) {
 					SystemServices::_instance->getPreferredStandbyMode(paramIn, paramOut);
@@ -3974,6 +4130,17 @@ namespace WPEFramework {
                             }
                         }
                     } break;
+                case IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD:
+                    {
+                        LOGWARN("IARMEvt: IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD = '%d'", state);
+                        if (SystemServices::_instance)
+                        {
+                            SystemServices::_instance->onLogUpload(state);
+                        } else {
+                            LOGERR("SystemServices::_instance is NULL.\n");
+                        }
+                    } break;
+
 
                 default:
                     /* Nothing to do. */;
