@@ -1330,7 +1330,6 @@ TEST_F(SystemServicesEventIarmTest, onRebootRequest)
 TEST_F(SystemServicesTest, getDeviceInfoFailed_OnQueryParamContainsUnallowableCharacter)
 {
    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":abc#$}"), response));
-   //ASSERT_EQ(response, "{\"message\":\"Input has unallowable characters\",\"success\":false}");
 }
 
 /**
@@ -1344,24 +1343,6 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnQueryParamContainsUnallowableCh
 TEST_F(SystemServicesTest, getDeviceInfoFailed_OnInvalidQueryParam)
 {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":friendId}"), response));
-    //EXPECT_THAT(response, string("{\"success\":false}"));
-}
-
-/**
- * @brief : getDeviceInfo When QueryParam is Empty  and DevicePropertyFile Not Exist
- *          Check if (i)No input query param passed/ query Param = {make}
- *          & (ii) device property file doesnot exist,
- *          then,getDeviceInfo shall be failed and  returns an error message in the response
- *
- * @param[in]   : "params": "{}"
- * @return      : {"message":"Expected file not found","success":false}
- */
-TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileNotExist)
-{
-    /* TODO : Implementation To be done:
-     * Need to mock as etc/device.properties does not exist.Working on it */
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
-    //ASSERT_EQ(response, "{\"SysSrv_Status\":4,\"errorMessage\":\"Unexpected Error\",\"success\":false}");
 }
 
 /**
@@ -1383,7 +1364,6 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileFailedToOpen)
         .WillOnce(::testing::Return(nullptr));
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{}"), response));
-    //ASSERT_EQ(response,"{\"SysSrv_Status\":5,\"errorMessage\":\"Unexpected Error\",\"success\":false}");
 }
 
 /**
@@ -1401,7 +1381,6 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnMissingKeyInDevicePropertyFile)
     file.close();
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
-    //EXPECT_THAT(response, string("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 }
 
 /**
@@ -1419,7 +1398,6 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnMissingKeyValueInDeviceProperty
     file.close();
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":make}"), response));
-    //EXPECT_THAT(response, string("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 }
 
 /**
@@ -1441,7 +1419,6 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnManufactureDataReadAPIFailed)
                return IARM_RESULT_IPCCORE_FAIL;
             });
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), _T("{\"params\":hardwareID}"), response));
-    //EXPECT_THAT(response, string("{\"SysSrv_Status\":11,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 }
 
 /**
@@ -3835,23 +3812,6 @@ TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenTmpSerialNumberFileNotE
 }
 
 /**
- * @brief : getSerialNumber when TMP_SERIAL_NUMBER_FILE failed to read.
- *        Check if contents of TMP_SERIAL_NUMBER_FILE can not be open,
- *        then getSerialNumber shall be failed
- *
- * @param[in]   :  This method takes no parameters.
- * @return      :  {"SysSrv_Status":6,"errorMessage":"Unsupported file content","success":false}
- */
-TEST_F(SystemServicesTest, getSerialNumberSnmpFailed_WhenFailedToReadFromTmpFile)
-{
-     /*TODO : Implementation To be done :
-     * Mocking fopen with file can not open and read has not been working straight forward
-     * as it impacts other APIs/plugins using fopen, so working on that */
-
-    //EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
-}
-
-/**
  * @brief : getSerialNumber when serial number successfully read from  /tmp/.STB_SER_NO .
  *        Check if file /lib/rdk/getStateDetails.sh and TMP_SERIAL_NUMBER_FILE file[/tmp/.STB_SER_NO] exist,
  *        then getSerialNumber shall be succeeded and returns serial number in response.
@@ -4382,7 +4342,6 @@ TEST_F(SystemServicesTest, uploadLogFailed_whenGetFilenameFailed)
                  return pipe;
               }));
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("uploadLogs"), _T("{}"), response));
-   //EXPECT_EQ(response, "{\"error\":\"can't generate logs filename\",\"success\":false}");
 }
 
 /**
@@ -4396,7 +4355,6 @@ TEST_F(SystemServicesTest, uploadLogFailed_whenGetFilenameFailed)
 TEST_F(SystemServicesTest, uploadLogFailed_withBadUrl)
 {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("uploadLogs"), _T("{\"url\": \"http://ssr.ccp.xcal.tv/cgi-bin/rdkb_snmp.cgi\"}"), response));
-   //EXPECT_EQ(response, "{\"error\":\"invalid or insecure input url\",\"success\":false}");
 }
 
 /**
@@ -4424,9 +4382,7 @@ TEST_F(SystemServicesTest, uploadLogFailed_whenArchieveLogsFailed)
                  return pipe;
               }));
     EXPECT_FALSE(Core::File(string(_T(logArchievedPath))).Exists());
-
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("uploadLogs"), _T("{}"), response));
-    //EXPECT_EQ(response, "{\"error\":\"tar fail\",\"success\":false}");
 }
 
 /**
