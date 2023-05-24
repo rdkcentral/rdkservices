@@ -1946,8 +1946,6 @@ TEST_F(SystemServicesTest,  requestSystemRebootSuccess_onRebootBusAPIFailed)
 TEST_F(SystemServicesTest, getStateInfoFailed_onEmptyParamList)
 {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getStateInfo"), _T("{}"), response));
-    //EXPECT_THAT(response, string("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
-
 }
 
 /**
@@ -1961,7 +1959,6 @@ TEST_F(SystemServicesTest, getStateInfoFailed_onEmptyParamList)
 TEST_F(SystemServicesTest, getStateInfoFailed_OnInvalidQueryParam)
 {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getStateInfo"), _T("{}"), response));
-    //EXPECT_THAT(response, string("{\"SysSrv_Status\":2,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
 }
 
 /**
@@ -3734,7 +3731,7 @@ TEST_F(SystemServicesTest, getSerialNumberTR069Failed_OnGetRFCParameterFailed)
             [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
                 return WDMP_FAILURE;
             }));
-     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getSerialNumber"), _T("{}"), response));
 }
 
 /**
