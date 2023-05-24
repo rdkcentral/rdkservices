@@ -408,7 +408,10 @@ typedef struct _DSMgr_EventData_t {
             dsHdmiInPort_t port;
             bool allm_mode;
         } hdmi_in_allm_mode; /*HDMI in ALLM Mode change*/
-
+        struct _HDMI_IN_CONTENT_TYPE_DATA{
+            dsHdmiInPort_t port;
+            dsAviContentType_t aviContentType;
+        }hdmi_in_content_type;
     } data;
 } IARM_Bus_DSMgr_EventData_t;
 
