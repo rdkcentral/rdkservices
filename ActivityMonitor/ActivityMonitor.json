@@ -34,7 +34,7 @@
     },
     "methods": {
         "enableMonitoring":{
-            "summary": "Enables monitoring for the given application PIDs using the given thresholds for memory and CPU usage at frequencies specified by the intervals.",
+            "summary": "Enables monitoring for the given application PIDs using the given thresholds for memory and CPU usage at frequencies specified by the intervals. Only the PIDs, returned by `getAllMemoryUsage` method can be monitored.",
             "events": {
                 "onCPUThresholdOccurred" : "Triggered when an application exceeds the `cpuThresholdPercent` value for a duration longer than the `cpuThresholdSeconds` value",
                 "onMemoryThresholdOccurred" : "Triggered when an application exceeds the given memory threshold"
@@ -108,7 +108,7 @@
             }
         },
         "getApplicationMemoryUsage": {
-            "summary": "Returns memory usage for a specific monitor-enabled application.",
+            "summary": "Returns memory usage for a specific application. Only the PIDs, returned by `getAllMemoryUsage` method can be used.",
             "params": {
                 "type":"object",
                 "properties": {
