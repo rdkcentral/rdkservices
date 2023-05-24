@@ -889,4 +889,29 @@ Triggered whenever game feature(ALLM) status changes for an HDMI Input.
     }
 }
 ```
+<a name="hdmiContentTypeUpdate"></a>
+## *hdmiContentTypeUpdate*
 
+Triggered whenever AVI content type changed for a HDMI Input.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=hdmiContentTypeUpdate)
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.id | integer | An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
+| params.aviContentType | integer | Content type info of a Hdmi Input of type dsAviContentType_t and the integer values indicates following accordingly 0 - Graphics, 1 - Photo, 2 - Cinema, 3 - Game, 4 - Invalid data|
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.hdmiContentTypeUpdate",
+    "params": {
+        "id": 1,
+        "aviContentType": 1
+    }
+}
+```
