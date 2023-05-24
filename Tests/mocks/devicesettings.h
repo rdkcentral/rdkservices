@@ -219,6 +219,14 @@ typedef enum _dsHdmiInSignalStatus_t {
     dsHDMI_IN_SIGNAL_STATUS_MAX
 } dsHdmiInSignalStatus_t;
 
+typedef enum dsAviContentType {
+  dsAVICONTENT_TYPE_GRAPHICS,
+  dsAVICONTENT_TYPE_PHOTO,
+  dsAVICONTENT_TYPE_CINEMA,
+  dsAVICONTENT_TYPE_GAME,
+  dsAVICONTENT_TYPE_INVALID,
+}dsAviContentType_t;
+
 struct dsSpd_infoframe_st {
     uint8_t pkttype;
     uint8_t version;
