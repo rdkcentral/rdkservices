@@ -272,6 +272,11 @@ if (BUILD_ENABLE_TELEMETRY_LOGGING)
     add_definitions (-DENABLE_TELEMETRY_LOGGING)
 endif()
 
+if (BUILD_ENABLE_LINK_LOCALTIME)
+    message("Building with link localtime")
+    add_definitions (-DENABLE_LINK_LOCALTIME)
+endif()
+
 if(BUILD_BROADCOM)
     include(broadcom.cmake)
 elseif(BUILD_RASPBERRYPI)
