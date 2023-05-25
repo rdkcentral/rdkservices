@@ -165,9 +165,7 @@
                     "Resolution576P",
                     "Resolution720P",
                     "Resolution1080I",
-                    "Resolution1080P",
-                    "Resolution2160P30",
-                    "Resolution2160P60"
+                    "Resolution1080P"
                 ],
                 "example": "ResolutionUnknown"
             }
