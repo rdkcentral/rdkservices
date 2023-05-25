@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.19] - 2023-05-23
+### Added
+- Implementation to get the partner provisioning context from whoAmI
+
 ## [1.0.18] - 2023-05-16
 ### Fixed
 - Updated unsolicited_maintenance completed status as true in stopMaintenance()
