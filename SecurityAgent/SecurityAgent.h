@@ -65,7 +65,11 @@ namespace Plugin {
             }
 
         private:
+#ifndef USE_THUNDER_R4
             void* Aquire(const string&, const uint32_t interfaceId, const uint32_t versionId) override
+#else
+            void* Acquire(const string&, const uint32_t interfaceId, const uint32_t versionId) override
+#endif /* USE_THUNDER_R4 */
             {
                 void* result = nullptr;
 
