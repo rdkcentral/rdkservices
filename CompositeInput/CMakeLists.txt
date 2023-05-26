@@ -32,10 +32,11 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 
-target_link_libraries(${MODULE_NAME}
-        PRIVATE
-        ${NAMESPACE}Protocols::${NAMESPACE}Protocols
-        )
+if (USE_THUNDER_R4)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}COM::${NAMESPACE}COM)
+else ()
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Protocols::${NAMESPACE}Protocols)
+endif (USE_THUNDER_R4)
 
 find_package(DS)
 find_package(IARMBus)
