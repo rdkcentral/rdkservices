@@ -18,9 +18,7 @@
  */
  
 #include "../../Module.h"
-#ifndef USE_THUNDER_R4
 #include <interfaces/IDeviceIdentification.h>
-#endif /* USE_THUNDER_R4 */
 
 #include <fstream>
 

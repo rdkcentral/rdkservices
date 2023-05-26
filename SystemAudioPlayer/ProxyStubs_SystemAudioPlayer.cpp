@@ -46,11 +46,7 @@ namespace ProxyStubs {
 
             // read parameters
             RPC::Data::Frame::Reader reader(input.Reader());
-#ifndef USE_THUNDER_R4
             RPC::instance_id param0 = reader.Number<RPC::instance_id>();
-#else
-            Core::instance_id param0 = reader.Number<Core::instance_id>();
-#endif /* USE_THUNDER_R4 */
             PluginHost::IShell* param0_proxy = nullptr;
             ProxyStub::UnknownProxy* param0_proxy_inst = nullptr;
             if (param0 != 0) {
@@ -83,11 +79,7 @@ namespace ProxyStubs {
 
             // read parameters
             RPC::Data::Frame::Reader reader(input.Reader());
-#ifndef USE_THUNDER_R4
             RPC::instance_id param0 = reader.Number<RPC::instance_id>();
-#else
-            Core::instance_id param0 = reader.Number<Core::instance_id>();
-#endif /* USE_THUNDER_R4 */
             ISystemAudioPlayer::INotification* param0_proxy = nullptr;
             ProxyStub::UnknownProxy* param0_proxy_inst = nullptr;
             if (param0 != 0) {
@@ -116,11 +108,7 @@ namespace ProxyStubs {
 
             // read parameters
             RPC::Data::Frame::Reader reader(input.Reader());
-#ifndef USE_THUNDER_R4
             RPC::instance_id param0 = reader.Number<RPC::instance_id>();
-#else
-            Core::instance_id param0 = reader.Number<Core::instance_id>();
-#endif /* USE_THUNDER_R4 */
             ISystemAudioPlayer::INotification* param0_proxy = nullptr;
             ProxyStub::UnknownProxy* param0_proxy_inst = nullptr;
             if (param0 != 0) {
@@ -446,11 +434,7 @@ namespace ProxyStubs {
 
     class SystemAudioPlayerProxy final : public ProxyStub::UnknownProxyType<ISystemAudioPlayer> {
     public:
-#ifndef USE_THUNDER_R4
         SystemAudioPlayerProxy(const Core::ProxyType<Core::IPCChannel>& channel, RPC::instance_id implementation, const bool otherSideInformed)
-#else
-        SystemAudioPlayerProxy(const Core::ProxyType<Core::IPCChannel>& channel, Core::instance_id implementation, const bool otherSideInformed)
-#endif /* USE_THUNDER_R4 */
             : BaseClass(channel, implementation, otherSideInformed)
         {
         }
@@ -461,11 +445,7 @@ namespace ProxyStubs {
 
             // write parameters
             RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
-#ifndef USE_THUNDER_R4
             writer.Number<RPC::instance_id>(RPC::instance_cast<PluginHost::IShell*>(param0));
-#else
-            writer.Number<Core::instance_id>(RPC::instance_cast<PluginHost::IShell*>(param0));
-#endif /* USE_THUNDER_R4 */
 
             // invoke the method handler
             uint32_t output{};
@@ -486,11 +466,7 @@ namespace ProxyStubs {
 
             // write parameters
             RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
-#ifndef USE_THUNDER_R4
             writer.Number<RPC::instance_id>(RPC::instance_cast<ISystemAudioPlayer::INotification*>(param0));
-#else
-            writer.Number<Core::instance_id>(RPC::instance_cast<ISystemAudioPlayer::INotification*>(param0));
-#endif /* USE_THUNDER_R4 */
 
             // invoke the method handler
             if (Invoke(newMessage) == Core::ERROR_NONE) {
@@ -506,11 +482,7 @@ namespace ProxyStubs {
 
             // write parameters
             RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
-#ifndef USE_THUNDER_R4
             writer.Number<RPC::instance_id>(RPC::instance_cast<ISystemAudioPlayer::INotification*>(param0));
-#else
-            writer.Number<Core::instance_id>(RPC::instance_cast<ISystemAudioPlayer::INotification*>(param0));
-#endif /* USE_THUNDER_R4 */
 
             // invoke the method handler
             if (Invoke(newMessage) == Core::ERROR_NONE) {
@@ -773,11 +745,7 @@ namespace ProxyStubs {
 
     class SystemAudioPlayerNotificationProxy final : public ProxyStub::UnknownProxyType<ISystemAudioPlayer::INotification> {
     public:
-#ifndef USE_THUNDER_R4
         SystemAudioPlayerNotificationProxy(const Core::ProxyType<Core::IPCChannel>& channel, RPC::instance_id implementation, const bool otherSideInformed)
-#else
-        SystemAudioPlayerNotificationProxy(const Core::ProxyType<Core::IPCChannel>& channel, Core::instance_id implementation, const bool otherSideInformed)
-#endif /* USE_THUNDER_R4 */
             : BaseClass(channel, implementation, otherSideInformed)
         {
         }
