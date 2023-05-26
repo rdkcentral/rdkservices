@@ -413,19 +413,7 @@ namespace WPEFramework {
 
               private:
                   virtual void StateChange(PluginHost::IShell* shell);
-#ifdef USE_THUNDER_R4
-                  void Activation(const string& name, PluginHost::IShell* plugin) override
-                  {
-                  }
 
-                  void Deactivation(const string& name, PluginHost::IShell* plugin) override
-                  {
-                  }
-
-                  virtual void  Activated(const string& callSign,  PluginHost::IShell* plugin);
-                  virtual void  Deactivated(const string& callSign,  PluginHost::IShell* plugin);
-                  virtual void  Unavailable(const string& callSign,  PluginHost::IShell* plugin);
-#endif /* USE_THUNDER_R4 */
               private:
                   RDKShell& mShell;
             };

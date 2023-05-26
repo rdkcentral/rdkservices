@@ -314,11 +314,7 @@ namespace Plugin {
 #ifdef __WINDOWS__
 #pragma warning(disable : 4355)
 #endif
-#ifndef USE_THUNDER_R4
     LocationService::LocationService(Core::IDispatchType<void>* callback)
-#else
-    LocationService::LocationService(Core::IDispatch* callback)
-#endif /* USE_THUNDER_R4 */
         : BaseClass(1, g_Factory, false, Core::NodeId(), Core::NodeId(), 256, 1024)
         , _adminLock()
         , _state(IDLE)
@@ -440,11 +436,7 @@ namespace Plugin {
 
             ASSERT(_infoCarrier.IsValid() == true);
 
-#ifndef USE_THUNDER_R4
             element->Body<Web::IBody>(Core::proxy_cast<Web::IBody>(Core::ProxyType<Web::TextBody>::Create()));
-#else
-            element->Body<Web::IBody>(Core::ProxyType<Web::IBody>(Core::ProxyType<Web::TextBody>::Create()));
-#endif
         }
     }
 
@@ -599,11 +591,7 @@ namespace Plugin {
 
         // See if we need rescheduling
         if (result != Core::infinite) {
-#ifndef USE_THUNDER_R4
             _activity.Schedule(Core::Time::Now().Add(result));
-#else
-            _activity.Reschedule(Core::Time::Now().Add(result));
-#endif /* USE_THUNDER_R4 */
         }
     }
 

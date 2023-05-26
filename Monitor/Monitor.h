@@ -774,11 +774,7 @@ namespace Plugin {
                             // Moreover it's the only only which now becomes active. This means probing
                             // has to be activated as well since it was stopped at point the last observee
                             // turned inactive
-#ifdef USE_THUNDER_R4
-                            _job.Reschedule(Core::Time::Now());
-#else
                             _job.Schedule(Core::Time::Now());
-#endif /* USE_THUNDER_R4 */
 
                             TRACE(Trace::Information, (_T("Starting to probe as active observee appeared.")));
                         }
@@ -819,27 +815,6 @@ namespace Plugin {
 
                 _adminLock.Unlock();
             }
-#ifdef USE_THUNDER_R4
-            void Activation(const string& name, PluginHost::IShell* plugin) override
-            {
-            }
-
-           void Deactivation(const string& name, PluginHost::IShell* plugin) override
-           {
-           }
-
-           void Activated (const string& callsign, PluginHost::IShell* service) override
-           {
-                StateChange(service);
-           }
-           void Deactivated (const string& callsign, PluginHost::IShell* service) override
-           {
-                StateChange(service);
-           }
-           void Unavailable(const string&, PluginHost::IShell*) override
-           {
-           }
-#endif /* USE_THUNDER_R4 */
             void Snapshot(Core::JSON::ArrayType<Monitor::Data>& snapshot)
             {
                 _adminLock.Lock();
@@ -988,11 +963,7 @@ namespace Plugin {
                                 Core::EnumerateType<PluginHost::IShell::reason> why(((value & MonitorObject::EXCEEDED_MEMORY) != 0) ? PluginHost::IShell::MEMORY_EXCEEDED : PluginHost::IShell::FAILURE);
 
                                 const string message("{\"callsign\": \"" + plugin->Callsign() + "\", \"action\": \"Deactivate\", \"reason\": \"" + why.Data() + "\" }");
-#ifdef USE_THUNDER_R4
-                                SYSLOG_GLOBAL(Logging::Fatal, (_T("FORCED Shutdown: %s by reason: %s."), plugin->Callsign().c_str(), why.Data()));
-#else
                                 SYSLOG(Trace::Fatal, (_T("FORCED Shutdown: %s by reason: %s."), plugin->Callsign().c_str(), why.Data()));
-#endif /* USE_THUNDER_R4 */
 
                                 _service->Notify(message);
 
@@ -1020,11 +991,7 @@ namespace Plugin {
                         _job.Submit();
                     } else {
                         nextSlot += 1000 /* Add 1 ms */;
-#ifdef USE_THUNDER_R4
-                        _job.Reschedule(nextSlot);
-#else
                         _job.Schedule(nextSlot);
-#endif /* USE_THUNDER_R4 */
                     }
                 } else {
                     TRACE(Trace::Information, (_T("Stopping to probe due to lack of active observees.")));
