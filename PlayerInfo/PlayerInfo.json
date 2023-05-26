@@ -194,7 +194,8 @@
                     "Mono",
                     "Stereo",
                     "Surround",
-                    "Passthru"
+                    "Passthru",
+                    "StereoSurroundMatFollow"
                 ],
                 "example": "Unknown"
             }
@@ -236,7 +237,8 @@
                             "Mono",
                             "Stereo",
                             "Surround",
-                            "Passthru"
+                            "Passthru",
+                            "StereoSurroundMatFollow"
                         ],
                         "example": "Unknown"
                     },
