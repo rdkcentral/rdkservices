@@ -71,14 +71,14 @@ void TTSDownloader::downloadThread()
        std::string tts_request;
        TTSURLConstructer url;
        m_objectMutex.lock();
-       tts_request = url.constructURL(m_config,"",true);
+       tts_request = url.constructURL(m_config,"",true,false);
        m_objectMutex.unlock();
        while(tts_request.empty())
        {
           sleep(60);
           //looks like no internet..wait for 1 min and retry
           m_objectMutex.lock();
-          tts_request = url.constructURL(m_config,"",true);
+          tts_request = url.constructURL(m_config,"",true,false);
           m_objectMutex.unlock();
        }
        if((tts_request.compare("null")) == 0)

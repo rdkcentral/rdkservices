@@ -23,103 +23,54 @@ TTSURLConstructer::~TTSURLConstructer()
 
 }
 
-std::string TTSURLConstructer::constructURL(TTSConfiguration &config,std::string text,bool isfallback)
+std::string  TTSURLConstructer::httpgetURL(bool isremote,TTSConfiguration &config,std::string text,bool isfallback)
 {
-     // EndPoint URL
     std::string tts_request;
-    if(!(config.apiKey().empty()))
+
+    if(isremote)
     {
-        CURL *curl;
-        CURLcode res;
-        struct curl_slist *list = NULL;
-        std::string readBuffer;
-        curl = curl_easy_init();
-        if(curl)
-        {
-            JsonObject jsonConfig;
-            JsonObject parameters;
-            std::string post_data;
-            if(isfallback)
-            {
-               jsonConfig["input"] = config.getFallbackValue();
-            }
-            else
-            {
-               jsonConfig["input"] = text;
-            }
-            jsonConfig["language"] = config.language();
-            jsonConfig["voice"] = config.voice();
-            jsonConfig["encoding"] = "mp3";
-            jsonConfig.ToString(post_data);
-            TTSLOG_INFO("gcd postdata :%s\n",post_data.c_str());
-
-            curl_easy_setopt(curl, CURLOPT_URL,config.secureEndPoint().c_str());
-            curl_easy_setopt(curl, CURLOPT_POST, 1L);
-            curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 2L);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.c_str());
-            list = curl_slist_append(list, "content-type: application/json");
-            list = curl_slist_append(list, (std::string("x-api-key: ") +
-                                            config.apiKey()).c_str() );
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-
-            res = curl_easy_perform(curl);
-            if ( res != CURLE_OK )
-            {
-                TTSLOG_ERROR("TTS: Error in interacting with endpoint. CURL error is:  %s\n", curl_easy_strerror(res));
-                if( config.isFallbackEnabled() && isfallback == false)
-                {
-                    TTSLOG_INFO("RDK TTS: Device is not connected with Internet, hence speaking fallback text in place of actual text: %s",text.c_str());
-                    tts_request.assign(config.getFallbackPath());
-                }
-            }
-            else
-            {
-                TTSLOG_INFO("gcd curl response :%s\n",readBuffer.c_str());
-                parameters.FromString(readBuffer);
-                tts_request.assign(parameters["url"].String());
-            }
-            curl_slist_free_all(list);
-            curl_easy_cleanup(curl);
-        }
+        tts_request.append(config.secureEndPoint());
     }
     else
     {
-     
-        tts_request.append(config.secureEndPoint());
+        tts_request.append(config.localEndPoint());
+    }
 
-        // Voice
-        if(!config.voice().empty()) {
+    // Voice
+    if(!config.voice().empty()) {
         tts_request.append("voice=");
-        tts_request.append(config.voice());
-        }
-
-        // Language
-        if(!config.language().empty()) {
-        tts_request.append("&language=");
-        tts_request.append(config.language());
-        }
-
-        // Rate / speed
-        tts_request.append("&rate=");
-        tts_request.append(std::to_string(config.rate() > 100 ? 100 : config.rate()));
-
-        // Sanitize String
-        std::string sanitizedString;
-        if(isfallback)
+        if(isremote)
         {
-           sanitizeString(config.getFallbackValue(), sanitizedString);
+            tts_request.append(config.voice());
         }
         else
         {
-           sanitizeString(text, sanitizedString);
+            tts_request.append(config.localVoice());
         }
-        tts_request.append("&text=");
-        tts_request.append(sanitizedString);
     }
 
-    TTSLOG_WARNING("Constructured final URL is %s", tts_request.c_str());
+    // Language
+    if(!config.language().empty()) {
+        tts_request.append("&language=");
+        tts_request.append(config.language());
+     }
+
+    // Rate / speed
+    tts_request.append("&rate=");
+    tts_request.append(std::to_string(config.rate() > 100 ? 100 : config.rate()));
+
+    // Sanitize String
+    std::string sanitizedString;
+    if(isfallback)
+    {
+        sanitizeString(config.getFallbackValue(), sanitizedString);
+    }
+    else
+    {
+        sanitizeString(text, sanitizedString);
+    }
+    tts_request.append("&text=");
+    tts_request.append(sanitizedString);
     return tts_request;
 }
 
@@ -135,6 +86,96 @@ void TTSURLConstructer::replaceIfIsolated(std::string& text, const std::string& 
         } else {
             pos += search.length();
         }
+    }
+}
+
+std::string  TTSURLConstructer::httppostURL(TTSConfiguration &config,std::string text,bool isfallback)
+{
+   std::string tts_request;
+   CURL *curl;
+   CURLcode res;
+   struct curl_slist *list = NULL;
+   std::string readBuffer;
+   curl = curl_easy_init();
+   if(curl)
+   {
+       JsonObject jsonConfig;
+       JsonObject parameters;
+       std::string post_data;
+       if(isfallback)
+       {
+          jsonConfig["input"] = config.getFallbackValue();
+       }
+       else
+       {
+          jsonConfig["input"] = text;
+       }
+       jsonConfig["language"] = config.language();
+       jsonConfig["voice"] = config.voice();
+       jsonConfig["encoding"] = "mp3";
+       jsonConfig.ToString(post_data);
+       TTSLOG_INFO("gcd postdata :%s\n",post_data.c_str());
+
+       curl_easy_setopt(curl, CURLOPT_URL,config.secureEndPoint().c_str());
+       curl_easy_setopt(curl, CURLOPT_POST, 1L);
+       curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 2L);
+       curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.c_str());
+       list = curl_slist_append(list, "content-type: application/json");
+       list = curl_slist_append(list, (std::string("x-api-key: ") +
+                                            config.apiKey()).c_str() );
+       curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+       res = curl_easy_perform(curl);
+	   if ( res != CURLE_OK )
+       {
+          TTSLOG_ERROR("TTS: Error in interacting with endpoint. CURL error is:  %s\n", curl_easy_strerror(res));
+          if( config.isFallbackEnabled() && isfallback == false)
+          {
+             TTSLOG_INFO("RDK TTS: Device is not connected with Internet, hence speaking fallback text in place of actual text: %s",text.c_str());
+             tts_request.assign(config.getFallbackPath());
+          }
+       }
+       else
+       {
+          TTSLOG_INFO("gcd curl response :%s\n",readBuffer.c_str());
+          parameters.FromString(readBuffer);
+          tts_request.assign(parameters["url"].String());
+       }
+       curl_slist_free_all(list);
+       curl_easy_cleanup(curl);
+   }
+        return tts_request;
+}
+
+std::string TTSURLConstructer::constructURL(TTSConfiguration &config,std::string text,bool isfallback,bool islocal)
+{
+     if(!(config.apiKey().empty()))
+    {
+       if(!islocal)
+       {
+          TTSLOG_INFO("Device online using remote endpoint");
+          return httppostURL(config,text,isfallback);
+       }
+       else
+       {
+          TTSLOG_INFO("Device offline using local endpoint");
+          return httpgetURL(false,config,text,isfallback);
+       }
+    }
+    else
+    {
+       if(!islocal)
+       {
+          TTSLOG_INFO("Device online using remote endpoint");
+          return httpgetURL(true,config,text,isfallback);
+       }
+       else
+       {
+          TTSLOG_INFO("Device offline using localendpoint");
+          return httpgetURL(false,config,text,isfallback);
+       }
     }
 }
 

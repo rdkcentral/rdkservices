@@ -114,13 +114,30 @@ TTS_Error TTSManager::listVoices(std::string language, std::vector<std::string> 
     return TTS_OK;
 }
 
+TTS_Error TTSManager::listLocalVoices(std::string language, std::vector<std::string> &voices) {
+     if(language.empty()) {
+        voices.push_back(m_defaultConfiguration.localVoice());
+     } else {
+         const std::string key = std::string("voice_for_") + language;
+         auto it = m_defaultConfiguration.m_others_local.find(key);
+         if (it != m_defaultConfiguration.m_others_local.end()) {
+             voices.push_back(it->second);
+         } else {
+             voices.push_back("");
+         }
+     }
+     return TTS_OK;
+}
+
 TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
     TTSLOG_TRACE("Setting Default Configuration");
     bool updated = false;
+    bool language_updated = false;
+    bool endpoint_updated = false;
     std::string v = m_defaultConfiguration.voice();
 
-    m_defaultConfiguration.setEndPoint(configuration.ttsEndPoint);
-    m_defaultConfiguration.setSecureEndPoint(configuration.ttsEndPointSecured);
+    endpoint_updated = m_defaultConfiguration.setEndPoint(configuration.ttsEndPoint);
+    endpoint_updated = m_defaultConfiguration.setSecureEndPoint(configuration.ttsEndPointSecured);
     if(m_defaultConfiguration.setApiKey(configuration.apiKey))
     {
        if(m_defaultConfiguration.isFallbackEnabled() && (m_defaultConfiguration.getFallbackPath()).empty())
@@ -135,15 +152,29 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
         if(voices.empty()) {
             TTSLOG_WARNING("voice is empty and no voices are defined for the specified language ('%s')!!!", configuration.language.c_str());
             return TTS_FAIL;
-        }
-        else {
+        } else {
             updated |= m_defaultConfiguration.setVoice(voices.front());
-            updated |= m_defaultConfiguration.setLanguage(configuration.language);
+            language_updated = m_defaultConfiguration.setLanguage(configuration.language);
+            updated |= language_updated;
         }
-    }
-    else {
+    } else {
         updated |= m_defaultConfiguration.setVoice(configuration.voice);
-        updated |= m_defaultConfiguration.setLanguage(configuration.language);
+        language_updated  = m_defaultConfiguration.setLanguage(configuration.language);
+        updated |= language_updated;
+    }
+
+    if( m_defaultConfiguration.hasValidLocalEndpoint() && language_updated ) {
+        std::vector<std::string> local_voices;
+        listLocalVoices(m_defaultConfiguration.language(),local_voices);
+        m_defaultConfiguration.setLocalVoice(local_voices.front());
+    }
+
+    if( m_defaultConfiguration.hasValidLocalEndpoint() && endpoint_updated ) {
+        std::string LoopbackEndPoint = LOOPBACK_ENDPOINT;
+        std::string  LocalhostEndPoint = LOCALHOST_ENDPOINT;
+        string url = m_defaultConfiguration.secureEndPoint();
+        if((url.rfind(LoopbackEndPoint,0) != std::string::npos)  || (url.rfind(LocalhostEndPoint,0) != std::string::npos))
+            m_defaultConfiguration.setLocalEndPoint("");
     }
 
     updated |= m_defaultConfiguration.setVolume(configuration.volume);

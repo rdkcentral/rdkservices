@@ -22,6 +22,8 @@ public:
     bool setEndPoint(const std::string endpoint);
     bool setSecureEndPoint(const std::string endpoint);
     bool setApiKey(const std::string apikey);
+    bool setLocalEndPoint(const std::string endpoint);
+    bool setLocalVoice(const std::string voice);
     bool setLanguage(const std::string language);
     bool setVoice(const std::string voice);
     bool setEnabled(const bool dnabled);
@@ -30,6 +32,7 @@ public:
     bool setPrimVolDuck(const int8_t primvolduck);
    
     bool isFallbackEnabled();
+    bool hasValidLocalEndpoint();
     void saveFallbackPath(std::string);
     const std::string getFallbackScenario();
     const std::string getFallbackPath();
@@ -39,6 +42,7 @@ public:
 
     const std::string &endPoint() { return m_ttsEndPoint; }
     const std::string &secureEndPoint() { return m_ttsEndPointSecured; }
+    const std::string &localEndPoint() { return m_ttsEndPointLocal; }
     const std::string &apiKey() { return m_apiKey; }
     const std::string &language() { return m_language; }
     const double &volume() { return m_volume; }
@@ -49,24 +53,29 @@ public:
     bool loadFromConfigStore();
     bool updateConfigStore();
     const std::string voice();
+    const std::string localVoice();
 
     bool updateWith(TTSConfiguration &config);
     bool isValid();
 
     static std::map<std::string, std::string> m_others;
+    static std::map<std::string, std::string> m_others_local;
 
 private:
     std::string m_ttsEndPoint;
     std::string m_ttsEndPointSecured;
+    std::string m_ttsEndPointLocal;
     std::string m_apiKey;
     std::string m_language;
     std::string m_voice;
+    std::string m_localVoice;
     double m_volume;
     uint8_t m_rate;
     int8_t m_primVolDuck;
     bool m_preemptiveSpeaking;
     bool m_enabled;
     bool m_fallbackenabled;
+    bool m_validLocalEndpoint;
     FallbackData m_data;
     std::mutex m_mutex;
 };
