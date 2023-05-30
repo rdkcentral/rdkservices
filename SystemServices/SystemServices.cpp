@@ -4442,7 +4442,11 @@ namespace WPEFramework {
                 if (file.IsDirectory() == true)
                 {
                   Core::Directory dir(file.Name().c_str());
+#ifndef USE_THUNDER_R4
                   if (dir.Destroy(true) == false)
+#else
+                  if (dir.Destroy() == false)
+#endif
                   {
                     response["message"] = "failed to delete dir: '" + file.Name() + "'";
                     break;
@@ -4469,7 +4473,11 @@ namespace WPEFramework {
             if (file.IsDirectory() == true)
             {
               Core::Directory dir(persistentPath.c_str());
+#ifndef USE_THUNDER_R4
               if (dir.Destroy(true) == false)
+#else
+              if (dir.Destroy() == false)
+#endif
               {
                 response["message"] = "failed to delete dir: '" + persistentPath + "'";
                 break;

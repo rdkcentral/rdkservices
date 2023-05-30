@@ -83,7 +83,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 1
-#define API_VERSION_NUMBER_PATCH 20
+#define API_VERSION_NUMBER_PATCH 0
 
 static bool isCecEnabled = false;
 static int  hdmiArcPortId = -1;
@@ -169,8 +169,11 @@ namespace WPEFramework {
 
         namespace {
             // Display Settings should use inter faces
-
+#ifndef USE_THUNDER_R4
             class Job : public Core::IDispatchType<void> {
+#else
+            class Job : public Core::IDispatch {
+#endif /* USE_THUNDER_R4 */
             public:
                 Job(std::function<void()> work)
                     : _work(work)
@@ -203,7 +206,11 @@ namespace WPEFramework {
             {
                 uint32_t result = Core::ERROR_ASYNC_FAILED;
                 Core::Event event(false, true);
+#ifndef USE_THUNDER_R4
                 Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]() {
+#else
+                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]() {
+#endif /* USE_THUNDER_R4 */
                     auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
                     if (interface == nullptr) {
                         result = Core::ERROR_UNAVAILABLE;
