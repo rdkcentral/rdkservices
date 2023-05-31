@@ -174,6 +174,11 @@
             "type": "number",
             "example": 50
         },
+        "currentAtmosCapability" : {
+            "summary": "Atmos capability of the connected device, ATMOS_SUPPORTED, ATMOS_NOT_SUPPORTED",
+            "type" : "string",
+            "example" : "ATMOS_SUPPORTED"
+        },
         "zoomSetting": {
             "summary": "Zoom setting. Possible values: `FULL`,  `NONE,`  `Letterbox 16x9`, `Letterbox 14x9`, `CCO`, `PanScan`, `Letterbox 2.21 on 4x3`, `Letterbox 2.21 on 16x9`, `Platform`, `Zoom 16x9`, `Pillarbox 4x3`, `Widescreen 4x3`",
             "type": "string",
@@ -951,6 +956,17 @@
         },
         "getSinkAtmosCapability":{
             "summary": "Returns the ATMOS capability of the sink (HDMI0).",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
             "result": {
                 "type":"object",
                 "properties": {
@@ -2511,6 +2527,20 @@
                 },
                 "required": [
                     "volumeLevel"
+                ]
+            }
+        },
+		"AtmosCapabilityChanged": {
+            "summary": "Triggered when the audio sink device Atmos capability is changed.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "currentAtmosCapability":  {
+                       "$ref": "#/definitions/currentAtmosCapability"
+                    }
+                },
+                "required": [
+                    "currentAtmosCapability"
                 ]
             }
         }
