@@ -170,19 +170,26 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
             returnIfParamNotFound(parameters, "portId");
-
+            //returnIfParamNotFound(parameters, "plane");/will not be used as this is optional parameter
+            //returnIfParamNotFound(parameters, "topmost");// will be used later
+	   
             string sPortId = parameters["portId"].String();
             int portId = 0;
-            try {
+            int planeType = 0;
+	    try {
                 portId = stoi(sPortId);
+		if (parameters.HasLabel("plane")){
+                        string sPlaneType = parameters["plane"].String();
+                        planeType = stoi(sPlaneType);
+                }
             }catch (const std::exception& err) {
-		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    LOGWARN("sPortId invalid paramater: %s %s", sPortId.c_str(),sPlaneType.c_str());
 		    returnResponse(false);
             }
             bool success = true;
             try
             {
-                device::HdmiInput::getInstance().selectPort(portId);
+                device::HdmiInput::getInstance().selectPort(portId,planeType);
             }
             catch (const device::Exception& err)
             {
