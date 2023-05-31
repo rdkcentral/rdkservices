@@ -66,6 +66,7 @@ using std::ofstream;
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
 #define EVT_ONTERRITORYCHANGED            "onTerritoryChanged"
 #define EVT_ONTIMEZONEDSTCHANGED          "onTimeZoneDSTChanged"
+#define EVT_FRIENDLYNAMECHANGED           "onFriendlyNameChanged"
 #define EVT_ONLOGUPLOAD                   "onLogUpload"
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
@@ -133,7 +134,8 @@ namespace WPEFramework {
                 bool m_networkStandbyMode;
                 bool m_networkStandbyModeValid;
 
-                std::string m_powerStateBeforeReboot;
+                std::string m_friendlyName;
+		std::string m_powerStateBeforeReboot;
                 bool m_powerStateBeforeRebootValid;
                 bool m_isPwrMgr2RFCEnabled;
 		std::string m_strTerritory;
@@ -243,7 +245,9 @@ namespace WPEFramework {
 		uint32_t getWakeupReason(const JsonObject& parameters, JsonObject& response);
                 uint32_t getLastWakeupKeyCode(const JsonObject& parameters, JsonObject& response);
 #endif
-		uint32_t setTerritory(const JsonObject& parameters, JsonObject& response);
+                uint32_t getFriendlyName(const JsonObject& parameters, JsonObject& response);
+                uint32_t setFriendlyName(const JsonObject& parameters, JsonObject& response);
+                uint32_t setTerritory(const JsonObject& parameters, JsonObject& response);
 		uint32_t getTerritory(const JsonObject& parameters, JsonObject& response);
 		bool readTerritoryFromFile();
 		bool isStrAlphaUpper(string strVal);
