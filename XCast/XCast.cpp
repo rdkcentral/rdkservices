@@ -56,6 +56,11 @@ using namespace std;
 #define LOCATE_CAST_THIRD_TIMEOUT_IN_MILLIS  30000  //30 seconds
 #define LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS  60000  //60 seconds
 
+#define SERVER_DETAILS  "127.0.0.1:9998"
+#define SYSTEM_CALLSIGN "org.rdk.System"
+#define SYSTEM_CALLSIGN_VER SYSTEM_CALLSIGN".1"
+#define SECURITY_TOKEN_LEN_MAX 1024
+#define THUNDER_RPC_TIMEOUT 2000
 
 /*
  * The maximum additionalDataUrl length
@@ -64,7 +69,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 5
 
 namespace WPEFramework {
 
@@ -122,6 +127,13 @@ XCast::XCast() : PluginHost::JSONRPC()
 
 XCast::~XCast()
 {
+        LOGINFO("Xcast: Dtor ");
+        if (nullptr != m_SystemPluginObj)
+        {
+            delete m_SystemPluginObj;
+            m_SystemPluginObj = nullptr;
+        }
+        m_CurrentService = NULL;
 }
 const void XCast::InitializeIARM()
 {
@@ -175,7 +187,7 @@ void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *dat
     }
 }
 
-const string XCast::Initialize(PluginHost::IShell* /* service */)
+const string XCast::Initialize(PluginHost::IShell *service)
 {
     LOGINFO("XCast:: Initialize  plugin called \n");
     _rtConnector  = RtXcastConnector::getInstance();
@@ -187,6 +199,15 @@ const string XCast::Initialize(PluginHost::IShell* /* service */)
         {
             //We give few seconds delay before the timer is fired.
             m_locateCastTimer.start(LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS);
+        }
+        m_CurrentService = service;
+        getSystemPlugin();
+        // subscribe for event
+        m_SystemPluginObj->Subscribe<JsonObject>(1000, "onFriendlyNameChanged"
+                            , &XCast::onFriendlyNameUpdateHandler, this);
+        if (Core::ERROR_NONE == updateSystemFriendlyName())
+        {
+            LOGINFO("XCast::Initialize m_friendlyName:  %s\n ",m_friendlyName.c_str());
         }
     }
     else
@@ -345,6 +366,81 @@ uint32_t XCast::getFriendlyName(const JsonObject& parameters, JsonObject& respon
     returnResponse(true);
 }
 
+
+void XCast::getSystemPlugin()
+{
+    LOGINFO("Entering..!!!");
+    if(nullptr == m_SystemPluginObj)
+    {
+        string token;
+        // TODO: use interfaces and remove token
+        auto security = m_CurrentService->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+        if (nullptr != security)
+        {
+            string payload = "http://localhost";
+            if (security->CreateToken( static_cast<uint16_t>(payload.length()),
+                                    reinterpret_cast<const uint8_t*>(payload.c_str()),
+                                    token) == Core::ERROR_NONE)
+            {
+                 LOGINFO("got security token\n");
+            }
+            else
+            {
+                 LOGERR("failed to get security token\n");
+            }
+            security->Release();
+         }
+         else
+         {
+             LOGERR("No security agent\n");
+         }
+
+         string query = "token=" + token;
+         Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
+         m_SystemPluginObj = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(SYSTEM_CALLSIGN_VER), (_T(SYSTEM_CALLSIGN_VER)), false, query);
+         if (nullptr == m_SystemPluginObj)
+         {
+              LOGERR("JSONRPC: %s: initialization failed", SYSTEM_CALLSIGN_VER);
+         }
+         else
+         {
+              LOGINFO("JSONRPC: %s: initialization ok", SYSTEM_CALLSIGN_VER);
+         }
+    }
+    LOGINFO("Exiting..!!!");
+}
+
+int XCast::updateSystemFriendlyName()
+{
+    JsonObject params, Result;
+    LOGINFO("Entering..!!!");
+
+    if (nullptr == m_SystemPluginObj)
+    {
+        LOGERR("m_SystemPluginObj not yet instantiated");
+        return Core::ERROR_GENERAL;
+    }
+
+    uint32_t ret = m_SystemPluginObj->Invoke<JsonObject, JsonObject>(THUNDER_RPC_TIMEOUT, _T("getFriendlyName"), params, Result);
+
+    if (Core::ERROR_NONE == ret)
+    {
+        if (Result["success"].Boolean())
+        {
+             m_friendlyName = Result["friendlyName"].String();
+        }
+        else
+        {
+             ret = Core::ERROR_GENERAL;
+             LOGERR("getSystemFriendlyName call failed");
+        }
+    }
+    else
+    {
+        LOGERR("getiSystemFriendlyName call failed E[%u]", ret);
+    }
+    return ret;
+}
 
 uint32_t XCast::getProtocolVersion(const JsonObject& parameters, JsonObject& response)
 {
@@ -1034,6 +1130,31 @@ bool XCast::checkRFCServiceStatus()
     
     return XCast::isCastEnabled;
 }
+
+void XCast::onFriendlyNameUpdateHandler(const JsonObject& parameters) {
+    string message;
+    string value;
+    parameters.ToString(message);
+    LOGINFO("[Friendly Name Event], %s : %s", __FUNCTION__,message.c_str());
+
+    if (parameters.HasLabel("friendlyName")) {
+        value = parameters["friendlyName"].String();
+        if(_rtConnector)
+        {
+            m_friendlyName = value;
+            LOGINFO("onFriendlyNameUpdateHandler  :%s",m_friendlyName.c_str());
+            if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
+               _rtConnector->enableCastService(m_friendlyName,true);
+            }
+            else { 
+                _rtConnector->enableCastService(m_friendlyName,false);
+            }
+        }
+    }
+}
+
+}
+
 
 } // namespace Plugin
 } // namespace WPEFramework
