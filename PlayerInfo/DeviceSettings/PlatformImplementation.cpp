@@ -270,6 +270,7 @@ public:
             else if(amode == device::AudioStereoMode::kStereo) mode = STEREO;
             else if(amode == device::AudioStereoMode::kMono) mode = MONO;
             else if(amode == device::AudioStereoMode::kPassThru) mode = PASSTHRU;
+            else if(amode == device::AudioStereoMode::kSurroundMatFollow) mode = STEREO_SURROUND_MAT_FOLLOW;
             else mode = UNKNOWN;
             PlayerInfoImplementation::_instance->audiomodeChanged(mode, true);
         }
@@ -387,6 +388,7 @@ public:
                 else if(soundmode == device::AudioStereoMode::kStereo) mode = STEREO;
                 else if(soundmode == device::AudioStereoMode::kMono) mode = MONO;
                 else if(soundmode == device::AudioStereoMode::kPassThru) mode = PASSTHRU;
+                else if(soundmode == device::AudioStereoMode::kSurroundMatFollow) mode = STEREO_SURROUND_MAT_FOLLOW;
                 else mode = UNKNOWN;
 
                 /* Auto mode applicable for HDMI Arc and SPDIF */
