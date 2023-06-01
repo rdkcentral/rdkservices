@@ -4380,6 +4380,9 @@ namespace WPEFramework {
                     auto ociContainerPlugin = getOCIContainerPlugin();
                     if (!ociContainerPlugin)
                     {
+#ifdef ENABLE_RIALTO_FEATURE
+                        rialtoConnector->deactivateSession(client);
+#endif //ENABLE_RIALTO_FEATURE
                         response["message"] = "OCIContainer initialisation failed";
                         returnResponse(false);
                     }
@@ -4399,6 +4402,9 @@ namespace WPEFramework {
                     {
                         // Something went wrong starting the container, destory the display we just created
                         kill(client);
+#ifdef ENABLE_RIALTO_FEATURE
+                        rialtoConnector->deactivateSession(client);
+#endif //ENABLE_RIALTO_FEATURE
                         response["message"] = "Could not start Dobby container";
                         returnResponse(false);
                     }
