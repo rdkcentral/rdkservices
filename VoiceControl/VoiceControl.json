@@ -296,6 +296,25 @@
                 "$ref": "#/common/result"
             }
         },
+        "voiceSessionAudioStreamStart": {
+            "summary": "Starts a subsequent audio stream for the voice session indicated by the session identifier.",
+            "params":{
+                "type": "object",
+                "properties": {
+                    "sessionId": {
+                        "summary": "The session identifier of the session from the [onSessionBegin](#event.onSessionBegin) event",
+                        "type": "string",
+                        "example": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
+                    }
+                },
+                "required": [
+                    "sessionId"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "voiceStatus": {
             "summary": "Returns the current status of the RDK voice stack. This includes which URLs the stack is currently configured for along with the status for each device type.",
             "result": {
