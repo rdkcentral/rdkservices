@@ -868,7 +868,7 @@ namespace WPEFramework
                 video_latency= eventData->data.hdmi_in_av_latency.video_latency;
 
          //       HdmiInput::_instance->hdmiInAVLatencyChange(audio_output_delay,video_latency);
-	  	LOGINFO("Latency Info Change occurs -- Report to HdmiCecSink\n");
+	  	LOGINFO("Latency Info Change occurs: AV Latencies -- Report to HdmiCecSink\n");
 	  	HdmiInput::_instance->reportLatencyInfoToHdmiCecSink();
             }
         }
@@ -945,7 +945,7 @@ namespace WPEFramework
                 lowLatencyMode = eventData->data.mode.low_latency_mode;
                 LOGINFO("LowLatency change with value: %d\n",lowLatencyMode);
                
-	  	LOGINFO("Latency Info Change occurs -- Report to HdmiCecSink\n");
+	  	LOGINFO("Latency Info Change occurs : LowLatencyValues -- Report to HdmiCecSink\n");
 	  	HdmiInput::_instance->reportLatencyInfoToHdmiCecSink();
 	      // HdmiInput::_instance->tvLowLatencyChange(lowLatencyMode);
             }
@@ -1306,6 +1306,7 @@ namespace WPEFramework
             try
             {
                 device::HdmiInput::getInstance().getEdidVersion (iPort, &edidVersion);
+		HdmiInput::_instance->reportLatencyInfoToHdmiCecSink();// added for debugging purpose, will be removed
                 LOGWARN("HdmiInput::getEdidVersion EDID Version:%d", edidVersion);
             }
             catch (const device::Exception& err)
