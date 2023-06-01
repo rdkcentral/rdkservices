@@ -28,6 +28,7 @@
 #include "tptimer.h"
 #ifdef ENABLE_RIALTO_FEATURE
 #include "RialtoConnector.h"
+#define RIALTO_TIMEOUT_MILLIS 5000
 #endif
 namespace WPEFramework {
 

@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "Module.h"
+#include "UtilsLogging.h"
 #include <map>
 #include <string>
 #include <mutex>
@@ -36,9 +38,9 @@ namespace WPEFramework
     public:
         RialtoConnector() : isInitialized(false) {}
         virtual ~RialtoConnector() = default;
-        void initialize(std::string &, const std::string &);
+        void initialize();
         bool initialized() { return isInitialized; }
-        bool waitForStateChange(const std::string &appid, const RialtoServerStates &state, int timeout);
+        bool waitForStateChange(const std::string &appid, const RialtoServerStates &state, int timeoutMillis);
         bool createAppSession(const std::string &callsign, const std::string &displayName, const std::string &appId);
         bool resumeSession(const std::string &callsign);
         bool suspendSession(const std::string &callsign);
