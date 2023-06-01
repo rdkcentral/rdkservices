@@ -52,7 +52,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 3
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -4350,11 +4350,8 @@ namespace WPEFramework {
 
                     if(!rialtoConnector->initialized())
                     {
-                        string sesEnv,rialtoDebug;
                         LOGWARN("Initializing rialto connector....");
-                        Core::SystemInfo::GetEnvironment(_T("SESSION_SERVER_ENV_VARS"), sesEnv);
-                        Core::SystemInfo::GetEnvironment(_T("RIALTO_DEBUG"), rialtoDebug);
-                        rialtoConnector->initialize(sesEnv,rialtoDebug);
+                        rialtoConnector->initialize();
                     }
                     LOGWARN("Creating app session ....");
                     if(!rialtoConnector->createAppSession(client,display, appId))
@@ -4362,7 +4359,7 @@ namespace WPEFramework {
                         response["message"] = "Rialto app session initialisation failed";
                         returnResponse(false);
                     }
-                    if(rialtoConnector->waitForStateChange(appId,RialtoServerStates::INACTIVE,200))
+                    if(!rialtoConnector->waitForStateChange(appId,RialtoServerStates::ACTIVE, RIALTO_TIMEOUT_MILLIS))
                     {
                         response["message"] = "Rialto app session not ready.";
                         returnResponse(false);
@@ -4372,6 +4369,9 @@ namespace WPEFramework {
                     auto ociContainerPlugin = getOCIContainerPlugin();
                     if (!ociContainerPlugin)
                     {
+#ifdef ENABLE_RIALTO_FEATURE
+                        rialtoConnector->deactivateSession(client);
+#endif //ENABLE_RIALTO_FEATURE
                         response["message"] = "OCIContainer initialisation failed";
                         returnResponse(false);
                     }
@@ -4391,6 +4391,9 @@ namespace WPEFramework {
                     {
                         // Something went wrong starting the container, destory the display we just created
                         kill(client);
+#ifdef ENABLE_RIALTO_FEATURE
+                        rialtoConnector->deactivateSession(client);
+#endif //ENABLE_RIALTO_FEATURE
                         response["message"] = "Could not start Dobby container";
                         returnResponse(false);
                     }
@@ -4480,7 +4483,11 @@ namespace WPEFramework {
                     }
 #ifdef ENABLE_RIALTO_FEATURE
                     rialtoConnector->suspendSession(client);
-                    //Do we need to wait for state change ?
+                    if(!rialtoConnector->waitForStateChange(client,RialtoServerStates::INACTIVE, RIALTO_TIMEOUT_MILLIS))
+                    {
+                        response["message"] = "Rialto app session could not be set inactive.";
+                        returnResponse(false);
+		    }
 #endif //ENABLE_RIALTO_FEATURE
                 }
                 else
@@ -4538,7 +4545,7 @@ namespace WPEFramework {
                     }
 #ifdef ENABLE_RIALTO_FEATURE
                     rialtoConnector->resumeSession(client);
-                    if(rialtoConnector->waitForStateChange(client,RialtoServerStates::ACTIVE,200))
+                    if(!rialtoConnector->waitForStateChange(client,RialtoServerStates::ACTIVE,RIALTO_TIMEOUT_MILLIS))
                     {
                         response["message"] = "Rialto app session not ready.";
                         returnResponse(false);
