@@ -284,7 +284,6 @@ jobs:
           /opt/tmtryoptout
           /opt/fwdnldstatus.txt
           /etc/device.properties
-          /etc/dcm.properties
           /etc/authService.conf
           /version.txt
           &&
@@ -293,7 +292,6 @@ jobs:
           /opt/tmtryoptout
           /opt/fwdnldstatus.txt
           /etc/device.properties
-          /etc/dcm.properties
           /etc/authService.conf
           /version.txt
 
