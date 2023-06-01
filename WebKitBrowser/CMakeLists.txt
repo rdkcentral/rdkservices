@@ -247,6 +247,7 @@ endif()
 
 if(RDK6_SUPPORT)
     target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE RDK6_SUPPORT)
+    target_compile_definitions(${MODULE_NAME} PRIVATE RDK6_SUPPORT)
 endif()
 
 set_target_properties(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PROPERTIES

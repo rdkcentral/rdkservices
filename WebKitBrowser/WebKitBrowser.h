@@ -77,7 +77,7 @@ namespace Plugin {
                              public PluginHost::IStateControl::INotification,
                              public Exchange::IWebBrowser::INotification
                              #ifdef RDK6_SUPPORT
-                             public Exchange::IBrowserCookieJar::INotification
+                             , public Exchange::IBrowserCookieJar::INotification
                              #endif
         {
         private:

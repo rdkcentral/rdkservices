@@ -295,7 +295,11 @@ namespace Plugin {
         if (path.empty() == false) {
             string fullPath = _persistentStoragePath + path;
             Core::Directory dir(fullPath.c_str());
+#ifdef RDK6_SUPPORT
+            if (!dir.Destroy()) {
+#else
             if (!dir.Destroy(true)) {
+#endif
                 TRACE(Trace::Error, (_T("Failed to delete %s\n"), fullPath.c_str()));
                 result = Core::ERROR_GENERAL;
             }
@@ -472,7 +476,11 @@ namespace WebKitBrowser {
             _children = Core::ProcessInfo::Iterator(_main.Id());
             return ((_startTime == TimePoint::min()) || (_main.IsActive() == true) ? 1 : 0) + _children.Count();
         }
+#ifdef RDK6_SUPPORT
+        bool IsOperational() const override
+#else
         const bool IsOperational() const override
+#endif
         {
             uint32_t requiredProcesses = 0;
 
