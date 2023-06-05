@@ -2839,6 +2839,10 @@ static GSourceFuncs _handlerIntervention =
             webkit_settings_set_enable_page_cache(preferences, FALSE);
             webkit_settings_set_enable_directory_upload(preferences, FALSE);
 
+#if WEBKIT_CHECK_VERSION(2, 38, 0)
+            webkit_settings_set_enable_webrtc(preferences, TRUE);
+#endif
+
             // Turn on/off WebGL
             webkit_settings_set_enable_webgl(preferences, _config.WebGLEnabled.Value());
 
