@@ -1306,7 +1306,6 @@ namespace WPEFramework
             try
             {
                 device::HdmiInput::getInstance().getEdidVersion (iPort, &edidVersion);
-		HdmiInput::_instance->reportLatencyInfoToHdmiCecSink();// added for debugging purpose, will be removed
                 LOGWARN("HdmiInput::getEdidVersion EDID Version:%d", edidVersion);
             }
             catch (const device::Exception& err)
