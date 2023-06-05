@@ -766,7 +766,48 @@ TEST_F(SystemServicesTest, getAvailableStandbyModes)
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getAvailableStandbyModes"), _T("{}"), response));
 }
 
-TEST_F(SystemServicesTest, getWakeupReason)
+/*******************************************************************************************************************
+ * Test function for :getWakeupReason
+ * getWakeupReason :
+ *                The API which Collects reason for the device coming out of deep sleep.
+ *
+ *                @return Returns the reason for the device coming out of deep sleep.
+ * Use case coverage:
+ *                @Success : 17
+ *                @Failure : 1
+ ********************************************************************************************************************/
+
+/**
+ * @brief : getWakeupReason without passing any reason.
+ *        Check if BUS call to retrieve the reason for the device is failed,
+ *        then getWakeupReason shall be failed.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_UNKNOWN","success":false}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonFailure)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                return IARM_RESULT_INVALID_PARAM;
+            });
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_IR.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_IR as a reason,
+ *        then the response returned is "WAKEUP_REASON_IR" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_IR","success":true}
+ */
+
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_IR)
 {
     ON_CALL(iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
@@ -781,6 +822,391 @@ TEST_F(SystemServicesTest, getWakeupReason)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_IR\",\"success\":true}"));
 }
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_RCU_BT.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_RCU_BT as a reason,
+ *        then the response returned is "WAKEUP_REASON_RCU_BT" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_RCU_BT","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_RCU_BT)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_RCU_BT;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_RCU_BT\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_RCU_RF4CE.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_RCU_RF4CE as a reason,
+ *        then the response returned is "WAKEUP_REASON_RCU_RF4CE" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_RCU_RF4CE","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_RCU_RF4CE)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_RCU_RF4CE;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_RCU_RF4CE\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_GPIO.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_GPIO as a reason,
+ *        then the response returned is "WAKEUP_REASON_GPIO" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_GPIO","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_GPIO)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_GPIO;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_GPIO\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_LAN.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_LAN as a reason,
+ *        then the response returned is "WAKEUP_REASON_LAN" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_LAN","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_LAN)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_LAN;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_LAN\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_WLAN.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_WLAN as a reason,
+ *        then the response returned is "WAKEUP_REASON_WLAN" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_WLAN","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_WLAN)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_WLAN;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_WLAN\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_TIMER.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_TIMER as a reason,
+ *        then the response returned is "WAKEUP_REASON_TIMER" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_TIMER","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_TIMER)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_TIMER;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_TIMER\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_FRONT_PANEL.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_FRONT_PANEL as a reason,
+ *        then the response returned is "WAKEUP_REASON_FRONT_PANEL" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_FRONT_PANEL","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_FRONT_PANEL)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_FRONT_PANEL;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_FRONT_PANEL\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_WATCHDOG.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_WATCHDOG as a reason,
+ *        then the response returned is "WAKEUP_REASON_WATCHDOG" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_WATCHDOG","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_WATCHDOG)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_WATCHDOG;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_WATCHDOG\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_SOFTWARE_RESET.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_SOFTWARE_RESET as a reason,
+ *        then the response returned is "WAKEUP_REASON_SOFTWARE_RESET" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_SOFTWARE_RESET","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_SOFTWARE_RESET)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_SOFTWARE_RESET;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_SOFTWARE_RESET\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_THERMAL_RESET.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_THERMAL_RESET as a reason,
+ *        then the response returned is "WAKEUP_REASON_THERMAL_RESET" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_THERMAL_RESET","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_THERMAL_RESET)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_THERMAL_RESET;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_THERMAL_RESET\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_WARM_RESET.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_WARM_RESET as a reason,
+ *        then the response returned is "WAKEUP_REASON_WARM_RESET" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_WARM_RESET","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_WARM_RESET)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_WARM_RESET;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_WARM_RESET\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_COLDBOOT.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_COLDBOOT as a reason,
+ *        then the response returned is "WAKEUP_REASON_COLDBOOT" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_COLDBOOT","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_COLDBOOT)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_COLDBOOT;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_COLDBOOT\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_STR_AUTH_FAILURE.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_STR_AUTH_FAILURE as a reason,
+ *        then the response returned is "WAKEUP_REASON_STR_AUTH_FAILURE" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_STR_AUTH_FAILURE","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_STR_AUTH_FAILURE)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_STR_AUTH_FAILURE;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_STR_AUTH_FAILURE\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_CEC.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_CEC as a reason,
+ *        then the response returned is "WAKEUP_REASON_CEC" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_CEC","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_CEC)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_CEC;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_CEC\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_PRESENCE.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_PRESENCE as a reason,
+ *        then the response returned is "WAKEUP_REASON_PRESENCE" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_PRESENCE","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_PRESENCE)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_PRESENCE;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_PRESENCE\",\"success\":true}"));
+}
+
+/**
+ * @brief : getWakeupReason when the reason is DEEPSLEEP_WAKEUPREASON_VOICE.
+ *        When BUS call retrieves DEEPSLEEP_WAKEUPREASON_VOICE as a reason,
+ *        then the response returned is "WAKEUP_REASON_VOICE" with Success status as true.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"wakeupReason":"WAKEUP_REASON_VOICE","success":true}
+ */
+TEST_F(SystemServicesTest, getWakeupReasonSuccess_When_WAKEUPREASON_VOICE)
+{
+    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupReason)));
+                auto param = static_cast<DeepSleep_WakeupReason_t*>(arg);
+                *param = DEEPSLEEP_WAKEUPREASON_VOICE;
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getWakeupReason"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"wakeupReason\":\"WAKEUP_REASON_VOICE\",\"success\":true}"));
+}
+/*Test cases for getWakeupReason ends here*/
+
 
 TEST_F(SystemServicesTest, getLastWakeupKeyCode)
 {
@@ -874,7 +1300,154 @@ TEST_F(SystemServicesEventIarmTest, onSystemClockSet)
     handler.Unsubscribe(0, _T("onSystemClockSet"), _T("org.rdk.System"), message);
 }
 
-TEST_F(SystemServicesEventIarmTest, onTemperatureThresholdChanged)
+/*************************************************************************************************************
+ * Test function for :onTemperatureThresholdChanged
+ * onTemperatureThresholdChanged :
+ *                Triggered when the device temperature changes beyond the WARN or MAX limits.
+ *
+ *                @return Whether the mode change is succeeded.
+ * Use case coverage:
+ *                @Success :4
+ *                @Failure :5
+ ************************************************************************************************************/
+
+/**
+ * @brief : onTemperatureThresholdChanged when instance is invalid.
+ *        Check if SystemServices instance is null,
+ *        then onTemperatureThresholdChanged shall be failed and mode change will not be successful.
+ *
+ * @param[in]   :  None.
+ * @return      :  None.
+ */
+TEST_F(SystemServicesEventIarmTest, onTemperatureThresholdChangedFailed_withoutValidInstance)
+{
+    Core::Event onTemperatureThresholdChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_)).Times(0);
+
+    handler.Subscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+
+    WPEFramework::Plugin::SystemServices::_instance = nullptr;
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    param.data.therm.newLevel = IARM_BUS_PWRMGR_TEMPERATURE_HIGH;
+    param.data.therm.curLevel = IARM_BUS_PWRMGR_TEMPERATURE_CRITICAL;
+    thermMgrEventsHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_TIMEDOUT, onTemperatureThresholdChanged.Lock(100));
+
+    handler.Unsubscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+}
+
+/**
+ * @brief : onTemperatureThresholdChanged when newLevel is empty.
+ *        Check if newLevel is empty,
+ *        then onTemperatureThresholdChanged shall be failed and mode change will not be successful.
+ *
+ * @param[in]   :  None.
+ * @return      :  None.
+ */
+TEST_F(SystemServicesEventIarmTest, onTemperatureThresholdChangedFailed_whenNewLevelEmpty)
+{
+    Core::Event onTemperatureThresholdChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_)).Times(0);
+
+    handler.Subscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    thermMgrEventsHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_TIMEDOUT, onTemperatureThresholdChanged.Lock(100));
+
+    handler.Unsubscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+}
+
+/**
+ * @brief : onTemperatureThresholdChanged when new level is NORMAL and current level is empty.
+ *        Check if new level is NORMAL and current level is empty,
+ *        then onTemperatureThresholdChanged shall be failed and mode change will not be successful.
+ *
+ * @param[in]   :  None.
+ * @return      :  None.
+ */
+TEST_F(SystemServicesEventIarmTest, onTemperatureThresholdChangedFailed_currLevelEmpty_newLevelNORMAL)
+{
+    Core::Event onTemperatureThresholdChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_)).Times(0);
+
+    handler.Subscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    param.data.therm.newLevel = IARM_BUS_PWRMGR_TEMPERATURE_NORMAL;
+    thermMgrEventsHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_TIMEDOUT, onTemperatureThresholdChanged.Lock(100));
+
+    handler.Unsubscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+}
+
+/**
+ * @brief : onTemperatureThresholdChanged when new level is HIGH and current level is empty.
+ *        Check if new level is HIGH and current level is empty,
+ *        then onTemperatureThresholdChanged shall be failed and mode change will not be successful.
+ *
+ * @param[in]   :  None.
+ * @return      :  None.
+ */
+TEST_F(SystemServicesEventIarmTest, onTemperatureThresholdChangedFailed_currLevelEmpty_newLevelHIGH)
+{
+    Core::Event onTemperatureThresholdChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_)).Times(0);
+
+    handler.Subscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    param.data.therm.newLevel = IARM_BUS_PWRMGR_TEMPERATURE_HIGH;
+    thermMgrEventsHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_TIMEDOUT, onTemperatureThresholdChanged.Lock(100));
+
+    handler.Unsubscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+}
+
+/**
+ * @brief : onTemperatureThresholdChanged when new level is CRITICAL and current level is empty.
+ *        Check if new level is CRITICAL and current level is empty,
+ *        then onTemperatureThresholdChanged shall be failed and mode change will not be successful.
+ *
+ * @param[in]   :  None.
+ * @return      :  None.
+ */
+TEST_F(SystemServicesEventIarmTest, onTemperatureThresholdChangedFailed_currLevelEmpty_newLevelCRITICAL)
+{
+    Core::Event onTemperatureThresholdChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_)).Times(0);
+
+    handler.Subscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    param.data.therm.newLevel = IARM_BUS_PWRMGR_TEMPERATURE_CRITICAL;
+    thermMgrEventsHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_TIMEDOUT, onTemperatureThresholdChanged.Lock(100));
+
+    handler.Unsubscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+}
+
+/**
+ * @brief : onTemperatureThresholdChanged when new level is HIGH and current level is NORMAL.
+ *        Check if new level is HIGH and current level is NORMAL,
+ *        then onTemperatureThresholdChanged shall be succeeded,
+ *        And set the value :thresholdType = "WARN" , exceeded ="true" and temperature= curTemperature obtained from IarmEvent.
+ *
+ * @param[in]   :  None.
+ * @return      :  None.
+ */
+TEST_F(SystemServicesEventIarmTest, onTemperatureThresholdChangedSuccess_whenNormalToHigh)
 {
     Core::Event onTemperatureThresholdChanged(false, true);
 
@@ -913,6 +1486,149 @@ TEST_F(SystemServicesEventIarmTest, onTemperatureThresholdChanged)
 
     handler.Unsubscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
 }
+
+/**
+ * @brief : onTemperatureThresholdChanged when new level is HIGH and current level is CRITICAL.
+ *        Check if new level is HIGH and current level is CRITICAL,
+ *        then onTemperatureThresholdChanged shall be succeeded;
+ *        And set the value :thresholdType = "MAX" , exceeded ="false" and temperature= curTemperature obtained from IarmEvent.
+ *
+ * @param[in]   :  None.
+ * @return      :  None.
+ */
+TEST_F(SystemServicesEventIarmTest, onTemperatureThresholdChangedSuccess_whenCriticalToHigh)
+{
+    Core::Event onTemperatureThresholdChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onTemperatureThresholdChanged\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"thresholdType\":\"MAX\","
+                                                             "\"exceeded\":false,"
+                                                             "\"temperature\":\"48.000000\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                onTemperatureThresholdChanged.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    param.data.therm.newLevel = IARM_BUS_PWRMGR_TEMPERATURE_HIGH;
+    param.data.therm.curLevel = IARM_BUS_PWRMGR_TEMPERATURE_CRITICAL;
+    param.data.therm.curTemperature = 48;
+    thermMgrEventsHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onTemperatureThresholdChanged.Lock());
+
+    handler.Unsubscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+}
+
+/**
+ * @brief : onTemperatureThresholdChanged when new level is CRITICAL and current level is HIGH.
+ *        Check if new level is CRITICAL and current level is HIGH,
+ *        then onTemperatureThresholdChanged shall be succeeded;
+ *        And set the value :thresholdType = "MAX" , exceeded ="true" and temperature= curTemperature obtained from IarmEvent.
+ *
+ * @param[in]   :  None.
+ * @return      :  None.
+ */
+TEST_F(SystemServicesEventIarmTest, onTemperatureThresholdChangedSuccess_whenHighToCritical)
+{
+    Core::Event onTemperatureThresholdChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onTemperatureThresholdChanged\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"thresholdType\":\"MAX\","
+                                                             "\"exceeded\":true,"
+                                                             "\"temperature\":\"100.000000\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                onTemperatureThresholdChanged.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+    handler.Subscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    param.data.therm.newLevel = IARM_BUS_PWRMGR_TEMPERATURE_CRITICAL;
+    param.data.therm.curLevel = IARM_BUS_PWRMGR_TEMPERATURE_HIGH;
+    param.data.therm.curTemperature = 100;
+    thermMgrEventsHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onTemperatureThresholdChanged.Lock());
+
+    handler.Unsubscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+}
+
+/**
+ * @brief : onTemperatureThresholdChanged when new level is NORMAL and current level is HIGH.
+ *        Check if new level is NORMAL and current level is HIGH,
+ *        then onTemperatureThresholdChanged shall be succeeded;
+ *        And set the value :thresholdType = "WARN" , exceeded ="false" and temperature= curTemperature obtained from IarmEvent.
+ *
+ * @param[in]   :  None.
+ * @return      :  None.
+ */
+TEST_F(SystemServicesEventIarmTest,  onTemperatureThresholdChangedSuccess_whenHighToNormal)
+{
+    Core::Event onTemperatureThresholdChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onTemperatureThresholdChanged\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"thresholdType\":\"WARN\","
+                                                             "\"exceeded\":false,"
+                                                             "\"temperature\":\"100.000000\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                onTemperatureThresholdChanged.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+    handler.Subscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    param.data.therm.newLevel = IARM_BUS_PWRMGR_TEMPERATURE_NORMAL;
+    param.data.therm.curLevel = IARM_BUS_PWRMGR_TEMPERATURE_HIGH;
+    param.data.therm.curTemperature = 100;
+    thermMgrEventsHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onTemperatureThresholdChanged.Lock());
+
+    handler.Unsubscribe(0, _T("onTemperatureThresholdChanged"), _T("org.rdk.System"), message);
+}
+/*Test cases for onTemperatureThresholdChanged ends here*/
 
 extern "C" FILE* __real_popen(const char* command, const char* type);
 
@@ -1077,7 +1793,75 @@ TEST_F(SystemServicesTest, getPowerState)
     EXPECT_EQ(response, string("{\"powerState\":\"STANDBY\",\"success\":true}"));
 }
 
-TEST_F(SystemServicesTest, setPowerState)
+/*******************************************************************************************************************
+ * Test function for :setPowerState
+ * setPowerState :
+ *                Sets the power state of the device.
+ *                valid powerState: {"STANDBY", "DEEP_SLEEP", "LIGHT_SLEEP", "ON"}
+ *
+ *                @return Whether the request succeeded.
+ * Event : onSystemPowerStateChanged
+ *                Triggers when the system power state changes.
+ * Use case coverage:
+ *                @Success :5
+ *                @Failure :3
+ ********************************************************************************************************************/
+
+/**
+ * @brief : setPowerState when param is empty.
+ *        If param is empty,
+ *        then setPowerState shall be failed.
+ *
+ * @param[in]   :  "params": {}
+ * @return      :  {"success":false}
+ */
+TEST_F(SystemServicesTest, setPowerStateFailed_without_powerstate)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setPowerState"), _T(""), response));
+}
+
+/**
+ * @brief : setPowerState when param contains invalid powerstate.
+ *        Check if input param contains invalid powerstate,
+ *        then setPowerState shall be failed.
+ *
+ * @param[in]   :  "params": {"powerState": "abc"}
+ * @return      :  {"success":false}
+ */
+TEST_F(SystemServicesTest, setPowerStateFailed_with_invalidpowerstate)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setPowerState"), _T("{\"powerState\":\"abc\"}"), response));
+}
+
+/**
+ * @brief : setPowerState when Bus call returns other than IARM_RESULT_SUCCESS,
+ *        then setPowerState shall be failed.
+ *
+ * @return      :  {"success":false}
+ */
+ TEST_F(SystemServicesTest, setPowerStateFailed_when_Bus_call_fails)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetPowerState)));
+                return IARM_RESULT_INVALID_PARAM;
+            });
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setPowerState"), _T("{\"powerState\":\"ON\"}"), response));
+}
+
+/**
+ * * @brief : setPowerState when powerstate is ON.
+ *        Check if  input param : powerstate is  ON,
+ *        then setPowerState will sets with provided state and setPowerState shall be succeeded.
+ *
+ * @param[in]   :  "params": {"powerState": "ON"}
+ * @return      :  {"success":true}
+ */
+TEST_F(SystemServicesTest, setPowerStateSuccess_when_powerstate_ON)
 {
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
@@ -1093,6 +1877,129 @@ TEST_F(SystemServicesTest, setPowerState)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPowerState"), _T("{\"powerState\":\"ON\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
+
+/**
+ * * @brief : setPowerState when powerstate is LIGHT_SLEEP.
+ *        Check if  input param : powerstate is  LIGHTSLEEP,
+ *        then setPowerState will sets with provided state and setPowerState shall be succeeded.
+ *
+ * @param[in]   :  "params": {"powerState": "LIGHT_SLEEP"}
+ * @return      :  {"success":true}
+ */
+TEST_F(SystemServicesTest, setPowerStateSuccess_when_powerstate_Light_sleep)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetPowerState)));
+                auto param = static_cast<IARM_Bus_PWRMgr_SetPowerState_Param_t*>(arg);
+                EXPECT_EQ(param->newState, IARM_BUS_PWRMGR_POWERSTATE_STANDBY);
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPowerState"), _T("{\"powerState\":\"LIGHT_SLEEP\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+/**
+ * * @brief : setPowerState when powerstate is STANDBY and has valid SystemServices instance
+ *        Check if SystemServices instance is not null,and if sleepmode is not DEEP_SLEEP 
+ *        then it calls setPowerState with state as the parameter and setPowerState shall be succeeded.
+ *
+ * @param[in]   :  "params": {"powerState": "STANDBY"}
+ * @return      :  {"success":true}
+ */
+TEST_F(SystemServicesTest, setPowerStateSuccess_when_powerstate_STANDBY_withValidInstance)
+{
+    device::SleepMode mode;
+    NiceMock<SleepModeMock> sleepModeMock;
+    mode.impl = &sleepModeMock;
+    string sleepModeString(_T("STANDBY"));
+
+    ON_CALL(hostImplMock, getPreferredSleepMode)
+        .WillByDefault(::testing::Return(mode));
+    ON_CALL(sleepModeMock, toString)
+        .WillByDefault(::testing::ReturnRef(sleepModeString));
+
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetPowerState)));
+                auto param = static_cast<IARM_Bus_PWRMgr_SetPowerState_Param_t*>(arg);
+                EXPECT_EQ(param->newState, IARM_BUS_PWRMGR_POWERSTATE_STANDBY);
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPowerState"), _T("{\"powerState\":\"STANDBY\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+/**
+ * * @brief : setPowerState when powerstate is STANDBY and  SystemServices instance is null
+ *         Check if SystemServices instance is null,then it sets the PowerState with the current value of state and
+ *         setPowerState shall be succeeded.
+ *
+ * @param[in]   :  "params": {"powerState": "STANDBY"}
+ * @return      :  {"success":true}
+ */
+
+TEST_F(SystemServicesTest, setPowerStateSuccess_when_powerstate_STANDBY_withoutValidInstance)
+{
+    WPEFramework::Plugin::SystemServices::_instance = nullptr;
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetPowerState)));
+                auto param = static_cast<IARM_Bus_PWRMgr_SetPowerState_Param_t*>(arg);
+                EXPECT_EQ(param->newState, IARM_BUS_PWRMGR_POWERSTATE_STANDBY);
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPowerState"), _T("{\"powerState\":\"STANDBY\"}"), response));
+}
+
+/**
+ * * @brief : setPowerState when valid preferredStandbyMode
+ *          Check if getPreferredStandbyMode returns valid preferred standby mode,
+ *          then it set the powerstate with prefered standbymode and setPowerState shall be succeeded.
+ *
+ * @param[in]   :  "params": {"powerState": "STANDBY"}
+ * @return      :  {"success":true}
+ */
+
+TEST_F(SystemServicesTest, setPowerStateSuccess_with_PreferedStandbyMode)
+{
+    device::SleepMode mode;
+    NiceMock<SleepModeMock> sleepModeMock;
+    mode.impl = &sleepModeMock;
+    string sleepModeString(_T("DEEP_SLEEP"));
+
+    ON_CALL(hostImplMock, getPreferredSleepMode)
+        .WillByDefault(::testing::Return(mode));
+    ON_CALL(sleepModeMock, toString)
+        .WillByDefault(::testing::ReturnRef(sleepModeString));
+
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetPowerState)));
+                auto param = static_cast<IARM_Bus_PWRMgr_SetPowerState_Param_t*>(arg);
+                EXPECT_EQ(param->newState, IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP);
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPowerState"), _T("{\"powerState\":\"STANDBY\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+/*Test cases for setPowerState ends here*/
 
 TEST_F(SystemServicesTest, getPowerStateIsManagedByDevice)
 {
