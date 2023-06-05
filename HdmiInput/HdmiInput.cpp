@@ -838,9 +838,9 @@ namespace WPEFramework
                    JsonObject hdmiCecSinkResult;
                    JsonObject param;
 
-                   param["audioOutputDelay"] = "100";//audio_output_delay;
-                   param["videoLatency"] = "20";//video_latency;
-		   param["lowLatencyMode"] = "1";//lowLatencyMode;
+                   param["audioOutputDelay"] = std::to_string(audio_output_delay);
+                   param["videoLatency"] = std::to_string(video_latency);
+		   param["lowLatencyMode"] = std::to_string(lowLatencyMode);
 		   param["audioOutputCompensated"] ="3";//hard-coded for now
                    LOGINFO("latency - Info: %d : %d, %d\n",audio_output_delay,video_latency,lowLatencyMode);
                    m_client->Invoke<JsonObject, JsonObject>(2000, "setLatencyInfo", param, hdmiCecSinkResult);
