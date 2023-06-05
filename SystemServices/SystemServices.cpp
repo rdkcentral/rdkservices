@@ -92,6 +92,7 @@ using namespace std;
 #define STORE_DEMO_LINK "file:///opt/persistent/store-mode-video/videoFile.mp4"
 
 #define RFC_LOG_UPLOAD "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadBeforeDeepSleep.Enable"
+#define TR181_SYSTEM_FRIENDLY_NAME "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SystemServices.FriendlyName"
 
 #define LOG_UPLOAD_STATUS_SUCCESS "UPLOAD_SUCCESS"
 #define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
@@ -331,6 +332,8 @@ namespace WPEFramework {
             m_networkStandbyModeValid = false;
             m_powerStateBeforeRebootValid = false;
             m_isPwrMgr2RFCEnabled = false;
+            m_friendlyName = "Living Room";
+
 
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
 	    m_ManufacturerDataHardwareIdValid = false;
@@ -461,6 +464,9 @@ namespace WPEFramework {
                 &SystemServices::getPlatformConfiguration, this);
             GetHandler(2)->Register<JsonObject, PlatformCaps>("getPlatformConfiguration",
                 &SystemServices::getPlatformConfiguration, this);
+	    registerMethod("getFriendlyName", &SystemServices::getFriendlyName, this);
+            registerMethod("setFriendlyName", &SystemServices::setFriendlyName, this);
+
         }
 
         SystemServices::~SystemServices()
@@ -511,6 +517,14 @@ namespace WPEFramework {
                 Core::SystemInfo::SetEnvironment(_T("TZ"), tzenv.c_str());
             }
 #endif
+            RFC_ParamData_t param = {0};
+            WDMP_STATUS status = getRFCParameter((char*)"thunderapi", TR181_SYSTEM_FRIENDLY_NAME, &param);
+            if(WDMP_SUCCESS == status && param.type == WDMP_STRING)
+            {
+                m_friendlyName = param.value;
+                LOGINFO("Success Getting the friendly name value :%s \n",m_friendlyName.c_str());
+            }
+
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
@@ -2417,6 +2431,38 @@ namespace WPEFramework {
 		returnResponse(resp);
 	}
 
+        uint32_t SystemServices::getFriendlyName(const JsonObject& parameters, JsonObject& response)
+        {
+            bool resp = true;
+            response["friendlyName"] = m_friendlyName;
+            returnResponse(resp);
+        }
+
+        uint32_t SystemServices::setFriendlyName(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "friendlyName");
+            string friendlyName = parameters["friendlyName"].String();
+            bool success = true;
+            LOGWARN("SystemServices::setFriendlyName  :%s \n", friendlyName.c_str());
+            if(m_friendlyName != friendlyName)
+            {
+                m_friendlyName = friendlyName;
+                JsonObject params;
+                params["friendlyName"] = m_friendlyName;
+                sendNotify("onFriendlyNameChanged", params);
+                //write to persistence storage
+                WDMP_STATUS status = setRFCParameter((char*)"thunderapi",
+                       TR181_SYSTEM_FRIENDLY_NAME,m_friendlyName.c_str(),WDMP_STRING);
+                if ( WDMP_SUCCESS == status ){
+                    LOGINFO("Success Setting the friendly name value\n");
+                }
+                else {
+                    LOGINFO("Failed Setting the friendly name value %s\n",getRFCErrorString(status));
+                }
+            }
+            returnResponse(success);
+        }
 
 	uint32_t SystemServices::setTerritory(const JsonObject& parameters, JsonObject& response)
 	{
