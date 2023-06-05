@@ -2500,6 +2500,8 @@ static GSourceFuncs _handlerIntervention =
             string maxFPS(Core::NumberType<uint16_t>(_config.MaxFPS.Value()).Text());
             Core::SystemInfo::SetEnvironment(_T("WEBKIT_RESOLUTION_WIDTH"), width, !environmentOverride);
             Core::SystemInfo::SetEnvironment(_T("WEBKIT_RESOLUTION_HEIGHT"), height, !environmentOverride);
+            Core::SystemInfo::SetEnvironment(_T("WPE_INIT_VIEW_WIDTH"), width, !environmentOverride);
+            Core::SystemInfo::SetEnvironment(_T("WPE_INIT_VIEW_HEIGHT"), height, !environmentOverride);
             Core::SystemInfo::SetEnvironment(_T("WEBKIT_MAXIMUM_FPS"), maxFPS, !environmentOverride);
 
             if (width.empty() == false) {
