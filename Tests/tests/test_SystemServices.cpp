@@ -205,6 +205,8 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getSerialNumber")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPlatformConfiguration")));
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadLogs")));
+	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadLogsAsync")));
+	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("abortLogUpload")));
 }
 
 TEST_F(SystemServicesTest, SystemUptime)
@@ -1196,7 +1198,24 @@ TEST_F(SystemServicesTest, deletePersistentPath)
     plugin->Deinitialize(&service);
 }
 
-TEST_F(SystemServicesEventIarmTest, onSystemPowerStateChanged)
+/*********************************************************************************************************
+ * Test function for :onSystemPowerStateChanged
+ * onSystemPowerStateChanged :
+ *                Triggered when the power manager detects a device power state change.
+ *                The power state (must be one of the following: STANDBY, DEEP_SLEEP, LIGHT_SLEEP, ON)
+ *
+ * Use case coverage:
+ *                @Success :4
+ *                @Failure :0
+ ********************************************************************************************************/
+
+/**
+ * @brief :Triggered when the power state changes from DEEPSLEEP to ON.
+ *         Check when powerEventHandler function called with power state change event from DEEPSLEEP to ON;
+ *         then  onSystemPowerStateChanged event shall be triggered successfully and
+ *         the expected JSON message is sent
+ */
+TEST_F(SystemServicesEventIarmTest, onSystemPowerStateChanged_From_DEEPSLEEP_to_ON)
 {
     Core::Event onSystemPowerStateChanged(false, true);
 
@@ -1232,6 +1251,166 @@ TEST_F(SystemServicesEventIarmTest, onSystemPowerStateChanged)
 
     handler.Unsubscribe(0, _T("onSystemPowerStateChanged"), _T("org.rdk.System"), message);
 }
+
+/**
+ * @brief :Triggered when the power state changes from ON to LIGHTSLEEP
+ *         Check when powerEventHandler function called with power state change event from ON to LIGHTSLEEP;
+ *         then  onSystemPowerStateChanged event shall be triggered successfully and
+ *         the expected JSON message is sent
+ */
+TEST_F(SystemServicesEventIarmTest, onSystemPowerStateChanged_PowerState_ON_To_LIGHTSLEEP)
+{
+    Core::Event onSystemPowerStateChanged(false, true);
+
+    ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                pstParamData->type = WDMP_BOOLEAN;
+                strncpy(pstParamData->value, "true", sizeof(pstParamData->value));
+                return WDMP_SUCCESS;
+            }));
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onSystemPowerStateChanged\","
+
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"powerState\":\"LIGHT_SLEEP\","
+                                                             "\"currentPowerState\":\"ON\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                onSystemPowerStateChanged.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onSystemPowerStateChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    param.data.state.curState = IARM_BUS_PWRMGR_POWERSTATE_ON;
+    param.data.state.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP;
+    powerEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onSystemPowerStateChanged.Lock());
+
+    handler.Unsubscribe(0, _T("onSystemPowerStateChanged"), _T("org.rdk.System"), message);
+}
+
+/**
+ * @brief :Triggered when the power state changes from STANDBY to LIGHTSLEEP
+ *         Check when powerEventHandler function called with power state change event from STANDBY to LIGHTSLEEP;
+ *         then  onSystemPowerStateChanged event shall be triggered successfully and
+ *         the expected JSON message is sent
+ */
+TEST_F(SystemServicesEventIarmTest, onSystemPowerStateChanged_PowerState_STANDBY_To_LIGHTSLEEP)
+{
+    Core::Event onSystemPowerStateChanged(false, true);
+    EXPECT_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+    .Times(0);
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onSystemPowerStateChanged\","
+
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"powerState\":\"LIGHT_SLEEP\","
+                                                             "\"currentPowerState\":\"LIGHT_SLEEP\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                onSystemPowerStateChanged.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onSystemPowerStateChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    param.data.state.curState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+    param.data.state.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP;
+    powerEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onSystemPowerStateChanged.Lock());
+
+    handler.Unsubscribe(0, _T("onSystemPowerStateChanged"), _T("org.rdk.System"), message);
+}
+/**
+ * @brief :Triggered when the power state changes from ON to DEEPSLEEP
+ *         Check when powerEventHandler function called with power state change event from ON to DEEPSLEEP;
+ *         then  onSystemPowerStateChanged event shall be triggered successfully and
+ *         the expected JSON message is sent
+ */
+TEST_F(SystemServicesEventIarmTest, onSystemPowerStateChanged_PowerState_ON_To_DEEPSLEEP)
+{
+    Core::Event onSystemPowerStateChanged(false, true);
+    const string uploadStbLogFile = _T("/lib/rdk/uploadSTBLogs.sh");
+    Core::File file(uploadStbLogFile);
+    file.Create();
+
+    EXPECT_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+    .Times(0);
+
+    std::ofstream deviceProperties("/etc/device.properties");
+    deviceProperties << "BUILD_TYPE=dev\n";
+    deviceProperties << "FORCE_MTLS=true\n";
+    deviceProperties.close();
+
+    ofstream dcmPropertiesFile("/etc/dcm.properties");
+    dcmPropertiesFile << "LOG_SERVER=logs.xcal.tv\n";
+    dcmPropertiesFile.close();
+
+    std::ofstream tmpDcmSettings("/tmp/DCMSettings.conf");
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:uploadProtocol=https\n";
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:URL=https://example.com/upload\n";
+    tmpDcmSettings << "LogUploadSettings:UploadOnReboot=true\n";
+    tmpDcmSettings.close();
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onSystemPowerStateChanged\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"powerState\":\"DEEP_SLEEP\","
+                                                             "\"currentPowerState\":\"ON\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                onSystemPowerStateChanged.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onSystemPowerStateChanged"), _T("org.rdk.System"), message);
+
+    IARM_Bus_PWRMgr_EventData_t param;
+    param.data.state.curState = IARM_BUS_PWRMGR_POWERSTATE_ON;
+    param.data.state.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
+    powerEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &param, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onSystemPowerStateChanged.Lock());
+
+    handler.Unsubscribe(0, _T("onSystemPowerStateChanged"), _T("org.rdk.System"), message);
+}
+/*Test cases for onSystemPowerStateChanged ends here*/
 
 TEST_F(SystemServicesEventIarmTest, onNetworkStandbyModeChanged)
 {
@@ -4491,3 +4670,464 @@ TEST_F(SystemServicesTest, uploadLogSuccess_WithDefaultURL)
     EXPECT_EQ(response, "{\"success\":true}");
 }
 /*Test cases for uploadLogs ends here*/
+
+ /***********************************************************************************************************
+ * Test function for :uploadLogsAsync
+ * uploadLogsAsync :
+ *                  Starts background process to upload logs.
+ *                  @returns Whether the request succeeded
+ * Event onLogUpload: Triggered when logs upload process is done
+ * Use case coverage:
+ *                @Success :2
+ *                @Failure :3
+ ********************************************************************************************************/
+
+/**
+ * @brief : uploadLogsAsync  when uploadSTBLogs.sh not present.
+ *          Checks if uploadSTBLogs.sh is not present in /lib/rdk, then uploadLogsAsync
+ *          should return a response status as true but fail to start the log upload process.
+ *
+ * @param[in]   :  no parameter
+ * @return      :  "{\"success\":true}")
+ */
+TEST_F(SystemServicesTest, uploadLogsAsyncFailed_WhenUploadLogFileNotExist)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadLogsAsync"), _T("{}"), response));
+    EXPECT_EQ(response, "{\"success\":true}");
+}
+
+/**
+ * @brief : uploadLogsAsync  without BUILD_TYPE information.
+ *          Check if device.properties does not contain BUILD_TYPE information then,
+ *          then uploadLogsAsync should return a response status as true but fail to start the log upload process.
+ *
+ * @param[in]   :  no parameter
+ * @return      :  "{\"success\":true}")
+ */
+TEST_F(SystemServicesTest, uploadLogsAsyncFailed_withoutBuildType)
+{
+    const string uploadStbLogFile = _T("/lib/rdk/uploadSTBLogs.sh");
+    Core::File file(uploadStbLogFile);
+    file.Create();
+
+    std::ofstream deviceProperties("/etc/device.properties");
+    deviceProperties.close();
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadLogsAsync"), _T("{}"), response));
+    EXPECT_EQ(response, "{\"success\":true}");
+}
+
+/**
+ * @brief : uploadLogsAsync  when dcm property file not exist.
+ *          Checks if the DCM property file is not present in the /opt or /etc folder,
+ *          then uploadLogsAsync should return a response status as true but fail
+ *          to start the log upload process since it could not get the LOG information.
+ *
+ * @param[in]   :  no parameter
+ * @return      :  "{\"success\":true}")
+ */
+TEST_F(SystemServicesTest, uploadLogsAsyncFailed_WhenDcmFileNotExist)
+{
+    const string uploadStbLogFile = _T("/lib/rdk/uploadSTBLogs.sh");
+    Core::File file(uploadStbLogFile);
+    file.Create();
+    EXPECT_TRUE(Core::File(string(_T("/lib/rdk/uploadSTBLogs.sh"))).Exists());
+
+    ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                pstParamData->type = WDMP_BOOLEAN;
+                strncpy(pstParamData->value, "true", sizeof(pstParamData->value));
+                return WDMP_SUCCESS;
+            }));
+
+
+    std::ofstream deviceProperties("/etc/device.properties");
+    deviceProperties << "BUILD_TYPE=dev\n";
+    deviceProperties << "FORCE_MTLS=true\n";
+    deviceProperties.close();
+    EXPECT_TRUE(Core::File(string(_T("/etc/device.properties"))).Exists());
+
+
+    std::ofstream tmpDcmSettings("/tmp/DCMSettings.conf");
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:uploadProtocol=https\n";
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:URL=https://example.com/upload\n";
+    tmpDcmSettings << "LogUploadSettings:UploadOnReboot=true\n";
+    tmpDcmSettings.close();
+    EXPECT_TRUE(Core::File(string(_T("/tmp/DCMSettings.conf"))).Exists());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadLogsAsync"), _T("{}"), response));
+    EXPECT_EQ(response, "{\"success\":true}");
+}
+
+/**
+ * @brief : uploadLogsAsync  when Build type is PROD.
+ *          Checks if the device.properties file contains BUILD_TYPE="prod",
+ *          then uploadLogsAsync should retrieve the LOG SERVER information from etc/dcm.properties
+ *          and the log upload process should succeed.
+ *
+ * @param[in]   :  no parameter
+ * @return      :  "{\"success\":true}")
+ */
+TEST_F(SystemServicesTest, uploadLogsAsyncSuccess_WithBuildTypeProd)
+{
+    const string uploadStbLogFile = _T("/lib/rdk/uploadSTBLogs.sh");
+    Core::File file(uploadStbLogFile);
+    file.Create();
+    EXPECT_TRUE(Core::File(string(_T("/lib/rdk/uploadSTBLogs.sh"))).Exists());
+
+    ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                pstParamData->type = WDMP_BOOLEAN;
+                strncpy(pstParamData->value, "true", sizeof(pstParamData->value));
+                return WDMP_SUCCESS;
+            }));
+
+
+    std::ofstream deviceProperties("/etc/device.properties");
+    deviceProperties << "BUILD_TYPE=prod\n";
+    deviceProperties << "FORCE_MTLS=true\n";
+    deviceProperties.close();
+    EXPECT_TRUE(Core::File(string(_T("/etc/device.properties"))).Exists());
+
+    ofstream dcmPropertiesFile("/etc/dcm.properties");
+    dcmPropertiesFile << "LOG_SERVER=logs.xcal.tv\n";
+    dcmPropertiesFile << "DCM_LOG_SERVER=stblogger.ccp.xcal.tv\n";
+    dcmPropertiesFile << "DCM_LOG_SERVER_URL=https://xconf.xcal.tv/loguploader/getSettings\n";
+    dcmPropertiesFile << "DCM_SCP_SERVER=stbscp.ccp.xcal.tv\n";
+    dcmPropertiesFile << "HTTP_UPLOAD_LINK=https://ssr.ccp.xcal.tv/cgi-bin/S3.cgi\n";
+    dcmPropertiesFile << "DCA_UPLOAD_URL=https://stbrtl.r53.xcal.tv\n";
+    dcmPropertiesFile.close();
+    EXPECT_TRUE(Core::File(string(_T("/etc/dcm.properties"))).Exists());
+
+    std::ofstream tmpDcmSettings("/tmp/DCMSettings.conf");
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:uploadProtocol=https\n";
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:URL=https://example.com/upload\n";
+    tmpDcmSettings << "LogUploadSettings:UploadOnReboot=true\n";
+    tmpDcmSettings.close();
+    EXPECT_TRUE(Core::File(string(_T("/tmp/DCMSettings.conf"))).Exists());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadLogsAsync"), _T("{}"), response));
+    EXPECT_EQ(response, "{\"success\":true}");
+}
+
+/**
+ * @brief : uploadLogsAsync  when dcm property exist.
+ *          Checks if the dcm.properties file is present,
+ *          then uploadLogsAsync should retrieve the LOG SERVER information from dcm.properties
+ *          and the log upload process should succeed.
+ *
+ * @param[in]   :  no parameter
+ * @return      :  "{\"success\":true}")
+ */
+TEST_F(SystemServicesTest, uploadLogsAsyncSuccess_WhenDcmFileExist)
+{
+    const string uploadStbLogFile = _T("/lib/rdk/uploadSTBLogs.sh");
+    Core::File file(uploadStbLogFile);
+    file.Create();
+    EXPECT_TRUE(Core::File(string(_T("/lib/rdk/uploadSTBLogs.sh"))).Exists());
+
+    ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                pstParamData->type = WDMP_BOOLEAN;
+                strncpy(pstParamData->value, "true", sizeof(pstParamData->value));
+                return WDMP_SUCCESS;
+            }));
+
+
+    std::ofstream deviceProperties("/etc/device.properties");
+    deviceProperties << "BUILD_TYPE=dev\n";
+    deviceProperties << "FORCE_MTLS=true\n";
+    deviceProperties.close();
+    EXPECT_TRUE(Core::File(string(_T("/etc/device.properties"))).Exists());
+
+    ofstream dcmPropertiesFile("/opt/dcm.properties");
+    dcmPropertiesFile << "LOG_SERVER=logs.xcal.tv\n";
+    dcmPropertiesFile << "DCM_LOG_SERVER=stblogger.ccp.xcal.tv\n";
+    dcmPropertiesFile << "DCM_LOG_SERVER_URL=https://xconf.xcal.tv/loguploader/getSettings\n";
+    dcmPropertiesFile << "DCM_SCP_SERVER=stbscp.ccp.xcal.tv\n";
+    dcmPropertiesFile << "HTTP_UPLOAD_LINK=https://ssr.ccp.xcal.tv/cgi-bin/S3.cgi\n";
+    dcmPropertiesFile << "DCA_UPLOAD_URL=https://stbrtl.r53.xcal.tv\n";
+    dcmPropertiesFile.close();
+    EXPECT_TRUE(Core::File(string(_T("/opt/dcm.properties"))).Exists());
+
+    std::ofstream tmpDcmSettings("/tmp/DCMSettings.conf");
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:uploadProtocol=https\n";
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:URL=https://example.com/upload\n";
+    tmpDcmSettings << "LogUploadSettings:UploadOnReboot=true\n";
+    tmpDcmSettings.close();
+    EXPECT_TRUE(Core::File(string(_T("/tmp/DCMSettings.conf"))).Exists());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadLogsAsync"), _T("{}"), response));
+    EXPECT_EQ(response, "{\"success\":true}");
+}
+/*Test cases for uploadLogsAsync ends here*/
+
+ /***********************************************************************************************************
+ * Test function for :abortLogUpload
+ * uploadLogsAsync :
+ *                  Stops background process to upload logs.
+ *                  @returns Whether the request succeeded
+ * Event onLogUpload :Triggered when logs upload process is stopped
+ * Use case coverage:
+ *                @Success :1
+ *                @Failure :2
+ ********************************************************************************************************************/
+
+/**
+ * @brief : abortLogUploadFailure when UploadLogScript is Not Running.
+ *          Checks if the abortLogUpload method is called when the uploadLogScript is not running,
+ *          then response status should be false indicating failure.
+ *
+ * @param[in]   :  no parameter
+ * @return      :  "{\"success\":false}")
+ */
+TEST_F(SystemServicesTest, abortLogUploadFailure_whenUploadLogScriptNotRunning)
+{
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](const char* command, const char* type) -> FILE* {
+                return __real_popen(command, type);
+            }));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("abortLogUpload"), _T("{}"), response));
+}
+
+/**
+ * @brief : abortLogUploadSuccess
+ *          Checks if the abortLogUpload method is called successfully and
+ *          returns a response status as true.
+ *
+ * @param[in]   :  no parameter
+ * @return      :  "{\"success\":true}")
+ */
+TEST_F(SystemServicesTest, abortLogUploadSuccess)
+{
+    const string uploadStbLogFile = _T("/lib/rdk/uploadSTBLogs.sh");
+    Core::File file(uploadStbLogFile);
+    file.Create();
+    EXPECT_TRUE(Core::File(string(_T("/lib/rdk/uploadSTBLogs.sh"))).Exists());
+
+    ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                pstParamData->type = WDMP_BOOLEAN;
+                strncpy(pstParamData->value, "true", sizeof(pstParamData->value));
+                return WDMP_SUCCESS;
+            }));
+
+
+    std::ofstream deviceProperties("/etc/device.properties");
+    deviceProperties << "BUILD_TYPE=dev\n";
+    deviceProperties << "FORCE_MTLS=true\n";
+    deviceProperties.close();
+
+    EXPECT_TRUE(Core::File(string(_T("/etc/device.properties"))).Exists());
+
+    std::ofstream tmpDcmSettings("/tmp/DCMSettings.conf");
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:uploadProtocol=https\n";
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:URL=https://example.com/upload\n";
+    tmpDcmSettings << "LogUploadSettings:UploadOnReboot=true\n";
+    tmpDcmSettings.close();
+    EXPECT_TRUE(Core::File(string(_T("/tmp/DCMSettings.conf"))).Exists());
+
+	//uploadLogsAsync method is invoked first to ensure that m_uploadLogsPid is assigned a value other than -1.
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadLogsAsync"), _T("{}"), response));
+
+    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](const char* command, const char* type) -> FILE* {
+                return __real_popen(command, type);
+            }));
+
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("abortLogUpload"), _T("{}"), response));
+    EXPECT_EQ(response, "{\"success\":true}");
+}
+/*Test cases for abortLogUpload ends here*/
+
+/***********************************************************************************************************
+ * Test function for Event API :onLogUpload
+ * onLogUplaod:
+ *                  Triggered when logs upload process is done or stopped.
+ *                  @returns Upload status (must be one of the following: UPLOAD_SUCCESS, UPLOAD_FAILURE, UPLOAD_ABORTED)
+ * Use case coverage:
+ *                @Success :2
+ *                @Failure :1
+ ********************************************************************************************************************/
+/**
+ * @brief Test case for onLogUpload with uploadStatusSuccess.
+ *
+ * Verifies if the onLogUpload event is triggered correctly with log upload status as success.
+ *
+ * @param None.
+ * @return None.
+ */
+TEST_F(SystemServicesEventIarmTest, onLogUploadSuccess_withUploadStatusSuccess)
+{
+    Core::Event onLogUpload(false, true);
+    const string uploadStbLogFile = _T("/lib/rdk/uploadSTBLogs.sh");
+    Core::File file(uploadStbLogFile);
+    file.Create();
+
+
+    ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                pstParamData->type = WDMP_BOOLEAN;
+                strncpy(pstParamData->value, "true", sizeof(pstParamData->value));
+                return WDMP_SUCCESS;
+            }));
+
+    std::ofstream deviceProperties("/etc/device.properties");
+    deviceProperties << "BUILD_TYPE=dev\n";
+    deviceProperties << "FORCE_MTLS=true\n";
+    deviceProperties.close();
+
+    ofstream dcmPropertiesFile("/opt/dcm.properties");
+    dcmPropertiesFile << "LOG_SERVER=logs.xcal.tv\n";
+    dcmPropertiesFile << "DCM_LOG_SERVER=stblogger.ccp.xcal.tv\n";
+    dcmPropertiesFile << "DCM_LOG_SERVER_URL=https://xconf.xcal.tv/loguploader/getSettings\n";
+    dcmPropertiesFile << "DCM_SCP_SERVER=stbscp.ccp.xcal.tv\n";
+    dcmPropertiesFile << "HTTP_UPLOAD_LINK=https://ssr.ccp.xcal.tv/cgi-bin/S3.cgi\n";
+    dcmPropertiesFile << "DCA_UPLOAD_URL=https://stbrtl.r53.xcal.tv\n";
+    dcmPropertiesFile.close();
+    EXPECT_TRUE(Core::File(string(_T("/opt/dcm.properties"))).Exists());
+
+    std::ofstream tmpDcmSettings("/tmp/DCMSettings.conf");
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:uploadProtocol=https\n";
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:URL=https://example.com/upload\n";
+    tmpDcmSettings << "LogUploadSettings:UploadOnReboot=true\n";
+    tmpDcmSettings.close();
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadLogsAsync"), _T("{}"), response));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onLogUpload\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"logUploadStatus\":\"UPLOAD_SUCCESS\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                onLogUpload.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onLogUpload"), _T("org.rdk.System"), message);
+
+    IARM_Bus_SYSMgr_EventData_t sysEventData;
+    sysEventData.data.systemStates.stateId = IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD;
+    sysEventData.data.systemStates.state =   IARM_BUS_SYSMGR_LOG_UPLOAD_SUCCESS;
+    systemStateChanged(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, &sysEventData, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onLogUpload.Lock());
+
+    handler.Unsubscribe(0, _T("onLogUpload"), _T("org.rdk.System"), message);
+}
+
+/**
+ * @brief Test case for onLogUploadSuccess with abortStatusSuccess.
+ *
+ * Verifies if the onLogUpload event is triggered correctly with log abort status as success.
+ *
+ * @param None.
+ * @return None.
+ */
+TEST_F(SystemServicesEventIarmTest, onLogUploadSuccess_withAbortStatusSuccess)
+{
+    Core::Event onLogUpload(false, true);
+    const string uploadStbLogFile = _T("/lib/rdk/uploadSTBLogs.sh");
+    Core::File file(uploadStbLogFile);
+    file.Create();
+
+
+    ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                pstParamData->type = WDMP_BOOLEAN;
+                strncpy(pstParamData->value, "true", sizeof(pstParamData->value));
+                return WDMP_SUCCESS;
+            }));
+
+    std::ofstream deviceProperties("/etc/device.properties");
+    deviceProperties << "BUILD_TYPE=dev\n";
+    deviceProperties << "FORCE_MTLS=true\n";
+    deviceProperties.close();
+
+    ofstream dcmPropertiesFile("/etc/dcm.properties");
+    dcmPropertiesFile << "LOG_SERVER=logs.xcal.tv\n";
+    dcmPropertiesFile.close();
+
+    std::ofstream tmpDcmSettings("/tmp/DCMSettings.conf");
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:uploadProtocol=https\n";
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:URL=https://example.com/upload\n";
+    tmpDcmSettings << "LogUploadSettings:UploadOnReboot=true\n";
+    tmpDcmSettings.close();
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadLogsAsync"), _T("{}"), response));
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onLogUpload\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"logUploadStatus\":\"UPLOAD_SUCCESS\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                onLogUpload.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onLogUpload"), _T("org.rdk.System"), message);
+
+    IARM_Bus_SYSMgr_EventData_t sysEventData;
+    sysEventData.data.systemStates.stateId = IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD;
+    sysEventData.data.systemStates.state =   IARM_BUS_SYSMGR_LOG_UPLOAD_SUCCESS;
+    systemStateChanged(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, &sysEventData, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onLogUpload.Lock());
+
+    handler.Unsubscribe(0, _T("onLogUpload"), _T("org.rdk.System"), message);
+}
+
+/**
+ * @brief Test case for onLogUploadFailed when uploadLogScriptNotRunning.
+ *
+ * Verifies onLogUpload event will NOT be triggered correctly when the upload log script is not running.
+ *
+ * @param None.
+ * @return None.
+ */
+TEST_F(SystemServicesEventIarmTest, onLogUploadFailed_whenUploadLogScriptNotRunning)
+{
+    Core::Event onLogUpload(false, true);
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_)).Times(0);
+    handler.Subscribe(0, _T("onLogUpload"), _T("org.rdk.System"), message);
+
+    IARM_Bus_SYSMgr_EventData_t sysEventData;
+    sysEventData.data.systemStates.stateId = IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD;
+    sysEventData.data.systemStates.state =   IARM_BUS_SYSMGR_LOG_UPLOAD_SUCCESS;
+    systemStateChanged(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, &sysEventData, 0);
+
+    EXPECT_EQ(Core::ERROR_TIMEDOUT, onLogUpload.Lock(100));
+
+    handler.Unsubscribe(0, _T("onLogUpload"), _T("org.rdk.System"), message);
+}
+/*Test cases for onLogUpload ends here*/
+
