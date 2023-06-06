@@ -5750,7 +5750,7 @@ TEST_F(SystemServicesTest, uploadLogsAsyncSuccess_WhenDcmFileExist)
  * Event onLogUpload :Triggered when logs upload process is stopped
  * Use case coverage:
  *                @Success :1
- *                @Failure :2
+ *                @Failure :1
  ********************************************************************************************************************/
 
 /**
