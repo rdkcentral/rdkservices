@@ -1356,7 +1356,7 @@ TEST_F(SystemServicesTest, getDeviceInfoFailed_OnInvalidQueryParam)
  */
 TEST_F(SystemServicesTest, getDeviceInfoFailed_OnDevicePropertyFileFailedToOpen)
 {
-	ofstream file("/etc/device.properties");
+    ofstream file("/etc/device.properties");
     file << "MFG_NAME=SKY";
     file.close();
     
@@ -2581,10 +2581,10 @@ TEST_F(SystemServicesTest, setBootLoaderPatternSuccess_onPatterntypeSILENTLEDON)
 TEST_F(SystemServicesTest,getMacAddressesFailed_WhenFileNotExist)
 {
     const string deviceInfoScript = _T("/lib/rdk/getDeviceDetails.sh");
-	Core::File file(deviceInfoScript);
-	remove("/lib/rdk/getDeviceDetails.sh");
+    Core::File file(deviceInfoScript);
+    remove("/lib/rdk/getDeviceDetails.sh");
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getMacAddresses"), _T("{}"), response));
-	file.Destroy();
+    file.Destroy();
 }
 
 /**
@@ -2598,8 +2598,8 @@ TEST_F(SystemServicesEventTest, onMacAddressesRetrieved)
 {
     Core::Event onMacAddressesRetreived(false, true);
     const string deviceInfoScript = _T("/lib/rdk/getDeviceDetails.sh");
-	Core::File file(deviceInfoScript);
-	file.Create();
+    Core::File file(deviceInfoScript);
+    file.Create();
 
     ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
      .WillByDefault(::testing::Invoke(
@@ -2646,7 +2646,7 @@ TEST_F(SystemServicesEventTest, onMacAddressesRetrieved)
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onMacAddressesRetreived.Lock());
     handler.Unsubscribe(0, _T("onMacAddressesRetreived"), _T("org.rdk.System"), message);
-	file.Destroy();
+    file.Destroy();
 }
 /*Test cases for getMacAddresses ends here*/
 
@@ -2706,8 +2706,8 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode4
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
-	
-	// Clear file contents
+
+    // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
 }
@@ -2755,8 +2755,8 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode4
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
-	
-	// Clear file contents
+
+    // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
 }
@@ -2804,7 +2804,7 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCodeO
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
-	
+
     // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
@@ -2853,8 +2853,8 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvPROD)
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
-	
-	// Clear file contents
+
+    // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
 }
@@ -2903,8 +2903,8 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvDev)
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
-	
-	// Clear file contents
+
+    // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
 }
@@ -2953,8 +2953,8 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvVBN)
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
-	
-	// Clear file contents
+
+    // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
 }
@@ -3003,8 +3003,8 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvCqa)
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
-	
-	// Clear file contents
+
+    // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
 }
@@ -3052,8 +3052,8 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvNotProdWitho
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
-	
-	// Clear file contents
+
+    // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
 }
@@ -3105,8 +3105,8 @@ TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithC
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
-	
-	// Clear file contents
+
+    // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
 }
@@ -3160,7 +3160,7 @@ TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithC
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
-	// Clear file contents
+    // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
 }
@@ -3192,8 +3192,8 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithoutHttpStatusCo
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
-	
-	// Clear file contents
+
+    // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
 }
@@ -3241,8 +3241,8 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenResponseEmpty)
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
-	
-	// Clear file contents
+
+    // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
 }
@@ -3290,8 +3290,8 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenErrorInParsingR
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
-	
-	// Clear file contents
+
+    // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
 }
@@ -3339,8 +3339,8 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenInvalidResponse
     EXPECT_EQ(response, string("{\"asyncResponse\":true,\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, onFirmwareUpdateInfoReceived.Lock());
     handler.Unsubscribe(0, _T("onFirmwareUpdateInfoReceived"), _T("org.rdk.System"), message);
-	
-	// Clear file contents
+
+    // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
 }

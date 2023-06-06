@@ -20,7 +20,7 @@ protected:
     NiceMock<IarmBusImplMock> iarmBusImplMock;
     NiceMock<ConnectionImplMock> connectionImplMock;
     NiceMock<MessageEncoderMock> messageEncoderMock;
-	NiceMock<WrapsImplMock> wrapsImplMock;
+    NiceMock<WrapsImplMock> wrapsImplMock;
     IARM_EventHandler_t pwrMgrModeChangeEventHandler;
     IARM_EventHandler_t dsHdmiEventHandler;
     IARM_EventHandler_t dsHdmiCecSinkEventHandler;
@@ -34,7 +34,7 @@ protected:
         LibCCEC::getInstance().impl = &libCCECImplMock;
         Connection::getInstance().impl = &connectionImplMock;
         MessageEncoder::getInstance().impl = &messageEncoderMock;
-		Wraps::getInstance().impl = &wrapsImplMock; /*Set up mock for fopen;
+        Wraps::getInstance().impl = &wrapsImplMock; /*Set up mock for fopen;
                                                       to use the mock implementation/the default behavior of the fopen function from Wraps class.*/
 
         ON_CALL(connectionImplMock, poll(::testing::_, ::testing::_))
@@ -85,7 +85,7 @@ protected:
         LibCCEC::getInstance().impl = nullptr;
         Connection::getInstance().impl = nullptr;
         MessageEncoder::getInstance().impl = nullptr;
-		Wraps::getInstance().impl = nullptr;
+        Wraps::getInstance().impl = nullptr;
     }
 };
 

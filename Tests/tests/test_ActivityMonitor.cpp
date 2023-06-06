@@ -42,7 +42,7 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
-	NiceMock<WrapsImplMock> wrapsImplMock;
+    NiceMock<WrapsImplMock> wrapsImplMock;
 
     ActivityMonitorTest()
         : plugin(Core::ProxyType<Plugin::ActivityMonitor>::Create())
@@ -50,13 +50,13 @@ protected:
         , connection(1, 0)
     {
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
-		Wraps::getInstance().impl = &wrapsImplMock; /*Set up mock for fopen;
+        Wraps::getInstance().impl = &wrapsImplMock; /*Set up mock for fopen;
                                                       to use the mock implementation/the default behavior of the fopen function from Wraps class.*/
     }
     virtual ~ActivityMonitorTest() override
     {
         plugin->Deinitialize(nullptr);
-		Wraps::getInstance().impl = nullptr;
+        Wraps::getInstance().impl = nullptr;
     }
 };
 

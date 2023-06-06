@@ -26,5 +26,5 @@ public:
     MOCK_METHOD(FILE*, popen, (const char* command, const char* type), (override));
     MOCK_METHOD(int, pclose, (FILE* pipe), (override));
     MOCK_METHOD(void, syslog, (int pri, const char* fmt, va_list args), (override));
-	MOCK_METHOD(FILE*, fopen, (const char* filename, const char* mode), (override));
+    MOCK_METHOD(FILE*, fopen, (const char* filename, const char* mode), (override));
 };
