@@ -183,7 +183,7 @@ namespace WPEFramework
                         planeType = stoi(sPlaneType);
                 }
             }catch (const std::exception& err) {
-		    LOGWARN("sPortId invalid paramater: %s \n", sPortId.c_str());
+		    LOGWARN("sPortId - invalid paramater: %s \n", sPortId.c_str());
 		    returnResponse(false);
             }
             bool success = true;
