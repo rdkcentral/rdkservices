@@ -53,7 +53,7 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 
-find_package(GSTREAMER REQUIRED)
+find_package(GStreamer REQUIRED)
 if (GSTREAMER_FOUND)
     target_link_libraries(${MODULE_NAME}
         PRIVATE

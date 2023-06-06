@@ -28,7 +28,7 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 list(APPEND CMAKE_MODULE_PATH
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
-find_package(GSTREAMER REQUIRED)
+find_package(GStreamer REQUIRED)
 
 find_package(Curl)
 
