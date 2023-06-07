@@ -611,10 +611,10 @@
         "setDefaultInterface":{
             "summary": "Sets the default interface. The call fails if the interface is not enabled.",
             "events":{
-                "onInterfaceStatusChanged" : "Triggered when device’s default interface changed.",
-                "onConnectionStatusChanged" : "Triggered when interface’s status changes to enabled/disabled.",
-                "onIPAddressStatusChanged" : "Triggered when the device connects to router.",
-                "onDefaultInterfaceChanged" : "Triggered when each IP address is lost or acquired."
+                "onInterfaceStatusChanged" : "Triggered when interface’s status changes to enabled/disabled.",
+                "onConnectionStatusChanged" : "Triggered when a connection is made or lost.",
+                "onIPAddressStatusChanged" : "Triggered when each IP address is lost or acquired.",
+                "onDefaultInterfaceChanged" : "Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method."
             },
             "params": {
                 "type":"object",
