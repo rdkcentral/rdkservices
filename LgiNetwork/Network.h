@@ -121,6 +121,10 @@ namespace WPEFramework {
             // this one is just to reroute event according to type *and* params
             void onNetworkingEvent(const string id, const string event, const std::map<string, string> params);
 
+            void CheckIfDefaultInterfaceChanged();
+            void CheckInterfaceConnectionStatus(const string& id);
+            void CheckInterfaceEnabledStatus(const string& interface);
+
         public:
             Network();
             virtual ~Network();
@@ -149,6 +153,11 @@ namespace WPEFramework {
             string m_gatewayInterface;
             // (interface id, ip version number) -> ip (string)
             std::map<std::pair<string, int>, string> m_oldAddresses;
+            //interface id -> status
+            std::map<string, bool> m_InterfaceEnabled;
+            //interface id -> status
+            std::map<string, bool> m_InterfaceConnected;
+            string m_CurrentDefaultInterface;
             uint16_t m_stunPort;
             uint16_t m_stunBindTimeout;
             uint16_t m_stunCacheTimeout;

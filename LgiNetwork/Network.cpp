@@ -143,6 +143,7 @@ namespace WPEFramework
                 m_NetworkClient.onHandleIpv4ConfigurationChangedEvent = IP4ConfigurationChangedEvent;
                 m_NetworkClient.onHandleIpv6ConfigurationChangedEvent = IP6ConfigurationChangedEvent;
                 LOGINFO("Succeeded initializing LGI DBus Network Client");
+                CheckIfDefaultInterfaceChanged();
             }
 
             return msg;
@@ -936,19 +937,64 @@ namespace WPEFramework
             sendNotify("onInterfaceStatusChanged", params);
         }
 
+        void Network::CheckIfDefaultInterfaceChanged()
+        {
+            // handle onDefaultInterfaceChanged
+            string defaultInterface = m_NetworkClient.getDefaultInterface();
+            if (defaultInterface != "" && defaultInterface != m_CurrentDefaultInterface)
+            {
+                onDefaultInterfaceChanged(m_CurrentDefaultInterface, defaultInterface);
+                m_CurrentDefaultInterface = defaultInterface;
+            }
+        }
+
+        void Network::CheckInterfaceConnectionStatus(const string& interface)
+        {
+            bool connected = false;
+            std::map<std::string, std::string> parameters { {lginet::ParamConnectivity, ""} };
+            if (m_NetworkClient.getSpecificParamsForInterface(interface, parameters))
+            {
+                connected = connected | (parameters[lginet::ParamConnectivity] == "yes");
+            }
+            auto previous = m_InterfaceConnected.find(interface);
+            if (previous != m_InterfaceConnected.end() && previous->second == connected)
+            {
+                return;
+            }
+            else
+            {
+                m_InterfaceConnected[interface] = connected;
+                onInterfaceConnectionStatusChanged(interface, connected);
+            }
+        }
+
+        void Network::CheckInterfaceEnabledStatus(const string& interface)
+        {
+            // handle onInterfaceStatusChanged ("Triggered when interface’s status changes to enabled/disabled.")
+            const bool enabled = m_NetworkClient.isInterfaceEnabled(interface);
+            auto itPreviouslyEnabled = m_InterfaceEnabled.find(interface);
+            if (itPreviouslyEnabled == m_InterfaceEnabled.end() || enabled != itPreviouslyEnabled->second)
+            {
+                onInterfaceEnabledStatusChanged(interface, enabled);
+                m_InterfaceEnabled[interface] = enabled;
+            }
+        }
+
         void Network::StatusChangeEvent(const std::string id, const std::string status)
         {
             if (Network::_instance)
             {
                 LOGINFO("StatusChangeEvent entry id=%s status=%s", id.c_str(), status.c_str());
-                if (status == "Disconnected")
-                    Network::_instance->onInterfaceConnectionStatusChanged(id, false);
-                else if (status == "Assigned")
-                    Network::_instance->onInterfaceConnectionStatusChanged(id, true);
-                else if (status == "Disabled")
-                    Network::_instance->onInterfaceEnabledStatusChanged(id, false);
-                else if (status == "Dormant")
+
+                if (status == "Dormant")
+                {
                     Network::_instance->onInterfaceIPAddressChanged(id, "", "", false);
+                }
+
+                Network::_instance->CheckInterfaceEnabledStatus(id);
+                Network::_instance->CheckIfDefaultInterfaceChanged();
+                Network::_instance->CheckInterfaceConnectionStatus(id);
+
                 LOGINFO("StatusChangeEvent exit");
             }
         }
@@ -983,10 +1029,7 @@ namespace WPEFramework
             }
             else if (event == "configuration.changed")
             {
-                auto iter = params.find(lginet::ParamConnectivity);
-                if (iter != params.end())
-                    onInterfaceConnectionStatusChanged(id, iter->second == "yes");
-                iter = params.find(lginet::ParamNetworkChanged);
+                auto iter = params.find(lginet::ParamNetworkChanged);
                 if (iter != params.end())
                 {
                     // onInterfaceIPAddressChanged will only trigger notification in case the provided IP is different from whatever we have stored
@@ -1000,7 +1043,10 @@ namespace WPEFramework
                             onInterfaceIPAddressChanged(id, parameters[lginet::ParamIpv6Ip], parameters[lginet::ParamIpv4Ip], true);
                     }
                 }
+                CheckIfDefaultInterfaceChanged();
             }
+
+            CheckInterfaceConnectionStatus(id);
             LOGINFO("onNetworkingEvent exit");
         }
 
