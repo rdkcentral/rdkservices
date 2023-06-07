@@ -29,8 +29,8 @@ find_package(${NAMESPACE}Definitions REQUIRED)
 add_library(${MODULE_NAME} SHARED
         UnifiedCASManagement.cpp
         UnifiedCASManagementJsonRpc.cpp
-        ../UnifiedPlayer/RTPlayer.cpp
-        ../UnifiedPlayer/ConnectionManager.cpp
+        RTPlayer.cpp
+        ConnectionManager.cpp
         Module.cpp
         )
 
@@ -40,7 +40,6 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD_REQUIRED YES)
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
-target_include_directories(${MODULE_NAME} PRIVATE ../UnifiedPlayer)
 
 
 #find_package(rtRemote)
