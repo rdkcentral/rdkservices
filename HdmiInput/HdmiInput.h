@@ -23,6 +23,7 @@
 
 #include "Module.h"
 #include "dsTypes.h"
+#include "rdk/tv-hal/tvTypes.h"
 
 namespace WPEFramework {
 
@@ -64,7 +65,9 @@ namespace WPEFramework {
             uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response);
             uint32_t getHdmiGameFeatureStatusWrapper(const JsonObject& parameters, JsonObject& response);
-            //End methods
+            uint32_t getAVLatency(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getTVLowLatencyMode(const JsonObject& parameters, JsonObject& response);
+	    //End methods
 
             JsonArray getHDMIInputDevices();
             void writeEDID(int deviceId, std::string message);
@@ -76,7 +79,13 @@ namespace WPEFramework {
             bool getHdmiALLMStatus(int iPort);
 
             bool setVideoRectangle(int x, int y, int width, int height);
-
+	    void getControlSettingsPlugin();
+            void getHdmiCecSinkPlugin(void);
+            PluginHost::IShell* m_service = nullptr;
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* m_client;
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* m_tv_client;
+            std::vector<std::string> m_clientRegisteredEventNames;
+            uint32_t getServiceState(PluginHost::IShell* shell, const string& callsign, PluginHost::IShell::state& state);
             void hdmiInputHotplug( int input , int connect);
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
@@ -94,7 +103,16 @@ namespace WPEFramework {
 
 	    void hdmiInputAviContentTypeChange(int port, int content_type);
             static void dsHdmiAviContentTypeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        public:
+        	
+	    void tvLowLatencyChange(bool low_latency);
+            static void tvLowLatencyModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
+            void hdmiInAVLatencyChange(int audio_output_delay,int video_latency);
+            static void dsHdmiAVLatencyEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
+	    void reportLatencyInfoToHdmiCecSink();
+	     void onGameModeEventHandler(const JsonObject& parameters);
+	public:
             HdmiInput();
             virtual ~HdmiInput();
             virtual const string Initialize(PluginHost::IShell* shell) override;

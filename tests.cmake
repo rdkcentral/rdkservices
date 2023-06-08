@@ -21,11 +21,13 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/rdk/control
         ${BASEDIR}/rdk/iarmmgrs
 	${BASEDIR}/rdkshell
+	${BASEDIR}/rdk/tv-hal
         )
 
 set(EMPTY_HEADERS
         ${BASEDIR}/audiocapturemgr/audiocapturemgr_iarm.h
         ${BASEDIR}/ccec/drivers/CecIARMBusMgr.h
+        ${BASEDIR}/rdk/ds-hal/tvTypes.h
         ${BASEDIR}/rdk/ds/audioOutputPort.hpp
         ${BASEDIR}/rdk/ds/compositeIn.hpp
         ${BASEDIR}/rdk/ds/dsDisplay.h
