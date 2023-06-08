@@ -15,6 +15,15 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+## [1.1.1] - 2023-06-01
+### Fixed
+- Fixed issues when ARC init and audio disconnected events occur at same time in some AVR
+- Fixed issues when Audio routing in progress and user disables CEC through UI
+
+## [1.1.0] - 2023-05-24
+### Changed
+- Handled identifying Atmos sink capability for all audio output ports and host capability
+
 ## [1.0.20] - 2023-03-29
 ### Fixed
 - Reduced Displaysettings log during volume change
