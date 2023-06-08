@@ -43,6 +43,10 @@ include(CmakeHelperFunctions)
 
 get_directory_property(SEVICES_DEFINES COMPILE_DEFINITIONS)
 
+if (USE_THUNDER_R4)
+    add_definitions(-DUSE_THUNDER_R4)
+endif (USE_THUNDER_R4)
+
 if(PLUGIN_PACKAGER)
     add_subdirectory(Packager)
 endif()

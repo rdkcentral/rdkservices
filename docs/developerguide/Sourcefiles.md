@@ -189,9 +189,8 @@ void PersistentStore::event_onValueChanged(const string &key, const string &valu
     ```
 
 - Initialization and Cleanup:
-Keep Plugin Constructors & Destructors lean. Most initialization should be done within Initialize() which gets called when the plugin is activated. This will ensure that WPEFramework boots up faster since most of the plugins are not auto-started or activated on bootup. Similarly most of the plugin cleanup should happen within Deinitialize() instead of the destructor.
-
-- If there is any error in initialization return non-empty string with useful error information from Initialize().This will ensure that plugin doesn't get activated and also return this error information to the caller.
+Keep Plugin Constructors & Destructors lean. Most initialization should be done within Initialize() and cleanup within DeInitialize(). 
+    - If there is any error in initialization return non-empty string with useful error information from Initialize().This will ensure that plugin doesn't get activated and also return this error information to the caller.
 
     ```C++
     const string FooPlugin::Initialize(PluginHost::IShell *service)

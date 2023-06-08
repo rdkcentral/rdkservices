@@ -26,3 +26,8 @@ extern  "C" void __wrap_syslog(int pri, const char *fmt, ...)
     vsyslog(pri, fmt, args);
     va_end(args);
 }
+
+extern "C" FILE* __wrap_fopen(const char* filename, const char* mode)
+{
+    return  Wraps::getInstance().fopen(filename, mode);
+}
