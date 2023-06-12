@@ -2,7 +2,7 @@
 <a name="DisplaySettings_Plugin"></a>
 # DisplaySettings Plugin
 
-**Version: [1.0.22](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/CHANGELOG.md)**
+**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/CHANGELOG.md)**
 
 A org.rdk.DisplaySettings plugin for Thunder framework.
 
@@ -1490,7 +1490,10 @@ No Events
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
 
 ### Result
 
@@ -1508,7 +1511,10 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.DisplaySettings.getSinkAtmosCapability"
+    "method": "org.rdk.DisplaySettings.getSinkAtmosCapability",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
 }
 ```
 
@@ -4200,6 +4206,7 @@ DisplaySettings interface events:
 | [resolutionPreChange](#resolutionPreChange) | Triggered on resolution pre-change |
 | [zoomSettingUpdated](#zoomSettingUpdated) | Triggered when the zoom setting changes and returns the zoom setting values for all video display types |
 | [videoFormatChanged](#videoFormatChanged) | Triggered when the video format of connected video port changes and returns the new video format along with other supported formats of that video port |
+| [AtmosCapabilityChanged](#AtmosCapabilityChanged) | Triggered when the audio sink device Atmos capability is changed |
 
 
 <a name="activeInputChanged"></a>
@@ -4407,6 +4414,30 @@ Triggered when the video format of connected video port changes and returns the 
             "`SDR`, `HDR10`, `HDR10PLUS`, `HLG`, `DV`, `Technicolor Prime`"
         ],
         "currentVideoFormat": "SDR"
+    }
+}
+```
+
+<a name="AtmosCapabilityChanged"></a>
+## *AtmosCapabilityChanged*
+
+Triggered when the audio sink device Atmos capability is changed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.currentAtmosCapability | string | Atmos capability of the connected device, ATMOS_SUPPORTED, ATMOS_NOT_SUPPORTED |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.AtmosCapabilityChanged",
+    "params": {
+        "currentAtmosCapability": "ATMOS_SUPPORTED"
     }
 }
 ```
