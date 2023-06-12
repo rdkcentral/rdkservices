@@ -3863,6 +3863,42 @@ namespace WPEFramework {
             return "unknown";
 #endif
         }
+	string SystemServices::getStbBranchString()
+	{
+		static string stbBranchStr;
+		if (stbBranchStr.length())
+			return stbBranchStr;
+
+		std::string str;
+		std::string str2 = "BRANCH=";
+		vector<string> lines;
+
+		if (getFileContent(VERSION_FILE_NAME, lines)) {
+			for (int i = 0; i < (int)lines.size(); ++i) {
+				string line = lines.at(i);
+
+				std::string trial = line.c_str();
+				if (!trial.compare(0, 7, str2)) {
+					std::string temp = trial.c_str();
+					std::string delimiter = "=";
+					temp = temp.substr((temp.find(delimiter)+1));
+					delimiter = "_";
+					stbBranchStr = temp.substr((temp.find(delimiter)+1));
+					break;
+				}
+			}
+			if (stbBranchStr.length()) {
+				LOGWARN("getStbBranchString::STB's branch found in file: '%s'\n", stbBranchStr.c_str());
+				return stbBranchStr;
+			} else {
+				LOGWARN("getStbBranchString::could not find 'BRANCH=' in '%s'\n", VERSION_FILE_NAME);
+				return "unknown";
+			}
+		} else {
+			LOGERR("file %s open failed\n", VERSION_FILE_NAME);
+			return "unknown";
+		}
+	}
 
         /***
          * TODO: Stub implementation; Decide whether needed or not since setProperty
@@ -3891,9 +3927,16 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool status = false;
-
-            response["stbVersion"]      = getStbVersionString();
-            response["receiverVersion"] = getClientVersionString();
+	    string StbVersionString     = getStbVersionString();
+            response["stbVersion"]      = StbVersionString;
+	    if((StbVersionString.find("sprint") != string::npos ) || (StbVersionString.find("stable2") != string::npos ))
+	    {
+		    response["receiverVersion"] = getClientVersionString();
+	    }
+	    else 
+	    {
+		    response["receiverVersion"] = getStbBranchString();
+	    }
             response["stbTimestamp"]    = getStbTimestampString();
             status = true;
             returnResponse(status);
