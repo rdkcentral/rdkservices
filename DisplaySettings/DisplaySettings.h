@@ -213,7 +213,6 @@ namespace WPEFramework {
             IARM_Bus_PWRMgr_PowerState_t getSystemPowerState();
 
 	    void getHdmiCecSinkPlugin();
-	    WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* m_client;
 	    std::vector<std::string> m_clientRegisteredEventNames;
 	    uint32_t subscribeForHdmiCecSinkEvent(const char* eventName);
 	    bool setUpHdmiCecSinkArcRouting (bool arcEnable);
@@ -299,6 +298,7 @@ namespace WPEFramework {
             bool m_sendMsgThreadRun;
 
 	    static void  sendMsgThread();
+	    static void  setVolumeThread(int level);
             std::thread m_sendMsgThread;
             std::mutex m_sendMsgMutex;
 	    std::queue<SendMsgInfo> m_sendMsgQueue;
@@ -312,6 +312,7 @@ namespace WPEFramework {
 
         public:
             static DisplaySettings* _instance;
+	    WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* m_client;
 
         };
 	} // namespace Plugin
