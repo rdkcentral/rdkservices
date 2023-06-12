@@ -2,7 +2,7 @@
 <a name="AVInput_Plugin"></a>
 # AVInput Plugin
 
-**Version: [1.2.1](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
+**Version: [1.2.2](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
 
 A org.rdk.AVInput plugin for Thunder framework.
 
