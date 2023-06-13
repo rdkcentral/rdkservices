@@ -18,12 +18,13 @@
 set(PLUGIN_NAME Bluetooth)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_BLUETOOTH_STARTUPORDER "" CACHE STRING "To configure startup order of Bluetooth plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         Bluetooth.cpp
         Module.cpp
-        ../helpers/utils.cpp
 )
 
 set_target_properties(${MODULE_NAME} PROPERTIES

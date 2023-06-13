@@ -1,12 +1,11 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
     "info": {
       "title": "ScreenCapture Plugin",
       "callsign": "org.rdk.ScreenCapture",
       "locator": "libWPEFrameworkScreenCapture.so",
       "status": "production",
-      "description": "The `ScreenCapture` plugin is used to upload screen captures.",
-      "version": "1.0"
+      "description": "The `ScreenCapture` plugin is used to upload screen captures."
     },
     "interface": {
       "$ref": "ScreenCapture.json#"

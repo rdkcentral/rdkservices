@@ -44,6 +44,7 @@
 #include "cJSON.h"
 #include "openssl/sha.h"
 #include "base64.h"
+#include "UtilsJsonRpc.h"
 #define SEC_OBJECTID_CW_NETFLIX_STORAGE_KEY     0x0361000003610001ULL
 #define SEC_OBJECTID_CW_YOUTUBE_STORAGE_KEY     0x0361000003610002ULL
 #define SEC_OBJECTID_CW_HLU_STORAGE_KEY         0x0361000003610003ULL
@@ -51,30 +52,45 @@
 #define CW_TR181_PARAMETER                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.OTT_Token.Enable"
 #define CW_ENV_PARAMETER                        "ENABLE_OTT_TOKEN"
 
-#define CONTINUEWATCHING_MAJOR_VERSION 1
-#define CONTINUEWATCHING_MINOR_VERSION 0
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 1
 
 
 namespace WPEFramework {
 
+    namespace {
+
+        static Plugin::Metadata<Plugin::ContinueWatching> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+	
 	namespace Plugin {
 
 	/*
 	 *Register ContinueWatching module as wpeframework plugin
 	 **/
-        SERVICE_REGISTRATION(ContinueWatching, CONTINUEWATCHING_MAJOR_VERSION, CONTINUEWATCHING_MINOR_VERSION);
+        SERVICE_REGISTRATION(ContinueWatching, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         ContinueWatching* ContinueWatching::_instance = nullptr;
 
 		ContinueWatching::ContinueWatching()
-		: AbstractPlugin()
+		: PluginHost::JSONRPC()
 		, m_apiVersionNumber((uint32_t)-1)
 		{
 			ContinueWatching::_instance = this;
 			//Register all the APIs
-			registerMethod("getApplicationToken", &ContinueWatching::getApplicationToken, this);
-			registerMethod("setApplicationToken", &ContinueWatching::setApplicationToken, this);
-			registerMethod("deleteApplicationToken", &ContinueWatching::deleteApplicationToken, this);
+			Register("getApplicationToken", &ContinueWatching::getApplicationToken, this);
+			Register("setApplicationToken", &ContinueWatching::setApplicationToken, this);
+			Register("deleteApplicationToken", &ContinueWatching::deleteApplicationToken, this);
 			setApiVersionNumber(1);
 		}
 
@@ -341,6 +357,7 @@ namespace WPEFramework {
 
 			try
 			{
+			
 				result = SecProcessor_GetInstance_Directories(&sec_proc, "/opt/drm", "/opt/drm/servicemgr");
 				if(result != SEC_RESULT_SUCCESS)
 					throw "Failure to get SecAPI Processor Instance!";
@@ -353,11 +370,46 @@ namespace WPEFramework {
 
 				result = SecKey_GetInstance(sec_proc, mSecObjectId, &sec_key);
 				if(result != SEC_RESULT_SUCCESS)
-					throw "Failure to get SecAPI key handle!";
+				{
+					result = SecKey_Generate(sec_proc, mSecObjectId, SEC_KEYTYPE_AES_128,loc);
+					if(result != SEC_RESULT_SUCCESS)
+					{
+						throw "Failure to generate new key! on Sec Instance";
+					}
+					else
+					{
+						result = SecKey_GetInstance(sec_proc, mSecObjectId, &sec_key);
+					
+						if(result != SEC_RESULT_SUCCESS)
+							throw "Failure to get SecAPI key handle!";
+					}
+				}
 
 				result = SecCipher_GetInstance(sec_proc, algorithm, mode, sec_key, iv, &sec_cipher);
 				if(result != SEC_RESULT_SUCCESS)
-					throw "Failure to get SecAPI cipher handler!";
+				{
+
+					char buf[64];
+					snprintf(buf, sizeof(buf), "%016llX.*", mSecObjectId);
+					std::string cmd = "rm /opt/drm/servicemgr/";
+					cmd += buf;
+					LOGWARN("Removing %s.", buf);
+					int res = system(cmd.c_str());
+					LOGWARN("Command exit code = %d.", res);
+
+					result = SecKey_Generate(sec_proc, mSecObjectId, SEC_KEYTYPE_AES_128,loc);
+					if(result != SEC_RESULT_SUCCESS)
+					{
+						throw "Failure to generate new key! on SecCipher Instance";
+					}
+					else
+					{
+						result = SecCipher_GetInstance(sec_proc, algorithm, mode, sec_key, iv, &sec_cipher);
+					
+						if(result != SEC_RESULT_SUCCESS)
+							throw "Failure to get SecAPI cipher handler!";
+					}
+				}
 
 				result = SecCipher_Process(sec_cipher, clearData, clearDataLength, 1, protectedData, protectedDataLength, (SEC_SIZE*)&bytesWritten);
 				if(result != SEC_RESULT_SUCCESS)

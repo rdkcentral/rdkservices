@@ -7,216 +7,13 @@
         "description": "The `WebKitBrowser` plugin provides web browsing functionality based on the WebKit engine."
     },
     "common": {
-        "errors": {
-            "general": {
-                "code": 1,
-                "message": "ERROR_GENERAL"
-            },
-            "unavailable": {
-                "code": 2,
-                "message": "ERROR_UNAVAILABLE"
-            },
-            "asyncfailed": {
-                "code": 3,
-                "message": "ERROR_ASYNC_FAILED"
-            },
-            "asyncaborted": {
-                "code": 4,
-                "message": "ERROR_ASYNC_ABORTED"
-            },
-            "illegalstate": {
-                "code": 5,
-                "message": "ERROR_ILLEGAL_STATE"
-            },
-            "openingfailed": {
-                "code": 6,
-                "message": "ERROR_OPENING_FAILED"
-            },
-            "acceptfailed": {
-                "code": 7,
-                "message": "ERROR_ACCEPT_FAILED"
-            },
-            "pendingshutdown": {
-                "code": 8,
-                "message": "ERROR_PENDING_SHUTDOWN"
-            },
-            "alreadyconnected": {
-                "code": 9,
-                "message": "ERROR_ALREADY_CONNECTED"
-            },
-            "connectionclosed": {
-                "code": 10,
-                "message": "ERROR_CONNECTION_CLOSED"
-            },
-            "timedout": {
-                "code": 11,
-                "message": "ERROR_TIMEDOUT"
-            },
-            "inprogress": {
-                "code": 12,
-                "message": "ERROR_INPROGRESS",
-                "description": "Operation in progress"
-            },
-            "couldnotsetaddress": {
-                "code": 13,
-                "message": "ERROR_COULD_NOT_SET_ADDRESS"
-            },
-            "incorrecthash": {
-                "code": 14,
-                "message": "ERROR_INCORRECT_HASH",
-                "description": "Incorrect hash given"
-            },
-            "incorrecturl": {
-                "code": 15,
-                "message": "ERROR_INCORRECT_URL",
-                "description": "Incorrect URL given"
-            },
-            "invalidinputlength": {
-                "code": 16,
-                "message": "ERROR_INVALID_INPUT_LENGTH"
-            },
-            "destructionsucceeded": {
-                "code": 17,
-                "message": "ERROR_DESTRUCTION_SUCCEEDED"
-            },
-            "destructionfailed": {
-                "code": 18,
-                "message": "ERROR_DESTRUCTION_FAILED"
-            },
-            "closingfailed": {
-                "code": 19,
-                "message": "ERROR_CLOSING_FAILED"
-            },
-            "processterminated": {
-                "code": 20,
-                "message": "ERROR_PROCESS_TERMINATED"
-            },
-            "processkilled": {
-                "code": 21,
-                "message": "ERROR_PROCESS_KILLED"
-            },
-            "unknownkey": {
-                "code": 22,
-                "message": "ERROR_UNKNOWN_KEY"
-            },
-            "incompleteconfig": {
-                "code": 23,
-                "message": "ERROR_INCOMPLETE_CONFIG"
-            },
-            "privilegedrequest": {
-                "code": 24,
-                "message": "ERROR_PRIVILEGED_REQUEST"
-            },
-            "rpccallfailed": {
-                "code": 25,
-                "message": "ERROR_RPC_CALL_FAILED"
-            },
-            "unreachablenetwork": {
-                "code": 26,
-                "message": "ERROR_UNREACHABLE_NETWORK"
-            },
-            "requestsubmitted": {
-                "code": 27,
-                "message": "ERROR_REQUEST_SUBMITTED"
-            },
-            "unknowntable": {
-                "code": 28,
-                "message": "ERROR_UNKNOWN_TABLE"
-            },
-            "duplicatekey": {
-                "code": 29,
-                "message": "ERROR_DUPLICATE_KEY"
-            },
-            "badrequest": {
-                "code": 30,
-                "message": "ERROR_BAD_REQUEST"
-            },
-            "pendingconditions": {
-                "code": 31,
-                "message": "ERROR_PENDING_CONDITIONS"
-            },
-            "surfaceunavailable": {
-                "code": 32,
-                "message": "ERROR_SURFACE_UNAVAILABLE"
-            },
-            "playerunavailable": {
-                "code": 33,
-                "message": "ERROR_PLAYER_UNAVAILABLE"
-            },
-            "firstresourcenotfound": {
-                "code": 34,
-                "message": "ERROR_FIRST_RESOURCE_NOT_FOUND"
-            },
-            "secondsourcenotfound": {
-                "code": 35,
-                "message": "ERROR_SECOND_RESOURCE_NOT_FOUND"
-            },
-            "alreadyreleased": {
-                "code": 36,
-                "message": "ERROR_ALREADY_RELEASED"
-            },
-            "negtiveacknowledge": {
-                "code": 37,
-                "message": "ERROR_NEGATIVE_ACKNOWLEDGE"
-            },
-            "invalidsignature": {
-                "code": 38,
-                "message": "ERROR_INVALID_SIGNATURE"
-            },
-            "readerror": {
-                "code": 39,
-                "message": "ERROR_READ_ERROR"
-            },
-            "writeerror": {
-                "code": 40,
-                "message": "ERROR_WRITE_ERROR"
-            },
-            "invaliddesignator": {
-                "code": 41,
-                "message": "ERROR_INVALID_DESIGNATOR"
-            },
-            "unauthenticated": {
-                "code": 42,
-                "message": "ERROR_UNAUTHENTICATED"
-            },
-            "notexist": {
-                "code": 43,
-                "message": "ERROR_NOT_EXIST"
-            },
-            "notsupported": {
-                "code": 44,
-                "message": "ERROR_NOT_SUPPORTED"
-            }
-        },
-        "results": {
-            "void": {
-                "type": "null",
-                "default": null,
-                "description": "Always null"
-            }
-        }
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "url":{
             "summary": "The URL",
             "type": "string",
             "example": "https://example.com"
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "properties": {
@@ -230,7 +27,7 @@
         },
         "headers": {
             "summary": "Headers to send on all requests that the browser makes",
-            "description": "Use this property to send on all requests that the browser makes.\n \n### Events \n\n No Events.",
+            "description": "Use this property to send on all requests that the browser makes.",
             "params": {
                 "type": "array",
                 "items": {
@@ -253,7 +50,7 @@
         },
         "httpcookieacceptpolicy": {
             "summary": "HTTP cookies accept policy",
-            "description": "Use this property to accept HTTP cookie policy.\n \n### Events \n\n No Events.",
+            "description": "Use this property to accept HTTP cookie policy.",
             "params": {
                 "type": "string",
                 "enum": [
@@ -273,7 +70,7 @@
         },
         "languages": {
             "summary": "User preferred languages",
-            "description": "Use this property to return User preferred languages.\n \n### Events \n\n No Events.",
+            "description": "Use this property to return User preferred languages.",
             "params": {
                 "type": "array",
                 "items": {
@@ -284,7 +81,7 @@
         },
         "localstorageenabled":{
             "summary": "Local storage availability",
-            "description": "Use this property to return Local storage availability.\n \n### Events \n\n No Events.",
+            "description": "Use this property to return Local storage availability.",
             "params": {
                 "type": "boolean",
                 "example": false
@@ -292,10 +89,10 @@
         },
         "state": {
             "summary": "Running state of the service",
-            "description": "Use this property to return the running state of the service.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `statechange`| Triggered if the state of the service changes.|",
-            "events": [
-                "statechange"
-            ],
+            "description": "Use this property to return the running state of the service.",
+            "events": {
+                "statechange" : "Triggered if the state of the service changes."
+            },
             "params": {
                 "type": "string",
                 "enum": [
@@ -307,10 +104,12 @@
         },
         "url": {
             "summary": "URL loaded in the browser",
-            "description": "Use this property to load URL in the browser.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `urlchange`| Triggered if the URL changes in the browser | \n |`loadfinished`| Triggered if the `urlchange` event returns `true` as URL loaded successfully |\n |`loadfailed`| Triggered if the `urlchange` event returns `false` as URL failed to load |",
-            "events": [
-                "urlchange"
-            ],
+            "description": "Use this property to load URL in the browser.",
+            "events": {
+                "urlchange" : "Triggered if the URL changes in the browser",
+                "loadfinished" : "Triggered if the urlchange event returns true as URL loaded successfully",
+                "loadfailed" : "Triggered if the urlchange event returns false as URL failed to load"
+            },
             "params": {
                 "type": "string",
                 "example": "https://www.google.com"
@@ -324,7 +123,7 @@
         },
         "useragent": {
             "summary": "`UserAgent` string used by the browser",
-            "description": "Use this property to return `UserAgent` string used by the browser.\n \n### Events \n\n No Events. ",
+            "description": "Use this property to return `UserAgent` string used by the browser.",
             "params": {
                 "type": "string",
                 "example": "Mozilla/5.0 (Linux; x86_64 GNU/Linux) AppleWebKit/601.1 (KHTML, like Gecko) Version/8.0 Safari/601.1 WP"
@@ -332,10 +131,10 @@
         },
         "visibility": {
             "summary": "Current browser visibility",
-            "description": "Use this property to return visibilty status of current browser.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `visibilitychange`| Triggered if the browser visibility changes.|",
-            "events": [
-                "visibilitychange"
-            ],
+            "description": "Use this property to return visibilty status of current browser.",
+            "events": {
+                "visibilitychange" : "Triggered if the urlchange event returns false as URL failed to load"
+            },
             "params": {
                 "type": "string",
                 "example": "visible"
@@ -350,7 +149,7 @@
     },
     "methods": {
         "bridgeevent": {
-            "summary": "Sends a legacy `$badger` event.\n \n### Events \n\n No Events.",
+            "summary": "Sends a legacy `$badger` event.",
             "params": {
                 "summary": "A base64 encoded JSON string response to be delivered to the `window.$badger.event(handlerId, json)` method",
                 "type": "string",
@@ -361,7 +160,7 @@
             }
         },
         "bridgereply":{
-            "summary": "A response for legacy `$badger`.\n \n### Events \n\n No Events.",
+            "summary": "A response for legacy `$badger`.",
             "params": {
                 "summary": "A base64 encoded JSON string response to be delivered to the `$badger.callback(pid, success, json)` method",
                 "type": "string",
@@ -372,7 +171,7 @@
             }
         },
         "delete": {
-            "summary": "Removes the contents of a directory recursively from the persistent storage.\n \n### Events \n\n No Events.",
+            "summary": "Removes the contents of a directory recursively from the persistent storage.",
             "params": {
                 "type": "object",
                 "properties": {

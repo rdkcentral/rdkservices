@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "HdmiCec_2 API", 
         "class": "HdmiCec_2", 
-        "description": "The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box. HdmiCec_2 is meant to be used on the source devices where application will rely on the thunder plugin to handle protocol related messaging and plugin will proving API's and events to implement the CEC use cases. "
+        "description": "The `HdmiCec_2` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top device. The HdmiCec_2 plugin is meant to be used on the source devices where an application relies on the Thunder plugin to handle protocol related messaging. The plugin also provides API's and events to implement the CEC use cases."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "vendorid": {
@@ -42,26 +45,32 @@
             "type":"string",
             "example": "019fb"
         },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
+        "status":{
+            "summary": "`true` if the device is active source otherwise, `false`",
             "type": "boolean",
             "example": "true"
         }
     },
     "methods": {
+        "getActiveSourceStatus":{
+            "summary": "Gets the active source status of the device.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "status": {
+                       "$ref": "#/definitions/status"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "getDeviceList":{
-            "summary": "Gets the list of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.\n  \n### Events \n\n No Events",
+            "summary": "Gets the list of CEC enabled devices connected and system information for each device. The information includes logicalAddress,OSD name and vendor ID.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -94,7 +103,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -105,7 +114,7 @@
             }
         },
         "getEnabled": {
-            "summary": "Returns HDMI-CEC driver enabled status.\n  \n### Events \n\n No Events",
+            "summary": "Returns HDMI-CEC driver enabled status.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -113,7 +122,7 @@
                         "$ref": "#/definitions/enabled"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -123,7 +132,7 @@
             }
         },
         "getOSDName":{
-            "summary": "Returns the OSD name set by the application.\n  \n### Events \n\n No Events",
+            "summary": "Returns the OSD name set by the application.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -131,7 +140,7 @@
                         "$ref": "#/definitions/name"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -141,7 +150,7 @@
             }
         },
         "getOTPEnabled":{
-            "summary": "Returns HDMI-CEC OTP option enabled status.\n  \n### Events \n\n No Events",
+            "summary": "Returns HDMI-CEC OTP option enabled status.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -149,7 +158,7 @@
                         "$ref": "#/definitions/enabled_otp"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -159,7 +168,7 @@
             }
         },
         "getVendorId":{
-            "summary": "Returns the vendor ID set by the application.\n  \n### Events \n\n No Events",
+            "summary": "Returns the vendor ID set by the application.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -167,7 +176,7 @@
                         "$ref": "#/definitions/vendorid"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -176,39 +185,43 @@
                 ]
             }
         },
-        "getActiveSourceStatus":{
-            "summary": "Get the active source status of the device.\n  \n### Event \n\n No Events",
+        "performOTPAction":{
+            "summary": "Turns on the TV and takes back the input to the device.",
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "sendKeyPressEvent": {
+            "summary": "Sends the CEC \\<User Control Pressed\\> and \\<User Control Release\\> message when TV remote key is pressed.\n  \n### Event \n\n No Events",
             "params": {
                 "type":"object",
                 "properties": {
-                    "status": {
-                       "summary": "status true means device is active source and false means device is not active source",
-                       "type": "boolean",
-                       "example": "true"
+                    "logicalAddress":{
+                        "$ref": "#/definitions/logicalAddress"
+                    },
+                    "keyCode":{
+                         "summary":"The key code for the pressed key. Possible values : `0x41` (VOLUME_UP), `0x42` (VOLUME_DOWN), `0x43` (MUTE), `0x01` (UP), `0x02` (DOWN), `0x03` (LEFT), `0x04` (RIGHT), `0x00` (SELECT), `0x09` (HOME), `0x0D` (BACK), `0x20` (NUMBER_0), `0x21` (NUMBER_1), `0x22` (NUMBER_2), `0x23` (NUMBER_3), `0x24` (NUMBER_4), `0x25` (NUMBER_5), `0x26` (NUMBER_6), `0x27` (NUMBER_7), `0x28` (NUMBER_8), `0x29` (NUMBER_9)",
+                         "type": "integer",
+                         "example": 65
                     }
                 },
                 "required": [
-                    "status"
+                    "logicalAddress",
+                    "keyCode"
                 ]
-            }
+            },
             "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "performOTPAction":{
-            "summary": "Turns on the TV and takes back the input to the device.\n  \n### Events \n\n No Events",
-            "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "sendStandbyMessage": {
-            "summary": "Sends a CEC \\<Standby\\> message to the logical address of the device.\n  \n### Events \n\n No Events",
+            "summary": "Sends a CEC \\<Standby\\> message to the logical address of the device.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setEnabled":{
-            "summary": "Enables or disables HDMI-CEC driver.\n  \n### Events \n\n No Events",
+            "summary": "Enables or disables HDMI-CEC driver.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -221,11 +234,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setOSDName":{
-            "summary": "Sets the OSD name of the application.\n  \n### Events \n\n No Events",
+            "summary": "Sets the OSD name of the application.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -238,11 +251,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setOTPEnabled":{
-            "summary": "Enables or disables HDMI-CEC OTP option.\n  \n### Events \n\n No Events",
+            "summary": "Enables or disables HDMI-CEC OTP option.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -255,11 +268,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setVendorId":{
-            "summary": "Sets the vendor ID of the application.\n  \n### Events \n\n No Events",
+            "summary": "Sets the vendor ID of the application.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -272,11 +285,25 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }        
     },
     "events": {
+        "onActiveSourceStatusUpdated":{
+            "summary": "Triggered when the device active source status changes",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "status": {
+                        "$ref": "#/definitions/status"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },   
         "onDeviceAdded": {
             "summary": "Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device.  After a new device is hotplugged to the port, various information such as OSD name and vendor ID is collected. The `onDeviceAdded` event is sent as soon as any of these details are available. However, the connected device sends the information asynchronously; therefore, the information may not be collected immediately.",
             "params": {
@@ -332,22 +359,6 @@
                     "logicalAddress"
                 ]
             }
-        },
-        "onActiveSourceStatusUpdated":{
-            "summary": "Triggered when device active source status changes ",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "status": {
-                       "summary": "status true means device is active source and false means device is not active source",
-                       "type": "boolean",
-                       "example": "true"
-                    }
-                },
-                "required": [
-                    "status"
-                ]
-            }
-        }    
+        }
     }
 }

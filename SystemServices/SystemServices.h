@@ -23,18 +23,24 @@
 #include <stdint.h>
 #include <thread>
 #include <regex.h>
+#include <cctype>
+#include <fstream>
+#include <cstring>
+using std::ofstream;
+#include <cstdlib>
+#include <iostream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <mutex>
 
 #include "Module.h"
 #include "tracing/Logging.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
+#include "UtilsThreadRAII.h"
 #include "SystemServicesHelper.h"
 #include "platformcaps/platformcaps.h"
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
-#include "libIBus.h"
-#include "irMgr.h"
-#include "libIBusDaemon.h"
 #include "pwrMgr.h"
 #include "host.hpp"
 #include "sleepMode.hpp"
@@ -58,6 +64,11 @@
 #define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
 #define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
+#define EVT_ONTERRITORYCHANGED            "onTerritoryChanged"
+#define EVT_ONTIMEZONEDSTCHANGED          "onTimeZoneDSTChanged"
+#define EVT_ONLOGUPLOAD                   "onLogUpload"
+#define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
+
 
 namespace WPEFramework {
     namespace Plugin {
@@ -85,7 +96,7 @@ namespace WPEFramework {
             int duration;  // duration in seconds
         };
 
-        class SystemServices : public AbstractPlugin {
+        class SystemServices : public PluginHost::IPlugin, public PluginHost::JSONRPC {
             private:
                 typedef Core::JSON::String JString;
                 typedef Core::JSON::ArrayType<JString> JStringArray;
@@ -125,10 +136,14 @@ namespace WPEFramework {
 
                 std::string m_powerStateBeforeReboot;
                 bool m_powerStateBeforeRebootValid;
+                bool m_isPwrMgr2RFCEnabled;
+		std::string m_strTerritory;
+                std::string m_strRegion;
 
                 static void startModeTimer(int duration);
                 static void stopModeTimer();
                 static void updateDuration();
+				std::string  m_strStandardTerritoryList;
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
                 bool getManufacturerData(const string& parameter, JsonObject& response);
                 uint32_t getMfgSerialNumber(const JsonObject& parameters, JsonObject& response);
@@ -139,8 +154,10 @@ namespace WPEFramework {
 		bool m_ManufacturerDataModelNameValid;
                 std::string m_MfgSerialNumber;
                 bool m_MfgSerialNumberValid;
-		
 #endif
+                pid_t m_uploadLogsPid;
+                std::mutex m_uploadLogsMutex;
+
             public:
                 SystemServices();
                 virtual ~SystemServices();
@@ -148,6 +165,13 @@ namespace WPEFramework {
                 static SystemServices* _instance;
                 virtual const string Initialize(PluginHost::IShell* service) override;
                 virtual void Deinitialize(PluginHost::IShell* service) override;
+                virtual string Information() const override { return {}; }
+
+                BEGIN_INTERFACE_MAP(SystemServices)
+                INTERFACE_ENTRY(PluginHost::IPlugin)
+                INTERFACE_ENTRY(PluginHost::IDispatcher)
+                END_INTERFACE_MAP
+
                 static int runScript(const std::string& script,
                         const std::string& args, string *output = NULL,
                         string *error = NULL, int timeout = 30000);
@@ -168,10 +192,13 @@ namespace WPEFramework {
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
                 void onClockSet();
+                void onLogUpload(int newState);
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
                 void onRebootRequest(string reason);
                 void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
+		void onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion="", string newRegion="");
+		void onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone, string oldAccuracy, string newAccuracy);
                 /* Events : End */
 
                 /* Methods : Begin */
@@ -188,6 +215,7 @@ namespace WPEFramework {
                 uint32_t getDevicePowerState(const JsonObject& parameters,JsonObject& response);
                 uint32_t setDevicePowerState(const JsonObject& parameters,JsonObject& response);
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
+
                 uint32_t isRebootRequested(const JsonObject& parameters,JsonObject& response);
                 uint32_t setGZEnabled(const JsonObject& parameters,JsonObject& response);
                 uint32_t isGZEnabled(const JsonObject& parameters,JsonObject& response);
@@ -217,6 +245,14 @@ namespace WPEFramework {
 		uint32_t getWakeupReason(const JsonObject& parameters, JsonObject& response);
                 uint32_t getLastWakeupKeyCode(const JsonObject& parameters, JsonObject& response);
 #endif
+		uint32_t setTerritory(const JsonObject& parameters, JsonObject& response);
+		uint32_t getTerritory(const JsonObject& parameters, JsonObject& response);
+		bool readTerritoryFromFile();
+		bool isStrAlphaUpper(string strVal);
+		bool isRegionValid(string regionStr);
+		uint32_t writeTerritory(string territory, string region);
+        uint32_t uploadLogsAsync(const JsonObject& parameters, JsonObject& response);
+        uint32_t abortLogUpload(const JsonObject& parameters, JsonObject& response);
                 uint32_t getXconfParams(const JsonObject& parameters, JsonObject& response);
                 uint32_t getSerialNumber(const JsonObject& parameters, JsonObject& response);
                 bool getSerialNumberTR069(JsonObject& response);
@@ -258,9 +294,8 @@ namespace WPEFramework {
                 uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
                 uint32_t getStoreDemoLink(const JsonObject& parameters, JsonObject& response);
                 uint32_t deletePersistentPath(const JsonObject& parameters, JsonObject& response);
-#ifdef ENABLE_SET_WAKEUP_SRC_CONFIG
                 uint32_t setWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
-#endif //ENABLE_SET_WAKEUP_SRC_CONFIG
+		uint32_t getWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPlatformConfiguration(const JsonObject& parameters, PlatformCaps& response);
         }; /* end of system service class */
     } /* end of plugin */

@@ -57,7 +57,7 @@ namespace Plugin {
         SecurityContext(const SecurityContext&) = delete;
         SecurityContext& operator=(const SecurityContext&) = delete;
 
-        SecurityContext(const AccessControlList* acl, const uint16_t length, const uint8_t payload[]);
+        SecurityContext(const AccessControlList* acl, const uint16_t length, const uint8_t payload[], const string& servicePrefix);
         virtual ~SecurityContext();
 
         //! Allow a websocket upgrade to be checked if it is allowed to be opened.
@@ -80,7 +80,8 @@ namespace Plugin {
     private:
         string _token;
         Payload _context;
-        const AccessControlList::Filter* _accessControlList;
+        const AccessControlList* _accessControlList;
+        string _servicePrefix;
     };
 }
 }

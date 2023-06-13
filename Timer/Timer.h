@@ -22,8 +22,6 @@
 #include <mutex>
 
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 
 
 #include "tptimer.h"
@@ -69,7 +67,7 @@ namespace WPEFramework {
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class Timer : public AbstractPlugin {
+        class Timer : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -99,10 +97,21 @@ namespace WPEFramework {
             void onTimerCallback();
             void getTimerStatus(int timerId, JsonObject& output, bool writeTimerId = false);
 
+        protected:
+            void InitializeIARM();
+            void DeinitializeIARM();
+
         public:
             Timer();
             virtual ~Timer();
+            virtual const string Initialize(PluginHost::IShell* shell) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
+
+            BEGIN_INTERFACE_MAP(Timer)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         public:
             static Timer* _instance;

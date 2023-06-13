@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "RDKShell API", 
         "class": "RDKShell",
         "description": "The `RDKShell` plugin controls the management of composition, layout, Z order, and key handling."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "keyCode":{
@@ -121,26 +124,15 @@
             "type": "number",
             "example": 255
         },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
+        "framerate":{
+            "summary":"display the current Graphics framerate",
+            "type":"number",
+            "example":40
         }
     },
     "methods": {
         "addAnimation":{
-            "summary": "Performs the set of animations. \n \n### Events\n \n No Events.",
+            "summary": "Performs the set of animations.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -216,11 +208,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "addKeyIntercept":{
-            "summary": "Adds a key intercept to the client application specified. The keys are specified by a key code and a set of modifiers. Regardless of the application that has focus, key presses that match the key code and modifiers will be sent to the client application. \n \n### Events\n \n No Events.",
+            "summary": "Adds a key intercept to the client application specified. The keys are specified by a key code and a set of modifiers. Regardless of the application that has focus, key presses that match the key code and modifiers will be sent to the client application.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -246,11 +238,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "addKeyIntercepts": {
-            "summary": "Adds the list of key intercepts. \n \n### Events\n \n No Events.",
+            "summary": "Adds the list of key intercepts.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -295,11 +287,11 @@
                 }
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "addKeyListener":{
-            "summary": "Adds a key listener to an application. The keys are bubbled up based on their z-order. \n \n### Events\n \n No Events.",
+            "summary": "Adds a key listener to an application. The keys are bubbled up based on their z-order.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -354,11 +346,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "addKeyMetadataListener": {
-            "summary": "Adds the key metadata listeners. \n \n### Events\n \n No Events.",
+            "summary": "Adds the key metadata listeners.",
             "params": {
                 "type": "object",
                 "properties":{
@@ -378,11 +370,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "createDisplay": {
-            "summary": " Creates a display for the specified client using the configuration parameters. \n \n### Events\n \n No Events.",
+            "summary": " Creates a display for the specified client using the configuration parameters.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -444,12 +436,14 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "destroy":{
-            "summary": "Destroys an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `OnDestroyed` | Triggers when a runtime is successfully destroyed |",
-            "events": ["onDestroyed"],
+            "summary": "Destroys an application.",
+            "events": {
+                "onDestroyed" : "Triggers when a runtime is successfully destroyed"
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -462,11 +456,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "enableInactivityReporting":{
-            "summary": "Enables or disables inactivity reporting and events. \n \n### Events\n \n No Events.",
+            "summary": "Enables or disables inactivity reporting and events.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -481,11 +475,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "enableKeyRepeats": {
-            "summary": "Enables or disables key repeats. \n \n### Events\n \n No Events.",
+            "summary": "Enables or disables key repeats.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -500,11 +494,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }            
         },
         "enableLogsFlushing": {
-            "summary": "Enables or disables flushing all logs. \n \n### Events\n \n No Events.",
+            "summary": "Enables or disables flushing all logs.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -519,11 +513,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }            
         },
         "enableVirtualDisplay":{
-            "summary": "Enables or disables a virtual display for the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Enables or disables a virtual display for the specified client.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -547,11 +541,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "generateKey": {
-            "summary": "Triggers the key events (key press and release). \n \n### Events\n \n No Events.",
+            "summary": "Triggers the key events (key press and release).",
             "params": {
                 "type":"object",
                 "properties": {
@@ -594,11 +588,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getAvailableTypes": {
-            "summary": "Returns the list of application types available on the firmware. \n \n### Events\n \n No Events.",
+            "summary": "Returns the list of application types available on the firmware.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -611,7 +605,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -621,7 +615,7 @@
             }
         },
         "getBounds": {
-            "summary": "Gets the bounds of the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Gets the bounds of the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -665,7 +659,7 @@
                             ] 
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -675,7 +669,7 @@
             }    
         },
         "getClients": {
-            "summary": "Gets a list of clients. \n \n### Events\n \n No Events.",
+            "summary": "Gets a list of clients.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -683,7 +677,7 @@
                         "$ref": "#/definitions/clients"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -693,7 +687,7 @@
             }
         },
         "getCursorSize": {
-            "summary": "Returns the currently set cursor size. \n \n### Events\n \n No Events.",
+            "summary": "Returns the currently set cursor size.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -704,7 +698,7 @@
                         "$ref": "#/definitions/height"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -715,7 +709,7 @@
             }
         },
         "getHolePunch": {
-            "summary": "Returns whether video hole punching is enabled or disabled for the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Returns whether video hole punching is enabled or disabled for the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -739,7 +733,7 @@
                         "$ref": "#/definitions/holePunch"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -749,7 +743,7 @@
             }
         },
         "getKeyRepeatsEnabled": {
-            "summary": "Returns whether key repeating is enabled or disabled. \n \n### Events\n \n No Events.",
+            "summary": "Returns whether key repeating is enabled or disabled.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -759,7 +753,7 @@
                         "example": true
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -769,7 +763,7 @@
             }
         },
         "getLastWakeupKey": {
-            "summary": "Returns the last key press prior to a device wakeup. \n \n### Events\n \n No Events.",
+            "summary": "Returns the last key press prior to a device wakeup.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -785,7 +779,7 @@
                         "example": true
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -797,7 +791,7 @@
             }   
         },
         "getLogLevel": {
-            "summary": "Returns the currently set logging level. \n \n### Events\n \n No Events.",
+            "summary": "Returns the currently set logging level.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -805,7 +799,7 @@
                         "$ref": "#/definitions/logLevel"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -815,7 +809,7 @@
             }
         },
         "getLogsFlushingEnabled": {
-            "summary": "Returns whether log flushing is enabled or disabled. \n \n### Events\n \n No Events.",
+            "summary": "Returns whether log flushing is enabled or disabled.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -825,7 +819,7 @@
                         "example": true
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -835,7 +829,7 @@
             }
         },
         "getOpacity":{
-            "summary": "Gets the opacity of the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Gets the opacity of the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -854,7 +848,7 @@
                         "$ref": "#/definitions/opacity"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -864,7 +858,7 @@
             }
         },
         "getScale":{
-            "summary": "Returns the scale of an application. \n \n### Events\n \n No Events.",
+            "summary": "Returns the scale of an application.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -890,7 +884,7 @@
                         "example": "0.5"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -901,7 +895,7 @@
             }
         },
         "getScreenResolution":{
-            "summary": "Gets the screen resolution. \n \n### Events\n \n No Events.",
+            "summary": "Gets the screen resolution.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -912,7 +906,7 @@
                         "$ref": "#/definitions/h"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -923,14 +917,16 @@
             }
         },
         "getScreenshot": {
-            "summary": "Captures a screenshot. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onScreenshotComplete` | Triggers when a screenshot is captured successfully |",
-            "events": ["onScreenshotComplete"],
+            "summary": "Captures a screenshot.",
+            "events": {
+                "onScreenshotComplete" : "Triggers when a screenshot is captured successfully"
+            },
             "result":{
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getState":{
-            "summary": "Returns the state of all applications.\n \n### Events\n \n No Events.",
+            "summary": "Returns the state of all applications.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -960,7 +956,7 @@
                         }
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -970,7 +966,7 @@
             }
         },
         "getSystemMemory": {
-            "summary": "Gets the information of System Memory. \n \n### Events\n \n No Events.",
+            "summary": "Gets the information of System Memory.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -990,7 +986,7 @@
                         "example": "624644"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1002,7 +998,7 @@
             }
         },
         "getSystemResourceInfo":{
-            "summary": "Returns system resource information about each application. \n \n### Events\n \n No Events.",
+            "summary": "Returns system resource information about each application.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1034,7 +1030,7 @@
                         }
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1044,7 +1040,7 @@
             }
         },
         "getVirtualDisplayEnabled":{
-            "summary": "Returns whether virtual display is enabled or disabled for the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Returns whether virtual display is enabled or disabled for the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1070,7 +1066,7 @@
                         "example": true
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1080,7 +1076,7 @@
             }
         },
         "getVirtualResolution": {
-            "summary": "Returns the virtual display resolution for the specified client.\n \n### Events\n \n No Events.",
+            "summary": "Returns the virtual display resolution for the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1107,7 +1103,7 @@
                         "$ref": "#/definitions/h"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1118,7 +1114,7 @@
             }
         },
         "getVisibility":{
-            "summary": "Gets the visibility of the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Gets the visibility of the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1144,7 +1140,7 @@
                         "example": true
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1154,7 +1150,7 @@
             }
         },
         "getZOrder":{
-            "summary": "Returns an array of clients in Z order, starting with the top most application client first. \n \n### Events\n \n No Events.",
+            "summary": "Returns an array of clients in Z order, starting with the top most application client first.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1162,7 +1158,7 @@
                         "$ref": "#/definitions/clients"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1171,8 +1167,26 @@
                 ]
             }
         },
+        "getGraphicsFrameRate":{
+            "summary":"Returns the current Graphics Frame Rate",
+            "result":{
+                "type":"object",
+                "properties":{
+                    "frameRate":{
+                        "$ref": "#/definitions/framerate"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "frameRate",
+                    "success"
+                ]
+            }
+        },
         "hideAllClients": {
-            "summary": "Hides/Unhides all the clients. \n \n### Events\n \n No Events.",
+            "summary": "Hides/Unhides all the clients.",
             "params": {
                 "type": "object",
                 "properties":{
@@ -1184,25 +1198,25 @@
                 }
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "hideCursor": {
-            "summary": "Hides the cursor from showing on the display. The cursor is hidden by default. \n \n### Events\n \n No Events.",
+            "summary": "Hides the cursor from showing on the display. The cursor is hidden by default.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "hideFullScreenImage":{
-            "summary": "Hides the Full Screen Image. \n \n### Events\n \n No Events.",
+            "summary": "Hides the Full Screen Image.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "hideSplashLogo": {
-            "summary": "Removes the splash screen. \n \n### Events\n \n No Events.",
+            "summary": "Removes the splash screen.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "ignoreKeyInputs": {
@@ -1221,11 +1235,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "injectKey": {
-            "summary": "Injects the keys. \n \n### Events\n \n No Events.",
+            "summary": "Injects the keys.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1242,11 +1256,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "kill": {
-            "summary": "Kills the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Kills the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1264,12 +1278,14 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "launch":{
-            "summary": "Launches an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onLaunched` | Triggers when the runtime of an application is launched successfully |",
-            "events": ["onLaunched"],
+            "summary": "Launches an application.",
+            "events": {
+                "onLaunched" : "Triggers when the runtime of an application is launched successfull"
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -1370,7 +1386,7 @@
                         "example": "activate"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1380,8 +1396,10 @@
             }
         },
         "launchApplication": {
-            "summary": "Launches an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onApplicationLaunched` | Triggers when an application is launched successfully |.",
-            "events": ["onApplicationLaunched"],
+            "summary": "Launches an application.",
+            "events": {
+                "onApplicationLaunched" : "Triggers when an application is launched successfully"
+            },
             "params": {
                 "type": "object",
                 "properties":{
@@ -1418,17 +1436,17 @@
                 ]
             },
              "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "launchResidentApp": {
-            "summary": "Launches the Resident application. \n \n### Events\n \n No Events.",
+            "summary": "Launches the Resident application.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "moveBehind":{
-            "summary": "Moves the specified client behind the specified target client. \n \n### Events\n \n No Events.",
+            "summary": "Moves the specified client behind the specified target client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1447,11 +1465,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "moveToBack":{
-            "summary": "Moves the specified client to the back or bottom of the Z order. \n \n### Events\n \n No Events.",
+            "summary": "Moves the specified client to the back or bottom of the Z order.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1469,11 +1487,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "moveToFront": {
-            "summary": "Moves the specified client to the front or top of the Z order. \n \n### Events\n \n No Events.",
+            "summary": "Moves the specified client to the front or top of the Z order.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1491,23 +1509,23 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "removeAllKeyIntercepts": {
-            "summary": "Removes all key intercepts. \n \n### Events\n \n No Events.",
+            "summary": "Removes all key intercepts.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }            
         },
         "removeAllKeyListeners": {
-            "summary": "Removes all key listeners. \n \n### Events\n \n No Events.",
+            "summary": "Removes all key listeners.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }            
         },
         "removeAnimation":{
-            "summary": "Removes the current animation for the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Removes the current animation for the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1525,11 +1543,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "removeKeyIntercept": {
-            "summary": "Removes a key intercept. \n \n### Events\n \n No Events.",
+            "summary": "Removes a key intercept.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1550,11 +1568,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "removeKeyListener": {
-            "summary": "Removes a key listener for an application. \n \n### Events\n \n No Events.",
+            "summary": "Removes a key listener for an application.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1592,11 +1610,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "removeKeyMetadataListener":{
-            "summary": "Removes the key metadata listeners. \n \n### Events\n \n No Events.",
+            "summary": "Removes the key metadata listeners.",
             "params": {
                 "type": "object",
                 "properties":{
@@ -1616,18 +1634,20 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "resetInactivityTime":{
-            "summary": "Resets the inactivity notification interval. \n \n### Events\n \n No Events.",
+            "summary": "Resets the inactivity notification interval.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "resumeApplication": {
-            "summary": "Resumes an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onApplicationResumed` | Triggers when an application resumes from a suspended state |.",
-            "events": ["onApplicationResumed"],
+            "summary": "Resumes an application.",
+            "events": {
+                "onApplicationResumed" : "Triggers when an application resumes from a suspended state"
+            },
             "params": {
                 "type": "object",
                 "properties":{
@@ -1639,11 +1659,11 @@
                 }
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "scaleToFit": {
-            "summary": "Scales the specified client to fit the current bounds. \n \n### Events\n \n No Events.",
+            "summary": "Scales the specified client to fit the current bounds.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1677,11 +1697,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setBounds": {
-            "summary": "Sets the bounds of the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Sets the bounds of the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1715,11 +1735,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setCursorSize": {
-            "summary": "Sets the cursor size. \n \n### Events\n \n No Events.",
+            "summary": "Sets the cursor size.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1736,11 +1756,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setFocus": {
-            "summary": "Sets focus to the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Sets focus to the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1758,11 +1778,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setHolePunch": {
-            "summary": "Enables or disables video hole punching for the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Enables or disables video hole punching for the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1784,12 +1804,14 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setInactivityInterval": {
-            "summary": "Sets the inactivity notification interval. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onUserInactivity` | Triggers only if the device is inactive for the specified time interval |.",
-            "events": ["onUserInactivity"],
+            "summary": "Sets the inactivity notification interval.",
+            "events": {
+                "onUserInactivity" : "Triggers only if the device is inactive for the specified time interval"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -1804,11 +1826,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setLogLevel":{
-            "summary": "Sets the logging level. \n \n### Events\n \n No Events.",
+            "summary": "Sets the logging level.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1821,11 +1843,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setMemoryMonitor":{
-            "summary": "Enables or disables RAM memory monitoring on the device. Upon enabling, triggers possible events are onDeviceLowRamWarning, onDeviceCriticallyLowRamWarning, onDeviceLowRamWarningCleared, and onDeviceCriticallyLowRamWarningCleared. \n \n### Events\n \n No Events.",
+            "summary": "Enables or disables RAM memory monitoring on the device. Upon enabling, triggers possible events are onDeviceLowRamWarning, onDeviceCriticallyLowRamWarning, onDeviceLowRamWarningCleared, and onDeviceCriticallyLowRamWarningCleared.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1858,11 +1880,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setOpacity":{
-            "summary": "Sets the opacity of the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Sets the opacity of the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1879,11 +1901,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setScale": {
-            "summary": "Scales an application. \n \n### Events\n \n No Events.",
+            "summary": "Scales an application.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1909,11 +1931,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setScreenResolution": {
-            "summary": "Sets the screen resolution. \n \n### Events\n \n No Events.",
+            "summary": "Sets the screen resolution.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1930,11 +1952,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setTopmost":{
-            "summary": "Sets whether the specified client appears above all other clients on the display. \n \n### Events\n \n No Events.",
+            "summary": "Sets whether the specified client appears above all other clients on the display.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1958,11 +1980,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setVirtualResolution": {
-            "summary": "Sets the virtual resolution for the specified client. \n \n### Events\n \n No Events.",
+            "summary": "Sets the virtual resolution for the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1985,11 +2007,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setVisibility":{
-            "summary": "Sets whether the specified client should be visible. \n \n### Events\n \n No Events.",
+            "summary": "Sets whether the specified client should be visible.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -2011,17 +2033,36 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
+            }
+        },
+        "setGraphicsFrameRate":{
+            "summary": "Set Graphics Frame Rate.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "framerate": {
+                        "summary": "Graphics Framerate to be set",
+                        "type":"number",
+                        "example": 60
+                    }
+                },
+                "required": [
+                    "framerate"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
             }
         },
         "showCursor": {
-            "summary": "Shows the cursor on the display using the current cursor size. See `setCursorSize`. The cursor automatically disappears after 5 seconds of inactivity. \n \n### Events\n \n No Events.",
+            "summary": "Shows the cursor on the display using the current cursor size. See `setCursorSize`. The cursor automatically disappears after 5 seconds of inactivity.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "showFullScreenImage": {
-            "summary": "Shows the Full Screen Image. \n \n### Events\n \n No Events.",
+            "summary": "Shows the Full Screen Image.",
             "params": {
                 "type": "object",
                 "properties":{
@@ -2033,11 +2074,11 @@
                 }
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "showSplashLogo": {
-            "summary": "Displays the splash screen. \n \n### Events\n \n No Events.",
+            "summary": "Displays the splash screen.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -2052,11 +2093,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "showWatermark": {
-            "summary": "Sets whether a watermark shows on the display. \n \n### Events\n \n No Events.",
+            "summary": "Sets whether a watermark shows on the display.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -2071,12 +2112,14 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "suspend": {
-            "summary": "Suspends an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onSuspended` | Triggers when the runtime of an application is suspended |",
-            "events": ["onSuspended"],
+            "summary": "Suspends an application.",
+            "events": {
+                "onSuspended" : "Triggers when the runtime of an application is suspended"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -2089,12 +2132,14 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "suspendApplication": {
-            "summary": "Suspends an application. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onApplicationSuspended` | Triggers when an application is suspended |.",
-            "events": ["onApplicationSuspended"],
+            "summary": "Suspends an application.",
+            "events": {
+                "onApplicationSuspended" : "Triggers when an application is suspended"
+            },
             "params": {
                 "type": "object",
                 "properties":{
@@ -2106,7 +2151,86 @@
                 }
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
+            }
+        },
+        "keyRepeatConfig": {
+            "summary": "Customizes key repeats.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "input": {
+                        "summary": "input type, can be 'default' or 'keyboard'. If 'input' prop not specified 'default'('keyboard') is assumed",
+                        "type": "string",
+                        "example": "default"
+                    },
+                    "enabled": {
+                        "summary": "`true` to enable key repeats, false to disable key repeats",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "initialDelay": {
+                        "summary": "number of miliseconds until first key repeat event will be sent",
+                        "type": "number",
+                        "example": 500
+                    },
+                    "repeatInterval": {
+                        "summary": "number of miliseconds until following key repeat events will be sent",
+                        "type": "number",
+                        "example": 250
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "initialDelay",
+                    "repeatInterval"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "setAVBlocked": {
+            "summary": "adds/removes the list of applications with the given callsigns to/from the blacklist.",
+            "params": {
+                "type": "object",
+                "properties":{
+                    "callsign": {
+                        "summary": "The application callsign",
+                        "type": "string",
+                        "example": "searchanddiscovery"
+                    },
+                    "blocked": {
+                        "summary": "Whether to block (`true`) or unblock (`false`) AV for the callsign",
+                        "type": "boolean",
+                        "example": "true"
+                    }
+                },
+                "required": [
+                    "callsign",
+                    "blocked"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "getBlockedAVApplications": {
+            "summary": "Gets a list of blacklisted clients.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "clients": {
+                        "$ref": "#/definitions/clients"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "clients",
+                    "success"
+                ]
             }
         }
     },

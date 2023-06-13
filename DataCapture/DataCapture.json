@@ -1,32 +1,20 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "DataCapture API", 
         "class": "DataCapture", 
         "description": "The DataCapture plugin allows you to capture an audio clip from an audio source and send it to a URL such as a music ID service."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        }
+ 
     },
     "methods": {
         "enableAudioCapture":{
-            "summary": "Enables audio capturing to buffer.  \nReturn Values:  \n* `0` - No error  \n* `1 - 254` - request exceeds the maximum allowed buffer size. The error number represents the maximum buffer length, in seconds, that the set-top device can support.  \n* `255` - set top device cannot accommodate any level of audio buffering. \n \n### Events \n\n No Events.",
+            "summary": "Enables audio capturing to buffer.  \nReturn Values:  \n* `0` - No error  \n* `1 - 254` - request exceeds the maximum allowed buffer size. The error number represents the maximum buffer length, in seconds, that the set-top device can support.  \n* `255` - set top device cannot accommodate any level of audio buffering.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -49,7 +37,7 @@
                         "example": 0
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -59,10 +47,10 @@
             }     
         },
         "getAudioClip": {
-            "summary": "Requests the audio driver to capture an audio sample from the specified stream and then delivers the stream sample to a specified URL.  \nSupported streams:  \n* `primary` - The stream going to the analog output and the stream included in the HDMI output. This is the only stream that is valid when the request is made through a voice request.  \n* `secondary` - The stream is captured from a secondary decoder. A potential use case includes initiating a capture from a screen overlay where the user has a choice between primary or secondary audio (or the type of audio output to which the user listens – TV or Bluetooth).\n \nEvents\n \n| Event | Description | \n| :-------- | :-------- | \n| `onAudioClipReady` | Triggered if an audio clip uploaded successfully or not |",
-            "events": [
-                "onAudioClipReady"
-            ],
+            "summary": "Requests the audio driver to capture an audio sample from the specified stream and then delivers the stream sample to a specified URL.  \nSupported streams:  \n* `primary` - The stream going to the analog output and the stream included in the HDMI output. This is the only stream that is valid when the request is made through a voice request.  \n* `secondary` - The stream is captured from a secondary decoder. A potential use case includes initiating a capture from a screen overlay where the user has a choice between primary or secondary audio (or the type of audio output to which the user listens – TV or Bluetooth).",
+            "events": {
+                "onAudioClipReady" : "Triggered if an audio clip uploaded successfully or not"
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -109,7 +97,7 @@
                         "example": 0
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [

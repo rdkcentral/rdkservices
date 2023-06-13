@@ -18,6 +18,8 @@
 set(PLUGIN_NAME WifiManager)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_WIFI_STARTUPORDER "" CACHE STRING "To configure startup order of WifiManager plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
@@ -28,8 +30,13 @@ add_library(${MODULE_NAME} SHARED
         impl/WifiManagerState.cpp
         impl/WifiManagerConnect.cpp
         impl/WifiManagerScan.cpp
-        impl/WifiManagerEvents.cpp
-        ../helpers/utils.cpp)
+        impl/WifiManagerEvents.cpp)
+
+set_source_files_properties(
+        WifiManager.cpp
+        impl/WifiManagerConnect.cpp
+        impl/WifiManagerScan.cpp
+        PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11

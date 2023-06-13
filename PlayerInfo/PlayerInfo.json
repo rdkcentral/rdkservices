@@ -1,28 +1,16 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "PlayerInfo API",
         "class": "PlayerInfo",
         "description": "The `PlayerInfo` plugin helps to get system supported audio and video codecs"
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        },
+        
         "audiocodecs": {
             "description": "Audio Codec supported by the platform",
             "type": "string",
@@ -66,6 +54,8 @@
                 "H265",
                 "H26510",
                 "MPEG",
+                "MPEG2",
+                "MPEG4",
                 "VP8",
                 "VP9",
                 "VP10"
@@ -79,7 +69,9 @@
                 5,
                 6,
                 7,
-                8
+                8,
+                9,
+                10
             ],
             "example": "VideoH264"
         },
@@ -107,7 +99,7 @@
     },
     "methods": {
         "audiocodecs": {
-            "summary": "Returns the audio codec supported by the platform. \n \n### Events \n \nNo Events.",
+            "summary": "Returns the audio codec supported by the platform.",
             "result": {
                 "type":"array",
                 "items": {
@@ -131,7 +123,7 @@
             }
         },
         "videocodecs": {
-            "summary": "Returns the video codec supported by the platform.\n \n### Events \n \nNo Events.",
+            "summary": "Returns the video codec supported by the platform.",
             "result": {
                 "type":"array",
                 "items": {

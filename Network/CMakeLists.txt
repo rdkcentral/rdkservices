@@ -18,6 +18,8 @@
 set(PLUGIN_NAME Network)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_NETWORK_STARTUPORDER "" CACHE STRING "To configure startup order of Network plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
@@ -26,8 +28,11 @@ add_library(${MODULE_NAME} SHARED
         NetUtilsNetlink.cpp
         NetworkTraceroute.cpp
         PingNotifier.cpp
-        Module.cpp
-        ../helpers/utils.cpp)
+        Module.cpp)
+
+set_source_files_properties(
+	Network.cpp
+        PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11

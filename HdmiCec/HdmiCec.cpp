@@ -34,7 +34,9 @@
 
 #include "websocket/URL.h"
 
-#include "utils.h"
+#include "UtilsIarm.h"
+#include "UtilsJsonRpc.h"
+#include "UtilssyncPersistFile.h"
 
 #define HDMICEC_METHOD_SET_ENABLED "setEnabled"
 #define HDMICEC_METHOD_GET_ENABLED "getEnabled"
@@ -53,6 +55,10 @@
 
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 10
+
 enum {
 	HDMICEC_EVENT_DEVICE_ADDED=0,
 	HDMICEC_EVENT_DEVICE_REMOVED,
@@ -60,7 +66,7 @@ enum {
         HDMICEC_EVENT_ACTIVE_SOURCE_STATUS_UPDATED,
 };
 
-static char *eventString[] = {
+static const char *eventString[] = {
 	"onDeviceAdded",
 	"onDeviceRemoved",
 	"onDeviceInfoUpdated",
@@ -81,9 +87,23 @@ static bool isDeviceActiveSource = false;
 
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::HdmiCec> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(HdmiCec, 1, 0);
+        SERVICE_REGISTRATION(HdmiCec, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         HdmiCec* HdmiCec::_instance = nullptr;
 
@@ -110,7 +130,6 @@ namespace WPEFramework
        }
        void HdmiCec::process (const CECVersion &msg, const Header &header)
        {
-	     bool updateStatus;
 	     printHeader(header);
              LOGINFO("Command: CECVersion Version : %s \n",msg.version.toString().c_str());
 
@@ -120,7 +139,6 @@ namespace WPEFramework
        void HdmiCec::process (const SetOSDName &msg, const Header &header)
        {
              printHeader(header);
-	     bool updateStatus ;
              LOGINFO("Command: SetOSDName OSDName : %s\n",msg.osdName.toString().c_str());
 
 	     bool isOSDNameUpdated = HdmiCec::_instance->deviceList[header.from.toInt()].update(msg.osdName);
@@ -130,8 +148,6 @@ namespace WPEFramework
        void HdmiCec::process (const ReportPhysicalAddress &msg, const Header &header)
        {
              printHeader(header);
-	     bool updateDeviceTypeStatus;
-	     bool updatePAStatus;
              LOGINFO("Command: ReportPhysicalAddress\n");
 
 	     if(!HdmiCec::_instance)
@@ -140,7 +156,6 @@ namespace WPEFramework
        }
        void HdmiCec::process (const DeviceVendorID &msg, const Header &header)
        {
-	     bool updateStatus ;
 	     printHeader(header);
              LOGINFO("Command: DeviceVendorID VendorID : %s\n",msg.vendorId.toString().c_str());
 
@@ -150,7 +165,6 @@ namespace WPEFramework
        }
        void HdmiCec::process (const ReportPowerStatus &msg, const Header &header)
        {
-	   uint32_t  oldPowerStatus,newPowerStatus;
 	   printHeader(header);
 	   LOGINFO("Command: ReportPowerStatus Power Status from:%s status : %s \n",header.from.toString().c_str(),msg.status.toString().c_str());
 	   HdmiCec::_instance->addDevice(header.from.toInt());
@@ -158,17 +172,19 @@ namespace WPEFramework
 //=========================================== HdmiCec =========================================
 
         HdmiCec::HdmiCec()
-        : AbstractPlugin(),smConnection(nullptr),cecEnableStatus(false)
+        : PluginHost::JSONRPC(),cecEnableStatus(false),smConnection(nullptr)
         {
+            LOGWARN("ctor");
+            smConnection = NULL;
+            cecEnableStatus = false;
             HdmiCec::_instance = this;
-            InitializeIARM();
 
-            registerMethod(HDMICEC_METHOD_SET_ENABLED, &HdmiCec::setEnabledWrapper, this);
-            registerMethod(HDMICEC_METHOD_GET_ENABLED, &HdmiCec::getEnabledWrapper, this);
-            registerMethod(HDMICEC_METHOD_GET_CEC_ADDRESSES, &HdmiCec::getCECAddressesWrapper, this);
-            registerMethod(HDMICEC_METHOD_SEND_MESSAGE, &HdmiCec::sendMessageWrapper, this);
-            registerMethod(HDMICEC_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec::getActiveSourceStatus, this);
-            registerMethod("getDeviceList", &HdmiCec::getDeviceList, this);
+            Register(HDMICEC_METHOD_SET_ENABLED, &HdmiCec::setEnabledWrapper, this);
+            Register(HDMICEC_METHOD_GET_ENABLED, &HdmiCec::getEnabledWrapper, this);
+            Register(HDMICEC_METHOD_GET_CEC_ADDRESSES, &HdmiCec::getCECAddressesWrapper, this);
+            Register(HDMICEC_METHOD_SEND_MESSAGE, &HdmiCec::sendMessageWrapper, this);
+            Register(HDMICEC_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec::getActiveSourceStatus, this);
+            Register("getDeviceList", &HdmiCec::getDeviceList, this);
 
             physicalAddress = 0x0F0F0F0F;
 
@@ -190,7 +206,14 @@ namespace WPEFramework
         HdmiCec::~HdmiCec()
         {
         }
+        const std::string  HdmiCec::Initialize(PluginHost::IShell* /* service */)
+	{
+		HdmiCec::_instance = this;
 
+		InitializeIARM();
+		return(std::string());
+
+	}
         void HdmiCec::Deinitialize(PluginHost::IShell* /* service */)
         {
             isDeviceActiveSource = false;
@@ -227,10 +250,10 @@ namespace WPEFramework
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                //IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG) );
+                //IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE, cecDeviceStatusEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED, cecMgrEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED, cecMgrEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
             }
         }
 
@@ -313,7 +336,7 @@ namespace WPEFramework
                         cecAddressesChanged(LOGICAL_ADDR_CHANGED);
                     }
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from cecStatusUpdated");
                 }
@@ -449,7 +472,7 @@ namespace WPEFramework
                 {
                     LibCCEC::getInstance().init();
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from CECEnable");
                 }
@@ -470,14 +493,29 @@ namespace WPEFramework
                 m_updateThreadExit = false;
                 _instance->m_lockUpdate = PTHREAD_MUTEX_INITIALIZER;
                 _instance->m_condSigUpdate = PTHREAD_COND_INITIALIZER;
-                m_UpdateThread = std::thread(threadUpdateCheck);
+                try {
+                    if (m_UpdateThread.get().joinable()) {
+                        m_UpdateThread.get().join();
+                    }
+                    m_UpdateThread = Utils::ThreadRAII(std::thread(threadUpdateCheck));
+		} catch (const std::system_error& e) {
+                    LOGERR("exception in creating threadUpdateCheck %s", e.what());
+	        }
 
                 LOGWARN("Start Thread %p", smConnection );
                 m_pollThreadExit = false;
                 _instance->m_numberOfDevices = 0;
                 _instance->m_lock = PTHREAD_MUTEX_INITIALIZER;
                 _instance->m_condSig = PTHREAD_COND_INITIALIZER;
-                m_pollThread = std::thread(threadRun);
+                try {
+                    if (m_pollThread.get().joinable()) {
+                        m_pollThread.get().join();
+                    }
+                    m_pollThread = Utils::ThreadRAII(std::thread(threadRun));
+		} catch (const std::system_error& e) {
+                    LOGERR("exception in creating threadRun %s", e.what());
+	        }
+
             }
             cecEnableStatus = true;
             return;
@@ -499,36 +537,22 @@ namespace WPEFramework
 
                 m_updateThreadExit = true;
                 //Trigger codition to exit poll loop
+                pthread_mutex_lock(&(_instance->m_lockUpdate)); //Join mutex lock to wait until thread is in its wait condition
                 pthread_cond_signal(&(_instance->m_condSigUpdate));
-                try {
-                    if (m_UpdateThread.joinable()) {
-                       LOGWARN("Join update Thread %p", smConnection );
-                       m_UpdateThread.join();
-                    }
-                }
-                catch(const std::system_error& e) {
-                    LOGERR("system_error exception in thread join %s", e.what());
-                }
-                catch(const std::exception& e) {
-                    LOGERR("exception in thread join %s", e.what());
+                pthread_mutex_unlock(&(_instance->m_lockUpdate));
+                if (m_UpdateThread.get().joinable()) {//Join thread to make sure it's deleted before moving on.
+                    m_UpdateThread.get().join();
                 }
                 LOGWARN("Deleted update Thread %p", smConnection );
 
 
                 m_pollThreadExit = true;
                 //Trigger codition to exit poll loop
+                pthread_mutex_lock(&(_instance->m_lock)); //Join mutex lock to wait until thread is in its wait condition
                 pthread_cond_signal(&(_instance->m_condSig));
-                try {
-                    if (m_pollThread.joinable()) {
-                       LOGWARN("Join Thread %p", smConnection );
-                       m_pollThread.join();
-                    }
-                }
-                catch(const std::system_error& e) {
-                    LOGERR("system_error exception in thread join %s", e.what());
-                }
-                catch(const std::exception& e) {
-                    LOGERR("exception in thread join %s", e.what());
+                pthread_mutex_unlock(&(_instance->m_lock));
+                if (m_pollThread.get().joinable()) {//Join thread to make sure it's deleted before moving on.
+                    m_pollThread.get().join();
                 }
                 LOGWARN("Deleted Thread %p", smConnection );
                 //Clear cec device cache.
@@ -571,7 +595,7 @@ namespace WPEFramework
                         cecAddressesChanged(PHYSICAL_ADDR_CHANGED);
                     }
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("DS exception caught from getPhysicalAddress");
             }
@@ -597,7 +621,7 @@ namespace WPEFramework
                     cecAddressesChanged(LOGICAL_ADDR_CHANGED);
                 }
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("CEC exception caught from getLogicalAddress ");
             }
@@ -802,7 +826,7 @@ namespace WPEFramework
             } else {
                 LOGWARN("HdmiCec::_instance NULL Cec msg decoding failed.");
             }
-            LOGINFO("recvMessage :%d  :%s ",bufbase64.length(),bufbase64.c_str());
+            LOGINFO("recvMessage :%d  :%s ",(int)bufbase64.length(),bufbase64.c_str());
             (const_cast<HdmiCec*>(this))->onMessage(bufbase64.c_str());
             return;
         }
@@ -849,6 +873,10 @@ namespace WPEFramework
 	bool HdmiCec::pingDeviceUpdateList (int idev)
 	{
 		bool isConnected = false;
+		//self ping is not required
+		if ((unsigned int)idev == logicalAddress){
+			return isConnected;
+		}
 		if(!HdmiCec::_instance)
 		{
 			LOGERR("HdmiCec::_instance not existing");
@@ -1043,6 +1071,7 @@ namespace WPEFramework
 
 		}
 		pthread_mutex_unlock(&(_instance->m_lock));
+                LOGINFO("%s: Thread exited", __FUNCTION__);
 	}
 
 	void HdmiCec::threadUpdateCheck()
@@ -1101,6 +1130,7 @@ namespace WPEFramework
 
 		}
 		pthread_mutex_unlock(&(_instance->m_lockUpdate));
+                LOGINFO("%s: Thread exited", __FUNCTION__);
 	}
 
     } // namespace Plugin

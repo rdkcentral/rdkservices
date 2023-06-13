@@ -16,9 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "../../Module.h"
-#include <interfaces/IDeviceIdentification.h>
 
 #include <bcm_host.h>
 #include <fstream>
@@ -26,108 +25,112 @@
 namespace WPEFramework {
 namespace Plugin {
 
-class DeviceImplementation : public Exchange::IDeviceProperties, public PluginHost::ISubSystem::IIdentifier {
-    static constexpr const TCHAR* CPUInfoFile= _T("/proc/cpuinfo");
+    class DeviceImplementation : public PluginHost::ISubSystem::IIdentifier {
+    private:
+        static constexpr const TCHAR* SerialInfoPath = "/sys/firmware/devicetree/base/serial-number";
 
-public:
-    DeviceImplementation()
-    {
-        bcm_host_init();
+    public:
+        DeviceImplementation()
+            : _firmwareVersion()
+            , _identifier()
+        {
+            bcm_host_init();
 
-        UpdateChipset(_chipset);
-        UpdateFirmwareVersion(_firmwareVersion);
-    }
-
-    DeviceImplementation(const DeviceImplementation&) = delete;
-    DeviceImplementation& operator= (const DeviceImplementation&) = delete;
-    virtual ~DeviceImplementation()
-    {
-        bcm_host_deinit();
-    }
-
-public:
-    // Device Propertirs interface
-    const string Chipset() const override
-    {
-        return _chipset;
-    }
-    const string FirmwareVersion() const override
-    {
-        return _firmwareVersion;
-    }
-
-    // Identifier interface
-    uint8_t Identifier(const uint8_t length, uint8_t buffer[]) const override
-    {
-        return 0;
-    }
-
-    BEGIN_INTERFACE_MAP(DeviceImplementation)
-        INTERFACE_ENTRY(Exchange::IDeviceProperties)
-        INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
-    END_INTERFACE_MAP
-
-private:
-    inline void UpdateFirmwareVersion(string& firmwareVersion) const
-    {
-        Command("version", firmwareVersion);
-        if (firmwareVersion.length() > 0) {
-
-            string::size_type i = 0;
-            while (i < firmwareVersion.length()) {
-                i = firmwareVersion.find_first_of("\n\r", i);
-                if (i != std::string::npos) {
-                    firmwareVersion.replace(i, 1, ", ");
-                }
-            }
+            UpdateFirmwareVersion(_firmwareVersion);
+            UpdateDeviceIdentifier(_identifier);
         }
-    }
-    inline void UpdateChipset(string& chipset) const
-    {
-        string line;
-        std::ifstream file(CPUInfoFile);
-        if (file.is_open()) {
-            while (getline(file, line)) {
-                if (line.find("Hardware") != std::string::npos) {
-                    std::size_t position = line.find(':');
-                    if (position != std::string::npos) {
-                        chipset.assign(line.substr(position + 1, string::npos));
+
+        DeviceImplementation(const DeviceImplementation&) = delete;
+        DeviceImplementation& operator=(const DeviceImplementation&) = delete;
+        virtual ~DeviceImplementation()
+        {
+            bcm_host_deinit();
+        }
+
+    public:
+        // IIdentifier interface
+        uint8_t Identifier(const uint8_t length, uint8_t* buffer) const override
+        {
+            uint8_t ret = 0;
+            if (_identifier.length()) {
+                ret = (_identifier.length() > length ? length : _identifier.length());
+                ::memcpy(buffer, _identifier.c_str(), ret);
+            }
+            return ret;
+        }
+        string Architecture() const override
+        {
+            return Core::SystemInfo::Instance().Architecture();
+        }
+        string Chipset() const override
+        {
+            return Core::SystemInfo::Instance().Chipset();
+        }
+        string FirmwareVersion() const override
+        {
+            return _firmwareVersion;
+        }
+
+        BEGIN_INTERFACE_MAP(DeviceImplementation)
+        INTERFACE_ENTRY(PluginHost::ISubSystem::IIdentifier)
+        END_INTERFACE_MAP
+
+    private:
+        inline void UpdateFirmwareVersion(string& firmwareVersion) const
+        {
+            Command("version", firmwareVersion);
+            if (firmwareVersion.length() > 0) {
+
+                string::size_type i = 0;
+                while (i < firmwareVersion.length()) {
+                    i = firmwareVersion.find_first_of("\n\r", i);
+                    if (i != std::string::npos) {
+                        firmwareVersion.replace(i, 1, ", ");
                     }
                 }
             }
-            file.close();
         }
-    }
-    void Command(const char request[], string& value) const
-    {
-        char buffer[512];
+        inline void UpdateDeviceIdentifier(string& identifier) const
+        {
+            string fileName = SerialInfoPath;
+            WPEFramework::Core::File serialFile(fileName);
 
-        // Reset the string
-        buffer[0] = '\0';
-
-        int VARIABLE_IS_NOT_USED status = vc_gencmd(buffer, sizeof(buffer), &request[0]);
-        assert((status == 0) && "Error: vc_gencmd failed.\n");
-
-        // Make sure it is null-terminated
-        buffer[sizeof(buffer) - 1] = '\0';
-
-        // We do not need the stuff that is before the '=', we know what we requested :-)
-        char* equal = strchr(buffer, '=');
-        if (equal != nullptr) {
-            equal++;
+            if (serialFile.Open(true) == true) {
+                uint8_t serialInfo[serialFile.Size()];
+                uint32_t size = serialFile.Read(serialInfo, static_cast<uint32_t>(sizeof(serialInfo)));
+                identifier.assign(reinterpret_cast<char*>(serialInfo), size);
+                identifier.erase(0, identifier.find_first_not_of('0'));
+            }
         }
-        else {
-            equal = buffer;
+        void Command(const char request[], string& value) const
+        {
+            char buffer[512];
+
+            // Reset the string
+            buffer[0] = '\0';
+
+            int VARIABLE_IS_NOT_USED status = vc_gencmd(buffer, sizeof(buffer), &request[0]);
+            assert((status == 0) && "Error: vc_gencmd failed.\n");
+
+            // Make sure it is null-terminated
+            buffer[sizeof(buffer) - 1] = '\0';
+
+            // We do not need the stuff that is before the '=', we know what we requested :-)
+            char* equal = strchr(buffer, '=');
+            if (equal != nullptr) {
+                equal++;
+            } else {
+                equal = buffer;
+            }
+
+            // Create string from buffer.
+            Core::ToString(equal, value);
         }
 
-        // Create string from buffer.
-        Core::ToString(equal, value);
-    }
-
-private:
-    string _chipset;
-    string _firmwareVersion;
-};
+    private:
+        string _firmwareVersion;
+        string _identifier;
+    };
 
     SERVICE_REGISTRATION(DeviceImplementation, 1, 0);
 }

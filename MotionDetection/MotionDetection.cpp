@@ -23,18 +23,36 @@
 #include "MotionDetection.h"
 #include "tracing/Logging.h"
 #include <syscall.h>
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 
 #define NO_DETECTORS_FOUND    "0"
 #define MOTION_DETECTOR_INDEX "FP_MD"
+
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 
 using namespace std;
 
 namespace WPEFramework {
 
+    namespace {
+
+        static Plugin::Metadata<Plugin::MotionDetection> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin {
 
-        SERVICE_REGISTRATION(MotionDetection, 1, 0);
+        SERVICE_REGISTRATION(MotionDetection, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         MotionDetection* MotionDetection::_instance = nullptr;
 
@@ -52,7 +70,7 @@ namespace WPEFramework {
         }
 
         MotionDetection::MotionDetection()
-            : AbstractPlugin()
+            : PluginHost::JSONRPC()
         {
             LOGINFO("MotionDetection ctor");
             MotionDetection::_instance = this;
@@ -164,7 +182,13 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             string index = parameters["index"].String();
             string sMode = parameters["mode"].String();
-            int mode = stoi(sMode);
+            int mode;
+            try {
+                mode = stoi(sMode);
+            }catch (const std::exception& err) {
+                LOGERR("Failed to get Mode value..!");
+                returnResponse(false);
+            }
             MOTION_DETECTION_Result_t rc = MOTION_DETECTION_RESULT_SUCCESS;
             rc = MOTION_DETECTION_ArmMotionDetector((MOTION_DETECTION_Mode_t)mode, index.c_str());
 
@@ -216,7 +240,13 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             string index = parameters["index"].String();
             string sPeriod = parameters["period"].String();
-            int period = stoi(sPeriod);
+            int period;
+            try{
+                period = stoi(sPeriod);
+            }catch (const std::exception& err) {
+                 LOGERR("Failed to get period value..!");
+                returnResponse(false);
+            }
             MOTION_DETECTION_Result_t rc = MOTION_DETECTION_RESULT_SUCCESS;
             rc = MOTION_DETECTION_SetNoMotionPeriod(index.c_str(), period);
 

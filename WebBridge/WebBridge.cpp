@@ -19,10 +19,29 @@
 
 #include "WebBridge.h"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework {
+
+namespace {
+
+    static Plugin::Metadata<Plugin::WebBridge> metadata(
+        // Version (Major, Minor, Patch)
+        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+        // Preconditions
+        {},
+        // Terminations
+        {},
+        // Controls
+        {}
+    );
+}
+
 namespace Plugin {
 
-    SERVICE_REGISTRATION(WebBridge, 1, 0);
+    SERVICE_REGISTRATION(WebBridge, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     class EXTERNAL Registration : public Core::JSON::Container {
     private:
@@ -239,7 +258,11 @@ namespace Plugin {
 
                     // Oke, there is someone waiting for a response!
                     message->Id = requestId;
+#ifndef USE_THUNDER_R4
                     _service->Submit(channelId, Core::proxy_cast<Core::JSON::IElement>(message));
+#else
+                    _service->Submit(channelId, Core::ProxyType<Core::JSON::IElement>(message));
+#endif /* USE_THUNDER_R4 */
                 }
             }
         }

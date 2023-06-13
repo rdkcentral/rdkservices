@@ -19,25 +19,21 @@
 
 #include "ScreenCapture.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 
-#ifdef PLATFORM_BROADCOM
+#ifdef  USE_BROADCOM_SCREENCAPTURE
 #include <nexus_config.h>
 #include <nxclient.h>
 #endif
 
 #include <png.h>
 #include <curl/curl.h>
-#include <base64.h>
 
-#ifdef HAS_FRAMEBUFFER_API_HEADER
+#ifdef USE_FRAMEBUFFER_SCREENCAPTURE
 extern "C" {
 #include "framebuffer-api.h"
-#include "framebuffer-serverapi.h"
 }
 #endif
-
-#define SCREENCAPTURE_THUNDER_TIMEOUT 20000
 
 // Methods
 #define METHOD_UPLOAD "uploadScreenCapture"
@@ -45,28 +41,42 @@ extern "C" {
 // Events
 #define EVT_UPLOAD_COMPLETE "uploadComplete"
 
-#if defined(PLATFORM_AMLOGIC)
-std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> gRSKShellConnection;
-bool gRDKSHellEventSubscribed = false;
-#endif
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 
 namespace WPEFramework
 {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::ScreenCapture> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(ScreenCapture, 1, 0);
+        SERVICE_REGISTRATION(ScreenCapture, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         ScreenCapture::ScreenCapture()
-        : AbstractPlugin()
+            : PluginHost::JSONRPC()
+#if defined(USE_AMLOGIC_SCREENCAPTURE)
+        , m_RDKShellRef(nullptr)
+        , m_captureRef(nullptr)
+        , m_screenCaptureStore(this)
+#endif
         {
-            #ifdef PLATFORM_BROADCOM
+            #ifdef  USE_BROADCOM_SCREENCAPTURE
             inNexus = false;
             #endif
-
-#if defined(PLATFORM_AMLOGIC)
-            screenWidth = 1280;
-            screenHeight = 720;
-#endif   
 
             Register(METHOD_UPLOAD, &ScreenCapture::uploadScreenCapture, this);
         }
@@ -75,66 +85,81 @@ namespace WPEFramework
         {
         }
 
-        /* virtual */ const string ScreenCapture::Initialize(PluginHost::IShell*)
+        /* virtual */ const string ScreenCapture::Initialize(PluginHost::IShell* service)
         {
+#if defined(USE_AMLOGIC_SCREENCAPTURE)
+            m_RDKShellRef = service->QueryInterfaceByCallsign<PluginHost::IPlugin>("org.rdk.RDKShell");
+
+            if(nullptr != m_RDKShellRef)
+            {
+                m_captureRef = m_RDKShellRef->QueryInterface<Exchange::ICapture>();
+                if (nullptr == m_captureRef)
+                {
+                    LOGERR("Can't get Exchange::ICapture interface");
+                    m_RDKShellRef->Release();
+                    m_RDKShellRef = nullptr;
+                }
+            }
+            else
+            {
+                LOGERR("Can't get RDKShell interface");
+            }
+#else
             screenShotDispatcher = new WPEFramework::Core::TimerType<ScreenShotJob>(64 * 1024, "ScreenCaptureDispatcher");
-    
+#endif
             return { };
         }
 
         void ScreenCapture::Deinitialize(PluginHost::IShell* /* service */)
         {
-            delete screenShotDispatcher;
-        }
 
-#if defined(PLATFORM_AMLOGIC)
-        void ScreenCapture::pluginEventHandler(const JsonObject& parameters)
-        {
-            if (parameters.HasLabel("imageData"))
+#if defined(USE_AMLOGIC_SCREENCAPTURE)
+            if (nullptr != m_RDKShellRef)
             {
-                std::string imageData = parameters["imageData"].String();
-
-                size_t decodedImageSize = b64_get_decoded_buffer_size(imageData.size());
-
-                if(screenWidth * screenHeight * 4 != decodedImageSize)
-                {
-                    LOGERR("Got wrong data size for screen capture, %d instead of %d", decodedImageSize, screenWidth * screenHeight * 4);
-                    return;
-                }
-
-                uint8_t *decodedImage = (uint8_t*)malloc(decodedImageSize);
-                b64_decode((const uint8_t*) imageData.c_str(), imageData.size(), decodedImage);
-
-                // flip the image
-                uint32_t *decodedImageRGBA = (uint32_t *)decodedImage;
-                for(size_t row = 0; row < screenHeight / 2; row++)
-                {
-                    for(size_t col = 0; col < screenWidth; col++)
-                    {
-                        uint32_t p = decodedImageRGBA[row * screenWidth + col];
-
-                        decodedImageRGBA[row * screenWidth + col] = decodedImageRGBA[(screenHeight - 1 - row) * screenWidth + col];
-                        decodedImageRGBA[(screenHeight - 1 - row) * screenWidth + col] = p;
-                    }
-                }
-
-                std::vector<unsigned char> png_out_data;
-                if(!saveToPng((unsigned char *)decodedImage, screenWidth, screenHeight, png_out_data))
-                {
-                    LOGERR("Failed to convert ScreenShot data to png");
-                    return;
-                }
-
-                free(decodedImage);
-
-                doUploadScreenCapture(png_out_data, true);
+                m_RDKShellRef->Release();
+                m_RDKShellRef = nullptr;
             }
 
+            if (nullptr != m_captureRef)
+            {
+                m_captureRef->Release();
+                m_captureRef = nullptr;
+            }
+#else
+            delete screenShotDispatcher;
+#endif
+        }
+
+#if defined(USE_AMLOGIC_SCREENCAPTURE)
+        void ScreenCapture::onScreenCaptureData(const unsigned char* buffer, const unsigned int width, const unsigned int height)
+        {
+            // flip the image
+            uint32_t *decodedImageRGBA = (uint32_t *)buffer;
+            for(size_t row = 0; row < height / 2; row++)
+            {
+                for(size_t col = 0; col < width; col++)
+                {
+                    uint32_t p = decodedImageRGBA[row * width + col];
+
+                    decodedImageRGBA[row * width + col] = decodedImageRGBA[(height - 1 - row) * width + col];
+                    decodedImageRGBA[(height - 1 - row) * width + col] = p;
+                }
+            }
+
+            std::vector<unsigned char> png_out_data;
+            if(!saveToPng((unsigned char *)buffer, width, height, png_out_data))
+            {
+                LOGERR("Failed to convert ScreenShot data to png");
+                return;
+            }
+
+            doUploadScreenCapture(png_out_data, true);
         }
 #endif
 
         uint32_t ScreenCapture::uploadScreenCapture(const JsonObject& parameters, JsonObject& response)
         {
+            
             std::lock_guard<std::mutex> guard(m_callMutex);
 
             LOGINFOMETHOD();
@@ -151,53 +176,15 @@ namespace WPEFramework
             if(parameters.HasLabel("callGUID"))
               callGUID = parameters["callGUID"].String();
               
-#if defined(PLATFORM_AMLOGIC)
+#if defined(USE_AMLOGIC_SCREENCAPTURE)
 
-            if (nullptr == gRSKShellConnection)
+            if (!m_captureRef)
             {
-                std::string serviceCallsign = "org.rdk.RDKShell";
-                serviceCallsign.append(".1");
-                gRSKShellConnection = Utils::getThunderControllerClient(serviceCallsign);
+                LOGERR("No access to Exchange::ICapture");
+                returnResponse(false);
             }
 
-            if (nullptr != gRSKShellConnection)
-            {
-                if(!gRDKSHellEventSubscribed)
-                {
-                    int32_t status = Core::ERROR_GENERAL;
-                    std::string eventName("onScreenshotComplete");
-                    status = gRSKShellConnection->Subscribe<JsonObject>(SCREENCAPTURE_THUNDER_TIMEOUT, _T(eventName), &ScreenCapture::pluginEventHandler, this);
-    
-                    if(Core::ERROR_NONE == status)
-                        gRDKSHellEventSubscribed = true; 
-                    else
-                        LOGERR("Failed to Subscribe for %s", eventName.c_str());
-                }
-            }
-            else
-                LOGERR("Failed to establish connection to RDKShell");
-
-            if(gRDKSHellEventSubscribed)
-            {
-                JsonObject req, res;
-
-                int32_t status = gRSKShellConnection->Invoke(SCREENCAPTURE_THUNDER_TIMEOUT, "getScreenResolution", req, res);
-                if(Core::ERROR_NONE == status)
-                {
-                    if(res.HasLabel("w") && res.HasLabel("h"))
-                    {
-                        screenWidth = std::stoi(res["w"].String());
-                        screenHeight = std::stoi(res["h"].String());
-                    }
-                }
-
-                status = gRSKShellConnection->Invoke(SCREENCAPTURE_THUNDER_TIMEOUT, "getScreenshot", req, res);
-                if(Core::ERROR_NONE != status)
-                    LOGERR("Failed to call getScreenshot: %d", status);
-            }
-            else
-                LOGERR("Not subscribed to onScreenshotComplete event");
-
+            m_captureRef->Capture(m_screenCaptureStore);
 #else
             screenShotDispatcher->Schedule( Core::Time::Now().Add(0), ScreenShotJob( this) );
 #endif
@@ -205,6 +192,14 @@ namespace WPEFramework
             returnResponse(true);
         }
 
+#if defined(USE_AMLOGIC_SCREENCAPTURE)
+        bool ScreenCaptureStore::R8_G8_B8_A8(const unsigned char* buffer, const unsigned int width, const unsigned int height)
+        {
+            m_screenCapture->onScreenCaptureData(buffer, width, height);
+
+            return true;
+        }
+#else
         uint64_t ScreenShotJob::Timed(const uint64_t scheduledTime)
         {
             if(!m_screenCapture)
@@ -217,21 +212,22 @@ namespace WPEFramework
 
             return 0;
         }
+#endif
 
         bool ScreenCapture::getScreenShot()
         {
             std::vector<unsigned char> png_data;
             bool got_screenshot = false;
 
-            #ifdef PLATFORM_BROADCOM
+            #ifdef  USE_BROADCOM_SCREENCAPTURE
             got_screenshot = getScreenshotNexus(png_data);
             #endif
 
-            #ifdef PLATFORM_INTEL
+            #ifdef USE_INTEL_SCREENCAPTURE
             got_screenshot = getScreenshotIntel(png_data);
             #endif
 
-            #ifdef HAS_FRAMEBUFFER_API_HEADER
+            #ifdef USE_FRAMEBUFFER_SCREENCAPTURE
             got_screenshot = getScreenshotRealtek(png_data);
             #endif
 
@@ -244,7 +240,7 @@ namespace WPEFramework
             {
                 std::string error_str;
 
-                LOGWARN("uploading %d of png data to '%s'", png_data.size(), url.c_str() );
+                LOGWARN("uploading %u of png data to '%s'", (uint32_t)png_data.size(), url.c_str() );
 
                 if(uploadDataToUrl(png_data, url.c_str(), error_str))
                 {
@@ -284,7 +280,7 @@ namespace WPEFramework
             }
         }
 
-#ifdef PLATFORM_INTEL
+#ifdef USE_INTEL_SCREENCAPTURE
         bool ScreenCapture::getScreenshotIntel(std::vector<unsigned char> &png_out_data)
         {
             int i;
@@ -342,7 +338,7 @@ namespace WPEFramework
         }
 #endif
 
-#ifdef PLATFORM_BROADCOM
+#ifdef  USE_BROADCOM_SCREENCAPTURE
         bool ScreenCapture::joinNexus()
         {
             if(inNexus) return true;
@@ -459,7 +455,7 @@ namespace WPEFramework
         }
 #endif
 
-#ifdef HAS_FRAMEBUFFER_API_HEADER
+#ifdef USE_FRAMEBUFFER_SCREENCAPTURE
         static vnc_bool_t FakeVNCServerFramebufferUpdateReady(void* ctx) {
             LOGWARN("FakeVNCServerFramebufferUpdateReady called");
             return vnc_true;
@@ -480,7 +476,6 @@ namespace WPEFramework
         bool ScreenCapture::getScreenshotRealtek(std::vector<unsigned char> &png_out_data)
         {
             ErrCode err;
-            vnc_bool_t result;
             vnc_uint8_t* buffer; 
             VncServerFramebufferAPI api;
 
@@ -589,7 +584,7 @@ namespace WPEFramework
                 return false;
             }
 
-            LOGWARN("uploading png data of size %u to '%s'", data.size(), url);
+            LOGWARN("uploading png data of size %u to '%s'", (uint32_t)data.size(), url);
 
             //init curl
             curl_global_init(CURL_GLOBAL_ALL);

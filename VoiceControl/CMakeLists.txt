@@ -1,12 +1,13 @@
 set(PLUGIN_NAME VoiceControl)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_VOICECONTROL_STARTUPORDER "" CACHE STRING "To configure startup order of VoiceControl plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         VoiceControl.cpp
-        Module.cpp
-        ../helpers/utils.cpp)
+        Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11

@@ -3,6 +3,7 @@
 - [**User Guide**](/README)
   - Introduction
   - [RDK Services Overview](userguide/intro.md)
+  - [RDK Abbreviation, Acronyms and Terms](userguide/aat.md)
   - Get Started
   - [Quick Start](userguide/quick-start.md)
   - [Discovering Services](userguide/discover.md)
@@ -13,4 +14,5 @@
   - [Overview of Clients](userguide/clients.md)
   - [Creating ThunderJS Clients](userguide/thunderjs.md)
   - [Creating Native Clients](userguide/native.md)
+- [**Developer Guide**](./developerguide/develperguidefornewplugin.md)
 - [**API Reference**](api/ActivityMonitorPlugin.md)

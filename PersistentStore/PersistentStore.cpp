@@ -23,10 +23,29 @@
 
 #include "UtilsFile.h"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 2
+
 namespace WPEFramework {
+
+namespace {
+
+    static Plugin::Metadata<Plugin::PersistentStore> metadata(
+        // Version (Major, Minor, Patch)
+        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+        // Preconditions
+        {},
+        // Terminations
+        {},
+        // Controls
+        {}
+    );
+}
+
 namespace Plugin {
 
-SERVICE_REGISTRATION(PersistentStore, 1, 0);
+SERVICE_REGISTRATION(PersistentStore, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
 PersistentStore::PersistentStore()
     : PluginHost::JSONRPC(),
@@ -52,17 +71,6 @@ const string PersistentStore::Initialize(PluginHost::IShell *service)
     ASSERT(service != nullptr);
 
     string configLine = service->ConfigLine();
-
-    // TODO
-    if (configLine == "{}") {
-        configLine = "{\n"
-                     "\"path\":\"/opt/secure/persistent/rdkservicestore\",\n"
-                     "\"key\":null,\n"
-                     "\"maxsize\":1000000,\n"
-                     "\"maxvalue\":1000\n"
-                     "}";
-    }
-
     _config.FromString(configLine);
 
     ASSERT(!_config.Path.Value().empty());

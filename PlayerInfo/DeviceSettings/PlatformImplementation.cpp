@@ -25,13 +25,15 @@
 #include "audioOutputPortType.hpp"
 #include "audioOutputPortConfig.hpp"
 #include "audioOutputPort.hpp"
-#include "utils.h"
+#include "UtilsIarm.h"
 
 #include <gst/gst.h>
 
 #include "libIBus.h"
 #include "libIBusDaemon.h"
 #include "dsMgr.h"
+
+#include "manager.hpp"
 
 namespace WPEFramework {
 namespace Plugin {
@@ -100,7 +102,7 @@ private:
         static inline FeatureList GstRegistryGetElementForMediaType(GList* elementsFactories, MediaTypes&& mediaTypes) {
             FeatureList candidates{gst_element_factory_list_filter(elementsFactories, mediaTypes.get(), GST_PAD_SINK, false)};
 
-            return std::move(candidates);
+            return (candidates);
         }
 
     };
@@ -108,6 +110,7 @@ private:
 private:
     using AudioIteratorImplementation = RPC::IteratorType<Exchange::IPlayerProperties::IAudioCodecIterator>;
     using VideoIteratorImplementation = RPC::IteratorType<Exchange::IPlayerProperties::IVideoCodecIterator>;
+
     typedef std::map<const string, const Exchange::IPlayerProperties::AudioCodec> AudioCaps;
     typedef std::map<const string, const Exchange::IPlayerProperties::VideoCodec> VideoCaps;
 
@@ -118,6 +121,7 @@ public:
         UpdateAudioCodecInfo();
         UpdateVideoCodecInfo();
         Utils::IARM::init();
+        device::Manager::Initialize();
         IARM_Result_t res;
         IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MODE, AudioModeHandler) );
         PlayerInfoImplementation::_instance = this;
@@ -130,7 +134,7 @@ public:
         _audioCodecs.clear();
         _videoCodecs.clear();
         IARM_Result_t res;
-        IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MODE) );
+        IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MODE, AudioModeHandler) );
         PlayerInfoImplementation::_instance = nullptr;
     }
 
@@ -257,7 +261,16 @@ public:
     {
         if(PlayerInfoImplementation::_instance)
         {
-            PlayerInfoImplementation::_instance->audiomodeChanged(STEREO, true);
+            dsAudioStereoMode_t amode = dsAUDIO_STEREO_UNKNOWN;
+            Exchange::Dolby::IOutput::SoundModes mode = UNKNOWN;
+            IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+            amode = static_cast<dsAudioStereoMode_t>(eventData->data.Audioport.mode);
+            if (amode == device::AudioStereoMode::kSurround) mode = SURROUND;
+            else if(amode == device::AudioStereoMode::kStereo) mode = STEREO;
+            else if(amode == device::AudioStereoMode::kMono) mode = MONO;
+            else if(amode == device::AudioStereoMode::kPassThru) mode = PASSTHRU;
+            else mode = UNKNOWN;
+            PlayerInfoImplementation::_instance->audiomodeChanged(mode, true);
         }
     }
 
@@ -440,7 +453,7 @@ private:
             {"audio/x-wav", Exchange::IPlayerProperties::AUDIO_WAV},
         };
         if (GstUtils::GstRegistryCheckElementsForMediaTypes(audioCaps, _audioCodecs) != true) {
-            TRACE_L1(_T("There is no Audio Codec support available"));
+            TRACE(Trace::Warning, (_T("There is no Audio Codec support available")));
         }
 
     }
@@ -451,12 +464,14 @@ private:
             {"video/x-h264, profile=(string)high", Exchange::IPlayerProperties::VideoCodec::VIDEO_H264},
             {"video/x-h265", Exchange::IPlayerProperties::VideoCodec::VIDEO_H265},
             {"video/mpeg, mpegversion=(int){1,2}, systemstream=(boolean)false", Exchange::IPlayerProperties::VideoCodec::VIDEO_MPEG},
+            {"video/mpeg, mpegversion=(int)2, systemstream=(boolean)false", Exchange::IPlayerProperties::VideoCodec::VIDEO_MPEG2},
+            {"video/mpeg, mpegversion=(int)4, systemstream=(boolean)false", Exchange::IPlayerProperties::VideoCodec::VIDEO_MPEG4},
             {"video/x-vp8", Exchange::IPlayerProperties::VideoCodec::VIDEO_VP8},
             {"video/x-vp9", Exchange::IPlayerProperties::VideoCodec::VIDEO_VP9},
             {"video/x-vp10", Exchange::IPlayerProperties::VideoCodec::VIDEO_VP10}
         };
         if (GstUtils::GstRegistryCheckElementsForMediaTypes(videoCaps, _videoCodecs) != true) {
-            TRACE_L1(_T("There is no Video Codec support available"));
+            TRACE(Trace::Warning, (_T("There is no Video Codec support available")));
         }
     }
 

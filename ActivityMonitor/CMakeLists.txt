@@ -18,6 +18,8 @@
 set(PLUGIN_NAME ActivityMonitor)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_ACTIVITYMONITOR_STARTUPORDER "" CACHE STRING "To configure startup order of ActivityMonitor plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
@@ -29,6 +31,7 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD_REQUIRED YES)
 
 target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS} ../helpers)
+set_source_files_properties(ActivityMonitor.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})
 

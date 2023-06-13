@@ -26,7 +26,8 @@
 //e.g. traceroute6 -i eth0 -w 3 -m 6 -q 3 fe80::5a19:f8ff:fe37:7a3d 52
 #define CMD_TRACEROUTE6 "traceroute6 -i %s -w %d -m %d -q %d %s %d 2>&1"
 
-#define DEFAULT_PACKET_LENGTH   52
+#define DEFAULT_IPV4_PACKET_LENGTH   52
+#define DEFAULT_IPV6_PACKET_LENGTH   64
 #define DEFAULT_WAIT            3
 #define DEFAULT_MAX_HOPS        6
 #define DEFAULT_QUERIES         3
@@ -64,7 +65,6 @@ namespace WPEFramework {
             std::string gateway;
             int wait = DEFAULT_WAIT;
             int maxHops = DEFAULT_MAX_HOPS;
-            int packetLen = DEFAULT_PACKET_LENGTH;
             char command[MAX_COMMAND_LENGTH];
             bool result = false;
 
@@ -97,7 +97,7 @@ namespace WPEFramework {
                             maxHops,
                             packets,
                             endpoint.c_str(),
-                            packetLen);
+                            DEFAULT_IPV6_PACKET_LENGTH);
                 }
                 else
                 {
@@ -106,7 +106,7 @@ namespace WPEFramework {
                             maxHops,
                             packets,
                             endpoint.c_str(),
-                            packetLen);
+                            DEFAULT_IPV4_PACKET_LENGTH);
                 }
 
                 if (NetUtils::execCmd(command, output, &result) < 0)

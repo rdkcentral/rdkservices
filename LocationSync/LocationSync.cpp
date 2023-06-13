@@ -19,10 +19,14 @@
  
 #include "LocationSync.h"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework {
 namespace Plugin {
 
-    SERVICE_REGISTRATION(LocationSync, 1, 0);
+    SERVICE_REGISTRATION(LocationSync, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     static Core::ProxyPoolType<Web::Response> responseFactory(4);
     static Core::ProxyPoolType<Web::JSONBodyType<LocationSync::Data>> jsonResponseFactory(4);
@@ -116,7 +120,11 @@ namespace Plugin {
                 response->City = location->City();
 
                 result->ContentType = Web::MIMETypes::MIME_JSON;
+#ifndef USE_THUNDER_R4
                 result->Body(Core::proxy_cast<Web::IBody>(response));
+#else
+                result->Body(Core::ProxyType<Web::IBody>(response));
+#endif /* USE_THUNDER_R4 */
             } else {
                 result->ErrorCode = Web::STATUS_SERVICE_UNAVAILABLE;
                 result->Message = _T("Internet and Location Service not yet available");
@@ -154,7 +162,9 @@ namespace Plugin {
             subSystem->Release();
 
             if ((_sink.Location() != nullptr) && (_sink.Location()->TimeZone().empty() == false)) {
+#ifndef DISABLE_GEOGRAPHY_TIMEZONE
                 Core::SystemInfo::SetEnvironment(_T("TZ"), _sink.Location()->TimeZone());
+#endif
                 event_locationchange();
             }
         }

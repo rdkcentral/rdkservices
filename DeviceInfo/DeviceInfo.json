@@ -1,149 +1,870 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
-    "jsonrpc": "2.0",
-    "info": {
-        "title": "Device Info API",
-        "class": "DeviceInfo",
-        "description": "The `DeviceInfo` plugin allows retrieving of various device-related information."
-    },
-    "properties": {
-        "systeminfo": {
-            "summary": "Provides access to system general information",
-            "readonly": true,
-            "params": {
-                "type": "object",
-                "properties": {
-                    "time": {
-                        "description": "Current system date and time",
-                        "type": "string",
-                        "example": "Mon, 11 Mar 2019 14:38:18"
-                    },
-                    "version": {
-                        "description": "Software version (in form *version#hashtag*)",
-                        "type": "string",
-                        "example": "1.0#14452f612c3747645d54974255d11b8f3b4faa54"
-                    },
-                    "uptime": {
-                        "description": "System uptime (in seconds)",
-                        "type": "number",
-                        "size": 64,
-                        "example": 120                  
-                    },
-                    "freeram": {
-                        "description": "Free system RAM memory (in bytes)",
-                        "type": "number",
-                        "size": 64,
-                        "example": 563015680
-                    },
-                    "totalram": {
-                        "description": "Total installed system RAM memory (in bytes)",
-                        "type": "number",
-                        "size": 64,
-                        "example": 655757312
-                    },
-                    "devicename": {
-                        "description": "Host name",                  
-                        "type": "string",
-                        "example": "buildroot"
-                    },
-                    "cpuload": {
-                        "description": "Current CPU load (percentage)",
-                        "type": "string",
-                        "example": "2"
-                    },
-                    "serialnumber": {
-                        "description": "Device serial number",
-                        "type": "string",
-                        "example": "WPEuCfrLF45"
-                    }
-                },
-                "required": [
-                    "time",
-                    "version",
-                    "uptime",
-                    "freeram",
-                    "totalram",
-                    "devicename",
-                    "cpuload",
-                    "serialnumber"
-                ]
-            }
+  "$schema": "interface.schema.json",
+  "jsonrpc": "2.0",
+  "info": {
+    "title": "Device Info API",
+    "class": "DeviceInfo",
+    "description": "DeviceInfo JSON-RPC interface"
+  },
+  "common": {
+    "$ref": "../common/common.json"
+  },
+  "definitions": {
+    "cpuloadavgs": {
+      "description": "cpu 1min, 5min,15min load avg",
+      "type": "object",
+      "properties": {
+        "avg1min": {
+          "type": "number",
+          "size": 64,
+          "example": 789132680,
+          "description": "1min cpuload average"
         },
-        "addresses": {
-            "summary": "Network interface addresses",
-            "readonly": true,
-            "params": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {
-                            "description": "Interface name",
-                            "type": "string",
-                            "example": "lo"
-                        },
-                        "mac": {
-                            "description": "Interface MAC address",
-                            "type": "string",
-                            "example": "00:00:00:00:00"
-                        },
-                        "ip": {
-                            "type": "array",
-                            "items": {
-                                "description": "Interface IP address",
-                                "type": "string",
-                                "example": "127.0.0.1"
-                            }
-                        }
-                    },
-                    "required": [
-                    "name",
-                    "mac"
-                    ]
-                }
-            }
+        "avg5min": {
+          "type": "number",
+          "size": 64,
+          "example": 789132680,
+          "description": "5min cpuload average"
         },
-        "socketinfo": {
-            "summary": "Socket information",
-            "readonly": true,
-            "params": {
-                "type": "object",
-                "properties": {
-                    "total": {
-                        "description": "Total number of sockets",
-                        "type": "number",
-                        "example": 0
-                    },
-                    "open": {
-                        "description": "Number of open sockets",
-                        "type": "number",
-                        "example": 0
-                    },
-                    "link": {
-                        "description": "Number of links",
-                        "type": "number",
-                        "example": 0
-                    },
-                    "exception": {
-                        "description": "Number of exceptions",
-                        "type": "number",
-                        "example": 0
-                    },
-                    "shutdown": {
-                        "description": "Number of sockets that were shutdown",
-                        "type": "number",
-                        "example": 0
-                    },
-                    "runs": {
-                        "description": "Number of runs",
-                        "type": "number",
-                        "example": 1
-                    }
-                },
-                "required": [
-                    "runs"
-                ]
-            }
+        "avg15min": {
+          "type": "number",
+          "size": 64,
+          "example": 789132680,
+          "description": "15min cpuload average"
         }
+      },
+      "required": [
+        "avg1min",
+        "avg5min",
+        "avg15min"
+      ]
+    },
+    "output_resolution": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "480i",
+        "480p",
+        "576i",
+        "576p",
+        "576p50",
+        "720p",
+        "720p50",
+        "1080i",
+        "1080i25",
+        "1080i50",
+        "1080p",
+        "1080p24",
+        "1080p25",
+        "1080p30",
+        "1080p50",
+        "1080p60",
+        "2160p30",
+        "2160p50",
+        "2160p60",
+        "4320p30",
+        "4320p60"
+      ],
+      "enumids": [
+        "RESOLUTION_UNKNOWN",
+        "RESOLUTION_480I",
+        "RESOLUTION_480P",
+        "RESOLUTION_576I",
+        "RESOLUTION_576P",
+        "RESOLUTION_576P50",
+        "RESOLUTION_720P",
+        "RESOLUTION_720P50",
+        "RESOLUTION_1080I",
+        "RESOLUTION_1080I25",
+        "RESOLUTION_1080I50",
+        "RESOLUTION_1080P",
+        "RESOLUTION_1080P24",
+        "RESOLUTION_1080P25",
+        "RESOLUTION_1080P30",
+        "RESOLUTION_1080P50",
+        "RESOLUTION_1080P60",
+        "RESOLUTION_2160P30",
+        "RESOLUTION_2160P50",
+        "RESOLUTION_2160P60",
+        "RESOLUTION_4320P30",
+        "RESOLUTION_4320P60"
+      ],
+      "description": "Resolution supported by the STB",
+      "example": "1080p"
+    },
+    "copy_protection": {
+      "type": "string",
+      "enum": [
+        "unavailable",
+        "1.4",
+        "2.0",
+        "2.1",
+        "2.2"
+      ],
+      "enumids": [
+        "HDCP_UNAVAILABLE",
+        "HDCP_14",
+        "HDCP_20",
+        "HDCP_21",
+        "HDCP_22"
+      ],
+      "description": "HDCP support",
+      "example": "2.0"
+    },
+    "output_resolutions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/output_resolution"
+      }
+    },
+    "devicetype": {
+      "type": "string",
+      "enum": [
+        "tv",
+        "IpStb",
+        "QamIpStb"
+      ],
+      "description": "Device type",
+      "example": "IpStb"
+    },
+    "make": {
+      "type": "string",
+      "enum": [
+        "platco",
+        "llama",
+        "hisense",
+        "element",
+        "sky",
+        "sercomm",
+        "commscope",
+        "arris",
+        "cisco",
+        "pace",
+        "samsung",
+        "technicolor",
+        "Amlogic_Inc"
+      ],
+      "description": "Device manufacturer",
+      "example": "pace"
+    },
+    "sku": {
+      "type": "string",
+      "enum": [
+        "PLTL11AEI",
+        "ZWCN11MWI",
+        "SKTL11AEI",
+        "LS301",
+        "HSTP11MWR",
+        "HSTP11MWRFX50",
+        "ELTE11MWR",
+        "SKXI11ADS",
+        "SKXI11AIS",
+        "SKXI11ANS",
+        "SCXI11AIC",
+        "SCXI11BEI",
+        "CMXI11BEI",
+        "AX013AN",
+        "AX014AN",
+        "AX061AEI",
+        "MX011AN",
+        "CS011AN",
+        "CXD01ANI",
+        "PX001AN",
+        "PX013AN",
+        "PX022AN",
+        "PX032ANI",
+        "PX051AEI",
+        "PXD01ANI",
+        "SX022AN",
+        "TX061AEI"
+      ],
+      "description": "Device model number or SKU",
+      "example": "PX051AEI"
+    },
+    "yocto": {
+      "type": "string",
+      "enum": [
+        "dunfell",
+        "morty",
+        "daisy"
+      ],
+      "description": "Yocto version",
+      "example": "dunfell"
+    },
+    "distributorid": {
+      "type": "string",
+      "enum": [
+        "comcast",
+        "xglobal",
+        "sky-de",
+        "sky-italia",
+        "sky-uk",
+        "sky-uk-dev",
+        "sky-deu",
+        "sky-deu-dev",
+        "sky-it",
+        "sky-it-dev",
+        "cox",
+        "cox-hospitality",
+        "cox-dev",
+        "cox-qa",
+        "MIT",
+        "shaw",
+        "shaw-dev",
+        "rogers",
+        "rogers-dev",
+        "videotron",
+        "charter",
+        "charter-dev"
+      ],
+      "enumids": [
+        "COMCAST",
+        "XGLOBAL",
+        "SKY_DE",
+        "SKY_ITALIA",
+        "SKY_UK",
+        "SKY_UK_DEV",
+        "SKY_DEU",
+        "SKY_DEU_DEV",
+        "SKY_IT",
+        "SKY_IT_DEV",
+        "COX",
+        "COX_HOSPITALITY",
+        "COX_DEV",
+        "COX_QA",
+        "MIT",
+        "SHAW",
+        "SHAW_DEV",
+        "ROGERS",
+        "ROGERS_DEV",
+        "VIDEOTRON",
+        "CHARTER",
+        "CHARTER_DEV"
+      ],
+      "description": "Partner ID or distributor ID for device",
+      "example": "comcast"
+    },
+    "audiocapability": {
+      "type": "string",
+      "enum": [
+        "none",
+        "ATMOS",
+        "DOLBY DIGITAL",
+        "DOLBY DIGITAL PLUS",
+        "Dual Audio Decode",
+        "DAPv2",
+        "MS12"
+      ],
+      "enumids": [
+        "NONE",
+        "ATMOS",
+        "DD",
+        "DDPLUS",
+        "DAD",
+        "DAPV2",
+        "MS12"
+      ],
+      "description": "Audio capability",
+      "example": "none"
+    },
+    "audiocapabilities": {
+      "summary": "An array of audio capabilities",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/audiocapability"
+      }
+    },
+    "ms12capability": {
+      "type": "string",
+      "enum": [
+        "none",
+        "Dolby Volume",
+        "Inteligent Equalizer",
+        "Dialogue Enhancer"
+      ],
+      "enumids": [
+        "NONE",
+        "DOLBYVOLUME",
+        "INTELIGENTEQUALIZER",
+        "DIALOGUEENHANCER"
+      ],
+      "description": "MS12 audio capability",
+      "example": "Dolby Volume"
+    },
+    "ms12capabilities": {
+      "summary": "An array of MS12 audio capabilities",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ms12capability"
+      }
     }
+  },
+  "properties": {
+    "systeminfo": {
+      "summary": "System general information",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "description": "Software version (in form *version#hashtag*)",
+            "example": "1.0#14452f612c3747645d54974255d11b8f3b4faa54",
+            "type": "string"
+          },
+          "uptime": {
+            "description": "System uptime (in seconds)",
+            "example": 120,
+            "type": "number",
+            "size": 64
+          },
+          "totalram": {
+            "description": "Total installed system RAM memory (in bytes)",
+            "example": 655757312,
+            "type": "number",
+            "size": 64
+          },
+          "freeram": {
+            "description": "Free system RAM memory (in bytes)",
+            "example": 563015680,
+            "type": "number",
+            "size": 64
+          },
+          "totalswap": {
+            "description": "Total swap space (in bytes)",
+            "example": 789132680,
+            "type": "number",
+            "size": 64
+          },
+          "freeswap": {
+            "description": "swap space still available (in bytes)",
+            "example": 789132680,
+            "type": "number",
+            "size": 64
+          },
+          "devicename": {
+            "description": "Host name",
+            "example": "buildroot",
+            "type": "string"
+          },
+          "cpuload": {
+            "description": "Current CPU load (percentage)",
+            "example": "2",
+            "type": "string"
+          },
+          "cpuloadavg": {
+            "description": "CPU load average",
+            "$ref": "#/definitions/cpuloadavgs"
+          },
+          "serialnumber": {
+            "description": "Device serial number",
+            "example": "WPEuCfrLF45",
+            "type": "string"
+          },
+          "time": {
+            "description": "Current system date and time",
+            "example": "Mon, 11 Mar 2019 14:38:18",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "uptime",
+          "totalram",
+          "freeram",
+          "totalswap",
+          "freeswap",
+          "devicename",
+          "cpuload",
+          "cpuloadavg",
+          "serialnumber",
+          "time"
+        ]
+      }
+    },
+    "addresses": {
+      "summary": "Network interface addresses",
+      "readonly": true,
+      "params": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "description": "Interface name",
+              "type": "string",
+              "example": "lo"
+            },
+            "mac": {
+              "description": "Interface MAC address",
+              "example": "00:00:00:00:00",
+              "type": "string"
+            },
+            "ip": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "Interface IP address",
+                "example": "127.0.0.1"
+              }
+            }
+          },
+          "required": [
+            "name",
+            "mac"
+          ]
+        }
+      }
+    },
+    "socketinfo": {
+      "summary": "Socket information",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "runs": {
+            "description": "Number of runs",
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "runs"
+        ]
+      }
+    },
+    "firmwareversion": {
+      "summary": "Versions maintained in version.txt",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "imagename": {
+            "type": "string",
+            "example": "PX051AEI_VBN_2203_sprint_20220331225312sdy_NG"
+          },
+          "sdk": {
+            "type": "string",
+            "example": "17.3"
+          },
+          "mediarite": {
+            "type": "string",
+            "example": "8.3.53"
+          },
+          "yocto": {
+            "type": "string",
+            "$ref": "#/definitions/yocto"
+          }
+        },
+        "required": [
+          "imagename"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "serialnumber": {
+      "summary": "Serial number set by manufacturer",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "serialnumber": {
+            "type": "string",
+            "example": "PAW400003744"
+          }
+        },
+        "required": [
+          "serialnumber"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "modelid": {
+      "summary": "Device model number or SKU",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "$ref": "#/definitions/sku"
+          }
+        },
+        "required": [
+          "sku"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "make": {
+      "summary": "Device manufacturer",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "make": {
+            "$ref": "#/definitions/make"
+          }
+        },
+        "required": [
+          "make"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "modelname": {
+      "summary": "Friendly device model name",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "example": "Pace Xi5"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "devicetype": {
+      "summary": "Device type",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "devicetype": {
+            "$ref": "#/definitions/devicetype"
+          }
+        },
+        "required": [
+          "devicetype"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "distributorid": {
+      "summary": "Partner ID or distributor ID for device",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "distributorid": {
+            "$ref": "#/definitions/distributorid"
+          }
+        },
+        "required": [
+          "distributorid"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "supportedaudioports": {
+      "summary": "Audio ports supported on the device (all ports that are physically present)",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "supportedAudioPorts": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "HDMI0"
+            }
+          }
+        },
+        "required": [
+          "supportedAudioPorts"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "supportedvideodisplays": {
+      "summary": "Video ports supported on the device (all ports that are physically present)",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "supportedVideoDisplays": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "HDMI0"
+            }
+          }
+        },
+        "required": [
+          "supportedVideoDisplays"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "hostedid": {
+      "summary": "EDID of the host",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "EDID": {
+            "summary": "A base64 encoded byte array string representing the EDID",
+            "type": "string",
+            "example": "AP///////wAQrMLQVEJTMQUdAQOANR546q11qVRNnSYPUFSlSwCBALMA0QBxT6lAgYDRwAEBVl4AoKCgKVAwIDUADighAAAaAAAA/wBNWTNORDkxVjFTQlQKAAAA/ABERUxMIFAyNDE4RAogAAAA/QAxVh1xHAAKICAgICAgARsCAxuxUJAFBAMCBxYBBhESFRMUHyBlAwwAEAACOoAYcTgtQFgsRQAOKCEAAB4BHYAYcRwWIFgsJQAOKCEAAJ6/FgCggDgTQDAgOgAOKCEAABp+OQCggDgfQDAgOgAOKCEAABoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA2A"
+          }
+        },
+        "required": [
+          "EDID"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    }
+  },
+  "methods": {
+    "DeviceInfo.1.supportedresolutions": {
+      "summary": "Supported resolutions on the selected video display port",
+      "params": {
+        "type": "object",
+        "properties": {
+          "videoDisplay": {
+            "description": "Video display port name",
+            "type": "string",
+            "example": "HDMI0"
+          }
+        },
+        "required": [
+        ]
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "supportedResolutions": {
+            "$ref": "#/definitions/output_resolutions"
+          }
+        },
+        "required": [
+          "supportedResolutions"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "DeviceInfo.1.defaultresolution": {
+      "summary": "Default resolution on the selected video display port",
+      "params": {
+        "type": "object",
+        "properties": {
+          "videoDisplay": {
+            "description": "Video display port name",
+            "type": "string",
+            "example": "HDMI0"
+          }
+        },
+        "required": [
+        ]
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "defaultResolution": {
+            "$ref": "#/definitions/output_resolution"
+          }
+        },
+        "required": [
+          "defaultResolution"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "DeviceInfo.1.supportedhdcp": {
+      "summary": "Supported HDCP version on the selected video display port",
+      "params": {
+        "type": "object",
+        "properties": {
+          "videoDisplay": {
+            "description": "Video display port name",
+            "type": "string",
+            "example": "HDMI0"
+          }
+        },
+        "required": [
+        ]
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "supportedHDCPVersion": {
+            "$ref": "#/definitions/copy_protection"
+          }
+        },
+        "required": [
+          "supportedHDCPVersion"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "DeviceInfo.1.audiocapabilities": {
+      "summary": "Audio capabilities for the specified audio port",
+      "params": {
+        "type": "object",
+        "properties": {
+          "audioPort": {
+            "description": "Audio port name",
+            "type": "string",
+            "example": "HDMI0"
+          }
+        },
+        "required": [
+        ]
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "AudioCapabilities": {
+            "$ref": "#/definitions/audiocapabilities"
+          }
+        },
+        "required": [
+          "AudioCapabilities"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "DeviceInfo.1.ms12capabilities": {
+      "summary": "MS12 audio capabilities for the specified audio port",
+      "params": {
+        "type": "object",
+        "properties": {
+          "audioPort": {
+            "description": "Audio port name",
+            "type": "string",
+            "example": "HDMI0"
+          }
+        },
+        "required": [
+        ]
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "MS12Capabilities": {
+            "$ref": "#/definitions/ms12capabilities"
+          }
+        },
+        "required": [
+          "MS12Capabilities"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "DeviceInfo.1.supportedms12audioprofiles": {
+      "summary": "Supported MS12 audio profiles for the specified audio port",
+      "params": {
+        "type": "object",
+        "properties": {
+          "audioPort": {
+            "description": "Audio port name",
+            "type": "string",
+            "example": "HDMI0"
+          }
+        },
+        "required": [
+        ]
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "supportedMS12AudioProfiles": {
+            "summary": "An array of MS12 audio profiles",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "Movie"
+            }
+          }
+        },
+        "required": [
+          "supportedMS12AudioProfiles"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    }
+  }
 }

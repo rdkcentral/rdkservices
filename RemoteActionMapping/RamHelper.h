@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "Module.h"
+
 //IARM includes
 #include "libIBus.h"
 

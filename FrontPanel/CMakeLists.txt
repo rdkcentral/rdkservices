@@ -18,18 +18,19 @@
 set(PLUGIN_NAME FrontPanel)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_FRONTPANEL_STARTUPORDER "" CACHE STRING "To configure startup order of FrontPanel plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         FrontPanel.cpp
         Module.cpp
-        ../helpers/frontpanel.cpp
-        ../helpers/powerstate.cpp
-        ../helpers/utils.cpp)
+        ../helpers/frontpanel.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
+set_source_files_properties(FrontPanel.cpp ../helpers/frontpanel.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 

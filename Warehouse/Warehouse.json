@@ -1,43 +1,30 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "Warehouse API", 
         "class": "Warehouse",
         "description": "The `Warehouse` plugin performs various types of resets (data, warehouse, etc.)."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
         "error":{
             "summary": "An error message in case of a failure",
             "type": "string",
             "example": ""
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods":{
         "executeHardwareTest": {
-            "summary": "(Version 2) Starts a hardware test on the device. See `getHardwareTestResults`. \n \n### Events\n \n No Events.",
+            "summary": "Starts a hardware test on the device. See `getHardwareTestResults`.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getDeviceInfo":{
-            "summary": "Returns STB device information gathered from `/lib/rdk/getDeviceDetails.sh`.(DEPRECATED - Use `getDeviceInfo` from `org.rdk.System` instead.) \n \n### Events\n \n No Events.",
+            "summary": "Returns STB device information gathered from `/lib/rdk/getDeviceDetails.sh`.(DEPRECATED - Use `getDeviceInfo` from `org.rdk.System` instead.)",
             "result": {
                 "type": "object",
                 "properties": {
@@ -97,7 +84,7 @@
                         "example": "A8:11:XX:FD:0C:XX"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "error": {
                         "$ref": "#/definitions/error"
@@ -120,7 +107,7 @@
             }
         },
         "getHardwareTestResults": {
-            "summary": "(Version 2) Returns the results of the last hardware test. \n \n### Events\n \n No Events.",
+            "summary": "Returns the results of the last hardware test.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -135,12 +122,12 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
 
         },
         "internalReset":{
-            "summary": "Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow.sh -s WarehouseService &`). Note that this method checks the `/version.txt` file for the image name and fails to run if the STB image version is marked as production (`PROD`). \n \n### Events\n \n No Events.",
+            "summary": "Invokes the internal reset script, which reboots the Warehouse service (`/rebootNow.sh -s WarehouseService &`). Note that this method checks the `/version.txt` file for the image name and fails to run if the STB image version is marked as production (`PROD`).",
             "params": {
                 "type":"object",
                 "properties": {
@@ -158,7 +145,7 @@
                 "type": "object",
                 "properties": {
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "error": {
                         "$ref": "#/definitions/error"
@@ -170,7 +157,7 @@
             }
         },
         "isClean":{
-            "summary": "Checks the locations on the device where customer data may be stored. If there are contents contained in those folders, then the device is not clean. \n \n### Events\n \n No Events.",
+            "summary": "Checks the locations on the device where customer data may be stored. If there are contents contained in those folders, then the device is not clean.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -188,7 +175,7 @@
                         }
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -199,12 +186,12 @@
             }
         },
         "lightReset":{
-            "summary": "Resets the application data. \n \n### Events\n \n No Events.",
+            "summary": "Resets the application data.",
             "result": {
                 "type": "object",
                 "properties": {
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "error": {
                         "$ref": "#/definitions/error"
@@ -216,10 +203,10 @@
             }
         },
         "resetDevice":{
-            "summary": "Resets the STB to the warehouse state. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `resetDone` | Triggers when the device reset is finished indicating a successful reset or failure|.",
-            "events": [
-                "resetDone"
-            ],
+            "summary": "Resets the STB to the warehouse state.",
+            "events": {
+                "resetDone" : "Triggers when the device reset is finished indicating a successful reset or failure"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -250,7 +237,7 @@
                 "type": "object",
                 "properties": {
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "error": {
                         "$ref": "#/definitions/error"
@@ -262,7 +249,7 @@
             } 
         },
         "setFrontPanelState":{
-            "summary": "Sets the state of the front panel LEDs to indicate the download state of the STB software image. \n \n### Events\n \n No Events.",
+            "summary": "Sets the state of the front panel LEDs to indicate the download state of the STB software image.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -280,7 +267,7 @@
                 "type": "object",
                 "properties": {
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "error": {
                         "$ref": "#/definitions/error"
@@ -299,7 +286,7 @@
                 "type" :"object",
                 "properties": {
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     },
                     "error": {
                         "$ref": "#/definitions/error"

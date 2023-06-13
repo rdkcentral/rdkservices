@@ -19,13 +19,13 @@ set(PLUGIN_NAME StateObserver)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_STATEOBSERVER_AUTOSTART true CACHE STRING "Automatically start StateObserver plugin")
+set(PLUGIN_STATEOBSERVER_STARTUPORDER "" CACHE STRING "To configure startup order of StateObserver plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         StateObserver.cpp
-        Module.cpp
-        ../helpers/utils.cpp)
+        Module.cpp)
 
 #add_subdirectory(test)
 

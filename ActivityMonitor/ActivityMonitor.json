@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "ActivityMonitor API", 
         "class": "ActivityMonitor", 
         "description": "Monitor memory and CPU usage by application"
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "pid": {
@@ -17,22 +20,6 @@
             "type": "string",
             "enum": ["exceeded", "receded"],
             "example": "exceeded"
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         },
         "appName": {
             "summary": "The application name associated with `appPid`",
@@ -47,11 +34,11 @@
     },
     "methods": {
         "enableMonitoring":{
-            "summary": "Enables monitoring for the given application PIDs using the given thresholds for memory and CPU usage at frequencies specified by the intervals.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `onMemoryThresholdOccured` | Triggered when an application exceeds the given memory threshold | \n | `onCPUThresholdOccured` | Triggered when an application exceeds the `cpuThresholdPercent` value for a duration longer than the `cpuThresholdSeconds` value |",
-            "events": [
-                "onCPUThresholdOccurred",
-                "onMemoryThresholdOccurred"
-            ],
+            "summary": "Enables monitoring for the given application PIDs using the given thresholds for memory and CPU usage at frequencies specified by the intervals.",
+            "events": {
+                "onCPUThresholdOccurred" : "Triggered when an application exceeds the `cpuThresholdPercent` value for a duration longer than the `cpuThresholdSeconds` value",
+                "onMemoryThresholdOccurred" : "Triggered when an application exceeds the given memory threshold"
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -106,22 +93,22 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "disableMonitoring":{
-            "summary": "Disables monitoring for all applications. Monitoring stops immediately even if the full collection interval has not been reached.\n \n### Events \n \nNo events",
+            "summary": "Disables monitoring for all applications. Monitoring stops immediately even if the full collection interval has not been reached.",
             "params": {
                 "summary": "An empty parameter object",
                 "type": "object",
                 "properties": {}
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getApplicationMemoryUsage": {
-            "summary": "Returns memory usage for a specific monitor-enabled application.\n \n### Events \n \nNo events",
+            "summary": "Returns memory usage for a specific monitor-enabled application.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -157,7 +144,7 @@
                         ]
                     },
                     "success": {
-                       "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -167,7 +154,7 @@
             }
         },
         "getAllMemoryUsage": {
-            "summary": "Returns memory usage for all monitoring-enabled applications.\n \n### Events \n \nNo events",
+            "summary": "Returns memory usage for all monitoring-enabled applications.",
             "params": {
                 "summary": "An empty param object",
                 "type": "object",
@@ -205,7 +192,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 }, 
                 "required": [

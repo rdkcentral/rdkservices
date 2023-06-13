@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "HdcpProfile API", 
         "class": "HdcpProfile", 
         "description": "The HdcpProfile plugin provides an interface for HDCP-related data and events."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "supportedHDCPVersion": {
@@ -59,27 +62,11 @@
                 "receiverHDCPVersion",
                 "currentHDCPVersion"
             ]
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods": {
         "getHDCPStatus": {
-            "summary": "Returns HDCP-related data.  \n**hdcpReason Argument Values**  \n* `0`: HDMI cable is not connected or rx sense status is `off`  \n* `1`: Rx device is connected with power ON state, and HDCP authentication is not initiated  \n* `2`: HDCP success  \n* `3`:  HDCP authentication failed after multiple retries  \n* `4`:  HDCP authentication in progress   \n* `5`: HDMI video port is disabled. \n \n### Events\n \nNo Events",
+            "summary": "Returns HDCP-related data.  \n**hdcpReason Argument Values**  \n* `0`: HDMI cable is not connected or rx sense status is `off`  \n* `1`: Rx device is connected with power ON state, and HDCP authentication is not initiated  \n* `2`: HDCP success  \n* `3`:  HDCP authentication failed after multiple retries  \n* `4`:  HDCP authentication in progress   \n* `5`: HDMI video port is disabled.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -87,7 +74,7 @@
                         "$ref": "#/definitions/HDCPStatus"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 }, 
                 "required": [
@@ -97,7 +84,7 @@
             }
         },
         "getSettopHDCPSupport": {
-            "summary": "Returns which version of HDCP is supported by the STB. \n \n### Events\n \nNo Events",
+            "summary": "Returns which version of HDCP is supported by the STB.",
             "result":{
                 "type":"object",
                 "properties": {
@@ -110,7 +97,7 @@
                         "example": true
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[

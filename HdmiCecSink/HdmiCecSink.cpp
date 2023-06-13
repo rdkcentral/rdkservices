@@ -35,7 +35,9 @@
 #include "manager.hpp"
 #include "websocket/URL.h"
 
-#include "utils.h"
+#include "UtilsIarm.h"
+#include "UtilsJsonRpc.h"
+#include "UtilssyncPersistFile.h"
 
 #define HDMICECSINK_METHOD_SET_ENABLED 			"setEnabled"
 #define HDMICECSINK_METHOD_GET_ENABLED 			"getEnabled"
@@ -71,12 +73,15 @@
 #define HDMICECSINK_REQUEST_INTERVAL_TIME_MS 		200
 #define HDMICECSINK_NUMBER_TV_ADDR 					2
 #define HDMICECSINK_UPDATE_POWER_STATUS_INTERVA_MS    (60 * 1000)
-#define HDMISINK_ARCPORT                               1
 #define HDMISINK_ARC_START_STOP_MAX_WAIT_MS           4000
 
 
 #define SAD_FMT_CODE_AC3 2
 #define SAD_FMT_CODE_ENHANCED_AC3 10
+
+#define SYSTEM_AUDIO_MODE_ON 0x01
+#define SYSTEM_AUDIO_MODE_OFF 0x00
+#define AUDIO_DEVICE_POWERSTATE_OFF 1
 
 enum {
 	DEVICE_POWER_STATE_ON = 0,
@@ -104,7 +109,7 @@ enum {
         HDMICECSINK_EVENT_AUDIO_DEVICE_POWER_STATUS,
 };
 
-static char *eventString[] = {
+static const char *eventString[] = {
 	"None",
 	"onActiveSourceChange",
 	"onWakeupFromStandby",
@@ -132,7 +137,7 @@ static char *eventString[] = {
 #define CEC_SETTING_OSD_NAME "cecOSDName"
 #define CEC_SETTING_VENDOR_ID "cecVendorId"
 
-static vector<uint8_t> defaultVendorId = {0x00,0x19,0xFB};
+static std::vector<uint8_t> defaultVendorId = {0x00,0x19,0xFB};
 static VendorID appVendorId = {defaultVendorId.at(0),defaultVendorId.at(1),defaultVendorId.at(2)};
 static VendorID lgVendorId = {0x00,0xE0,0x91};
 static PhysicalAddress physical_addr = {0x0F,0x0F,0x0F,0x0F};
@@ -140,15 +145,34 @@ static LogicalAddress logicalAddress = 0xF;
 static Language defaultLanguage = "eng";
 static OSDName osdName = "TV Box";
 static int32_t powerState = DEVICE_POWER_STATE_OFF;
-static vector<uint8_t> formatid = {0,0};
-static vector<uint8_t> audioFormatCode = { SAD_FMT_CODE_ENHANCED_AC3,SAD_FMT_CODE_AC3 };
+static std::vector<uint8_t> formatid = {0,0};
+static std::vector<uint8_t> audioFormatCode = { SAD_FMT_CODE_ENHANCED_AC3,SAD_FMT_CODE_AC3 };
 static uint8_t numberofdescriptor = 2;
+static int32_t HdmiArcPortID = -1;
+
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 12
 
 namespace WPEFramework
 {
+	namespace {
+
+        static Plugin::Metadata<Plugin::HdmiCecSink> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(HdmiCecSink, 1, 0);
+        SERVICE_REGISTRATION(HdmiCecSink, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         HdmiCecSink* HdmiCecSink::_instance = nullptr;
         static int libcecInitStatus = 0;
@@ -160,7 +184,7 @@ namespace WPEFramework
                 size_t len = 0;
 
                 in.getBuffer(&buf, &len);
-                for (int i = 0; i < len; i++) {
+                for (unsigned int i = 0; i < len; i++) {
                    sprintf(strBuffer + (i*3) , "%02X ",(uint8_t) *(buf + i));
                 }
                 LOGINFO("   >>>>>    Received CEC Frame: :%s \n",strBuffer);
@@ -218,7 +242,7 @@ namespace WPEFramework
              LOGINFO("Command: GetCECVersion sending CECVersion response \n");
              try
              { 
-                 conn.sendTo(header.from, MessageEncoder().encode(CECVersion(Version::V_1_4)));
+                 conn.sendToAsync(header.from, MessageEncoder().encode(CECVersion(Version::V_1_4)));
              } 
              catch(...)
              {
@@ -249,7 +273,7 @@ namespace WPEFramework
              LOGINFO("Command: GiveOSDName sending SetOSDName : %s\n",osdName.toString().c_str());
              try
              { 
-                 conn.sendTo(header.from, MessageEncoder().encode(SetOSDName(osdName)));
+                 conn.sendToAsync(header.from, MessageEncoder().encode(SetOSDName(osdName)));
              } 
              catch(...)
              {
@@ -264,7 +288,7 @@ namespace WPEFramework
                  try
                  { 
                      LOGINFO(" sending ReportPhysicalAddress response physical_addr :%s logicalAddress :%x \n",physical_addr.toString().c_str(), logicalAddress.toInt());
-                     conn.sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt())),500);
+                     conn.sendToAsync(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt())));
                  } 
                  catch(...)
                  {
@@ -278,7 +302,7 @@ namespace WPEFramework
              try
              {
                  LOGINFO("Command: GiveDeviceVendorID sending VendorID response :%s\n",appVendorId.toString().c_str());
-                 conn.sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)));
+                 conn.sendToAsync(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(DeviceVendorID(appVendorId)));
              }
              catch(...)
              {
@@ -301,6 +325,10 @@ namespace WPEFramework
 	     updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isOSDNameUpdated;
 	     LOGINFO("updateStatus %d\n",updateStatus);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.osdName);
+	     if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry > 0 &&
+			HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequested == CECDeviceParams::REQUEST_OSD_NAME) {
+	         HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
+	     }
              if(!updateStatus)
 	     HdmiCecSink::_instance->sendDeviceUpdateInfo(header.from.toInt());
        }
@@ -340,6 +368,10 @@ namespace WPEFramework
 	     LOGINFO("updateDeviceTypeStatus %d updatePAStatus %d \n",updateDeviceTypeStatus,updatePAStatus);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.physicalAddress);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.deviceType);
+	     if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry > 0 &&
+			HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequested == CECDeviceParams::REQUEST_PHISICAL_ADDRESS) {
+	         HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isRequestRetry = 0;
+	     }
 	     HdmiCecSink::_instance->updateDeviceChain(header.from, msg.physicalAddress);
 	     if (!updateDeviceTypeStatus || !updatePAStatus)
              HdmiCecSink::_instance->sendDeviceUpdateInfo(header.from.toInt());
@@ -415,7 +447,7 @@ namespace WPEFramework
 					
 					case GIVE_OSD_NAME :
 			 		{
-			 			HdmiCecSink::_instance->deviceList[header.from.toInt()].update(OSDName("FA"));
+			 			HdmiCecSink::_instance->deviceList[header.from.toInt()].update(OSDName(""));
 			 		}
 						break;
 
@@ -462,11 +494,18 @@ namespace WPEFramework
        {
             printHeader(header);
             PhysicalAddress physical_addr_invalid = {0x0F,0x0F,0x0F,0x0F};
-            PhysicalAddress physical_addr_arc_port = {0x02,0x00,0x00,0x00};
+            PhysicalAddress physical_addr_arc_port = {0x0F,0x0F,0x0F,0x0F};
 
             LOGINFO("Command: INITIATE_ARC \n");
-            if(!HdmiCecSink::_instance)
+            if(!HdmiCecSink::_instance || HdmiArcPortID == -1)
 	    return;
+
+            if (HdmiArcPortID == 0 )
+               physical_addr_arc_port = {0x01,0x00,0x00,0x00};
+            if (HdmiArcPortID == 1 )
+               physical_addr_arc_port = {0x02,0x00,0x00,0x00};
+            if (HdmiArcPortID == 2 )
+               physical_addr_arc_port = {0x03,0x00,0x00,0x00};
 
             if( (HdmiCecSink::_instance->deviceList[0x5].m_physicalAddr.toString() == physical_addr_arc_port.toString()) || (HdmiCecSink::_instance->deviceList[0x5].m_physicalAddr.toString() == physical_addr_invalid.toString()) ) {
                 LOGINFO("Command: INITIATE_ARC InitiateArc success %s \n",HdmiCecSink::_instance->deviceList[0x5].m_physicalAddr.toString().c_str());
@@ -504,9 +543,8 @@ namespace WPEFramework
 //=========================================== HdmiCecSink =========================================
 
        HdmiCecSink::HdmiCecSink()
-       : AbstractPlugin()
+       : PluginHost::JSONRPC()
        {
-       	   int err;
            LOGWARN("Initlaizing HdmiCecSink");
            HdmiCecSink::_instance = this;
            smConnection=NULL;
@@ -519,33 +557,30 @@ namespace WPEFramework
                    m_audioDevicePowerStatusRequested = false;
 		   m_pollNextState = POLL_THREAD_STATE_NONE;
 		   m_pollThreadState = POLL_THREAD_STATE_NONE;
-		   dsHdmiInGetNumberOfInputsParam_t hdmiInput;
 
-           InitializeIARM();
-
-           registerMethod(HDMICECSINK_METHOD_SET_ENABLED, &HdmiCecSink::setEnabledWrapper, this);
-           registerMethod(HDMICECSINK_METHOD_GET_ENABLED, &HdmiCecSink::getEnabledWrapper, this);
-           registerMethod(HDMICECSINK_METHOD_SET_OSD_NAME, &HdmiCecSink::setOSDNameWrapper, this);
-           registerMethod(HDMICECSINK_METHOD_GET_OSD_NAME, &HdmiCecSink::getOSDNameWrapper, this);
-           registerMethod(HDMICECSINK_METHOD_SET_VENDOR_ID, &HdmiCecSink::setVendorIdWrapper, this);
-           registerMethod(HDMICECSINK_METHOD_GET_VENDOR_ID, &HdmiCecSink::getVendorIdWrapper, this);
-		   registerMethod(HDMICECSINK_METHOD_PRINT_DEVICE_LIST, &HdmiCecSink::printDeviceListWrapper, this);
-		   registerMethod(HDMICECSINK_METHOD_SET_ACTIVE_PATH, &HdmiCecSink::setActivePathWrapper, this);
-		   registerMethod(HDMICECSINK_METHOD_SET_ROUTING_CHANGE, &HdmiCecSink::setRoutingChangeWrapper, this); 
-		   registerMethod(HDMICECSINK_METHOD_GET_DEVICE_LIST, &HdmiCecSink::getDeviceListWrapper, this);
-		   registerMethod(HDMICECSINK_METHOD_GET_ACTIVE_SOURCE, &HdmiCecSink::getActiveSourceWrapper, this);
-		   registerMethod(HDMICECSINK_METHOD_SET_ACTIVE_SOURCE, &HdmiCecSink::setActiveSourceWrapper, this);
-	       registerMethod(HDMICECSINK_METHOD_GET_ACTIVE_ROUTE, &HdmiCecSink::getActiveRouteWrapper, this);
-		  registerMethod(HDMICECSINK_METHOD_REQUEST_ACTIVE_SOURCE, &HdmiCecSink::requestActiveSourceWrapper, this);
-                   registerMethod(HDMICECSINK_METHOD_SETUP_ARC, &HdmiCecSink::setArcEnableDisableWrapper, this);
-		   registerMethod(HDMICECSINK_METHOD_SET_MENU_LANGUAGE, &HdmiCecSink::setMenuLanguageWrapper, this);
-                   registerMethod(HDMICECSINK_METHOD_REQUEST_SHORT_AUDIO_DESCRIPTOR, &HdmiCecSink::requestShortAudioDescriptorWrapper, this);
-                   registerMethod(HDMICECSINK_METHOD_SEND_STANDBY_MESSAGE, &HdmiCecSink::sendStandbyMessageWrapper, this);
-		   registerMethod(HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON, &HdmiCecSink::sendAudioDevicePowerOnMsgWrapper, this);
-		   registerMethod(HDMICECSINK_METHOD_SEND_KEY_PRESS,&HdmiCecSink::sendRemoteKeyPressWrapper,this);
-		   registerMethod(HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS,&HdmiCecSink::sendGiveAudioStatusWrapper,this);
-		   registerMethod(HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS,&HdmiCecSink::getAudioDeviceConnectedStatusWrapper,this);
-                   registerMethod(HDMICECSINK_METHOD_REQUEST_AUDIO_DEVICE_POWER_STATUS,&HdmiCecSink::requestAudioDevicePowerStatusWrapper,this);
+           Register(HDMICECSINK_METHOD_SET_ENABLED, &HdmiCecSink::setEnabledWrapper, this);
+           Register(HDMICECSINK_METHOD_GET_ENABLED, &HdmiCecSink::getEnabledWrapper, this);
+           Register(HDMICECSINK_METHOD_SET_OSD_NAME, &HdmiCecSink::setOSDNameWrapper, this);
+           Register(HDMICECSINK_METHOD_GET_OSD_NAME, &HdmiCecSink::getOSDNameWrapper, this);
+           Register(HDMICECSINK_METHOD_SET_VENDOR_ID, &HdmiCecSink::setVendorIdWrapper, this);
+           Register(HDMICECSINK_METHOD_GET_VENDOR_ID, &HdmiCecSink::getVendorIdWrapper, this);
+		   Register(HDMICECSINK_METHOD_PRINT_DEVICE_LIST, &HdmiCecSink::printDeviceListWrapper, this);
+		   Register(HDMICECSINK_METHOD_SET_ACTIVE_PATH, &HdmiCecSink::setActivePathWrapper, this);
+		   Register(HDMICECSINK_METHOD_SET_ROUTING_CHANGE, &HdmiCecSink::setRoutingChangeWrapper, this); 
+		   Register(HDMICECSINK_METHOD_GET_DEVICE_LIST, &HdmiCecSink::getDeviceListWrapper, this);
+		   Register(HDMICECSINK_METHOD_GET_ACTIVE_SOURCE, &HdmiCecSink::getActiveSourceWrapper, this);
+		   Register(HDMICECSINK_METHOD_SET_ACTIVE_SOURCE, &HdmiCecSink::setActiveSourceWrapper, this);
+	       Register(HDMICECSINK_METHOD_GET_ACTIVE_ROUTE, &HdmiCecSink::getActiveRouteWrapper, this);
+		  Register(HDMICECSINK_METHOD_REQUEST_ACTIVE_SOURCE, &HdmiCecSink::requestActiveSourceWrapper, this);
+                   Register(HDMICECSINK_METHOD_SETUP_ARC, &HdmiCecSink::setArcEnableDisableWrapper, this);
+		   Register(HDMICECSINK_METHOD_SET_MENU_LANGUAGE, &HdmiCecSink::setMenuLanguageWrapper, this);
+                   Register(HDMICECSINK_METHOD_REQUEST_SHORT_AUDIO_DESCRIPTOR, &HdmiCecSink::requestShortAudioDescriptorWrapper, this);
+                   Register(HDMICECSINK_METHOD_SEND_STANDBY_MESSAGE, &HdmiCecSink::sendStandbyMessageWrapper, this);
+		   Register(HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON, &HdmiCecSink::sendAudioDevicePowerOnMsgWrapper, this);
+		   Register(HDMICECSINK_METHOD_SEND_KEY_PRESS,&HdmiCecSink::sendRemoteKeyPressWrapper,this);
+		   Register(HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS,&HdmiCecSink::sendGiveAudioStatusWrapper,this);
+		   Register(HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS,&HdmiCecSink::getAudioDeviceConnectedStatusWrapper,this);
+                   Register(HDMICECSINK_METHOD_REQUEST_AUDIO_DEVICE_POWER_STATUS,&HdmiCecSink::requestAudioDevicePowerStatusWrapper,this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
            m_sendKeyEventThreadExit = false;
@@ -560,7 +595,17 @@ namespace WPEFramework
            m_arcStartStopTimer.setSingleShot(true);
            // load persistence setting
            loadSettings();
+       }
 
+       HdmiCecSink::~HdmiCecSink()
+       {
+       }
+       const std::string HdmiCecSink::Initialize(PluginHost::IShell * /* service */)
+       {
+           HdmiCecSink::_instance = this;
+           int err;
+           dsHdmiInGetNumberOfInputsParam_t hdmiInput;
+           InitializeIARM();
             // get power state:
             IARM_Bus_PWRMgr_GetPowerState_Param_t param;
             err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
@@ -578,20 +623,18 @@ namespace WPEFramework
                             (void *)&hdmiInput,
                             sizeof(hdmiInput));
 			
-            if(err == IARM_RESULT_SUCCESS && hdmiInput.result == dsERR_NONE )          {
+           if (err == IARM_RESULT_SUCCESS && hdmiInput.result == dsERR_NONE)
+           {
 				LOGINFO("Number of Inputs [%d] \n", hdmiInput.numHdmiInputs );
             	m_numofHdmiInput = hdmiInput.numHdmiInputs;
-            }
-			else
-			{
+           }else{
 				LOGINFO("Not able to get Numebr of inputs so defaulting to 3 \n");
 				m_numofHdmiInput = 3;
 			}
 
 			LOGINFO("initalize inputs \n");
 
-			for ( int i=0; i<m_numofHdmiInput; i++ )
-			{
+           for (int i = 0; i < m_numofHdmiInput; i++){
 				HdmiPortMap hdmiPort((uint8_t)i);
 				LOGINFO(" Add to vector [%d] \n", i);
 				hdmiInputs.push_back(hdmiPort);
@@ -607,10 +650,12 @@ namespace WPEFramework
                             (void *)&cecMgrIsAvailableParam,
                             sizeof(cecMgrIsAvailableParam));
 
-	    if(err == IARM_RESULT_SUCCESS) {
+           if (err == IARM_RESULT_SUCCESS)
+           {
                 LOGINFO("RDK CECDaemon up and running. IARM Call: IARM_BUS_CECMGR_API_isAvailable successful... \n");
             }
-	    else {
+           else
+           {
                 LOGINFO("RDK CECDaemon not up yet. IARM Call: IARM_BUS_CECMGR_API_isAvailable failed !!! \n");
             }
             if (cecSettingEnabled && (err == IARM_RESULT_SUCCESS))
@@ -624,11 +669,9 @@ namespace WPEFramework
                    LOGWARN("Exception while enabling CEC settings .\r\n");
                }
             }
-            
-       }
+            getHdmiArcPortID();
+           return (std::string());
 
-       HdmiCecSink::~HdmiCecSink()
-       {
        }
 
        void HdmiCecSink::Deinitialize(PluginHost::IShell* /* service */)
@@ -641,7 +684,7 @@ namespace WPEFramework
             try
 	    {
 		if (m_arcRoutingThread.joinable())
-                	m_arcRoutingThread.join();
+			m_arcRoutingThread.join();
 	    }
 	    catch(const std::system_error& e)
 	    {
@@ -652,9 +695,12 @@ namespace WPEFramework
 		LOGERR("exception in thread join %s", e.what());
 	    }
 
-	    m_sendKeyEventThreadExit = true;
-            std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
-            m_sendKeyCV.notify_one();
+	    {
+	        m_sendKeyEventThreadExit = true;
+                std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
+                m_sendKeyEventThreadRun = true;
+                m_sendKeyCV.notify_one();
+            }
 
 	    try
 	    {
@@ -692,10 +738,10 @@ namespace WPEFramework
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED, cecMgrEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED, cecMgrEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, pwrMgrModeChangeEventHandler) );
             }
        }
 
@@ -860,8 +906,6 @@ namespace WPEFramework
 
        void HdmiCecSink::onHdmiHotPlug(int portId , int connectStatus)
        {
-        	bool previousHdmiState = m_isHdmiInConnected;
-			int i = 0;
 			LOGINFO("onHdmiHotPlug Status : %d ", connectStatus);
                         if(!connectStatus)
                         {
@@ -870,16 +914,21 @@ namespace WPEFramework
                         }
 			CheckHdmiInState();
 
-          m_pollNextState = POLL_THREAD_STATE_PING;
-          m_ThreadExitCV.notify_one();
-          updateArcState();  
+          if(cecEnableStatus) {
+              LOGINFO("cecEnableStatus : %d Trigger CEC Ping !!! \n", cecEnableStatus);
+              m_pollNextState = POLL_THREAD_STATE_PING;
+              m_ThreadExitCV.notify_one();
+          }
+          if( HdmiArcPortID >= 0 ) {
+              updateArcState();  
+          }
           return;
        }
        void HdmiCecSink::updateArcState()
        {
            if ( m_currentArcRoutingState != ARC_STATE_ARC_TERMINATED )
            {
-        	if (!(hdmiInputs[HDMISINK_ARCPORT].m_isConnected))
+        	if (!(hdmiInputs[HdmiArcPortID].m_isConnected))
 		{
                    std::lock_guard<std::mutex> lock(_instance->m_arcRoutingStateMutex);
 		   m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
@@ -926,9 +975,7 @@ namespace WPEFramework
        void HdmiCecSink::Process_ShortAudioDescriptor_msg(const ReportShortAudioDescriptor  &msg)
        {
 	    uint8_t numberofdescriptor = msg.numberofdescriptor;
-            uint8_t AudioformatCode;
-            uint8_t  atmos;
-	    uint32 descriptor =0;
+	    uint32_t descriptor =0;
 	    JsonArray audiodescriptor;
 
 	    if (numberofdescriptor)
@@ -963,7 +1010,7 @@ namespace WPEFramework
                  return;
             }
 
-	    if ( (msg.status.toInt() == 0x00) && (m_currentArcRoutingState == ARC_STATE_ARC_INITIATED))
+	    if ( (msg.status.toInt() == SYSTEM_AUDIO_MODE_OFF) && (m_currentArcRoutingState == ARC_STATE_ARC_INITIATED))
             {
 		/* ie system audio mode off -> amplifier goign to standby but still ARC is in initiated state,stop ARC and 
 		 bring the ARC state machine to terminated state*/
@@ -973,7 +1020,18 @@ namespace WPEFramework
             }
 
             params["audioMode"] = msg.status.toString().c_str();
-            sendNotify(eventString[HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE], params);
+	    if (msg.status.toInt() == SYSTEM_AUDIO_MODE_ON) {
+		LOGINFO("panel power state is %s", powerState ? "Off" : "On");
+	        if (powerState == DEVICE_POWER_STATE_ON ) {
+		    LOGINFO("Notifying system audio mode ON event");
+                    sendNotify(eventString[HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE], params);
+		} else {
+		    LOGINFO("Not notifying system audio mode ON event");
+		}
+	    } else {
+		    LOGINFO("Notifying system audio Mode OFF event");
+		    sendNotify(eventString[HDMICECSINK_EVENT_SYSTEM_AUDIO_MODE], params);
+	    }
          }
          void HdmiCecSink::Process_ReportAudioStatus_msg(const ReportAudioStatus msg)
          {
@@ -1099,9 +1157,18 @@ namespace WPEFramework
         {
             JsonObject params;
             params["powerStatus"] = JsonValue(powerStatus);
-            LOGINFO("Notify DS!!! logicalAddress = %d , Audio device power status = %d \n", logicalAddress, powerStatus);
-            m_audioDevicePowerStatusRequested = false;
-            sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_POWER_STATUS], params);
+	    LOGINFO("Panle power state is %s", powerState ? "Off" : "On");
+	    if (powerStatus != AUDIO_DEVICE_POWERSTATE_OFF) {
+	        if (powerState == DEVICE_POWER_STATE_ON ) {
+                    LOGINFO("Notify DS!!! logicalAddress = %d , Audio device power status = %d \n", logicalAddress, powerStatus);
+                    sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_POWER_STATUS], params);
+		} else {
+		    LOGINFO("Not notifying audio device power state to DS");
+		}
+	    } else {
+                    LOGINFO("Notify DS!!! logicalAddress = %d , Audio device power status = %d \n", logicalAddress, powerStatus);
+                    sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_POWER_STATUS], params);
+	    }
         }
 
         void HdmiCecSink::SendStandbyMsgEvent(const int logicalAddress)
@@ -1196,7 +1263,7 @@ namespace WPEFramework
                         LOGINFO("getDeviceListWrapper  m_numberOfDevices :%d \n", HdmiCecSink::_instance->m_numberOfDevices);
 			JsonArray deviceList;
 			
-			for (unsigned int n = 0; n < LogicalAddress::UNREGISTERED; n++)
+			for (int n = 0; n < LogicalAddress::UNREGISTERED; n++)
 			{
 
 				if ( n != HdmiCecSink::_instance->m_logicalAddressAllocated && 
@@ -1237,7 +1304,6 @@ namespace WPEFramework
        uint32_t HdmiCecSink::setOSDNameWrapper(const JsonObject& parameters, JsonObject& response)
        {
            LOGINFOMETHOD();
-            bool enabled = false;
 
             if (parameters.HasLabel("name"))
             {
@@ -1280,7 +1346,7 @@ namespace WPEFramework
                 std::string id = parameters["activePath"].String();
 				PhysicalAddress phy_addr = PhysicalAddress(id);
 
-				LOGINFO("Addr = %s, length = %d", id.c_str(), id.length());
+                LOGINFO("Addr = %s, length = %zu", id.c_str(), id.length());
 
 				setStreamPath(phy_addr);
 				returnResponse(true);
@@ -1309,7 +1375,7 @@ namespace WPEFramework
 					response["available"] = true;
 					response["length"] = route.size();
 
-					for (int i=0; i < route.size(); i++) 
+					for (unsigned int i=0; i < route.size(); i++)
 					{
 						if ( route[i] != LogicalAddress::UNREGISTERED )
 						{
@@ -1407,8 +1473,6 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
 
-            bool enabled = false;
-
             if (parameters.HasLabel("vendorid"))
             {
                 std::string id = parameters["vendorid"].String();
@@ -1493,8 +1557,9 @@ namespace WPEFramework
 			keyInfo.keyCode     = stoi(keyCode);
 			std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
 			m_SendKeyQueue.push(keyInfo);
+                        m_sendKeyEventThreadRun = true;
 			m_sendKeyCV.notify_one();
-			LOGINFO("Post send key press event to queue size:%d \n",m_SendKeyQueue.size());
+            LOGINFO("Post send key press event to queue size:%zu \n",m_SendKeyQueue.size());
 			returnResponse(true);
 		}
 	   uint32_t HdmiCecSink::sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response)
@@ -1809,7 +1874,7 @@ namespace WPEFramework
 	
 		void HdmiCecSink::sendMenuLanguage()
 		{
-			Language lang = "NA";
+			Language lang = "";
 			if(!HdmiCecSink::_instance)
 				return;
 
@@ -2254,15 +2319,13 @@ namespace WPEFramework
                                         sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS], params)
                                 }
 
+				_instance->deviceList[logicalAddress].m_isRequestRetry = 0;
 				_instance->deviceList[logicalAddress].clear();
 				sendNotify(eventString[HDMICECSINK_EVENT_DEVICE_REMOVED], JsonObject());
 			}
 		}
 
 		void HdmiCecSink::requestPowerStatus(const int logicalAddress) {
-			int i;
-			int requestType;
-			
 			if(!HdmiCecSink::_instance)
 				return;
                         if(!(_instance->smConnection))
@@ -2275,7 +2338,6 @@ namespace WPEFramework
 		}
 
 		void HdmiCecSink::request(const int logicalAddress) {
-			int i;
 			int requestType;
 			
 			if(!HdmiCecSink::_instance)
@@ -2312,7 +2374,7 @@ namespace WPEFramework
 
 				case CECDeviceParams::REQUEST_OSD_NAME :	
 				{
-					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GiveOSDName()), 200);
+					_instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(GiveOSDName()), 500);
 				}
 					break;
 
@@ -2440,7 +2502,12 @@ namespace WPEFramework
 
 					case CECDeviceParams::REQUEST_OSD_NAME :	
 					{
-						_instance->deviceList[logicalAddress].update(OSDName("NA"));
+						if ( _instance->deviceList[logicalAddress].m_isRequestRetry++ >= HDMICECSINK_REQUEST_MAX_RETRY )
+						{
+							LOGINFO("Max retry for REQUEST_OSD_NAME = %d", _instance->deviceList[logicalAddress].m_isRequestRetry);
+							_instance->deviceList[logicalAddress].update(OSDName(""));
+							_instance->deviceList[logicalAddress].m_isRequestRetry = 0;
+						}
 					}
 						break;
 
@@ -2468,15 +2535,14 @@ namespace WPEFramework
 		}
 		
 		void HdmiCecSink::threadRun()
-        {
-        	int i;
+		{
 			std::vector <int> connected;
 			std::vector <int> disconnected;
 			int logicalAddressRequested = LogicalAddress::UNREGISTERED + TEST_ADD;
 			bool isExit = false;
 
 			if(!HdmiCecSink::_instance)
-                return;
+		            return;
 
                 if(!(_instance->smConnection))
                     return;
@@ -2542,16 +2608,16 @@ namespace WPEFramework
 					_instance->pingDevices(connected, disconnected);
 
 					if ( disconnected.size() ){
-						for( i=0; i< disconnected.size(); i++ )
+						for( unsigned int i=0; i< disconnected.size(); i++ )
 						{
-							LOGWARN("Disconnected Devices [%d]", disconnected.size());
+                            LOGWARN("Disconnected Devices [%zu]", disconnected.size());
 							_instance->removeDevice(disconnected[i]);
 						}
 					}
 
 					if (connected.size()) {
-						LOGWARN("Connected Devices [%d]", connected.size());
-						for( i=0; i< connected.size(); i++ )
+                        LOGWARN("Connected Devices [%zu]", connected.size());
+						for( unsigned int i=0; i< connected.size(); i++ )
 						{
 							_instance->addDevice(connected[i]);
 							/* If new device is connected, then try to aquire the information */
@@ -2574,7 +2640,8 @@ namespace WPEFramework
 
 					if ( logicalAddressRequested == LogicalAddress::UNREGISTERED + TEST_ADD )
 					{
-						for(i=0;i<LogicalAddress::UNREGISTERED + TEST_ADD;i++)
+						int i = 0;
+						for(;i<LogicalAddress::UNREGISTERED + TEST_ADD;i++)
 						{
 							if( i != _instance->m_logicalAddressAllocated &&
 								_instance->deviceList[i].m_isDevicePresent &&
@@ -2616,7 +2683,7 @@ namespace WPEFramework
 				{
 					//LOGINFO("POLL_THREAD_STATE_UPDATE");
 
-					for(i=0;i<LogicalAddress::UNREGISTERED + TEST_ADD;i++)
+					for(int i=0;i<LogicalAddress::UNREGISTERED + TEST_ADD;i++)
 					{
 						if( i != _instance->m_logicalAddressAllocated &&
 							_instance->deviceList[i].m_isDevicePresent &&
@@ -2748,7 +2815,7 @@ namespace WPEFramework
                 {
                     LibCCEC::getInstance().init();
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from LibCCEC::getInstance().init()");
                 }
@@ -2775,6 +2842,7 @@ namespace WPEFramework
             {
            		LOGWARN("Start Thread %p", smConnection );
 			    m_pollThreadState = POLL_THREAD_STATE_POLL;
+                            m_pollNextState = POLL_THREAD_STATE_NONE;
                             m_pollThreadExit = false;
 				m_pollThread = std::thread(threadRun);
             }
@@ -2831,6 +2899,9 @@ namespace WPEFramework
 			LOGERR("exception in thread join %s", e.what());
 		}
 
+                m_pollThreadState = POLL_THREAD_STATE_NONE;
+                m_pollNextState = POLL_THREAD_STATE_NONE;
+
 		LOGWARN("Deleted Thread %p", smConnection );
 
                 smConnection->close();
@@ -2855,7 +2926,7 @@ namespace WPEFramework
                 {
                    LibCCEC::getInstance().term();
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from LibCCEC::getInstance().term() ");
                 }
@@ -2882,7 +2953,7 @@ namespace WPEFramework
                     physical_addr = {(uint8_t)((physAddress >> 24) & 0xFF),(uint8_t)((physAddress >> 16) & 0xFF),(uint8_t) ((physAddress >> 8)  & 0xFF),(uint8_t)((physAddress) & 0xFF)};
                     LOGINFO("getPhysicalAddress: physicalAddress: %s ", physical_addr.toString().c_str());
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("exception caught from getPhysicalAddress");
             }
@@ -3003,6 +3074,8 @@ namespace WPEFramework
             {
                m_arcStartStopTimer.stop();
             }
+	    if (powerState == DEVICE_POWER_STATE_ON ) {
+		LOGINFO("Notifying Arc Initiation event as power state is %s", powerState ? "Off" : "On");
 		{
             	  std::lock_guard<std::mutex> lock(_instance->m_arcRoutingStateMutex);
 	          _instance->m_currentArcRoutingState = ARC_STATE_ARC_INITIATED;
@@ -3011,7 +3084,9 @@ namespace WPEFramework
                   LOGINFO("Got : ARC_INITIATED  and notify Device setting");
                   params["status"] = string("success");
                   sendNotify(eventString[HDMICECSINK_EVENT_ARC_INITIATION_EVENT], params); 
-	  
+	    } else {
+		LOGINFO("Not notifying Arc Initiation event as power state is %s", powerState ? "Off" : "On");
+	    }
 
        }
        void HdmiCecSink::Process_TerminateArc()
@@ -3037,27 +3112,37 @@ namespace WPEFramework
 
         void HdmiCecSink::threadSendKeyEvent()
         {
-            int i;
-
             if(!HdmiCecSink::_instance)
                 return;
 
-            while(1)
+	    SendKeyInfo keyInfo = {-1,-1};
+
+            while(!_instance->m_sendKeyEventThreadExit)
             {
-                SendKeyInfo keyInfo = {-1,-1};
+                keyInfo.logicalAddr = -1;
+                keyInfo.keyCode = -1;
                 {
                     // Wait for a message to be added to the queue
                     std::unique_lock<std::mutex> lk(_instance->m_sendKeyEventMutex);
-                    while (_instance->m_SendKeyQueue.empty())
-                        _instance->m_sendKeyCV.wait(lk);
-
-                    if (_instance->m_SendKeyQueue.empty())
-                        continue;
-                    keyInfo = _instance->m_SendKeyQueue.front();
-                    _instance->m_SendKeyQueue.pop();
+                    _instance->m_sendKeyCV.wait(lk, []{return (_instance->m_sendKeyEventThreadRun == true);});
                 }
 
-                LOGINFO("sendRemoteKeyThread : logical addr:0x%x keyCode: 0x%x  queue size :%d \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
+                if (_instance->m_sendKeyEventThreadExit == true)
+                {
+                    LOGINFO(" threadSendKeyEvent Exiting");
+                    _instance->m_sendKeyEventThreadRun = false;
+                    break;
+                }
+
+                if (_instance->m_SendKeyQueue.empty()) {
+                    _instance->m_sendKeyEventThreadRun = false;
+                    continue;
+                }
+
+                    keyInfo = _instance->m_SendKeyQueue.front();
+                    _instance->m_SendKeyQueue.pop();
+
+                LOGINFO("sendRemoteKeyThread : logical addr:0x%x keyCode: 0x%x  queue size :%zu \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
 			    _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
 			    _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
 			    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
@@ -3065,18 +3150,12 @@ namespace WPEFramework
 			        _instance->sendGiveAudioStatusMsg();
 			    }
 
-                if (_instance->m_sendKeyEventThreadExit == true)
-                {
-                    LOGINFO(" threadSendKeyEvent Exiting");
-                    break;
-                }
-            }//while(1)
+            }//while(!_instance->m_sendKeyEventThreadExit)
         }//threadSendKeyEvent
 
 
         void HdmiCecSink::threadArcRouting()
         {
-        	int i;
 		bool isExit = false;
 		uint32_t currentArcRoutingState;
 
@@ -3183,7 +3262,21 @@ namespace WPEFramework
            _instance->smConnection->sendTo(LogicalAddress::AUDIO_SYSTEM,MessageEncoder().encode(ReportArcTermination()), 1000);
 
        }
-
+       
+      void HdmiCecSink::getHdmiArcPortID()
+      {
+         int err;
+         dsGetHDMIARCPortIdParam_t param;
+         err = IARM_Bus_Call(IARM_BUS_DSMGR_NAME,
+                            (char *)IARM_BUS_DSMGR_API_dsGetHDMIARCPortId,
+                            (void *)&param,
+                            sizeof(param));
+          if (IARM_RESULT_SUCCESS == err)
+          {
+             LOGINFO("HDMI ARC port ID HdmiArcPortID=[%d] \n", param.portId);
+             HdmiArcPortID = param.portId;
+          }
+      }
 
     } // namespace Plugin
 } // namespace WPEFrameworklk

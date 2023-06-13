@@ -22,11 +22,10 @@
 #include "Module.h"
 #include <interfaces/Ids.h>
 #include "tracing/Logging.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 
 #include "ITextToSpeech.h"
 #include "impl/TTSManager.h"
+#include "impl/TTSConfiguration.h"
 #include <vector>
 
 namespace WPEFramework {
@@ -71,7 +70,7 @@ namespace Plugin {
 
        public:
             static Core::ProxyType<Core::IDispatch> Create(TextToSpeechImplementation *tts, Event event, string data) {
-                return (Core::proxy_cast<Core::IDispatch>(Core::ProxyType<Job>::Create(tts, event, data)));
+                return (Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create(tts, event, data)));
             }
 
             virtual void Dispatch() {

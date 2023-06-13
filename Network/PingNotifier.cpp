@@ -19,6 +19,8 @@
 
 #include "Network.h"
 
+#include "UtilsLogging.h"
+
 using namespace std;
 
 namespace WPEFramework
@@ -185,7 +187,10 @@ namespace WPEFramework
                     }
                 }
                 fclose(fp);
+            }
 
+            if(!outputFile.empty())
+            {
                 // clear up
                 remove(outputFile.c_str());
             }

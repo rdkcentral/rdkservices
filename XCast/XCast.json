@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "XCast API", 
         "class": "XCast", 
-        "description": "This XCast plugin provides methods and events to support launching applications from an external source (for example, DIAL, Alexa, or WebPA). The RT implementation should use a RT service name that complies to the convention `com.comcast.<name>cast`. For example, `com.comcast.xdialcast` is used by `xdialserver`."
+        "description": "The XCast plugin provides methods and events to support launching applications from an external source (for example, DIAL). The RT implementation should use a RT service name that complies to the convention `com.comcast.<name>cast`. For example, `com.comcast.xdialcast` is used by `xdialserver`."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "enabled": {
@@ -23,12 +26,11 @@
             "example":"1234"
         },
         "friendlyname": {
-            "summary": "The friendly name of the implementation",
+            "summary": "The friendly name of the device which used to display on the client device list",
             "type": "string",
-            "example": "xdial"
+            "example": "Manufacturer name"
         },
         "standbybehavior": {
-                        
             "summary": "whether to remain active or inactive during standby mode",
             "enum": [
                 "active",
@@ -37,31 +39,101 @@
             "type": "string",
             "example": "active"
         },
-        "version": {
-            "summary": "DIAL protocol version string",
-            "type": "string",
-            "example": "2.1 or 2.2.1 etc."
+        "names": {
+            "summary": "case-sensitive. Group of acceptable names for a related application. Application name in request URI must have exact match to one of the names. Otherwise, matching prefix is needed. If the application name in request URI does not match any names or prefixes, then the request shall fail.",
+            "type": "array",
+            "items": {
+               "type": "string",
+               "example": "Youtube"
+            }
         },
-        "result": {
-            "type":"object",
+        "prefixes": {
+            "summary": "If the application name in request URI does not match the list of names, it must contain one of the prefixes.If the application name in request URI does not match any names or prefixes, then the request shall fail.",
+            "type": "array",
+            "items": {
+               "type": "string",
+               "example": "myYouTube"
+            }
+        },
+        "cors": {
+            "summary": "a set of origins allowed for the application. This must not be empty",
+            "type": "array",
+            "items": {
+               "type": "string",
+               "example": ".youtube.com"
+            }
+        },
+        "properties": {
+            "summary": "specific application properties applicable to app management. If not present in descriptor, the default value is assumed",
+            "type": "object",
             "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
+                "allowStop": {
+                    "summary": "is the application (matching name list or prefix list) allowed to stop (no PID presence) after launched",
+                    "type": "boolean",
+                    "example": true
                 }
             },
-            "required": [
-                "success"
+            "required":[
+                "allowStop"
             ]
         },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
+        "launchParameters": {
+            "summary": "launchParameters that application wants dial-server to append before sending the request to launch application",
+            "type": "object",
+            "properties": {
+                "query": {
+                    "summary": "query string that need to be appended in launch request",
+                    "type": "string",
+                    "example": "source_type=12"
+                },
+                "payload": {
+                    "summary": "optional payload string that need to be appended in launch request",
+                    "type": "string",
+                    "example": ""
+                }
+             },
+            "required":[
+                "query",
+                "payload"
+            ]
+        },
+        "applicationsList": {
+            "summary": "Json array with one or more application details to register",
+            "type": "array",
+            "items": {
+               "type": "object",
+               "properties": {
+                    "names": {
+                        "$ref": "#/definitions/names"
+                    },
+                    "prefixes": {
+                        "$ref": "#/definitions/prefixes"
+                    },
+                    "cors": {
+                       "$ref": "#/definitions/cors"
+                    },
+                    "properties": {
+                        "$ref": "#/definitions/properties"
+                    },
+                    "launchParameters": {
+                        "$ref": "#/definitions/launchParameters"
+                    }
+                },
+                "required":[
+                    "names",
+                    "cores"
+                ]
+            }
+        },
+        "version": {
+            "summary": "DIAL protocol version",
+            "type": "string",
+            "example": "2.2.1"
         }
     },
     "methods": {
         "getApiVersionNumber":{
-            "summary": "Gets the API version.\n  \n### Events \n\n No Events",
+            "summary": "Gets the API version number.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -71,7 +143,7 @@
                         "example": 1
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 }, 
                 "required": [
@@ -81,7 +153,7 @@
             }
         },
         "getEnabled":{
-            "summary": "Reports whether xcast is enabled or disabled.\n  \n### Events \n\n No Events",
+            "summary": "Reports whether xcast plugin is enabled or disabled.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -89,7 +161,7 @@
                         "$ref": "#/definitions/enabled"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 }, 
                 "required": [
@@ -99,7 +171,7 @@
             }
         },
         "getFriendlyName":{
-            "summary": "Returns the friendly name set by setFriendlyName API.\n  \n### Events \n\n No Events",
+            "summary": "Returns the friendly name set by setFriendlyName API.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -107,7 +179,7 @@
                         "$ref": "#/definitions/friendlyname"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 }, 
                 "required": [
@@ -116,26 +188,8 @@
                 ]               
             }
         },
-        "getStandbyBehavior":{
-            "summary": "Gets the expected xcast behavior in standby mode.\n  \n### Events \n\n No Events",
-            "result": {
-                "type":"object",
-                "properties": {
-                    "standbybehavior": {
-                        "$ref": "#/definitions/standbybehavior"
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                }, 
-                "required": [
-                    "standbybehavior",
-                    "success"
-                ]               
-            }
-        },
         "getProtocolVersion":{
-            "summary": "Return the DIAL protocol version supported by the server .\n  \n### Events \n\n No Events",
+            "summary": "Returns the DIAL protocol version supported by the server.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -143,7 +197,7 @@
                         "$ref": "#/definitions/version"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -152,8 +206,26 @@
                 ]
             }
         },
+        "getStandbyBehavior":{
+            "summary": "Return current standby behavior option string set uisng setStandbyBehavior or default value .",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "standbybehavior": {
+                        "$ref": "#/definitions/standbybehavior"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                }, 
+                "required": [
+                    "standbybehavior",
+                    "success"
+                ]               
+            }
+        },  
         "onApplicationStateChanged":{
-            "summary": "provides notification whenever an application changes state (due to user activity, an internal error, or other reasons). For singleton applications, the `applicationId` parameter is optional. If an application request is denied, fails to fulfill, or the state change is triggered by an internal error, a predefined error string should be included. This error may be translated to an XCast client.  \n Client Error Mapping Example:  \n| Error | Description | HTTP Status Codes |  \n | :-------- | :-------- | :-------- |   \n| `none` | The request (start/stop) is fulfilled successfully | HTTP 200 OK |  \n| `forbidden` | The user is not allowed to change the state of the application. This is not related to user account authentication of the native application | HTTP 403 Forbidden |  \n| `unavailable` | The target native application is not available on the device | HTTP 404 Not Found |  \n| `invalid` | The request is invalid (bad parameter for example) | HTTP 400 Bad Request |  \n| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |. \n  \n### Events \n\n No Events",
+            "summary": "Provides notification whenever an application changes state due to user activity, an internal error, or other reasons. For singleton applications, the `applicationId` parameter is optional. If an application request is denied, fails to fulfill, or the state change is triggered by an internal error, then a predefined error string should be included. This error may be translated to an XCast client.  \n\nThe following table provides a client error mapping example: \n\n| Error | Description | HTTP Status Codes |  \n| :-------- | :-------- | :-------- |   \n| `none` | The request (start/stop) is fulfilled successfully | HTTP 200 OK |  \n| `forbidden` | The user is not allowed to change the state of the application. This is not related to user account authentication of the native application | HTTP 403 Forbidden |  \n| `unavailable` | The target native application is not available on the device | HTTP 404 Not Found |  \n| `invalid` | The request is invalid (bad parameter for example) | HTTP 400 Bad Request |  \n| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |",
             "params": {
                 "type":"object",
                 "properties": {
@@ -161,7 +233,7 @@
                         "$ref": "#/definitions/applicationName"
                     },
                     "state":{
-                        "summary":"A predefined application state. Either `running` or `stopped`.",
+                        "summary":"A predefined application state. Either `running`, `stopped`, `hidden`, or `suspended` (introduced in DIAL 2.1, `suspended` is a synonym to `hidden`).",
                         "type":"string",
                         "example":"running"
                     },
@@ -180,18 +252,32 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "registerApplications": {
-            "summary": "Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list.\n  \n### Events \n\n No Events",
+            "summary": "Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list. so that app list will be appended to the existing XCast white list. If a DIAL request for an unregistered application is received by DIAL server, the request will be denied (HTTP 404) per DIAL specification. Optional fields need not be included, or can be included with empty values.",
             "params": {
                 "type":"object",
                 "properties": {
                     "applications": {
-                        "summary": "The application name to register",
+                        "$ref": "#/definitions/applicationsList"
+                    }
+                }
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "unregisterApplications": {
+            "summary": "Unregisters an application. This API allows to remove the specified applist from the XCast whitelist. To dynamically delete the specific app list, same API should be called with the app list to remove. so that mentioned app list will be removed from the XCast whitelist. Calling this API with empty list will clear the Xcast Whitelist",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "applications": {
+                        "summary": "One or more application name to unregister",
                         "type": "string",
-                        "example": "NetflixApp"
+                        "example": ["YouTube","Netflix"]
                     }
                 },
                 "required": [
@@ -199,11 +285,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setEnabled":{
-            "summary": "Enables or disables xcast.\n  \n### Events \n\n No Events",
+            "summary": "Enable or disable XCAST service.  When disabled, the customer should not be able to discover CPE as a cast target for any client application. After enable(true) server application manger must re-register all app that are available for user to cast. The enabled status is not persisted on device after each reboot or reconnect application should call setEnalbed to initialize XCast thunder plugin.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -216,11 +302,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setFriendlyName":{
-            "summary": "Sets the friendly name of device. It allows an application to override the default friendly name value with the friendly name passed as an argument.\n  \n### Events \n\n No Events",
+            "summary": "Sets the friendly name of device. It allows an application to override the default friendly name value with the friendly name passed as an argument. The provided name  should not be empty. If a user provided name is not available, the caller of the API should use the default name partnerId+Model  (or any other agreed default name) as the parameter. After initialization, XCastService should not be activated until setFriendlyName() is invoked. Frinedly name is not persisted on device after each reboot or reconnect application should call API to update the friendlyName",
             "params": {
                 "type":"object",
                 "properties": {
@@ -233,11 +319,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setStandbyBehavior":{
-            "summary": "Sets the expected xcast behavior in standby mode. It allows an application to override controls on xcast behavior in standby mode. The default behavior in STANDBY mode is inactive, so client device can not discover the server. When STANDBY behavior is active, client device can discover the server.\n  \n### Events \n\n No Events",
+            "summary": "Sets the expected xcast behavior in standby mode. It allows an application to override controls on xcast behavior in standby mode. The default behavior in STANDBY mode is inactive, so client device can not discover the server. When STANDBY behavior is active, client device can discover the CPE device and perform the launch operation. Upon reeiving the launch request device will transitioned from STANDBY to ON mode",
             "params": {
                 "type":"object",
                 "properties": {
@@ -250,7 +336,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }
     },

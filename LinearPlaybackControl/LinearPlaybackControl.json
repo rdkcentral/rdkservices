@@ -1,0 +1,267 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "Linear Playback Control API",
+        "class": "LinearPlaybackControl",
+        "description": "Linear Playback Control JSON-RPC interface"
+    },
+    "common": {
+        "$ref": "../common/common.json"
+    },
+    "definitions": {
+        "channel":{
+            "type": "object",
+            "properties": {
+                "channel": {
+                    "description": "Channel address.",
+                    "type": "string",
+                    "example": "chan_select"
+                }
+            },
+            "required": [
+                "channel"
+            ]
+        },
+        "seek":{
+            "type": "object",
+            "properties": {
+                "seekPosInSeconds": {
+                    "description": "TSB seek position offset from live in seconds. The value must be an unsigned integer. If the value exceeds the current TSB size, the seek position will be reduced accordingly.",
+                    "type": "number",
+                    "size": 64,
+                    "example": 0
+                }
+            },
+            "required": [
+                "seekPosInSeconds"
+            ]
+        },
+        "trickplay":{
+            "type": "object",
+            "properties": {
+                "speed": {
+                    "description": "Trick play speed. The direction is defined by the sign of speed, where a negative value means rewind and positive value means fast forward.",
+                    "type": "number",
+                    "size": 16,
+                    "signed": true,
+                    "example": -4
+                }
+            },
+            "required": [
+                "speed"
+            ]
+        },
+        "status":{
+            "type": "object",
+            "properties": {
+                "maxSizeInBytes": {
+                    "description": "Maximum TSB size in bytes.",
+                    "type": "number",
+                    "size": 64,
+                    "example": 0
+                },
+                "currentSizeInBytes": {
+                    "description": "Current TSB size in bytes.",
+                    "type": "number",
+                    "size": 64,
+                    "example": 0
+                },
+                "currentSizeInSeconds": {
+                    "description": "Current TSB size in seconds.",
+                    "type": "number",
+                    "size": 64,
+                    "example": 0
+                },
+                "seekPosInBytes": {
+                    "description": "Current TSB seek position offset from live in bytes. The value is an unsigned integer and cannot exceed the current TSB size in bytes.",
+                    "type": "number",
+                    "size": 64,
+                    "example": 0
+                },
+                "seekPosInSeconds": {
+                    "description": "Current TSB seek position offset from live in seconds. The value is an unsigned integer and cannot exceed the current TSB size in seconds.",
+                    "type": "number",
+                    "size": 64,
+                    "example": 0
+                },
+                "trickPlaySpeed": {
+                    "description": "Current trick play speed and direction. The direction is defined by the sign of speed, where a negative value means rewind and positive value means fast forward.",
+                    "type": "number",
+                    "size": 16,
+                    "signed": true,
+                    "example": -4
+                },
+                "streamSourceLost": {
+                    "description": "Boolean indicating if the buffer source is lost (true) as a result of e.g. network connectivity issues or not (false).",
+                    "type": "boolean",
+                    "example": false
+                },
+                "streamSourceLossCount": {
+                    "description": "Number of times the streaming is lost and the TSB stopped receiving data from the stream source, during a valid channel selected.",
+                    "type": "number",
+                    "size": 64,
+                    "example": 0
+                }
+            },
+            "required": [
+                "maxSizeInBytes",
+                "currentSizeInBytes",
+                "currentSizeInSeconds",
+                "seekPosInBytes",
+                "seekPosInSeconds",
+                "trickPlaySpeed",
+                "streamSourceLost",
+                "streamSourceLossCount"
+            ]
+        },
+        "tracing":{
+            "type": "object",
+            "properties": {
+                "tracing": {
+                    "description": "Tracing enable (true) / disable (false).",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        }
+    },
+    "properties": {
+        "channel": {
+            "summary": "Current channel",
+            "readonly": false,
+            "params": {
+                "$ref": "#/definitions/channel"
+            },
+            "index": {
+                "name": "muxId",
+                "example": "0"
+            },
+            "errors": [
+                {
+                    "description": "Bad JSON param data format.",
+                    "$ref": "#/common/errors/badrequest"
+                },
+                {
+                    "description": "Error reading file or parsing one or more values.",
+                    "$ref": "#/common/errors/readerror"
+                },
+                {
+                    "description": "Error writing to file.",
+                    "$ref": "#/common/errors/writeerror"
+                }
+            ]
+        },
+        "seek": {
+            "summary": "TSB seek position offset, from live position, in seconds.",
+            "readonly": false,
+            "params": {
+                "$ref": "#/definitions/seek"
+            },
+            "index": {
+                "name": "muxId",
+                "example": "0"
+            },
+            "errors": [
+                {
+                    "description": "Bad JSON param data format.",
+                    "$ref": "#/common/errors/badrequest"
+                },
+                {
+                    "description": "Error reading file or parsing one or more values.",
+                    "$ref": "#/common/errors/readerror"
+                },
+                {
+                    "description": "Error writing to file.",
+                    "$ref": "#/common/errors/writeerror"
+                }
+            ]
+        },
+        "trickPlay": {
+            "summary": "Trick play speed and direction.",
+            "readonly": false,
+            "params": {
+                "$ref": "#/definitions/trickplay"
+            },
+            "index": {
+                "name": "muxId",
+                "example": "0"
+            },
+            "errors": [
+                {
+                    "description": "Bad JSON param data format.",
+                    "$ref": "#/common/errors/badrequest"
+                },
+                {
+                    "description": "Error reading file or parsing one or more values.",
+                    "$ref": "#/common/errors/readerror"
+                },
+                {
+                    "description": "Error writing to file.",
+                    "$ref": "#/common/errors/writeerror"
+                }
+            ]
+        },
+        "status": {
+            "summary": "Current TSB status information containing buffer size, seek position and health status.",
+            "readonly": true,
+            "params": {
+                "$ref": "#/definitions/status"
+            },
+            "index": {
+                "name": "muxId",
+                "example": "0"
+            },
+            "errors": [
+                {
+                    "description": "Error reading file or parsing one or more values.",
+                    "$ref": "#/common/errors/readerror"
+                }
+            ]
+        },
+        "tracing": {
+            "summary": "Tracing enable/disable flag.",
+            "readonly": false,
+            "params": {
+                "$ref": "#/definitions/tracing"
+            },
+            "errors": [
+                {
+                    "description": "General failure.",
+                    "$ref": "#/common/errors/general"
+                },
+                {
+                    "description": "Bad JSON param data format.",
+                    "$ref": "#/common/errors/badrequest"
+                }
+            ]
+        }
+    },
+    "events": {
+        "speedchanged": {
+            "summary": "Indicates that the trick play speed has changed",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "speed": {
+                        "description": "New trick play speed. The direction is defined by the sign of speed, where a negative value means rewind and positive value means fast forward.",
+                        "type": "number",
+                        "size": 16,
+                        "signed": true,
+                        "example": -4
+                    },
+                    "muxId": {
+                        "description": "Stream muxId",
+                        "type": "number",
+                        "size": 8,
+                        "example": 0
+                    }
+                },
+                "required": [
+                    "speed",
+                    "muxId"
+                ]
+            }
+        }
+    }
+}

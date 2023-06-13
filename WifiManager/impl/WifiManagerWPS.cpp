@@ -17,9 +17,9 @@
 * limitations under the License.
 **/
 
-#include "utils.h"
-#include "libIBus.h"
 #include "WifiManagerWPS.h"
+#include "UtilsJsonRpc.h"
+#include "libIBus.h"
 #include "wifiSrvMgrIarmIf.h"
 
 namespace WPEFramework
@@ -28,10 +28,18 @@ namespace WPEFramework
     {
         WifiManagerWPS::WifiManagerWPS()
         {
+            m_useCachePairedSSID = false;
+            m_cachePairedSSID = "";
+            m_cachePairedBSSID = "";
         }
 
         WifiManagerWPS::~WifiManagerWPS()
         {
+        }
+
+        void WifiManagerWPS::updateWifiWPSCache(bool value)
+        {
+            m_useCachePairedSSID = value;
         }
 
         uint32_t WifiManagerWPS::initiateWPSPairing(const JsonObject &parameters, JsonObject &response)
@@ -161,52 +169,87 @@ namespace WPEFramework
             returnResponse(true);
         }
 
-        uint32_t WifiManagerWPS::getPairedSSID(const JsonObject &parameters, JsonObject &response) const
+        uint32_t WifiManagerWPS::getPairedSSID(const JsonObject &parameters, JsonObject &response)
         {
             LOGINFOMETHOD();
             IARM_Bus_WiFiSrvMgr_Param_t param;
             memset(&param, 0, sizeof(param));
+            bool result = false;
 
-            IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getPairedSSID, (void *)&param, sizeof(param));
-            if (retVal == IARM_RESULT_SUCCESS)
+            if (m_useCachePairedSSID)
             {
-                response["ssid"] = string(param.data.getPairedSSID.ssid, SSID_SIZE);
+                response["ssid"] = m_cachePairedSSID;
+                result = true;
             }
-            LOGINFO("[%s] : retVal:%d", IARM_BUS_WIFI_MGR_API_getPairedSSID, retVal);
+            else if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getPairedSSIDInfo, (void *)&param, sizeof(param)))
+            {
+                response["ssid"] = m_cachePairedSSID = string(param.data.getPairedSSIDInfo.ssid, SSID_SIZE);
+                m_cachePairedBSSID = string(param.data.getPairedSSIDInfo.bssid, BSSID_BUFF);
+                m_useCachePairedSSID = true;
+                result = true;
+            }
+            else
+            {
+                LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
+                result = false;
+            }
 
-            returnResponse(retVal == IARM_RESULT_SUCCESS);
+            returnResponse(result);
         }
 
-        uint32_t WifiManagerWPS::getPairedSSIDInfo(const JsonObject &parameters, JsonObject &response) const
+        uint32_t WifiManagerWPS::getPairedSSIDInfo(const JsonObject &parameters, JsonObject &response)
         {
             LOGINFOMETHOD();
             IARM_Bus_WiFiSrvMgr_Param_t param;
             memset(&param, 0, sizeof(param));
+            bool result = false;
 
-            IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getPairedSSIDInfo, (void *)&param, sizeof(param));
-            if (retVal == IARM_RESULT_SUCCESS)
+            if (m_useCachePairedSSID)
             {
-                response["ssid"] = string(param.data.getPairedSSIDInfo.ssid, SSID_SIZE);
-                response["bssid"] = string(param.data.getPairedSSIDInfo.bssid, BSSID_BUFF);
+                response["ssid"] = m_cachePairedSSID;
+                response["bssid"] = m_cachePairedBSSID;
+                result = true;
             }
-            LOGINFO("[%s] : retVal:%d", IARM_BUS_WIFI_MGR_API_getPairedSSIDInfo, retVal);
+            else if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getPairedSSIDInfo, (void *)&param, sizeof(param)))
+            {
+                response["ssid"] = m_cachePairedSSID = string(param.data.getPairedSSIDInfo.ssid, SSID_SIZE);
+                response["bssid"] = m_cachePairedBSSID = string(param.data.getPairedSSIDInfo.bssid, BSSID_BUFF);
+                m_useCachePairedSSID = true;
+                result = true;
+            }
+            else
+            {
+                LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
+                result = false;
+            }
 
-            returnResponse(retVal == IARM_RESULT_SUCCESS);
+            returnResponse(result);
         }
 
-        uint32_t WifiManagerWPS::isPaired(const JsonObject &parameters, JsonObject &response) const
+        uint32_t WifiManagerWPS::isPaired(const JsonObject &parameters, JsonObject &response)
         {
             LOGINFOMETHOD();
-            bool paired = false;
-
             IARM_Bus_WiFiSrvMgr_Param_t param;
             memset(&param, 0, sizeof(param));
+            int ssid_len = 0;
 
-            IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_isPaired, (void *)&param, sizeof(param));
-            paired = (retVal == IARM_RESULT_SUCCESS) && param.data.isPaired;
-            LOGINFO("[%s] : retVal:%d paired:%d", IARM_BUS_WIFI_MGR_API_isPaired, retVal, param.data.isPaired);
+            if (m_useCachePairedSSID)
+            {
+                ssid_len = strlen(m_cachePairedSSID.c_str());
+            }
+            else if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getPairedSSIDInfo, (void *)&param, sizeof(param)))
+            {
+                m_cachePairedSSID = string(param.data.getPairedSSIDInfo.ssid, SSID_SIZE);
+                m_cachePairedBSSID = string(param.data.getPairedSSIDInfo.bssid, BSSID_BUFF);
+                ssid_len = strlen(m_cachePairedSSID.c_str());
+                m_useCachePairedSSID = true;
+            }
+            else
+            {
+                LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
+            }
 
-            response["result"] = (paired ? 0 : 1);
+            response["result"] = (ssid_len) ? 0 : 1;
             returnResponse(true);
         }
     } // namespace Plugin

@@ -20,8 +20,6 @@
 #pragma once
 
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 
 namespace WPEFramework {
 
@@ -40,7 +38,7 @@ namespace WPEFramework {
         // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
         // this class exposes a public method called, Notify(), using this methods, all subscribed clients
         // will receive a JSONRPC message as a notification, in case this method is called.
-        class Telemetry : public AbstractPlugin {
+        class Telemetry : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -50,14 +48,33 @@ namespace WPEFramework {
             //Begin methods
             uint32_t setReportProfileStatus(const JsonObject& parameters, JsonObject& response);
             uint32_t logApplicationEvent(const JsonObject& parameters, JsonObject& response);
+            uint32_t uploadReport(const JsonObject& parameters, JsonObject& response);
+            uint32_t abortReport(const JsonObject& parameters, JsonObject& response);
             //End methods
+
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+            void InitializeIARM();
+            void DeinitializeIARM();
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
         public:
             Telemetry();
             virtual ~Telemetry();
             virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
 
+            uint32_t UploadReport();
+            uint32_t AbortReport();
+
+            BEGIN_INTERFACE_MAP(Telemetry)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
+
+#ifdef HAS_RBUS
+            void onReportUploadStatus(const char* status);
+#endif
         public:
             static Telemetry* _instance;
         private:

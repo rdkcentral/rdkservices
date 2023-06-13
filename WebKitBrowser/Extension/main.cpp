@@ -45,6 +45,14 @@
 #include "AAMPJSBindings.h"
 #endif
 
+#if defined(UPDATE_TZ_FROM_FILE)
+#include "TimeZoneSupport.h"
+#endif
+
+#if defined(ENABLE_CUSTOM_PROCESS_INFO)
+#include "ProcessInfo.h"
+#endif
+
 using namespace WPEFramework;
 
 static Core::NodeId GetConnectionNode()
@@ -94,6 +102,9 @@ public:
 
         g_variant_get((GVariant*) userData, "(&sm&sb)", &uid, &whitelist, &_logToSystemConsoleEnabled);
 
+        if (_logToSystemConsoleEnabled && Core::SystemInfo::GetEnvironment(string(_T("CLIENT_IDENTIFIER")), _consoleLogPrefix))
+          _consoleLogPrefix = _consoleLogPrefix.substr(0, _consoleLogPrefix.find(','));
+
         g_signal_connect(
           webkit_script_world_get_default(),
           "window-object-cleared",
@@ -112,10 +123,20 @@ public:
               list->AddWhiteListToWebKit(extension);
             }
         }
+
+#if defined(UPDATE_TZ_FROM_FILE)
+        _tzSupport.Initialize();
+#endif
+#ifdef ENABLE_CUSTOM_PROCESS_INFO
+        ProcessInfo::SetProcessName();
+#endif
     }
 
     void Deinitialize()
     {
+#if defined(UPDATE_TZ_FROM_FILE)
+        _tzSupport.Deinitialize();
+#endif
         if (_comClient.IsValid() == true) {
             _comClient.Release();
         }
@@ -148,11 +169,11 @@ private:
     }
     static void pageCreatedCallback(VARIABLE_IS_NOT_USED WebKitWebExtension* webExtension,
                                     WebKitWebPage* page,
-                                    VARIABLE_IS_NOT_USED PluginHost* host)
+                                    PluginHost* host)
     {
         if (host->_logToSystemConsoleEnabled) {
             g_signal_connect(page, "console-message-sent",
-                G_CALLBACK(consoleMessageSentCallback), nullptr);
+                G_CALLBACK(consoleMessageSentCallback), host);
         }
         g_signal_connect(page, "user-message-received",
                 G_CALLBACK(userMessageReceivedCallback), nullptr);
@@ -164,12 +185,12 @@ private:
                 G_CALLBACK(didStartProvisionalLoadForFrame), nullptr);
 #endif
     }
-    static void consoleMessageSentCallback(VARIABLE_IS_NOT_USED WebKitWebPage* page, WebKitConsoleMessage* message)
+    static void consoleMessageSentCallback(VARIABLE_IS_NOT_USED WebKitWebPage* page, WebKitConsoleMessage* message, PluginHost* host)
     {
         string messageString = Core::ToString(webkit_console_message_get_text(message));
         uint64_t line = static_cast<uint64_t>(webkit_console_message_get_line(message));
 
-        TRACE_GLOBAL(BrowserConsoleLog, (messageString, line, 0));
+        TRACE_GLOBAL(BrowserConsoleLog, (host->_consoleLogPrefix, messageString, line, 0));
     }
     static gboolean userMessageReceivedCallback(WebKitWebPage* page, WebKitUserMessage* message)
     {
@@ -204,6 +225,11 @@ private:
     Core::ProxyType<RPC::InvokeServerType<2, 0, 4> > _engine;
     Core::ProxyType<RPC::CommunicatorClient> _comClient;
 
+#if defined(UPDATE_TZ_FROM_FILE)
+    TZ::TimeZoneSupport _tzSupport;
+#endif
+
+    string _consoleLogPrefix;
     gboolean _logToSystemConsoleEnabled;
     WebKitWebExtension* _extension;
 } _wpeFrameworkClient;
@@ -224,3 +250,7 @@ G_MODULE_EXPORT void webkit_web_extension_initialize_with_user_data(WebKitWebExt
 }
 
 }
+
+// explicit instantiation so that -O1/2/3 flags do not introduce undefined symbols
+template void WPEFramework::Core::IPCMessageType<2u, WPEFramework::RPC::Data::Input, WPEFramework::RPC::Data::Output>::RawSerializedType<WPEFramework::RPC::Data::Input, 4u>::AddRef() const;
+template void WPEFramework::Core::IPCMessageType<2u, WPEFramework::RPC::Data::Input, WPEFramework::RPC::Data::Output>::RawSerializedType<WPEFramework::RPC::Data::Output, 5u>::AddRef() const;

@@ -20,7 +20,7 @@
 #include "AampMediaPlayer.h"
 #include "AampMediaStream.h"
 
-#include "utils.h"
+#include "UtilsLogging.h"
 
 namespace WPEFramework {
 

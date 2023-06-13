@@ -236,7 +236,7 @@ uint32_t SqliteStore::SetValue(const string &ns, const string &key, const string
         if (rc == SQLITE_ROW) {
             int64_t size = sqlite3_column_int64(stmt, 0);
             if (size > _maxSize) {
-                LOGWARN("max size exceeded: %ld", size);
+                LOGWARN("max size exceeded: %" PRId64 "\n", size);
 
                 result = Core::ERROR_WRITE_ERROR;
             } else {
@@ -308,7 +308,7 @@ uint32_t SqliteStore::SetValue(const string &ns, const string &key, const string
         if (rc == SQLITE_ROW) {
             int64_t size = sqlite3_column_int64(stmt, 0);
             if (size > _maxSize) {
-                LOGWARN("max size exceeded: %ld", size);
+                LOGWARN("max size exceeded: %" PRId64 "\n", size);
 
                 StorageExceeded();
             }

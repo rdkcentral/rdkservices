@@ -1,16 +1,17 @@
 set(PLUGIN_NAME UsbAccess)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_USBACCESS_STARTUPORDER "" CACHE STRING "To configure startup order of UsbAccess plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 find_package(PkgConfig)
-find_package(Udev REQUIRED)
-find_package(IARMBus REQUIRED)
+find_package(Udev)
+find_package(IARMBus)
 
 add_library(${MODULE_NAME} SHARED
         UsbAccess.cpp
         Module.cpp
-        ../helpers/utils.cpp
 )
 
 set_target_properties(${MODULE_NAME} PROPERTIES

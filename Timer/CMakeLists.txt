@@ -18,13 +18,13 @@
 set(PLUGIN_NAME Timer)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_TIMER_STARTUPORDER "" CACHE STRING "To configure startup order of Timer plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         Timer.cpp
-        Module.cpp
-        ../helpers/tptimer.cpp
-        ../helpers/utils.cpp)
+        Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
@@ -39,6 +39,8 @@ list(APPEND CMAKE_MODULE_PATH
 find_package(IARMBus)
 
 target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS} ../helpers)
+
+set_source_files_properties(Timer.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})
 

@@ -2,59 +2,21 @@
 <a name="TraceControl_Plugin"></a>
 # TraceControl Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/TraceControl/CHANGELOG.md)**
 
 A TraceControl plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the TraceControl plugin. It includes detailed specification about its configuration and methods provided.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -98,11 +60,11 @@ TraceControl interface methods:
 <a name="set"></a>
 ## *set*
 
-Sets traces. Enables or disables all or select category traces for the specified module. 
-  
-### Events 
+Sets traces. Enables or disables all or select category traces for the specified module.
 
- No events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -127,7 +89,7 @@ Sets traces. Enables or disables all or select category traces for the specified
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TraceControl.1.set",
+    "method": "TraceControl.set",
     "params": {
         "module": "Plugin_Monitor",
         "category": "Information",
@@ -149,11 +111,11 @@ Sets traces. Enables or disables all or select category traces for the specified
 <a name="status"></a>
 ## *status*
 
-Retrieves the actual trace status information for the specified module and category. If the category or module is not specified then, all the information is returned. If both module and category are not specified then, the result is empty. It retrieves the details about the console status and remote address (port and binding), if these are configured. 
- 
+Retrieves the actual trace status information for the specified module and category. If the category or module is not specified then, all the information is returned. If both module and category are not specified then, the result is empty. It retrieves the details about the console status and remote address (port and binding), if these are configured.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -186,7 +148,7 @@ Retrieves the actual trace status information for the specified module and categ
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "TraceControl.1.status",
+    "method": "TraceControl.status",
     "params": {
         "module": "Plugin_Monitor",
         "category": "Information"

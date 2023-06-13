@@ -19,11 +19,29 @@
 
 #include "WebKitBrowser.h"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_PATCH 15
+
 namespace WPEFramework {
+
+namespace {
+
+    static Plugin::Metadata<Plugin::WebKitBrowser> metadata(
+        // Version (Major, Minor, Patch)
+        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+        // Preconditions
+        {},
+        // Terminations
+        {},
+        // Controls
+        {}
+    );
+}
 
 namespace Plugin {
 
-    SERVICE_REGISTRATION(WebKitBrowser, 1, 0);
+    SERVICE_REGISTRATION(WebKitBrowser, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     /* virtual */ const string WebKitBrowser::Initialize(PluginHost::IShell* service)
     {
@@ -96,6 +114,17 @@ namespace Plugin {
         } else {
             RegisterAll();
             Exchange::JWebBrowser::Register(*this, _browser);
+
+            _cookieJar = _browser->QueryInterface<Exchange::IBrowserCookieJar>();
+            if (_cookieJar) {
+                _cookieJar->Register(&_notification);
+                Exchange::JBrowserCookieJar::Register(*this, _cookieJar);
+            }
+
+            _browserScripting = _browser->QueryInterface<Exchange::IBrowserScripting>();
+            if (_browserScripting) {
+                Exchange::JBrowserScripting::Register(*this, _browserScripting);
+            }
         }
 
         return message;
@@ -117,6 +146,15 @@ namespace Plugin {
         _memory->Release();
         _application->Release();
         Exchange::JWebBrowser::Unregister(*this);
+        if (_browserScripting) {
+            Exchange::JBrowserScripting::Unregister(*this);
+            _browserScripting->Release();
+        }
+        if (_cookieJar) {
+            Exchange::JBrowserCookieJar::Unregister(*this);
+            _cookieJar->Unregister(&_notification);
+            _cookieJar->Release();
+        }
         UnregisterAll();
 
         PluginHost::IStateControl* stateControl(_browser->QueryInterface<PluginHost::IStateControl>());
@@ -292,8 +330,12 @@ namespace Plugin {
 
     void WebKitBrowser::BridgeQuery(const string& message)
     {
-        TRACE(Trace::Information, (_T("BridgeQuery: %s"), message.c_str()));
         event_bridgequery(message);
+    }
+
+    void WebKitBrowser::CookieJarChanged()
+    {
+        Exchange::JBrowserCookieJar::Event::CookieJarChanged(*this);
     }
 
     void WebKitBrowser::StateChange(const PluginHost::IStateControl::state state)
@@ -324,6 +366,9 @@ namespace WebKitBrowser {
     };
 
     static constexpr uint16_t RequiredChildren = (sizeof(mandatoryProcesses) / sizeof(mandatoryProcesses[0]));
+    using SteadyClock = std::chrono::steady_clock;
+    using TimePoint = std::chrono::time_point<SteadyClock>;
+
     class MemoryObserverImpl : public Exchange::IMemory {
     private:
         MemoryObserverImpl();
@@ -335,7 +380,7 @@ namespace WebKitBrowser {
         MemoryObserverImpl(const RPC::IRemoteConnection* connection)
             : _main(connection == nullptr ? Core::ProcessInfo().Id() : connection->RemoteId())
             , _children(_main.Id())
-            , _startTime(connection == nullptr ? 0 : Core::Time::Now().Add(TYPICAL_STARTUP_TIME * 1000).Ticks())
+            , _startTime(connection == nullptr ? (TimePoint::min()) : (SteadyClock::now() + std::chrono::seconds(TYPICAL_STARTUP_TIME)))
         { // IsOperation true till calculated time (microseconds)
         }
         ~MemoryObserverImpl()
@@ -347,7 +392,7 @@ namespace WebKitBrowser {
         {
             uint32_t result(0);
 
-            if (_startTime != 0) {
+            if (_startTime != TimePoint::min()) {
                 if (_children.Count() < RequiredChildren) {
                     _children = Core::ProcessInfo::Iterator(_main.Id());
                 }
@@ -367,7 +412,7 @@ namespace WebKitBrowser {
         {
             uint32_t result(0);
 
-            if (_startTime != 0) {
+            if (_startTime != TimePoint::min()) {
                 if (_children.Count() < RequiredChildren) {
                     _children = Core::ProcessInfo::Iterator(_main.Id());
                 }
@@ -387,7 +432,7 @@ namespace WebKitBrowser {
         {
             uint32_t result(0);
 
-            if (_startTime != 0) {
+            if (_startTime != TimePoint::min()) {
                 if (_children.Count() < RequiredChildren) {
                     _children = Core::ProcessInfo::Iterator(_main.Id());
                 }
@@ -407,13 +452,13 @@ namespace WebKitBrowser {
         {
             // Refresh the children list !!!
             _children = Core::ProcessInfo::Iterator(_main.Id());
-            return ((_startTime == 0) || (_main.IsActive() == true) ? 1 : 0) + _children.Count();
+            return ((_startTime == TimePoint::min()) || (_main.IsActive() == true) ? 1 : 0) + _children.Count();
         }
         const bool IsOperational() const override
         {
             uint32_t requiredProcesses = 0;
 
-            if (_startTime != 0) {
+            if (_startTime != TimePoint::min()) {
 
                 //!< We can monitor a max of 32 processes, every mandatory process represents a bit in the requiredProcesses.
                 // In the end we check if all bits are 0, what means all mandatory processes are still running.
@@ -457,13 +502,13 @@ namespace WebKitBrowser {
     private:
         inline bool IsStarting() const
         {
-            return (_startTime == 0) || (Core::Time::Now().Ticks() < _startTime);
+            return (_startTime == TimePoint::min()) || (SteadyClock::now() < _startTime);
         }
 
     private:
         Core::ProcessInfo _main;
         mutable Core::ProcessInfo::Iterator _children;
-        uint64_t _startTime; // !< Reference for monitor
+        TimePoint _startTime; // !< Reference for monitor
     };
 
     Exchange::IMemory* MemoryObserver(const RPC::IRemoteConnection* connection)

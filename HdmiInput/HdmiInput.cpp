@@ -18,7 +18,8 @@
 **/
 
 #include "HdmiInput.h"
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 #include "hdmiIn.hpp"
 #include "exception.hpp"
@@ -42,45 +43,92 @@
 #define HDMIINPUT_METHOD_START_HDMI_INPUT "startHdmiInput"
 #define HDMIINPUT_METHOD_STOP_HDMI_INPUT "stopHdmiInput"
 #define HDMIINPUT_METHOD_SCALE_HDMI_INPUT "setVideoRectangle"
+#define HDMIINPUT_METHOD_SUPPORTED_GAME_FEATURES "getSupportedGameFeatures"
+#define HDMIINPUT_METHOD_GAME_FEATURE_STATUS "getHdmiGameFeatureStatus"
 
 #define HDMIINPUT_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define HDMIINPUT_EVENT_ON_SIGNAL_CHANGED "onSignalChanged"
 #define HDMIINPUT_EVENT_ON_STATUS_CHANGED "onInputStatusChanged"
 #define HDMIINPUT_EVENT_ON_VIDEO_MODE_UPDATED "videoStreamInfoUpdate"
+#define HDMIINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED "hdmiGameFeatureStatusUpdate"
+#define HDMIINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED "hdmiContentTypeUpdate"
+
+// TODO: remove this
+#define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
+
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 4
 
 using namespace std;
 
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::HdmiInput> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(HdmiInput, 1, 0);
+        SERVICE_REGISTRATION(HdmiInput, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         HdmiInput* HdmiInput::_instance = nullptr;
 
         HdmiInput::HdmiInput()
-        : AbstractPlugin(2)
+        : PluginHost::JSONRPC()
         {
             HdmiInput::_instance = this;
 
-            InitializeIARM();
+            //InitializeIARM();
+
+            CreateHandler({2});
 
             registerMethod(HDMIINPUT_METHOD_GET_HDMI_INPUT_DEVICES, &HdmiInput::getHDMIInputDevicesWrapper, this);
             registerMethod(HDMIINPUT_METHOD_WRITE_EDID, &HdmiInput::writeEDIDWrapper, this);
             registerMethod(HDMIINPUT_METHOD_READ_EDID, &HdmiInput::readEDIDWrapper, this);
-	    //version2 api start
-            registerMethod(HDMIINPUT_METHOD_READ_RAWHDMISPD, &HdmiInput::getRawHDMISPDWrapper, this, {2});
-            registerMethod(HDMIINPUT_METHOD_READ_HDMISPD, &HdmiInput::getHDMISPDWrapper, this, {2});
-	    //version2 api end
-            registerMethod(HDMIINPUT_METHOD_SET_EDID_VERSION, &HdmiInput::setEdidVersionWrapper, this, {2});
-            registerMethod(HDMIINPUT_METHOD_GET_EDID_VERSION, &HdmiInput::getEdidVersionWrapper, this, {2});
+            registerMethod(HDMIINPUT_METHOD_READ_RAWHDMISPD, &HdmiInput::getRawHDMISPDWrapper, this);
+            registerMethod(HDMIINPUT_METHOD_READ_HDMISPD, &HdmiInput::getHDMISPDWrapper, this);
+            registerMethod(HDMIINPUT_METHOD_SET_EDID_VERSION, &HdmiInput::setEdidVersionWrapper, this);
+            registerMethod(HDMIINPUT_METHOD_GET_EDID_VERSION, &HdmiInput::getEdidVersionWrapper, this);
             registerMethod(HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
+
+            registerMethod(HDMIINPUT_METHOD_SUPPORTED_GAME_FEATURES, &HdmiInput::getSupportedGameFeatures, this);
+            registerMethod(HDMIINPUT_METHOD_GAME_FEATURE_STATUS, &HdmiInput::getHdmiGameFeatureStatusWrapper, this);
         }
 
         HdmiInput::~HdmiInput()
         {
+        }
+	    
+	const string HdmiInput::Initialize(PluginHost::IShell * /* service */)
+	{
+  	    HdmiInput::_instance = this;
+	    InitializeIARM();
+
+	    return (string());
+	}
+
+        void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)
+        {
+            JsonArray arr;
+            for(auto& i : items) arr.Add(JsonValue(i));
+
+            response[key] = arr;
+
+            string json;
+            response.ToString(json);
         }
 
         void HdmiInput::Deinitialize(PluginHost::IShell* /* service */)
@@ -99,7 +147,9 @@ namespace WPEFramework
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS, dsHdmiSignalStatusEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
-            }
+		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS, dsHdmiGameFeatureStatusEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE, dsHdmiAviContentTypeEventHandler) );
+	    }
         }
 
         void HdmiInput::DeinitializeIARM()
@@ -107,11 +157,13 @@ namespace WPEFramework
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG) );
-		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS) );
-		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS) );
-		IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE) );
-            }
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
+		IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS, dsHdmiSignalStatusEventHandler) );
+		IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
+		IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
+		IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS, dsHdmiGameFeatureStatusEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE,dsHdmiAviContentTypeEventHandler) );
+	    }
         }
 
         uint32_t HdmiInput::startHdmiInput(const JsonObject& parameters, JsonObject& response)
@@ -123,11 +175,10 @@ namespace WPEFramework
             int portId = 0;
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
             }
-
             bool success = true;
             try
             {
@@ -203,9 +254,8 @@ namespace WPEFramework
                            h = std::stoi(parameters["h"].String());
                        }
 		}
-                catch (...) {
-		    LOGWARN("Invalid Arguments");
-		    response["message"] = "Invalid Arguments";
+                catch (const std::exception& err) {
+		    LOGWARN("Invalid paramater X: %s,Y: %s, W: %s, H:%s ", parameters["x"].String().c_str(),parameters["y"].String().c_str(),parameters["w"].String().c_str(),parameters["h"].String().c_str());
 		    returnResponse(false);
                 }
 
@@ -277,9 +327,9 @@ namespace WPEFramework
             int portId = 0;
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
             }
 
             string edid = readEDID (portId);
@@ -313,7 +363,7 @@ namespace WPEFramework
                     }
                 }
             }
-            catch (const std::exception e)  {
+            catch (const std::exception& e)  {
                 LOGWARN("HdmiInputService::getHDMIInputDevices Failed");
             }
 
@@ -338,7 +388,7 @@ namespace WPEFramework
                 //convert to base64
                 uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
 
-                LOGWARN("HdmiInput::readEDID size:%d edidVec.size:%d", size, edidVec.size());
+                LOGWARN("HdmiInput::readEDID size:%u edidVec.size:%d", size, (int)edidVec.size());
 
                 if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max()) {
                     LOGERR("Size too large to use ToString base64 wpe api");
@@ -616,6 +666,128 @@ namespace WPEFramework
             }
         }
 
+        void HdmiInput::dsHdmiGameFeatureStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if(!HdmiInput::_instance)
+                return;
+
+            if (IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS == eventId)
+            {
+                IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                int hdmi_in_port = eventData->data.hdmi_in_allm_mode.port;
+                bool allm_mode = eventData->data.hdmi_in_allm_mode.allm_mode;
+                LOGWARN("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS  event  port: %d, ALLM Mode: %d", hdmi_in_port,allm_mode);
+
+                HdmiInput::_instance->hdmiInputALLMChange(hdmi_in_port, allm_mode);
+            }
+        }
+
+        void HdmiInput::hdmiInputALLMChange( int port , bool allm_mode)
+        {
+            JsonObject params;
+            params["id"] = port;
+            params["gameFeature"] = "ALLM";
+            params["mode"] = allm_mode;
+
+            sendNotify(HDMIINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED, params);
+        }
+
+	void HdmiInput::dsHdmiAviContentTypeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if(!HdmiInput::_instance)
+                return;
+
+            if (IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE == eventId)
+            {
+                IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                int hdmi_in_port = eventData->data.hdmi_in_content_type.port;
+                int avi_content_type = eventData->data.hdmi_in_content_type.aviContentType;
+                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE  event  port: %d, Content Type : %d", hdmi_in_port,avi_content_type);
+		HdmiInput::_instance->hdmiInputAviContentTypeChange(hdmi_in_port, avi_content_type);
+            }
+        }
+
+	void HdmiInput::hdmiInputAviContentTypeChange( int port , int content_type)
+        {
+            JsonObject params;
+            params["id"] = port;
+            params["aviContentType"] = content_type;
+            sendNotify(HDMIINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED, params);
+        }
+
+        uint32_t HdmiInput::getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            vector<string> supportedFeatures;
+            try
+            {
+                device::HdmiInput::getInstance().getSupportedGameFeatures (supportedFeatures);
+                for (size_t i = 0; i < supportedFeatures.size(); i++)
+                {
+                    LOGINFO("Supported Game Feature [%d]:  %s\n",(int)i,supportedFeatures.at(i).c_str());
+                }
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION0();
+            }
+
+            if (supportedFeatures.empty()) {
+                returnResponse(false);
+            }
+            else {
+                setResponseArray(response, "supportedGameFeatures", supportedFeatures);
+                returnResponse(true);
+            }
+        }
+
+        uint32_t HdmiInput::getHdmiGameFeatureStatusWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            string sPortId = parameters["portId"].String();
+            string sGameFeature = parameters["gameFeature"].String();
+            int portId = 0;
+
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "portId");
+            returnIfParamNotFound(parameters, "gameFeature");
+            try {
+                portId = stoi(sPortId);
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
+            }
+
+	    if (strcmp (sGameFeature.c_str(), "ALLM") == 0)
+            {
+                bool allm = getHdmiALLMStatus(portId);
+                LOGWARN("HdmiInput::getHdmiGameFeatureStatusWrapper ALLM MODE:%d", allm);
+                response["mode"] = allm;
+            }
+	    else
+	    {
+		LOGWARN("HdmiInput::getHdmiGameFeatureStatusWrapper Mode is not supported. Supported mode: ALLM");
+		response["message"] = "Mode is not supported. Supported mode: ALLM";
+		returnResponse(false);
+	    }
+            returnResponse(true);
+        }
+
+        bool HdmiInput::getHdmiALLMStatus(int iPort)
+        {
+            bool allm = false;
+
+            try
+            {
+                device::HdmiInput::getInstance().getHdmiALLMStatus (iPort, &allm);
+                LOGWARN("HdmiInput::getHdmiALLMStatus ALLM MODE: %d", allm);
+            }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(std::to_string(iPort));
+            }
+            return allm;
+        }
+
         uint32_t HdmiInput::getRawHDMISPDWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -625,9 +797,9 @@ namespace WPEFramework
             int portId = 0;
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
             }
 
             string spdInfo = getRawHDMISPD (portId);
@@ -649,9 +821,9 @@ namespace WPEFramework
             int portId = 0;
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
             }
 
             string spdInfo = getHDMISPD (portId);
@@ -679,7 +851,7 @@ namespace WPEFramework
                 //convert to base64
                 uint16_t size = min(spdVect.size(), (size_t)numeric_limits<uint16_t>::max());
 
-                LOGWARN("HdmiInput::getHDMISPD size:%d spdVec.size:%d", size, spdVect.size());
+                LOGWARN("HdmiInput::getHDMISPD size:%u spdVec.size:%d", size, (int)spdVect.size());
 
                 if(spdVect.size() > (size_t)numeric_limits<uint16_t>::max()) {
                     LOGERR("Size too large to use ToString base64 wpe api");
@@ -687,7 +859,7 @@ namespace WPEFramework
                 }
 
                 LOGINFO("------------getHDMISPD: ");
-                for (int itr =0; itr < spdVect.size(); itr++) {
+                for (unsigned int itr =0; itr < spdVect.size(); itr++) {
                   LOGINFO("%02X ", spdVect[itr]);
                 }
                 Core::ToString((uint8_t*)&spdVect[0], size, false, spdbase64);
@@ -715,7 +887,7 @@ namespace WPEFramework
                 //convert to base64
                 uint16_t size = min(spdVect.size(), (size_t)numeric_limits<uint16_t>::max());
 
-                LOGWARN("HdmiInput::getHDMISPD size:%d spdVec.size:%d", size, spdVect.size());
+                LOGWARN("HdmiInput::getHDMISPD size:%u spdVec.size:%d", size, (int)spdVect.size());
 
                 if(spdVect.size() > (size_t)numeric_limits<uint16_t>::max()) {
                     LOGERR("Size too large to use ToString base64 wpe api");
@@ -723,7 +895,7 @@ namespace WPEFramework
                 }
 
                 LOGINFO("------------getHDMISPD: ");
-                for (int itr =0; itr < spdVect.size(); itr++) {
+                for (unsigned int itr =0; itr < spdVect.size(); itr++) {
                   LOGINFO("%02X ", spdVect[itr]);
                 }
                if (spdVect.size() > 0) {
@@ -754,9 +926,9 @@ namespace WPEFramework
             string sVersion = parameters["edidVersion"].String();
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
+            }catch (const std::exception& err) {
+                    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
             }
 
             int edidVer = -1;
@@ -804,9 +976,9 @@ namespace WPEFramework
             returnIfParamNotFound(parameters, "portId");
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
-                returnResponse(false);
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
             }
 
             int edidVer = getEdidVersion (portId);
@@ -835,7 +1007,7 @@ namespace WPEFramework
             try
             {
                 device::HdmiInput::getInstance().getEdidVersion (iPort, &edidVersion);
-                LOGWARN("HdmiInput::getEdidVersion EDID Version:%d", &edidVersion);
+                LOGWARN("HdmiInput::getEdidVersion EDID Version:%d", edidVersion);
             }
             catch (const device::Exception& err)
             {

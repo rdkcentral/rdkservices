@@ -22,8 +22,8 @@
 #include <thread>
 
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
+#include "UtilsThreadRAII.h"
+#include "libIARM.h"
 
 namespace WPEFramework {
 
@@ -73,16 +73,14 @@ namespace WPEFramework {
         // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
         // this class exposes a public method called, Notify(), using this methods, all subscribed clients
         // will receive a JSONRPC message as a notification, in case this method is called.
-        class Warehouse : public AbstractPlugin {
+        class Warehouse : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
 
             // We do not allow this plugin to be copied !!
             Warehouse(const Warehouse&) = delete;
             Warehouse& operator=(const Warehouse&) = delete;
 
-            void resetDevice();
             void resetDevice(bool suppressReboot, const string& resetType = string());
-            std::vector<std::string>  getAllowedCNameTails();
             void setFrontPanelState(int state, JsonObject& response);
             void internalReset(JsonObject& response);
             void lightReset(JsonObject& response);
@@ -108,8 +106,14 @@ namespace WPEFramework {
             //IPlugin methods
             virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
 
             void onSetFrontPanelStateTimer();
+
+            BEGIN_INTERFACE_MAP(Warehouse)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         private:
             void InitializeIARM();
@@ -127,6 +131,17 @@ namespace WPEFramework {
 #endif
         public:
             static Warehouse* _instance;
+            bool m_isPwrMgr2RFCEnabled;
+
+            uint32_t processColdFactoryReset();
+            uint32_t processFactoryReset();
+            uint32_t processWareHouseReset();
+            uint32_t processWHReset();
+            uint32_t processWHResetNoReboot();
+            uint32_t processWHClear();
+            uint32_t processWHClearNoReboot();
+            uint32_t processUserFactoryReset();
+
         };
 	} // namespace Plugin
 } // namespace WPEFramework

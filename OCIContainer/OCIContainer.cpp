@@ -3,9 +3,28 @@
 #include <Dobby/DobbyProxy.h>
 #include <Dobby/IpcService/IpcFactory.h>
 
+#include "UtilsJsonRpc.h"
+
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 1
 
 namespace WPEFramework
 {
+
+namespace {
+
+    static Plugin::Metadata<Plugin::OCIContainer> metadata(
+        // Version (Major, Minor, Patch)
+        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+        // Preconditions
+        {},
+        // Terminations
+        {},
+        // Controls
+        {}
+    );
+}
 
 namespace Plugin
 {
@@ -13,7 +32,7 @@ namespace Plugin
 namespace WPEC = WPEFramework::Core;
 namespace WPEJ = WPEFramework::Core::JSON;
 
-SERVICE_REGISTRATION(OCIContainer, 1, 0);
+SERVICE_REGISTRATION(OCIContainer, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
 OCIContainer::OCIContainer()
     : PluginHost::JSONRPC()

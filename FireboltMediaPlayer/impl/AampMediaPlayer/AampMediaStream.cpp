@@ -19,7 +19,7 @@
 
 #include "AampMediaStream.h"
 
-#include "utils.h"
+#include "UtilsLogging.h"
 
 // Use macros to avoid unnecessary repetition of code. 
 #define ADD_SETTER_INT(name, fn)                                                                                       \

@@ -127,6 +127,7 @@ namespace WPEFramework
             bool is24HourClock();
 
             void onBlinkTimer();
+            static int initDone;
 
         private:
             CFrontPanel();

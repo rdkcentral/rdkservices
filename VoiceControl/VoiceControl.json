@@ -1,12 +1,20 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "VoiceControl API",
         "class": "VoiceControl",
         "description": "The `VoiceControl` plugin manages voice control sessions."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
+        "maskPii": {
+            "summary": "Indicated is PII should be masked (1 - mask PII, 0 display PII",
+            "type": "boolean",
+            "example": true
+        },
         "capabilities": {
             "summary": "A list of capabilities",
             "type": "array",
@@ -24,6 +32,11 @@
             "summary": "The HF (ff and mic) URL",
             "type": "string",
             "example": "ws://voiceserver.com/voice/hf"
+        },
+        "urlMicTap": {
+            "summary": "The microphone tap URL",
+            "type": "string",
+            "example": "ws://voiceserver.com/voice/mictap"
         },
         "prv": {
             "summary": "The Press & Release Voice feature. `true` for enable, `false` for disable",
@@ -55,26 +68,18 @@
             "type": "string",
             "example": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
         },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": true
+        "requestTypes": {
+            "summary": "If successful, an array of strings indicating the voice session request types which are valid",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "example": "ptt_transcription"
+            }
         }
     },
     "methods": {
         "configureVoice": {
-            "summary": "Configures the RDK's voice stack. NOTE: The URL Scheme determines which VREX API protocol is used. Supported URL schemes include:  \n* http/https - VREX Legacy HTTP API  \n* ws/wss - VREX XR18 WS API  \n* vrng/vrngs - VREX NextGen WS API",
+            "summary": "Configures the RDK's voice stack. NOTE: The URL Scheme determines which API protocol is used. Supported URL schemes include:\n\n| Scheme | Description |\n| :-------- | :-------- |\n| http/https | VREX Legacy HTTP API |\n| ws/wss | VREX XR18 WS API |\n| vrng/vrngs | VREX NextGen WS API |\n| aows/aowss | Audio only over websockets with no protocol layer |\n| sdt | Simple data transfer for direct handling of audio in the protocol layer |",
             "params": {
                 "type": "object",
                 "properties": {
@@ -88,6 +93,9 @@
                     },
                     "urlHf": {
                         "$ref": "#/definitions/urlHf"
+                    },
+                    "urlMicTap": {
+                        "$ref": "#/definitions/urlMicTap"
                     },
                     "enable": {
                         "summary": "Enables or disables all of the voice devices instead of individually enabling or disabling each device",
@@ -131,7 +139,7 @@
                 "required": [ ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "sendVoiceMessage": {
@@ -140,18 +148,22 @@
                 "type": "object",
                 "properties": {
                     "msgType": {
+                        "summary":"msg type expected from server",
                         "type": "string",
                         "example": "ars"
                     },
                     "trx": {
+                        "summary":"The unique id of the voice session",
                         "type": "string",
                         "example": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
                     },
                     "created": {
+                        "summary":"The timestamp for server information",
                         "type": "number",
                         "example": 91890278389232
                     },
                     "msgPayload":{
+                        "summary":"NA",
                         "type": "object",
                         "properties": {
 
@@ -161,11 +173,11 @@
                 "required": [ ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setVoiceInit": {
-            "summary": "Sets the application metadata in the INIT message that gets sent to the Voice Server. The specification of this blob is not in the scope of this document, but it MUST be a JSON blob",
+            "summary": "Sets the application metadata in the INIT message that gets sent to the Voice Server. The specification of this blob is not in the scope of this document, but it MUST be a JSON blob.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -173,6 +185,7 @@
                         "$ref": "#/definitions/capabilities"
                     },
                     "language": {
+                        "summary":"Preferred user interface language",
                         "type": "string",
                         "example": "eng-USA"
                     }
@@ -180,11 +193,18 @@
                 "required": [ ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "voiceSessionByText": {
             "summary": "Sends a voice session with a transcription string to simulate a real voice session for QA. Example use cases for this API call include rack and automation testing.",
+            "events":{
+                "onSessionBegin" : "Triggers if the voice session begins",
+                "onStreamBegin" : "Triggers if a device starts streaming voice data to the RDK",
+                "onServerMessage" : "Triggers if a message is received from the Voice Server",
+                "onStreamEnd" : "Triggers if streaming audio is stopped from the device",
+                "onSessionEnd" : "Triggers if interaction with the server is end"
+            },
             "params":{
                 "type": "object",
                 "properties": {
@@ -204,7 +224,100 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
+            },
+            "deprecated": true,
+            "referenceUrl": "https://rdkcentral.github.io/rdkservices/#/api/VoiceControlPlugin?id=voicesessionrequest"
+        },
+        "voiceSessionTypes": {
+            "summary": "Retrieves the types of voice sessions which are supported by the platform.\n\n| Request Type | Description |\n| :-------- | :-------- |\n| ptt_transcription | A text-only session using the urlPtt routing url and the text transcription |\n| ptt_audio_file | A session using the urlPtt routing url and the specified audio file |\n| mic_transcription | A text-only session using the urlHf routing url and the text transcription |\n| mic_audio_file | A session using the urlHf routing url and the specified audio file |\n| mic_stream_default | An audio based session using the urlHf routing url and the platform's default audio output format |\n| mic_stream_single | An audio based session using the urlHf routing url and the platform's single channel audio input format |\n| mic_stream_multi | An audio based session using the urlHf routing url and the platform's multi-channel audio input format |\n| mic_tap_stream_single | An audio based session using the urlMicTap routing url and the platform's single channel audio input format |\n| mic_tap_stream_multi | An audio based session using the urlMicTap routing url and the platform's multi-channel audio input format |\n| mic_factory_test | An audio based session using the urlHf routing url and the platform's unprocessed multi-channel audio input format |",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "types": {
+                        "$ref": "#/definitions/requestTypes"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required":[
+                    "success"
+                ]
+            }
+        },
+        "voiceSessionRequest": {
+            "summary": "Requests a voice session using the specified request type and optional parameters.",
+            "events":{
+                "onSessionBegin" : "Triggers if the voice session begins",
+                "onStreamBegin" : "Triggers if a device starts streaming voice data to the RDK",
+                "onServerMessage" : "Triggers if a message is received from the Voice Server",
+                "onStreamEnd" : "Triggers if streaming audio is stopped from the device",
+                "onSessionEnd" : "Triggers if interaction with the server is end"
+            },
+            "params":{
+                "type": "object",
+                "properties": {
+                    "transcription": {
+                        "summary": "The transcription text to be sent to the voice server for request types \"ptt_transcription\" and \"mic_transcription\".",
+                        "type": "string",
+                        "example": "Watch Comedy Central"
+                    },
+                    "audio_file": {
+                        "summary": "The full path to the audio file to be sent to the voice server for request types \"ptt_audio_file\" and \"mic_audio_file\".",
+                        "type": "string",
+                        "example": "/opt/audio_file.wav"
+                    },
+                    "type": {
+                        "summary": "The request type to initiate the voice session (see [voiceSessionTypes](#method.voiceSessionTypes) API for list of request types)",
+                        "type": "string",
+                        "example": "ptt_transcription"
+                    }
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "voiceSessionTerminate": {
+            "summary": "Terminates a voice session using the specified session identifier.",
+            "params":{
+                "type": "object",
+                "properties": {
+                    "sessionId": {
+                        "summary": "The session identifier of the session from the [onSessionBegin](#event.onSessionBegin) event",
+                        "type": "string",
+                        "example": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
+                    }
+                },
+                "required": [
+                    "sessionId"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "voiceSessionAudioStreamStart": {
+            "summary": "Starts a subsequent audio stream for the voice session indicated by the session identifier.",
+            "params":{
+                "type": "object",
+                "properties": {
+                    "sessionId": {
+                        "summary": "The session identifier of the session from the [onSessionBegin](#event.onSessionBegin) event",
+                        "type": "string",
+                        "example": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
+                    }
+                },
+                "required": [
+                    "sessionId"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
             }
         },
         "voiceStatus": {
@@ -212,6 +325,9 @@
             "result": {
                 "type": "object",
                 "properties": {
+                    "maskPii": {
+                        "$ref": "#/definitions/maskPii"
+                    },
                     "capabilities": {
                         "$ref": "#/definitions/capabilities"
                     },
@@ -264,7 +380,7 @@
                         ]
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -308,10 +424,38 @@
         },
         "onServerMessage": {
             "summary": "Triggered when a message is received from the Voice Server. The `params` value is a contract between the Voice Server and the Application. The definition of this object is outside of the scope of this document.",
-            "params": {
+            "params":{
                 "type": "object",
                 "properties": {
-                }
+                    "msgType": {
+                        "summary": "Message type from the server",
+                        "type": "string",
+                        "example": "ars"
+                    },
+                    "trx": {
+                        "summary":"The unique id of the voice session",
+                        "type": "string",
+                        "example": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
+                    },
+                    "created": {
+                        "summary":"The timestamp for server information",
+                        "type": "number",
+                        "example": 91890278389232
+                    },
+                    "msgPayload":{
+                        "summary":"Vrex server information",
+                        "type": "object",
+                        "properties": {
+
+                        }
+                    }
+                },
+                "required": [
+                    "msgType",
+                    "trx",
+                    "created",
+                    "msgPayload"
+                ]
             }
         },
         "onSessionBegin": {
@@ -354,6 +498,32 @@
             "params": {
                 "type": "object",
                 "properties": {
+                    "serverStats":{
+                        "summary":"Returns the voice server stats",
+                        "type":"object",
+                        "properties": {
+                            "dnsTime":{
+                                "summary":"The DNS time of the voice server",
+                                "type":"number",
+                                "example": 1.0
+                            },
+                            "serverIp" :{
+                                "summary":"The ip of the voice server",
+                                "type":"string",
+                                "example": ""
+                            },
+                            "connectTime":{
+                                "summary":"The connection time of the voice server",
+                                "type":"number",
+                                "example": 1.0
+                            }
+                        },
+                        "required":[
+                            "dnsTime",
+                            "serverIp",
+                            "connectTime"
+                        ]
+                    },
                     "remoteId": {
                         "$ref": "#/definitions/remoteId"
                     },

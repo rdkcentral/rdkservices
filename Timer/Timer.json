@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "Timer API", 
         "class": "Timer",
         "description": "The `Timer` plugin controls timer execution. It allows you to start, suspend, and resume timers and also receive timer notifications."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "timerId": {
@@ -61,27 +64,11 @@
             "summary": "The send notification expiration timeout in seconds. See `startTimer` for more details.",
             "type": "string",
             "example":  "1000.000"
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods": {
         "cancel":{
-            "summary": "Stops the specified timer.\n \n### Events\n \nNo Events.",
+            "summary": "Stops the specified timer.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -91,11 +78,11 @@
                 }
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getTimers":{
-            "summary": "Gets the status of all timers.\n \n### Events\n \nNo Events.",
+            "summary": "Gets the status of all timers.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -135,7 +122,7 @@
                         }
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -145,7 +132,7 @@
             }
         },
         "getTimerStatus": {
-            "summary": "Gets the status of the specified timer.\n \n### Events\n \nNo Events.",
+            "summary": "Gets the status of the specified timer.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -176,7 +163,7 @@
                         "$ref": "#/definitions/sremindBefore"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -190,7 +177,7 @@
             }           
         },
         "resume":{
-            "summary": "Resumes the specified timer.\n \n### Events\n \nNo Events.",
+            "summary": "Resumes the specified timer.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -200,15 +187,15 @@
                 }
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "startTimer": {
-            "summary": "Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.\n \n### Events\n \n| Event | Description | \n| :-------- | :-------- | \n| `timerExpired` | Triggered when a timer expires | \n| `timerExpiryReminder` | Triggered to remind that, the timer will expire in remindBefore value in seconds |",
-            "events": [
-                "timerExpired",
-                "timerExpiryReminder"
-            ],
+            "summary": "Starts a timer with the specified interval. After the timer expires, a `timerExpired `notification is sent. The timer can execute once (one-shot mode) or repeatedly.",
+            "events": {
+                "timerExpired" : "Triggered when a timer expires",
+                "timerExpiryReminder" : "Triggered to remind that, the timer will expire in remindBefore value in seconds"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -238,7 +225,7 @@
                         "$ref": "#/definitions/timerId"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -248,7 +235,7 @@
             }
         },
         "suspend":{
-            "summary": "Suspends the specified timer.\n \n### Events\n \nNo Events.",
+            "summary": "Suspends the specified timer.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -258,7 +245,7 @@
                 }
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }
     },

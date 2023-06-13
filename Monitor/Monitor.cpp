@@ -19,10 +19,29 @@
  
 #include "Monitor.h"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 1
+
 namespace WPEFramework {
+
+namespace {
+
+    static Plugin::Metadata<Plugin::Monitor> metadata(
+        // Version (Major, Minor, Patch)
+        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+        // Preconditions
+        {},
+        // Terminations
+        {},
+        // Controls
+        {}
+    );
+}
+
 namespace Plugin {
 
-    SERVICE_REGISTRATION(Monitor, 1, 0);
+    SERVICE_REGISTRATION(Monitor, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     static Core::ProxyPoolType<Web::JSONBodyType<Core::JSON::ArrayType<Monitor::Data>>> jsonBodyDataFactory(2);
     static Core::ProxyPoolType<Web::JSONBodyType<Monitor::Data>> jsonBodyParamFactory(2);
@@ -91,8 +110,11 @@ namespace Plugin {
                     Core::ProxyType<Web::JSONBodyType<Core::JSON::ArrayType<Monitor::Data>>> response(jsonBodyDataFactory.Element());
 
                     _monitor->Snapshot(*response);
-
+#ifndef USE_THUNDER_R4
                     result->Body(Core::proxy_cast<Web::IBody>(response));
+#else
+                    result->Body(Core::ProxyType<Web::IBody>(response));
+#endif /* USE_THUNDER_R4 */
                 }
             } else {
                 MetaData memoryInfo;
@@ -102,8 +124,11 @@ namespace Plugin {
                     Core::ProxyType<Web::JSONBodyType<Monitor::Data::MetaData>> response(jsonMemoryBodyDataFactory.Element());
 
                     *response = memoryInfo;
-
+#ifndef USE_THUNDER_R4
                     result->Body(Core::proxy_cast<Web::IBody>(response));
+#else
+                    result->Body(Core::ProxyType<Web::IBody>(response));
+#endif /* USE_THUNDER_R4 */
                 }
             }
 
@@ -116,8 +141,11 @@ namespace Plugin {
                 Core::ProxyType<Web::JSONBodyType<Monitor::Data::MetaData>> response(jsonMemoryBodyDataFactory.Element());
 
                 *response = memoryInfo;
-
+#ifndef USE_THUNDER_R4
                 result->Body(Core::proxy_cast<Web::IBody>(response));
+#else
+                result->Body(Core::ProxyType<Web::IBody>(response));
+#endif /* USE_THUNDER_R4 */
             }
 
             result->ContentType = Web::MIME_JSON;

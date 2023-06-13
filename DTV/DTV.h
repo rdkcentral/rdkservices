@@ -20,176 +20,167 @@
 #pragma once
 
 #include "Module.h"
+#include <interfaces/IDTV.h>
 #include <interfaces/json/JsonData_DTV.h>
-
-extern "C"
-{
-   // DVB include files
-   #include <techtype.h>
-
-   #include <stbdpc.h>
-
-   #include <ap_dbacc.h>
-};
-
+#include "UtilsJsonRpc.h"
 
 namespace WPEFramework
 {
    namespace Plugin
    {
       using namespace JsonData::DTV;
+      using namespace Exchange;
 
       class DTV: public PluginHost::IPlugin,
-                 public PluginHost::IWeb,
                  public PluginHost::JSONRPC
       {
          private:
-            // Disallow copying as we only want a single instance of the DVB stack
-            DTV(const DTV&) = delete;
-            DTV& operator=(const DTV&) = delete;
-
-            class Notification: public RPC::IRemoteConnection::INotification
+            class Notification: public RPC::IRemoteConnection::INotification,
+                                public Exchange::IDTV::INotification
             {
                private:
-                  Notification();
-                  Notification(const Notification&);
-                  Notification& operator=(const Notification&);
+                  Notification() = delete;
+                  Notification(const Notification&) = delete;
+                  Notification& operator=(const Notification&) = delete;
 
                public:
-                  explicit Notification(DTV *parent) : _parent(*parent)
+                  explicit Notification(DTV *parent) : m_parent(*parent)
                   {
                       ASSERT(parent != nullptr);
                   }
 
-                  ~Notification()
+                  virtual ~Notification() override
                   {
                   }
 
                   BEGIN_INTERFACE_MAP (Notification)
+                     INTERFACE_ENTRY (Exchange::IDTV::INotification)
                      INTERFACE_ENTRY (RPC::IRemoteConnection::INotification)
                   END_INTERFACE_MAP
 
-                  virtual void Activated(RPC::IRemoteConnection*)
+                  void Activated(RPC::IRemoteConnection*) override
                   {
                   }
-                  virtual void Deactivated(RPC::IRemoteConnection *connection)
+
+                  void Deactivated(RPC::IRemoteConnection *connection) override
                   {
-                     _parent.Deactivated(connection);
+                     m_parent.Deactivated(connection);
+                  }
+
+                  void SearchEvent(const uint8_t handle, const bool finished, const uint8_t progress) override
+                  {
+                     SYSLOG(Logging::Notification, (_T("Notification::SearchEvent: handle=%u, finished=%u, progress=%u"),
+                        handle, finished, progress));
+
+                     Core::JSON::EnumType<EventtypeType> json_event_type = EventtypeType::SERVICESEARCHSTATUS;
+
+                     JsonObject params;
+
+                     params["eventtype"] = json_event_type.Data();
+                     params["handle"] = handle;
+                     params["finished"] = finished;
+                     params["progress"] = progress;
+
+                     m_parent.Notify(_T("searchstatus"), params);
+
+                     std::string json;
+                     params.ToString(json);
+
+                     m_parent.m_service->Notify(json.c_str());
+                  }
+
+                  void ServiceEvent(const ServiceEventType event_type, const IDTV::IService *service,
+                     const IDTV::IEitEvent *eit_event) override
+                  {
+                     uint16_t lcn;
+                     std::string dvburi;
+
+                     service->Lcn(lcn);
+                     service->Dvburi(dvburi);
+
+                     SYSLOG(Logging::Notification, (_T("Notification::ServiceEvent: lcn=%u, dvburi=%s"),
+                        lcn, dvburi.c_str()));
+
+                     ServiceupdatedParamsInfo service_params;
+                     Core::JSON::EnumType<EventtypeType> json_event_type;
+
+                     switch(event_type)
+                     {
+                        case IDTV::INotification::ServiceEventType::SERVICE_UPDATED:
+                           json_event_type = EventtypeType::SERVICEUPDATED;
+                           break;
+                        case IDTV::INotification::ServiceEventType::SERVICE_ADDED:
+                           json_event_type = EventtypeType::SERVICEADDED;
+                           break;
+                        case IDTV::INotification::ServiceEventType::SERVICE_DELETED:
+                           json_event_type = EventtypeType::SERVICEDELETED;
+                           break;
+                        case IDTV::INotification::ServiceEventType::VIDEO_CHANGED:
+                           json_event_type = EventtypeType::VIDEOCHANGED;
+                           break;
+                        case IDTV::INotification::ServiceEventType::AUDIO_CHANGED:
+                           json_event_type = EventtypeType::AUDIOCHANGED;
+                           break;
+                        case IDTV::INotification::ServiceEventType::SUBTITLES_CHANGED:
+                           json_event_type = EventtypeType::SUBTITLESCHANGED;
+                           break;
+                        case IDTV::INotification::ServiceEventType::NOW_EVENT_CHANGED:
+                           json_event_type = EventtypeType::EVENTCHANGED;
+                           break;
+                     }
+
+                     JsonObject params;
+
+                     params["eventtype"] = json_event_type.Data();
+                     params["service"] = m_parent.CreateJsonForService(service);
+
+                     if (eit_event != nullptr)
+                     {
+                        params["event"] = m_parent.CreateJsonForEITEvent(eit_event);
+                     }
+
+                     m_parent.Notify(_T("serviceupdated"), params);
+
+                     std::string json;
+                     params.ToString(json);
+
+                     m_parent.m_service->Notify(json.c_str());
                   }
 
                private:
-                  DTV& _parent;
-            };
-
-         class Config : public Core::JSON::Container
-         {
-            private:
-               Config(const Config&);
-               Config& operator=(const Config&);
-
-            public:
-               Config() : Core::JSON::Container(),
-                  SubtitleProcessing(false),
-                  TeletextProcessing(false)
-               {
-                   Add(_T("subtitleprocessing"), &SubtitleProcessing);
-                   Add(_T("teletextprocessing"), &TeletextProcessing);
-               }
-
-               ~Config()
-               {
-               }
-
-            public:
-               Core::JSON::Boolean SubtitleProcessing;
-               Core::JSON::Boolean TeletextProcessing;
-         };
-
-         public:
-            class Data: public Core::JSON::Container
-            {
-               private:
-                  Data(const Data&) = delete;
-                  Data& operator=(const Data&) = delete;
-
-               public:
-                  Data() : Core::JSON::Container(), NumberOfCountries(0), NumberOfServices(0)
-                  {
-                     Add(_T("numberOfCountries"), &NumberOfCountries);
-                     Add(_T("countryList"), &CountryList);
-                     Add(_T("countrycode"), &CountryCode);
-                     Add(_T("numberOfServices"), &NumberOfServices);
-                     Add(_T("serviceList"), &ServiceList);
-                  }
-
-                  ~Data()
-                  {
-                  }
-
-               public:
-                  Core::JSON::DecUInt8 NumberOfCountries;
-                  Core::JSON::ArrayType<CountryconfigData> CountryList;
-                  Core::JSON::DecUInt32 CountryCode;
-                  Core::JSON::DecUInt16 NumberOfServices;
-                  Core::JSON::ArrayType<ServiceInfo> ServiceList;
+                  DTV& m_parent;
             };
 
          public:
-            DTV() : _skipURL(0), _service(nullptr), _connectionId(0), _dtv(nullptr), _notification(this)
-            {
-               DTV::instance(this);
-               RegisterAll();
-            }
+            DTV(const DTV&) = delete;
+            DTV& operator=(const DTV&) = delete;
 
-            virtual ~DTV()
-            {
-            }
+            DTV();
+            ~DTV() override;
 
-            static DTV* instance(DTV *dtv = nullptr)
-            {
-               static DTV *dtv_instance = nullptr;
-
-               if (dtv != nullptr)
-               {
-                  dtv_instance = dtv;
-               }
-
-               return(dtv_instance);
-            }
-
-         public:
             BEGIN_INTERFACE_MAP (DTV)
-            INTERFACE_ENTRY (PluginHost::IPlugin)
-            INTERFACE_ENTRY (PluginHost::IWeb)
-            INTERFACE_ENTRY (PluginHost::IDispatcher)
+               INTERFACE_ENTRY (PluginHost::IPlugin)
+               INTERFACE_ENTRY (PluginHost::IDispatcher)
+               INTERFACE_AGGREGATE(Exchange::IDTV, m_dtv)
             END_INTERFACE_MAP
 
-         public:
             //  IPlugin methods
             // -------------------------------------------------------------------------------------------------------
-            virtual const string Initialize(PluginHost::IShell* service);
-            virtual void Deinitialize(PluginHost::IShell *service);
-            virtual string Information() const;
-
-            //  IWeb methods
-            // -------------------------------------------------------------------------------------------------------
-            virtual void Inbound(Web::Request &request);
-            virtual Core::ProxyType<Web::Response> Process(const Web::Request &request);
+            const string Initialize(PluginHost::IShell* service) override;
+            void Deinitialize(PluginHost::IShell *service) override;
+            string Information() const override;
 
          private:
             void Deactivated(RPC::IRemoteConnection *connection);
 
-            void NotifySearchStatus(void);
-            void NotifyService(EventtypeType event_type, const string& event_name, void *service);
-            void NotifyEventChanged(void *service);
-
-            // JsonRpc
             void RegisterAll();
             void UnregisterAll();
+
             uint32_t GetNumberOfCountries(Core::JSON::DecUInt8 &response) const;
             uint32_t GetCountryList(Core::JSON::ArrayType<CountryconfigData>& response) const;
             uint32_t GetCountry(Core::JSON::DecUInt32 &response) const;
             uint32_t SetCountry(Core::JSON::DecUInt32 code) const;
+
             uint32_t GetLnbList(Core::JSON::ArrayType<LnbsettingsInfo>& response) const;
             uint32_t GetSatelliteList(Core::JSON::ArrayType<SatellitesettingsInfo>& response) const;
             uint32_t GetNumberOfServices(Core::JSON::DecUInt16 &response) const;
@@ -208,82 +199,57 @@ namespace WPEFramework
 
             uint32_t StartServiceSearch(const StartServiceSearchParamsData& search_params, Core::JSON::Boolean& response);
             uint32_t FinishServiceSearch(const FinishServiceSearchParamsData& search_params, Core::JSON::Boolean& response);
+
             uint32_t StartPlaying(const StartPlayingParamsData& play_params, Core::JSON::DecSInt32& play_handle);
             uint32_t StopPlaying(Core::JSON::DecSInt32 play_handle);
 
-            void EventSearchStatus(SearchstatusParamsData& params);
-            void EventService(const string& event_name, ServiceupdatedParamsInfo& params);
-            void EventEventChanged(EventchangedParamsData& params);
+            Core::JSON::EnumType<ServicetypeType> GetJsonServiceType(const IDTV::IService::ServiceType type) const;
+            Core::JSON::EnumType<RunningstatusType> GetJsonRunningStatus(const IDTV::IService::RunState run_state) const;
+            Core::JSON::EnumType<LnbtypeType> GetJsonLnbType(const IDTV::ILnb::LnbType lnb_type) const;
+            Core::JSON::EnumType<LnbpowerType> GetJsonLnbPower(const IDTV::ILnb::LnbPower lnb_power) const;
+            Core::JSON::EnumType<Diseqc_toneType> GetJsonDiseqcTone(const IDTV::ILnb::DiseqcTone diseqc_tone) const;
+            Core::JSON::EnumType<Diseqc_cswitchType> GetJsonDiseqcCSwitch(const IDTV::ILnb::DiseqcCSwitch diseqc_cswitch) const;
+            Core::JSON::EnumType<ComponentData::TypeType> GetJsonComponentType(const IDTV::IComponent::ComponentType type) const;
+            Core::JSON::EnumType<CodecType> GetJsonCodecType(const IDTV::IComponent::CodecType type) const;
+            Core::JSON::EnumType<ComponentData::AudioData::TypeType> GetJsonAudioType(const IDTV::IComponent::AudType type) const;
+            Core::JSON::EnumType<ComponentData::AudioData::ModeType> GetJsonAudioMode(const IDTV::IComponent::AudMode mode) const;
+            Core::JSON::EnumType<ComponentData::SubtitlesData::FormatType> GetJsonSubtitleFormat(const IDTV::IComponent::SubFormat type) const;
+            Core::JSON::EnumType<TunertypeType> GetJsonTunerType(const IDTV::TunerType tuner_type) const;
+            Core::JSON::EnumType<PolarityType> GetJsonPolarity(const IDTV::IDvbsTuningParams::PolarityType polarity) const;
+            Core::JSON::EnumType<FecType> GetJsonFec(const IDTV::IDvbsTuningParams::FecType fec) const;
+            Core::JSON::EnumType<DvbsmodulationType> GetJsonDvbsModulation(const IDTV::IDvbsTuningParams::ModulationType modulation) const;
+            Core::JSON::EnumType<DvbcmodulationType> GetJsonDvbcModulation(const IDTV::IDvbcTuningParams::ModulationType modulation) const;
+            Core::JSON::EnumType<DvbtbandwidthType> GetJsonBandwidth(const IDTV::IDvbtTuningParams::BandwidthType bandwidth) const;
+            Core::JSON::EnumType<OfdmmodeType> GetJsonOfdmMode(const IDTV::IDvbtTuningParams::OfdmModeType mode) const;
 
-            string CreateJsonForService(ServiceInfo& service) const;
-            string CreateJsonForEITEvent(EiteventInfo& event) const;
-            string CreateJsonString(const string& input_string) const;
+            IDTV::TunerType GetTunerType(Core::JSON::EnumType<TunertypeType> tuner_type) const;
+            IDTV::ILnb::LnbType GetLnbType(Core::JSON::EnumType<LnbtypeType> lnb_type) const;
+            IDTV::ILnb::LnbPower GetLnbPower(Core::JSON::EnumType<LnbpowerType> lnb_power) const;
+            IDTV::ILnb::DiseqcTone GetDiseqcTone(Core::JSON::EnumType<Diseqc_toneType> tone_type) const;
+            IDTV::ILnb::DiseqcCSwitch GetDiseqcCSwitch(Core::JSON::EnumType<Diseqc_cswitchType> switch_type) const;
+            IDTV::IDvbsTuningParams::PolarityType GetDvbsPolarity(Core::JSON::EnumType<PolarityType> polarity_type) const;
+            IDTV::IDvbsTuningParams::FecType GetDvbsFEC(Core::JSON::EnumType<FecType> fec_type) const;
+            IDTV::IDvbsTuningParams::ModulationType GetDvbsModulation(Core::JSON::EnumType<DvbsmodulationType> modulation_type) const;
+            IDTV::IDvbtTuningParams::BandwidthType GetDvbtBandwidth(Core::JSON::EnumType<DvbtbandwidthType> bandwidth_type) const;
+            IDTV::IDvbtTuningParams::OfdmModeType GetDvbtOfdmMode(Core::JSON::EnumType<OfdmmodeType> mode_type) const;
+            IDTV::IDvbcTuningParams::ModulationType GetDvbcModulation(Core::JSON::EnumType<DvbcmodulationType> modulation_type) const;
+
+            JsonObject CreateJsonForService(const IDTV::IService *service) const;
+            JsonObject CreateJsonForEITEvent(const IDTV::IEitEvent *event) const;
+
+            void ExtractDvbServiceInfo(ServiceInfo& info, const IDTV::IService *service) const;
+            void ExtractDvbEventInfo(EiteventInfo& info, const IDTV::IEitEvent *event) const;
+            void ExtractDvbStreamInfo(ComponentData& info, const IDTV::IComponent *component) const;
+            void ExtractDvbTransportInfo(TransportInfo& info, const IDTV::ITransport *transport) const;
+            void ExtractDvbsTuningParams(DvbstuningparamsInfo& tuning_params, const IDTV::ITransport *transport) const;
+            void ExtractDvbcTuningParams(DvbctuningparamsInfo& tuning_params, const IDTV::ITransport *transport) const;
+            void ExtractDvbtTuningParams(DvbttuningparamsInfo& tuning_params, const IDTV::ITransport *transport) const;
 
          private:
-            Core::ProxyType<Web::Response> GetMethod(Core::TextSegmentIterator& index);
-            Core::ProxyType<Web::Response> PutMethod(Core::TextSegmentIterator& index, const Web::Request& request);
-            Core::ProxyType<Web::Response> PostMethod(Core::TextSegmentIterator& index, const Web::Request& request);
-#if 0
-            Core::ProxyType<Web::Response> DeleteMethod(Core::TextSegmentIterator& index, const Web::Request& request);
-#endif
-
-         private:
-            uint8_t _skipURL;
-            uint32_t _connectionId;
-            Core::IUnknown *_dtv;
-            PluginHost::IShell *_service;
-            Core::Sink<Notification> _notification;
-
-         private:
-            static void DvbEventHandler(U32BIT event, void *event_data, U32BIT data_size);
-
-            Core::JSON::EnumType<ComponentData::TypeType> GetJsonStreamType(ADB_STREAM_TYPE type) const;
-            Core::JSON::EnumType<CodecType> GetJsonStreamCodec(ADB_STREAM_TYPE type) const;
-            Core::JSON::String GetJsonLanguageCode(U32BIT code) const;
-            Core::JSON::EnumType<ComponentData::AudioData::TypeType> GetJsonAudioType(ADB_AUDIO_TYPE type) const;
-            Core::JSON::EnumType<ComponentData::AudioData::ModeType> GetJsonAudioMode(E_STB_DP_AUDIO_MODE mode) const;
-            Core::JSON::EnumType<ComponentData::SubtitlesData::FormatType> GetJsonSubtitleFormat(ADB_SUBTITLE_TYPE type) const;
-
-            Core::JSON::EnumType<ServicetypeType> GetJsonServiceType(ADB_SERVICE_TYPE type) const;
-            Core::JSON::EnumType<RunningstatusType> GetJsonRunningStatus(U8BIT status) const;
-
-            Core::JSON::EnumType<LnbtypeType> GetJsonLnbType(E_STB_DP_LNB_TYPE type) const;
-            Core::JSON::EnumType<LnbpowerType> GetJsonLnbPower(E_STB_DP_LNB_POWER power) const;
-            Core::JSON::EnumType<Diseqc_toneType> GetJsonDiseqcTone(E_STB_DP_DISEQC_TONE tone) const;
-            Core::JSON::EnumType<Diseqc_cswitchType> GetJsonDiseqcCSwitch(E_STB_DP_DISEQC_CSWITCH cswitch) const;
-
-            Core::JSON::EnumType<TunertypeType> GetJsonTunerType(E_STB_DP_SIGNAL_TYPE signal_type) const;
-
-            Core::JSON::EnumType<PolarityType> GetJsonPolarity(E_STB_DP_POLARITY dvb_polarity) const;
-            Core::JSON::EnumType<FecType> GetJsonFec(E_STB_DP_FEC dvb_fec) const;
-            Core::JSON::EnumType<DvbsmodulationType> GetJsonDvbsModulation(E_STB_DP_MODULATION dvb_modulation) const;
-            Core::JSON::EnumType<DvbcmodulationType> GetJsonDvbcModulation(E_STB_DP_CMODE dvb_modulation) const;
-            Core::JSON::EnumType<DvbtbandwidthType> GetJsonBandwidth(E_STB_DP_TBWIDTH dvb_bandwidth) const;
-            Core::JSON::EnumType<OfdmmodeType> GetJsonOfdmMode(E_STB_DP_TMODE dvb_mode) const;
-
-            E_STB_DP_LNB_TYPE GetDvbLnbType(Core::JSON::EnumType<LnbtypeType> lnb_type) const;
-            E_STB_DP_LNB_POWER GetDvbLnbPower(Core::JSON::EnumType<LnbpowerType> lnb_power) const;
-            E_STB_DP_DISEQC_TONE GetDvbDiseqcTone(Core::JSON::EnumType<Diseqc_toneType> diseqc_tone) const;
-            E_STB_DP_DISEQC_CSWITCH GetDvbDiseqcCSwitch(Core::JSON::EnumType<Diseqc_cswitchType> diseqc_cswitch) const;
-
-            E_STB_DP_SIGNAL_TYPE GetDvbSignalType(Core::JSON::EnumType<TunertypeType> tuner_type) const;
-            E_STB_DP_POLARITY GetDvbPolarity(Core::JSON::EnumType<PolarityType> polarity_type) const;
-            E_STB_DP_FEC GetDvbsFEC(Core::JSON::EnumType<FecType> fec_type) const;
-            E_STB_DP_MODULATION GetDvbsModulation(Core::JSON::EnumType<DvbsmodulationType> modulation_type) const;
-            E_STB_DP_TBWIDTH GetDvbBandwidth(Core::JSON::EnumType<DvbtbandwidthType> bandwidth_type) const;
-            E_STB_DP_TMODE GetDvbOfdmMode(Core::JSON::EnumType<OfdmmodeType> mode_type) const;
-            E_STB_DP_CMODE GetDvbcModulation(Core::JSON::EnumType<DvbcmodulationType> modulation_type) const;
-
-            void* FindSatellite(const char *satellite_name) const;
-
-            void ExtractDvbServiceInfo(ServiceInfo& service, void *serv_ptr) const;
-            void ExtractDvbStreamInfo(ComponentData& component, void *stream) const;
-            void ExtractDvbTransportInfo(TransportInfo& transport, void *trans_ptr) const;
-            void ExtractDvbsTuningParams(DvbstuningparamsInfo& tuning_params, void *transport) const;
-            void ExtractDvbcTuningParams(DvbctuningparamsInfo& tuning_params, void *transport) const;
-            void ExtractDvbtTuningParams(DvbttuningparamsInfo& tuning_params, void *transport) const;
-            void ExtractDvbEventInfo(EiteventInfo& event, void *dvb_event) const;
-            void SetJsonString(U8BIT *src_string, Core::JSON::String& out_string, bool free_src = false) const;
+            uint32_t m_connectionId;
+            Exchange::IDTV *m_dtv;
+            PluginHost::IShell *m_service;
+            Core::Sink<Notification> m_notification;
       };
    }
 }
