@@ -23,14 +23,19 @@
 #include <fstream>
 
 #include <regex.h>
+#include <time.h>
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-#include "libIBus.h"
+#include "UtilsIarm.h"
 #include "sysMgr.h"
 #include "pwrMgr.h"
 #endif
 
-#include "utils.h"
+#include "UtilsCStr.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsString.h"
+#include "UtilscRunScript.h"
+#include "UtilsfileExists.h"
 
 #include "frontpanel.h"
 
@@ -43,6 +48,8 @@
 #define WAREHOUSE_HWHEALTH_ENABLE_RFC_PARAM     "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.Enable"
 #define WAREHOUSE_HWHEALTH_EXECUTE_RFC_PARAM    "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.ExecuteTest"
 #define WAREHOUSE_HWHEALTH_RESULTS_RFC_PARAM    "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.Results"
+
+#define RFC_PWRMGR2                             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.PwrMgr2.Enable"
 
 #define WAREHOUSE_METHOD_RESET_DEVICE "resetDevice"
 #define WAREHOUSE_METHOD_GET_DEVICE_INFO "getDeviceInfo"
@@ -74,15 +81,69 @@
 #define FRONT_PANEL_FAILED 3
 #define FRONT_PANEL_INTERVAL 5000
 
+// TODO: remove this
+#define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
+
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 6
+
+namespace Utils {
+std::string formatIARMResult(IARM_Result_t result)
+{
+    switch (result) {
+    case IARM_RESULT_SUCCESS:       return std::string("IARM_RESULT_SUCCESS [success]");
+    case IARM_RESULT_INVALID_PARAM: return std::string("IARM_RESULT_INVALID_PARAM [invalid input parameter]");
+    case IARM_RESULT_INVALID_STATE: return std::string("IARM_RESULT_INVALID_STATE [invalid state encountered]");
+    case IARM_RESULT_IPCCORE_FAIL:  return std::string("IARM_RESULT_IPCORE_FAIL [underlying IPC failure]");
+    case IARM_RESULT_OOM:           return std::string("IARM_RESULT_OOM [out of memory]");
+    default:
+        std::ostringstream tmp;
+        tmp << result << " [unknown IARM_Result_t]";
+        return tmp.str();
+    }
+}
+bool isFileExistsAndOlderThen(const char* pFileName, long age = -1)
+{
+    struct stat fileStat;
+    int res = stat(pFileName, &fileStat);
+    if (0 != res)
+        return false;
+
+    if (-1 == age)
+        return true;
+
+    time_t currentTime = time(nullptr);
+
+    time_t modifiedSecondsAgo = difftime(currentTime, fileStat.st_mtime);
+
+    return modifiedSecondsAgo > age;
+}
+}
 
 namespace WPEFramework
 {
+
+    namespace {
+
+        static Plugin::Metadata<Plugin::Warehouse> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Warehouse, 2, 0);
+        SERVICE_REGISTRATION(Warehouse, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
         Warehouse* Warehouse::_instance = nullptr;
         Warehouse::Warehouse()
-        : AbstractPlugin(2)
+        : PluginHost::JSONRPC()
 #ifdef HAS_FRONT_PANEL
         , m_ledTimer(64 * 1024, "LedTimer")
         , m_ledInfo(this)
@@ -90,14 +151,17 @@ namespace WPEFramework
         {
             LOGWARN ("Ctor:%d", __LINE__);
             Warehouse::_instance = this;
+            m_isPwrMgr2RFCEnabled = false;
+            CreateHandler({2});
+
             registerMethod(WAREHOUSE_METHOD_RESET_DEVICE, &Warehouse::resetDeviceWrapper, this);
-            registerMethod(WAREHOUSE_METHOD_GET_DEVICE_INFO, &Warehouse::getDeviceInfoWrapper, this, {1}); // org.rdk.System.1.getDeviceInfo should be used instead on later versions
+            registerMethod(WAREHOUSE_METHOD_GET_DEVICE_INFO, &Warehouse::getDeviceInfoWrapper, this);
             registerMethod(WAREHOUSE_METHOD_SET_FRONT_PANEL_STATE, &Warehouse::setFrontPanelStateWrapper, this);
             registerMethod(WAREHOUSE_METHOD_INTERNAL_RESET, &Warehouse::internalResetWrapper, this);
             registerMethod(WAREHOUSE_METHOD_LIGHT_RESET, &Warehouse::lightResetWrapper, this);
             registerMethod(WAREHOUSE_METHOD_IS_CLEAN, &Warehouse::isCleanWrapper, this);
-            registerMethod(WAREHOUSE_METHOD_EXECUTE_HARDWARE_TEST, &Warehouse::executeHardwareTestWrapper, this, {2});
-            registerMethod(WAREHOUSE_METHOD_GET_HARDWARE_TEST_RESULTS, &Warehouse::getHardwareTestResultsWrapper, this, {2});
+            registerMethod(WAREHOUSE_METHOD_EXECUTE_HARDWARE_TEST, &Warehouse::executeHardwareTestWrapper, this);
+            registerMethod(WAREHOUSE_METHOD_GET_HARDWARE_TEST_RESULTS, &Warehouse::getHardwareTestResultsWrapper, this);
         }
 
         Warehouse::~Warehouse()
@@ -110,11 +174,19 @@ namespace WPEFramework
             InitializeIARM();
             LOGWARN ("Warehouse::Initialize finished line:%d", __LINE__);
             // On success return empty, to indicate there is no error text.
+            RFC_ParamData_t param = {0};
+            WDMP_STATUS status = getRFCParameter(NULL, RFC_PWRMGR2, &param);
+            if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
+            {
+                m_isPwrMgr2RFCEnabled = true;
+            }
             return (string());
         }
 
         void Warehouse::Deinitialize(PluginHost::IShell* /* service */)
         {
+            if (m_resetThread.get().joinable())
+                m_resetThread.get().join();
             Warehouse::_instance = nullptr;
             DeinitializeIARM();
             LOGWARN ("Warehouse::Deinitialize finished line:%d", __LINE__);
@@ -122,7 +194,7 @@ namespace WPEFramework
 
         void Warehouse::InitializeIARM()
         {
-            if (Utils::IARM::init()) {
+        if (Utils::IARM::init()) {
                IARM_Result_t res;
                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_WAREHOUSEOPS_STATUSCHANGED, dsWareHouseOpnStatusChanged) );
             }
@@ -132,102 +204,90 @@ namespace WPEFramework
         {
             if (Utils::IARM::isConnected()) {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, dsWareHouseOpnStatusChanged) );
             }
-        }
-
-        /**
-         * @brief This function is used to write the client name in the host file if
-         * the string list is empty by default ".warehouse.ccp.xcal.tv" will write in
-         * to the host file.
-         *
-         * @return Attribute of string value list.
-         */
-        std::vector<std::string> Warehouse::getAllowedCNameTails()
-        {
-            std::vector<std::string> cnameTails;
-            RFC_ParamData_t param;
-
-            memset(&param, 0, sizeof(param));
-            WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char*>(WAREHOUSE_RFC_CALLERID), WAREHOUSE_HOSTCLIENT_NAME1_RFC_PARAM, &param);
-            if ( WDMP_SUCCESS == wdmpStatus )
-            {
-                cnameTails.push_back(std::string(param.value));
-                LOGINFO ("getRFCParameter for %s is %s\n", WAREHOUSE_HOSTCLIENT_NAME1_RFC_PARAM, param.value);
-            }
-            else
-                LOGERR ("getRFCParameter for %s Failed : %s\n", WAREHOUSE_HOSTCLIENT_NAME1_RFC_PARAM, getRFCErrorString(wdmpStatus));
-
-            memset(&param, 0, sizeof(param));
-            wdmpStatus = getRFCParameter(const_cast<char*>(WAREHOUSE_RFC_CALLERID), WAREHOUSE_HOSTCLIENT_NAME2_RFC_PARAM, &param);
-            if ( WDMP_SUCCESS == wdmpStatus )
-            {
-                cnameTails.push_back(std::string(param.value));
-                LOGINFO ("getRFCParameter for %s is %s\n", WAREHOUSE_HOSTCLIENT_NAME2_RFC_PARAM, param.value);
-            }
-            else
-                LOGERR ("getRFCParameter for %s Failed : %s\n", WAREHOUSE_HOSTCLIENT_NAME2_RFC_PARAM, getRFCErrorString(wdmpStatus));
-
-            if (cnameTails.size() == 0)
-            {
-                memset(&param, 0, sizeof(param));
-                wdmpStatus = getRFCParameter(const_cast<char*>(WAREHOUSE_RFC_CALLERID), WAREHOUSE_HOSTCLIENT_TAIL_RFC_PARAM, &param);
-                if ( WDMP_SUCCESS == wdmpStatus )
-                {
-                    cnameTails.push_back(std::string(param.value));
-                    LOGINFO ("getRFCParameter for %s is %s\n", WAREHOUSE_HOSTCLIENT_TAIL_RFC_PARAM, param.value);
-                }
-                else
-                    LOGERR ("getRFCParameter for %s Failed : %s\n", WAREHOUSE_HOSTCLIENT_TAIL_RFC_PARAM, getRFCErrorString(wdmpStatus));
-            }
-            return cnameTails;
-        }
-
-        /**
-         * @brief Creates a new task for resetting the device.
-         * An event will be dispatched after reset is done by notifying success code.
-         * @ingroup SERVMGR_WAREHOUSE_API
-         */
-        void Warehouse::resetDevice()
-        {
-            resetDevice(false);
         }
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         static void WareHouseResetIARM(Warehouse *wh, bool suppressReboot, const string& resetType)
         {
-            IARM_Result_t err;
+            IARM_Result_t err = IARM_RESULT_IPCCORE_FAIL;
+            uint32_t ret = Core::ERROR_GENERAL;
+            JsonObject params;
             bool isWareHouse = false;
+            if (NULL == Warehouse::_instance) {
+                return;
+            }
             if (resetType.compare("COLD") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_ColdFactoryReset, nullptr, 0);
+
+                if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
+                    ret = Warehouse::_instance->processColdFactoryReset();
+                }
+                else {
+                    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_ColdFactoryReset, nullptr, 0);
+                }
             }
             else if (resetType.compare("FACTORY") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_FactoryReset, nullptr, 0);
+
+                if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
+                    ret = Warehouse::_instance->processFactoryReset();
+                }
+                else {
+                    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_FactoryReset, nullptr, 0);
+                }
             }
             else if (resetType.compare("USERFACTORY") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_UserFactoryReset, nullptr, 0);
+
+                if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
+                    ret = Warehouse::_instance->processUserFactoryReset();
+                }
+                else {
+                    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_UserFactoryReset, nullptr, 0);
+                }
             }
             else if (resetType.compare("WAREHOUSE_CLEAR") == 0)
             {
                 LOGINFO("%s reset...", resetType.c_str());
-                IARM_Bus_PWRMgr_WareHouseReset_Param_t whParam;
-                whParam.suppressReboot = suppressReboot;
-                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseClear, &whParam, sizeof(whParam));
-                isWareHouse = true;
+                if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
+                    ret = suppressReboot ?  Warehouse::_instance->processWHClearNoReboot(): Warehouse::_instance->processWHClear();
+                    if (ret == Core::ERROR_NONE) {
+                        isWareHouse = true;
+                    }
+                    else {
+                        params[PARAM_ERROR] = "Reset failed";
+                    }
+                }
+                else {
+                    IARM_Bus_PWRMgr_WareHouseReset_Param_t whParam;
+                    whParam.suppressReboot = suppressReboot;
+                    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseClear, &whParam, sizeof(whParam));
+                    isWareHouse = true;
+                }
             }
             else // WAREHOUSE
             {
                 LOGINFO("WAREHOUSE reset...");
-                IARM_Bus_PWRMgr_WareHouseReset_Param_t whParam;
-                whParam.suppressReboot = suppressReboot;
-                err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseReset, &whParam, sizeof(whParam));
-                isWareHouse = true;
+                if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
+                    ret = suppressReboot ?  Warehouse::_instance->processWHResetNoReboot(): Warehouse::_instance->processWHReset();
+                    if (ret == Core::ERROR_NONE) {
+                        isWareHouse = true;
+                    }
+                    else {
+                        params[PARAM_ERROR] = "Reset failed";
+                    }
+                }
+                else {
+                    IARM_Bus_PWRMgr_WareHouseReset_Param_t whParam;
+                    whParam.suppressReboot = suppressReboot;
+                    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_WareHouseReset, &whParam, sizeof(whParam));
+                    isWareHouse = true;
+                }
             }
 
             bool ok = true;
@@ -237,7 +297,7 @@ namespace WPEFramework
             // Hence checking for status only when SuppressReboot is true.
             if(suppressReboot)
             {
-                ok = (err == IARM_RESULT_SUCCESS);
+                ok = ((err == IARM_RESULT_SUCCESS)|| (ret == Core::ERROR_NONE));
             }
             
             if (!( true == isWareHouse && true == suppressReboot)) {
@@ -573,6 +633,7 @@ namespace WPEFramework
                 pos += rm[0].rm_so + replace.size();
             }
 
+            regfree(&rx);
             LOGWARN("lightReset: %s", script.c_str());
 
             std::string error;
@@ -771,11 +832,11 @@ namespace WPEFramework
 
             WDMP_STATUS wdmpStatus;
 
-            wdmpStatus = setRFCParameter(WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_ENABLE_RFC_PARAM, "true", WDMP_BOOLEAN);
+            wdmpStatus = setRFCParameter((char *)WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_ENABLE_RFC_PARAM, "true", WDMP_BOOLEAN);
             result = (wdmpStatus == WDMP_SUCCESS);
             if (result)
             {
-                wdmpStatus = setRFCParameter(WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_EXECUTE_RFC_PARAM, "1", WDMP_INT);
+                wdmpStatus = setRFCParameter((char *)WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_EXECUTE_RFC_PARAM, "1", WDMP_INT);
                 result = (wdmpStatus == WDMP_SUCCESS);
             }
             if (!result)
@@ -791,12 +852,12 @@ namespace WPEFramework
             WDMP_STATUS wdmpStatus;
             RFC_ParamData_t param = {0};
 
-            wdmpStatus = getRFCParameter(WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_RESULTS_RFC_PARAM, &param);
+            wdmpStatus = getRFCParameter((char *)WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_RESULTS_RFC_PARAM, &param);
             result = (wdmpStatus == WDMP_SUCCESS);
             if (result)
             {
                 testResults = param.value;
-                wdmpStatus = setRFCParameter(WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_ENABLE_RFC_PARAM, "false", WDMP_BOOLEAN);
+                wdmpStatus = setRFCParameter((char *)WAREHOUSE_RFC_CALLERID, WAREHOUSE_HWHEALTH_ENABLE_RFC_PARAM, "false", WDMP_BOOLEAN);
                 result = (wdmpStatus == WDMP_SUCCESS);
             }
             if (!result)
@@ -941,7 +1002,7 @@ namespace WPEFramework
 		}
 		JsonObject params;
 		if (IARM_BUS_PWRMGR_WAREHOUSE_COMPLETED == eventData->status) {
-                    params[PARAM_SUCCESS] = 0;
+                    params[PARAM_SUCCESS] = true;
 		}
 		else {
                     params[PARAM_ERROR] = "Reset failed";
@@ -953,5 +1014,85 @@ namespace WPEFramework
             }
         }
 
+        uint32_t Warehouse::processColdFactoryReset()
+        {
+            /*Code copied from X1.. Needs modification*/
+            LOGINFO("\n Reset: Processing Cold Factory Reset\n");
+            fflush(stdout);
+            LOGINFO(" Reset: ...Clearing data from your box before reseting \n");
+            fflush(stdout);
+            /*Execute the script for Cold Factory Reset*/
+            system("sh /lib/rdk/deviceReset.sh coldfactory");
+            system("echo 0 > /opt/.rebootFlag");
+            system("echo `/bin/timestamp` ------------- Rebooting due to Cold Factory Reset process --------------- >> /opt/logs/receiver.log");
+            system("sleep 5; /rebootNow.sh -s PowerMgr_coldFactoryReset -o 'Rebooting the box due to Cold Factory Reset process ...'");
+            return Core::ERROR_NONE;
+        }
+
+        uint32_t Warehouse::processFactoryReset()
+        {
+            /*Code copied from X1.. Needs modification*/
+            LOGINFO("\n Reset: Processing Factory Reset\n");
+            fflush(stdout);
+            LOGINFO("Reset: ...Clearing data from your box before reseting \n");
+            fflush(stdout);
+            /*Execute the script for Factory Reset*/
+            system("sh /lib/rdk/deviceReset.sh factory");
+            system("echo 0 > /opt/.rebootFlag");
+            system("echo `/bin/timestamp` -------------Rebooting due to Factory Reset process-------------- >> /opt/logs/receiver.log");
+            return Core::ERROR_NONE;
+        }
+
+        uint32_t Warehouse::processWHReset()
+        {
+            LOGINFO("\n Reset: Processing Ware House Reset\n");
+            fflush(stdout);
+            /*Execute the script for Ware House Reset*/
+            system("echo 0 > /opt/.rebootFlag");
+            system("touch /tmp/.warehouse-reset"); 
+            system("echo `/bin/timestamp` ------------- Rebooting due to Warehouse Reset process--------------- >> /opt/logs/receiver.log");
+            return system("sh /lib/rdk/deviceReset.sh warehouse");
+        }
+
+        uint32_t Warehouse::processWHClear()
+        {
+            /*Code copied from X1.. Needs modification*/
+            LOGINFO("\n Clear: Processing Ware House Clear\n");
+            fflush(stdout);
+            system("echo 0 > /opt/.rebootFlag");
+            system("touch /tmp/.warehouse-clear"); 
+            system("echo `/bin/timestamp` ------------- Warehouse Clear  --------------- >> /opt/logs/receiver.log");
+            system("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR");
+            return Core::ERROR_NONE;
+        }
+
+        uint32_t Warehouse::processWHClearNoReboot()
+        {
+            LOGINFO("\n Clear: Invoking Ware House Clear Request from APP\n");
+            LOGINFO("\n Clear: Invoking Ware House Clear Request from APP\n");
+            fflush(stdout);
+            system("touch /tmp/.warehouse-clear");
+            return system("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR --suppressReboot");
+        }
+
+        uint32_t Warehouse::processWHResetNoReboot()
+        {
+            LOGINFO("\n Reset: Invoking Ware House Reset Request from APP\n");
+            fflush(stdout);
+            /*Execute the script for Ware House Reset*/
+            system("touch /tmp/.warehouse-reset");
+            return system("sh /lib/rdk/deviceReset.sh warehouse --suppressReboot &");
+        }
+
+        uint32_t Warehouse::processUserFactoryReset()
+        {
+            LOGINFO("\n Reset: Processing User Factory Reset\n");
+            fflush(stdout);
+            /*Execute the script for User Factory Reset*/
+            system("echo 0 > /opt/.rebootFlag");
+            system("echo `/bin/timestamp` ------------- Rebooting due to User Factory Reset process--------------- >> /opt/logs/receiver.log");
+            system("sh /lib/rdk/deviceReset.sh userfactory");
+            return Core::ERROR_NONE;
+        }
     } // namespace Plugin
 } // namespace WPEFramework

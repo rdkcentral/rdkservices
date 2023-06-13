@@ -1,15 +1,16 @@
 #pragma once
 
+#include <set>
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
+
+#include "libIARM.h"
 
 #include <thread>
 
 namespace WPEFramework {
 namespace Plugin {
 
-    class UsbAccess :  public AbstractPlugin {
+    class UsbAccess :  public PluginHost::IPlugin, public PluginHost::JSONRPC {
     public:
         UsbAccess();
         virtual ~UsbAccess();
@@ -17,12 +18,15 @@ namespace Plugin {
         virtual void Deinitialize(PluginHost::IShell* service) override;
         virtual string Information() const override;
 
+        BEGIN_INTERFACE_MAP(UsbAccess)
+        INTERFACE_ENTRY(PluginHost::IPlugin)
+        INTERFACE_ENTRY(PluginHost::IDispatcher)
+        END_INTERFACE_MAP
+
     public/*members*/:
         static UsbAccess* _instance;
 
     public /*constants*/:
-        static const short API_VERSION_NUMBER_MAJOR;
-        static const short API_VERSION_NUMBER_MINOR;
         static const string SERVICE_NAME;
         //methods
         static const string METHOD_GET_FILE_LIST;
@@ -60,6 +64,7 @@ namespace Plugin {
         uint32_t getFileListWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t createLinkWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t clearLinkWrapper(const JsonObject& parameters, JsonObject& response);
+        uint32_t getLinksWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t getAvailableFirmwareFilesWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t getMountedWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
@@ -87,8 +92,10 @@ namespace Plugin {
         static bool getMounted(std::list<string>& paths);
 
         void archiveLogsInternal();
-        void onArchiveLogs(ArchiveLogsError error);
+        void onArchiveLogs(ArchiveLogsError error, const string& filePath);
         std::thread archiveLogsThread;
+        std::map<int, std::string> m_CreatedLinkIds;
+        JsonObject m_oArchiveParams;
     };
 
 } // namespace Plugin

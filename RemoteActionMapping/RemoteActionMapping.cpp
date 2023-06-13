@@ -20,7 +20,9 @@
 #include "RemoteActionMapping.h"
 #include "libIBusDaemon.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
+#include "UtilsUnused.h"
 #include <exception>
 
 const int supported_ked_keynames[] =
@@ -73,13 +75,31 @@ const int supported_irrfdb_slots_size = sizeof(supported_irrfdb_slots) / sizeof(
         param = parameters[paramName].Array();\
 }
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 2
+
 using namespace std;
 
 namespace WPEFramework {
 
+    namespace {
+
+        static Plugin::Metadata<Plugin::RemoteActionMapping> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin {
 
-        SERVICE_REGISTRATION(RemoteActionMapping, 1, 0);
+        SERVICE_REGISTRATION(RemoteActionMapping, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         RemoteActionMapping* RemoteActionMapping::_instance = nullptr;
 
@@ -95,23 +115,23 @@ namespace WPEFramework {
 
 
         RemoteActionMapping::RemoteActionMapping()
-            : AbstractPlugin()
+            : PluginHost::JSONRPC()
             , m_apiVersionNumber((uint32_t)-1)   /* default max uint32_t so everything gets enabled */    //TODO(MROLLINS) Can't we access this from jsonrpc interface?
             , m_ribLoadTimeoutImpl(this)
         {
             LOGINFO("ctor");
             RemoteActionMapping::_instance = this;
 
-            registerMethod("getApiVersionNumber",       &RemoteActionMapping::getApiVersionNumber, this);
+            Register("getApiVersionNumber",       &RemoteActionMapping::getApiVersionNumber, this);
 
-            registerMethod("getLastUsedDeviceID",       &RemoteActionMapping::getLastUsedDeviceIDWrapper, this);
-            registerMethod("getKeymap",                 &RemoteActionMapping::getKeymapWrapper, this);
-            registerMethod("setKeyActionMapping",       &RemoteActionMapping::setKeyActionMappingWrapper, this);
-            registerMethod("clearKeyActionMapping",     &RemoteActionMapping::clearKeyActionMappingWrapper, this);
-            registerMethod("getFullKeyActionMapping",   &RemoteActionMapping::getFullKeyActionMappingWrapper, this);
-            registerMethod("getSingleKeyActionMapping", &RemoteActionMapping::getSingleKeyActionMappingWrapper, this);
-            registerMethod("cancelCodeDownload",        &RemoteActionMapping::cancelCodeDownloadWrapper, this);
-            registerMethod("setFiveDigitCode",          &RemoteActionMapping::setFiveDigitCodeWrapper, this);
+            Register("getLastUsedDeviceID",       &RemoteActionMapping::getLastUsedDeviceIDWrapper, this);
+            Register("getKeymap",                 &RemoteActionMapping::getKeymapWrapper, this);
+            Register("setKeyActionMapping",       &RemoteActionMapping::setKeyActionMappingWrapper, this);
+            Register("clearKeyActionMapping",     &RemoteActionMapping::clearKeyActionMappingWrapper, this);
+            Register("getFullKeyActionMapping",   &RemoteActionMapping::getFullKeyActionMappingWrapper, this);
+            Register("getSingleKeyActionMapping", &RemoteActionMapping::getSingleKeyActionMappingWrapper, this);
+            Register("cancelCodeDownload",        &RemoteActionMapping::cancelCodeDownloadWrapper, this);
+            Register("setFiveDigitCode",          &RemoteActionMapping::setFiveDigitCodeWrapper, this);
 
             setApiVersionNumber(3);
         }
@@ -701,7 +721,7 @@ namespace WPEFramework {
                                 actionMap.tvIRData.push_back((unsigned char)(byteval & 0xFF));
                             }
                             keysPresent.tv.setKey(actionMap.rfKeyCode);
-                            LOGWARN("keyActionMap[%d]: tvIRKeyCode size: %d.", i, actionMap.tvIRData.size());
+                            LOGWARN("keyActionMap[%d]: tvIRKeyCode size: %zu.", i, actionMap.tvIRData.size());
                             if (actionMap.tvIRData.size() > 12)
                             {
                                 LOGWARN("tvIRKeyCode bytes - 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X",
@@ -763,7 +783,7 @@ namespace WPEFramework {
                                 actionMap.avrIRData.push_back((unsigned char)(byteval & 0xFF));
                             }
                             keysPresent.avr.setKey(actionMap.rfKeyCode);
-                            LOGWARN("keyActionMap[%d]: avrIRKeyCode size: %d.", i, actionMap.avrIRData.size());
+                            LOGWARN("keyActionMap[%d]: avrIRKeyCode size: %zu.", i, actionMap.avrIRData.size());
                             if (actionMap.avrIRData.size() > 12)
                             {
                                 LOGWARN("avrIRKeyCode bytes - 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X",
@@ -788,7 +808,7 @@ namespace WPEFramework {
                 LOGWARN("localMaps is finished, size: %d", (int)localMaps.size());
                 if (numMaps != (int)localMaps.size())
                 {
-                    LOGERR("ERROR - maps conversion failure - input numMaps: %d, output localMaps size: %d!",
+                    LOGERR("ERROR - maps conversion failure - input numMaps: %d, output localMaps size: %zu!",
                            numMaps, localMaps.size());
                     response["status_code"] = (int)STATUS_INVALID_ARGUMENT;
                     returnResponse(false);
@@ -2122,7 +2142,7 @@ namespace WPEFramework {
             if (done)
             {
                 stopRIBLoadTimer();
-                LOGWARN("Sending onIRCodeLoad event - numKeys is %d.", rfKeyCodes.size());
+                LOGWARN("Sending onIRCodeLoad event - numKeys is %zu.", rfKeyCodes.size());
                 m_irdbLoadState = IRDB_LOAD_STATE_NONE;
                 onIRCodeLoad(deviceID, rfKeyCodes, IRCODE_LOAD_STATUS_OK);
                 m_lastSetRemoteID = -1;
@@ -2221,7 +2241,7 @@ namespace WPEFramework {
                         status = IRCODE_LOAD_STATUS_REFUSED;
                     }
 
-                    LOGWARN("TIMEOUT: IRRF Database LoadState(%d) - sending onIRCodeLoad event - numKeys: %d, status: %d.",
+                    LOGWARN("TIMEOUT: IRRF Database LoadState(%d) - sending onIRCodeLoad event - numKeys: %zu, status: %d.",
                             m_irdbLoadState, rfKeyCodes.size(), status);
 
                     m_irdbLoadState = IRDB_LOAD_STATE_NONE;

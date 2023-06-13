@@ -20,12 +20,17 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
+set(PLUGIN_CONTROLSERVICE_STARTUPORDER "" CACHE STRING "To configure startup order of ControlService plugin")
+
+if (NOT RDK_SERVICES_TEST)
 add_subdirectory(test)
+endif ()
 
 add_library(${MODULE_NAME} SHARED
         ControlService.cpp
-        Module.cpp
-        ../helpers/utils.cpp)
+        Module.cpp)
+
+set_source_files_properties(ControlService.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11

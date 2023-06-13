@@ -18,15 +18,20 @@
 set(PLUGIN_NAME RemoteActionMapping)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_REMOTEACTIONMAPPING_STARTUPORDER "" CACHE STRING "To configure startup order of RemoteActionMapping plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
+if (NOT RDK_SERVICES_TEST)
 add_subdirectory(test)
+endif ()
 
 add_library(${MODULE_NAME} SHARED
         RemoteActionMapping.cpp
         RamHelper.cpp
-        Module.cpp
-        ../helpers/utils.cpp)
+        Module.cpp)
+
+    set_source_files_properties(RemoteActionMapping.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11

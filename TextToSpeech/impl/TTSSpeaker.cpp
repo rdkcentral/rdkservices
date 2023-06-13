@@ -18,14 +18,14 @@
  */
 
 #include "TTSSpeaker.h"
-
-#include <curl/curl.h>
+#include "TTSURLConstructer.h"
 #include <unistd.h>
 #include <regex>
 
 #define INT_FROM_ENV(env, default_value) ((getenv(env) ? atoi(getenv(env)) : 0) > 0 ? atoi(getenv(env)) : default_value)
 #define TTS_CONFIGURATION_STORE "/opt/persistent/tts.setting.ini"
 #define UPDATE_AND_RETURN(o, n) if(o != n) { o = n; return true; }
+
 
 namespace WPEFramework {
 namespace Plugin {
@@ -41,14 +41,53 @@ std::map<std::string, std::string> TTSConfiguration::m_others;
 TTSConfiguration::TTSConfiguration() :
     m_ttsEndPoint(""),
     m_ttsEndPointSecured(""),
+    m_apiKey(""),
     m_language("en-US"),
     m_voice(""),
     m_volume(MAX_VOLUME),
     m_rate(DEFAULT_RATE),
+    m_primVolDuck(25),
+    m_preemptiveSpeaking(true),
     m_enabled(false),
-    m_preemptiveSpeaking(true) { }
+    m_fallbackenabled(false) { }
 
 TTSConfiguration::~TTSConfiguration() {}
+
+TTSConfiguration::TTSConfiguration(TTSConfiguration &config)
+{
+    m_ttsEndPoint = config.m_ttsEndPoint;
+    m_ttsEndPointSecured = config.m_ttsEndPointSecured;
+    m_language = config.m_language;
+    m_apiKey = config.m_apiKey;
+    m_voice = config.m_voice;
+    m_volume = config.m_volume;
+    m_rate = config.m_rate;
+    m_primVolDuck = config.m_primVolDuck;
+    m_enabled = config.m_enabled;
+    m_preemptiveSpeaking = config.m_preemptiveSpeaking;
+    m_data.scenario = config.m_data.scenario;
+    m_data.value = config.m_data.value;
+    m_data.path = config.m_data.path;
+    m_fallbackenabled = config.m_fallbackenabled;
+}
+TTSConfiguration& TTSConfiguration::operator = (const TTSConfiguration &config)
+{
+    m_ttsEndPoint = config.m_ttsEndPoint;
+    m_ttsEndPointSecured = config.m_ttsEndPointSecured;
+    m_language = config.m_language;
+    m_apiKey = config.m_apiKey;
+    m_voice = config.m_voice;
+    m_volume = config.m_volume;
+    m_rate = config.m_rate;
+    m_primVolDuck = config.m_primVolDuck;
+    m_enabled = config.m_enabled;
+    m_preemptiveSpeaking = config.m_preemptiveSpeaking;
+    m_data.scenario = config.m_data.scenario;
+    m_data.value = config.m_data.value;
+    m_data.path = config.m_data.path;
+    m_fallbackenabled = config.m_fallbackenabled;
+    return *this;
+}
 
 bool TTSConfiguration::setEndPoint(const std::string endpoint) {
     if(!endpoint.empty())
@@ -67,6 +106,16 @@ bool TTSConfiguration::setSecureEndPoint(const std::string endpoint) {
     }
     else
         TTSLOG_VERBOSE("Invalid Secured TTSEndPoint input \"%s\"", endpoint.c_str());
+    return false;
+}
+
+bool TTSConfiguration::setApiKey(const std::string apikey) {
+    if(!apikey.empty())
+    {
+        UPDATE_AND_RETURN(m_apiKey, apikey);
+    }
+    else
+        TTSLOG_VERBOSE("Invalid api key input \"%s\"", apikey.c_str());
     return false;
 }
 
@@ -107,6 +156,16 @@ bool TTSConfiguration::setRate(const uint8_t rate) {
     }
     else
         TTSLOG_VERBOSE("Invalid Rate input \"%u\"", rate);
+    return false;
+}
+
+bool TTSConfiguration::setPrimVolDuck(const int8_t primvolduck) {
+    if(primvolduck >= 0 && primvolduck <= 100)
+    {
+        UPDATE_AND_RETURN(m_primVolDuck, primvolduck);
+    }
+    else
+        TTSLOG_VERBOSE("Invalid PrimVolDuck input \"%d\"", primvolduck);
     return false;
 }
 
@@ -161,6 +220,50 @@ bool TTSConfiguration::isValid() {
         return false;
     }
     return true;
+}
+
+bool TTSConfiguration::isFallbackEnabled()
+{
+    return m_fallbackenabled;
+}
+
+void TTSConfiguration::saveFallbackPath(std::string path)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_data.path = path;
+}
+
+const std::string TTSConfiguration::getFallbackScenario()
+{
+    return m_data.scenario;
+}
+
+const std::string TTSConfiguration::getFallbackPath()
+{
+    return m_data.path;
+}
+
+const std::string TTSConfiguration::getFallbackValue()
+{
+    return m_data.value;
+}
+
+bool TTSConfiguration::setFallBackText(FallbackData &fd)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if((fd.scenario).empty() || (fd.value).empty())
+    {
+        return false;
+    }
+    else if(fd.scenario !=  m_data.scenario || fd.value !=  m_data.value)
+    {
+        m_data.scenario = fd.scenario;
+        m_data.value = fd.value;
+        m_data.path = fd.path;
+        m_fallbackenabled = true;
+        return true;
+    }
+    return false;
 }
 
 // --- //
@@ -234,14 +337,14 @@ void TTSSpeaker::ensurePipeline(bool flag) {
     m_condition.notify_one();
 }
 
-int TTSSpeaker::speak(TTSSpeakerClient *client, uint32_t id, std::string text, bool secure) {
+int TTSSpeaker::speak(TTSSpeakerClient *client, uint32_t id, std::string text, bool secure,int8_t primVolDuck) {
     TTSLOG_TRACE("id=%d, text=\"%s\"", id, text.c_str());
 
     // If force speak is set, clear old queued data & stop speaking
     if(client->configuration()->isPreemptive())
         reset();
 
-    SpeechData data(client, id, text, secure);
+    SpeechData data(client, id, text, secure,primVolDuck);
     queueData(data);
 
     return 0;
@@ -422,7 +525,7 @@ bool TTSSpeaker::loadInitAudioDev()
   TTSLOG_INFO("Amlogic audio device loaded, can control mix gain");
   return true;
 }
-
+#endif
 /*
  * Control gain of
  * primary audio (direct-mode=true),
@@ -432,36 +535,49 @@ bool TTSSpeaker::loadInitAudioDev()
  * 0   -> Maximum
  * -96 -> Minimum
 */
-bool TTSSpeaker::setMixGain(MixGain gain, int val)
+void TTSSpeaker::setMixGain(MixGain gain, int volume)
 {
+#if defined(PLATFORM_AMLOGIC)
+     //Prim Mix gain
      int ret;
-     bool status = false;
+     double volGain,dbOut;
+     if(volume != 0)
+     {
+         volGain = (double)volume/100;
+         //convert voltage gain/loss to db
+         dbOut = round(1000000*20*(std::log(volGain)/std::log(10)))/1000000;
+     }
+     else
+     {
+         //minimum dBout value -96dB
+         dbOut = -96.00000;
+     }
      char mixgain_cmd[32];
      if(gain == MIXGAIN_PRIM)
-         snprintf(mixgain_cmd, sizeof(mixgain_cmd), "prim_mixgain=%d", val);
+         snprintf(mixgain_cmd, sizeof(mixgain_cmd), "prim_mixgain=%d", (int)round(dbOut));
 	else if( gain == MIXGAIN_SYS )
-		snprintf(mixgain_cmd, sizeof(mixgain_cmd), "syss_mixgain=%d",val);
+		snprintf(mixgain_cmd, sizeof(mixgain_cmd), "syss_mixgain=%d",(int)round(dbOut));
 	else if(gain == MIXGAIN_TTS)
-		snprintf(mixgain_cmd, sizeof(mixgain_cmd), "apps_mixgain=%d",val);
+		snprintf(mixgain_cmd, sizeof(mixgain_cmd), "apps_mixgain=%d",(int)round(dbOut));
 	 else {
 		TTSLOG_ERROR("Unsuported Gain type=%d",gain);
-		return false;
+                return;
 	}
 
       if(m_audio_dev) {
          ret = m_audio_dev->set_parameters(m_audio_dev, mixgain_cmd );
          if(!ret) {
              TTSLOG_INFO("Amlogic audio dev  set param=%s success",mixgain_cmd);
-	     status = true;
          }
 	  else {
 		TTSLOG_ERROR("Amlogic audio dev  set_param=%s failed  error=%d",mixgain_cmd,ret);
-	        status = false;
 	  }
      }
- return status;
-}
+#elif defined(PLATFORM_REALTEK)
+    hal_set_audio_volume(volume);	
 #endif
+}
+
 // GStreamer Releated members
 void TTSSpeaker::createPipeline() {
     m_isEOS = false;
@@ -500,15 +616,13 @@ void TTSSpeaker::createPipeline() {
     m_audioVolume = m_audioSink;
 #elif defined(PLATFORM_REALTEK)
     GstElement *parse = gst_element_factory_make("mpegaudioparse", NULL);
-    GstElement *decodebin = gst_element_factory_make("omxmp3dec", NULL);
+    GstElement *decodebin = gst_element_factory_make("avdec_mp3", NULL);
     GstElement *convert = gst_element_factory_make("audioconvert", NULL);
     GstElement *resample = gst_element_factory_make("audioresample", NULL);
     GstElement *audiofilter = gst_element_factory_make("capsfilter", NULL);
     m_source = gst_element_factory_make("souphttpsrc", NULL);
     m_audioVolume = gst_element_factory_make("volume", NULL);
     m_audioSink = gst_element_factory_make("rtkaudiosink", NULL);
-    g_object_set(G_OBJECT(decodebin), "audio-tunnel-mode",  FALSE, NULL);
-    g_object_set(G_OBJECT(decodebin), "enable-ms12",  FALSE, NULL);
     g_object_set(G_OBJECT(m_audioSink), "media-tunnel",  FALSE, NULL);
     g_object_set(G_OBJECT(m_audioSink), "audio-service",  TRUE, NULL);
 #endif
@@ -534,17 +648,16 @@ void TTSSpeaker::createPipeline() {
             TTSLOG_INFO("PCM audio playback is enabled");
             m_pcmAudioEnabled = true;
         }
-        curlSanitize(tts_url);
 
 #if defined(PLATFORM_AMLOGIC)
         if(m_pcmAudioEnabled) {
             //Raw PCM audio does not work with souphhtpsrc on Amlogic alsaasink
             m_source = gst_element_factory_make("httpsrc", NULL);
-            g_object_set(G_OBJECT(m_audioSink), "tts-mode", TRUE, NULL);
         }
         else {
             m_source = gst_element_factory_make("souphttpsrc", NULL);
         }
+        g_object_set(G_OBJECT(m_audioSink), "tts-mode", TRUE, NULL);
 #endif
 
         g_object_set(G_OBJECT(m_source), "location", tts_url.c_str(), NULL);
@@ -552,7 +665,6 @@ void TTSSpeaker::createPipeline() {
 
     // set the TTS volume to max.
     g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (m_defaultConfig.volume() / MAX_VOLUME), NULL);
-
     // Add elements to pipeline and link
     if(m_pcmAudioEnabled) {
         //Add raw audio caps
@@ -732,79 +844,6 @@ void TTSSpeaker::waitForAudioToFinishTimeout(float timeout_s) {
     m_isEOS = false;
 }
 
-void TTSSpeaker::replaceIfIsolated(std::string& text, const std::string& search, const std::string& replace) {
-    size_t pos = 0;
-    while ((pos = text.find(search, pos)) != std::string::npos) {
-        bool punctBefore = (pos == 0 || std::ispunct(text[pos-1]) || std::isspace(text[pos-1]));
-        bool punctAfter = (pos+1 == text.length() || std::ispunct(text[pos+1]) || std::isspace(text[pos+1]));
-
-        if(punctBefore && punctAfter) {
-            text.replace(pos, search.length(), replace);
-            pos += replace.length();
-        } else {
-            pos += search.length();
-        }
-    }
-}
-
-bool TTSSpeaker::isSilentPunctuation(const char c) {
-    static std::string SilentPunctuation = "?!:;-()";
-    return (SilentPunctuation.find(c) != std::string::npos);
-}
-
-void TTSSpeaker::replaceSuccesivePunctuation(std::string& text) {
-    size_t pos = 0;
-    while(pos < text.length()) {
-        // Remove unwanted characters
-        static std::string stray = "\"";
-        if(stray.find(text[pos]) != std::string::npos) {
-            text.erase(pos,1);
-            if(++pos == text.length())
-                break;
-        }
-
-        if(ispunct(text[pos])) {
-            ++pos;
-            while(pos < text.length() && (isSilentPunctuation(text[pos]) || isspace(text[pos]))) {
-                if(isSilentPunctuation(text[pos]))
-                    text.erase(pos,1);
-                else
-                    ++pos;
-            }
-        } else {
-            ++pos;
-        }
-    }
-}
-
-void TTSSpeaker::curlSanitize(std::string &sanitizedString) {
-    CURL *curl = curl_easy_init();
-    if(curl) {
-      char *output = curl_easy_escape(curl, sanitizedString.c_str(), sanitizedString.size());
-      if(output) {
-          sanitizedString = output;
-          curl_free(output);
-      }
-    }
-    curl_easy_cleanup(curl);
-}
-
-void TTSSpeaker::sanitizeString(std::string &input, std::string &sanitizedString) {
-    sanitizedString = input;
-
-    replaceIfIsolated(sanitizedString, "$", "dollar");
-    replaceIfIsolated(sanitizedString, "#", "pound");
-    replaceIfIsolated(sanitizedString, "&", "and");
-    replaceIfIsolated(sanitizedString, "|", "bar");
-    replaceIfIsolated(sanitizedString, "/", "or");
-
-    replaceSuccesivePunctuation(sanitizedString);
-
-    curlSanitize(sanitizedString);
-
-    TTSLOG_VERBOSE("In:%s, Out:%s", input.c_str(), sanitizedString.c_str());
-}
-
 bool TTSSpeaker::needsPipelineUpdate() {
    return (m_pipelineConstructionFailures < m_maxPipelineConstructionFailures ? true : !m_queue.empty()) &&
        ((m_ensurePipeline && !m_pipeline) || (m_pipeline && !m_ensurePipeline));
@@ -818,34 +857,8 @@ std::string TTSSpeaker::constructURL(TTSConfiguration &config, SpeechData &d) {
 
     // EndPoint URL
     std::string tts_request;
-    if(d.secure)
-        tts_request.append(config.secureEndPoint());
-    else
-        tts_request.append(config.endPoint());
-
-    // Voice
-    if(!config.voice().empty()) {
-        tts_request.append("voice=");
-        tts_request.append(config.voice());
-    }
-
-    // Language
-    if(!config.language().empty()) {
-        tts_request.append("&language=");
-        tts_request.append(config.language());
-    }
-
-    // Rate / speed
-    tts_request.append("&rate=");
-    tts_request.append(std::to_string(config.rate() > 100 ? 100 : config.rate()));
-
-    // Sanitize String
-    std::string sanitizedString;
-    sanitizeString(d.text, sanitizedString);
-
-    tts_request.append("&text=");
-    tts_request.append(sanitizedString);
-
+    TTSURLConstructer url;
+    tts_request = url.constructURL(m_defaultConfig,d.text,false);
     TTSLOG_WARNING("Constructured final URL is %s", tts_request.c_str());
     return tts_request;
 }
@@ -861,10 +874,9 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
         // PCM Sink seems to be accepting volume change before PLAYING state
         g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
-#if defined(PLATFORM_AMLOGIC)
-        //-12db is almost 25%
-        setMixGain(MIXGAIN_PRIM,-12);
-#endif
+        #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+        setMixGain(MIXGAIN_PRIM,data.primVolDuck);
+        #endif
         TTSLOG_VERBOSE("Speaking.... ( %d, \"%s\")", data.id, data.text.c_str());
 
         //Wait for EOS with a timeout incase EOS never comes
@@ -948,11 +960,13 @@ void TTSSpeaker::GStreamerThreadFunc(void *ctx) {
         if(!speaker->m_flushed) {
             speaker->speakText(*data.client->configuration(), data);
         }
-#if defined(PLATFORM_AMLOGIC)
+
 	// when not speaking, set primary mixgain back to default.
-	if(speaker->m_flushed || speaker->m_networkError || !speaker->m_pipeline || speaker->m_pipelineError)
-	   speaker->setMixGain(MIXGAIN_PRIM,0);
-#endif
+	if(speaker->m_flushed || speaker->m_networkError || !speaker->m_pipeline || speaker->m_pipelineError) {
+           #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+	   speaker->setMixGain(MIXGAIN_PRIM,100);
+           #endif
+        }
         // Inform the client after speaking
         if(speaker->m_flushed)
             data.client->interrupted(data.id);
@@ -961,9 +975,9 @@ void TTSSpeaker::GStreamerThreadFunc(void *ctx) {
         else if(!speaker->m_pipeline || speaker->m_pipelineError)
             data.client->playbackerror(data.id);
         else {
-#if defined(PLATFORM_AMLOGIC)
-	    speaker->setMixGain(MIXGAIN_PRIM,0);
-#endif
+            #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+	    speaker->setMixGain(MIXGAIN_PRIM,100);
+            #endif
             data.client->spoke(data.id, data.text);
 	}
         speaker->setSpeakingState(false);
@@ -1050,10 +1064,10 @@ bool TTSSpeaker::handleMessage(GstMessage *message) {
                     if(m_clientSpeaking) {
                         if(m_isPaused) {
                             m_isPaused = false;
-#if defined(PLATFORM_AMLOGIC)
 			    // -12db is almost 25%
-			    setMixGain(MIXGAIN_PRIM,-12);
-#endif
+                            #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+                            setMixGain(MIXGAIN_PRIM,m_currentSpeech->primVolDuck);
+                            #endif
                             m_clientSpeaking->resumed(m_currentSpeech->id);
                             m_condition.notify_one();
                         } else {
@@ -1063,9 +1077,9 @@ bool TTSSpeaker::handleMessage(GstMessage *message) {
                 } else if (oldstate == GST_STATE_PLAYING && newstate == GST_STATE_PAUSED) {
                     std::lock_guard<std::mutex> lock(m_stateMutex);
                     if(m_clientSpeaking && m_isPaused) {
-#if defined(PLATFORM_AMLOGIC)
-			setMixGain(MIXGAIN_PRIM,0);
-#endif
+                        #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+			setMixGain(MIXGAIN_PRIM,100);
+                        #endif
                         m_clientSpeaking->paused(m_currentSpeech->id);
                         m_condition.notify_one();
                     }

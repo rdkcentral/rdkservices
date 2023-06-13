@@ -33,6 +33,7 @@ private:
   JWTFactory &operator=(const JWTFactory &) = delete;
   JWTFactory() {
     #ifndef ENABLE_SECAPI
+    WPEFramework::Crypto::Reseed();
     for (uint8_t index = 0; index < sizeof(_secretKey); index++) {
       WPEFramework::Crypto::Random(_secretKey[index]);
     }

@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 #include "libIBus.h"
 
 #include "ctrlm_ipc.h"
@@ -14,20 +12,7 @@ namespace WPEFramework {
 
     namespace Plugin {
 
-		// This is a server for a JSONRPC communication channel.
-		// For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
-		// By inheriting from this class, the plugin realizes the interface PluginHost::IDispatcher.
-		// This realization of this interface implements, by default, the following methods on this plugin
-		// - exists
-		// - register
-		// - unregister
-		// Any other method to be handled by this plugin  can be added can be added by using the
-		// templated methods Register on the PluginHost::JSONRPC class.
-		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
-		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
-		// will receive a JSONRPC message as a notification, in case this method is called.
-        // Note that most of the above is now inherited from the AbstractPlugin class.
-        class VoiceControl : public AbstractPlugin {
+        class VoiceControl : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
             // We do not allow this plugin to be copied !!
             VoiceControl(const VoiceControl&) = delete;
@@ -35,12 +20,17 @@ namespace WPEFramework {
 
             //Begin methods
             uint32_t getApiVersionNumber(const JsonObject& parameters, JsonObject& response);
+            void     sendNotify_(const char* eventName, JsonObject parameters);
 
             uint32_t voiceStatus(const JsonObject& parameters, JsonObject& response);
             uint32_t configureVoice(const JsonObject& parameters, JsonObject& response);
             uint32_t setVoiceInit(const JsonObject& parameters, JsonObject& response);
             uint32_t sendVoiceMessage(const JsonObject& parameters, JsonObject& response);
-            uint32_t voiceSessionByText(const JsonObject& parameters, JsonObject& response);
+            uint32_t voiceSessionByText(const JsonObject& parameters, JsonObject& response); // DEPRECATED
+            uint32_t voiceSessionTypes(const JsonObject& parameters, JsonObject& response);
+            uint32_t voiceSessionRequest(const JsonObject& parameters, JsonObject& response);
+            uint32_t voiceSessionTerminate(const JsonObject& parameters, JsonObject& response);
+            uint32_t voiceSessionAudioStreamStart(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             //Begin events
@@ -58,6 +48,13 @@ namespace WPEFramework {
             //IPlugin methods
             virtual const string Initialize(PluginHost::IShell* service) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
+
+            BEGIN_INTERFACE_MAP(VoiceControl)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
+
         private:
             void InitializeIARM();
             void DeinitializeIARM();
@@ -67,11 +64,13 @@ namespace WPEFramework {
 
             // Local utility methods
             void setApiVersionNumber(uint32_t apiVersionNumber);
+            void getMaskPii_();
         public:
             static VoiceControl* _instance;
         private:
             uint32_t m_apiVersionNumber;
-            bool m_hasOwnProcess;
+            bool     m_hasOwnProcess;
+            bool     m_maskPii;
         };
 	} // namespace Plugin
 } // namespace WPEFramework

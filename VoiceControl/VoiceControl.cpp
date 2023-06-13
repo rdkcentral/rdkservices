@@ -2,32 +2,55 @@
 #include "VoiceControl.h"
 #include "libIBusDaemon.h"
 #include <stdlib.h>
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 4
+#define API_VERSION_NUMBER_PATCH 0
 
 using namespace std;
 
 namespace WPEFramework {
 
+    namespace {
+
+        static Plugin::Metadata<Plugin::VoiceControl> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin {
 
-        SERVICE_REGISTRATION(VoiceControl, 1, 0);
+        SERVICE_REGISTRATION(VoiceControl, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         VoiceControl* VoiceControl::_instance = nullptr;
 
         VoiceControl::VoiceControl()
-            : AbstractPlugin()
+            : PluginHost::JSONRPC()
             , m_apiVersionNumber((uint32_t)-1)   /* default max uint32_t so everything gets enabled */
         {
             LOGINFO("ctor");
             VoiceControl::_instance = this;
 
-            registerMethod("getApiVersionNumber",   &VoiceControl::getApiVersionNumber, this);
+            Register("getApiVersionNumber",          &VoiceControl::getApiVersionNumber,          this);
 
-            registerMethod("voiceStatus",           &VoiceControl::voiceStatus,         this);
-            registerMethod("configureVoice",        &VoiceControl::configureVoice,      this);
-            registerMethod("setVoiceInit",          &VoiceControl::setVoiceInit,        this);
-            registerMethod("sendVoiceMessage",      &VoiceControl::sendVoiceMessage,    this);
-            registerMethod("voiceSessionByText",    &VoiceControl::voiceSessionByText,  this);
+            Register("voiceStatus",                  &VoiceControl::voiceStatus,                  this);
+            Register("configureVoice",               &VoiceControl::configureVoice,               this);
+            Register("setVoiceInit",                 &VoiceControl::setVoiceInit,                 this);
+            Register("sendVoiceMessage",             &VoiceControl::sendVoiceMessage,             this);
+            Register("voiceSessionByText",           &VoiceControl::voiceSessionByText,           this);
+            Register("voiceSessionTypes",            &VoiceControl::voiceSessionTypes,            this);
+            Register("voiceSessionRequest",          &VoiceControl::voiceSessionRequest,          this);
+            Register("voiceSessionTerminate",        &VoiceControl::voiceSessionTerminate,        this);
+            Register("voiceSessionAudioStreamStart", &VoiceControl::voiceSessionAudioStreamStart, this);
 
             setApiVersionNumber(1);
         }
@@ -40,6 +63,7 @@ namespace WPEFramework {
         const string VoiceControl::Initialize(PluginHost::IShell*  /* service */)
         {
             InitializeIARM();
+            getMaskPii_();
             // On success return empty, to indicate there is no error text.
             return (string());
         }
@@ -104,7 +128,7 @@ namespace WPEFramework {
 
                 if ((data == NULL) || (len <= sizeof(ctrlm_voice_iarm_event_json_t)))
                 {
-                    LOGERR("ERROR - got eventId(%u) with INVALID DATA: data: %p, len: %d.", (unsigned)eventId, data, len);
+                    LOGERR("ERROR - got eventId(%u) with INVALID DATA: data: %p, len: %zu.", (unsigned)eventId, data, len);
                     return;
                 }
 
@@ -157,14 +181,14 @@ namespace WPEFramework {
                         break;
 
                     default:
-                        LOGERR("ERROR - unexpected ControlMgr event: eventId: %u, data: %p, size: %d.",
+                        LOGERR("ERROR - unexpected ControlMgr event: eventId: %u, data: %p, size: %zu.",
                                (unsigned)eventId, data, len);
                         break;
                 }
             }
             else
             {
-                LOGERR("ERROR - unexpected event: owner %s, eventId: %u, data: %p, size: %d.",
+                LOGERR("ERROR - unexpected event: owner %s, eventId: %u, data: %p, size: %zu.",
                        owner, (unsigned)eventId, data, len);
             }
         }  // End iarmEventHandler()
@@ -175,6 +199,15 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             response["version"] = m_apiVersionNumber;
             returnResponse(true);
+        }
+
+        void VoiceControl::getMaskPii_()
+        {
+            JsonObject params;
+            JsonObject result;
+            voiceStatus(params, result);
+            m_maskPii = result["maskPii"].Boolean();
+            LOGINFO("Mask pii set to %s.", (m_maskPii ? "True" : "False"));
         }
 
         uint32_t VoiceControl::voiceStatus(const JsonObject& parameters, JsonObject& response)
@@ -422,7 +455,34 @@ namespace WPEFramework {
             returnResponse(bSuccess);
         }
 
-        uint32_t VoiceControl::voiceSessionByText(const JsonObject& parameters, JsonObject& response)
+        uint32_t VoiceControl::voiceSessionByText(const JsonObject& parameters, JsonObject& response) // DEPRECATED
+        {
+           // Translate the input parameters then call voiceSessionRequest
+           JsonObject parameters_translated;
+
+           if(!parameters.HasLabel("type")) {
+              parameters_translated["type"] = "ptt_transcription";
+           } else {
+              std::string str_type = parameters["type"].String();
+              transform(str_type.begin(), str_type.end(), str_type.begin(), ::tolower);
+              if(str_type == "ptt") {
+                 parameters_translated["type"] = "ptt_transcription";
+              } else if(str_type == "ff") {
+                 parameters_translated["type"] = "ff_transcription";
+              } else if(str_type == "mic") {
+                 parameters_translated["type"] = "mic_transcription";
+              } else {
+                 parameters_translated["type"] = "";
+              }
+           }
+           if(parameters.HasLabel("transcription")) {
+              parameters_translated["transcription"] = parameters["transcription"];
+           } // else voiceSessionRequest will return an error if transcription field is not present
+
+           return(voiceSessionRequest(parameters_translated, response));
+        }
+
+        uint32_t VoiceControl::voiceSessionTypes(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
 
@@ -454,10 +514,10 @@ namespace WPEFramework {
             if (bSuccess)
             {
                 // Make the IARM call to controlMgr to configure the voice settings
-                res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_CALL_SESSION_BY_TEXT, (void *)call, totalsize);
+                res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_CALL_SESSION_TYPES, (void *)call, totalsize);
                 if (res != IARM_RESULT_SUCCESS)
                 {
-                    LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_BY_TEXT Bus Call FAILED, res: %d.", (int)res);
+                    LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_TYPES Bus Call FAILED, res: %d.", (int)res);
                     bSuccess = false;
                 }
                 else
@@ -468,9 +528,192 @@ namespace WPEFramework {
                     bSuccess = result["success"].Boolean();
                     response = result;
                     if(bSuccess) {
-                        LOGINFO("SEND_VOICE_MESSAGE call SUCCESS!");
+                        LOGINFO("SESSION_TYPES call SUCCESS!");
                     } else {
-                        LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_BY_TEXT returned FAILURE!");
+                        LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_TYPES returned FAILURE!");
+                    }
+                }
+            }
+
+            if (call != NULL)
+            {
+                free(call);
+            }
+
+            returnResponse(bSuccess);
+        }
+
+        uint32_t VoiceControl::voiceSessionRequest(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            ctrlm_voice_iarm_call_json_t*   call = NULL;
+            IARM_Result_t                   res;
+            string                          jsonParams;
+            bool                            bSuccess = true;
+
+            // Just pass through the input parameters, without understanding or checking them.
+            parameters.ToString(jsonParams);
+
+            // We must allocate the memory for the call structure. Determine what we will need.
+            size_t totalsize = sizeof(ctrlm_voice_iarm_call_json_t) + jsonParams.size() + 1;
+            call = (ctrlm_voice_iarm_call_json_t*)calloc(1, totalsize);
+
+            if (call != NULL)
+            {
+                // Set the call structure members appropriately.
+                call->api_revision = CTRLM_VOICE_IARM_BUS_API_REVISION;
+                size_t len = jsonParams.copy(call->payload, jsonParams.size());
+                call->payload[len] = '\0';
+            }
+            else
+            {
+                LOGERR("ERROR - Cannot allocate IARM structure - size: %u.", (unsigned)totalsize);
+                bSuccess = false;
+            }
+
+            if (bSuccess)
+            {
+                // Make the IARM call to controlMgr to configure the voice settings
+                res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_CALL_SESSION_REQUEST, (void *)call, totalsize);
+                if (res != IARM_RESULT_SUCCESS)
+                {
+                    LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_REQUEST Bus Call FAILED, res: %d.", (int)res);
+                    bSuccess = false;
+                }
+                else
+                {
+                    JsonObject result;
+
+                    result.FromString(call->result);
+                    bSuccess = result["success"].Boolean();
+                    response = result;
+                    if(bSuccess) {
+                        LOGINFO("SESSION_REQUEST call SUCCESS!");
+                    } else {
+                        LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_REQUEST returned FAILURE!");
+                    }
+                }
+            }
+
+            if (call != NULL)
+            {
+                free(call);
+            }
+
+            returnResponse(bSuccess);
+        }
+
+        uint32_t VoiceControl::voiceSessionTerminate(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            ctrlm_voice_iarm_call_json_t*   call = NULL;
+            IARM_Result_t                   res;
+            string                          jsonParams;
+            bool                            bSuccess = true;
+
+            // Just pass through the input parameters, without understanding or checking them.
+            parameters.ToString(jsonParams);
+
+            // We must allocate the memory for the call structure. Determine what we will need.
+            size_t totalsize = sizeof(ctrlm_voice_iarm_call_json_t) + jsonParams.size() + 1;
+            call = (ctrlm_voice_iarm_call_json_t*)calloc(1, totalsize);
+
+            if (call != NULL)
+            {
+                // Set the call structure members appropriately.
+                call->api_revision = CTRLM_VOICE_IARM_BUS_API_REVISION;
+                size_t len = jsonParams.copy(call->payload, jsonParams.size());
+                call->payload[len] = '\0';
+            }
+            else
+            {
+                LOGERR("ERROR - Cannot allocate IARM structure - size: %u.", (unsigned)totalsize);
+                bSuccess = false;
+            }
+
+            if (bSuccess)
+            {
+                // Make the IARM call to controlMgr to configure the voice settings
+                res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_CALL_SESSION_TERMINATE, (void *)call, totalsize);
+                if (res != IARM_RESULT_SUCCESS)
+                {
+                    LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_TERMINATE Bus Call FAILED, res: %d.", (int)res);
+                    bSuccess = false;
+                }
+                else
+                {
+                    JsonObject result;
+
+                    result.FromString(call->result);
+                    bSuccess = result["success"].Boolean();
+                    response = result;
+                    if(bSuccess) {
+                        LOGINFO("SESSION_TERMINATE call SUCCESS!");
+                    } else {
+                        LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_TERMINATE returned FAILURE!");
+                    }
+                }
+            }
+
+            if (call != NULL)
+            {
+                free(call);
+            }
+
+            returnResponse(bSuccess);
+        }
+
+        uint32_t VoiceControl::voiceSessionAudioStreamStart(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            ctrlm_voice_iarm_call_json_t*   call = NULL;
+            IARM_Result_t                   res;
+            string                          jsonParams;
+            bool                            bSuccess = true;
+
+            // Just pass through the input parameters, without understanding or checking them.
+            parameters.ToString(jsonParams);
+
+            // We must allocate the memory for the call structure. Determine what we will need.
+            size_t totalsize = sizeof(ctrlm_voice_iarm_call_json_t) + jsonParams.size() + 1;
+            call = (ctrlm_voice_iarm_call_json_t*)calloc(1, totalsize);
+
+            if (call != NULL)
+            {
+                // Set the call structure members appropriately.
+                call->api_revision = CTRLM_VOICE_IARM_BUS_API_REVISION;
+                size_t len = jsonParams.copy(call->payload, jsonParams.size());
+                call->payload[len] = '\0';
+            }
+            else
+            {
+                LOGERR("ERROR - Cannot allocate IARM structure - size: %u.", (unsigned)totalsize);
+                bSuccess = false;
+            }
+
+            if (bSuccess)
+            {
+                // Make the IARM call to controlMgr to start the audio stream
+                res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_CALL_SESSION_AUDIO_STREAM_START, (void *)call, totalsize);
+                if (res != IARM_RESULT_SUCCESS)
+                {
+                    LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_AUDIO_STREAM_START Bus Call FAILED, res: %d.", (int)res);
+                    bSuccess = false;
+                }
+                else
+                {
+                    JsonObject result;
+
+                    result.FromString(call->result);
+                    bSuccess = result["success"].Boolean();
+                    response = result;
+                    if(bSuccess) {
+                        LOGINFO("SESSION_AUDIO_STREAM_START call SUCCESS!");
+                    } else {
+                        LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_AUDIO_STREAM_START returned FAILURE!");
                     }
                 }
             }
@@ -518,7 +761,7 @@ namespace WPEFramework {
 
             params.FromString(eventData->payload);
 
-            sendNotify("onServerMessage", params);
+            sendNotify_("onServerMessage", params);
         }
 
         void VoiceControl::onStreamEnd(ctrlm_voice_iarm_event_json_t* eventData)
@@ -536,7 +779,7 @@ namespace WPEFramework {
 
             params.FromString(eventData->payload);
 
-            sendNotify("onSessionEnd", params);
+            sendNotify_("onSessionEnd", params);
         }
         //End events
 
@@ -545,6 +788,18 @@ namespace WPEFramework {
         {
             LOGINFO("setting version: %d", (int)apiVersionNumber);
             m_apiVersionNumber = apiVersionNumber;
+        }
+
+        void VoiceControl::sendNotify_(const char* eventName, JsonObject parameters)
+        {
+            if(m_maskPii)
+            {
+                sendNotifyMaskParameters(eventName, parameters);
+            }
+            else
+            {
+                sendNotify(eventName, parameters);
+            }
         }
         //End local private utility methods
 

@@ -19,7 +19,7 @@
 
 #include "ActivityMonitor.h"
 
-#include "utils.h"
+#include "UtilsJsonRpc.h"
 
 
 #define ACTIVITY_MONITOR_METHOD_GET_APPLICATION_MEMORY_USAGE "getApplicationMemoryUsage"
@@ -38,11 +38,29 @@
 
 #define CALLSIGN_PARAMETER "-C"
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 2
+
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::ActivityMonitor> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(ActivityMonitor, 1, 0);
+        SERVICE_REGISTRATION(ActivityMonitor, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         ActivityMonitor* ActivityMonitor::_instance = nullptr;
 
@@ -114,16 +132,16 @@ namespace WPEFramework
 
 
         ActivityMonitor::ActivityMonitor()
-        : AbstractPlugin()
+        : PluginHost::JSONRPC()
         , m_monitorParams(NULL)
         , m_stopMonitoring(false)
         {
             ActivityMonitor::_instance = this;
 
-            registerMethod(ACTIVITY_MONITOR_METHOD_GET_APPLICATION_MEMORY_USAGE, &ActivityMonitor::getApplicationMemoryUsage, this);
-            registerMethod(ACTIVITY_MONITOR_METHOD_GET_ALL_MEMORY_USAGE, &ActivityMonitor::getAllMemoryUsage, this);
-            registerMethod(ACTIVITY_MONITOR_METHOD_ENABLE_MONITORING, &ActivityMonitor::enableMonitoring, this);
-            registerMethod(ACTIVITY_MONITOR_METHOD_DISABLE_MONITORING, &ActivityMonitor::disableMonitoring, this);
+            Register(ACTIVITY_MONITOR_METHOD_GET_APPLICATION_MEMORY_USAGE, &ActivityMonitor::getApplicationMemoryUsage, this);
+            Register(ACTIVITY_MONITOR_METHOD_GET_ALL_MEMORY_USAGE, &ActivityMonitor::getAllMemoryUsage, this);
+            Register(ACTIVITY_MONITOR_METHOD_ENABLE_MONITORING, &ActivityMonitor::enableMonitoring, this);
+            Register(ACTIVITY_MONITOR_METHOD_DISABLE_MONITORING, &ActivityMonitor::disableMonitoring, this);
         }
 
         ActivityMonitor::~ActivityMonitor()
@@ -287,7 +305,7 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
 
-            if (threadStop() == -1);
+            if (threadStop() == -1)
                 LOGWARN("Monitoring is already disabled");
 
             delete m_monitorParams;
@@ -380,7 +398,7 @@ namespace WPEFramework
                         LOGWARN("Unexpected variant type");
                 }
 
-                LOGINFO("Loaded registry, %d entries", registry.size());
+                LOGINFO("Loaded registry, %zu entries", registry.size());
             }
             else
                 LOGERR("Didn't find registry data");
@@ -390,12 +408,19 @@ namespace WPEFramework
         {
             FILE *f = fopen("/proc/stat", "r");
 
+            if (f == NULL)
+            {
+                LOGERR("Could not open file /proc/stat in read mode");
+                return 0;
+            }
+
             std::vector <char> buf;
             buf.resize(1024);
 
             if (NULL == fgets(buf.data(), buf.size(), f))
             {
                 LOGERR("Failed to read stat, buffer is too small");
+                fclose(f);
                 return 0;
             }
 
@@ -603,7 +628,7 @@ namespace WPEFramework
 
             buf.data()[buf.size() - 1] = 0;
 
-            int pos = 0;
+            unsigned int pos = 0;
             while (pos < buf.size())
             {
                 if (0 == strcmp(buf.data() + pos, CALLSIGN_PARAMETER))
@@ -668,6 +693,7 @@ namespace WPEFramework
                 ppids.push_back(ppid);
                 cpuUsage.push_back(cpuTicks);
             }
+            closedir(d);
 
             std::map <unsigned int, unsigned int> pidMap;
             for (unsigned int n = 0; n < pids.size(); n++)
@@ -693,7 +719,7 @@ namespace WPEFramework
                             lastIdx = idx;
                         }
                     }
-                    else if (ppids[idx] == getpid()) // if there is no waylandregistryreceiver.conf, monitoring the children of WPEFramework with "-C <callsign>" parameter
+                    else if (ppids[idx] == static_cast<unsigned int>(getpid())) // if there is no waylandregistryreceiver.conf, monitoring the children of WPEFramework with "-C <callsign>" parameter
                     {
                         if (pid2callSign.find(pids[idx]) == pid2callSign.end())
                         {

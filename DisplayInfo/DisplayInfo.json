@@ -1,32 +1,19 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "DisplayInfo API",
         "class": "DisplayInfo",
         "description": "The `DisplayInfo` plugin allows you to retrieve various display-related information"
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
         "length": {
             "summary": "The EDID length",
             "type": "integer",
             "example": 0
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods": {

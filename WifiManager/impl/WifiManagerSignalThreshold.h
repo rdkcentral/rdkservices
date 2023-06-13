@@ -21,7 +21,6 @@
 
 #include "../Module.h"
 #include "../WifiManagerDefines.h"
-#include "../WifiManagerInterface.h"
 
 #include <atomic>
 #include <condition_variable>
@@ -41,7 +40,7 @@ namespace WPEFramework {
             // As the onWifiSignalTresholdChanged event is signalled periodically,
             // it has to be handled with an additional thread.
         public:
-            WifiManagerSignalThreshold(WifiManagerInterface &wifiManager);
+            WifiManagerSignalThreshold();
             virtual ~WifiManagerSignalThreshold();
             WifiManagerSignalThreshold(const WifiManagerSignalThreshold&) = delete;
             WifiManagerSignalThreshold& operator=(const WifiManagerSignalThreshold&) = delete;
@@ -49,6 +48,7 @@ namespace WPEFramework {
             uint32_t setSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response);
             void setSignalThresholdChangeEnabled(bool enable);
             uint32_t isSignalThresholdChangeEnabled(const JsonObject& parameters, JsonObject& response) const;
+            void stopSignalThresholdThread();
 
         private:
             void setSignalThresholdChangeEnabled(bool enabled, int interval);
@@ -63,7 +63,6 @@ namespace WPEFramework {
             std::atomic<bool> changeEnabled;
             std::mutex cv_mutex;
             std::condition_variable cv;
-            WifiManagerInterface &wifiManager;
             bool running;
         };
     }

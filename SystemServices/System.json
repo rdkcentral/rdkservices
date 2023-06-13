@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "System API", 
         "class": "SystemServices",
         "description": "The `System` plugin is used to manage various system-level features such as power settings and firmware updates."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "key": {
@@ -96,6 +99,60 @@
             "type": "string",
             "example": "ON"
         },
+        "wakeupSources": {
+            "summary": "Array of Key value pair with wake up sources and its configurations",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "WAKEUPSRC_VOICE": {
+                        "description": "Voice Wake up",
+                        "type":"boolean",
+                        "example": true
+                    },
+                        "WAKEUPSRC_PRESENCE_DETECTION": {
+                        "description": "Presense detection wake up",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "WAKEUPSRC_BLUETOOTH": {
+                        "description": "Bluetooth Wakeup",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "WAKEUPSRC_WIFI": {
+                        "description": "WiFi Wake up",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "WAKEUPSRC_IR": {
+                        "description": "IR Remote Wake up",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "WAKEUPSRC_POWER_KEY": {
+                        "description": "Power Button Wake up - GPIO",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "WAKEUPSRC_CEC": {
+                        "description": "HDMI CEC commadn Wake up",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "WAKEUPSRC_LAN": {
+                        "description": "LAN wake up",
+                        "type":"boolean",
+                        "example": true
+                    },
+                    "WAKEUPSRC_TIMER": {
+                        "description": "TImer Wake up",
+                        "type":"boolean",
+                        "example": true
+                    }
+                }
+            }
+        },
         "preferredStandbyMode": {
             "summary": "The standby mode",
             "enum": [
@@ -119,6 +176,16 @@
             "summary": "The timezone",
             "type": "string",
             "example": "America/New_York"
+        },
+        "timeZoneAccuracy": {
+            "summary": "The timezone accuracy",
+            "enum": [
+                "INITIAL",
+                "INTERIM",
+                "FINAL"
+            ],
+            "type": "string",
+            "example": "INITIAL"
         },
         "seconds": {
             "summary": "The deep sleep timeout in seconds",
@@ -268,26 +335,22 @@
             "type": "string",
             "example": "600"
         },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        }
+        "territory":{
+		    "summary":"territory name",
+		    "type": "string",
+		    "example":"USA"
+	    },
+        "region":{
+		    "summary":"region name",
+		    "type":"string",
+		    "example":"US-NY"
+	    }
     },
     "methods": {
         "cacheContains": {
-            "summary": "Checks if a key is present in the cache.\n \n### Events\n \n No Events.",
+            "deprecated" : true,
+            "referenceUrl" : " https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=getvalue",
+            "summary": "Checks if a key is present in the cache.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -300,17 +363,41 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "clearLastDeepSleepReason":{
-            "summary": "Clears the last deep sleep reason.\n \n### Events\n \n No Events.",
+            "summary": "Clears the last deep sleep reason.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
+            }
+        },
+        "deletePersistentPath": {
+            "summary": "Deletes persistent path associated with a callsign.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "callsign": {
+                        "description": "Callsign of the service to delete persistent path",
+                        "type": "string",
+                        "example": "HtmlApp"
+                    },
+                    "type": {
+                        "description": "The type of execution environment. (can be used instead of callsign)",
+                        "type": "string",
+                        "example": "HtmlApp"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
             }
         },
         "enableMoca":{
-            "summary": "Enables (or disables) Moca support for the platform.\n \n### Events\n \n No Events.",
+            "summary": "Enables (or disables) Moca support for the platform.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -325,11 +412,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "enableXREConnectionRetention":{
-            "summary": "Enables (or disables) XRE Connection Retention option.\n \n### Events\n \n No Events.",
+            "summary": "Enables (or disables) XRE Connection Retention option.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -344,20 +431,20 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "fireFirmwarePendingReboot":{
-            "summary": "(Version 2) Notifies the device about a pending reboot.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onFirmwarePendingReboot` | Triggers when the firmware has a pending reboot |",
-            "events": [
-                "onFirmwarePendingReboot"
-            ],
+            "summary": "Notifies the device about a pending reboot.",
+            "events": {
+                "onFirmwarePendingReboot" : "Triggers when the firmware has a pending reboot"
+            },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getAvailableStandbyModes": {
-            "summary": "Queries the available standby modes.\n \n### Events\n \n No Events.",
+            "summary": "Queries the available standby modes.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -370,7 +457,7 @@
                         }
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -380,7 +467,9 @@
             }
         },
         "getCachedValue":{
-            "summary": "Gets the value of a key in the cache.\n \n### Events\n \n No Events.",
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=getvalue",
+            "summary": "Gets the value of a key in the cache.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -401,7 +490,7 @@
                         "example": "4343.3434"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -411,7 +500,7 @@
             }
         },
         "getCoreTemperature":{
-            "summary": "Returns the core temperature of the device. Not supported on all devices.\n \n### Events\n \n No Events.",
+            "summary": "Returns the core temperature of the device. Not supported on all devices.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -419,7 +508,7 @@
                         "$ref": "#/definitions/temperature"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -429,7 +518,7 @@
             }
         },
         "getDeviceInfo":{
-            "summary": "Collects device details. Sample keys include:  \n* bluetooth_mac  \n* boxIP  \n* build_type  \n* estb_mac  \n* imageVersion  \n* rf4ce_mac  \n* wifi_mac.\n \n### Events\n \n No Events.",
+            "summary": "Collects device details. Sample keys include:  \n* bluetooth_mac  \n* boxIP  \n* build_type  \n* estb_mac  \n* imageVersion  \n* rf4ce_mac  \n* wifi_mac.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -455,7 +544,7 @@
                         "example": "20:F1:9E:EE:62:08"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -464,28 +553,8 @@
                 ]
             }
         },
-        "getMfgSerialNumber": {
-            "summary": "Gets the Manufacturing Serial Number.\n \n### Events\n \n No Events.",
-            "result": {
-                "type": "object",
-                "properties": {
-                    "mfgSerialNumber": {
-                        "summary": "Manufacturing Serial Number",
-                        "type": "string",
-                        "example": "F00020CE000003"
-                    },
-                    "success":{
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "mfgSerialNumber",
-                    "success"
-                ]
-            }
-        },
         "getDownloadedFirmwareInfo":{
-            "summary": "Returns information about firmware downloads.\n \n### Events\n \n No Events.",
+            "summary": "Returns information about firmware downloads.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -510,7 +579,7 @@
                         "example": false
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -523,7 +592,7 @@
             }
         },
         "getFirmwareDownloadPercent": {
-            "summary": "Gets the current download percentage.\n \n### Events\n \n No Events.",
+            "summary": "Gets the current download percentage.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -533,7 +602,7 @@
                         "example": 25
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -543,10 +612,10 @@
             }
         },
         "getFirmwareUpdateInfo":{
-            "summary": "Checks the firmware update information.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onFirmwareUpdateInfoReceived` | Triggers when the firmware update information is requested |",
-            "events": [
-                "onFirmwareUpdateInfoReceived"
-            ],
+            "summary": "Checks the firmware update information.",
+            "events": {
+                "onFirmwareUpdateInfoReceived" : "Triggers when the firmware update information is requested"
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -563,7 +632,7 @@
                         "$ref": "#/definitions/asyncResponse"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -573,7 +642,7 @@
             }
         },
         "getFirmwareUpdateState":{
-            "summary": "Checks the state of the firmware update.\n \n### Events\n \n No Events.",
+            "summary": "Checks the state of the firmware update.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -581,7 +650,7 @@
                         "$ref": "#/definitions/firmwareUpdateState"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -591,7 +660,7 @@
             }
         },
         "getLastDeepSleepReason":{
-            "summary": "Retrieves the last deep sleep reason.\n \n### Events\n \n No Events.",
+            "summary": "Retrieves the last deep sleep reason.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -601,7 +670,7 @@
                         "example": "thermal_deepsleep_critical_threshold"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -611,7 +680,7 @@
             }
         },
         "getLastFirmwareFailureReason": {
-            "summary": "(Version 2) Retrieves the last firmware failure reason.\n \n### Events\n \n No Events.",
+            "summary": "Retrieves the last firmware failure reason.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -621,7 +690,7 @@
                         "example": "Image Download Failed - Unable to connect"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -631,7 +700,7 @@
             }
         },
         "getLastWakeupKeyCode":{
-            "summary": "(Version 2) Returns the last wakeup keycode.\n \n### Events\n \n No Events.",
+            "summary": "Returns the last wakeup keycode.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -641,7 +710,7 @@
                         "example": "59"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -651,10 +720,10 @@
             }
         },
         "getMacAddresses":{
-            "summary": "Gets the MAC address of the device.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onMacAddressesRetreived` | Triggers when the MAC addresses are requested |",
-            "events": [
-                "onMacAddressesRetreived"
-            ],
+            "summary": "Gets the MAC address of the device.",
+            "events": {
+                "onMacAddressesRetreived" : "Triggers when the MAC addresses are requested"
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -671,7 +740,7 @@
                         "$ref": "#/definitions/asyncResponse"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -680,8 +749,30 @@
                 ]
             }
         },
+        "getMfgSerialNumber": {
+            "summary": "Gets the Manufacturing Serial Number.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "mfgSerialNumber": {
+                        "summary": "Manufacturing Serial Number",
+                        "type": "string",
+                        "example": "F00020CE000003"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "mfgSerialNumber",
+                    "success"
+                ]
+            }
+        },
         "getMilestones": {
-            "summary": "Returns the list of milestones.\n \n### Events\n \n No Events.",
+	        "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/DeviceDiagnosticsPlugin?id=getmilestones",
+            "summary": "Returns the list of milestones.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -694,7 +785,7 @@
                         }
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -704,7 +795,7 @@
             }
         },
         "getMode":{
-            "summary": "Returns the currently set mode information.\n \n### Events\n \n No Events.",
+            "summary": "Returns the currently set mode information.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -712,7 +803,7 @@
                         "$ref": "#/definitions/modeInfo"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -722,7 +813,7 @@
             }
         },
         "getNetworkStandbyMode": {
-            "summary": "Returns the network standby mode of the device. If network standby is `true`, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.\n \n### Events\n \n No Events.",
+            "summary": "Returns the network standby mode of the device. If network standby is `true`, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -730,7 +821,7 @@
                         "$ref": "#/definitions/nwStandby"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -740,7 +831,7 @@
             }
         },
         "getOvertempGraceInterval": {
-            "summary": "Returns the over-temperature grace interval value. Not supported on all devices.\n \n### Events\n \n No Events.",
+            "summary": "Returns the over-temperature grace interval value. Not supported on all devices.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -748,7 +839,7 @@
                         "$ref": "#/definitions/graceInterval"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -757,8 +848,37 @@
                 ]
             }
         },
+        "getPlatformConfiguration": {
+            "summary": "Returns the supported features and device/account info.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "description": "Query for support of a particular feature, e.g. AccountInfo.accountId",
+                        "type": "string"
+                    }
+                }
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "AccountInfo": {
+                        "$ref": "#/definitions/accountInfo"
+                    },
+                    "DeviceInfo": {
+                        "$ref": "#/definitions/deviceInfo"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
         "getPowerState":{
-            "summary": "Returns the power state of the device.\n \n### Events\n \n No Events.",
+            "summary": "Returns the power state of the device.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -766,7 +886,7 @@
                         "$ref": "#/definitions/powerState"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -776,7 +896,7 @@
             }
         },
         "getPowerStateBeforeReboot":{
-            "summary": "Returns the power state before reboot.\n \n### Events\n \n No Events.",
+            "summary": "Returns the power state before reboot.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -786,7 +906,7 @@
                         "example": "ON"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -796,7 +916,7 @@
             }
         },
         "getPowerStateIsManagedByDevice": {
-            "summary": "Checks whether the power state is managed by the device.\n \n### Events\n \n No Events.",
+            "summary": "Checks whether the power state is managed by the device.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -806,7 +926,7 @@
                         "example": false
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -816,7 +936,7 @@
             }
         },
         "getPreferredStandbyMode":{
-            "summary": "Returns the preferred standby mode. This method returns an empty string if the preferred mode has not been set.\n \n### Events\n \n No Events.",
+            "summary": "Returns the preferred standby mode. This method returns an empty string if the preferred mode has not been set.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -824,7 +944,7 @@
                         "$ref": "#/definitions/preferredStandbyMode"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -834,7 +954,7 @@
             }
         },
         "getPreviousRebootInfo":{
-            "summary": "Returns basic information about a reboot.\n \n### Events\n \n No Events.",
+            "summary": "Returns basic information about a reboot.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -862,7 +982,7 @@
                         "example": "API Validation"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -876,7 +996,7 @@
             }
         },
         "getPreviousRebootInfo2":{
-            "summary": "Returns detailed information about a reboot.\n \n### Events\n \n No Events.",
+            "summary": "Returns detailed information about a reboot.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -912,7 +1032,7 @@
                         ]
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -922,7 +1042,7 @@
             }
         },
         "getPreviousRebootReason":{
-            "summary": "Returns the last reboot reason.\n \n### Events\n \n No Events.",
+            "summary": "Returns the last reboot reason.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -930,7 +1050,7 @@
                         "$ref": "#/definitions/reason"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -940,7 +1060,7 @@
             }
         },
         "getRFCConfig":{
-            "summary": "Returns information that is related to RDK Feature Control (RFC) configurations.\n \n### Events\n \n No Events.",
+            "summary": "Returns information that is related to RDK Feature Control (RFC) configurations.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -974,7 +1094,7 @@
                         ]
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -984,7 +1104,7 @@
             }
         },
         "getSerialNumber":{
-            "summary": "Returns the device serial number.\n \n### Events\n \n No Events.",
+            "summary": "Returns the device serial number.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -994,7 +1114,7 @@
                         "example": "M11806TK0024"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1004,7 +1124,7 @@
             }
         },
         "getStateInfo":{
-            "summary": "Queries device state information of various properties.\n \n### Events\n \n No Events.",
+            "summary": "Queries device state information of various properties.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -1027,7 +1147,7 @@
                         "example": 2
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1036,7 +1156,7 @@
             }
         },
         "getStoreDemoLink":{
-            "summary": "(Version 2) Returns the store demo video link.\n \n### Events\n \n No Events.",
+            "summary": "Returns the store demo video link.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1046,7 +1166,7 @@
                         "example": "http://127.0.0.1:50050/store-mode-video/videoFile.mp4"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1055,7 +1175,7 @@
             }
         },
         "getSystemVersions":{
-            "summary": "Returns system version details.\n \n### Events\n \n No Events.",
+            "summary": "Returns system version details.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1075,7 +1195,7 @@
                         "example": "Thu 09 Jan 2020 04:04:24 AP UTC"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1087,7 +1207,7 @@
             }
         },
         "getTemperatureThresholds":{
-            "summary": "Returns temperature threshold values. Not supported on all devices.\n \n### Events\n \n No Events.",
+            "summary": "Returns temperature threshold values. Not supported on all devices.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1111,7 +1231,7 @@
                         ]
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1120,26 +1240,30 @@
                 ]
             }
         },
-        "getTimeZoneDST":{
-            "summary": "Get the configured time zone from the file referenced by `TZ_FILE`. If the time zone is not set, then `null` is returned.\n \n### Events\n \n No Events.",
-            "result": {
-                "type": "object",
+        "getTerritory":{
+            "summary": "Gets the configured system territory and region. Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).",
+            "result":{
+                "type" : "object",
                 "properties": {
-                    "timeZone": {
-                        "$ref": "#/definitions/timeZone"
+                    "territory":{
+                        "$ref":"#/definitions/territory"
+                    },
+                    "region":{
+                        "$ref":"#/definitions/region"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
-                    }
+                            "$ref": "#/common/success"
+                        }
                 },
                 "required": [
-                    "timeZone",
+                    "territory",
+                    "region",
                     "success"
                 ]
-            }
+            }		
         },
         "getTimeZones":{
-            "summary": "(Version2) Gets the available timezones from the system's time zone database. This method is useful for determining time offsets per zone.\n \n### Events\n \n No Events.",
+            "summary": "(Version2) Gets the available timezones from the system's time zone database. This method is useful for determining time offsets per zone.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1176,12 +1300,10 @@
                                 ]
                             }
                         },
-                        "required": [
-                            ""
-                        ]
+                        "required": []
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1190,8 +1312,30 @@
                 ]
             }
         },
+        "getTimeZoneDST":{
+            "summary": "Get the configured time zone from the file referenced by `TZ_FILE`. If the time zone is not set, then `null` is returned.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "timeZone": {
+                        "$ref": "#/definitions/timeZone"
+                    },
+                    "accuracy": {
+                        "$ref": "#/definitions/timeZoneAccuracy"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "timeZone",
+                    "accuracy",
+                    "success"
+                ]
+            }
+        },
         "getWakeupReason":{
-            "summary": "(Version 2) Returns the reason for the device coming out of deep sleep.\n \n### Events\n \n No Events.",
+            "summary": "Returns the reason for the device coming out of deep sleep.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1221,7 +1365,7 @@
                         "example": "WAKEUP_REASON_VOICE"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1231,7 +1375,7 @@
             }
         },
         "getXconfParams":{
-            "summary": "Returns XCONF configuration parameters for the device.\n \n### Events\n \n No Events.",
+            "summary": "Returns XCONF configuration parameters for the device.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1268,7 +1412,7 @@
                         ]
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1278,7 +1422,7 @@
             }
         },
         "hasRebootBeenRequested":{
-            "summary": "Checks whether a reboot has been requested.\n \n### Events\n \n No Events.",
+            "summary": "Checks whether a reboot has been requested.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1288,7 +1432,7 @@
                         "example": false
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1298,7 +1442,8 @@
             }
         },
         "isGzEnabled":{
-            "summary": "Checks whether GZ is enabled.\n \n### Events\n \n No Events.",
+	    "deprecated" : true,
+            "summary": "Checks whether GZ is enabled.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1306,7 +1451,7 @@
                         "$ref": "#/definitions/enabled"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1316,7 +1461,7 @@
             }
         },
         "isOptOutTelemetry": {
-            "summary": "Checks the telemetry opt-out status.\n \n### Events\n \n No Events.",
+            "summary": "Checks the telemetry opt-out status.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1324,7 +1469,7 @@
                         "$ref": "#/definitions/Opt-Out"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1335,7 +1480,7 @@
 
         },
         "queryMocaStatus":{
-            "summary": "Checks whether MOCA is enabled.\n \n### Events\n \n No Events.",
+            "summary": "Checks whether MOCA is enabled.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1345,7 +1490,7 @@
                         "example": true
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1355,10 +1500,10 @@
             }
         },
         "reboot":{
-            "summary": "Requests that the system performs a reboot of the set-top box.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onRebootRequest` | Triggers when a device reboot request is made |",
-            "events": [
-                "onRebootRequest"
-            ],
+            "summary": "Requests that the system performs a reboot of the set-top box.",
+            "events": {
+                "onRebootRequest" : "Triggers when a device reboot request is made"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -1379,7 +1524,7 @@
                         "example": 0
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1389,7 +1534,9 @@
             }
         },
         "removeCacheKey":{
-            "summary": "Removes the cache key.\n \n### Events\n \n No Events.",
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=deletekey",
+            "summary": "Removes the cache key.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1402,11 +1549,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "requestSystemUptime":{
-            "summary": "Returns the device uptime.\n \n### Events\n \n No Events.",
+            "summary": "Returns the device uptime.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1416,7 +1563,7 @@
                         "example": "1655.92"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1425,8 +1572,27 @@
                 ]
             }
         },
+        "setBootLoaderPattern":{
+            "summary": "Sets the boot loader pattern mode in MFR.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "pattern": {
+                        "$ref": "#/definitions/pattern"
+                    }
+                },
+                "required": [
+                    "pattern"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "setCachedValue": {
-            "summary": "Sets the value for a key in the cache.\n \n### Events\n \n No Events.",
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=setvalue",
+            "summary": "Sets the value for a key in the cache.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1445,11 +1611,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setDeepSleepTimer": {
-            "summary": "Sets the deep sleep timeout period.\n \n### Events\n \n No Events.",
+            "summary": "Sets the deep sleep timeout period.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1462,11 +1628,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setFirmwareAutoReboot": {
-            "summary": "(Version 2) Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.\n \n### Events\n \n No Events.",
+            "summary": "Enables or disables the AutoReboot Feature. This method internally sets the tr181 `AutoReboot.Enable` parameter to `true` or `false`.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1481,11 +1647,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setFirmwareRebootDelay": {
-            "summary": "(Version 2) Delays the firmware reboot.\n \n### Events\n \n No Events.",
+            "summary": "Delays the firmware reboot.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1500,11 +1666,12 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setGzEnabled": {
-            "summary": "Enables or disables GZ.\n \n### Events\n \n No Events.",
+            "deprecated" : true,
+            "summary": "Enables or disables GZ.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1517,14 +1684,14 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setMode":{
-            "summary": "Sets the mode of the set-top box for a specific duration before returning to normal mode. Valid modes are:  \n* `NORMAL` - The set-top box is operating in normal mode.  \n* `EAS` - The set-top box is operating in Emergency Alert System (EAS) mode. This mode is set when the device needs to perform certain tasks when entering EAS mode, such as setting the clock display or preventing the user from using the diagnostics menu.  \n* `WAREHOUSE` - The set-top box is operating in warehouse mode.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onSystemModeChanged` | Triggers when the system mode is changed successfully |",
-            "events": [
-                "onSystemModeChanged"
-            ],
+            "summary": "Sets the mode of the set-top box for a specific duration before returning to normal mode. Valid modes are:  \n* `NORMAL` - The set-top box is operating in normal mode.  \n* `EAS` - The set-top box is operating in Emergency Alert System (EAS) mode. This mode is set when the device needs to perform certain tasks when entering EAS mode, such as setting the clock display or preventing the user from using the diagnostics menu.  \n* `WAREHOUSE` - The set-top box is operating in warehouse mode.",
+            "events": {
+                "onSystemModeChanged" : "Triggers when the system mode is changed successfully"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -1537,11 +1704,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }            
         },
         "setNetworkStandbyMode":{
-            "summary": "Enables or disables the network standby mode of the device. If network standby is enabled, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.\n \n### Events\n \n No Events.",
+            "summary": "This API will be deprecated in the future. Please refer setWakeupSrcConfiguration to Migrate. This API Enables or disables the network standby mode of the device. If network standby is enabled, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1554,28 +1721,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "setBootLoaderPattern":{
-            "summary": "Sets the boot loader pattern mode in MFR \n### Events\n \n No Events.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "pattern": {
-                        "$ref": "#/definitions/pattern"
-                    }
-                },
-                "required": [
-                    "pattern"
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setOptOutTelemetry": {
-            "summary": "Sets the telemetry opt-out status.\n \n### Events\n \n No Events.",
+            "summary": "Sets the telemetry opt-out status.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1588,11 +1738,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setOvertempGraceInterval":{
-            "summary": "Sets the over-temperature grace interval value. Not supported on all devices.\n \n### Events\n \n No Events.",
+            "summary": "Sets the over-temperature grace interval value. Not supported on all devices.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -1605,14 +1755,14 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setPowerState":{
-            "summary": "Sets the power state of the device.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onSystemPowerStateChanged` | Triggers when the system power state changes |",
-            "events": [
-                "onSystemPowerStateChanged" 
-            ],
+            "summary": "Sets the power state of the device.",
+            "events": {
+                "onSystemPowerStateChanged" : "Triggers when the system power state changes"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -1631,11 +1781,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setPreferredStandbyMode":{
-            "summary": "Sets and persists the preferred standby mode (see `getAvailableStandbyModes` for valid modes). Invoking this function does not change the power state of the device. It only sets the user preference for the preferred action when the `setPowerState` method is invoked with a value of `STANDBY`.\n \n### Events\n \n No Events.",
+            "summary": "Sets and persists the preferred standby mode. See [getAvailableStandbyModes](#getAvailableStandbyModes) for valid modes. Invoking this function does not change the power state of the device. It only sets the user preference for the preferred action when the [setPowerState](#setPowerState) method is invoked with a value of `STANDBY`.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1648,11 +1798,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setTemperatureThresholds":{
-            "summary": "Sets the temperature threshold values. Not supported on all devices.\n \n### Events\n \n No Events.",
+            "summary": "Sets the temperature threshold values. Not supported on all devices.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -1677,16 +1827,45 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
+            }
+        },
+        "setTerritory":{
+            "summary": "Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).",
+			"events":{
+                "onTerritoryChanged": "Triggered when territory is set"
+            },
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "territory":{
+                        "$ref":"#/definitions/territory"
+                    },
+                    "region":{
+                        "$ref":"#/definitions/region"
+                    }
+                },
+                "required": [
+                    "territory"
+                ]
+            },
+            "result":{
+                "$ref": "#/common/result"
             }
         },
         "setTimeZoneDST":{
-            "summary": "Sets the system time zone. See `getTimeZones` to get a list of available timezones on the system.\n \n### Events\n \n No Events.",
+            "summary": "Sets the system time zone. See `getTimeZones` to get a list of available timezones on the system.",
+			"events":{
+                "onTimeZoneDSTChanged": "Triggered when device time zone changed"
+            },
             "params": {
                 "type":"object",
                 "properties": {
                     "timeZone": {
                         "$ref": "#/definitions/timeZone"
+                    },
+                    "accuracy": {
+                        "$ref": "#/definitions/timeZoneAccuracy"
                     }
                 },
                 "required": [
@@ -1694,66 +1873,59 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
-        "setWakeupSrcConfiguration": {
-            "summary": "Sets the wakeup source configuration.\n \n### Events\n \n No Events.",
+        "setWakeupSrcConfiguration":{
+            "summary": "Sets the wakeup source configuration for the input powerState. if you are using setNetworkStandbyMode API, Please do not use this API to set LAN and WIFI wakeup. Please migrate to setWakeupSrcConfiguration API to control all wakeup source settings. This API does not persist. Please call this API on Every bootup to set the values.",
             "params": {
-                "type":"object",
+                "type": "object",
                 "properties": {
-                    "wakeupSrc": {
-                        "summary": "The wakeup source",
-                        "type": "string",
-                        "example": "3"
+                    "powerState": {
+                        "$ref": "#/definitions/powerState"
                     },
-                    "config": {
-                        "summary": "The source configuration",
-                        "type": "string",
-                        "example": "1"
+                    "wakeupSources": {
+                        "$ref": "#/definitions/wakeupSources"
                     }
                 },
                 "required": [
-                    "wakeupSrc",
-                    "config"
+                    "wakeupSources"
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
+            }
+        },
+        "getWakeupSrcConfiguration":{
+            "summary": "Returns all the supported wakeup configurations and powerState",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "powerState": {
+                        "$ref": "#/definitions/powerState"
+                    },
+                    "wakeupSources": {
+                        "$ref": "#/definitions/wakeupSources"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "powerState",
+                    "wakeupSources",
+                    "success"
+                ]
             }
         },
         "updateFirmware":{
-            "summary": "Initiates a firmware update. This method has no affect if an update is not available.\n \n### Events\n \n No Events.",
+            "summary": "Initiates a firmware update. This method has no affect if an update is not available.",
             "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "deletePersistentPath": {
-            "summary": "(Version 2) Deletes persistent path associated with a callsign.\n \n### Events\n \n No Events.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "callsign": {
-                        "description": "Callsign of the service to delete persistent path",
-                        "type": "string",
-                        "example": "HtmlApp"
-                    },
-                    "type": {
-                        "description": "The type of execution environment. (can be used instead of callsign)",
-                        "type": "string",
-                        "example": "HtmlApp"
-                    }
-                },
-                "required": [
-                    ""
-                ]
-            },
-            "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "uploadLogs": {
-            "summary": "(Version 2) Uploads logs to a URL returned by SSR.\n \n### Events\n \n No Events.",
+            "summary": "Uploads logs to a URL returned by SSR.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -1767,42 +1939,31 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
-        "getPlatformConfiguration": {
-            "summary": "(Version 2) Returns the supported features and device/account info.\n \n### Events\n \n No Events.",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "description": "Query for support of a particular feature, e.g. AccountInfo.accountId",
-                        "type": "string"
-                    }
-                }
+        "uploadLogsAsync": {
+            "summary": "Starts background process to upload logs",
+            "events": {
+                "onLogUpload" : "Triggered when logs upload process is done"
             },
             "result": {
-                "type": "object",
-                "properties": {
-                    "AccountInfo": {
-                        "$ref": "#/definitions/accountInfo"
-                    },
-                    "DeviceInfo": {
-                        "$ref": "#/definitions/deviceInfo"
-                    },
-                    "success": {
-                        "$ref": "#/definitions/success"
-                    }
-                },
-                "required": [
-                    "success"
-                ]
+                "$ref": "#/common/result"
+            }
+        },
+        "abortLogUpload": {
+            "summary": "Stops background process to upload logs",
+            "events": {
+                "onLogUpload" : "Triggered when logs upload process is stopped"
+            },
+            "result": {
+                "$ref": "#/common/result"
             }
         }
     },
     "events": {
         "onFirmwarePendingReboot":{
-            "summary": "(Version 2) Triggered when the `fireFirmwarePendingReboot` method is invoked",
+            "summary": "Triggered when the `fireFirmwarePendingReboot` method is invoked",
             "params": {
                 "type" :"object",
                 "properties": {
@@ -1810,7 +1971,7 @@
                         "$ref": "#/definitions/seconds"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1861,7 +2022,7 @@
                         "example": 0
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1934,7 +2095,7 @@
                         "example": "Details fetch: all are not success"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -1948,6 +2109,22 @@
                     "success"
                 ]
             }            
+        },
+        "onNetworkStandbyModeChanged":{
+            "summary": "Triggered when the network standby mode setting changes",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "nwStandby": {
+                        "summary": "Network standby mode",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "nwStandby"
+                ]
+            }
         },
         "onRebootRequest":{
             "summary": "Triggered when an application invokes the reboot method",
@@ -2004,22 +2181,6 @@
                 ]
             }
         },
-        "onNetworkStandbyModeChanged":{
-            "summary": "Triggered when the network standby mode setting changed",
-            "params": {
-                "type" :"object",
-                "properties": {
-                    "nwStandby": {
-                        "summary": "Network standby mode",
-                        "type": "boolean",
-                        "example": true
-                    }
-                },
-                "required": [
-                    "nwStandby",
-                ]
-            }
-        },
         "onTemperatureThresholdChanged":{
             "summary": "Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`). Not supported on all devices.",
             "params": {
@@ -2047,6 +2208,95 @@
                     "thresholdType",
                     "exceeded",
                     "temperature"
+                ]
+            }
+        },
+		"onTerritoryChanged":{
+            "summary": "Triggered when the device territory changed",
+            "params": {
+                "type" :"object",
+                "properties": {
+                "oldTerritory": {
+                        "summary": " old territory",
+                        "type": "string",
+                        "example":"GBR"
+                },
+                "newTerritory":{
+                    "summary": " new territory",
+                    "type": "string",
+                    "example": "USA"
+                },
+                "oldRegion":{
+                    "summary": "old region",
+                    "type":"string",
+                    "example": "GB-ENG"
+                },
+                "newRegion":{
+                    "summary": "new region",
+                    "type":"string",
+                    "example": "US-NY"
+                }
+				},
+                "required":[
+                    "oldTerritory",
+                    "newTerritory",
+                    "oldRegion",
+                    "newRegion"
+                ]
+            }
+        },
+		"onTimeZoneDSTChanged":{
+            "summary": "Triggered when device time zone changed",
+            "params": {
+                "type": "object",
+                "properties": {
+                "oldTimeZone":{
+                        "summary": "old time zone",
+                        "type": "string",
+                        "example":"America/New_York"
+                },
+                "newTimeZone":{
+                        "summary": "new time zone",
+                        "type": "string",
+                        "example":"Europe/London"
+                },
+                "oldAccuracy":{
+                        "summary": "old time zone accuracy",
+                        "type": "string",
+                        "example":"INITIAL"
+                },
+                "newAccuracy":{
+                        "summary": "new time zone accuracy",
+                        "type": "string",
+                        "example":"FINAL"
+                }
+				},
+                "required":[
+                    "oldTimeZone",
+                    "newTimeZone",
+                    "oldAccuracy",
+                    "newAccuracy"
+                    ]
+            }
+        },
+        "onLogUpload":{
+            "summary": "Triggered when logs upload process is done or stopped",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "logUploadStatus":{
+                        "summary": "Upload status",
+                        "type":"string",
+                        "enum": [
+                            "UPLOAD_SUCCESS",
+                            "UPLOAD_FAILURE",
+                            "UPLOAD_ABORTED"
+                        ],
+                        "example":"UPLOAD_SUCCESS"
+                    }
+                },
+                "required":[
+                    "logUploadStatus"
                 ]
             }
         }

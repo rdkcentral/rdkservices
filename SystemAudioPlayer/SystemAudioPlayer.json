@@ -1,37 +1,24 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "SystemAudioPlayer API", 
         "class": "SystemAudioPlayer",
         "description": "The `SystemAudioPlayer` plugin provides system audio playback functionality for client applications. It supports various audio types (viz., pcm, mp3, wav) and can play them from various sources (viz., websocket, httpsrc, filesrc, data buffer).  \n\n**Note**: MP3 playback development remains a work-in-progress."
     },
+    "common": {
+        "$ref": "../common/common.json"
+    },
     "definitions": {
         "id": {
             "summary": "A unique identifier for a player instance.",
             "type": "integer",
             "example": 1
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods": {
         "close": {
-            "summary": "Closes the system audio player with the specified ID. The `SystemAudioPlayer` plugin destroys the player object. That is, if the player is playing, then it is stopped and closed. All volume mixer level settings are restored. \n\n Also See: [open](#method.open).\n \n### Events \n\n No Events.",
+            "summary": "Closes the system audio player with the specified ID. The `SystemAudioPlayer` plugin destroys the player object. That is, if the player is playing, then it is stopped and closed. All volume mixer level settings are restored. \n\n Also See: [open](#method.open).",
             "params": {
                 "type": "object",
                 "properties": {
@@ -44,11 +31,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "config": {
-            "summary": "Configures playback for a PCM audio source (audio/x-raw) on the specified player. This method must be called before the [play](#method.play) method. There may be more optional configuration parameters added in the future for PCM as well as for other audio types. Supported audio/x-raw configuration parameters can be found at https://gstreamer.freedesktop.org/documentation/rawparse/rawaudioparse.html#src.\n \n### Events \n\n No Events.",
+            "summary": "Configures playback for a PCM audio source (audio/x-raw) on the specified player. This method must be called before the [play](#method.play) method. There may be more optional configuration parameters added in the future for PCM as well as for other audio types. Supported audio/x-raw configuration parameters can be found at https://gstreamer.freedesktop.org/documentation/rawparse/rawaudioparse.html#src.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -77,6 +64,36 @@
                             }
                         },
                         "required": []
+                    },
+                    "websocketsecparam": {
+                        "summary": "Parameters that are needed to establish a secured websocket connection",
+                        "type": "object",
+                        "properties": {
+                            "cafilenames": {
+                                "summary": "A list of Certificate Authorities file names. If empty, code will try to load CAs from default system path for wss connection.",
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "cafilename": {
+                                            "summary": "A certificate file name in pem format",
+                                            "type": "string",
+                                            "example": "/etc/ssl/certs/Xfinity_Subscriber_ECC_Root.pem"
+                                        }
+                                    },
+                                    "required": []
+                                }
+                            },
+                            "certfilename": {
+                                "summary": "Full file name of cert file in pem format. If a file name is not provided, then the other end of the communication needs to be configured to not validate a client certificate.",
+                                "type": "string"
+                            },
+                            "keyfilename": {
+                                "summary": "Full file name of key file in pem format. A key file name must be provided if the certificate file name is provided.",
+                                "type": "string"
+                            }
+                        },
+                        "required": []
                     }
                 },
                 "required": [
@@ -85,12 +102,42 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
-        
+        "getPlayerSessionId": {
+            "summary": "Gets the session ID from the provided the URL. The session is the ID returned in open cal.",
+            "params": {
+                "type": "object",
+                "properties": {
+                      "url": {
+                        "summary": "The URL for returning the session ID",
+                        "type": "string",
+                        "example": "http://localhost:50050/nuanceEve/tts?voice=ava&language=en-US&rate=50&text=SETTINGS"
+                    }
+                },
+                "required": [
+                    "url"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "sessionId": {
+                        "$ref": "#/definitions/id"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "sessionId",
+                    "success"
+                ]
+            }
+        },
         "isspeaking": {
-            "summary": "Checks if playback is in progress.\n \n### Events \n\n No Events.",
+            "summary": "Checks if playback is in progress.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -103,11 +150,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "open": {
-            "summary": "Opens a player instance and assigns it a unique ID. The player ID is used to reference the player when calling other methods.  \n\n**Note**: The `SystemAudioPlayer` plugin can have a maximum of 1 system and 1 application play mode player at a time.  \n\nAlso See: [close](#method.close).\n \n### Events \n\n No Events.",
+            "summary": "Opens a player instance and assigns it a unique ID. The player ID is used to reference the player when calling other methods.  \n\n**Note**: The `SystemAudioPlayer` plugin can have a maximum of 1 system and 1 application play mode player at a time.  \n\nAlso See: [close](#method.close).",
             "params": {
                 "type": "object",
                 "properties": {
@@ -155,7 +202,7 @@
                         "$ref": "#/definitions/id"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -165,10 +212,10 @@
             }
         },
         "pause": {
-            "summary": "Pauses playback on the specified player. Pause is only supported for HTTP and file source types.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onsapevents:PLAYBACK_PAUSED`| Triggered if the playback paused on the specified player.|",
-            "events": [
-                "onsapevents"
-            ],
+            "summary": "Pauses playback on the specified player. Pause is only supported for HTTP and file source types.",
+            "events": {
+                "onsapevents" : "Triggered if the playback paused on the specified player."
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -181,14 +228,14 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "play": {
-            "summary": "Plays audio on the specified player.  \n\n**Note**: If a player is using one play mode and another player tries to play audio using the same play mode, then an error returns indicating that the hardware resource has already been acquired by the session and includes the player ID.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onsapevents:PLAYBACK_STARTED`| Triggered if the playback is started to play on the specified player.|\n| `onsapevents:PLAYBACK_FINISHED`| Triggered if the playback is finished  normally on the specified player.|",
-            "events": [
-                "onsapevents"
-            ],
+            "summary": "Plays audio on the specified player.  \n\n**Note**: If a player is using one play mode and another player tries to play audio using the same play mode, then an error returns indicating that the hardware resource has already been acquired by the session and includes the player ID.",
+            "events": {
+                "onsapevents" : "Triggered if the playback is started to play or finished normally on the specified player."
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -207,14 +254,14 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "playbuffer": {
-            "summary": "Buffers the audio playback on the specified player.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onsapevents:NEED_DATA`| Triggered if  the buffer needs more data to play|",
-            "events": [
-                "onsapevents"
-            ],
+            "summary": "Buffers the audio playback on the specified player.",
+            "events": {
+                "onsapevents" : "Triggered if the buffer needs more data to play."
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -233,14 +280,14 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "resume": {
-            "summary": "Resumes playback on the specified player. Resume is only supported for HTTP and file source types.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onsapevents:PLAYBACK_RESUMED`| Triggered if the playback resumed on the specified player.|",
-            "events": [
-                "onsapevents"
-            ],
+            "summary": "Resumes playback on the specified player. Resume is only supported for HTTP and file source types.",
+            "events": {
+                "onsapevents" : "Triggered if the playback resumed on the specified player."
+            },
             "params": {
                 "type": "object",
                 "properties": {
@@ -253,11 +300,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setMixerLevels": {
-            "summary": "Sets the audio level on the specified player. The `SystemAudioPlayer` plugin can control the volume of the content being played back as well as the primary program audio; thus, an application can duck down the volume on the primary program audio when system audio is played and then restore it back when the system audio playback is complete.\n \n### Events \n\n No Events.",
+            "summary": "Sets the audio level on the specified player. The `SystemAudioPlayer` plugin can control the volume of the content being played back as well as the primary program audio; thus, an application can duck down the volume on the primary program audio when system audio is played and then restore it back when the system audio playback is complete.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -282,11 +329,58 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
+            }
+        },
+        "setSmartVolControl": {
+            "summary": "Sets the smart volume audio control on the specified player. The plugin can control the smart volume of the content being played back as well as the primary program audio; thus, an application can duck down the volume on the primary program audio when system audio is played and then restore it back when the system audio playback is complete.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/definitions/id"
+                    },
+                    "enable": {
+                        "summary": "Enables or disables smart volume control.",
+                        "type": "boolean",
+                        "example": "true"
+                    },
+                    "playerAudioLevelThreshold": { 
+                        "summary": "The minimum audio level threshold in the player source stream above which smart audio mixing detection is triggered. Range: 0 to 1 (in real number).",
+                        "type": "number",
+                        "example": "0.1"
+                    },
+	                "playerDetectTimeMs": { 
+                        "summary": "The duration that the `playerAudioLevelThreshold` value must be detected before primary audio ducking is started. Range: Above 0 (in milliseconds).",
+                        "type": "integer",
+                        "example": "200"
+                    },
+		            "playerHoldTimeMs": { 
+                        "summary": "The duration that primary audio ducking is enabled after the 'playerAudioLevelThreshold' value is no longer met and before primary audio ducking is stopped. Range: Above 0 (in milliseconds).",
+                        "type": "integer",
+                        "example": "1000"
+                    },
+		            "primaryDuckingPercent": { 
+                        "summary":"The percentage to duck the primary audio volume. If `setMixerLevels` has been called, then this percentage is scaled to the `params.primVolume` range. Range: 0 to 100 (in percentage) ",
+                        "type": "integer",
+                        "example": "1"
+                    }
+                },
+                "required": [
+                    "id",
+                    "enable",
+                    "playerAudioLevelThreshold",
+					"playerDetectTimeMs",
+					"playerHoldTimeMs",
+					"primaryDuckingPercent"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
             }
         },
         "stop": {
-            "summary": "Stops playback on the specified player.\n \n### Events \n\n No Events.",
+            "summary": "Stops playback on the specified player.",
             "params": {
                 "type": "object",
                 "properties": {
@@ -299,39 +393,10 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
-            }
-        },
-        "getPlayerSessionId": {
-            "summary": "Get the session ID by providing the URL as the input parameter. Session is nothing but the id returned in open cal\n \n### Events \n\n No Events ",
-            "params": {
-                "type": "object",
-                "properties": {
-                      "url": {
-                        "summary": "url queried to get the session id",
-                        "type": "string",
-                        "example": "http://localhost:50050/nuanceEve/tts?voice=ava&language=en-US&rate=50&text=SETTINGS"
-                    }
-
-                },
-                "required": [
-                    "url"
-                ]
-            },
-            "result": {
-                "type": "object",
-                "properties": {
-                    "sessionId": {
-                        "$ref": "#/definitions/id"
-                    },
-                    "success":{
-                        "$ref": "#/definitions/success"
-                    }
-                }
+                "$ref": "#/common/result"
             }
         }
     },
-      
     "events": {
         "onsapevents": {
             "summary": "Triggered during playback for each player. Events from each player are broadcast to all registered clients. The client is responsible for checking the player `id` attribute and discarding events for unwanted players. \n\n### Notifications  \n\nThe following events are supported.  \n| Event Name | Description |  \n| :-------- | :-------- |  \n| PLAYBACK_STARTED| Triggered when playback starts  |  \n| PLAYBACK_FINISHED | Triggered when playback finishes normally. **Note**: Web socket playback is continuous and does not receive the `PLAYBACK_FINISHED` event until the stream contains `EOS`. |  \n| PLAYBACK_PAUSED| Triggered when playback is paused | \n |PLAYBACK_RESUMED | Triggered when playback resumes |  \n| NETWORK_ERROR | Triggered when a playback network error occurs (httpsrc/web socket) |  \n| PLAYBACK_ERROR| Triggered when any other playback error occurs (internal issue)|  \n| NEED_DATA|  Triggered when the buffer needs more data to play|",

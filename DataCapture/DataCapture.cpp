@@ -35,11 +35,29 @@ const string WPEFramework::Plugin::DataCapture::METHOD_GET_AUDIO_CLIP = "getAudi
 const string WPEFramework::Plugin::DataCapture::EVT_ON_AUDIO_CLIP_READY = "onAudioClipReady";
 pthread_mutex_t WPEFramework::Plugin::DataCapture::_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 3
+
 using namespace std;
 using namespace audiocapturemgr;
 
 namespace WPEFramework {
 
+    namespace {
+
+        static Plugin::Metadata<Plugin::DataCapture> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+    
     namespace Plugin {
 
         static bool verify_result(IARM_Result_t ret, iarmbus_acm_arg_t &param)
@@ -66,7 +84,7 @@ namespace WPEFramework {
             while (dir.Next()) Core::File(AUDIOCAPTUREMGR_FILE_PATH + dir.Name()).Destroy();
         }
 
-        SERVICE_REGISTRATION(DataCapture, 1, 0);
+        SERVICE_REGISTRATION(DataCapture, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         DataCapture* DataCapture::_instance = nullptr;
 
@@ -126,7 +144,7 @@ namespace WPEFramework {
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARMBUS_AUDIOCAPTUREMGR_NAME, DATA_CAPTURE_IARM_EVENT_AUDIO_CLIP_READY));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARMBUS_AUDIOCAPTUREMGR_NAME, DATA_CAPTURE_IARM_EVENT_AUDIO_CLIP_READY, iarmEventHandler));
             }
         }
 
@@ -417,7 +435,7 @@ namespace WPEFramework {
                     {
                         _sock_adaptor->get_data(data); // closes the socket
                         if (data.size() > 0) {
-                            LOGINFO("Got a clip: %lu bytes", data.size());
+                            LOGINFO("Got a clip: %zu bytes", data.size());
                             break;
                         } else {
                             LOGWARN("No data in the socket. One more attempt in %d sec", time_wait_sec);
@@ -478,7 +496,7 @@ namespace WPEFramework {
                 return false;
             }
 
-            LOGWARN("uploading pcm data of size %lu to '%s'", data.size(), url);
+            LOGWARN("uploading pcm data of size %zu to '%s'", data.size(), url);
 
             //init curl
             curl_global_init(CURL_GLOBAL_ALL);

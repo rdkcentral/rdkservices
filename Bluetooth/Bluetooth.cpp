@@ -21,6 +21,12 @@
 
 #include "Bluetooth.h"
 
+#include "UtilsUnused.h"
+#include "UtilsCStr.h"
+#include "UtilsIarm.h"
+#include "UtilsString.h"
+#include "UtilsJsonRpc.h"
+
 #include <stdlib.h>
 
 // IMPLEMENTATION NOTE
@@ -32,8 +38,10 @@
 // For example, the exposed "startScan" method is mapped to "startScanWrapper()" and that one calls to "startDeviceDiscovery()" internally,
 // which finally calls to "BTRMGR_StartDeviceDiscovery()" in Bluetooth Manager.
 
-const short WPEFramework::Plugin::Bluetooth::API_VERSION_NUMBER_MAJOR = 1;  // corresponds to org.rdk.Bluetooth_5
-const short WPEFramework::Plugin::Bluetooth::API_VERSION_NUMBER_MINOR = 0;
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 1
+
 const string WPEFramework::Plugin::Bluetooth::SERVICE_NAME = "org.rdk.Bluetooth";
 const string WPEFramework::Plugin::Bluetooth::METHOD_START_SCAN = "startScan";
 const string WPEFramework::Plugin::Bluetooth::METHOD_STOP_SCAN = "stopScan";
@@ -75,6 +83,7 @@ const string WPEFramework::Plugin::Bluetooth::EVT_PLAYBACK_NEW_TRACK = "onPlayba
 const string WPEFramework::Plugin::Bluetooth::EVT_DEVICE_FOUND = "onDeviceFound";
 const string WPEFramework::Plugin::Bluetooth::EVT_DEVICE_LOST_OR_OUT_OF_RANGE = "onDeviceLost";
 const string WPEFramework::Plugin::Bluetooth::EVT_DEVICE_DISCOVERY_UPDATE = "onDiscoveredDevice";
+const string WPEFramework::Plugin::Bluetooth::EVT_DEVICE_MEDIA_STATUS = "onDeviceMediaStatus";
 
 const string WPEFramework::Plugin::Bluetooth::STATUS_NO_BLUETOOTH_HARDWARE = "NO_BLUETOOTH_HARDWARE";
 const string WPEFramework::Plugin::Bluetooth::STATUS_SOFTWARE_DISABLED = "SOFTWARE_DISABLED";
@@ -109,12 +118,27 @@ const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_VOLUME_UP = "VOLUME
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_VOLUME_DOWN = "VOLUME_DOWN";
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_MUTE = "AUDIO_MUTE";
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_UNMUTE = "AUDIO_UNMUTE";
+const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_UNKNOWN = "CMD_UNKNOWN";
 
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::Bluetooth> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+    
     namespace Plugin
     {
-        SERVICE_REGISTRATION(Bluetooth, Bluetooth::API_VERSION_NUMBER_MAJOR, Bluetooth::API_VERSION_NUMBER_MINOR);
+        SERVICE_REGISTRATION(Bluetooth, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         Bluetooth* Bluetooth::_instance = nullptr;
         static Core::TimerType<DiscoveryTimer> _discoveryTimer(64 * 1024, "DiscoveryTimer");
@@ -131,35 +155,35 @@ namespace WPEFramework
         }
 
         Bluetooth::Bluetooth()
-        : AbstractPlugin()
+        : PluginHost::JSONRPC()
         , m_apiVersionNumber(API_VERSION_NUMBER_MAJOR)
         , m_discoveryRunning(false)
         , m_discoveryTimer(this)
         {
             Bluetooth::_instance = this;
-            registerMethod(METHOD_GET_API_VERSION_NUMBER, &Bluetooth::getApiVersionNumber, this);
-            registerMethod(METHOD_START_SCAN, &Bluetooth::startScanWrapper, this);
-            registerMethod(METHOD_STOP_SCAN, &Bluetooth::stopScanWrapper, this);
-            registerMethod(METHOD_IS_DISCOVERABLE, &Bluetooth::isDiscoverableWrapper, this);
-            registerMethod(METHOD_GET_DISCOVERED_DEVICES, &Bluetooth::getDiscoveredDevicesWrapper, this);
-            registerMethod(METHOD_GET_PAIRED_DEVICES, &Bluetooth::getPairedDevicesWrapper, this);
-            registerMethod(METHOD_GET_CONNECTED_DEVICES, &Bluetooth::getConnectedDevicesWrapper, this);
-            registerMethod(METHOD_CONNECT, &Bluetooth::connectWrapper, this);
-            registerMethod(METHOD_DISCONNECT, &Bluetooth::disconnectWrapper, this);
-            registerMethod(METHOD_SET_AUDIO_STREAM, &Bluetooth::setAudioStreamWrapper, this);
-            registerMethod(METHOD_PAIR, &Bluetooth::pairWrapper, this);
-            registerMethod(METHOD_UNPAIR, &Bluetooth::unpairWrapper, this);
-            registerMethod(METHOD_ENABLE, &Bluetooth::enableWrapper, this);
-            registerMethod(METHOD_DISABLE, &Bluetooth::disableWrapper, this);
-            registerMethod(METHOD_SET_DISCOVERABLE, &Bluetooth::setDiscoverableWrapper, this);
-            registerMethod(METHOD_GET_NAME, &Bluetooth::getNameWrapper, this);
-            registerMethod(METHOD_SET_NAME, &Bluetooth::setNameWrapper, this);
-            registerMethod(METHOD_SET_AUDIO_PLAYBACK_COMMAND, &Bluetooth::sendAudioPlaybackCommandWrapper, this);
-            registerMethod(METHOD_SET_EVENT_RESPONSE, &Bluetooth::setEventResponseWrapper, this);
-            registerMethod(METHOD_GET_DEVICE_INFO, &Bluetooth::getDeviceInfoWrapper, this);
-            registerMethod(METHOD_GET_AUDIO_INFO, &Bluetooth::getMediaTrackInfoWrapper, this);
-            registerMethod(METHOD_GET_DEVICE_VOLUME_MUTE_INFO, &Bluetooth::getDeviceVolumeMuteInfoWrapper, this);
-            registerMethod(METHOD_SET_DEVICE_VOLUME_MUTE_INFO, &Bluetooth::setDeviceVolumeMuteInfoWrapper, this);
+            Register(METHOD_GET_API_VERSION_NUMBER, &Bluetooth::getApiVersionNumber, this);
+            Register(METHOD_START_SCAN, &Bluetooth::startScanWrapper, this);
+            Register(METHOD_STOP_SCAN, &Bluetooth::stopScanWrapper, this);
+            Register(METHOD_IS_DISCOVERABLE, &Bluetooth::isDiscoverableWrapper, this);
+            Register(METHOD_GET_DISCOVERED_DEVICES, &Bluetooth::getDiscoveredDevicesWrapper, this);
+            Register(METHOD_GET_PAIRED_DEVICES, &Bluetooth::getPairedDevicesWrapper, this);
+            Register(METHOD_GET_CONNECTED_DEVICES, &Bluetooth::getConnectedDevicesWrapper, this);
+            Register(METHOD_CONNECT, &Bluetooth::connectWrapper, this);
+            Register(METHOD_DISCONNECT, &Bluetooth::disconnectWrapper, this);
+            Register(METHOD_SET_AUDIO_STREAM, &Bluetooth::setAudioStreamWrapper, this);
+            Register(METHOD_PAIR, &Bluetooth::pairWrapper, this);
+            Register(METHOD_UNPAIR, &Bluetooth::unpairWrapper, this);
+            Register(METHOD_ENABLE, &Bluetooth::enableWrapper, this);
+            Register(METHOD_DISABLE, &Bluetooth::disableWrapper, this);
+            Register(METHOD_SET_DISCOVERABLE, &Bluetooth::setDiscoverableWrapper, this);
+            Register(METHOD_GET_NAME, &Bluetooth::getNameWrapper, this);
+            Register(METHOD_SET_NAME, &Bluetooth::setNameWrapper, this);
+            Register(METHOD_SET_AUDIO_PLAYBACK_COMMAND, &Bluetooth::sendAudioPlaybackCommandWrapper, this);
+            Register(METHOD_SET_EVENT_RESPONSE, &Bluetooth::setEventResponseWrapper, this);
+            Register(METHOD_GET_DEVICE_INFO, &Bluetooth::getDeviceInfoWrapper, this);
+            Register(METHOD_GET_AUDIO_INFO, &Bluetooth::getMediaTrackInfoWrapper, this);
+            Register(METHOD_GET_DEVICE_VOLUME_MUTE_INFO, &Bluetooth::getDeviceVolumeMuteInfoWrapper, this);
+            Register(METHOD_SET_DEVICE_VOLUME_MUTE_INFO, &Bluetooth::setDeviceVolumeMuteInfoWrapper, this);
 
             Utils::IARM::init();
 
@@ -873,30 +897,18 @@ namespace WPEFramework
                     break;
 
                 case BTRMGR_EVENT_DEVICE_CONNECTION_COMPLETE:
-                case BTRMGR_EVENT_DEVICE_DISCONNECT_COMPLETE: /* Allow only AudioIn/Out & HID Connection Event propogation to XRE for now */
-                    if ((eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_WEARABLE_HEADSET)   ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HANDSFREE)          ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_LOUDSPEAKER)        ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HEADPHONES)         ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_PORTABLE_AUDIO)     ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_CAR_AUDIO)          ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HIFI_AUDIO_DEVICE)  ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_SMARTPHONE)         ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_TABLET)             ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HID)                ){
+                case BTRMGR_EVENT_DEVICE_DISCONNECT_COMPLETE:
+                    LOGINFO ("Received %s Event from BTRMgr", C_STR(STATUS_CONNECTION_CHANGE));
+                    params["newStatus"] = STATUS_CONNECTION_CHANGE;
+                    params["deviceID"] = std::to_string(eventMsg.m_pairedDevice.m_deviceHandle);
+                    params["name"] = string(eventMsg.m_pairedDevice.m_name);
+                    params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_pairedDevice.m_deviceType);
+                    params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
+                    params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice ? true : false;
+                    params["paired"] = true;
+                    params["connected"] = eventMsg.m_pairedDevice.m_isConnected ? true : false;
 
-                        LOGINFO ("Received %s Event from BTRMgr", C_STR(STATUS_CONNECTION_CHANGE));
-                        params["newStatus"] = STATUS_CONNECTION_CHANGE;
-                        params["deviceID"] = std::to_string(eventMsg.m_pairedDevice.m_deviceHandle);
-                        params["name"] = string(eventMsg.m_pairedDevice.m_name);
-                        params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_pairedDevice.m_deviceType);
-                        params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
-                        params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice ? true : false;
-                        params["paired"] = true;
-                        params["connected"] = eventMsg.m_pairedDevice.m_isConnected ? true : false;
-
-                        eventId = EVT_STATUS_CHANGED;
-                    }
+                    eventId = EVT_STATUS_CHANGED;
                     break;
 
                 case BTRMGR_EVENT_DEVICE_DISCOVERY_STARTED:
@@ -961,30 +973,17 @@ namespace WPEFramework
                     break;
 
                 case BTRMGR_EVENT_DEVICE_CONNECTION_FAILED:
-                case BTRMGR_EVENT_DEVICE_DISCONNECT_FAILED: /* Allow only AudioIn/Out & HID Connection Event propogation to XRE for now */
-                    if ((eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_WEARABLE_HEADSET)   ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HANDSFREE)          ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_LOUDSPEAKER)        ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HEADPHONES)         ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_PORTABLE_AUDIO)     ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_CAR_AUDIO)          ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HIFI_AUDIO_DEVICE)  ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_SMARTPHONE)         ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_TABLET)             ||
-                        (eventMsg.m_pairedDevice.m_deviceType == BTRMGR_DEVICE_TYPE_HID)                ){
+                    LOGERR("Received %s Event from BTRMgr", C_STR(STATUS_CONNECTION_FAILED));
+                    params["newStatus"] = STATUS_CONNECTION_FAILED;
+                    params["deviceID"] = std::to_string(eventMsg.m_pairedDevice.m_deviceHandle);
+                    params["name"] = string(eventMsg.m_pairedDevice.m_name);
+                    params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_pairedDevice.m_deviceType);
+                    params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
+                    params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice ? true : false;
+                    params["paired"] = true;
+                    params["connected"] = eventMsg.m_pairedDevice.m_isConnected ? true : false;
 
-                        LOGERR("Received %s Event from BTRMgr", C_STR(STATUS_CONNECTION_FAILED));
-                        params["newStatus"] = STATUS_CONNECTION_FAILED;
-                        params["deviceID"] = std::to_string(eventMsg.m_pairedDevice.m_deviceHandle);
-                        params["name"] = string(eventMsg.m_pairedDevice.m_name);
-                        params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_pairedDevice.m_deviceType);
-                        params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
-                        params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice ? true : false;
-                        params["paired"] = true;
-                        params["connected"] = eventMsg.m_pairedDevice.m_isConnected ? true : false;
-
-                        eventId = EVT_REQUEST_FAILED;
-                    }
+                    eventId = EVT_REQUEST_FAILED;
                     break;
 
                 case BTRMGR_EVENT_RECEIVED_EXTERNAL_CONNECT_REQUEST:
@@ -1116,6 +1115,33 @@ namespace WPEFramework
                     eventId = EVT_DEVICE_DISCOVERY_UPDATE;
                     break;
 
+                case BTRMGR_EVENT_DEVICE_MEDIA_STATUS:
+                    LOGINFO ("Received %s Event from BTRMgr", C_STR(EVT_DEVICE_MEDIA_STATUS));
+                    params["deviceID"] = std::to_string(eventMsg.m_mediaInfo.m_deviceHandle);
+                    params["name"] = string(eventMsg.m_mediaInfo.m_name);
+                    params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_mediaInfo.m_deviceType);
+                    params["volume"] = std::to_string(eventMsg.m_mediaInfo.m_mediaDevStatus.m_ui8mediaDevVolume);
+                    params["mute"] = eventMsg.m_mediaInfo.m_mediaDevStatus.m_ui8mediaDevMute ? true : false;
+
+                    if (eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd == BTRMGR_MEDIA_CTRL_VOLUMEUP) {
+                        params["command"] = string(CMD_AUDIO_CTRL_VOLUME_UP);
+                    }
+                    else if (eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd == BTRMGR_MEDIA_CTRL_VOLUMEDOWN) {
+                        params["command"] = string(CMD_AUDIO_CTRL_VOLUME_DOWN);
+                    }
+                    else if (eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd == BTRMGR_MEDIA_CTRL_MUTE) {
+                        params["command"] = string(CMD_AUDIO_CTRL_MUTE);
+                    }
+                    else if (eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd == BTRMGR_MEDIA_CTRL_UNMUTE) {
+                        params["command"] = string(CMD_AUDIO_CTRL_UNMUTE);
+                    }
+                    else {
+                        params["command"] = string(CMD_AUDIO_CTRL_UNKNOWN);
+                    }
+
+                    eventId = EVT_DEVICE_MEDIA_STATUS;
+                    break;
+
                     // TODO: implement or delete these values from enum
                 case BTRMGR_EVENT_MAX:
                     break;
@@ -1156,6 +1182,8 @@ namespace WPEFramework
                 case BTRMGR_EVENT_MEDIA_PLAYLIST_INFO:
                     break;
                 case BTRMGR_EVENT_MEDIA_TRACKLIST_INFO:
+                    break;
+                default:
                     break;
             }
 
@@ -1522,9 +1550,6 @@ namespace WPEFramework
             bool deviceIDDefined = false;
             string deviceTypeStr;
             bool deviceTypeDefined = false;
-            char ui8volume = 0;
-	    char mute;
-
 
             if (parameters.HasLabel("deviceID"))
             {
@@ -1561,7 +1586,7 @@ namespace WPEFramework
             unsigned char ui8volume = 0;
             int ivolume = 0;
             bool volumeDefined = false;
-            unsigned char mute;
+            unsigned char mute = '0';
             int imute = 0;
             bool muteDefined = false;
 

@@ -23,7 +23,7 @@
 #include "ccec/FrameListener.hpp"
 #include "ccec/Connection.hpp"
 
-#include "libIBus.h"
+#include "libIARM.h"
 
 #include "ccec/Assert.hpp"
 #include "ccec/Messages.hpp"
@@ -34,14 +34,13 @@
 #undef Assert // this define from Connection.hpp conflicts with WPEFramework
 
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 
-#include "tptimer.h"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
 
+#include "UtilsBIT.h"
+#include "UtilsThreadRAII.h"
 
 namespace WPEFramework {
 
@@ -61,7 +60,7 @@ namespace WPEFramework {
 	        bool m_isVendorIDUpdated;
 
 		CECDeviceInfo()
-		: m_logicalAddress(0),m_vendorID(0,0,0),m_osdName("NA"), m_isOSDNameUpdated (false), m_isVendorIDUpdated (false)
+		: m_logicalAddress(0),m_vendorID(0,0,0),m_osdName("NA"), m_deviceInfoStatus(0), m_isOSDNameUpdated (false), m_isVendorIDUpdated (false)
 		{
 			BITMASK_CLEAR(m_deviceInfoStatus, 0xFFFF); //Clear all bits
 		}
@@ -116,7 +115,7 @@ namespace WPEFramework {
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class HdmiCec : public AbstractPlugin, public FrameListener, public MessageProcessor {
+        class HdmiCec : public PluginHost::IPlugin, public PluginHost::JSONRPC, public FrameListener, public MessageProcessor {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -136,7 +135,9 @@ namespace WPEFramework {
         public:
             HdmiCec();
             virtual ~HdmiCec();
+            virtual const string Initialize(PluginHost::IShell* shell) override; 
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
             void addDevice(const int logicalAddress);
             void removeDevice(const int logicalAddress);
             void sendUnencryptMsg(unsigned char* msg, int size);
@@ -152,6 +153,10 @@ namespace WPEFramework {
             void process (const DeviceVendorID &msg, const Header &header);
             void process (const ReportPowerStatus &msg, const Header &header);
 
+            BEGIN_INTERFACE_MAP(HdmiCec)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         public:
             static HdmiCec* _instance;
@@ -169,9 +174,9 @@ namespace WPEFramework {
             Connection *smConnection;
             int m_numberOfDevices;
             bool m_pollThreadExit;
-            std::thread m_pollThread;
+            Utils::ThreadRAII m_pollThread;
             bool m_updateThreadExit;
-            std::thread m_UpdateThread;
+            Utils::ThreadRAII m_UpdateThread;
 
             const void InitializeIARM();
             void DeinitializeIARM();

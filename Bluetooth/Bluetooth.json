@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "Bluetooth API", 
         "class": "Bluetooth",
         "description": "First version of the Bluetooth Thunder API."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "deviceID":{
@@ -121,22 +124,7 @@
             "type":"boolean",
             "example":true
         },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
-        },
+        
         "paired": {
             "summary":"Whether paired or not",
             "type":"boolean",
@@ -233,17 +221,17 @@
             "example":"50"
         },
         "mute": {
-            "summary":"Mute value of the device is either 0 or 1",
+            "summary":"Mute value of the device is either true or false",
             "type": "boolean",
-            "example": "false"
+            "example": false
         }
     },
     "methods": {
         "connect":{
-            "summary": "Initiates the connection with the given Bluetooth device. Triggers `onStatusChanged` event.\n \n### Events \n| Event | Description | \n| :----------- | :----------- | \n| `BluetoothState: CONNECTION_CHANGE` | Triggers `onStatusChanged` event once it is  connected to the given deviceID. |",
-            "events":[
-                "onStatuschanged"
-            ],
+            "summary": "Initiates the connection with the given Bluetooth device. Triggers `onStatusChanged` event.",
+            "events":{
+                "onStatusChanged" : "Triggers `onStatusChanged` event once it is  connected to the given deviceID."
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -264,20 +252,20 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "disable":{
-            "summary": "Disables the Bluetooth stack. \n \n### Events \n  \n No Events",
+            "summary": "Disables the Bluetooth stack.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "disconnect":{
-            "summary": "Disconnects the given device from this device ID and triggers `onStatusChanged` Event. \n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n| `BluetoothState`: `CONNECTION_CHANGE` |Triggers `onStatusChanged` event once it is disconnected from given deviceID.| ",
-            "events": [
-                "onStatusChanged"
-            ],
+            "summary": "Disconnects the given device from this device ID and triggers `onStatusChanged` Event.",
+            "events": {
+                "onStatusChanged" : "Triggers `onStatusChanged` event once it is disconnected from given deviceID."
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -294,17 +282,17 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "enable":{
-            "summary": "Enables the Bluetooth stack. \n  \n### Events \n\n  No Events",
+            "summary": "Enables the Bluetooth stack.",
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getAudioInfo":{
-            "summary": "Provides information on the currently playing song/audio from an external source. The returned information from Bluetooth-In device provides information that could be displayed on a TV screen.  \n  \n### Events \n\n  No Events",
+            "summary": "Provides information on the currently playing song/audio from an external source. The returned information from Bluetooth-In device provides information that could be displayed on a TV screen.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -356,7 +344,7 @@
                         ]
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -366,7 +354,7 @@
             }
         },
         "getConnectedDevices":{
-            "summary": "Returns a list of devices connected to this device.  \n  \n### Events \n\n  No Events ",
+            "summary": "Returns a list of devices connected to this device.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -398,7 +386,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -408,7 +396,7 @@
             }
         },
         "getDeviceInfo":{
-            "summary": "Returns information for the given device ID. \n  \n### Events \n\n  No Events ",
+            "summary": "Returns information for the given device ID.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -464,7 +452,7 @@
                         ]
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -474,7 +462,7 @@
             }
         },
         "getDiscoveredDevices":{
-            "summary": "This method should be called after getting at least one event `onDiscoveredDevice` event and it returns an array of discovered devices. \n  \n### Events \n\n  No Events",
+            "summary": "This method should be called after getting at least one event `onDiscoveredDevice` event and it returns an array of discovered devices.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -510,7 +498,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -520,7 +508,7 @@
             }
         },
         "getName":{
-            "summary": "Returns the name of this device as seen by other Bluetooth devices. \n  \n### Events \n\n  No Events",
+            "summary": "Returns the name of this device as seen by other Bluetooth devices.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -530,7 +518,7 @@
                         "example":"RDK Bluetooth Device"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -540,7 +528,7 @@
             }
         },
         "getPairedDevices":{
-            "summary": "Returns a list of devices that have paired with this device. \n  \n### Events \n\n  No Events",
+            "summary": "Returns a list of devices that have paired with this device.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -574,7 +562,7 @@
                         }
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -584,7 +572,7 @@
             }
         },
         "isDiscoverable":{
-            "summary": "Returns `true`, if this device can be discovered by other Bluetooth devices.\n  \n### Events \n\n  No Events",
+            "summary": "Returns `true`, if this device can be discovered by other Bluetooth devices.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -592,7 +580,7 @@
                         "$ref": "#/definitions/discoverable"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -602,11 +590,11 @@
             }
         },
         "pair":{
-            "summary": "Pairs this device with device ID of Bluetooth. Triggers `onStatusChanged` and `onRequestFailed` events.\n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n| `BluetoothState`: `PAIRING_CHANGE` | Triggers `onStatusChanged` event when the device gets paired to given device ID. | \n| `BluetoothState`: `PAIRING_FAILED` | Triggers `onRequestFailed` event, when the device is unable to pair.|",
-            "events":[
-                "onStatusChanged",
-                "onRequestFailed"
-            ],
+            "summary": "Pairs this device with device ID of Bluetooth. Triggers `onStatusChanged` and `onRequestFailed` events.",
+            "events":{
+                "onStatusChanged" : "Triggers onStatusChanged event when the device gets paired to given device ID.",
+                "onRequestFailed" : "Triggers onRequestFailed event, when the device is unable to pair (BluetoothState: PAIRING_FAILED)"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -622,7 +610,7 @@
                 "type":"object",
                 "properties": {
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -631,7 +619,7 @@
             }
         },
         "respondToEvent":{
-            "summary": "Provides the ability to respond the client Bluetooth event. For example, this device can respond to a pairing or connection event and indicate the proper response to the requested device, such as the connection request accepted. \n  \n### Events \n\n  No Events",
+            "summary": "Provides the ability to respond the client Bluetooth event. For example, this device can respond to a pairing or connection event and indicate the proper response to the requested device, such as the connection request accepted.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -652,11 +640,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "sendAudioPlaybackCommand":{
-            "summary": "Provides control over the connected source. Requests can have one of the following values: PLAY, PAUSE, RESUME, STOP, SKIP_NEXT, SKIP_PREV, RESTART, MUTE, UNMUTE, VOLUME_UP, VOLUME_DOWN. \n \n### Events  \n \n No Events",
+            "summary": "Provides control over the connected source. Requests can have one of the following values: PLAY, PAUSE, RESUME, STOP, SKIP_NEXT, SKIP_PREV, RESTART, MUTE, UNMUTE, VOLUME_UP, VOLUME_DOWN.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -673,11 +661,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setAudioStream":{
-            "summary": "Sets the primary or secondary audio-out to the given Bluetooth device. \n  \n### Events \n\n  No Events",
+            "summary": "Sets the primary or secondary audio-out to the given Bluetooth device.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -694,11 +682,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setDiscoverable":{
-            "summary": "When true, this device can be discovered by other Bluetooth devices. When false, this device is not discoverable. \n  \n### Events \n\n  No Events",
+            "summary": "When true, this device can be discovered by other Bluetooth devices. When false, this device is not discoverable.",
             "params":{
                 "type":"object",
                 "properties":{
@@ -714,11 +702,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setName":{
-            "summary": "Sets the name of this device as seen by other Bluetooth devices.\n  \n### Events \n\n  No Events",
+            "summary": "Sets the name of this device as seen by other Bluetooth devices.",
             "params":{
                 "type":"object",
                 "properties":{
@@ -733,15 +721,15 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "startScan":{
-            "summary": "Starts scanning for other Bluetooth devices that match the given profile. \n Supported profiles include:  \n* For Audio-Out: `LOUDSPEAKER`, `HEADPHONES`, `WEARABLE HEADSET`, `HIFI AUDIO DEVICE`  \n* For Audio-In: `SMARTPHONE`, `TABLET`  \n* For HID: `KEYBOARD`, `MOUSE`, `JOYSTICK`  \n* For HandsFree: `HandsFree`.  \n\n The method returns one of the following statuses:  \n* `AVAILABLE` - Bluetooth stack is initialized, not software disabled, and hardware is running  \n* `NO_BLUETOOTH_HARDWARE` - Bluetooth is supported in RDK software, but no Bluetooth hardware was found.\n* This method sends both `onStatusChanged` and `onDiscoveredDevice` events.\n \n### Events \n  \n| Event | Description | \n| :----------- | :----------- | \n| `BluetoothState:` `DISCOVERY_STARTED` |Triggered `onStatusChanged`event when device starts scanning the other available Bluetooth devices. | \n| `BluetoothState:` `DISCOVERY_COMPLETED` | Triggered `onStatusChanged`event when timeout (timeout param) is completed or the `StopScan` method called.| \n| `DiscoveryType:` `DISCOVERED` |Triggered `onDiscoveredDevice` event when device is in scanning mode and at least one device is discovered | \n|`DiscoveryType:` `LOST` | Triggered `onDiscoveredDevice` event when the scanned device is lost|",
-            "events": [
-                "onStatusChanged",
-                "onDiscoveredDevice"
-            ],
+            "summary": "Starts scanning for other Bluetooth devices that match the given profile. \n Supported profiles include:  \n* For Audio-Out: `LOUDSPEAKER`, `HEADPHONES`, `WEARABLE HEADSET`, `HIFI AUDIO DEVICE`  \n* For Audio-In: `SMARTPHONE`, `TABLET`  \n* For HID: `KEYBOARD`, `MOUSE`, `JOYSTICK`  \n* For HandsFree: `HandsFree`.  \n\n The method returns one of the following statuses:  \n* `AVAILABLE` - Bluetooth stack is initialized, not software disabled, and hardware is running  \n* `NO_BLUETOOTH_HARDWARE` - Bluetooth is supported in RDK software, but no Bluetooth hardware was found.\n* This method sends both `onStatusChanged` and `onDiscoveredDevice` events.",
+            "events": {
+                "onStatusChanged" : "Triggered onStatusChangedevent when device starts scanning the other available Bluetooth devices or when timeout (timeout param) is completed or the StopScan method called.",
+                "onDiscoveredDevice" : "Triggered onDiscoveredDevice event when device is in scanning mode and at least one device is discovered or when the scanned device is lost."
+            },
             "params":{
                 "type":"object",
                 "properties":{
@@ -763,7 +751,7 @@
                         "$ref": "#/definitions/status"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -773,19 +761,19 @@
             }
         },
         "stopScan":{
-            "summary": "Stops scanning for Bluetooth devices  if already scan is in-progress and triggers `onStatusChanged` event.  \n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n| `BluetoothState:` `DISCOVERY_COMPLETED` | Triggered `onStatusChanged` event when scan is stopped.| ",
-            "events":[
-                "onStatusChanged"
-            ],
+            "summary": "Stops scanning for Bluetooth devices  if already scan is in-progress and triggers `onStatusChanged` event.",
+            "events":{
+                "onStatusChanged" : "Triggered onStatusChanged event when scan is stopped."
+            },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "unpair":{
-            "summary": "Unpairs the given device ID from this device. Triggers `onStatusChanged` event.\n \n### Events  \n| Event | Description | \n| :----------- | :----------- | \n| `BluetoothState: PAIRING_CHANGE` | Triggers `onStatusChanged` event when device is unpaired |",
-            "events": [
-                "onStatusChanged"
-            ],
+            "summary": "Unpairs the given device ID from this device. Triggers `onStatusChanged` event.",
+            "events": {
+                "onStatusChanged" : "Triggers onStatusChanged event when device is unpaired."
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -798,11 +786,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getDeviceVolumeMuteInfo":{
-            "summary": "Gets the volume information of the given Bluetooth device ID. \n \n### Events \n\n No Events",
+            "summary": "Gets the volume information of the given Bluetooth device ID.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -822,26 +810,23 @@
                 "type": "object",
                 "properties": {
                     "volumeInfo": {
-                        "summary":"An array of objects where each object represents a device volume information",
-                        "type": "array",
-                        "items": {
-                            "type":"object",
-                            "properties": {
-                                "volume": {
-                                    "$ref": "#/definitions/volume"
-                                },
-                                "mute": {
-                                    "$ref": "#/definitions/mute"
-                                }
+                        "summary":"An object which represents current device volume and mute information",
+                        "type":"object",
+                        "properties": {
+                            "volume": {
+                                "$ref": "#/definitions/volume"
                             },
-                            "required":[
-                                "volume",
-                                "mute"
-                            ]
-                        }
+                            "mute": {
+                                "$ref": "#/definitions/mute"
+                            }
+                        },
+                        "required":[
+                            "volume",
+                            "mute"
+                        ]
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -851,7 +836,10 @@
             }
         },
         "setDeviceVolumeMuteInfo": {
-            "summary": "Sets the volume of the connected Bluetooth device ID. \n \n### Event \n\n No Events",
+            "summary": "Sets the volume of the connected Bluetooth device ID.  Triggers `onDeviceMediaStatus` event.",
+            "events": {
+                "onDeviceMediaStatus" : "Triggers onDeviceMediaStatus event once volume of connected given deviceID is increased or decreased or when connected given deviceID is muted or unmuted or when unknown key is pressed on connected given deviceID."
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -865,7 +853,9 @@
                         "$ref": "#/definitions/volume"
                     },
                     "mute": {
-                        "$ref": "#/definitions/mute"
+                        "summary":"Mute value of the device is either 1 or 0",
+                        "type": "string",
+                        "example": "1"
                     }
                 },
                 "required": [
@@ -876,11 +866,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "getApiVersionNumber": {
-            "summary": "Provides the current API version number. \n \n### Event \n\n No Events",
+            "summary": "Provides the current API version number.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -888,7 +878,7 @@
                         "$ref": "#/definitions/version"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required":[
@@ -1284,6 +1274,40 @@
                     "deviceType",
                     "rawDeviceType",
                     "lastConnectedState"
+                ]
+            }
+        },
+        "onDeviceMediaStatus":{
+            "summary": "Triggered when any change occurs to Device Media like volume or mute. Supported Audio Media Control commands are:  \n* `MUTE` - BT audio device muted using remote or external BT device.  \n* `UNMUTE` - BT audio device unmuted using remote or external BT device.  \n* `VOLUME_UP` - BT audio device volume increased using remote or external BT device.  \n* `VOLUME_DOWN`- BT audio device volume decreased using remote or external BT device. \n* `CMD_UNKNOWN`- Unknown Media control other than MUTE, UNMUTE, VOLUME_UP, VOLUME_DOWN was performed on external BT device. ",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "deviceID": {
+                        "$ref": "#/definitions/deviceID"
+                    },
+                    "name": {
+                        "$ref": "#/definitions/name"
+                    },
+                    "deviceType": {
+                        "$ref": "#/definitions/deviceType"
+                    },
+                    "volume": {
+                        "$ref": "#/definitions/volume"
+                    },
+                    "mute": {
+                        "$ref": "#/definitions/mute"
+                    },
+                    "command": {
+                        "$ref": "#/definitions/command"
+                    }
+                },
+                "required": [
+                    "deviceID",
+                    "name",
+                    "deviceType",
+                    "volume",
+                    "mute",
+                    "command"
                 ]
             }
         }

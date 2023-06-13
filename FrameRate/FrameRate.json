@@ -1,10 +1,13 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
         "title": "FrameRate API", 
         "class": "FrameRate", 
         "description": "The `FrameRate` plugin allows you to collect FPS data."
+    },
+    "common": {
+        "$ref": "../common/common.json"
     },
     "definitions": {
         "framerate": {
@@ -28,27 +31,11 @@
             "summary": "New Frames per Second (Fps) value",
             "type": "integer",
             "example": 60
-        },
-        "result": {
-            "type":"object",
-            "properties": {
-                "success": {
-                    "$ref": "#/definitions/success"
-                }
-            },
-            "required": [
-                "success"
-            ]
-        },
-        "success": {
-            "summary": "Whether the request succeeded",
-            "type": "boolean",
-            "example": "true"
         }
     },
     "methods": {
         "getDisplayFrameRate": {
-            "summary": "(Version 2) Returns the current display frame rate values.\n  \n### Events \n\n No events",
+            "summary": "Returns the current display frame rate values.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -56,7 +43,7 @@
                         "$ref": "#/definitions/framerate"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -66,7 +53,7 @@
             }
         },
         "getFrmMode": {
-            "summary": "(Version 2) Returns the current auto framerate mode.\n  \n### Events \n\n No events",
+            "summary": "Returns the current auto framerate mode.",
             "result": {
                 "type":"object",
                 "properties": {
@@ -74,7 +61,7 @@
                         "$ref": "#/definitions/auto-frm-mode"
                     },
                     "success": {
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
                     }
                 },
                 "required": [
@@ -84,7 +71,7 @@
             }
         },
         "setCollectionFrequency": {
-            "summary": "Sets the FPS data collection interval.\n  \n### Events \n\n No events",
+            "summary": "Sets the FPS data collection interval.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -97,15 +84,15 @@
                 }
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setDisplayFrameRate": {
-            "summary": "(Version 2) Sets the display framerate values. \n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onDisplayFrameRateChanging`|Triggered when the framerate changes started.| \n| `onDisplayFrameRateChanged`|Triggered when the framerate changed.|",
-            "events": [
-                "onDisplayFrameRateChanging",
-                "onDisplayFrameRateChanged"
-            ],
+            "summary": "Sets the display framerate values.",
+            "events": {
+                "onDisplayFrameRateChanging" : "Triggered when the framerate changes started.",
+                "onDisplayFrameRateChanged" : "Triggered when the framerate changed"
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -118,11 +105,11 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "setFrmMode":{
-            "summary": "(Version 2) Sets the auto framerate mode.\n  \n### Events \n\n No events",
+            "summary": "Sets the auto framerate mode.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -135,29 +122,29 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "startFpsCollection":{
-            "summary": "Starts the FPS data collection.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onFpsEvent`|Triggered at the end of each interval as defined by the `setCollectionFrequency` method.|",
-            "events": [
-                "onFpsEvent"
-            ],
+            "summary": "Starts the FPS data collection.",
+            "events": {
+                "onFpsEvent" : "Triggered at the end of each interval as defined by the setCollectionFrequency"
+            },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "stopFpsCollection":{
-            "summary": "Stops the FPS data collection.\n \n### Events \n| Event | Description | \n| :----------- | :----------- |\n| `onFpsEvent`|Triggered once after the `stopFpsCollection` method is invoked.|",
-            "events": [
-                "onFpsEvent"
-            ],
+            "summary": "Stops the FPS data collection.",
+            "events": {
+                "onFpsEvent" : "Triggered once after the stopFpsCollection method is invoked."
+            },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         },
         "updateFps": {
-            "summary": "Updates Fps values.\n  \n### Events \n\n No events",
+            "summary": "Updates Fps values.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -170,7 +157,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/definitions/result"
+                "$ref": "#/common/result"
             }
         }
     },

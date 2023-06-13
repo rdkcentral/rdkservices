@@ -2,60 +2,22 @@
 <a name="PersistentStore_Plugin"></a>
 # PersistentStore Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/PersistentStore/CHANGELOG.md)**
 
 A org.rdk.PersistentStore plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.PersistentStore plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -99,10 +61,10 @@ PersistentStore interface methods:
 ## *deleteKey*
 
 Deletes a key from the specified namespace.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -127,7 +89,7 @@ Deletes a key from the specified namespace.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.deleteKey",
+    "method": "org.rdk.PersistentStore.deleteKey",
     "params": {
         "namespace": "ns1",
         "key": "key1"
@@ -151,10 +113,10 @@ Deletes a key from the specified namespace.
 ## *deleteNamespace*
 
 Deletes the specified namespace.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -178,7 +140,7 @@ Deletes the specified namespace.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.deleteNamespace",
+    "method": "org.rdk.PersistentStore.deleteNamespace",
     "params": {
         "namespace": "ns1"
     }
@@ -201,10 +163,10 @@ Deletes the specified namespace.
 ## *flushCache*
 
 Flushes the database cache by invoking `flush` in SQLite.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -225,7 +187,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.flushCache"
+    "method": "org.rdk.PersistentStore.flushCache"
 }
 ```
 
@@ -245,10 +207,10 @@ This method takes no parameters.
 ## *getKeys*
 
 Returns the keys that are stored in the specified namespace.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -274,7 +236,7 @@ Returns the keys that are stored in the specified namespace.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.getKeys",
+    "method": "org.rdk.PersistentStore.getKeys",
     "params": {
         "namespace": "ns1"
     }
@@ -300,10 +262,10 @@ Returns the keys that are stored in the specified namespace.
 ## *getNamespaces*
 
 Returns the namespaces in the datastore.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -326,7 +288,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.getNamespaces"
+    "method": "org.rdk.PersistentStore.getNamespaces"
 }
 ```
 
@@ -349,10 +311,10 @@ This method takes no parameters.
 ## *getStorageSize*
 
 Returns the size occupied by each namespace. This is a processing-intense operation. The total size of the datastore should not exceed more than 1MB in size. If the storage size is exceeded then, new values are not stored and the `onStorageExceeded` event is sent.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -376,7 +338,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.getStorageSize"
+    "method": "org.rdk.PersistentStore.getStorageSize"
 }
 ```
 
@@ -400,10 +362,10 @@ This method takes no parameters.
 ## *getValue*
 
 Returns the value of a key from the specified namespace.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -429,7 +391,7 @@ Returns the value of a key from the specified namespace.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.getValue",
+    "method": "org.rdk.PersistentStore.getValue",
     "params": {
         "namespace": "ns1",
         "key": "key1"
@@ -454,15 +416,13 @@ Returns the value of a key from the specified namespace.
 ## *setValue*
 
 Sets the value of a key in the the specified namespace.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onStorageExceeded`| Triggered if the storage size has surpassed 1 MB storage size|
-| `onValueChanged` | Triggered whenever any of the values stored are changed using setValue |.
 
-Also see: [onStorageExceeded](#onStorageExceeded), [onValueChanged](#onValueChanged)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onStorageExceeded](#onStorageExceeded) | Triggered if the storage size has surpassed 1 MB storage size |
+| [onValueChanged](#onValueChanged) | Triggered whenever any of the values stored are changed using setValue |
 ### Parameters
 
 | Name | Type | Description |
@@ -487,7 +447,7 @@ Also see: [onStorageExceeded](#onStorageExceeded), [onValueChanged](#onValueChan
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.1.setValue",
+    "method": "org.rdk.PersistentStore.setValue",
     "params": {
         "namespace": "ns1",
         "key": "key1",
@@ -537,7 +497,7 @@ This event carries no parameters.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onStorageExceeded"
+    "method": "client.events.onStorageExceeded"
 }
 ```
 
@@ -560,7 +520,7 @@ Triggered whenever any of the values stored are changed using setValue.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onValueChanged",
+    "method": "client.events.onValueChanged",
     "params": {
         "namespace": "ns1",
         "key": "key1",

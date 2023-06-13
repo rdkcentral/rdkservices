@@ -1,12 +1,11 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
     "info": {
         "title": "Location Sync Plugin",
         "callsign": "LocationSync",
         "locator": "libWPELocationSync.so",
         "status": "production",
-        "description": "The `LocationSync` plugin provides geo-location functionality.",
-        "version": "1.0"
+        "description": "The `LocationSync` plugin provides geo-location functionality."
     },
     "configuration": {
         "type": "object",

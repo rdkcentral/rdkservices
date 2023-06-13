@@ -121,6 +121,10 @@ add_definitions (-DENABLE_SYSTEM_15)
 add_definitions (-DENABLE_SYSTEM_16)
 add_definitions (-DENABLE_SYSTEM_17)
 
+if (DISABLE_GEOGRAPHY_TIMEZONE)
+    add_definitions (-DDISABLE_GEOGRAPHY_TIMEZONE)
+endif()
+
 add_definitions (-DPLUGIN_STATEOBSERVER)
 option(PLUGIN_STATEOBSERVER "PLUGIN_STATEOBSERVER" ON)
 
@@ -268,6 +272,11 @@ if (BUILD_ENABLE_TELEMETRY_LOGGING)
     add_definitions (-DENABLE_TELEMETRY_LOGGING)
 endif()
 
+if (BUILD_ENABLE_LINK_LOCALTIME)
+    message("Building with link localtime")
+    add_definitions (-DENABLE_LINK_LOCALTIME)
+endif()
+
 if(BUILD_BROADCOM)
     include(broadcom.cmake)
 elseif(BUILD_RASPBERRYPI)
@@ -282,7 +291,9 @@ if(BUILD_ENABLE_ERM)
 	add_definitions(-DENABLE_ERM)
 endif()
 
+add_definitions(-DRDK_LOG_MILESTONE)
 
 
-
+add_definitions (-DPLUGIN_LEDCONTROL)
+option(PLUGIN_LEDCONTROL "PLUGIN_LEDCONTROL" ON)
 

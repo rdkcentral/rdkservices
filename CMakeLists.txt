@@ -1,7 +1,8 @@
-# If not stated otherwise in this file or this component's license file the
-# following copyright and licenses apply:
+###
+# If not stated otherwise in this file or this component's LICENSE
+# file the following copyright and licenses apply:
 #
-# Copyright 2020 RDK Management
+# Copyright 2023 RDK Management
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +15,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+###
 
 cmake_minimum_required(VERSION 3.3)
 
@@ -30,13 +32,15 @@ endif()
 
 option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
 
+if(RDK_SERVICES_TEST)
+    include(tests.cmake)
+endif()
+
 # Library installation section
 string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
 
 # for writing pc and config files
 include(CmakeHelperFunctions)
-
-get_directory_property(SEVICES_DEFINES COMPILE_DEFINITIONS)
 
 if(PLUGIN_PACKAGER)
     add_subdirectory(Packager)
@@ -62,6 +66,9 @@ if(PLUGIN_VOICECONTROL)
     add_subdirectory(VoiceControl)
 endif()
 
+if(PLUGIN_REMOTECONTROL)
+	add_subdirectory(RemoteControl)
+endif()
 
 if(PLUGIN_SYSTEMSERVICES)
     add_subdirectory(SystemServices)
@@ -103,7 +110,7 @@ if(PLUGIN_DATACAPTURE)
     add_subdirectory(DataCapture)
 endif()
 
-if(SEVICES_DEFINES MATCHES "HAS_FRONT_PANEL")
+if(HAS_FRONT_PANEL)
     add_subdirectory(FrontPanel)
 endif()
 
@@ -154,6 +161,10 @@ endif()
 
 if(PLUGIN_HDMICEC2)
     add_subdirectory(HdmiCec_2)
+endif()
+
+if(PLUGIN_HDMICECSOURCE)
+    add_subdirectory(HdmiCecSource)
 endif()
 
 if(PLUGIN_HDMICECSINK)
@@ -320,8 +331,32 @@ if(PLUGIN_WEBBRIDGE)
     add_subdirectory(WebBridge)
 endif()
 
+if(PLUGIN_LINEARPLAYBACKCONTROL)
+    add_subdirectory(LinearPlaybackControl)
+endif()
+
+if(PLUGIN_RUSTADAPTER)
+    add_subdirectory(RustAdapter)
+endif()
+
 if(RDK_SERVICES_TEST)
-    add_subdirectory(test)
+    add_subdirectory(Tests)
+endif()
+
+if(PLUGIN_PERFORMANCEMETRICS)
+    add_subdirectory(PerformanceMetrics)
+endif()
+
+if(PLUGIN_UNIFIEDCASMANAGEMENT)
+    add_subdirectory(UnifiedCASManagement)
+endif()
+
+if(PLUGIN_MEDIAENGINERMF)
+    add_subdirectory(MediaEngineRMF)
+endif()
+
+if(PLUGIN_LEDCONTROL)
+    add_subdirectory(LEDControl)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)

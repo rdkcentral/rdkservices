@@ -18,13 +18,18 @@
 **/
 
 #include "CompositeInput.h"
-#include "utils.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 #include "compositeIn.hpp"
 #include "exception.hpp"
 #include "dsUtl.h"
 #include "dsError.h"
 #include "dsMgr.h"
+
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 2
 
 #define COMPOSITE_HOT_PLUG_EVENT_CONNECTED 1
 #define COMPOSITE_HOT_PLUG_EVENT_DISCONNECTED 0
@@ -40,27 +45,47 @@
 
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::CompositeInput> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+    
     namespace Plugin
     {
-        SERVICE_REGISTRATION(CompositeInput, 1, 0);
+        SERVICE_REGISTRATION(CompositeInput, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         CompositeInput* CompositeInput::_instance = nullptr;
 
         CompositeInput::CompositeInput()
-        : AbstractPlugin()
+        : PluginHost::JSONRPC()
         {
             CompositeInput::_instance = this;
 
-            InitializeIARM();
+            //InitializeIARM();
 
-            registerMethod(COMPOSITEINPUT_METHOD_GET_COMPOSITE_INPUT_DEVICES, &CompositeInput::getCompositeInputDevicesWrapper, this);
-            registerMethod(COMPOSITEINPUT_METHOD_START_COMPOSITE_INPUT, &CompositeInput::startCompositeInput, this);
-            registerMethod(COMPOSITEINPUT_METHOD_STOP_COMPOSITE_INPUT, &CompositeInput::stopCompositeInput, this);
-            registerMethod(COMPOSITEINPUT_METHOD_SCALE_COMPOSITE_INPUT, &CompositeInput::setVideoRectangleWrapper, this);
+            Register(COMPOSITEINPUT_METHOD_GET_COMPOSITE_INPUT_DEVICES, &CompositeInput::getCompositeInputDevicesWrapper, this);
+            Register(COMPOSITEINPUT_METHOD_START_COMPOSITE_INPUT, &CompositeInput::startCompositeInput, this);
+            Register(COMPOSITEINPUT_METHOD_STOP_COMPOSITE_INPUT, &CompositeInput::stopCompositeInput, this);
+            Register(COMPOSITEINPUT_METHOD_SCALE_COMPOSITE_INPUT, &CompositeInput::setVideoRectangleWrapper, this);
         }
 
         CompositeInput::~CompositeInput()
         {
+        }
+		const string CompositeInput::Initialize(PluginHost::IShell * /* service */)
+        {
+            CompositeInput::_instance = this;
+            InitializeIARM();
+            return (string());
         }
 
         void CompositeInput::Deinitialize(PluginHost::IShell* /* service */)
@@ -86,9 +111,9 @@ namespace WPEFramework
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG, dsCompositeEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS, dsCompositeSignalStatusEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS, dsCompositeStatusEventHandler) );
             }
         }
 
@@ -101,8 +126,8 @@ namespace WPEFramework
             int portId = 0;
             try {
                 portId = stoi(sPortId);
-            }catch (const device::Exception& err) {
-                LOG_DEVICE_EXCEPTION1(sPortId);
+            }catch (const std::exception& err) {
+                LOGERR("Failed to  portId value..!");
                 returnResponse(false);
             }
 
@@ -244,7 +269,7 @@ namespace WPEFramework
                     }
                 }
             }
-            catch (const std::exception e)  {
+            catch (const std::exception& e)  {
                 LOGWARN("CompositeInputService::getCompositeInputDevices Failed");
             }
 

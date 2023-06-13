@@ -18,6 +18,8 @@
 set(PLUGIN_NAME SystemServices)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_SYSTEMSERVICE_STARTUPORDER "" CACHE STRING "To configure startup order of SystemServices plugin")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 if(BUILD_TESTS)
@@ -27,23 +29,24 @@ endif()
 add_library(${MODULE_NAME} SHARED
         SystemServices.cpp
         Module.cpp
-        ../helpers/cTimer.cpp
-        ../helpers/cSettings.cpp
-        ../helpers/powerstate.cpp
-        ../helpers/thermonitor.cpp
-        ../helpers/SystemServicesHelper.cpp
-        ../helpers/utils.cpp
-        ../helpers/uploadlogs.cpp
+        cTimer.cpp
+        thermonitor.cpp
+        SystemServicesHelper.cpp
+        uploadlogs.cpp
         platformcaps/platformcaps.cpp
         platformcaps/platformcapsdata.cpp
         platformcaps/platformcapsdatarpc.cpp
         )
-
+set_source_files_properties(SystemServices.cpp thermonitor.cpp platformcaps/platformcapsdata.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
+
+if (NOT RDK_SERVICES_TEST)
+    target_compile_options(${MODULE_NAME} PRIVATE -Wno-error)
+endif ()
 
 list(APPEND CMAKE_MODULE_PATH
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
@@ -84,8 +87,6 @@ if (RFC_FOUND)
 else (RFC_FOUND)
 	message ("RFC lib required.")
 endif (RFC_FOUND)
-
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}SecurityUtil)
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ./)

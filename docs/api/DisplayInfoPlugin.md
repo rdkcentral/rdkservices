@@ -2,61 +2,23 @@
 <a name="DisplayInfo_Plugin"></a>
 # DisplayInfo Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.3](https://github.com/rdkcentral/rdkservices/blob/main/DisplayInfo/CHANGELOG.md)**
 
 A DisplayInfo plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Properties](#Properties)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the DisplayInfo plugin. It includes detailed specification about its configuration, methods and properties provided, as well as notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -96,6 +58,10 @@ DisplayInfo interface methods:
 
 Returns the TV's Extended Display Identification Data (EDID).
 
+### Events
+
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -119,7 +85,7 @@ Returns the TV's Extended Display Identification Data (EDID).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.edid",
+    "method": "DisplayInfo.edid",
     "params": {
         "length": 0
     }
@@ -144,6 +110,10 @@ Returns the TV's Extended Display Identification Data (EDID).
 
 Horizontal size in centimeters.
 
+### Events
+
+No Events
+
 ### Parameters
 
 This method takes no parameters.
@@ -162,7 +132,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.widthincentimeters"
+    "method": "DisplayInfo.widthincentimeters"
 }
 ```
 
@@ -181,6 +151,10 @@ This method takes no parameters.
 
 Vertical size in centimeters.
 
+### Events
+
+No Events
+
 ### Parameters
 
 This method takes no parameters.
@@ -199,7 +173,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.heightincentimeters"
+    "method": "DisplayInfo.heightincentimeters"
 }
 ```
 
@@ -222,32 +196,36 @@ DisplayInfo interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [totalgpuram](#property.totalgpuram) <sup>RO</sup> | Total GPU DRAM memory (in bytes) |
-| [freegpuram](#property.freegpuram) <sup>RO</sup> | Free GPU DRAM memory (in bytes) |
-| [isaudiopassthrough](#property.isaudiopassthrough) <sup>RO</sup> | Current audio passthrough status on HDMI |
-| [connected](#property.connected) <sup>RO</sup> | Current HDMI connection status |
-| [width](#property.width) <sup>RO</sup> | Horizontal resolution of the TV |
-| [height](#property.height) <sup>RO</sup> | Vertical resolution of the TV |
-| [verticalfreq](#property.verticalfreq) <sup>RO</sup> | Vertical Frequency |
-| [hdcpprotection](#property.hdcpprotection) <sup>RO</sup> | HDCP protocol used for transmission |
-| [portname](#property.portname) <sup>RO</sup> | Video output port on the STB used for connecting to the TV |
-| [tvcapabilities](#property.tvcapabilities) <sup>RO</sup> | HDR formats supported by the TV |
-| [stbcapabilities](#property.stbcapabilities) <sup>RO</sup> | HDR formats supported by the STB |
-| [hdrsetting](#property.hdrsetting) <sup>RO</sup> | HDR format in use |
-| [colorspace](#property.colorspace) <sup>RO</sup> | Display color space (chroma subsampling format) |
-| [framerate](#property.framerate) <sup>RO</sup> | Display frame rate |
-| [colourdepth](#property.colourdepth) <sup>RO</sup> | Display colour depth |
-| [quantizationrange](#property.quantizationrange) <sup>RO</sup> | Display quantization range |
-| [colorimetry](#property.colorimetry) <sup>RO</sup> | Display colorimetry |
-| [eotf](#property.eotf) <sup>RO</sup> | Display Electro Optical Transfer Function (EOTF) |
+| [totalgpuram](#totalgpuram) <sup>RO</sup> | Total GPU DRAM memory (in bytes) |
+| [freegpuram](#freegpuram) <sup>RO</sup> | Free GPU DRAM memory (in bytes) |
+| [isaudiopassthrough](#isaudiopassthrough) <sup>RO</sup> | Current audio passthrough status on HDMI |
+| [connected](#connected) <sup>RO</sup> | Current HDMI connection status |
+| [width](#width) <sup>RO</sup> | Horizontal resolution of the TV |
+| [height](#height) <sup>RO</sup> | Vertical resolution of the TV |
+| [verticalfreq](#verticalfreq) <sup>RO</sup> | Vertical Frequency |
+| [hdcpprotection](#hdcpprotection) <sup>RO</sup> | HDCP protocol used for transmission |
+| [portname](#portname) <sup>RO</sup> | Video output port on the STB used for connecting to the TV |
+| [tvcapabilities](#tvcapabilities) <sup>RO</sup> | HDR formats supported by the TV |
+| [stbcapabilities](#stbcapabilities) <sup>RO</sup> | HDR formats supported by the STB |
+| [hdrsetting](#hdrsetting) <sup>RO</sup> | HDR format in use |
+| [colorspace](#colorspace) <sup>RO</sup> | Display color space (chroma subsampling format) |
+| [framerate](#framerate) <sup>RO</sup> | Display frame rate |
+| [colourdepth](#colourdepth) <sup>RO</sup> | Display colour depth |
+| [quantizationrange](#quantizationrange) <sup>RO</sup> | Display quantization range |
+| [colorimetry](#colorimetry) <sup>RO</sup> | Display colorimetry |
+| [eotf](#eotf) <sup>RO</sup> | Display Electro Optical Transfer Function (EOTF) |
 
 
-<a name="property.totalgpuram"></a>
-## *totalgpuram [<sup>property</sup>](#Properties)*
+<a name="totalgpuram"></a>
+## *totalgpuram*
 
 Provides access to the total GPU DRAM memory (in bytes).
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -263,7 +241,7 @@ Provides access to the total GPU DRAM memory (in bytes).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.totalgpuram"
+    "method": "DisplayInfo.totalgpuram"
 }
 ```
 
@@ -277,12 +255,16 @@ Provides access to the total GPU DRAM memory (in bytes).
 }
 ```
 
-<a name="property.freegpuram"></a>
-## *freegpuram [<sup>property</sup>](#Properties)*
+<a name="freegpuram"></a>
+## *freegpuram*
 
 Provides access to the free GPU DRAM memory (in bytes).
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -298,7 +280,7 @@ Provides access to the free GPU DRAM memory (in bytes).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.freegpuram"
+    "method": "DisplayInfo.freegpuram"
 }
 ```
 
@@ -312,12 +294,16 @@ Provides access to the free GPU DRAM memory (in bytes).
 }
 ```
 
-<a name="property.isaudiopassthrough"></a>
-## *isaudiopassthrough [<sup>property</sup>](#Properties)*
+<a name="isaudiopassthrough"></a>
+## *isaudiopassthrough*
 
 Provides access to the current audio passthrough status on HDMI.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -333,7 +319,7 @@ Provides access to the current audio passthrough status on HDMI.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.isaudiopassthrough"
+    "method": "DisplayInfo.isaudiopassthrough"
 }
 ```
 
@@ -347,12 +333,16 @@ Provides access to the current audio passthrough status on HDMI.
 }
 ```
 
-<a name="property.connected"></a>
-## *connected [<sup>property</sup>](#Properties)*
+<a name="connected"></a>
+## *connected*
 
 Provides access to the current HDMI connection status.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -368,7 +358,7 @@ Provides access to the current HDMI connection status.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.connected"
+    "method": "DisplayInfo.connected"
 }
 ```
 
@@ -382,12 +372,16 @@ Provides access to the current HDMI connection status.
 }
 ```
 
-<a name="property.width"></a>
-## *width [<sup>property</sup>](#Properties)*
+<a name="width"></a>
+## *width*
 
 Provides access to the horizontal resolution of the TV.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -403,7 +397,7 @@ Provides access to the horizontal resolution of the TV.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.width"
+    "method": "DisplayInfo.width"
 }
 ```
 
@@ -417,12 +411,16 @@ Provides access to the horizontal resolution of the TV.
 }
 ```
 
-<a name="property.height"></a>
-## *height [<sup>property</sup>](#Properties)*
+<a name="height"></a>
+## *height*
 
 Provides access to the vertical resolution of the TV.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -438,7 +436,7 @@ Provides access to the vertical resolution of the TV.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.height"
+    "method": "DisplayInfo.height"
 }
 ```
 
@@ -452,12 +450,16 @@ Provides access to the vertical resolution of the TV.
 }
 ```
 
-<a name="property.verticalfreq"></a>
-## *verticalfreq [<sup>property</sup>](#Properties)*
+<a name="verticalfreq"></a>
+## *verticalfreq*
 
 Provides access to the vertical Frequency.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -473,7 +475,7 @@ Provides access to the vertical Frequency.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.verticalfreq"
+    "method": "DisplayInfo.verticalfreq"
 }
 ```
 
@@ -487,12 +489,16 @@ Provides access to the vertical Frequency.
 }
 ```
 
-<a name="property.hdcpprotection"></a>
-## *hdcpprotection [<sup>property</sup>](#Properties)*
+<a name="hdcpprotection"></a>
+## *hdcpprotection*
 
 Provides access to the HDCP protocol used for transmission.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -508,7 +514,7 @@ Provides access to the HDCP protocol used for transmission.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.hdcpprotection"
+    "method": "DisplayInfo.hdcpprotection"
 }
 ```
 
@@ -522,12 +528,16 @@ Provides access to the HDCP protocol used for transmission.
 }
 ```
 
-<a name="property.portname"></a>
-## *portname [<sup>property</sup>](#Properties)*
+<a name="portname"></a>
+## *portname*
 
 Provides access to the video output port on the STB used for connecting to the TV.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -543,7 +553,7 @@ Provides access to the video output port on the STB used for connecting to the T
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.portname"
+    "method": "DisplayInfo.portname"
 }
 ```
 
@@ -557,12 +567,16 @@ Provides access to the video output port on the STB used for connecting to the T
 }
 ```
 
-<a name="property.tvcapabilities"></a>
-## *tvcapabilities [<sup>property</sup>](#Properties)*
+<a name="tvcapabilities"></a>
+## *tvcapabilities*
 
 Provides access to the HDR formats supported by the TV.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -578,7 +592,7 @@ Provides access to the HDR formats supported by the TV.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.tvcapabilities"
+    "method": "DisplayInfo.tvcapabilities"
 }
 ```
 
@@ -592,12 +606,16 @@ Provides access to the HDR formats supported by the TV.
 }
 ```
 
-<a name="property.stbcapabilities"></a>
-## *stbcapabilities [<sup>property</sup>](#Properties)*
+<a name="stbcapabilities"></a>
+## *stbcapabilities*
 
 Provides access to the HDR formats supported by the STB.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -613,7 +631,7 @@ Provides access to the HDR formats supported by the STB.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.stbcapabilities"
+    "method": "DisplayInfo.stbcapabilities"
 }
 ```
 
@@ -627,12 +645,16 @@ Provides access to the HDR formats supported by the STB.
 }
 ```
 
-<a name="property.hdrsetting"></a>
-## *hdrsetting [<sup>property</sup>](#Properties)*
+<a name="hdrsetting"></a>
+## *hdrsetting*
 
 Provides access to the HDR format in use.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -648,7 +670,7 @@ Provides access to the HDR format in use.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.hdrsetting"
+    "method": "DisplayInfo.hdrsetting"
 }
 ```
 
@@ -662,12 +684,16 @@ Provides access to the HDR format in use.
 }
 ```
 
-<a name="property.colorspace"></a>
-## *colorspace [<sup>property</sup>](#Properties)*
+<a name="colorspace"></a>
+## *colorspace*
 
 Provides access to the display color space (chroma subsampling format).
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -683,7 +709,7 @@ Provides access to the display color space (chroma subsampling format).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.colorspace"
+    "method": "DisplayInfo.colorspace"
 }
 ```
 
@@ -697,12 +723,16 @@ Provides access to the display color space (chroma subsampling format).
 }
 ```
 
-<a name="property.framerate"></a>
-## *framerate [<sup>property</sup>](#Properties)*
+<a name="framerate"></a>
+## *framerate*
 
 Provides access to the display frame rate.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -718,7 +748,7 @@ Provides access to the display frame rate.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.framerate"
+    "method": "DisplayInfo.framerate"
 }
 ```
 
@@ -732,12 +762,16 @@ Provides access to the display frame rate.
 }
 ```
 
-<a name="property.colourdepth"></a>
-## *colourdepth [<sup>property</sup>](#Properties)*
+<a name="colourdepth"></a>
+## *colourdepth*
 
 Provides access to the display colour depth.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -753,7 +787,7 @@ Provides access to the display colour depth.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.colourdepth"
+    "method": "DisplayInfo.colourdepth"
 }
 ```
 
@@ -767,12 +801,16 @@ Provides access to the display colour depth.
 }
 ```
 
-<a name="property.quantizationrange"></a>
-## *quantizationrange [<sup>property</sup>](#Properties)*
+<a name="quantizationrange"></a>
+## *quantizationrange*
 
 Provides access to the display quantization range.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -788,7 +826,7 @@ Provides access to the display quantization range.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.quantizationrange"
+    "method": "DisplayInfo.quantizationrange"
 }
 ```
 
@@ -802,12 +840,16 @@ Provides access to the display quantization range.
 }
 ```
 
-<a name="property.colorimetry"></a>
-## *colorimetry [<sup>property</sup>](#Properties)*
+<a name="colorimetry"></a>
+## *colorimetry*
 
 Provides access to the display colorimetry.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -823,7 +865,7 @@ Provides access to the display colorimetry.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.colorimetry"
+    "method": "DisplayInfo.colorimetry"
 }
 ```
 
@@ -837,12 +879,16 @@ Provides access to the display colorimetry.
 }
 ```
 
-<a name="property.eotf"></a>
-## *eotf [<sup>property</sup>](#Properties)*
+<a name="eotf"></a>
+## *eotf*
 
 Provides access to the display Electro Optical Transfer Function (EOTF).
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -858,7 +904,7 @@ Provides access to the display Electro Optical Transfer Function (EOTF).
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DisplayInfo.1.eotf"
+    "method": "DisplayInfo.eotf"
 }
 ```
 
@@ -903,7 +949,7 @@ Triggered when the connection changes or is updated.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.updated",
+    "method": "client.events.updated",
     "params": {
         "event": "HdmiChange"
     }

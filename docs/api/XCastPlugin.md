@@ -2,60 +2,22 @@
 <a name="XCast_Plugin"></a>
 # XCast Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.12](https://github.com/rdkcentral/rdkservices/blob/main/XCast/CHANGELOG.md)**
 
 A org.rdk.Xcast plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.Xcast plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -85,13 +47,15 @@ XCast interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getApiVersionNumber](#getApiVersionNumber) | Gets the API version |
-| [getEnabled](#getEnabled) | Reports whether xcast is enabled or disabled |
+| [getApiVersionNumber](#getApiVersionNumber) | Gets the API version number |
+| [getEnabled](#getEnabled) | Reports whether xcast plugin is enabled or disabled |
 | [getFriendlyName](#getFriendlyName) | Returns the friendly name set by setFriendlyName API |
-| [getStandbyBehavior](#getStandbyBehavior) | Gets the expected xcast behavior in standby mode |
-| [onApplicationStateChanged](#onApplicationStateChanged) | provides notification whenever an application changes state (due to user activity, an internal error, or other reasons) |
+| [getProtocolVersion](#getProtocolVersion) | Returns the DIAL protocol version supported by the server |
+| [getStandbyBehavior](#getStandbyBehavior) | Return current standby behavior option string set uisng setStandbyBehavior or default value  |
+| [onApplicationStateChanged](#onApplicationStateChanged) | Provides notification whenever an application changes state due to user activity, an internal error, or other reasons |
 | [registerApplications](#registerApplications) | Registers an application |
-| [setEnabled](#setEnabled) | Enables or disables xcast |
+| [unregisterApplications](#unregisterApplications) | Unregisters an application |
+| [setEnabled](#setEnabled) | Enable or disable XCAST service |
 | [setFriendlyName](#setFriendlyName) | Sets the friendly name of device |
 | [setStandbyBehavior](#setStandbyBehavior) | Sets the expected xcast behavior in standby mode |
 
@@ -99,11 +63,11 @@ XCast interface methods:
 <a name="getApiVersionNumber"></a>
 ## *getApiVersionNumber*
 
-Gets the API version.
-  
-### Events 
+Gets the API version number.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -125,7 +89,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getApiVersionNumber"
+    "method": "org.rdk.Xcast.getApiVersionNumber"
 }
 ```
 
@@ -145,11 +109,11 @@ This method takes no parameters.
 <a name="getEnabled"></a>
 ## *getEnabled*
 
-Reports whether xcast is enabled or disabled.
-  
-### Events 
+Reports whether xcast plugin is enabled or disabled.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -171,7 +135,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getEnabled"
+    "method": "org.rdk.Xcast.getEnabled"
 }
 ```
 
@@ -192,10 +156,10 @@ This method takes no parameters.
 ## *getFriendlyName*
 
 Returns the friendly name set by setFriendlyName API.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -206,7 +170,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.friendlyname | string | The friendly name of the implementation |
+| result.friendlyname | string | The friendly name of the device which used to display on the client device list |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -217,7 +181,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getFriendlyName"
+    "method": "org.rdk.Xcast.getFriendlyName"
 }
 ```
 
@@ -228,7 +192,53 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "friendlyname": "xdial",
+        "friendlyname": "Manufacturer name",
+        "success": true
+    }
+}
+```
+
+<a name="getProtocolVersion"></a>
+## *getProtocolVersion*
+
+Returns the DIAL protocol version supported by the server.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.version | string | DIAL protocol version |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Xcast.getProtocolVersion"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "version": "2.2.1",
         "success": true
     }
 }
@@ -237,11 +247,11 @@ This method takes no parameters.
 <a name="getStandbyBehavior"></a>
 ## *getStandbyBehavior*
 
-Gets the expected xcast behavior in standby mode.
-  
-### Events 
+Return current standby behavior option string set uisng setStandbyBehavior or default value .
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -263,7 +273,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.getStandbyBehavior"
+    "method": "org.rdk.Xcast.getStandbyBehavior"
 }
 ```
 
@@ -283,19 +293,21 @@ This method takes no parameters.
 <a name="onApplicationStateChanged"></a>
 ## *onApplicationStateChanged*
 
-provides notification whenever an application changes state (due to user activity, an internal error, or other reasons). For singleton applications, the `applicationId` parameter is optional. If an application request is denied, fails to fulfill, or the state change is triggered by an internal error, a predefined error string should be included. This error may be translated to an XCast client.  
- Client Error Mapping Example:  
+Provides notification whenever an application changes state due to user activity, an internal error, or other reasons. For singleton applications, the `applicationId` parameter is optional. If an application request is denied, fails to fulfill, or the state change is triggered by an internal error, then a predefined error string should be included. This error may be translated to an XCast client.  
+
+The following table provides a client error mapping example: 
+
 | Error | Description | HTTP Status Codes |  
- | :-------- | :-------- | :-------- |   
+| :-------- | :-------- | :-------- |   
 | `none` | The request (start/stop) is fulfilled successfully | HTTP 200 OK |  
 | `forbidden` | The user is not allowed to change the state of the application. This is not related to user account authentication of the native application | HTTP 403 Forbidden |  
 | `unavailable` | The target native application is not available on the device | HTTP 404 Not Found |  
 | `invalid` | The request is invalid (bad parameter for example) | HTTP 400 Bad Request |  
-| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |. 
-  
-### Events 
+| `internal` | The server failed to fulfill the request (server error) | HTTP 500 Internal |.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -303,7 +315,7 @@ provides notification whenever an application changes state (due to user activit
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.applicationName | string | Registered application name |
-| params.state | string | A predefined application state. Either `running` or `stopped` |
+| params.state | string | A predefined application state. Either `running`, `stopped`, `hidden`, or `suspended` (introduced in DIAL 2.1, `suspended` is a synonym to `hidden`) |
 | params?.applicationId | string | <sup>*(optional)*</sup> Application instance ID |
 | params?.error | string | <sup>*(optional)*</sup> A predefined error from the cast target application. Either `none`, `forbidden` `unavailable` `invalid` or `internal` |
 
@@ -322,7 +334,7 @@ provides notification whenever an application changes state (due to user activit
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.onApplicationStateChanged",
+    "method": "org.rdk.Xcast.onApplicationStateChanged",
     "params": {
         "applicationName": "NetflixApp",
         "state": "running",
@@ -347,18 +359,30 @@ provides notification whenever an application changes state (due to user activit
 <a name="registerApplications"></a>
 ## *registerApplications*
 
-Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list.
-  
-### Events 
+Registers an application. This allows to whitelist the apps which support dial service. To dynamically update the app list, same API should be called with the updated list. so that app list will be appended to the existing XCast white list. If a DIAL request for an unregistered application is received by DIAL server, the request will be denied (HTTP 404) per DIAL specification. Optional fields need not be included, or can be included with empty values.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.applications | string | The application name to register |
+| params.applications | array | Json array with one or more application details to register |
+| params.applications[#] | object |  |
+| params.applications[#].names | array | case-sensitive. Group of acceptable names for a related application. Application name in request URI must have exact match to one of the names. Otherwise, matching prefix is needed. If the application name in request URI does not match any names or prefixes, then the request shall fail |
+| params.applications[#].names[#] | string |  |
+| params.applications[#]?.prefixes | array | <sup>*(optional)*</sup> If the application name in request URI does not match the list of names, it must contain one of the prefixes.If the application name in request URI does not match any names or prefixes, then the request shall fail |
+| params.applications[#]?.prefixes[#] | string | <sup>*(optional)*</sup>  |
+| params.applications[#]?.cors | array | <sup>*(optional)*</sup> a set of origins allowed for the application. This must not be empty |
+| params.applications[#]?.cors[#] | string | <sup>*(optional)*</sup>  |
+| params.applications[#]?.properties | object | <sup>*(optional)*</sup> specific application properties applicable to app management. If not present in descriptor, the default value is assumed |
+| params.applications[#]?.properties.allowStop | boolean | is the application (matching name list or prefix list) allowed to stop (no PID presence) after launched |
+| params.applications[#]?.launchParameters | object | <sup>*(optional)*</sup> launchParameters that application wants dial-server to append before sending the request to launch application |
+| params.applications[#]?.launchParameters.query | string | query string that need to be appended in launch request |
+| params.applications[#]?.launchParameters.payload | string | optional payload string that need to be appended in launch request |
 
 ### Result
 
@@ -375,9 +399,78 @@ Registers an application. This allows to whitelist the apps which support dial s
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.registerApplications",
+    "method": "org.rdk.Xcast.registerApplications",
     "params": {
-        "applications": "NetflixApp"
+        "applications": [
+            {
+                "names": [
+                    "Youtube"
+                ],
+                "prefixes": [
+                    "myYouTube"
+                ],
+                "cors": [
+                    ".youtube.com"
+                ],
+                "properties": {
+                    "allowStop": true
+                },
+                "launchParameters": {
+                    "query": "source_type=12",
+                    "payload": "..."
+                }
+            }
+        ]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="unregisterApplications"></a>
+## *unregisterApplications*
+
+Unregisters an application. This API allows to remove the specified applist from the XCast whitelist. To dynamically delete the specific app list, same API should be called with the app list to remove. so that mentioned app list will be removed from the XCast whitelist. Calling this API with empty list will clear the Xcast Whitelist.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.applications | string | One or more application name to unregister |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Xcast.unregisterApplications",
+    "params": {
+        "applications": "['YouTube', 'Netflix']"
     }
 }
 ```
@@ -397,11 +490,11 @@ Registers an application. This allows to whitelist the apps which support dial s
 <a name="setEnabled"></a>
 ## *setEnabled*
 
-Enables or disables xcast.
-  
-### Events 
+Enable or disable XCAST service.  When disabled, the customer should not be able to discover CPE as a cast target for any client application. After enable(true) server application manger must re-register all app that are available for user to cast. The enabled status is not persisted on device after each reboot or reconnect application should call setEnalbed to initialize XCast thunder plugin.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -425,7 +518,7 @@ Enables or disables xcast.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.setEnabled",
+    "method": "org.rdk.Xcast.setEnabled",
     "params": {
         "enabled": true
     }
@@ -447,18 +540,18 @@ Enables or disables xcast.
 <a name="setFriendlyName"></a>
 ## *setFriendlyName*
 
-Sets the friendly name of device. It allows an application to override the default friendly name value with the friendly name passed as an argument.
-  
-### Events 
+Sets the friendly name of device. It allows an application to override the default friendly name value with the friendly name passed as an argument. The provided name  should not be empty. If a user provided name is not available, the caller of the API should use the default name partnerId+Model  (or any other agreed default name) as the parameter. After initialization, XCastService should not be activated until setFriendlyName() is invoked. Frinedly name is not persisted on device after each reboot or reconnect application should call API to update the friendlyName.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.friendlyname | string | The friendly name of the implementation |
+| params.friendlyname | string | The friendly name of the device which used to display on the client device list |
 
 ### Result
 
@@ -475,9 +568,9 @@ Sets the friendly name of device. It allows an application to override the defau
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.setFriendlyName",
+    "method": "org.rdk.Xcast.setFriendlyName",
     "params": {
-        "friendlyname": "xdial"
+        "friendlyname": "Manufacturer name"
     }
 }
 ```
@@ -497,11 +590,11 @@ Sets the friendly name of device. It allows an application to override the defau
 <a name="setStandbyBehavior"></a>
 ## *setStandbyBehavior*
 
-Sets the expected xcast behavior in standby mode. It allows an application to override controls on xcast behavior in standby mode. The default behavior in STANDBY mode is inactive, so client device can not discover the server. When STANDBY behavior is active, client device can discover the server.
-  
-### Events 
+Sets the expected xcast behavior in standby mode. It allows an application to override controls on xcast behavior in standby mode. The default behavior in STANDBY mode is inactive, so client device can not discover the server. When STANDBY behavior is active, client device can discover the CPE device and perform the launch operation. Upon reeiving the launch request device will transitioned from STANDBY to ON mode.
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -525,7 +618,7 @@ Sets the expected xcast behavior in standby mode. It allows an application to ov
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Xcast.1.setStandbyBehavior",
+    "method": "org.rdk.Xcast.setStandbyBehavior",
     "params": {
         "standbybehavior": "active"
     }
@@ -581,7 +674,7 @@ Upon hiding the application, the resident application is responsible for calling
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationHideRequest",
+    "method": "client.events.onApplicationHideRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
@@ -609,7 +702,7 @@ Upon launching the application, the resident application is responsible for call
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationLaunchRequest",
+    "method": "client.events.onApplicationLaunchRequest",
     "params": {
         "applicationName": "NetflixApp",
         "parameters": {
@@ -638,7 +731,7 @@ Upon resuming the application, the resident application is responsible for calli
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationResumeRequest",
+    "method": "client.events.onApplicationResumeRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
@@ -665,7 +758,7 @@ The resident application is responsible for calling the `onApplicationStateChang
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationStateRequest",
+    "method": "client.events.onApplicationStateRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"
@@ -692,7 +785,7 @@ Upon stopping the application, the resident application is responsible for calli
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onApplicationStopRequest",
+    "method": "client.events.onApplicationStopRequest",
     "params": {
         "applicationName": "NetflixApp",
         "applicationId": "1234"

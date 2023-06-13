@@ -22,8 +22,7 @@
 #include <thread>
 
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
+#include "UtilsThreadRAII.h"
 
 #include "btmgr.h" //TODO: can we move it to the module? Required by notifyEventWrapper()
 
@@ -66,7 +65,7 @@ namespace WPEFramework {
             Bluetooth* m_bt;
         };
 
-        class Bluetooth : public AbstractPlugin {
+        class Bluetooth : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -128,8 +127,6 @@ namespace WPEFramework {
 
 
         public:
-            static const short API_VERSION_NUMBER_MAJOR;
-            static const short API_VERSION_NUMBER_MINOR;
             static const string SERVICE_NAME;
             static const string METHOD_START_SCAN;
             static const string METHOD_STOP_SCAN;
@@ -171,11 +168,18 @@ namespace WPEFramework {
             static const string EVT_DEVICE_FOUND;
             static const string EVT_DEVICE_LOST_OR_OUT_OF_RANGE;
             static const string EVT_DEVICE_DISCOVERY_UPDATE;
+            static const string EVT_DEVICE_MEDIA_STATUS;
 
             Bluetooth();
             virtual ~Bluetooth();
+            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override;
+
+            BEGIN_INTERFACE_MAP(Bluetooth)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
         public:
             static Bluetooth* _instance;
@@ -215,6 +219,7 @@ namespace WPEFramework {
             static const string CMD_AUDIO_CTRL_VOLUME_DOWN;
             static const string CMD_AUDIO_CTRL_MUTE;
             static const string CMD_AUDIO_CTRL_UNMUTE;
+            static const string CMD_AUDIO_CTRL_UNKNOWN;
 
             uint32_t m_apiVersionNumber;
             // Assuming that there will be only one threaded call at a time (which is the case for Bluetooth)

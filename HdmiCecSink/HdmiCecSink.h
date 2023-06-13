@@ -23,7 +23,7 @@
 #include "ccec/FrameListener.hpp"
 #include "ccec/Connection.hpp"
 
-#include "libIBus.h"
+#include "libIARM.h"
 #include "ccec/Assert.hpp"
 #include "ccec/Messages.hpp"
 #include "ccec/MessageDecoder.hpp"
@@ -32,13 +32,13 @@
 #undef Assert // this define from Connection.hpp conflicts with WPEFramework
 
 #include "Module.h"
-#include "utils.h"
-#include "AbstractPlugin.h"
 #include "tptimer.h"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
 #include <chrono>
+
+#include "UtilsLogging.h"
 
 namespace WPEFramework {
 
@@ -139,7 +139,7 @@ namespace WPEFramework {
 			std::chrono::system_clock::time_point m_lastPowerUpdateTime;
 			
 			CECDeviceParams() 
-			: m_deviceType(0), m_logicalAddress(0),m_physicalAddr(0x0f,0x0f,0x0f,0x0f),m_cecVersion(0),m_vendorID(0,0,0),m_osdName("NA"),m_powerStatus(0),m_currentLanguage("NA")
+			: m_deviceType(0), m_logicalAddress(0),m_physicalAddr(0x0f,0x0f,0x0f,0x0f),m_cecVersion(0),m_vendorID(0,0,0),m_osdName(""),m_powerStatus(0),m_currentLanguage("")
 			{
 				m_isDevicePresent = false;
 				m_isActiveSource = false;
@@ -160,9 +160,9 @@ namespace WPEFramework {
 				m_physicalAddr = PhysicalAddress(0x0f,0x0f,0x0f,0x0f);
 				m_cecVersion = 0;
 				m_vendorID = VendorID(0,0,0);
-				m_osdName = "NA";
+				m_osdName = "";
 				m_powerStatus = 0;
- 				m_currentLanguage = "NA";
+ 				m_currentLanguage = "";
 				m_isDevicePresent = false;
 				m_isActiveSource = false;
 				m_isPAUpdated = false;
@@ -264,7 +264,9 @@ namespace WPEFramework {
 			PhysicalAddress m_physicalAddr;
 			DeviceNode m_deviceChain[3];
 			
-			HdmiPortMap(uint8_t portID) : m_portID(portID), 	    m_physicalAddr(portID+1,0,0,0),m_logicalAddr(LogicalAddress::UNREGISTERED)
+			HdmiPortMap(uint8_t portID) : m_portID(portID),
+							m_logicalAddr(LogicalAddress::UNREGISTERED),
+							m_physicalAddr(portID+1,0,0,0)
 			{
 				m_isConnected = false;
 			}
@@ -286,7 +288,7 @@ namespace WPEFramework {
 				if ( m_logicalAddr.toInt() != LogicalAddress::UNREGISTERED &&
 						m_logicalAddr.toInt() != logical_addr.toInt() )
 				{
-					LOGINFO(" update own logicalAddr = %d, new devcie logicalAddress", m_logicalAddr.toInt(), logical_addr.toInt() );
+					LOGINFO(" update own logicalAddr = %d, new devcie logicalAddress = %d", m_logicalAddr.toInt(), logical_addr.toInt() );
 					/* check matching with this port's physical address */
 					if( physical_addr.getByteValue(0) == m_physicalAddr.getByteValue(0) &&
 							physical_addr.getByteValue(1) != 0 )
@@ -470,7 +472,7 @@ private:
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-        class HdmiCecSink : public AbstractPlugin {
+        class HdmiCecSink : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 
 		enum {
 			POLL_THREAD_STATE_NONE,
@@ -515,7 +517,9 @@ private:
         public:
             HdmiCecSink();
             virtual ~HdmiCecSink();
+            virtual const string Initialize(PluginHost::IShell* shell) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
             static HdmiCecSink* _instance;
 			CECDeviceParams deviceList[16];
 			std::vector<HdmiPortMap> hdmiInputs;
@@ -560,6 +564,12 @@ private:
 			void sendGiveAudioStatusMsg();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
 			bool m_audioDevicePowerStatusRequested;
+
+            BEGIN_INTERFACE_MAP(HdmiCecSink)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
+
         private:
             // We do not allow this plugin to be copied !!
             HdmiCecSink(const HdmiCecSink&) = delete;
@@ -608,6 +618,7 @@ private:
             std::mutex m_enableMutex;
             /* Send Key event related */
             bool m_sendKeyEventThreadExit;
+            bool m_sendKeyEventThreadRun;
             std::thread m_sendKeyEventThread;
             std::mutex m_sendKeyEventMutex;
             std::queue<SendKeyInfo> m_SendKeyQueue;
@@ -670,6 +681,7 @@ private:
             void Send_Request_Arc_Termination_Message();
             void Send_Report_Arc_Terminated_Message();
             void arcStartStopTimerFunction();
+            void getHdmiArcPortID();
         };
 	} // namespace Plugin
 } // namespace WPEFramework

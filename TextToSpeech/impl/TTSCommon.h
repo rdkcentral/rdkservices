@@ -20,7 +20,7 @@
 #ifndef _TTS_ERRORS_H_
 #define _TTS_ERRORS_H_
 
-#include "utils.h"
+#include "../Module.h"
 #include "logger.h"
 
 namespace TTS {

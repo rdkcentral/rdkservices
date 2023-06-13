@@ -20,7 +20,25 @@
 #include "OCDM.h"
 #include <interfaces/IDRM.h>
 
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
+
 namespace WPEFramework {
+
+namespace {
+
+    static Plugin::Metadata<Plugin::OCDM> metadata(
+        // Version (Major, Minor, Patch)
+        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+        // Preconditions
+        {},
+        // Terminations
+        {},
+        // Controls
+        {}
+    );
+}
 
 namespace OCDM {
 
@@ -58,7 +76,11 @@ namespace OCDM {
             {
                 return (IsOperational() ? 1 : 0);
             }
+#ifndef USE_THUNDER_R4
+            virtual bool IsOperational() const
+#else
             virtual const bool IsOperational() const
+#endif /* USE_THUNDER_R4 */
             {
                 return _main.IsActive();
             }
@@ -79,7 +101,7 @@ namespace OCDM {
 
 namespace Plugin {
 
-    SERVICE_REGISTRATION(OCDM, 1, 0);
+    SERVICE_REGISTRATION(OCDM, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     static Core::ProxyPoolType<Web::JSONBodyType<OCDM::Data>> jsonDataFactory(1);
     static Core::ProxyPoolType<Web::JSONBodyType<OCDM::Data::System>> jsonSystemFactory(1);

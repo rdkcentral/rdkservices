@@ -39,18 +39,35 @@
 #include "iarmUtil.h"
 #include "sysMgr.h"
 
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
-#define STATEOBSERVER_MAJOR_VERSION 1
-#define STATEOBSERVER_MINOR_VERSION 0
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 1
 #define DEBUG_INFO 0
 
 namespace WPEFramework {
+
+	namespace {
+
+		static Plugin::Metadata<Plugin::StateObserver> metadata(
+			// Version (Major, Minor, Patch)
+			API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+			// Preconditions
+			{},
+			// Terminations
+			{},
+			// Controls
+			{}
+		);
+	}
 
 		namespace Plugin {
 		/*
 		 *Register StateObserver  module as wpeframework plugin
 		 **/
-		SERVICE_REGISTRATION(StateObserver, STATEOBSERVER_MAJOR_VERSION, STATEOBSERVER_MINOR_VERSION);
+		SERVICE_REGISTRATION(StateObserver, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
 		StateObserver* StateObserver::_instance = nullptr;
 
@@ -62,7 +79,7 @@ namespace WPEFramework {
 
 
 		StateObserver::StateObserver()
-		: AbstractPlugin()
+		: PluginHost::JSONRPC()
 		, m_apiVersionNumber((uint32_t)-1)
 		{
 			StateObserver::_instance = this;
@@ -109,7 +126,7 @@ namespace WPEFramework {
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, onReportStateObserverEvents) );
             }
 		}
 

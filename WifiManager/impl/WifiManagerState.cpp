@@ -22,8 +22,7 @@
 #include "wifiSrvMgrIarmIf.h"
 #include "netsrvmgrIarm.h"
 #include "libIBus.h"
-#include "utils.h"
-
+#include "UtilsJsonRpc.h"
 
 using namespace WPEFramework::Plugin;
 using namespace std;
@@ -43,29 +42,47 @@ namespace {
     }
 }
 
-uint32_t WifiManagerState::getCurrentState(const JsonObject &parameters, JsonObject &response) const
+WifiManagerState::WifiManagerState()
+{
+    m_useWifiStateCache = false;
+    m_wifiStateCache = WifiState::FAILED;
+    m_ConnectedSSIDCache = "";
+    m_ConnectedBSSIDCache = "";
+    m_ConnectedSecurityModeCache = 0;
+}
+
+WifiManagerState::~WifiManagerState()
+{
+}
+
+
+void WifiManagerState::setWifiStateCache(bool value,WifiState Cstate)
+{
+    m_useWifiStateCache = value;
+    m_wifiStateCache = Cstate;
+}
+
+uint32_t WifiManagerState::getCurrentState(const JsonObject &parameters, JsonObject &response)
 {
     LOGINFOMETHOD();
     IARM_Result_t retVal = IARM_RESULT_SUCCESS;
     IARM_Bus_WiFiSrvMgr_Param_t param;
-    WiFiStatusCode_t wifiStatusCode = (WiFiStatusCode_t)-1;
 
     memset(&param, 0, sizeof(param));
 
-    retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getCurrentState, (void *)&param, sizeof(param));
-
-    if(retVal == IARM_RESULT_SUCCESS)
+    if (!m_useWifiStateCache)
     {
-        wifiStatusCode = param.data.wifiStatus;
+        if(IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getCurrentState, (void *)&param, sizeof(param)))
+        {
+            setWifiStateCache(true,(to_wifi_state(param.data.wifiStatus)));
+        }
     }
-
-    response["state"] = static_cast<int>(to_wifi_state(wifiStatusCode));
+    response["state"] = static_cast<int>(m_wifiStateCache);
     returnResponse(retVal == IARM_RESULT_SUCCESS);
 }
 
 uint32_t WifiManagerState::getConnectedSSID(const JsonObject &parameters, JsonObject &response) const
 {
-    LOGINFOMETHOD();
     IARM_Result_t retVal = IARM_RESULT_SUCCESS;
     IARM_Bus_WiFiSrvMgr_Param_t param;
 
@@ -101,6 +118,11 @@ uint32_t WifiManagerState::setEnabled(const JsonObject &parameters, JsonObject &
 
     // disables wifi interface when ethernet interface is active
     IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&param, sizeof(param));
+
+    // Update wifi state cache if wifi interface was disabled
+    if (retVal == IARM_RESULT_SUCCESS && !param.isInterfaceEnabled) {
+        setWifiStateCache(true, WifiState::DISABLED);
+    }
 
     returnResponse(retVal == IARM_RESULT_SUCCESS);
 }

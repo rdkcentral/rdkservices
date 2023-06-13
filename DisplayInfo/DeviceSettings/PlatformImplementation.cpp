@@ -33,7 +33,7 @@
 #include "audioOutputPortConfig.hpp"
 #include "manager.hpp"
 #include "edid-parser.hpp"
-#include "utils.h"
+#include "UtilsIarm.h"
 
 #include "libIBus.h"
 #include "libIBusDaemon.h"
@@ -80,8 +80,8 @@ public:
     virtual ~DisplayInfoImplementation()
     {
         IARM_Result_t res;
-        IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE) );
-        IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE) );
+        IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE,ResolutionChange) );
+        IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE,ResolutionChange) );
         DisplayInfoImplementation::_instance = nullptr;
     }
 
@@ -282,6 +282,7 @@ public:
                 case IConnectionProperties::HDCPProtectionType::HDCP_1X : hdcpversion = dsHDCP_VERSION_1X; break;
                 case IConnectionProperties::HDCPProtectionType::HDCP_2X: hdcpversion = dsHDCP_VERSION_2X; break;
                 case IConnectionProperties::HDCPProtectionType::HDCP_AUTO: hdcpversion = dsHDCP_VERSION_MAX; break;
+                default:    break;
             }
             try
             {
@@ -385,7 +386,7 @@ public:
         if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
             LOGERR("Size too large to use ToString base64 wpe api");
         int i = 0;
-        for (i; i < length && i < size; i++)
+        for (; i < length && i < size; i++)
         {
             data[i] = edidVec[i];
         }

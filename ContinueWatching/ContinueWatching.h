@@ -41,13 +41,9 @@
 #include <string.h>
 #include <mutex>
 #include "Module.h"
-#include "utils.h"
 #if !defined(DISABLE_SECAPI)
 #include "sec_security_datatype.h"
 #endif
-
-#include "utils.h"
-#include "AbstractPlugin.h"
 
 #define CW_LOCAL_FILE  "/opt/continuewatching.json"
 #define NETFLIX_CONTINUEWATCHING_APP_NAME  "netflix"
@@ -72,7 +68,7 @@ namespace WPEFramework {
 		// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
 		// this class exposes a public method called, Notify(), using this methods, all subscribed clients
 		// will receive a JSONRPC message as a notification, in case this method is called.
-	        class ContinueWatching : public AbstractPlugin {
+	        class ContinueWatching : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         	private:
 			// We do not allow this plugin to be copied !!
 			ContinueWatching(const ContinueWatching&) = delete;
@@ -88,7 +84,13 @@ namespace WPEFramework {
         	public:
 			ContinueWatching();
 			virtual ~ContinueWatching();
+            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
                         virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
+            BEGIN_INTERFACE_MAP(ContinueWatching)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
         	private:
 			uint32_t getApiVersionNumber();
 			void setApiVersionNumber(uint32_t apiVersionNumber);

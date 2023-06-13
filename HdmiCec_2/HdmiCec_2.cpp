@@ -36,7 +36,9 @@
 #include "manager.hpp"
 #include "websocket/URL.h"
 
-#include "utils.h"
+#include "UtilsIarm.h"
+#include "UtilsJsonRpc.h"
+#include "UtilssyncPersistFile.h"
 
 #define HDMICEC2_METHOD_SET_ENABLED "setEnabled"
 #define HDMICEC2_METHOD_GET_ENABLED "getEnabled"
@@ -49,13 +51,17 @@
 #define HDMICEC2_METHOD_PERFORM_OTP_ACTION "performOTPAction"
 #define HDMICEC2_METHOD_SEND_STANDBY_MESSAGE "sendStandbyMessage"
 #define HDMICEC2_METHOD_GET_ACTIVE_SOURCE_STATUS "getActiveSourceStatus"
-
+#define HDMICEC2_METHOD_SEND_KEY_PRESS         "sendKeyPressEvent"
 #define HDMICEC_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define HDMICEC_EVENT_ON_HDMI_HOT_PLUG "onHdmiHotPlug"
 #define HDMICEC_EVENT_ON_STANDBY_MSG_RECEIVED "standbyMessageReceived"
 #define DEV_TYPE_TUNER 1
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
-#define ABORT_REASON_ID 4
+#define ABORT_REASON_ID 5
+
+#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 11
 
 enum {
 	HDMICEC2_EVENT_DEVICE_ADDED=0,
@@ -64,7 +70,7 @@ enum {
         HDMICEC2_EVENT_ACTIVE_SOURCE_STATUS_UPDATED,
 };
 
-static char *eventString[] = {
+static const char *eventString[] = {
 	"onDeviceAdded",
 	"onDeviceRemoved",
 	"onDeviceInfoUpdated",
@@ -77,7 +83,7 @@ static char *eventString[] = {
 #define CEC_SETTING_OSD_NAME "cecOSDName"
 #define CEC_SETTING_VENDOR_ID "cecVendorId"
 
-static vector<uint8_t> defaultVendorId = {0x00,0x19,0xFB};
+static std::vector<uint8_t> defaultVendorId = {0x00,0x19,0xFB};
 static VendorID appVendorId = {defaultVendorId.at(0),defaultVendorId.at(1),defaultVendorId.at(2)};
 static VendorID lgVendorId = {0x00,0xE0,0x91};
 static PhysicalAddress physical_addr = {0x0F,0x0F,0x0F,0x0F};
@@ -90,9 +96,23 @@ static bool isLGTvConnected = false;
 
 namespace WPEFramework
 {
+    namespace {
+
+        static Plugin::Metadata<Plugin::HdmiCec_2> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
+
     namespace Plugin
     {
-        SERVICE_REGISTRATION(HdmiCec_2, 1, 0);
+        SERVICE_REGISTRATION(HdmiCec_2, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         HdmiCec_2* HdmiCec_2::_instance = nullptr;
         static int libcecInitStatus = 0;
@@ -104,7 +124,7 @@ namespace WPEFramework
                 size_t len = 0;
 
                 in.getBuffer(&buf, &len);
-                for (int i = 0; i < len; i++) {
+                for (unsigned int i = 0; i < len; i++) {
                    sprintf(strBuffer + (i*3) , "%02X ",(uint8_t) *(buf + i));
                 }
                 LOGINFO("   >>>>>    Received CEC Frame: :%s \n",strBuffer);
@@ -365,22 +385,25 @@ namespace WPEFramework
 //=========================================== HdmiCec_2 =========================================
 
        HdmiCec_2::HdmiCec_2()
-       : AbstractPlugin()
+       : PluginHost::JSONRPC(),cecEnableStatus(false),smConnection(nullptr), m_sendKeyEventThreadRun(false)
        {
            LOGWARN("ctor");
+           smConnection = NULL;
+          cecEnableStatus = false;
            IsCecMgrActivated = false;
-           registerMethod(HDMICEC2_METHOD_SET_ENABLED, &HdmiCec_2::setEnabledWrapper, this);
-           registerMethod(HDMICEC2_METHOD_GET_ENABLED, &HdmiCec_2::getEnabledWrapper, this);
-           registerMethod(HDMICEC2_METHOD_OTP_SET_ENABLED, &HdmiCec_2::setOTPEnabledWrapper, this);
-           registerMethod(HDMICEC2_METHOD_OTP_GET_ENABLED, &HdmiCec_2::getOTPEnabledWrapper, this);
-           registerMethod(HDMICEC2_METHOD_SET_OSD_NAME, &HdmiCec_2::setOSDNameWrapper, this);
-           registerMethod(HDMICEC2_METHOD_GET_OSD_NAME, &HdmiCec_2::getOSDNameWrapper, this);
-           registerMethod(HDMICEC2_METHOD_SET_VENDOR_ID, &HdmiCec_2::setVendorIdWrapper, this);
-           registerMethod(HDMICEC2_METHOD_GET_VENDOR_ID, &HdmiCec_2::getVendorIdWrapper, this);
-           registerMethod(HDMICEC2_METHOD_PERFORM_OTP_ACTION, &HdmiCec_2::performOTPActionWrapper, this);
-           registerMethod(HDMICEC2_METHOD_SEND_STANDBY_MESSAGE, &HdmiCec_2::sendStandbyMessageWrapper, this);
-           registerMethod(HDMICEC2_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec_2::getActiveSourceStatus, this);
-           registerMethod("getDeviceList", &HdmiCec_2::getDeviceList, this);
+           Register(HDMICEC2_METHOD_SET_ENABLED, &HdmiCec_2::setEnabledWrapper, this);
+           Register(HDMICEC2_METHOD_GET_ENABLED, &HdmiCec_2::getEnabledWrapper, this);
+           Register(HDMICEC2_METHOD_OTP_SET_ENABLED, &HdmiCec_2::setOTPEnabledWrapper, this);
+           Register(HDMICEC2_METHOD_OTP_GET_ENABLED, &HdmiCec_2::getOTPEnabledWrapper, this);
+           Register(HDMICEC2_METHOD_SET_OSD_NAME, &HdmiCec_2::setOSDNameWrapper, this);
+           Register(HDMICEC2_METHOD_GET_OSD_NAME, &HdmiCec_2::getOSDNameWrapper, this);
+           Register(HDMICEC2_METHOD_SET_VENDOR_ID, &HdmiCec_2::setVendorIdWrapper, this);
+           Register(HDMICEC2_METHOD_GET_VENDOR_ID, &HdmiCec_2::getVendorIdWrapper, this);
+           Register(HDMICEC2_METHOD_PERFORM_OTP_ACTION, &HdmiCec_2::performOTPActionWrapper, this);
+           Register(HDMICEC2_METHOD_SEND_STANDBY_MESSAGE, &HdmiCec_2::sendStandbyMessageWrapper, this);
+           Register(HDMICEC2_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec_2::getActiveSourceStatus, this);
+           Register(HDMICEC2_METHOD_SEND_KEY_PRESS,&HdmiCec_2::sendRemoteKeyPressWrapper,this);
+           Register("getDeviceList", &HdmiCec_2::getDeviceList, this);
 
        }
 
@@ -388,6 +411,7 @@ namespace WPEFramework
        {
            IsCecMgrActivated = false;
            LOGWARN("dtor");
+
        }
  
        const string HdmiCec_2::Initialize(PluginHost::IShell* /* service */)
@@ -405,7 +429,6 @@ namespace WPEFramework
 
                logicalAddressDeviceType = "None";
                logicalAddress = 0xFF;
-
 
                char c;
                IARM_Result_t retVal = IARM_RESULT_SUCCESS;
@@ -433,7 +456,7 @@ namespace WPEFramework
                    device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                    if (vPort.isDisplayConnected())
                    {
-                       vector<uint8_t> edidVec;
+                       std::vector<uint8_t> edidVec;
                        vPort.getDisplay().getEDIDBytes(edidVec);
                        //Set LG vendor id if connected with LG TV
                        if(edidVec.at(8) == 0x1E && edidVec.at(9) == 0x6D)
@@ -497,16 +520,111 @@ namespace WPEFramework
            HdmiCec_2::_instance->sendActiveSourceEvent();
            HdmiCec_2::_instance = nullptr;
            smConnection = NULL;
+
            DeinitializeIARM();
        }
+       
+	    void HdmiCec_2::sendKeyPressEvent(const int logicalAddress, int keyCode)
+		{
+			if(!(_instance->smConnection))
+                 return;
+		    LOGINFO(" sendKeyPressEvent logicalAddress 0x%x keycode 0x%x\n",logicalAddress,keyCode);
+			switch(keyCode)
+                   {
+                case VOLUME_UP:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_VOLUME_UP)),100);
+			   break;
+		       case VOLUME_DOWN:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_VOLUME_DOWN)), 100);
+               break;
+		       case MUTE:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_MUTE)), 100);
+			   break;
+		       case UP:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_UP)), 100);
+			   break;
+		       case DOWN:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_DOWN)), 100);
+			   break;
+		       case LEFT:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_LEFT)), 100);
+			   break;
+		       case RIGHT:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_RIGHT)), 100);
+			   break;
+		       case SELECT:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_SELECT)), 100);
+			   break;
+		       case HOME:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_HOME)), 100);
+			   break;
+		       case BACK:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_BACK)), 100);
+			   break;
+		       case NUMBER_0:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_0)), 100);
+			   break;
+		       case NUMBER_1:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_1)), 100);
+			   break;
+		       case NUMBER_2:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_2)), 100);
+			   break;
+		       case NUMBER_3:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_3)), 100);
+			   break;
+		       case NUMBER_4:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_4)), 100);
+			   break;
+		       case NUMBER_5:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_5)), 100);
+			   break;
+		       case NUMBER_6:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_6)), 100);
+			   break;
+		       case NUMBER_7:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_7)), 100);
+			   break;
+		       case NUMBER_8:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_8)), 100);
+			   break;
+		       case NUMBER_9:
+			   _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_9)), 100);
+			   break;
 
+                   }
+		}
+		void HdmiCec_2::sendKeyReleaseEvent(const int logicalAddress)
+		 {
+	            LOGINFO(" sendKeyReleaseEvent logicalAddress 0x%x \n",logicalAddress);
+                    if(!(_instance->smConnection))
+                        return;
+		 _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlReleased()), 100);
+
+		 }
        void HdmiCec_2::SendStandbyMsgEvent(const int logicalAddress)
        {
            JsonObject params;
            params["logicalAddress"] = JsonValue(logicalAddress);
            sendNotify(HDMICEC_EVENT_ON_STANDBY_MSG_RECEIVED, params);
        }
- 
+	   uint32_t HdmiCec_2::sendRemoteKeyPressWrapper(const JsonObject& parameters, JsonObject& response)
+		{
+            returnIfParamNotFound(parameters, "logicalAddress");
+			returnIfParamNotFound(parameters, "keyCode");
+			string logicalAddress = parameters["logicalAddress"].String();
+			string keyCode = parameters["keyCode"].String();
+			SendKeyInfo keyInfo;
+			keyInfo.logicalAddr = stoi(logicalAddress);
+			keyInfo.keyCode     = stoi(keyCode);
+			std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
+			m_SendKeyQueue.push(keyInfo);
+            m_sendKeyEventThreadRun = true;
+			m_sendKeyCV.notify_one();
+			LOGINFO("Post send key press event to queue size:%d \n",(int)m_SendKeyQueue.size());
+			returnResponse(true);
+		}
+	    
        uint32_t HdmiCec_2::sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response)
        {
 	   if(sendStandbyMessage())
@@ -563,10 +681,10 @@ namespace WPEFramework
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED, cecMgrEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED, cecMgrEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, pwrMgrModeChangeEventHandler) );
             }
        }
 
@@ -665,7 +783,7 @@ namespace WPEFramework
                try{
                     getPhysicalAddress();
 
-                    unsigned int logicalAddr = evtData->logicalAddress;
+                    int logicalAddr = evtData->logicalAddress;
                     std::string logicalAddrDeviceType = DeviceType(LogicalAddress(evtData->logicalAddress).getType()).toString().c_str();
 
                     LOGINFO("cecLogicalAddressUpdated: logical address updated: %d , saved : %d ", logicalAddr, logicalAddress.toInt());
@@ -675,7 +793,7 @@ namespace WPEFramework
                         logicalAddressDeviceType = logicalAddrDeviceType;
                     }
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from cecStatusUpdated");
                 }
@@ -710,7 +828,7 @@ namespace WPEFramework
                    device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
                    if (vPort.isDisplayConnected())
                    {
-                     vector<uint8_t> edidVec;
+                     std::vector<uint8_t> edidVec;
                      vPort.getDisplay().getEDIDBytes(edidVec);
                      //Set LG vendor id if connected with LG TV
                      if(edidVec.at(8) == 0x1E && edidVec.at(9) == 0x6D)
@@ -799,7 +917,6 @@ namespace WPEFramework
        uint32_t HdmiCec_2::setOSDNameWrapper(const JsonObject& parameters, JsonObject& response)
        {
            LOGINFOMETHOD();
-            bool enabled = false;
 
             if (parameters.HasLabel("name"))
             {
@@ -825,8 +942,6 @@ namespace WPEFramework
         uint32_t HdmiCec_2::setVendorIdWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-
-            bool enabled = false;
 
             if (parameters.HasLabel("vendorid"))
             {
@@ -1034,13 +1149,23 @@ namespace WPEFramework
                 {
                     LibCCEC::getInstance().init();
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from LibCCEC::getInstance().init()");
                 }
             }
             libcecInitStatus++;
-          
+
+            m_sendKeyEventThreadExit = false;
+            try {
+               if (m_sendKeyEventThread.get().joinable()) {
+                   m_sendKeyEventThread.get().join();
+	       }
+               m_sendKeyEventThread = Utils::ThreadRAII(std::thread(threadSendKeyEvent));
+            } catch(const std::system_error& e) {
+                LOGERR("exception in creating threadSendKeyEvent %s", e.what());
+	    }
+
 
             //Acquire CEC Addresses
             getPhysicalAddress();
@@ -1072,14 +1197,28 @@ namespace WPEFramework
                 m_updateThreadExit = false;
                 _instance->m_lockUpdate = PTHREAD_MUTEX_INITIALIZER;
                 _instance->m_condSigUpdate = PTHREAD_COND_INITIALIZER;
-                m_UpdateThread = std::thread(threadUpdateCheck);
+                try {
+                    if (m_UpdateThread.get().joinable()) {
+                       m_UpdateThread.get().join();
+	            }
+                    m_UpdateThread = Utils::ThreadRAII(std::thread(threadUpdateCheck));
+                } catch(const std::system_error& e) {
+                    LOGERR("exception in creating threadUpdateCheck %s", e.what());
+	        }
 
                 LOGWARN("Start Thread %p", smConnection );
                 m_pollThreadExit = false;
                 _instance->m_numberOfDevices = 0;
                 _instance->m_lock = PTHREAD_MUTEX_INITIALIZER;
                 _instance->m_condSig = PTHREAD_COND_INITIALIZER;
-                m_pollThread = std::thread(threadRun);
+                try {
+                    if (m_pollThread.get().joinable()) {
+                       m_pollThread.get().join();
+	            }
+                    m_pollThread = Utils::ThreadRAII(std::thread(threadRun));
+                } catch(const std::system_error& e) {
+                    LOGERR("exception in creating threadRun %s", e.what());
+	        }
 
             }
             return;
@@ -1101,41 +1240,47 @@ namespace WPEFramework
                 return;
             }
 
+            {
+                m_sendKeyEventThreadExit = true;
+                std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
+                m_sendKeyEventThreadRun = true;
+                m_sendKeyCV.notify_one();
+            }
+            try
+	        {
+                if (m_sendKeyEventThread.get().joinable())
+                    m_sendKeyEventThread.get().join();
+	        }
+	        catch(const std::system_error& e)
+	        {
+		        LOGERR("system_error exception in thread join %s", e.what());
+	        }
+	        catch(const std::exception& e)
+	        {
+		        LOGERR("exception in thread join %s", e.what());
+	        }
+
             if (smConnection != NULL)
             {
                 LOGWARN("Stop Thread %p", smConnection );
 
                 m_updateThreadExit = true;
                 //Trigger codition to exit poll loop
+                pthread_mutex_lock(&(_instance->m_lockUpdate)); //Join mutex lock to wait until thread is in its wait condition
                 pthread_cond_signal(&(_instance->m_condSigUpdate));
-                try {
-                    if (m_UpdateThread.joinable()) {
-                       LOGWARN("Join update Thread %p", smConnection );
-                       m_UpdateThread.join();
-                    }
-                }
-                catch(const std::system_error& e) {
-                    LOGERR("system_error exception in thread join %s", e.what());
-                }
-                catch(const std::exception& e) {
-                    LOGERR("exception in thread join %s", e.what());
+                pthread_mutex_unlock(&(_instance->m_lockUpdate));
+                if (m_UpdateThread.get().joinable()) {//Join thread to make sure it's deleted before moving on.
+                    m_UpdateThread.get().join();
                 }
                 LOGWARN("Deleted update Thread %p", smConnection );
 
                 m_pollThreadExit = true;
                 //Trigger codition to exit poll loop
+                pthread_mutex_lock(&(_instance->m_lock)); //Join mutex lock to wait until thread is in its wait condition
                 pthread_cond_signal(&(_instance->m_condSig));
-                try {
-                    if (m_pollThread.joinable()) {
-                       LOGWARN("Join Thread %p", smConnection );
-                       m_pollThread.join();
-                    }
-                }
-                catch(const std::system_error& e) {
-                    LOGERR("system_error exception in thread join %s", e.what());
-                }
-                catch(const std::exception& e) {
-                    LOGERR("exception in thread join %s", e.what());
+                pthread_mutex_unlock(&(_instance->m_lock));
+                if (m_pollThread.get().joinable()) {//Join thread to make sure it's deleted before moving on.
+                    m_pollThread.get().join();
                 }
                 LOGWARN("Deleted Thread %p", smConnection );
                 //Clear cec device cache.
@@ -1143,6 +1288,10 @@ namespace WPEFramework
 
                 smConnection->close();
                 delete smConnection;
+                delete msgProcessor;
+                delete msgFrameListener;
+                msgProcessor = NULL;
+                msgFrameListener = NULL;
                 smConnection = NULL;
             }
             cecEnableStatus = false;
@@ -1153,7 +1302,7 @@ namespace WPEFramework
                 {
                    LibCCEC::getInstance().term();
                 }
-                catch (const std::exception e)
+                catch (const std::exception& e)
                 {
                     LOGWARN("CEC exception caught from LibCCEC::getInstance().term() ");
                 }
@@ -1180,7 +1329,7 @@ namespace WPEFramework
                     physical_addr = {(uint8_t)((physAddress >> 24) & 0xFF),(uint8_t)((physAddress >> 16) & 0xFF),(uint8_t) ((physAddress >> 8)  & 0xFF),(uint8_t)((physAddress) & 0xFF)};
                     LOGINFO("getPhysicalAddress: physicalAddress: %s ", physical_addr.toString().c_str());
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("exception caught from getPhysicalAddress");
             }
@@ -1209,7 +1358,7 @@ namespace WPEFramework
                     logicalAddressDeviceType = logicalAddrDeviceType;
                 }
             }
-            catch (const std::exception e)
+            catch (const std::exception& e)
             {
                 LOGWARN("CEC exception caught from getLogicalAddress ");
             }
@@ -1304,6 +1453,10 @@ namespace WPEFramework
 	bool HdmiCec_2::pingDeviceUpdateList (int idev)
 	{
 		bool isConnected = false;
+		//self ping is not required
+		if (idev == logicalAddress.toInt()){
+		        return isConnected;
+		}
 		if(!HdmiCec_2::_instance)
 		{
 			LOGERR("HdmiCec_2::_instance not existing");
@@ -1501,8 +1654,46 @@ namespace WPEFramework
 
 		}
 		pthread_mutex_unlock(&(_instance->m_lock));
+	        LOGINFO("%s: Thread exited", __FUNCTION__);
 	}
+	void HdmiCec_2::threadSendKeyEvent()
+        {
+            if(!HdmiCec_2::_instance)
+                return;
 
+	    SendKeyInfo keyInfo = {-1,-1};
+
+            while(!_instance->m_sendKeyEventThreadExit)
+            {
+                keyInfo.logicalAddr = -1;
+                keyInfo.keyCode = -1;
+                {
+                    // Wait for a message to be added to the queue
+                    std::unique_lock<std::mutex> lk(_instance->m_sendKeyEventMutex);
+                    _instance->m_sendKeyCV.wait(lk, []{return (_instance->m_sendKeyEventThreadRun == true);});
+                }
+
+                if (_instance->m_sendKeyEventThreadExit == true)
+                {
+                    LOGINFO(" threadSendKeyEvent Exiting");
+                    _instance->m_sendKeyEventThreadRun = false;
+                    break;
+                }
+
+                if (_instance->m_SendKeyQueue.empty()) {
+                    _instance->m_sendKeyEventThreadRun = false;
+                    continue;
+                }
+
+                    keyInfo = _instance->m_SendKeyQueue.front();
+                    _instance->m_SendKeyQueue.pop();
+
+                LOGINFO("sendRemoteKeyThread : logical addr:0x%x keyCode: 0x%x  queue size :%d \n",keyInfo.logicalAddr,keyInfo.keyCode,(int)_instance->m_SendKeyQueue.size());
+			    _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
+			    _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
+            }
+	    LOGINFO("%s: Thread exited", __FUNCTION__);
+        }
 	void HdmiCec_2::threadUpdateCheck()
 	{
 		if(!HdmiCec_2::_instance)
@@ -1559,6 +1750,7 @@ namespace WPEFramework
 
 		}
 		pthread_mutex_unlock(&(_instance->m_lockUpdate));
+	        LOGINFO("%s: Thread exited", __FUNCTION__);
 	}
 
     } // namespace Plugin

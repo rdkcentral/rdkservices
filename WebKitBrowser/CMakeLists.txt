@@ -42,15 +42,19 @@ option(PLUGIN_WEBKITBROWSER_RESIDENT_APP "Include Resident App in seperate plugi
 option(PLUGIN_WEBKITBROWSER_SEARCH_AND_DISCOVERY_APP "Include Search&Discovery App in seperate plugin." OFF)
 option(PLUGIN_WEBKITBROWSER_HTML_APP "Include HTML App in seperate plugin." OFF)
 option(PLUGIN_WEBKITBROWSER_LIGHTNING_APP "Include Lightning App in seperate plugin." OFF)
+option(PLUGIN_WEBKITBROWSER_JSPP "Include JSPP in seperate plugin." OFF)
 
 option(PLUGIN_WEBKITBROWSER_ENABLE_JIT "Enable the use of JIT javascript optimalization" ON)
 option(PLUGIN_WEBKITBROWSER_ENABLE_DFG "Enable the use of DFG javascript optimalization" ON)
 option(PLUGIN_APPS_ENABLE_JIT "Enable the use of JIT javascript optimalization" OFF)
 option(PLUGIN_APPS_ENABLE_DFG "Enable the use of DFG javascript optimalization" OFF)
+option(PLUGIN_WEBKITBROWSER_CLOUD_COOKIEJAR "Enable support for exporting/importing cookie jar" OFF)
+option(PLUGIN_WEBKITBROWSER_LOGGING_UTILS "Enable possibility to redirect stdout/err to specific systemd service" OFF)
 
 set(PLUGIN_WEBKITBROWSER_IMPLEMENTATION "${MODULE_NAME}Impl" CACHE STRING "Specify a library with a webkit implementation." )
 
 set(PLUGIN_WEBKITBROWSER_AUTOSTART "false" CACHE STRING "Automatically start WebKitBrowser plugin")
+set(PLUGIN_WEBKITBROWSER_STARTUPORDER "" CACHE STRING "To configure startup order of WebKitBrowser plugin")
 set(PLUGIN_WEBKITBROWSER_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 set(PLUGIN_WEBKITBROWSER_RESUMED "true" CACHE STRING "Set WebKitBrowser plugin resume state")
 set(PLUGIN_WEBKITBROWSER_TRANSPARENT "false" CACHE STRING "Set transparency")
@@ -75,16 +79,22 @@ set(PLUGIN_WEBKITBROWSER_LOCALSTORAGE_ENABLE "true" CACHE STRING "Enable LocalSt
 set(PLUGIN_WEBKITBROWSER_THUNDER_DECRYPTOR_PREFERENCE "true" CACHE STRING "Enable Thunder decryptor preference in WebKit")
 set(PLUGIN_WEBKITBROWSER_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_WEBKITBROWSER_PTSOFFSET "0" CACHE STRING "Set ptsoffset for webkit")
+set(PLUGIN_WEBKITBROWSER_USE_EXACT_PATHS "false" CACHE STRING "Use paths specified in configuration options without further modifying them") 
 
 set(PLUGIN_YOUTUBE_AUTOSTART "false" CACHE STRING "Automatically start Youtube plugin")
+set(PLUGIN_YOUTUBE_STARTUPORDER "" CACHE STRING "To configure startup order of YouTube plugin")
 set(PLUGIN_YOUTUBE_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
+set(PLUGIN_YOUTUBE_STARTURL "https://www.youtube.com/tv" CACHE STRING "Initial URL for YouTube plugin")
+set(PLUGIN_YOUTUBE_STARTURL_QUERYSTRING "" CACHE STRING "Initial URL Query String for YouTube plugin")
 set(PLUGIN_YOUTUBE_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string YouTube")
 set(PLUGIN_YOUTUBE_WEBINSPECTOR_ADDRESS "0.0.0.0:9999" CACHE STRING "IP:Port for WebInspector of YouTube")
 set(PLUGIN_YOUTUBE_LOCALSTORAGE_ENABLE "true" CACHE STRING "Enable LocalStorage of YouTube App")
 set(PLUGIN_YOUTUBE_MSEBUFFERS "${PLUGIN_WEBKITBROWSER_MSEBUFFERS}" CACHE STRING "MSE Buffers for WebKit")
+set(PLUGIN_YOUTUBE_WEBGL "false" CACHE STRING "Enable WebGL")
 set(PLUGIN_YOUTUBE_RESOLUTION "720p" CACHE STRING "YouTube resolution")
 
 set(PLUGIN_UX_AUTOSTART "false" CACHE STRING "Automatically start UX plugin")
+set(PLUGIN_UX_STARTUPORDER "" CACHE STRING "To configure startup order of UX plugin")
 set(PLUGIN_UX_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 set(PLUGIN_UX_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string for UX")
 set(PLUGIN_UX_WEBINSPECTOR_ADDRESS "0.0.0.0:10000" CACHE STRING "IP:Port for WebInspector of UX")
@@ -92,6 +102,7 @@ set(PLUGIN_UX_LOCALSTORAGE_ENABLE "true" CACHE STRING "Enable LocalStorage of UX
 set(PLUGIN_UX_MSEBUFFERS "audio:2m,video:15m,text:1m" CACHE STRING "MSE Buffers for WebKit")
 
 set(PLUGIN_APPS_AUTOSTART "false" CACHE STRING "Automatically start Apps plugin")
+set(PLUGIN_APPS_STARTUPORDER "" CACHE STRING "To configure startup order of Apps plugin")
 set(PLUGIN_APPS_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 set(PLUGIN_APPS_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string for Apps")
 set(PLUGIN_APPS_WEBINSPECTOR_ADDRESS "0.0.0.0:10001" CACHE STRING "IP:Port for WebInspector of Apps")
@@ -100,6 +111,7 @@ set(PLUGIN_APPS_MSEBUFFERS "audio:2m,video:15m,text:1m" CACHE STRING "MSE Buffer
 set(PLUGIN_APPS_WEBGL "false" CACHE STRING "Enable Apps WebGL")
 
 set(PLUGIN_RESIDENT_APP_AUTOSTART "false" CACHE STRING "Automatically start Resident App plugin")
+set(PLUGIN_RESIDENT_APP_STARTUPORDER "" CACHE STRING "To configure startup order of Resident App plugin")
 set(PLUGIN_RESIDENT_APP_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 set(PLUGIN_RESIDENT_APP_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string for Resident App")
 set(PLUGIN_RESIDENT_APP_WEBINSPECTOR_ADDRESS ":::10000" CACHE STRING "IP:Port for WebInspector of Resident App")
@@ -107,32 +119,49 @@ set(PLUGIN_RESIDENT_APP_STARTURL "about:blank" CACHE STRING "Initial URL for Res
 set(PLUGIN_RESIDENT_APP_LOCALSTORAGE_ENABLE "true" CACHE STRING "Enable LocalStorage of Resident App")
 set(PLUGIN_RESIDENT_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_RESIDENT_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Resident App Memory Pressure")
+set(PLUGIN_RESIDENT_APP_COMPOSITOR "msaa" CACHE STRING "cairo compositor mode for Resident App")
 
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_AUTOSTART "false" CACHE STRING "Automatically start Search&Discovery App plugin")
+set(PLUGIN_SEARCH_AND_DISCOVERY_APP_STARTUPORDER "" CACHE STRING "To configure startup order of Search&Discovery App plugin")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string for Search&Discovery App")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_WEBINSPECTOR_ADDRESS ":::10003" CACHE STRING "IP:Port for WebInspector of Search&Discovery App")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_LOCALSTORAGE_ENABLE "false" CACHE STRING "Enable LocalStorage of Search&Discovery App")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_SEARCH_AND_DISCOVERY_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Search&Discovery Memory Pressure")
+set(PLUGIN_SEARCH_AND_DISCOVERY_APP_COMPOSITOR "msaa" CACHE STRING "cairo compositor mode for Search&Discovery App")
 
 set(PLUGIN_HTML_APP_AUTOSTART "false" CACHE STRING "Automatically start Htmp App plugin")
+set(PLUGIN_HTML_APP_STARTUPORDER "" CACHE STRING "To configure startup order of Html App plugin")
 set(PLUGIN_HTML_APP_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 set(PLUGIN_HTML_APP_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string for Html App")
 set(PLUGIN_HTML_APP_WEBINSPECTOR_ADDRESS ":::10001" CACHE STRING "IP:Port for WebInspector of Html App")
 set(PLUGIN_HTML_APP_LOCALSTORAGE_ENABLE "false" CACHE STRING "Enable LocalStorage of Html App")
 set(PLUGIN_HTML_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_HTML_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Html App Memory Pressure")
+set(PLUGIN_HTML_APP_COMPOSITOR "noaa" CACHE STRING "cairo compositor mode for Html App")
 
-set(PLUGIN_LIGHTNING_APP_AUTOSTART "false" CACHE STRING "Automatically start Lightninig App plugin")
+set(PLUGIN_LIGHTNING_APP_AUTOSTART "false" CACHE STRING "Automatically start Lightning App plugin")
+set(PLUGIN_LIGHTNING_APP_STARTUPORDER "" CACHE STRING "To configure startup order of Lightning App plugin")
 set(PLUGIN_LIGHTNING_APP_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 set(PLUGIN_LIGHTNING_APP_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string for Lightning App")
 set(PLUGIN_LIGHTNING_APP_WEBINSPECTOR_ADDRESS ":::10002" CACHE STRING "IP:Port for WebInspector of Lightning App")
 set(PLUGIN_LIGHTNING_APP_LOCALSTORAGE_ENABLE "false" CACHE STRING "Enable LocalStorage of Lightning App")
 set(PLUGIN_LIGHTNING_APP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_LIGHTNING_APP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "Lightning App Memory Pressure")
+set(PLUGIN_LIGHTNING_APP_COMPOSITOR "noaa" CACHE STRING "cairo compositor mode for Lightning App")
+
+set(PLUGIN_JSPP_AUTOSTART "false" CACHE STRING "Automatically start JSPP plugin")
+set(PLUGIN_JSPP_STARTUPORDER "" CACHE STRING "To configure startup order of JSPP plugin")
+set(PLUGIN_JSPP_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
+set(PLUGIN_JSPP_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string for JSPP")
+set(PLUGIN_JSPP_LOCALSTORAGE_ENABLE "false" CACHE STRING "Enable LocalStorage of JSPP")
+set(PLUGIN_JSPP_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
+set(PLUGIN_JSPP_MEMORYPRESSURE ${PLUGIN_WEBKITBROWSER_MEMORYPRESSURE} CACHE STRING "JSPP Memory Pressure")
+set(PLUGIN_JSPP_STARTURL "about:blank" CACHE STRING "JSPP default URL to use")
 
 set(PLUGIN_AMAZON_AUTOSTART "false" CACHE STRING "Automatically start Amazon plugin")
+set(PLUGIN_AMAZON_STARTUPORDER "" CACHE STRING "To configure startup order of Amazon plugin")
 set(PLUGIN_AMAZON_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 set(PLUGIN_AMAZON_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string for Amazon App")
 set(PLUGIN_AMAZON_WEBINSPECTOR_ADDRESS "0.0.0.0:9999" CACHE STRING "IP:Port for WebInspector of Amazon")
@@ -177,12 +206,33 @@ target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
         WPEBackend::WPEBackend
         WPEWebKit::WPEWebKit)
 
+if (PLUGIN_WEBKITBROWSER_CLOUD_COOKIEJAR)
+    find_package(ZLIB REQUIRED)
+    target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
+        PRIVATE
+        ZLIB::ZLIB)
+    target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
+        PRIVATE
+        ENABLE_CLOUD_COOKIE_JAR=1)
+    target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE CookieJar.cpp)
+    include(CookieJarCrypto/CMakeLists.txt)
+endif()
+
+if (PLUGIN_WEBKITBROWSER_LOGGING_UTILS)
+    target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE ENABLE_LOGGING_UTILS)
+    target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE LoggingUtils.cpp)
+endif()
+
 if(WPE_WEBKIT_DEPRECATED_API)
     target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE WPE_WEBKIT_DEPRECATED_API)
 endif()
 
 if(WEBKIT_GLIB_API)
     target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE WEBKIT_GLIB_API)
+endif()
+
+if(PLUGIN_WEBKITBROWSER_USE_EXACT_PATHS)
+    target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE USE_EXACT_PATHS)
 endif()
 
 set_target_properties(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PROPERTIES
@@ -275,6 +325,11 @@ endif()
 # Lightning App configuration
 if(PLUGIN_WEBKITBROWSER_LIGHTNING_APP)
     write_config( LightningApp )
+endif()
+
+# JSPP configuration
+if(PLUGIN_WEBKITBROWSER_JSPP)
+    write_config( JSPP )
 endif()
 
 # Resident App configuration

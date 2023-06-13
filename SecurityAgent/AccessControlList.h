@@ -40,7 +40,7 @@ namespace {
         string regex = input;
         
         // order of replacing is important
-        ReplaceString(regex,"*","^[a-zA-Z0-9.]+$");
+        ReplaceString(regex,"*","[a-zA-Z0-9.]*");
         ReplaceString(regex,".","\\.");
         
         return regex;
@@ -57,7 +57,7 @@ namespace {
         ReplaceString(regex,":*",":[0-9]+");
         ReplaceString(regex,"*:","[a-z]+:");
         ReplaceString(regex,".","\\.");
-        ReplaceString(regex,"*","[a-zA-Z0-9\\.\\-]+");
+        ReplaceString(regex,"*","[a-zA-Z0-9\\.\\-]*");
         regex.insert(regex.begin(),'(');
         regex.insert(regex.end(),')');
         regex.insert(regex.begin(),'^');
@@ -295,7 +295,7 @@ namespace Plugin {
                     while ((index != _methods.end()) && (found == false)) { 
                         std::regex expression(index->c_str());
                         std::smatch matchList;
-                        found = std::regex_search(method, matchList, expression);
+                        found = std::regex_match(method, matchList, expression);
                         if (found == false) {
                             index++;
                         }
@@ -330,7 +330,7 @@ namespace Plugin {
             }
 
         public:
-            bool Allowed(const string callsign, const string& method) const
+            bool Allowed(const string& callsign, const string& method) const
             {
                 bool pluginFound = false;
 
@@ -338,7 +338,7 @@ namespace Plugin {
                 while ((index != _plugins.end()) && (pluginFound == false)) {
                     std::regex expression(index->first.c_str());
                     std::smatch matchList;
-                    pluginFound = std::regex_search(callsign, matchList, expression);
+                    pluginFound = std::regex_match(callsign, matchList, expression);
                     if (pluginFound == false) {
                         index++;
                     }
@@ -381,6 +381,8 @@ namespace Plugin {
         }
         void Clear()
         {
+            Core::SafeSyncType<Core::CriticalSection> lock(_adminLock);
+
             _urlMap.clear();
             _filterMap.clear();
             _unusedRoles.clear();
@@ -389,6 +391,8 @@ namespace Plugin {
         const Filter* FilterMapFromURL(const string& URL) const
         {
             auto origin = GetUrlOrigin(URL);
+
+            Core::SafeSyncType<Core::CriticalSection> lock(_adminLock);
 
             const Filter* result = nullptr;
             std::smatch matchList;
@@ -410,6 +414,14 @@ namespace Plugin {
 
             return (result);
         }
+        bool Allowed(const string& URL, const string& callsign, const string& method) const
+        {
+            Core::SafeSyncType<Core::CriticalSection> lock(_adminLock);
+
+            const Filter* filter = FilterMapFromURL(URL);
+
+            return ((filter != nullptr) && (filter->Allowed(callsign, method)));
+        }
         uint32_t Load(Core::File& source)
         {
             JSONACL controlList;
@@ -418,6 +430,7 @@ namespace Plugin {
             if (error.IsSet() == true) {
                 SYSLOG(Logging::ParsingError, (_T("Parsing failed with %s"), ErrorDisplayMessage(error.Value()).c_str()));
             }
+            Core::SafeSyncType<Core::CriticalSection> lock(_adminLock);
             _unusedRoles.clear();
 
             JSONACL::Roles::Iterator rolesIndex = controlList.ACL.Elements();
@@ -452,9 +465,17 @@ namespace Plugin {
                     
                     // create regex for url
                     string url_regex = CreateUrlRegex(index.Current().URL.Value());
-                    
-                    _urlMap.emplace_back(std::pair<string, Filter&>(
-                        url_regex, entry));
+
+                    if (std::find_if(
+                            _urlMap.begin(), _urlMap.end(),
+                            [&](const std::pair<string, Filter&>& x) {
+                                // check if already exists
+                                return ((x.first == url_regex) && (&x.second == &entry));
+                            })
+                        == _urlMap.end()) {
+                        _urlMap.emplace_back(std::pair<string, Filter&>(
+                            url_regex, entry));
+                    }
 
                     std::list<string>::iterator found = std::find(_unusedRoles.begin(), _unusedRoles.end(), role);
 
@@ -472,6 +493,7 @@ namespace Plugin {
         std::map<string, Filter> _filterMap;
         std::list<string> _unusedRoles;
         std::list<string> _undefinedURLS;
+        mutable Core::CriticalSection _adminLock;
     };
 }
 }

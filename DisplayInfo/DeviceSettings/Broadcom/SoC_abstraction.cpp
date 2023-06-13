@@ -25,7 +25,8 @@
 #include <sstream>
 #include <algorithm>
 
-#include "utils.h"
+#include "../../Module.h"
+#include "UtilsLogging.h"
 
 #define GRAPHICS_RESOLUTION_LOC 4
 #define WIDTH 0

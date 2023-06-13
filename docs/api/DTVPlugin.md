@@ -2,61 +2,23 @@
 <a name="DTV_Plugin"></a>
 # DTV Plugin
 
-**Version: 2.0**
-
-**Status: :black_circle::black_circle::white_circle:**
+**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/DTV/CHANGELOG.md)**
 
 A DTV plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Properties](#Properties)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the DTV plugin. It includes detailed specification about its configuration, methods and properties provided, as well as notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -98,10 +60,10 @@ DTV interface methods:
 ## *addLnb*
 
 Add a new LNB to the database.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -137,7 +99,7 @@ Add a new LNB to the database.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.addLnb",
+    "method": "DTV.addLnb",
     "params": {
         "name": "Universal",
         "type": "single",
@@ -171,10 +133,10 @@ Add a new LNB to the database.
 ## *addSatellite*
 
 Add a new satellite to the database.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -199,7 +161,7 @@ Add a new satellite to the database.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.addSatellite",
+    "method": "DTV.addSatellite",
     "params": {
         "name": "Astra 28.2E",
         "longitude": 282,
@@ -222,15 +184,13 @@ Add a new satellite to the database.
 ## *startServiceSearch*
 
 Starts a service search.
- 
-### Events  
-| Event | Description | 
-| :----------- | :----------- | 
-|`searchstatus`|Triggered during the course of a service search.|
- |`serviceupdated`|Triggered when a service is added|.
 
-Also see: [searchstatus](#searchstatus), [serviceupdated](#serviceupdated)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [searchstatus](#searchstatus) |  Triggered during the course of a service search. |
+| [serviceupdated](#serviceupdated) | Triggered when a service is added |
 ### Parameters
 
 | Name | Type | Description |
@@ -273,7 +233,7 @@ Also see: [searchstatus](#searchstatus), [serviceupdated](#serviceupdated)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.startServiceSearch",
+    "method": "DTV.startServiceSearch",
     "params": {
         "tunertype": "none",
         "searchtype": "frequency",
@@ -318,10 +278,10 @@ Also see: [searchstatus](#searchstatus), [serviceupdated](#serviceupdated)
 ## *finishServiceSearch*
 
 Finishes a service search.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -345,7 +305,7 @@ Finishes a service search.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.finishServiceSearch",
+    "method": "DTV.finishServiceSearch",
     "params": {
         "tunertype": "none",
         "savechanges": true
@@ -367,18 +327,16 @@ Finishes a service search.
 ## *startPlaying*
 
 Starts playing the specified service.
-  
+
 ### Events
+
 | Event | Description |
-| :----------- | :----------- |
-|`serviceupdated`|Triggered when info for a service changes|
-|`eventchanged`|Triggered when the EIT 'now' event changes|
-|`videochanged`|Triggered when the video PID or codec are changed|
-|`audiochanged`|Triggered when the audio PID or codec are changed|
-|`subtitleschanged`|Triggered when the subtitle PID or details are changed| .
-
-Also see: [serviceupdated](#serviceupdated), [eventchanged](#eventchanged), [videochanged](#videochanged), [audiochanged](#audiochanged), [subtitleschanged](#subtitleschanged)
-
+| :-------- | :-------- |
+| [serviceupdated](#serviceupdated) | Triggered when info for a service changes |
+| [eventchanged](#eventchanged) | Triggered when the EIT ‘now’ event changes |
+| [videochanged](#videochanged) | Triggered when the video PID or codec are changed |
+| [audiochanged](#audiochanged) | Triggered when the audio PID or codec are changed |
+| [subtitleschanged](#subtitleschanged) | Triggered when the subtitle PID or details are changed |
 ### Parameters
 
 | Name | Type | Description |
@@ -402,7 +360,7 @@ Also see: [serviceupdated](#serviceupdated), [eventchanged](#eventchanged), [vid
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.startPlaying",
+    "method": "DTV.startPlaying",
     "params": {
         "dvburi": "2.2041.9212",
         "lcn": 0,
@@ -425,10 +383,10 @@ Also see: [serviceupdated](#serviceupdated), [eventchanged](#eventchanged), [vid
 ## *stopPlaying*
 
 Stops playing the specified service.
-  
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -450,7 +408,7 @@ Stops playing the specified service.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.stopPlaying",
+    "method": "DTV.stopPlaying",
     "params": 0
 }
 ```
@@ -474,29 +432,33 @@ DTV interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [numberOfCountries](#property.numberOfCountries) <sup>RO</sup> | Number of country configurations available |
-| [countryList](#property.countryList) <sup>RO</sup> | Array containing the name and 3 character ISO country code for all the available country configurations |
-| [country](#property.country) | Country configuration using the ISO 3-character country code |
-| [lnbList](#property.lnbList) <sup>RO</sup> | Array of LNBs defined in the database |
-| [satelliteList](#property.satelliteList) <sup>RO</sup> | Array of satellites defined in the database |
-| [numberOfServices](#property.numberOfServices) <sup>RO</sup> | Total number of services in the service database |
-| [serviceList](#property.serviceList) <sup>RO</sup> | List of services for the given type of tuner, transport (version 2), or all services if neither is given |
-| [serviceInfo](#property.serviceInfo) <sup>RO</sup> | Information for the given service as defined by its DVB triplet URI |
-| [serviceComponents](#property.serviceComponents) <sup>RO</sup> | (Version 2) array of components for the given service defined by its URI |
-| [transportInfo](#property.transportInfo) <sup>RO</sup> | Information for the given transport as defined by its DVB doublet URI |
-| [nowNextEvents](#property.nowNextEvents) <sup>RO</sup> | Now and next events (EITp/f) for the given service |
-| [scheduleEvents](#property.scheduleEvents) <sup>RO</sup> | Events which are scheduled (EITsched) for the given service |
-| [extendedEventInfo](#property.extendedEventInfo) <sup>RO</sup> | Extended event info for the given service and event ID (version 2) |
-| [status](#property.status) <sup>RO</sup> | Information related to the play handle defined by the index |
-| [signalInfo](#property.signalInfo) <sup>RO</sup> | strength and quality of the currently tuned signal for the given play handle (version 2) |
+| [numberOfCountries](#numberOfCountries) <sup>RO</sup> | Number of country configurations available |
+| [countryList](#countryList) <sup>RO</sup> | Array containing the name and 3 character ISO country code for all the available country configurations |
+| [country](#country) | Country configuration using the ISO 3-character country code |
+| [lnbList](#lnbList) <sup>RO</sup> | Array of LNBs defined in the database |
+| [satelliteList](#satelliteList) <sup>RO</sup> | Array of satellites defined in the database |
+| [numberOfServices](#numberOfServices) <sup>RO</sup> | Total number of services in the service database |
+| [serviceList](#serviceList) <sup>RO</sup> | List of services for the given type of tuner, transport (version 2), or all services if neither is given |
+| [serviceInfo](#serviceInfo) <sup>RO</sup> | Information for the given service as defined by its DVB triplet URI |
+| [serviceComponents](#serviceComponents) <sup>RO</sup> | (Version 2) array of components for the given service defined by its URI |
+| [transportInfo](#transportInfo) <sup>RO</sup> | Information for the given transport as defined by its DVB doublet URI |
+| [nowNextEvents](#nowNextEvents) <sup>RO</sup> | Now and next events (EITp/f) for the given service |
+| [scheduleEvents](#scheduleEvents) <sup>RO</sup> | Events which are scheduled (EITsched) for the given service |
+| [extendedEventInfo](#extendedEventInfo) <sup>RO</sup> | Extended event info for the given service and event ID (version 2) |
+| [status](#status) <sup>RO</sup> | Information related to the play handle defined by the index |
+| [signalInfo](#signalInfo) <sup>RO</sup> | strength and quality of the currently tuned signal for the given play handle (version 2) |
 
 
-<a name="property.numberOfCountries"></a>
-## *numberOfCountries [<sup>property</sup>](#Properties)*
+<a name="numberOfCountries"></a>
+## *numberOfCountries*
 
 Provides access to the number of country configurations available.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -512,7 +474,7 @@ Provides access to the number of country configurations available.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.numberOfCountries"
+    "method": "DTV.numberOfCountries"
 }
 ```
 
@@ -526,12 +488,16 @@ Provides access to the number of country configurations available.
 }
 ```
 
-<a name="property.countryList"></a>
-## *countryList [<sup>property</sup>](#Properties)*
+<a name="countryList"></a>
+## *countryList*
 
 Provides access to the array containing the name and 3 character ISO country code for all the available country configurations.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -550,7 +516,7 @@ Provides access to the array containing the name and 3 character ISO country cod
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.countryList"
+    "method": "DTV.countryList"
 }
 ```
 
@@ -569,10 +535,14 @@ Provides access to the array containing the name and 3 character ISO country cod
 }
 ```
 
-<a name="property.country"></a>
-## *country [<sup>property</sup>](#Properties)*
+<a name="country"></a>
+## *country*
 
 Provides access to the country configuration using the ISO 3-character country code.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -588,7 +558,7 @@ Provides access to the country configuration using the ISO 3-character country c
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.country"
+    "method": "DTV.country"
 }
 ```
 
@@ -608,7 +578,7 @@ Provides access to the country configuration using the ISO 3-character country c
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.country",
+    "method": "DTV.country",
     "params": 6775410
 }
 ```
@@ -623,12 +593,16 @@ Provides access to the country configuration using the ISO 3-character country c
 }
 ```
 
-<a name="property.lnbList"></a>
-## *lnbList [<sup>property</sup>](#Properties)*
+<a name="lnbList"></a>
+## *lnbList*
 
 Provides access to the array of LNBs defined in the database.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -659,7 +633,7 @@ Provides access to the array of LNBs defined in the database.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.lnbList"
+    "method": "DTV.lnbList"
 }
 ```
 
@@ -690,12 +664,16 @@ Provides access to the array of LNBs defined in the database.
 }
 ```
 
-<a name="property.satelliteList"></a>
-## *satelliteList [<sup>property</sup>](#Properties)*
+<a name="satelliteList"></a>
+## *satelliteList*
 
 Provides access to the array of satellites defined in the database.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -715,7 +693,7 @@ Provides access to the array of satellites defined in the database.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.satelliteList"
+    "method": "DTV.satelliteList"
 }
 ```
 
@@ -735,12 +713,16 @@ Provides access to the array of satellites defined in the database.
 }
 ```
 
-<a name="property.numberOfServices"></a>
-## *numberOfServices [<sup>property</sup>](#Properties)*
+<a name="numberOfServices"></a>
+## *numberOfServices*
 
 Provides access to the total number of services in the service database.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -756,7 +738,7 @@ Provides access to the total number of services in the service database.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.numberOfServices"
+    "method": "DTV.numberOfServices"
 }
 ```
 
@@ -770,12 +752,16 @@ Provides access to the total number of services in the service database.
 }
 ```
 
-<a name="property.serviceList"></a>
-## *serviceList [<sup>property</sup>](#Properties)*
+<a name="serviceList"></a>
+## *serviceList*
 
 Provides access to the list of services for the given type of tuner, transport (version 2), or all services if neither is given.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -804,7 +790,7 @@ Provides access to the list of services for the given type of tuner, transport (
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.serviceList@dvbs or 9018.4161"
+    "method": "DTV.serviceList@dvbs or 9018.4161"
 }
 ```
 
@@ -831,12 +817,16 @@ Provides access to the list of services for the given type of tuner, transport (
 }
 ```
 
-<a name="property.serviceInfo"></a>
-## *serviceInfo [<sup>property</sup>](#Properties)*
+<a name="serviceInfo"></a>
+## *serviceInfo*
 
 Provides access to the information for the given service as defined by its DVB triplet URI.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -864,7 +854,7 @@ Provides access to the information for the given service as defined by its DVB t
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.serviceInfo@9018.4161.1001"
+    "method": "DTV.serviceInfo@9018.4161.1001"
 }
 ```
 
@@ -889,12 +879,16 @@ Provides access to the information for the given service as defined by its DVB t
 }
 ```
 
-<a name="property.serviceComponents"></a>
-## *serviceComponents [<sup>property</sup>](#Properties)*
+<a name="serviceComponents"></a>
+## *serviceComponents*
 
 Provides access to the (Version 2) array of components for the given service defined by its URI.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -934,7 +928,7 @@ Provides access to the (Version 2) array of components for the given service def
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.serviceComponents@9018.4161.1001"
+    "method": "DTV.serviceComponents@9018.4161.1001"
 }
 ```
 
@@ -977,12 +971,16 @@ Provides access to the (Version 2) array of components for the given service def
 }
 ```
 
-<a name="property.transportInfo"></a>
-## *transportInfo [<sup>property</sup>](#Properties)*
+<a name="transportInfo"></a>
+## *transportInfo*
 
 Provides access to the information for the given transport as defined by its DVB doublet URI.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -1023,7 +1021,7 @@ Provides access to the information for the given transport as defined by its DVB
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.transportInfo@9018.4161"
+    "method": "DTV.transportInfo@9018.4161"
 }
 ```
 
@@ -1064,12 +1062,16 @@ Provides access to the information for the given transport as defined by its DVB
 }
 ```
 
-<a name="property.nowNextEvents"></a>
-## *nowNextEvents [<sup>property</sup>](#Properties)*
+<a name="nowNextEvents"></a>
+## *nowNextEvents*
 
 Provides access to the now and next events (EITp/f) for the given service.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -1111,7 +1113,7 @@ Provides access to the now and next events (EITp/f) for the given service.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.nowNextEvents@9018.4161.1001"
+    "method": "DTV.nowNextEvents@9018.4161.1001"
 }
 ```
 
@@ -1154,12 +1156,16 @@ Provides access to the now and next events (EITp/f) for the given service.
 }
 ```
 
-<a name="property.scheduleEvents"></a>
-## *scheduleEvents [<sup>property</sup>](#Properties)*
+<a name="scheduleEvents"></a>
+## *scheduleEvents*
 
 Provides access to the events which are scheduled (EITsched) for the given service.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -1189,7 +1195,7 @@ Provides access to the events which are scheduled (EITsched) for the given servi
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.scheduleEvents@9018.4161.1001:12345000,12346000"
+    "method": "DTV.scheduleEvents@9018.4161.1001:12345000,12346000"
 }
 ```
 
@@ -1218,12 +1224,16 @@ Provides access to the events which are scheduled (EITsched) for the given servi
 }
 ```
 
-<a name="property.extendedEventInfo"></a>
-## *extendedEventInfo [<sup>property</sup>](#Properties)*
+<a name="extendedEventInfo"></a>
+## *extendedEventInfo*
 
 Provides access to the extended event info for the given service and event ID (version 2).
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -1246,7 +1256,7 @@ Provides access to the extended event info for the given service and event ID (v
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.extendedEventInfo@9018.4161.1001:3012"
+    "method": "DTV.extendedEventInfo@9018.4161.1001:3012"
 }
 ```
 
@@ -1268,12 +1278,16 @@ Provides access to the extended event info for the given service and event ID (v
 }
 ```
 
-<a name="property.status"></a>
-## *status [<sup>property</sup>](#Properties)*
+<a name="status"></a>
+## *status*
 
 Provides access to the information related to the play handle defined by the index.
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -1296,7 +1310,7 @@ Provides access to the information related to the play handle defined by the ind
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.status@0"
+    "method": "DTV.status@0"
 }
 ```
 
@@ -1316,12 +1330,16 @@ Provides access to the information related to the play handle defined by the ind
 }
 ```
 
-<a name="property.signalInfo"></a>
-## *signalInfo [<sup>property</sup>](#Properties)*
+<a name="signalInfo"></a>
+## *signalInfo*
 
 Provides access to the strength and quality of the currently tuned signal for the given play handle (version 2).
 
 > This property is **read-only**.
+
+### Events
+
+No Events
 
 ### Value
 
@@ -1342,7 +1360,7 @@ Provides access to the strength and quality of the currently tuned signal for th
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "DTV.1.signalInfo@0"
+    "method": "DTV.signalInfo@0"
 }
 ```
 
@@ -1425,7 +1443,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.searchstatus",
+    "method": "client.events.searchstatus",
     "params": {
         "handle": 0,
         "eventtype": "ServiceSearchStatus",
@@ -1491,7 +1509,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.serviceupdated",
+    "method": "client.events.serviceupdated",
     "params": {
         "eventtype": "ServiceSearchStatus",
         "service": {
@@ -1538,7 +1556,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.serviceadded",
+    "method": "client.events.serviceadded",
     "params": {
         "eventtype": "ServiceSearchStatus",
         "service": {
@@ -1585,7 +1603,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.servicedeleted",
+    "method": "client.events.servicedeleted",
     "params": {
         "eventtype": "ServiceSearchStatus",
         "service": {
@@ -1632,7 +1650,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.videochanged",
+    "method": "client.events.videochanged",
     "params": {
         "eventtype": "ServiceSearchStatus",
         "service": {
@@ -1679,7 +1697,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.audiochanged",
+    "method": "client.events.audiochanged",
     "params": {
         "eventtype": "ServiceSearchStatus",
         "service": {
@@ -1726,7 +1744,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.subtitleschanged",
+    "method": "client.events.subtitleschanged",
     "params": {
         "eventtype": "ServiceSearchStatus",
         "service": {
@@ -1785,7 +1803,7 @@ Triggered during the course of a service search.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.eventchanged",
+    "method": "client.events.eventchanged",
     "params": {
         "eventtype": "ServiceSearchStatus",
         "service": {

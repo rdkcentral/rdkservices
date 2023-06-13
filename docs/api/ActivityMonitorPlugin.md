@@ -2,60 +2,22 @@
 <a name="ActivityMonitor_Plugin"></a>
 # ActivityMonitor Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/ActivityMonitor/CHANGELOG.md)**
 
 A org.rdk.ActivityMonitor plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.ActivityMonitor plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -95,15 +57,13 @@ ActivityMonitor interface methods:
 ## *enableMonitoring*
 
 Enables monitoring for the given application PIDs using the given thresholds for memory and CPU usage at frequencies specified by the intervals.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onMemoryThresholdOccured` | Triggered when an application exceeds the given memory threshold | 
- | `onCPUThresholdOccured` | Triggered when an application exceeds the `cpuThresholdPercent` value for a duration longer than the `cpuThresholdSeconds` value |.
 
-Also see: [onCPUThresholdOccurred](#onCPUThresholdOccurred), [onMemoryThresholdOccurred](#onMemoryThresholdOccurred)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onCPUThresholdOccurred](#onCPUThresholdOccurred) | Triggered when an application exceeds the `cpuThresholdPercent` value for a duration longer than the `cpuThresholdSeconds` value |
+| [onMemoryThresholdOccurred](#onMemoryThresholdOccurred) | Triggered when an application exceeds the given memory threshold |
 ### Parameters
 
 | Name | Type | Description |
@@ -133,7 +93,7 @@ Also see: [onCPUThresholdOccurred](#onCPUThresholdOccurred), [onMemoryThresholdO
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ActivityMonitor.1.enableMonitoring",
+    "method": "org.rdk.ActivityMonitor.enableMonitoring",
     "params": {
         "config": [
             {
@@ -165,10 +125,10 @@ Also see: [onCPUThresholdOccurred](#onCPUThresholdOccurred), [onMemoryThresholdO
 ## *disableMonitoring*
 
 Disables monitoring for all applications. Monitoring stops immediately even if the full collection interval has not been reached.
- 
-### Events 
- 
-No events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -191,7 +151,7 @@ No events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ActivityMonitor.1.disableMonitoring",
+    "method": "org.rdk.ActivityMonitor.disableMonitoring",
     "params": {}
 }
 ```
@@ -212,10 +172,10 @@ No events.
 ## *getApplicationMemoryUsage*
 
 Returns memory usage for a specific monitor-enabled application.
- 
-### Events 
- 
-No events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -243,7 +203,7 @@ No events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ActivityMonitor.1.getApplicationMemoryUsage",
+    "method": "org.rdk.ActivityMonitor.getApplicationMemoryUsage",
     "params": {
         "pid": 6763
     }
@@ -271,10 +231,10 @@ No events.
 ## *getAllMemoryUsage*
 
 Returns memory usage for all monitoring-enabled applications.
- 
-### Events 
- 
-No events.
+
+### Events
+
+No Events
 
 ### Parameters
 
@@ -303,7 +263,7 @@ No events.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ActivityMonitor.1.getAllMemoryUsage",
+    "method": "org.rdk.ActivityMonitor.getAllMemoryUsage",
     "params": {}
 }
 ```
@@ -362,7 +322,7 @@ Triggered when an application exceeds the given memory threshold.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onMemoryThresholdOccurred",
+    "method": "client.events.onMemoryThresholdOccurred",
     "params": {
         "appPid": 6763,
         "threshold": "exceeded",
@@ -390,7 +350,7 @@ Triggered when an application exceeds the `cpuThresholdPercent` value for a dura
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onCPUThresholdOccurred",
+    "method": "client.events.onCPUThresholdOccurred",
     "params": {
         "appPid": 6763,
         "threshold": "exceeded",

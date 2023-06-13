@@ -2,60 +2,22 @@
 <a name="ControlService_Plugin"></a>
 # ControlService Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/ControlService/CHANGELOG.md)**
 
 A org.rdk.ControlService plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.ControlService plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -102,11 +64,11 @@ ControlService interface methods:
 <a name="canFindMyRemote"></a>
 ## *canFindMyRemote*
 
-Checks if the Control Manager can search for the remote. 
- 
+Checks if the Control Manager can search for the remote.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -130,7 +92,7 @@ Checks if the Control Manager can search for the remote.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.canFindMyRemote",
+    "method": "org.rdk.ControlService.canFindMyRemote",
     "params": {}
 }
 ```
@@ -151,11 +113,11 @@ Checks if the Control Manager can search for the remote.
 <a name="checkRf4ceChipConnectivity"></a>
 ## *checkRf4ceChipConnectivity*
 
-Checks Rf4ce chip connectivity status. 
- 
+Checks Rf4ce chip connectivity status.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -179,7 +141,7 @@ Checks Rf4ce chip connectivity status.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.checkRf4ceChipConnectivity",
+    "method": "org.rdk.ControlService.checkRf4ceChipConnectivity",
     "params": {}
 }
 ```
@@ -200,11 +162,11 @@ Checks Rf4ce chip connectivity status.
 <a name="endPairingMode"></a>
 ## *endPairingMode*
 
-Leaves pairing mode. 
- 
+Leaves pairing mode.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -229,7 +191,7 @@ Leaves pairing mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.endPairingMode",
+    "method": "org.rdk.ControlService.endPairingMode",
     "params": {}
 }
 ```
@@ -252,14 +214,12 @@ Leaves pairing mode.
 ## *findLastUsedRemote*
 
 Searches for the last used remote.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- |
-| `onControl`| Triggered when the last used remote is successfully found |.
 
-Also see: [onControl](#onControl)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onControl](#onControl) | Triggered when the last used remote is successfully found |
 ### Parameters
 
 | Name | Type | Description |
@@ -283,7 +243,7 @@ Also see: [onControl](#onControl)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.findLastUsedRemote",
+    "method": "org.rdk.ControlService.findLastUsedRemote",
     "params": {
         "timeOutPeriod": 20
     }
@@ -306,11 +266,11 @@ Also see: [onControl](#onControl)
 <a name="getAllRemoteData"></a>
 ## *getAllRemoteData*
 
-Returns all remote data. 
- 
+Returns all remote data.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -427,7 +387,7 @@ Returns all remote data.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.getAllRemoteData",
+    "method": "org.rdk.ControlService.getAllRemoteData",
     "params": {}
 }
 ```
@@ -542,11 +502,11 @@ Returns all remote data.
 <a name="getLastKeypressSource"></a>
 ## *getLastKeypressSource*
 
-Returns last key press source data. The data, if any, is returned as part of the `result` object. 
- 
+Returns last key press source data. The data, if any, is returned as part of the `result` object.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -577,7 +537,7 @@ Returns last key press source data. The data, if any, is returned as part of the
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.getLastKeypressSource",
+    "method": "org.rdk.ControlService.getLastKeypressSource",
     "params": {}
 }
 ```
@@ -605,11 +565,11 @@ Returns last key press source data. The data, if any, is returned as part of the
 <a name="getLastPairedRemoteData"></a>
 ## *getLastPairedRemoteData*
 
-Returns all remote data for the last paired remote. The data, if any, is returned as part of the `result` object. 
- 
+Returns all remote data for the last paired remote. The data, if any, is returned as part of the `result` object.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -708,7 +668,7 @@ Returns all remote data for the last paired remote. The data, if any, is returne
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.getLastPairedRemoteData",
+    "method": "org.rdk.ControlService.getLastPairedRemoteData",
     "params": {}
 }
 ```
@@ -805,11 +765,11 @@ Returns all remote data for the last paired remote. The data, if any, is returne
 <a name="getQuirks"></a>
 ## *getQuirks*
 
-Gets quirks. 
- 
+Gets quirks.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -834,7 +794,7 @@ Gets quirks.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.getQuirks",
+    "method": "org.rdk.ControlService.getQuirks",
     "params": {}
 }
 ```
@@ -857,11 +817,11 @@ Gets quirks.
 <a name="getSingleRemoteData"></a>
 ## *getSingleRemoteData*
 
-Returns all remote data for the specified remote. The data, if any, is returned as part of the `result` object. 
- 
+Returns all remote data for the specified remote. The data, if any, is returned as part of the `result` object.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -961,7 +921,7 @@ Returns all remote data for the specified remote. The data, if any, is returned 
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.getSingleRemoteData",
+    "method": "org.rdk.ControlService.getSingleRemoteData",
     "params": {
         "remoteId": 1
     }
@@ -1060,11 +1020,11 @@ Returns all remote data for the specified remote. The data, if any, is returned 
 <a name="getValues"></a>
 ## *getValues*
 
-Returns remote setting values. 
- 
+Returns remote setting values.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1096,7 +1056,7 @@ Returns remote setting values.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.getValues",
+    "method": "org.rdk.ControlService.getValues",
     "params": {}
 }
 ```
@@ -1125,11 +1085,11 @@ Returns remote setting values.
 <a name="setValues"></a>
 ## *setValues*
 
-Sets remote setting values. 
- 
+Sets remote setting values.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1160,7 +1120,7 @@ Sets remote setting values.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.setValues",
+    "method": "org.rdk.ControlService.setValues",
     "params": {
         "enableASB": false,
         "enableOpenChime": false,
@@ -1189,11 +1149,11 @@ Sets remote setting values.
 <a name="startPairingMode"></a>
 ## *startPairingMode*
 
-Enters pairing mode. 
- 
+Enters pairing mode.
+
 ### Events
- 
- No Events.
+
+No Events
 
 ### Parameters
 
@@ -1219,7 +1179,7 @@ Enters pairing mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.ControlService.1.startPairingMode",
+    "method": "org.rdk.ControlService.startPairingMode",
     "params": {
         "pairingMode": 0,
         "restrictPairing": 0
@@ -1279,7 +1239,7 @@ Triggered on control manager events.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onControl",
+    "method": "client.events.onControl",
     "params": {
         "remoteId": 1,
         "eventValue": 0,
@@ -1310,7 +1270,7 @@ Triggered on control manager configuration complete
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onXRConfigurationComplete",
+    "method": "client.events.onXRConfigurationComplete",
     "params": {
         "remoteId": 1,
         "remoteType": "XR11",
@@ -1342,7 +1302,7 @@ Triggered on control manager validation/pairing key press
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onXRPairingStart",
+    "method": "client.events.onXRPairingStart",
     "params": {
         "remoteId": 1,
         "remoteType": "XR11",
@@ -1380,7 +1340,7 @@ Validation status codes:
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onXRValidationComplete",
+    "method": "client.events.onXRValidationComplete",
     "params": {
         "remoteId": 1,
         "remoteType": "XR11",
@@ -1412,7 +1372,7 @@ Triggered on control manager events.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onXRValidationUpdate",
+    "method": "client.events.onXRValidationUpdate",
     "params": {
         "remoteId": 1,
         "remoteType": "XR11",

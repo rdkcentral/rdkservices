@@ -2,60 +2,22 @@
 <a name="OCIContainer_Plugin"></a>
 # OCIContainer Plugin
 
-**Version: 1.0**
-
-**Status: :black_circle::black_circle::black_circle:**
+**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/OCIContainer/CHANGELOG.md)**
 
 A org.rdk.OCIContainer plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Introduction](#Introduction)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
 - [Description](#Description)
 - [Configuration](#Configuration)
 - [Methods](#Methods)
 - [Notifications](#Notifications)
 
-<a name="Introduction"></a>
-# Introduction
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
+# Abbreviation, Acronyms and Terms
 
-<a name="Scope"></a>
-## Scope
-
-This document describes purpose and functionality of the org.rdk.OCIContainer plugin. It includes detailed specification about its configuration, methods provided and notifications sent.
-
-<a name="Case_Sensitivity"></a>
-## Case Sensitivity
-
-All identifiers of the interfaces described in this document are case-sensitive. Thus, unless stated otherwise, all keywords, entities, properties, relations and actions should be treated as such.
-
-<a name="Acronyms,_Abbreviations_and_Terms"></a>
-## Acronyms, Abbreviations and Terms
-
-The table below provides and overview of acronyms used in this document and their definitions.
-
-| Acronym | Description |
-| :-------- | :-------- |
-| <a name="API">API</a> | Application Programming Interface |
-| <a name="HTTP">HTTP</a> | Hypertext Transfer Protocol |
-| <a name="JSON">JSON</a> | JavaScript Object Notation; a data interchange format |
-| <a name="JSON-RPC">JSON-RPC</a> | A remote procedure call protocol encoded in JSON |
-
-The table below provides and overview of terms and abbreviations used in this document and their definitions.
-
-| Term | Description |
-| :-------- | :-------- |
-| <a name="callsign">callsign</a> | The name given to an instance of a plugin. One plugin can be instantiated multiple times, but each instance the instance name, callsign, must be unique. |
-
-<a name="References"></a>
-## References
-
-| Ref ID | Description |
-| :-------- | :-------- |
-| <a name="HTTP">[HTTP](http://www.w3.org/Protocols)</a> | HTTP specification |
-| <a name="JSON-RPC">[JSON-RPC](https://www.jsonrpc.org/specification)</a> | JSON-RPC 2.0 specification |
-| <a name="JSON">[JSON](http://www.json.org/)</a> | JSON specification |
-| <a name="Thunder">[Thunder](https://github.com/WebPlatformForEmbedded/Thunder/blob/master/doc/WPE%20-%20API%20-%20WPEFramework.docx)</a> | Thunder API Reference |
+[[Refer to this link](userguide/aat.md)]
 
 <a name="Description"></a>
 # Description
@@ -100,10 +62,10 @@ OCIContainer interface methods:
 ## *executeCommand*
 
 Executes a command inside a running container. The path to the executable must resolve within the container's namespace.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -129,7 +91,7 @@ Executes a command inside a running container. The path to the executable must r
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.executeCommand",
+    "method": "org.rdk.OCIContainer.executeCommand",
     "params": {
         "containerId": "com.bskyb.epgui",
         "options": "--cwd=PATH",
@@ -154,10 +116,10 @@ Executes a command inside a running container. The path to the executable must r
 ## *getContainerInfo*
 
 Gets information about a running container such as CPU, memory, and GPU usage (GPU not supported on Xi6).
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -198,7 +160,7 @@ Gets information about a running container such as CPU, memory, and GPU usage (G
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.getContainerInfo",
+    "method": "org.rdk.OCIContainer.getContainerInfo",
     "params": {
         "containerId": "com.bskyb.epgui"
     }
@@ -245,10 +207,10 @@ Gets information about a running container such as CPU, memory, and GPU usage (G
 ## *getContainerState*
 
 Gets the state of a currently running container.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -274,7 +236,7 @@ Gets the state of a currently running container.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.getContainerState",
+    "method": "org.rdk.OCIContainer.getContainerState",
     "params": {
         "containerId": "com.bskyb.epgui"
     }
@@ -299,10 +261,10 @@ Gets the state of a currently running container.
 ## *listContainers*
 
 Lists all running OCI containers Dobby knows about.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -327,7 +289,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.listContainers"
+    "method": "org.rdk.OCIContainer.listContainers"
 }
 ```
 
@@ -353,10 +315,10 @@ This method takes no parameters.
 ## *pauseContainer*
 
 Pauses a currently running container.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -380,7 +342,7 @@ Pauses a currently running container.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.pauseContainer",
+    "method": "org.rdk.OCIContainer.pauseContainer",
     "params": {
         "containerId": "com.bskyb.epgui"
     }
@@ -403,10 +365,10 @@ Pauses a currently running container.
 ## *resumeContainer*
 
 Resumes a previously paused container.
- 
-### Events 
 
- No Events.
+### Events
+
+No Events
 
 ### Parameters
 
@@ -430,7 +392,7 @@ Resumes a previously paused container.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.resumeContainer",
+    "method": "org.rdk.OCIContainer.resumeContainer",
     "params": {
         "containerId": "com.bskyb.epgui"
     }
@@ -452,15 +414,13 @@ Resumes a previously paused container.
 <a name="startContainer"></a>
 ## *startContainer*
 
-Starts a new container from an existing OCI bundle. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onContainerStarted` |  Triggers when a new container starts running.|.
+Starts a new container from an existing OCI bundle.
 
-Also see: [onContainerStarted](#onContainerStarted)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onContainerStarted](#onContainerStarted) | Triggers when a new container starts running. |
 ### Parameters
 
 | Name | Type | Description |
@@ -489,7 +449,7 @@ Also see: [onContainerStarted](#onContainerStarted)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.startContainer",
+    "method": "org.rdk.OCIContainer.startContainer",
     "params": {
         "containerId": "com.bskyb.epgui",
         "bundlePath": "/containers/myBundle",
@@ -519,14 +479,12 @@ Also see: [onContainerStarted](#onContainerStarted)
 ## *startContainerFromDobbySpec*
 
 Starts a new container from a legacy Dobby JSON specification.
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onContainerStarted` |  Triggers when a new container starts running.|.
 
-Also see: [onContainerStarted](#onContainerStarted)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onContainerStarted](#onContainerStarted) | Triggers when a new container starts running. |
 ### Parameters
 
 | Name | Type | Description |
@@ -553,7 +511,7 @@ Also see: [onContainerStarted](#onContainerStarted)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.startContainerFromDobbySpec",
+    "method": "org.rdk.OCIContainer.startContainerFromDobbySpec",
     "params": {
         "containerId": "com.bskyb.epgui",
         "dobbySpec": "/containers/dobbySpec",
@@ -579,15 +537,13 @@ Also see: [onContainerStarted](#onContainerStarted)
 <a name="stopContainer"></a>
 ## *stopContainer*
 
-Stops a currently running container. 
- 
-### Events 
-| Event | Description | 
-| :----------- | :----------- | 
-| `onContainerStopped` | Triggers when the container stops running.|.
+Stops a currently running container.
 
-Also see: [onContainerStopped](#onContainerStopped)
+### Events
 
+| Event | Description |
+| :-------- | :-------- |
+| [onContainerStopped](#onContainerStopped) | Triggers when the container stops running. |
 ### Parameters
 
 | Name | Type | Description |
@@ -611,7 +567,7 @@ Also see: [onContainerStopped](#onContainerStopped)
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.OCIContainer.1.stopContainer",
+    "method": "org.rdk.OCIContainer.stopContainer",
     "params": {
         "containerId": "com.bskyb.epgui",
         "force": true
@@ -664,7 +620,7 @@ Triggered when a new container has started running.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onContainerStarted",
+    "method": "client.events.onContainerStarted",
     "params": {
         "descriptor": 91,
         "name": "com.bskyb.epgui"
@@ -690,7 +646,7 @@ Triggered when the container has stopped running.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.1.onContainerStopped",
+    "method": "client.events.onContainerStopped",
     "params": {
         "descriptor": 91,
         "name": "com.bskyb.epgui"
