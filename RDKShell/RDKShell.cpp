@@ -1015,9 +1015,17 @@ namespace WPEFramework {
         }
 
 #ifdef USE_THUNDER_R4
+       void RDKShell::MonitorClients::Activation(const string& callsign, PluginHost::IShell* service)
+       {
+           StateChange(service);
+       }
        void RDKShell::MonitorClients::Activated(const string& callsign, PluginHost::IShell* service)
        {
             StateChange(service);
+       }
+       void RDKShell::MonitorClients::Deactivation(const string& callsign, PluginHost::IShell* service)
+       {
+           StateChange(service);
        }
        void RDKShell::MonitorClients::Deactivated(const string& callsign, PluginHost::IShell* service)
        {
