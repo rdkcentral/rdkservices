@@ -2066,6 +2066,9 @@
         },
         "setMuted":{
             "summary": "Mutes or unmutes audio on a specific port.",
+            "events":{
+                "muteStatusChanged" : "Triggered when the mute status changed."
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -2243,6 +2246,9 @@
         },
         "setVolumeLevel":{
             "summary": "Adjusts the Volume Level on a specific port.",
+            "events":{
+                "volumeLevelChanged" : "Triggered when the volume level changed."
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -2503,6 +2509,38 @@
                 },
                 "required": [
                     "currentAtmosCapability"
+                ]
+            }
+        },
+        "muteStatusChanged": {
+            "summary": "Triggered when the mute status changed.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "muted":  {
+                        "summary": "mute status value",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "muted"
+                ]
+            }
+        },
+        "volumeLevelChanged": {
+            "summary": "Triggered when the volume level changed.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "volumeLevel":  {
+                        "summary": "volume level",
+                        "type": "integer",
+                        "example": 10
+                    }
+                },
+                "required": [
+                    "volumeLevel"
                 ]
             }
         }
