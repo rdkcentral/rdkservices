@@ -82,7 +82,7 @@ using namespace std;
 #define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_MINOR 2
 #define API_VERSION_NUMBER_PATCH 0
 
 static bool isCecEnabled = false;
@@ -2838,6 +2838,7 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "muted");
                 string sMuted = parameters["muted"].String();
                 bool muted = false;
+                static bool cache_muted = false;
                 try {
                         muted = parameters["muted"].Boolean();
                 }catch (const device::Exception& err) {
@@ -2852,6 +2853,13 @@ namespace WPEFramework {
                 {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                     aPort.setMuted(muted);
+                    if(cache_muted != muted)
+                    {
+                        cache_muted = muted;
+                        JsonObject params;
+                        params["muted"] = muted;
+                        sendNotify("muteStatusChanged", params);
+                    }
                 }
                 catch (const device::Exception& err)
                 {
@@ -2867,6 +2875,7 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "volumeLevel");
                 string sLevel = parameters["volumeLevel"].String();
                 float level = 0;
+                int cache_volumelevel = 0;
                 try {
                         level = stof(sLevel);
                 }catch (const device::Exception& err) {
@@ -2880,6 +2889,13 @@ namespace WPEFramework {
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                         aPort.setLevel(level);
+                        if(cache_volumelevel != (int)level)
+                        {
+                            cache_volumelevel = (int)level;
+                            JsonObject params;
+                            params["volumeLevel"] = (int)level;
+                            sendNotify("volumeLevelChanged", params);
+                        }
                         success= true;
                 }
                 catch (const device::Exception& err)
