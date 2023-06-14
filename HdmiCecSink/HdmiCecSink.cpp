@@ -70,7 +70,7 @@
 #define HDMICECSINK_REQUEST_MAX_WAIT_TIME_MS 		2000
 #define HDMICECSINK_PING_INTERVAL_MS 				10000
 #define HDMICECSINK_WAIT_FOR_HDMI_IN_MS 			1000
-#define HDMICECSINK_REQUEST_INTERVAL_TIME_MS 		200
+#define HDMICECSINK_REQUEST_INTERVAL_TIME_MS 		500
 #define HDMICECSINK_NUMBER_TV_ADDR 					2
 #define HDMICECSINK_UPDATE_POWER_STATUS_INTERVA_MS    (60 * 1000)
 #define HDMISINK_ARC_START_STOP_MAX_WAIT_MS           4000
@@ -2627,6 +2627,16 @@ namespace WPEFramework
 					}
 					else
 					{
+						for(int i=0;i<LogicalAddress::UNREGISTERED + TEST_ADD;i++)
+						{
+							if(i != _instance->m_logicalAddressAllocated &&
+								_instance->deviceList[i].m_isDevicePresent &&
+								!_instance->deviceList[i].isAllUpdated() )
+							{
+								_instance->m_pollNextState = POLL_THREAD_STATE_INFO;
+								_instance->m_sleepTime = 0;
+							}
+						}
 						/* Check for any update required */
 						_instance->m_pollThreadState = POLL_THREAD_STATE_UPDATE;
 						_instance->m_sleepTime = 0;
