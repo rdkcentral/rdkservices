@@ -443,7 +443,7 @@ TEST_F(NetworkTest, startConnectivityMonitoring)
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
-                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_monitorConnectivity)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring)));
                 return IARM_RESULT_SUCCESS;
             });
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startConnectivityMonitoring"), _T("{\"interval\": 900}"), response));

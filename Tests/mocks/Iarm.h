@@ -907,7 +907,7 @@ typedef enum _IARM_Bus_NMgr_WiFi_EventId_t {
 #define IARM_BUS_NETSRVMGR_API_isConnectedToInternet "isConnectedToInternet"
 #define IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints "setConnectivityTestEndpoints"
 #define IARM_BUS_NETSRVMGR_API_getInternetConnectionState "getInternetConnectionState"
-#define IARM_BUS_NETSRVMGR_API_monitorConnectivity "monitorConnectivity"
+#define IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring "startConnectivityMonitoring"
 #define IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring "stopConnectivityMonitoring"
 #define IARM_BUS_NETSRVMGR_API_isAvailable "isAvailable"
 #define IARM_BUS_NETSRVMGR_API_getPublicIP "getPublicIP"

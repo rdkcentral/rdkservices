@@ -55,7 +55,7 @@ using namespace std;
 #define IARM_BUS_NETSRVMGR_API_isConnectedToInternet "isConnectedToInternet"
 #define IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints "setConnectivityTestEndpoints"
 #define IARM_BUS_NETSRVMGR_API_getInternetConnectionState "getInternetConnectionState"
-#define IARM_BUS_NETSRVMGR_API_monitorConnectivity "monitorConnectivity"
+#define IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring "startConnectivityMonitoring"
 #define IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring "stopConnectivityMonitoring"
 #define IARM_BUS_NETSRVMGR_API_isAvailable "isAvailable"
 #define IARM_BUS_NETSRVMGR_API_getPublicIP "getPublicIP"
@@ -1288,13 +1288,13 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             {
                 iarmData.monitorConnectivity = true;
                 iarmData.monitorInterval = parameters["interval"].Number();
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_monitorConnectivity, (void *)&iarmData, sizeof(iarmData)))
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring, (void *)&iarmData, sizeof(iarmData)))
                 {
                     LOGINFO ("starting connectivity monitor with %d sec interval", iarmData.monitorInterval);
                     result = true;
                 }
                 else
-                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_monitorConnectivity);
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring);
             }
             else
             {
