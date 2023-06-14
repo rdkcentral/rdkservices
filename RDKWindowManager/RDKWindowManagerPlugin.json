@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "RDKWindowManager Plugin",
+      "callsign": "org.rdk.RDKWindowManager",
+      "locator": "libWPEFrameworkRDKWindowManager.so",
+      "status": "production",
+      "description": "The `RDKWindowManager`plugin controls the management of composition, layout, Z order, and key handling."
+    },
+    "interface": {
+      "$ref": "RDKWindowManager.json#"
+    }
+}
