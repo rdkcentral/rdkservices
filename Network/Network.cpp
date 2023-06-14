@@ -42,9 +42,6 @@ using namespace std;
 #define INTERFACE_LIST 50
 #define MAX_IP_ADDRESS_LEN 46
 #define MAX_IP_FAMILY_SIZE 10
-#define MAX_HOST_NAME_LEN 128
-#define MAX_ENDPOINTS 5
-#define MAX_ENDPOINT_SIZE 260 // 253 + 1 + 5 + 1 (domain name max length + ':' + port number max chars + '\0')
 #define IARM_BUS_NETSRVMGR_API_getActiveInterface "getActiveInterface"
 #define IARM_BUS_NETSRVMGR_API_getNetworkInterfaces "getNetworkInterfaces"
 #define IARM_BUS_NETSRVMGR_API_getInterfaceList "getInterfaceList"
@@ -58,22 +55,18 @@ using namespace std;
 #define IARM_BUS_NETSRVMGR_API_getSTBip_family "getSTBip_family"
 #define IARM_BUS_NETSRVMGR_API_isConnectedToInternet "isConnectedToInternet"
 #define IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints "setConnectivityTestEndpoints"
+#define IARM_BUS_NETSRVMGR_API_getInternetConnectionState "getInternetConnectionState"
+#define IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring "startConnectivityMonitoring"
+#define IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring "stopConnectivityMonitoring"
 #define IARM_BUS_NETSRVMGR_API_isAvailable "isAvailable"
 #define IARM_BUS_NETSRVMGR_API_getPublicIP "getPublicIP"
 
 // TODO: remove this
 #define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
-typedef enum _NetworkManager_EventId_t {
-    IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
-    IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_CONTROL_PERSISTENCE,
-    IARM_BUS_NETWORK_MANAGER_EVENT_WIFI_INTERFACE_STATE,
-    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS,
-    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS,
-    IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS,
-    IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE,
-    IARM_BUS_NETWORK_MANAGER_MAX,
-} IARM_Bus_NetworkManager_EventId_t;
+namespace WPEFramework
+{
+
 
 typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     union {
@@ -88,52 +81,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     char ipfamily[MAX_IP_FAMILY_SIZE];
 } IARM_BUS_NetSrvMgr_Iface_EventData_t;
 
-typedef struct
-{
-    unsigned char size;
-    char          endpoints[MAX_ENDPOINTS][MAX_ENDPOINT_SIZE];
-} IARM_BUS_NetSrvMgr_Iface_TestEndpoints_t;
 
-typedef struct {
-    char interface[16];
-    char gateway[MAX_IP_ADDRESS_LEN];
-} IARM_BUS_NetSrvMgr_DefaultRoute_t;
-
-typedef struct {
-    char interface[16];
-    bool status;
-} IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t;
-
-typedef IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t;
-typedef IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t;
-
-typedef struct {
-    char interface[16];
-    char ip_address[MAX_IP_ADDRESS_LEN];
-    bool is_ipv6;
-    bool acquired;
-} IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t;
-
-typedef struct {
-    char oldInterface[16];
-    char newInterface[16];
-} IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t;
-
-typedef struct
-{
-    char server[MAX_HOST_NAME_LEN];
-    uint16_t port;
-    bool ipv6;
-    char interface[16];
-    uint16_t bind_timeout;
-    uint16_t cache_timeout;
-    bool sync;
-    char public_ip[MAX_IP_ADDRESS_LEN];
-} IARM_BUS_NetSrvMgr_Iface_StunRequest_t;
-
-namespace WPEFramework
-{
-    
     namespace {
 
         static Plugin::Metadata<Plugin::Network> metadata(
@@ -191,7 +139,10 @@ namespace WPEFramework
             registerMethod("getSTBIPFamily", &Network::getSTBIPFamily, this);
             registerMethod("isConnectedToInternet", &Network::isConnectedToInternet, this);
             registerMethod("setConnectivityTestEndpoints", &Network::setConnectivityTestEndpoints, this);
-
+            registerMethod("getInternetConnectionState", &Network::getInternetConnectionState, this);
+            registerMethod("startConnectivityMonitoring", &Network::startConnectivityMonitoring, this);
+            registerMethod("getCaptivePortalURI", &Network::getCaptivePortalURI, this);
+            registerMethod("stopConnectivityMonitoring", &Network::stopConnectivityMonitoring, this);
             registerMethod("getPublicIP", &Network::getPublicIP, this);
             registerMethod("setStunEndPoint", &Network::setStunEndPoint, this);
 
@@ -252,6 +203,7 @@ namespace WPEFramework
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
+                    IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, eventHandler) );
                     LOGINFO("Successfully activated Network Plugin");
                     m_isPluginInited = true;
                 }
@@ -275,6 +227,7 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, eventHandler) );
             }
             Unregister("getQuirks");
             Unregister("getInterfaces");
@@ -292,6 +245,10 @@ namespace WPEFramework
             Unregister("getIPSettings");
             Unregister("isConnectedToInternet");
             Unregister("setConnectivityTestEndpoints");
+            Unregister("getInternetConnectionState");
+            Unregister("getCaptivePortalURI");
+            Unregister("startConnectivityMonitoring");
+            Unregister("stopConnectivityMonitoring");
             Unregister("getPublicIP");
             Unregister("setStunEndPoint");
 
@@ -379,7 +336,8 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
-                LOGINFO("EnsureNetSrvMgrRunning successfully subscribed to IARM event for Network Plugin");
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, eventHandler) );
+                LOGINFO("NETWORK_AVAILABILITY_RETRY_SUCCESS: threadEventRegistration successfully subscribed to IARM event for Network Plugin");
                 m_isPluginInited = true;
             }
 
@@ -1324,6 +1282,114 @@ namespace WPEFramework
             returnResponse(result);
         }
 
+        uint32_t Network::getInternetConnectionState(const JsonObject& parameters, JsonObject& response)
+        {
+            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t iarmData;
+            bool result = false;
+
+            if(m_isPluginInited)
+            {
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInternetConnectionState, (void*)&iarmData, sizeof(iarmData)))
+                {
+                    LOGINFO("InternetConnectionState = %d ",iarmData.connectivityState);
+                    response["state"] = iarmData.connectivityState;
+                    if (iarmData.connectivityState == CAPTIVE_PORTAL)
+                    {
+                        LOGINFO("Captive potal found URI = %s ", iarmData.captivePortalURI);
+                        response["URI"] = string(iarmData.captivePortalURI, MAX_URI_LEN - 1);
+                    }
+                    result = true;
+                }
+                else
+                {
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
+                }
+            }
+            else
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t Network::getCaptivePortalURI(const JsonObject& parameters, JsonObject& response)
+        {
+            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t iarmData;
+            bool result = false;
+
+            if(m_isPluginInited)
+            {
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInternetConnectionState, (void*)&iarmData, sizeof(iarmData)))
+                {
+                    LOGINFO("InternetConnectionState = %d ",iarmData.connectivityState);
+                    if (iarmData.connectivityState == CAPTIVE_PORTAL)
+                    {
+                        LOGINFO("Captive potal URI found = %s ", iarmData.captivePortalURI);
+                        response["URI"] = string(iarmData.captivePortalURI, MAX_URI_LEN - 1);
+                    }
+                    else
+                    {
+                        LOGERR("No Captive potal URI found ");
+                        response["URI"] = string("");
+                    }
+
+                    result = true;
+                }
+                else
+                {
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
+                }
+            }
+            else
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t Network::startConnectivityMonitoring(const JsonObject& parameters, JsonObject& response)
+        {
+            bool result = false;
+            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t iarmData;
+
+            if (parameters.HasLabel("interval"))
+            {
+                iarmData.monitorConnectivity = true;
+                iarmData.monitorInterval = parameters["interval"].Number();
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring, (void *)&iarmData, sizeof(iarmData)))
+                {
+                    LOGINFO ("starting connectivity monitor with %d sec interval", iarmData.monitorInterval);
+                    result = true;
+                }
+                else
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring);
+            }
+            else
+            {
+                LOGWARN("interval parameter not included");
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t Network::stopConnectivityMonitoring(const JsonObject& parameters, JsonObject& response)
+        {
+            bool result = false;
+            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t iarmData;
+            iarmData.monitorConnectivity = false;
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring, (void *)&iarmData, sizeof(iarmData)))
+            {
+                LOGINFO ("connectivity monitor stopped !");
+                result = true;
+            }
+            else
+                LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring);
+
+            returnResponse(result);
+        }
+
         uint32_t Network::getPublicIP(const JsonObject& parameters, JsonObject& response)
         {
             JsonObject internal;
@@ -1452,6 +1518,33 @@ namespace WPEFramework
             sendNotify("onConnectionStatusChanged", params);
         }
 
+        void Network::onInternetStatusChange(InternetConnectionState_t InternetConnectionState)
+        {
+            JsonObject params;
+            params["state"] = static_cast <int> (InternetConnectionState);
+            switch (InternetConnectionState)
+            {
+                case NO_INTERNET:
+                    params["status"] = string("NO_INTERNET");
+                break;
+                case LIMITED_INTERNET:
+                    params["status"] = string("LIMITED_INTERNET");
+                break;
+                case CAPTIVE_PORTAL:
+                    params["status"] = string("CAPTIVE_PORTAL");
+                break;
+                case FULLY_CONNECTED:
+                    params["status"] = string("FULLY_CONNECTED");
+                break;
+                default:
+                    LOGERR("onInternetStatusChange event date error <%d>", InternetConnectionState);
+                    return;
+                break;
+            }
+            LOGINFO("onInternetStatusChange Event State = %d", InternetConnectionState);
+            sendNotify("onInternetStatusChange", params);
+        }
+
         void Network::onInterfaceIPAddressChanged(string interface, string ipv6Addr, string ipv4Addr, bool acquired)
         {
             JsonObject params;
@@ -1574,6 +1667,11 @@ namespace WPEFramework
                 IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t *e = (IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t*) data;
                 onDefaultInterfaceChanged(e->oldInterface, e->newInterface);
                 break;
+            }
+            case IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED:
+            {
+                InternetConnectionState_t *e = (InternetConnectionState_t*) data;
+                onInternetStatusChange(*e);
             }
             }
         }
