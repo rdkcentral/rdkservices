@@ -3927,16 +3927,18 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool status = false;
-	    string StbVersionString     = getStbVersionString();
-            response["stbVersion"]      = StbVersionString;
-	    if((StbVersionString.find("sprint") != string::npos ) || (StbVersionString.find("stable2") != string::npos ))
-	    {
-		    response["receiverVersion"] = getClientVersionString();
-	    }
-	    else 
-	    {
-		    response["receiverVersion"] = getStbBranchString();
-	    }
+	    response["stbVersion"]      = getStbVersionString();
+	    string  stbBranchString     = getStbBranchString();            
+            std::regex stbBranchString_regex("^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$");
+            if (std::regex_match (stbBranchString, stbBranchString_regex))
+            {             
+                    response["receiverVersion"] = stbBranchString;
+            }
+            else
+            {                    
+                    response["receiverVersion"] = getClientVersionString();
+            }
+
             response["stbTimestamp"]    = getStbTimestampString();
             status = true;
             returnResponse(status);
