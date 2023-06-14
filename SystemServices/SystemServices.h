@@ -179,6 +179,7 @@ namespace WPEFramework {
                 std::string getStbVersionString();
                 std::string getClientVersionString();
                 std::string getStbTimestampString();
+		std::string getStbBranchString();
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
                 void InitializeIARM();
