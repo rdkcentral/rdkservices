@@ -2,7 +2,7 @@
 <a name="Location_Sync_Plugin"></a>
 # Location Sync Plugin
 
-**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/LocationSync/CHANGELOG.md)**
+**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/LocationSync/CHANGELOG.md)**
 
 A LocationSync plugin for Thunder framework.
 
