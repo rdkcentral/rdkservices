@@ -602,7 +602,7 @@ private:
 	                uint32_t sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t getAudioDeviceConnectedStatusWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t requestAudioDevicePowerStatusWrapper(const JsonObject& parameters, JsonObject& response);
-			uint32_t setLatencyInfoWrapper(const JsonObject& parameters, JsonObject& response);4
+			uint32_t setLatencyInfoWrapper(const JsonObject& parameters, JsonObject& response);
                         //End methods
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;
