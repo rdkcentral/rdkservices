@@ -24,6 +24,7 @@
 #include "ccec/MessageEncoder.hpp"
 #include "host.hpp"
 #include "ccec/host/RDK.hpp"
+#include "UtilsgetRFCConfig.h"
 
 #include "ccec/drivers/iarmbus/CecIARMBusMgr.h"
 
@@ -65,6 +66,7 @@
 #define HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS   "getAudioDeviceConnectedStatus"
 #define HDMICECSINK_METHOD_REQUEST_AUDIO_DEVICE_POWER_STATUS   "requestAudioDevicePowerStatus"
 
+
 #define TEST_ADD 0
 #define HDMICECSINK_REQUEST_MAX_RETRY 				3
 #define HDMICECSINK_REQUEST_MAX_WAIT_TIME_MS 		2000
@@ -82,6 +84,17 @@
 #define SYSTEM_AUDIO_MODE_ON 0x01
 #define SYSTEM_AUDIO_MODE_OFF 0x00
 #define AUDIO_DEVICE_POWERSTATE_OFF 1
+
+//Device Type is TV - Bit 7 is set to 1
+#define ALL_DEVICE_TYPES  128
+
+//RC Profile of TV is 3 - Typical TV Remote
+#define RC_PROFILE_TV 10
+
+//Device Features supported by TV - ARC Tx
+#define DEVICE_FEATURES_TV 4
+
+#define TR181_HDMICECSINK_CEC_VERSION "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.HdmiCec.CECVersion"
 
 enum {
 	DEVICE_POWER_STATE_ON = 0,
@@ -149,6 +162,10 @@ static std::vector<uint8_t> formatid = {0,0};
 static std::vector<uint8_t> audioFormatCode = { SAD_FMT_CODE_ENHANCED_AC3,SAD_FMT_CODE_AC3 };
 static uint8_t numberofdescriptor = 2;
 static int32_t HdmiArcPortID = -1;
+static float cecVersion = 1.4;
+static AllDeviceTypes allDevicetype = ALL_DEVICE_TYPES;
+static vector<RcProfile> rcProfile = {RC_PROFILE_TV};
+static vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
@@ -241,9 +258,14 @@ namespace WPEFramework
              printHeader(header);
              LOGINFO("Command: GetCECVersion sending CECVersion response \n");
              try
-             { 
-                 conn.sendToAsync(header.from, MessageEncoder().encode(CECVersion(Version::V_1_4)));
-             } 
+             {
+		 if(cecVersion == 2.0) {
+		     conn.sendToAsync(header.from, MessageEncoder().encode(CECVersion(Version::V_2_0)));
+		 }
+		 else{
+		     conn.sendToAsync(header.from, MessageEncoder().encode(CECVersion(Version::V_1_4)));
+		 }
+	     }
              catch(...)
              {
                  LOGWARN("Exception while sending CECVersion ");
@@ -540,6 +562,21 @@ namespace WPEFramework
              LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
              HdmiCecSink::_instance->Process_ReportAudioStatus_msg(msg);
        }
+      void HdmiCecSinkProcessor::process (const GiveFeatures &msg, const Header &header)
+       {
+            printHeader(header);
+            LOGINFO("Command: GiveFeatures \n");
+            try
+            {
+	        if(cecVersion == 2.0) {
+		    conn.sendToAsync(LogicalAddress(LogicalAddress::BROADCAST),MessageEncoder().encode(ReportFeatures(Version::V_2_0,allDevicetype,rcProfile,deviceFeatures)));
+		}
+            }
+            catch(...)
+            {
+                LOGWARN("Exception while sending ReportFeatures");
+            }
+       }
 //=========================================== HdmiCecSink =========================================
 
        HdmiCecSink::HdmiCecSink()
@@ -669,6 +706,7 @@ namespace WPEFramework
                    LOGWARN("Exception while enabling CEC settings .\r\n");
                }
             }
+	    getCecVersion();
             getHdmiArcPortID();
            return (std::string());
 
@@ -2585,6 +2623,11 @@ namespace WPEFramework
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
 						_instance->smConnection->addFrameListener(_instance->msgFrameListener);
+						if(cecVersion == 2.0) {
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_2_0;
+						    _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
+                                                                MessageEncoder().encode(ReportFeatures(Version::V_2_0,allDevicetype,rcProfile,deviceFeatures)), 500);
+						}
 						_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
 								MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 100);
 
@@ -3286,6 +3329,19 @@ namespace WPEFramework
              LOGINFO("HDMI ARC port ID HdmiArcPortID=[%d] \n", param.portId);
              HdmiArcPortID = param.portId;
           }
+      }
+
+      void HdmiCecSink::getCecVersion()
+      {
+	  RFC_ParamData_t param = {0};
+          WDMP_STATUS status = getRFCParameter((char*)"thunderapi", TR181_HDMICECSINK_CEC_VERSION, &param);
+          if(WDMP_SUCCESS == status && param.type == WDMP_STRING) {
+             LOGINFO("CEC Version from RFC = [%s] \n", param.value);
+             cecVersion = atof(param.value);
+          }
+	  else {
+	     LOGINFO("Error while fetching CEC Version from RFC");
+	  }
       }
 
     } // namespace Plugin
