@@ -567,6 +567,44 @@
             "result": {
                 "$ref": "#/common/result"
             }
+        },
+	"getCECVersion":{
+            "summary": "Returns the CEC Version of TV from RFC",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "cecVersion": {
+                        "$ref": "#/definitions/cecVersion"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "cecVersion",
+                    "success"
+                ]
+            }
+        },
+	"setCECVersion":{
+            "summary": "Used to set the CEC Version of TV. The CEC Version Data Model is updated when this API is invoked. The CEC Version will persist even after Reboot until updated by User",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "cecVersion": {
+                        "$ref": "#/definitions/cecVersion"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "cecVersion",
+                ]
+            },
+	    "result": {
+                "$ref": "#/common/result"
+            }
         }
     },
     "events": {
