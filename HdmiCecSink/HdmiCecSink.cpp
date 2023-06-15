@@ -66,7 +66,6 @@
 #define HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS   "getAudioDeviceConnectedStatus"
 #define HDMICECSINK_METHOD_REQUEST_AUDIO_DEVICE_POWER_STATUS   "requestAudioDevicePowerStatus"
 
-
 #define TEST_ADD 0
 #define HDMICECSINK_REQUEST_MAX_RETRY 				3
 #define HDMICECSINK_REQUEST_MAX_WAIT_TIME_MS 		2000
@@ -164,8 +163,8 @@ static uint8_t numberofdescriptor = 2;
 static int32_t HdmiArcPortID = -1;
 static float cecVersion = 1.4;
 static AllDeviceTypes allDevicetype = ALL_DEVICE_TYPES;
-static vector<RcProfile> rcProfile = {RC_PROFILE_TV};
-static vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
+static std::vector<RcProfile> rcProfile = {RC_PROFILE_TV};
+static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
