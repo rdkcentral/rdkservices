@@ -89,6 +89,9 @@ static bool isCecEnabled = false;
 static int  hdmiArcPortId = -1;
 static int retryPowerRequestCount = 0;
 static int  hdmiArcVolumeLevel = 0;
+static int  hdmiArcRequestedVolumeLevel = 0;
+static bool isSetVolumeThreadRunning = false;
+
 std::vector<int> sad_list;
 #ifdef USE_IARM
 namespace
@@ -2871,7 +2874,8 @@ namespace WPEFramework {
 	#define KEY_PRESSES_AT_ONCE 5
         void DisplaySettings::setVolumeThread( int level)
         {
-            LOGINFO("Entry  %s:  level: %d hdmiArcVolumeLevel:%d \n",__FUNCTION__,level,hdmiArcVolumeLevel);
+            LOGINFO("Entry  %s:  hdmiArcRequestedVolumeLevel: %d hdmiArcVolumeLevel:%d \n",__FUNCTION__,hdmiArcRequestedVolumeLevel,hdmiArcVolumeLevel);
+            isSetVolumeThreadRunning = true;
 	    do
 	    {
                 JsonObject hdmiCecSinkResult;
@@ -2879,8 +2883,8 @@ namespace WPEFramework {
 		// 5 is logical address for audio system
                 params["logicalAddress"] = 5;
 		// key code for volume up and down key event
-                params["keyCode"] =(level > hdmiArcVolumeLevel)?0x41:0x42;
-		int loopCount  = abs(level-hdmiArcVolumeLevel);
+                params["keyCode"] =(hdmiArcRequestedVolumeLevel> hdmiArcVolumeLevel)?0x41:0x42;
+		int loopCount  = abs(hdmiArcRequestedVolumeLevel-hdmiArcVolumeLevel);
                 loopCount=(loopCount>KEY_PRESSES_AT_ONCE)?KEY_PRESSES_AT_ONCE:loopCount;
 
                 for(int i =0; i< loopCount;i++  )
@@ -2891,9 +2895,10 @@ namespace WPEFramework {
                     }
 	        }
 		sleep(3);
-                LOGINFO("After iteration %s:  level: %d hdmiArcVolumeLevel:%d loopCount:%d \n",__FUNCTION__,level,hdmiArcVolumeLevel,loopCount);
-	    }while( abs(level-hdmiArcVolumeLevel) > KEY_PRESSES_AT_ONCE/2 );
-            LOGINFO("Exit  %s:  level: %d hdmiArcVolumeLevel:%d \n",__FUNCTION__,level,hdmiArcVolumeLevel);
+                LOGINFO("After iteration %s:  hdmiArcRequestedVolumeLevel: %d hdmiArcVolumeLevel:%d loopCount:%d \n",__FUNCTION__,hdmiArcRequestedVolumeLevel,hdmiArcVolumeLevel,loopCount);
+	    }while( abs(hdmiArcRequestedVolumeLevel-hdmiArcVolumeLevel) > KEY_PRESSES_AT_ONCE/2 );
+            isSetVolumeThreadRunning = false;
+            LOGINFO("Exit  %s:  hdmiArcRequestedVolumeLevel: %d hdmiArcVolumeLevel:%d \n",__FUNCTION__,hdmiArcRequestedVolumeLevel,hdmiArcVolumeLevel);
         }
 
         uint32_t DisplaySettings::setVolumeLevel(const JsonObject& parameters, JsonObject& response)
@@ -2921,8 +2926,12 @@ namespace WPEFramework {
                     }
                     else
                     {
-                        std::thread t_setVolThread = std::thread(setVolumeThread,(int)level);
-                        t_setVolThread.detach();
+                        hdmiArcRequestedVolumeLevel  = (int)level;
+                        if(isSetVolumeThreadRunning == false)
+                        {
+                            std::thread t_setVolThread = std::thread(setVolumeThread,(int)level);
+                            t_setVolThread.detach();
+                        }
                     }
                     if(cache_volumelevel != (int)level)
                     {
