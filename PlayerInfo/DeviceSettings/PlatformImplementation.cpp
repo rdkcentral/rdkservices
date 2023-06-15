@@ -488,6 +488,7 @@ private:
         _videoCodecs.push_back(Exchange::IPlayerProperties::VideoCodec::VIDEO_MPEG);
         _videoCodecs.push_back(Exchange::IPlayerProperties::VideoCodec::VIDEO_H264);
         _videoCodecs.push_back(Exchange::IPlayerProperties::VideoCodec::VIDEO_H265);
+        _videoCodecs.push_back(Exchange::IPlayerProperties::VideoCodec::VIDEO_H265_10);
         _videoCodecs.push_back(Exchange::IPlayerProperties::VideoCodec::VIDEO_VP9);
 
         //if (GstUtils::GstRegistryCheckElementsForMediaTypes(videoCaps, _videoCodecs) != true) {
