@@ -106,9 +106,8 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdk/control/ctrlm_ipc_voice.h
         ${BASEDIR}/rdk/control/ctrlm_ipc_rcu.h
         ${BASEDIR}/rdk/control/ctrlm_ipc_key_codes.h
-	${BASEDIR}/rdk_logger_milestone.h
+	    ${BASEDIR}/rdk_logger_milestone.h
 	    ${BASEDIR}/opkg/opkg.h
-	    ${BASEDIR}/opkg/pkg.h
 	    ${BASEDIR}/opkg/opkg_message.h
 	    ${BASEDIR}/opkg/opkg_cmd.h
 	    ${BASEDIR}/opkg/opkg_download.h
@@ -170,7 +169,6 @@ add_definitions(
         -DXCAST_ENABLED_BY_DEFAULT
         -DCLOCK_BRIGHTNESS_ENABLED
         -DUSE_DS
-        -DDISABLE_THUNDER_CLIENT_IN_MAINTENANCE_MANAGER_GTEST
 )
 
 message("Setting build options")
