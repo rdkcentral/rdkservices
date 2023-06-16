@@ -245,6 +245,9 @@ namespace WPEFramework {
             :PluginHost::JSONRPC()
         {
             MaintenanceManager::_instance = this;
+#ifdef DISABLE_THUNDER_CLIENT_IN_MAINTENANCE_MANAGER_GTEST
+			m_service = nullptr;
+#endif
 
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
@@ -386,7 +389,7 @@ namespace WPEFramework {
                     LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
                     system(cmd.c_str());
 
-                    LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                    LOGINFO("Waiting to unlock.. [%d/%ld]",i+1,tasks.size());
                     task_thread.wait(lck);
                 }
             }
@@ -708,7 +711,11 @@ namespace WPEFramework {
             /* add 4 checks every 30 seconds */
             int i=0;
             do{
-                network_available = checkNetwork();
+#ifdef DISABLE_THUNDER_CLIENT_IN_MAINTENANCE_MANAGER_GTEST
+                network_available =  true;
+#else
+	            network_available = checkNetwork();
+#endif
                 if ( !network_available ){
                     sleep(30);
                     i++;
