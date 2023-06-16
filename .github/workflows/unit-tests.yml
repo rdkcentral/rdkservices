@@ -222,14 +222,11 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
-<<<<<<< HEAD
-=======
           -include ${{github.workspace}}/rdkservices/Tests/mocks/opkg/pkg.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/opkg/opkg.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/opkg/opkg_message.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/opkg/opkg_cmd.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/opkg/opkg_download.h
->>>>>>> 3aa5d0e4 (DK-42471 : Add Unit Tests for RDKServices (Thunder Plugins) - Phase 12)
           -Wall -Werror
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
@@ -309,6 +306,7 @@ jobs:
           /run/sda1/HSTP11MWR_5.11p5s1_VBN_sdy.bin
           /run/sda1/UsbTestFWUpdate/HSTP11MWR_3.11p5s1_VBN_sdy.bin
           /run/sda1/UsbProdFWUpdate/HSTP11MWR_4.11p5s1_VBN_sdy.bin
+          /lib/rdk/getMaintenanceStartTime.sh
           &&
           sudo chmod 777
           /opt/standbyReason.txt
@@ -319,6 +317,7 @@ jobs:
           /etc/dcm.properties          
           /etc/authService.conf
           /version.txt
+          /lib/rdk/getMaintenanceStartTime.sh
 
       - name: Run unit tests without valgrind
         run: >

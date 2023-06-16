@@ -170,6 +170,7 @@ add_definitions(
         -DXCAST_ENABLED_BY_DEFAULT
         -DCLOCK_BRIGHTNESS_ENABLED
         -DUSE_DS
+        -DDISABLE_THUNDER_CLIENT_IN_MAINTENANCE_MANAGER_GTEST
 )
 
 message("Setting build options")
