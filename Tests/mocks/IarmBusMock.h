@@ -26,6 +26,8 @@ public:
             .WillByDefault(::testing::Return(IARM_RESULT_SUCCESS));
         ON_CALL(*this, IARM_Bus_Call(::testing::_, ::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Return(IARM_RESULT_SUCCESS));
+		ON_CALL(*this, IARM_Bus_BroadcastEvent(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Return(IARM_RESULT_SUCCESS));
         ON_CALL(*this, IARM_Bus_RegisterCall(::testing::_, ::testing::_))
             .WillByDefault(::testing::Return(IARM_RESULT_SUCCESS));
         ON_CALL(*this, IARM_Bus_Call_with_IPCTimeout(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
