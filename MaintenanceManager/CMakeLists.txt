@@ -48,6 +48,8 @@ endif(IARMBus_FOUND)
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ./)
 
+set_source_files_properties(MaintenanceManager.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
+
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 

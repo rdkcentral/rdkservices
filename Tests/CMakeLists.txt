@@ -36,6 +36,7 @@ add_executable(${PROJECT_NAME}
         mocks/Wraps.cpp
         mocks/Dobby.cpp
 	mocks/rdkshell.cpp
+		mocks/opkgMock.cpp
         )
 
 set_source_files_properties(
@@ -79,6 +80,8 @@ include_directories(../LocationSync
         ../ControlService
         ../RemoteActionMapping
 	../RDKShell
+        ../MaintenanceManager
+        ../Packager
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -112,6 +115,8 @@ link_directories(../LocationSync
         ../ControlService
         ../RemoteActionMapping
 	../RDKShell
+        ../MaintenanceManager
+        ../Packager
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -149,6 +154,8 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}ControlService
         ${NAMESPACE}RemoteActionMapping
 	${NAMESPACE}RDKShell
+        ${NAMESPACE}MaintenanceManager
+        ${NAMESPACE}Packager
         )
 
 target_include_directories(${PROJECT_NAME}
