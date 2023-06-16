@@ -184,7 +184,8 @@ namespace WPEFramework
             bool success = true;
             try
             {
-                device::HdmiInput::getInstance().selectPort(portId,audioMix);
+                    LOGINFO("audioMix value: %d\n",audioMix);
+		    device::HdmiInput::getInstance().selectPort(portId,audioMix);
             }
             catch (const device::Exception& err)
             {
