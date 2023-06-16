@@ -188,6 +188,7 @@ jobs:
           rfcapi.h
           rbus.h
           telemetry_busmessage_sender.h
+          maintenanceMGR.h
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
@@ -220,6 +221,15 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
+<<<<<<< HEAD
+=======
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/opkg/pkg.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/opkg/opkg.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/opkg/opkg_message.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/opkg/opkg_cmd.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/opkg/opkg_download.h
+>>>>>>> 3aa5d0e4 (DK-42471 : Add Unit Tests for RDKServices (Thunder Plugins) - Phase 12)
           -Wall -Werror
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
