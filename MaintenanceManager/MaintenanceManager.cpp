@@ -245,9 +245,6 @@ namespace WPEFramework {
             :PluginHost::JSONRPC()
         {
             MaintenanceManager::_instance = this;
-#ifdef DISABLE_THUNDER_CLIENT_IN_MAINTENANCE_MANAGER_GTEST
-			m_service = nullptr;
-#endif
 
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
@@ -711,11 +708,7 @@ namespace WPEFramework {
             /* add 4 checks every 30 seconds */
             int i=0;
             do{
-#ifdef DISABLE_THUNDER_CLIENT_IN_MAINTENANCE_MANAGER_GTEST
-                network_available =  true;
-#else
 	            network_available = checkNetwork();
-#endif
                 if ( !network_available ){
                     sleep(30);
                     i++;
