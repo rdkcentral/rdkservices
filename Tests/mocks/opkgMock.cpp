@@ -1,6 +1,4 @@
-
-#include "opkg/opkg.h"
-#include "opkg/opkg_conf.h"
+#include "pkg.h"
 
 static opkg_conf_t _conf;
 opkg_conf_t *opkg_config = &_conf;
