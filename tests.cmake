@@ -88,9 +88,8 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdk/control/ctrlm_ipc_voice.h
         ${BASEDIR}/rdk/control/ctrlm_ipc_rcu.h
         ${BASEDIR}/rdk/control/ctrlm_ipc_key_codes.h
-	${BASEDIR}/rdk_logger_milestone.h
+	    ${BASEDIR}/rdk_logger_milestone.h
 	    ${BASEDIR}/opkg/opkg.h
-	    ${BASEDIR}/opkg/pkg.h
 	    ${BASEDIR}/opkg/opkg_message.h
 	    ${BASEDIR}/opkg/opkg_cmd.h
 	    ${BASEDIR}/opkg/opkg_download.h

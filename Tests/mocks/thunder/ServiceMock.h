@@ -50,6 +50,7 @@ public:
     MOCK_METHOD(void, Notify, (const string&), (override));
     MOCK_METHOD(void*, QueryInterface, (const uint32_t), (override));
     MOCK_METHOD(void*, QueryInterfaceByCallsign, (const uint32_t, const string&), (override));
+	//MOCK_METHOD(void*, Root, (const uint32_t, const uint32_t, const string&), (override));
     MOCK_METHOD(void, Register, (WPEFramework::PluginHost::IPlugin::INotification*), (override));
     MOCK_METHOD(void, Unregister, (WPEFramework::PluginHost::IPlugin::INotification*), (override));
     MOCK_METHOD(string, Version, (), (const, override));
