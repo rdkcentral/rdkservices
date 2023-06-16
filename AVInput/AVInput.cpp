@@ -319,6 +319,7 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
     LOGINFOMETHOD();
 
     string sType = parameters["typeOfInput"].String();
+    bool audioMix = parameters["reqeustAudioMix"];
     int portId = 0;
     int iType = 0;
 
@@ -340,7 +341,7 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
     try
     {
         if (iType == HDMI) {
-            device::HdmiInput::getInstance().selectPort(portId);
+            device::HdmiInput::getInstance().selectPort(portId,audioMix);
     }
     else if(iType == COMPOSITE) {
             device::CompositeInput::getInstance().selectPort(portId);

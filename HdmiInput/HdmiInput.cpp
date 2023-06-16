@@ -170,8 +170,10 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
             returnIfParamNotFound(parameters, "portId");
+            //returnIfParamNotFound(parameters, "requestAudioMix");//will be uncommented later
 
             string sPortId = parameters["portId"].String();
+            bool audioMix = parameters["requestAudioMix"];
             int portId = 0;
             try {
                 portId = stoi(sPortId);
@@ -182,7 +184,7 @@ namespace WPEFramework
             bool success = true;
             try
             {
-                device::HdmiInput::getInstance().selectPort(portId);
+                device::HdmiInput::getInstance().selectPort(portId,audioMix);
             }
             catch (const device::Exception& err)
             {
