@@ -230,6 +230,7 @@ jobs:
           -DUSE_IARMBUS
           -DENABLE_SYSTEM_GET_STORE_DEMO_LINK
           -DENABLE_DEEP_SLEEP
+          -DENABLE_MAINTENANCE_MANAGER_UT
           -DENABLE_SET_WAKEUP_SRC_CONFIG
           -DENABLE_THERMAL_PROTECTION
           -DUSE_DRM_SCREENCAPTURE
@@ -295,6 +296,7 @@ jobs:
           /etc/dcm.properties
           /etc/authService.conf
           /version.txt
+          /lib/rdk/getMaintenanceStartTime.sh
           &&
           sudo chmod 777
           /opt/standbyReason.txt
@@ -305,6 +307,7 @@ jobs:
           /etc/dcm.properties          
           /etc/authService.conf
           /version.txt
+          /lib/rdk/getMaintenanceStartTime.sh
 
       - name: Run unit tests without valgrind
         run: >

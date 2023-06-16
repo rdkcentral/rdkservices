@@ -147,6 +147,7 @@ add_definitions(
         -DHAS_API_POWERSTATE
         -DHAS_RBUS
         -DENABLE_DEVICE_MANUFACTURER_INFO
+		-DDISABLE_THUNDER_CLIENT_IN_MAINTENANCE_MANAGER_GTEST
 )
 
 message("Setting build options")

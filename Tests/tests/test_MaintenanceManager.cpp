@@ -19,6 +19,8 @@
  **/
 
 #include "gtest/gtest.h"
+#include <fstream>
+#include <iostream>
 #include "FactoriesImplementation.h"
 #include "MaintenanceManager.h"
 #include "RfcApiMock.h"
@@ -37,6 +39,9 @@ using ::testing::AssertionResult;
 using ::testing::AssertionSuccess;
 using ::testing::AssertionFailure;
 
+extern "C" FILE* __real_popen(const char* command, const char* type);
+extern "C" int __real_pclose(FILE* pipe);
+
 class MaintenanceManagerTest : public Test {
 protected:
     Core::ProxyType<Plugin::MaintenanceManager> plugin_;
@@ -45,7 +50,7 @@ protected:
     string                                  response_;
     NiceMock<IarmBusImplMock>               iarmBusImplMock_;
     NiceMock<RfcApiImplMock>                rfcApiImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
+    NiceMock<WrapsImplMock>                 wrapsImplMock;
 	
     MaintenanceManagerTest()
         : plugin_(Core::ProxyType<Plugin::MaintenanceManager>::Create())
@@ -86,6 +91,7 @@ protected:
     MaintenanceManagerInitializedEventTest() :
         MaintenanceManagerTest()
     {
+		
         EXPECT_CALL(iarmBusImplMock_, IARM_Bus_RegisterEventHandler(StrEq(IARM_BUS_MAINTENANCE_MGR_NAME),IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, _))
             .WillOnce(Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
@@ -100,7 +106,7 @@ protected:
                     return IARM_RESULT_SUCCESS;
                 }));
 
-        EXPECT_EQ(string(""), plugin_->Initialize(nullptr));
+        EXPECT_EQ(string(""), plugin_->Initialize(&service_));
         PluginHost::IFactories::Assign(&factoriesImplementation_);
         dispatcher_ = static_cast<PluginHost::IDispatcher*>(plugin_->QueryInterface(PluginHost::IDispatcher::ID));
         dispatcher_->Activate(&service_);
@@ -108,7 +114,7 @@ protected:
 
     virtual ~MaintenanceManagerInitializedEventTest() override
     {
-        plugin_->Deinitialize(nullptr);
+        plugin_->Deinitialize(&service_);
         dispatcher_->Deactivate();
         dispatcher_->Release();
         PluginHost::IFactories::Assign(nullptr);
@@ -125,43 +131,7 @@ TEST_F(MaintenanceManagerTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler_.Exists(_T("getMaintenanceMode")));
 }
 
-#if 1
-TEST_F(MaintenanceManagerTest, startMaintenance)
-{
-	/*EXPECT_CALL(wrapsImplMock, system(::testing::_))
-        .Times(1)
-        .WillOnce(::testing::Invoke(
-            [&](const char* command) {
-                EXPECT_EQ(string(command), string(_T("/lib/rdk/RFCbas/RFCbase.sh &")));
-
-                return 0;
-            }));*/
-			
-	ON_CALL(wrapsImplMock, system(::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [&](const char* command) {
-                EXPECT_EQ(string(command), string(_T("/lib/rdk/RFCbas/RFCbase.sh &")));
-                return 0;
-            }));
-    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("startMaintenance"), _T("{}"), response_));
-    EXPECT_EQ(response_, "{\"success\":true}");
-}
-
-TEST_F(MaintenanceManagerTest, getMaintenanceActivityStatus)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("getMaintenanceActivityStatus"), _T("{}"), response_));
-    EXPECT_EQ(response_, "{\"maintenanceStatus\":\"MAINTENANCE_ERROR\",\"LastSuccessfulCompletionTime\":0,\"isCriticalMaintenance\":false,\"isRebootPending\":false,\"success\":true}");
-}
-
-TEST_F(MaintenanceManagerTest, getMaintenanceStartTime)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("getMaintenanceStartTime"), _T("{}"), response_));
-    EXPECT_EQ(response_, "{\"maintenanceStartTime\":12345,\"success\":true}");
-}
-
-
-
-TEST_F(MaintenanceManagerTest, stopMaintenance)
+TEST_F(MaintenanceManagerTest, setMaintenanceMode)
 {
     ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
@@ -170,43 +140,268 @@ TEST_F(MaintenanceManagerTest, stopMaintenance)
 				strncpy(pstParamData->value, "true", MAX_PARAM_LEN);
                 return WDMP_SUCCESS;
             }));
-    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("stopMaintenance"), _T("{}"), response_));
-    EXPECT_EQ(response_, "{\"success\":false}");
+    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("org.rdk.MaintenanceManager.1.setMaintenanceMode"), _T("{\"maintenanceMode\":\"FOREGROUND\",\"optOut\":\"IGNORE_UPDATE\"}"), response_));
+    EXPECT_EQ(response_, "{\"success\":true}");
+	
+	EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("org.rdk.MaintenanceManager.1.getMaintenanceMode"), _T("{}"), response_));
+    EXPECT_EQ(response_, "{\"maintenanceMode\":\"FOREGROUND\",\"optOut\":\"IGNORE_UPDATE\",\"success\":true}");
+	
+	EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("org.rdk.MaintenanceManager.1.setMaintenanceMode"), _T("{\"maintenanceMode\":\"FOREGROUND\",\"optOut\":\"ENFORCE_OPTOUT\"}"), response_));
+    EXPECT_EQ(response_, "{\"success\":true}");
+	
+	EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("org.rdk.MaintenanceManager.1.getMaintenanceMode"), _T("{}"), response_));
+    EXPECT_EQ(response_, "{\"maintenanceMode\":\"FOREGROUND\",\"optOut\":\"ENFORCE_OPTOUT\",\"success\":true}");
+	
+	EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("org.rdk.MaintenanceManager.1.setMaintenanceMode"), _T("{\"maintenanceMode\":\"FOREGROUND\",\"optOut\":\"BYPASS_OPTOUT\"}"), response_));
+    EXPECT_EQ(response_, "{\"success\":true}");
+	
+	EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("org.rdk.MaintenanceManager.1.getMaintenanceMode"), _T("{}"), response_));
+    EXPECT_EQ(response_, "{\"maintenanceMode\":\"FOREGROUND\",\"optOut\":\"BYPASS_OPTOUT\",\"success\":true}");
+	
+	EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("org.rdk.MaintenanceManager.1.setMaintenanceMode"), _T("{\"maintenanceMode\":\"BACKGROUND\",\"optOut\":\"IGNORE_UPDATE\"}"), response_));
+    EXPECT_EQ(response_, "{\"success\":true}");
+	
+	EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("org.rdk.MaintenanceManager.1.getMaintenanceMode"), _T("{}"), response_));
+    EXPECT_EQ(response_, "{\"maintenanceMode\":\"BACKGROUND\",\"optOut\":\"IGNORE_UPDATE\",\"success\":true}");
+	
+	EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("org.rdk.MaintenanceManager.1.setMaintenanceMode"), _T("{\"maintenanceMode\":\"BACKGROUND\",\"optOut\":\"ENFORCE_OPTOUT\"}"), response_));
+    EXPECT_EQ(response_, "{\"success\":true}");
+	
+	EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("org.rdk.MaintenanceManager.1.getMaintenanceMode"), _T("{}"), response_));
+    EXPECT_EQ(response_, "{\"maintenanceMode\":\"BACKGROUND\",\"optOut\":\"ENFORCE_OPTOUT\",\"success\":true}");
+	
+	EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("org.rdk.MaintenanceManager.1.setMaintenanceMode"), _T("{\"maintenanceMode\":\"BACKGROUND\",\"optOut\":\"BYPASS_OPTOUT\"}"), response_));
+    EXPECT_EQ(response_, "{\"success\":true}");
+	
+	EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("org.rdk.MaintenanceManager.1.getMaintenanceMode"), _T("{}"), response_));
+    EXPECT_EQ(response_, "{\"maintenanceMode\":\"BACKGROUND\",\"optOut\":\"BYPASS_OPTOUT\",\"success\":true}");
 }
 
-#endif
-/*
-#include <gtest/gtest.h>
-
-#include "MaintenanceManager.h"
-
-using namespace WPEFramework;
-
-//using ::testing::NiceMock;
-
-class MaintenanceManagerTest : public ::testing::Test {
-protected:
-    Core::ProxyType<Plugin::MaintenanceManager> plugin;
-    Core::JSONRPC::Handler& handler;
-    Core::JSONRPC::Connection connection;
-    string response;
-
-    MaintenanceManagerTest()
-        : plugin(Core::ProxyType<Plugin::MaintenanceManager>::Create())
-        , handler(*(plugin))
-        , connection(1, 0)
-    {
-    }
-    virtual ~MaintenanceManagerTest() = default;
-};
-
-TEST_F(MaintenanceManagerTest, RegisteredMethods)
+TEST_F(MaintenanceManagerInitializedEventTest, getMaintenanceActivityStatus)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getMaintenanceActivityStatus")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getMaintenanceStartTime")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setMaintenanceMode")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("startMaintenance")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("stopMaintenance")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getMaintenanceMode")));
+    IARM_Bus_MaintMGR_EventData_t	eventData;
+	
+	EXPECT_CALL(wrapsImplMock, system(::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                return 0;
+            }));
+		
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	
+	eventData.data.maintenance_module_status.status = MAINT_DCM_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_DCM_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("getMaintenanceActivityStatus"), _T("{}"), response_));
+    EXPECT_EQ(response_, "{\"maintenanceStatus\":\"MAINTENANCE_STARTED\",\"LastSuccessfulCompletionTime\":0,\"isCriticalMaintenance\":false,\"isRebootPending\":false,\"success\":true}");
 }
-*/
+
+TEST_F(MaintenanceManagerInitializedEventTest, startMaintenanceOnReboot)
+{	
+    IARM_Bus_MaintMGR_EventData_t	eventData;
+	struct tm result = {};
+	time_t start_time = time(NULL);
+   
+	localtime_r(&start_time, &result);
+	snprintf(eventData.data.startTimeUpdate.start_time, MAX_TIME_LEN-1, "%04d-%02d-%02d %02d:%02d:%02d", 
+		result.tm_year+1900,
+		result.tm_mon +1,
+		result.tm_mday,
+		result.tm_hour,
+		result.tm_min,
+		result.tm_sec);
+	eventData.data.startTimeUpdate.start_time[MAX_TIME_LEN-1] = '\0';
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
+	 EXPECT_CALL(wrapsImplMock, system(::testing::_))
+        .Times(4)
+        .WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/StartDCM_maintaince.sh &")));
+                return 0;
+            }))
+		.WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/RFCbase.sh &")));
+                return 0;
+            }))
+		.WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log &")));
+                return 0;
+            }))
+		.WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/Start_uploadSTBLogs.sh &")));
+                return 0;
+            }));
+	std::this_thread::sleep_for(std::chrono::seconds(3));
+			
+	eventData.data.maintenance_module_status.status = MAINT_DCM_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_DCM_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
+	std::this_thread::sleep_for(std::chrono::seconds(3));
+	eventData.data.maintenance_module_status.status = MAINT_RFC_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_RFC_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
+	std::this_thread::sleep_for(std::chrono::seconds(3));
+	eventData.data.maintenance_module_status.status = MAINT_FWDOWNLOAD_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_FWDOWNLOAD_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
+	std::this_thread::sleep_for(std::chrono::seconds(3));
+	eventData.data.maintenance_module_status.status = MAINT_LOGUPLOAD_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_LOGUPLOAD_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+    
+	std::this_thread::sleep_for(std::chrono::seconds(5));
+	
+}
+
+TEST_F(MaintenanceManagerInitializedEventTest, startMaintenance)
+{	
+    IARM_Bus_MaintMGR_EventData_t	eventData;
+	
+	EXPECT_CALL(wrapsImplMock, system(::testing::_))
+        .WillRepeatedly(::testing::Invoke(
+            [&](const char* command) {
+                return 0;
+            }));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+	
+	eventData.data.maintenance_module_status.status = MAINT_DCM_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_DCM_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
+	std::this_thread::sleep_for(std::chrono::seconds(3));
+	eventData.data.maintenance_module_status.status = MAINT_RFC_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_RFC_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
+	std::this_thread::sleep_for(std::chrono::seconds(3));
+	eventData.data.maintenance_module_status.status = MAINT_FWDOWNLOAD_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_FWDOWNLOAD_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
+	std::this_thread::sleep_for(std::chrono::seconds(3));
+	eventData.data.maintenance_module_status.status = MAINT_LOGUPLOAD_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_LOGUPLOAD_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
+	std::this_thread::sleep_for(std::chrono::seconds(3));
+    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("startMaintenance"), _T("{org.rdk.startMaintenance}"), response_));
+    EXPECT_EQ(response_, "{\"success\":true}");
+	
+	std::this_thread::sleep_for(std::chrono::seconds(3));
+	eventData.data.maintenance_module_status.status = MAINT_RFC_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_RFC_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
+	std::this_thread::sleep_for(std::chrono::seconds(3));
+	eventData.data.maintenance_module_status.status = MAINT_FWDOWNLOAD_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_FWDOWNLOAD_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
+	std::this_thread::sleep_for(std::chrono::seconds(3));
+	eventData.data.maintenance_module_status.status = MAINT_LOGUPLOAD_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_LOGUPLOAD_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
+	std::this_thread::sleep_for(std::chrono::seconds(5));
+}
+
+TEST_F(MaintenanceManagerInitializedEventTest, stopMaintenanceRFCEnable)
+{
+    IARM_Bus_MaintMGR_EventData_t	eventData;
+	
+	EXPECT_CALL(wrapsImplMock, system(::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                return 0;
+            }));
+		
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	
+	eventData.data.maintenance_module_status.status = MAINT_DCM_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_DCM_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
+	ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+				pstParamData->type = WDMP_BOOLEAN;
+				strncpy(pstParamData->value, "true", MAX_PARAM_LEN);
+                return WDMP_SUCCESS;
+            }));
+	
+    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("stopMaintenance"), _T("{}"), response_));
+    EXPECT_EQ(response_, "{\"success\":true}");
+}
+
+
+
+TEST_F(MaintenanceManagerInitializedEventTest, getMaintenanceStartTime)
+{
+	IARM_Bus_MaintMGR_EventData_t	eventData;
+	const char *deviceInfoScript = "/lib/rdk/getMaintenanceStartTime.sh";
+	
+                 
+	EXPECT_CALL(wrapsImplMock, system(::testing::_))
+        .Times(2)
+        .WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/StartDCM_maintaince.sh &")));
+				eventData.data.maintenance_module_status.status = MAINT_DCM_COMPLETE;
+	            controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+                return 0;
+            }))
+		.WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/RFCbase.sh &")));
+                return 0;
+            }));
+	ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](const char* command, const char* type) -> FILE* {
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/getMaintenanceStartTime.sh &")));
+                return __real_popen(deviceInfoScript, type);
+            }));
+    ON_CALL(wrapsImplMock, pclose(::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](FILE* pipe){
+                return __real_pclose(pipe);
+            }));
+	std::this_thread::sleep_for(std::chrono::seconds(2));
+	
+	eventData.data.maintenance_module_status.status = MAINT_DCM_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_DCM_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
+	//Create fake device info script & Invoke getDeviceInfo
+    ofstream file(deviceInfoScript);
+    file << "echo \"123456789\"\n";
+    file.close();
+		
+    EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("getMaintenanceStartTime"), _T("{}"), response_));
+    EXPECT_EQ(response_, "{\"maintenanceStartTime\":123456789,\"success\":true}");
+	
+}
