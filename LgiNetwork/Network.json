@@ -165,6 +165,11 @@
             "summary": "STUN server cache timeout",
             "type": "integer",
             "example": "0"
+        },
+        "prefix_length":{
+            "summary": "ip v4/6 prefix length",
+            "type": "integer",
+            "example": "64"
         }
     },
     "methods": {
@@ -279,6 +284,9 @@
                     },
                     "secondarydns": {
                         "$ref": "#/definitions/secondarydns"
+                    },
+                    "prefix_length": {
+                        "$ref": "#/definitions/prefix_length"
                     },
                     "success": {
                         "$ref": "#/common/success"

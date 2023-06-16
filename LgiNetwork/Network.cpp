@@ -761,12 +761,14 @@ namespace WPEFramework
                         {
                             response["ipaddr"] = parameters[lginet::ParamIpv6Ip];
                             response["gateway"] = parameters[lginet::ParamIpv6Gateway];
+                            response["prefix_length"] = parameters[lginet::ParamIpv6PrefixLength];
                         }
                         else
                         {
                             response["ipaddr"] = parameters[lginet::ParamIpv4Ip];
                             response["netmask"] = parameters[lginet::ParamIpv4Mask];
                             response["gateway"] = parameters[lginet::ParamIpv4Gateway];
+                            response["prefix_length"] = parameters[lginet::ParamIpv4PrefixLength];
                         }
                         result = true;
                     }
