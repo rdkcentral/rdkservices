@@ -508,7 +508,7 @@ public:
         TUNER,
         RECORDING_DEVICE,
         TV,
-    };.
+    };
 
     AllDeviceTypes(uint8_t types) : CECBytes((uint8_t)types) { };
 };
