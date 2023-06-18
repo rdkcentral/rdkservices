@@ -815,7 +815,7 @@ public:
 class ReportFeatures : public DataBlock {
 public:
     Op_t opCode(void) const {return REPORT_FEATURES;}
-    ReportFeatures(const Version &version,const AllDeviceTypes &allDeviceTypes,const std::vector<RcProfile> rc_Profile,std::vector<DeviceFeatures> device_Features) {}
+    ReportFeatures(const Version &version,const AllDeviceTypes &allDeviceTypes,const std::vector<RcProfile> rc_Profile,std::vector<DeviceFeatures> device_Features) : version(version), allDeviceTypes(allDeviceTypes){}
 
     Version version;
     AllDeviceTypes allDeviceTypes;
