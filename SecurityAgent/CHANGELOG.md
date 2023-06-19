@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.1] - 2023-06-20
+### Changed
+- Update Thunder Security Logging to add to Telemetry
+
 ## [1.1.1] - 2023-06-05
 ### Added 
 - Added Support to build the plugin to both R4 & R2
