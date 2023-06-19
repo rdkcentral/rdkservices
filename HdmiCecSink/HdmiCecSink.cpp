@@ -705,7 +705,7 @@ namespace WPEFramework
                    LOGWARN("Exception while enabling CEC settings .\r\n");
                }
             }
-	    //getCecVersion();
+	    getCecVersion();
             getHdmiArcPortID();
            return (std::string());
 
@@ -3330,7 +3330,7 @@ namespace WPEFramework
           }
       }
 
-      /*void HdmiCecSink::getCecVersion()
+      void HdmiCecSink::getCecVersion()
       {
 	  RFC_ParamData_t param = {0};
           WDMP_STATUS status = getRFCParameter((char*)"thunderapi", TR181_HDMICECSINK_CEC_VERSION, &param);
@@ -3341,7 +3341,7 @@ namespace WPEFramework
 	  else {
 	     LOGINFO("Error while fetching CEC Version from RFC");
 	  }
-      }*/
+      }
 
     } // namespace Plugin
 } // namespace WPEFrameworklk
