@@ -180,6 +180,7 @@ TEST_F(HdmiCecSinkTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("sendGetAudioStatusMessage")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getAudioDeviceConnectedStatus")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("requestAudioDevicePowerStatus")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCecVersion")));
 }
 
 TEST_F(HdmiCecSinkDsTest, setOSDNameParamMissing)
@@ -294,6 +295,12 @@ TEST_F(HdmiCecSinkDsTest, sendKeyPressEvent)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 65}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
+
+TEST_F(SystemServicesTest, getCecVersion)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCecVersion"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"CECVersion\":\"1.4\",\"success\":true}"));
+}  
 
 TEST_F(HdmiCecSinkInitializedEventDsTest, onHdmiOutputHDCPStatusEvent)
 {
