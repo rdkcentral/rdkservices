@@ -602,7 +602,7 @@ public:
     {
         return impl->getCurrentVideoMode();
     }
-    void selectPort(int8_t Port) const
+    void selectPort(int8_t Port,int planeType = 0) const
     {
         return impl->selectPort(Port);
     }

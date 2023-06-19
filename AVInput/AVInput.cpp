@@ -336,11 +336,16 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
         LOGWARN("Required parameters are not passed");
         return Core::ERROR_BAD_REQUEST;
     }
-
+    int planeType = 0; // default value
+    if (parameters.HasLabel("plane")){
+        //optional parameter only
+        string sPlaneType = parameters["plane"].String();
+        planeType = stoi(sPlaneType);
+    }
     try
     {
         if (iType == HDMI) {
-            device::HdmiInput::getInstance().selectPort(portId);
+            device::HdmiInput::getInstance().selectPort(portId,planeType);
     }
     else if(iType == COMPOSITE) {
             device::CompositeInput::getInstance().selectPort(portId);
