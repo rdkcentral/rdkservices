@@ -278,6 +278,7 @@ jobs:
           /opt/secure/persistent/System
           /opt/logs
           /lib/rdk
+          /run/media/sda1/logs/PreviousLogs
           &&
           sudo touch
           /opt/standbyReason.txt
@@ -288,6 +289,7 @@ jobs:
           /etc/dcm.properties
           /etc/authService.conf
           /version.txt
+          /run/media/sda1/logs/PreviousLogs/logFile.txt
           &&
           sudo chmod 777
           /opt/standbyReason.txt
