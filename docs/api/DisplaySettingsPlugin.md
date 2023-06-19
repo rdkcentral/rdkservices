@@ -2,7 +2,7 @@
 <a name="DisplaySettings_Plugin"></a>
 # DisplaySettings Plugin
 
-**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/CHANGELOG.md)**
+**Version: [1.2.0](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/CHANGELOG.md)**
 
 A org.rdk.DisplaySettings plugin for Thunder framework.
 
@@ -3657,8 +3657,9 @@ Mutes or unmutes audio on a specific port.
 
 ### Events
 
-No Events
-
+| Event | Description |
+| :-------- | :-------- |
+| [muteStatusChanged](#muteStatusChanged) | Triggered when the mute status changed. |
 ### Parameters
 
 | Name | Type | Description |
@@ -3988,8 +3989,9 @@ Adjusts the Volume Level on a specific port.
 
 ### Events
 
-No Events
-
+| Event | Description |
+| :-------- | :-------- |
+| [volumeLevelChanged](#volumeLevelChanged) | Triggered when the volume level changed. |
 ### Parameters
 
 | Name | Type | Description |
@@ -4207,6 +4209,8 @@ DisplaySettings interface events:
 | [zoomSettingUpdated](#zoomSettingUpdated) | Triggered when the zoom setting changes and returns the zoom setting values for all video display types |
 | [videoFormatChanged](#videoFormatChanged) | Triggered when the video format of connected video port changes and returns the new video format along with other supported formats of that video port |
 | [AtmosCapabilityChanged](#AtmosCapabilityChanged) | Triggered when the audio sink device Atmos capability is changed |
+| [muteStatusChanged](#muteStatusChanged) | Triggered when the mute status changed |
+| [volumeLevelChanged](#volumeLevelChanged) | Triggered when the volume level changed |
 
 
 <a name="activeInputChanged"></a>
@@ -4438,6 +4442,54 @@ Triggered when the audio sink device Atmos capability is changed.
     "method": "client.events.AtmosCapabilityChanged",
     "params": {
         "currentAtmosCapability": "ATMOS_SUPPORTED"
+    }
+}
+```
+
+<a name="muteStatusChanged"></a>
+## *muteStatusChanged*
+
+Triggered when the mute status changed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.muted | boolean | mute status value |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.muteStatusChanged",
+    "params": {
+        "muted": true
+    }
+}
+```
+
+<a name="volumeLevelChanged"></a>
+## *volumeLevelChanged*
+
+Triggered when the volume level changed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.volumeLevel | integer | volume level |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.volumeLevelChanged",
+    "params": {
+        "volumeLevel": 10
     }
 }
 ```
