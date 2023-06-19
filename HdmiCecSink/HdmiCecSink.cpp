@@ -2622,11 +2622,11 @@ namespace WPEFramework
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
 						_instance->smConnection->addFrameListener(_instance->msgFrameListener);
-						if(cecVersion == 2.0) {
-						    //_instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_2_0;
-						    //_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
+						/*if(cecVersion == 2.0) {
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_2_0;
+						    _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
                                                                 MessageEncoder().encode(ReportFeatures(Version::V_2_0,allDevicetype,rcProfile,deviceFeatures)), 500);
-						}
+						}*/
 						_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
 								MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 100);
 
