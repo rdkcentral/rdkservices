@@ -2624,7 +2624,7 @@ namespace WPEFramework
 						_instance->smConnection->addFrameListener(_instance->msgFrameListener);
 						if(cecVersion == 2.0) {
 						    //_instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_2_0;
-						    _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
+						    //_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
                                                                 MessageEncoder().encode(ReportFeatures(Version::V_2_0,allDevicetype,rcProfile,deviceFeatures)), 500);
 						}
 						_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
