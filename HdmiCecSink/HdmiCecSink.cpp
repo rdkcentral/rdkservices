@@ -705,7 +705,7 @@ namespace WPEFramework
                    LOGWARN("Exception while enabling CEC settings .\r\n");
                }
             }
-	    getCecVersion();
+	    //getCecVersion();
             getHdmiArcPortID();
            return (std::string());
 
@@ -2622,11 +2622,11 @@ namespace WPEFramework
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
 						_instance->smConnection->addFrameListener(_instance->msgFrameListener);
-						/*if(cecVersion == 2.0) {
+						if(cecVersion == 2.0) {
 						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_2_0;
 						    _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
                                                                 MessageEncoder().encode(ReportFeatures(Version::V_2_0,allDevicetype,rcProfile,deviceFeatures)), 500);
-						}*/
+						}
 						_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
 								MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 100);
 
@@ -3330,7 +3330,7 @@ namespace WPEFramework
           }
       }
 
-      void HdmiCecSink::getCecVersion()
+      /*void HdmiCecSink::getCecVersion()
       {
 	  RFC_ParamData_t param = {0};
           WDMP_STATUS status = getRFCParameter((char*)"thunderapi", TR181_HDMICECSINK_CEC_VERSION, &param);
@@ -3341,7 +3341,7 @@ namespace WPEFramework
 	  else {
 	     LOGINFO("Error while fetching CEC Version from RFC");
 	  }
-      }
+      }*/
 
     } // namespace Plugin
 } // namespace WPEFrameworklk
