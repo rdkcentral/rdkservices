@@ -329,7 +329,7 @@ TEST_F(UsbAccessTest, getFileListSuccess_whenAbsPathFound)
     }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":\"/run/media/sda1/logs/PreviousLogs\"}"), response));
-    EXPECT_EQ(response, string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\"logFile.txt\",\"t\":\"f\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\".\",\"t\":\"d\"}],\"success\":true}"));
+    EXPECT_EQ(response, string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"logFile.txt\",\"t\":\"f\"}],\"success\":true}"));
     Udev::getInstance().impl = nullptr;
     Wraps::getInstance().impl = nullptr;
 }
@@ -392,8 +392,7 @@ TEST_F(UsbAccessTest, getFileListSuccess_withoutPath)
     }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":}"), response));
-EXPECT_EQ(response, string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\",\"contents\":[{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"PreviousLogs\",\"t\":\"d\"},{\"name\":\".\",\"t\":\"d\"}],\"success\":true}"));
-
+    EXPECT_EQ(response, string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\",\"contents\":[{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"PreviousLogs\",\"t\":\"d\"}],\"success\":true}"));
     Udev::getInstance().impl = nullptr;
     Wraps::getInstance().impl = nullptr;
 }
@@ -458,8 +457,7 @@ TEST_F(UsbAccessTest, getFileListSuccess_withRelativePathParam)
     }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":\"sda1/logs/PreviousLogs\"}"), response));
-    EXPECT_EQ(response, string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\"logFile.txt\",\"t\":\"f\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\".\",\"t\":\"d\"}],\"success\":true}"));
-
+    EXPECT_EQ(response, string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"logFile.txt\",\"t\":\"f\"}],\"success\":true}"));
     Udev::getInstance().impl = nullptr;
     Wraps::getInstance().impl = nullptr;
 }
