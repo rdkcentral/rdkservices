@@ -3339,7 +3339,7 @@ namespace WPEFramework
              cecVersion = atof(param.value);
           }
 	  else {
-	     LOGINFO("Error while fetching CEC Version from RFC");
+	     LOGINFO("Error while fetching CEC Version from RFC ");
 	  }
       }
 
