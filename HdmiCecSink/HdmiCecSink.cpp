@@ -705,7 +705,7 @@ namespace WPEFramework
                    LOGWARN("Exception while enabling CEC settings .\r\n");
                }
             }
-            getCecVersion();
+            //getCecVersion();
 	    getHdmiArcPortID();
            return (std::string());
 
