@@ -40,6 +40,12 @@
 #include "UtilsJsonRpc.h"
 #include "UtilssyncPersistFile.h"
 
+#include "UtilsCStr.h"
+#include "UtilsLogging.h"
+#include "UtilscRunScript.h"
+#include "UtilsfileExists.h"
+
+
 #define HDMICECSINK_METHOD_SET_ENABLED 			"setEnabled"
 #define HDMICECSINK_METHOD_GET_ENABLED 			"getEnabled"
 #define HDMICECSINK_METHOD_OTP_SET_ENABLED 		"setOTPEnabled"
@@ -705,7 +711,7 @@ namespace WPEFramework
                    LOGWARN("Exception while enabling CEC settings .\r\n");
                }
             }
-            //getCecVersion();
+            getCecVersion();
 	    getHdmiArcPortID();
            return (std::string());
 
