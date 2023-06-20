@@ -2,7 +2,7 @@
 <a name="HdmiInputPlugin"></a>
 # HdmiInputPlugin
 
-**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
+**Version: [1.0.6](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
 
 A org.rdk.HdmiInput plugin for Thunder framework.
 
@@ -724,6 +724,7 @@ HdmiInput interface events:
 | [onSignalChanged](#onSignalChanged) | Triggered whenever the signal status changes for an HDMI Input |
 | [videoStreamInfoUpdate](#videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI Input video stream info |
 | [hdmiGameFeatureStatusUpdate](#hdmiGameFeatureStatusUpdate) | Triggered whenever game feature(ALLM) status changes for an HDMI Input |
+| [hdmiContentTypeUpdate](#hdmiContentTypeUpdate) | Triggered whenever AV Infoframe content type changes for an HDMI Input |
 
 
 <a name="onDevicesChanged"></a>
@@ -889,18 +890,21 @@ Triggered whenever game feature(ALLM) status changes for an HDMI Input.
     }
 }
 ```
+
 <a name="hdmiContentTypeUpdate"></a>
 ## *hdmiContentTypeUpdate*
 
-Triggered whenever AVI content type changed for a HDMI Input.
+Triggered whenever AV Infoframe content type changes for an HDMI Input.
 
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=hdmiContentTypeUpdate)
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/HdmiInputPlugin?id=hdmiContentTypeUpdate)
+
 ### Parameters
+
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.id | integer | An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
-| params.aviContentType | integer | Content type info of a Hdmi Input of type dsAviContentType_t and the integer values indicates following accordingly 0 - Graphics, 1 - Photo, 2 - Cinema, 3 - Game, 4 - Invalid data|
+| params.id | integer | Hdmi Input port ID for which content type change event received |
+| params.aviContentType | integer | new Content type received for the active hdmi input port |
 
 ### Example
 
@@ -914,3 +918,4 @@ Triggered whenever AVI content type changed for a HDMI Input.
     }
 }
 ```
+
