@@ -15,12 +15,21 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
+    NiceMock<UdevImplMock> udevImplMock;
+    NiceMock<WrapsImplMock> wrapsImplMock;
 
     UsbAccessTest()
         : plugin(Core::ProxyType<Plugin::UsbAccess>::Create())
         , handler(*(plugin))
         , connection(1, 0)
     {
+        Udev::getInstance().impl = &udevImplMock;
+        Wraps::getInstance().impl = &wrapsImplMock;
+    }
+    virtual ~UsbAccessTest() override
+    {
+        Wraps::getInstance().impl = nullptr;
+        Udev::getInstance().impl = nullptr;
     }
 };
 
@@ -96,9 +105,6 @@ TEST_F(UsbAccessTest, getFileListFailure_BadRequest)
  */
 TEST_F(UsbAccessTest, getFileListFailure_whenDeviceListEmpty)
 {
-    NiceMock<UdevImplMock> udevImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
-
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
 
@@ -137,9 +143,6 @@ TEST_F(UsbAccessTest, getFileListFailure_whenDeviceListEmpty)
  */
 TEST_F(UsbAccessTest, getFileListFailure_when_setmntentNull)
 {
-    NiceMock<UdevImplMock> udevImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
-
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
 
@@ -181,9 +184,6 @@ TEST_F(UsbAccessTest, getFileListFailure_when_setmntentNull)
  */
 TEST_F(UsbAccessTest, getFileListFailure_when_getmntentNull)
 {
-    NiceMock<UdevImplMock> udevImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
-
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
 
@@ -223,9 +223,6 @@ TEST_F(UsbAccessTest, getFileListFailure_when_getmntentNull)
  */
 TEST_F(UsbAccessTest, getFileListFailure_when_devNodNotFound)
 {
-    NiceMock<UdevImplMock> udevImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
-
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
 
@@ -284,9 +281,6 @@ TEST_F(UsbAccessTest, getFileListFailure_when_devNodNotFound)
  */
 TEST_F(UsbAccessTest, getFileListSuccess_whenAbsPathFound)
 {
-    NiceMock<UdevImplMock> udevImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
-
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
    
@@ -346,9 +340,6 @@ TEST_F(UsbAccessTest, getFileListSuccess_whenAbsPathFound)
  */
 TEST_F(UsbAccessTest, getFileListSuccess_withoutPath)
 {
-    NiceMock<UdevImplMock> udevImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
-
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
 
@@ -410,9 +401,6 @@ TEST_F(UsbAccessTest, getFileListSuccess_withoutPath)
  */
 TEST_F(UsbAccessTest, getFileListSuccess_withRelativePathParam)
 {
-    NiceMock<UdevImplMock> udevImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
-
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
 
@@ -485,9 +473,6 @@ TEST_F(UsbAccessTest, getFileListSuccess_withRelativePathParam)
  */
 TEST_F(UsbAccessTest, getMountedFailure_when_setmntentNull)
 {
-    NiceMock<UdevImplMock> udevImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
-
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
 
@@ -530,9 +515,6 @@ TEST_F(UsbAccessTest, getMountedFailure_when_setmntentNull)
  */
 TEST_F(UsbAccessTest, getMountedSuccess_when_getmntentNull)
 {
-    NiceMock<UdevImplMock> udevImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
-
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
 
@@ -571,9 +553,6 @@ TEST_F(UsbAccessTest, getMountedSuccess_when_getmntentNull)
  */
 TEST_F(UsbAccessTest, getMountedSuccess_whenDeviceListEmpty)
 {
-    NiceMock<UdevImplMock> udevImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
-
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
 
@@ -613,9 +592,6 @@ TEST_F(UsbAccessTest, getMountedSuccess_whenDeviceListEmpty)
  */
 TEST_F(UsbAccessTest, getMountedSuccess_when_devNodNotFound)
 {
-    NiceMock<UdevImplMock> udevImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
-
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
 
@@ -675,9 +651,6 @@ TEST_F(UsbAccessTest, getMountedSuccess_when_devNodNotFound)
  */
 TEST_F(UsbAccessTest, getMountedSuccess_withUSBMountPath)
 {
-    NiceMock<UdevImplMock> udevImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
-
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
 
