@@ -16,9 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+
 ## [1.4.0] - 2023-06-07
 ### Modified
 -Rialto support for RDKShell
+
+## [1.3.14] - 2023-06-13
+### Fixed
+- Fixed the crash while launching WebKitBrowser with "type": "HtmlApp" in container mode.
 
 ## [1.3.13] - 2023-06-05
 ### Added 
