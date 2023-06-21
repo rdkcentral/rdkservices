@@ -347,6 +347,6 @@ TEST_F(HdmiCecSinkTest, getCecVersion)
                 return WDMP_SUCCESS;
             }));
 
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCecVersion"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCecVersion"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"CECVersion\":\"1.4\",\"success\":true}"));
 }
