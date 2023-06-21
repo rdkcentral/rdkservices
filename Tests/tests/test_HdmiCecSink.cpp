@@ -7,6 +7,7 @@
 #include "HdmiCec.h"
 #include "HdmiCecMock.h"
 #include "WrapsMock.h"
+#include "RfcApiMock.h"
 
 using namespace WPEFramework;
 using ::testing::NiceMock;
@@ -34,6 +35,7 @@ protected:
         LibCCEC::getInstance().impl = &libCCECImplMock;
         Connection::getInstance().impl = &connectionImplMock;
         MessageEncoder::getInstance().impl = &messageEncoderMock;
+        RfcApi::getInstance().impl = &rfcApiImplMock;
         Wraps::getInstance().impl = &wrapsImplMock; /*Set up mock for fopen;
                                                       to use the mock implementation/the default behavior of the fopen function from Wraps class.*/
 
@@ -85,6 +87,7 @@ protected:
         LibCCEC::getInstance().impl = nullptr;
         Connection::getInstance().impl = nullptr;
         MessageEncoder::getInstance().impl = nullptr;
+        RfcApi::getInstance().impl = nullptr;
         Wraps::getInstance().impl = nullptr;
     }
 };
@@ -180,6 +183,7 @@ TEST_F(HdmiCecSinkTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("sendGetAudioStatusMessage")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getAudioDeviceConnectedStatus")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("requestAudioDevicePowerStatus")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCecVersion")));
 }
 
 TEST_F(HdmiCecSinkDsTest, setOSDNameParamMissing)
@@ -327,4 +331,19 @@ TEST_F(HdmiCecSinkInitializedEventDsTest, HdmiCecEnableStatus)
     
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
+}
+
+TEST_F(HdmiCecSinkTest, getCecVersion)
+{
+    EXPECT_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                EXPECT_EQ(string(pcCallerID), string("HdmiCecSink"));
+                EXPECT_EQ(string(pcParameterName), string("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.HdmiCecSink.CECVersion"));
+                strncpy(pstParamData->value, "1.4", sizeof(pstParamData->value));
+                return WDMP_SUCCESS;
+            }));
+
+    EXPECT_EQ(response, _T("{\"CECVersion\":\"1.4\",\"success\":true}"));
 }
