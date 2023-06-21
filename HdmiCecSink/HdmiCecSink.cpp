@@ -1018,14 +1018,14 @@ namespace WPEFramework
 	   HdmiCecSink::_instance->Send_ShortAudioDescriptor_Event(audiodescriptor);
         }
 
-       void HdmiCecSink::updateCurrentLatency(uint8_t videoLatency, bool lowLatencyMode,uint8_t audioOutputCompensated, uint8_t audioOutputDelay = 0)
+       void HdmiCecSink::updateCurrentLatency(int videoLatency, bool lowLatencyMode,int audioOutputCompensated, int audioOutputDelay = 0)
         {
 	    uint8_t latencyFlags = 0;
 	    latencyFlags = ((lowLatencyMode & 0x1) << 2) | (audioOutputCompensated & 0x3);
 	    LOGINFO("Video Latency : %d , Low Latency Mode : %d ,Audio Output Compensated value : %d , Audio Output Delay : %d , Latency Flags: %d ", videoLatency, lowLatencyMode, audioOutputCompensated, audioOutputDelay, latencyFlags);
-	    m_video_latency = videoLatency;
+	    m_video_latency = (videoLatency/2) + 1;
 	    m_latency_flags = latencyFlags;
-	    m_audio_output_delay = audioOutputDelay;
+	    m_audio_output_delay = (audioOutputDelay/2) + 1;
 	    setLatencyInfo();
         }
 
