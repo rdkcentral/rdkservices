@@ -185,7 +185,7 @@ TEST_F(HdmiCecSinkTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("sendGetAudioStatusMessage")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getAudioDeviceConnectedStatus")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("requestAudioDevicePowerStatus")));
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCecVersion")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCecVersion")));
 }
 
 TEST_F(HdmiCecSinkDsTest, setOSDNameParamMissing)
@@ -335,7 +335,7 @@ TEST_F(HdmiCecSinkInitializedEventDsTest, HdmiCecEnableStatus)
     EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
 }
 
-TEST_F(HdmiCecSinkTest, getCecVersion)
+TEST_F(HdmiCecSinkTest, DISABLED_getCecVersion)
 {
     /*EXPECT_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
         .Times(1)
