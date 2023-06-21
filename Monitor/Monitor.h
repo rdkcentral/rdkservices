@@ -820,12 +820,14 @@ namespace Plugin {
                 _adminLock.Unlock();
             }
 #ifdef USE_THUNDER_R4
-            void Activation(const string& name, PluginHost::IShell* plugin) override
+            void Activation(const string& name, PluginHost::IShell* service) override
             {
+                StateChange(service);
             }
 
-           void Deactivation(const string& name, PluginHost::IShell* plugin) override
+           void Deactivation(const string& name, PluginHost::IShell* service) override
            {
+               StateChange(service);
            }
 
            void Activated (const string& callsign, PluginHost::IShell* service) override
