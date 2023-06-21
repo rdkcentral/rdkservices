@@ -24,6 +24,7 @@ protected:
     IARM_EventHandler_t pwrMgrModeChangeEventHandler;
     IARM_EventHandler_t dsHdmiEventHandler;
     IARM_EventHandler_t dsHdmiCecSinkEventHandler;
+    string response;
 
     HdmiCecSinkTest()
         : plugin(Core::ProxyType<Plugin::HdmiCecSink>::Create())
@@ -327,4 +328,10 @@ TEST_F(HdmiCecSinkInitializedEventDsTest, HdmiCecEnableStatus)
     
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
+}
+
+TEST_F(HdmiCecSinkTest, DISABLED_getCecVersion)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCecVersion"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"CECVersion\":\"1.4\",\"success\":true}"));
 }
