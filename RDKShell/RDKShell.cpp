@@ -4370,7 +4370,7 @@ namespace WPEFramework {
                         response["message"] = "Rialto app session initialisation failed";
                         returnResponse(false);
                     }
-                    if(rialtoConnector->waitForStateChange(appId,RialtoServerStates::INACTIVE,200))
+                    if(rialtoConnector->waitForStateChange(appId,RialtoServerStates::INACTIVE,2000))
                     {
                         response["message"] = "Rialto app session not ready.";
                         returnResponse(false);
@@ -4494,7 +4494,11 @@ namespace WPEFramework {
                     }
 #ifdef ENABLE_RIALTO_FEATURE
                     rialtoConnector->suspendSession(client);
-                    //Do we need to wait for state change ?
+                    if(!rialtoConnector->waitForStateChange(client,RialtoServerStates::INACTIVE, 2000))
+                    {
+                        response["message"] = "Rialto app session could not be set inactive.";
+                        returnResponse(false);
+		    }
 #endif //ENABLE_RIALTO_FEATURE
                 }
                 else
@@ -4552,7 +4556,7 @@ namespace WPEFramework {
                     }
 #ifdef ENABLE_RIALTO_FEATURE
                     rialtoConnector->resumeSession(client);
-                    if(rialtoConnector->waitForStateChange(client,RialtoServerStates::ACTIVE,200))
+                    if(rialtoConnector->waitForStateChange(client,RialtoServerStates::ACTIVE,2000))
                     {
                         response["message"] = "Rialto app session not ready.";
                         returnResponse(false);
