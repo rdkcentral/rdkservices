@@ -1,0 +1,56 @@
+{
+    "$schema": "plugin.schema.json",
+    "info": {
+      "title": "MessageControl Plugin",
+      "callsign": "MessageControl",
+      "locator": "libWPEFrameworkMessageControl.so",
+      "status": "alpha",
+      "description": "The MessageControl plugin allows reading of the traces from WPEFramework, and controlling them tracing and logging. Allows for outputting logging messages to the websocket",
+      "version": "1.0"
+    },
+    "configuration": {
+      "type": "object",
+      "properties": {
+        "console": {
+          "type": "boolean",
+          "description": "Enables message output messages to the console"
+        },
+        "syslog": {
+          "type": "boolean",
+          "description": "Enables message ouutput to syslog"
+        },
+        "filepath": {
+          "type": "string",
+          "description": "Path to file (inside VolatilePath) where messages will be stored"
+        },
+        "abbreviated": {
+          "type": "boolean",
+          "description": "Denotes if the messages should be abbreviated"
+        },
+        "maxexportconnections": {
+          "type": "number",
+          "description": "Specifies to how many websockets can the messages be outputted"
+        },
+        "remote": {
+          "type": "object",
+          "properties": {
+            "port" : {
+              "type": "number",
+              "size": "16",
+              "description": "Port"
+            },
+            "bindig" : {
+              "type": "string",
+              "description": "Binding address"
+            }
+          },
+          "required": [ "port", "binding" ]
+        }
+      },
+      "required": [
+      ]
+    },
+    "interface": {
+      "$ref": "{cppinterfacedir}/IMessageControl.h"
+    }
+  }
