@@ -194,7 +194,13 @@
                 "Auto"
             ],
             "example": "12 Bit"
+        },
+	"ms12config": {
+            "summary": "Supported ms12 config by platforms, possible values, CONFIG_Z, CONFIG_X, CONFIG_Y, CONFIG_NONE",
+            "type": "string",
+            "example": "CONFIG_X"
         }
+
     },
     "methods": {
         "enableSurroundDecoder":{
@@ -2349,6 +2355,24 @@
                     }
                 },
                 "required": [
+                    "success"
+                ]
+            }
+        },
+        "getSupportedMS12Config":{
+            "summary": "Returns supported ms12 config by the platform, possible values couldbe CONFG_Z, CONFIG_X, CONFIG_Y, CONFIG_NONE",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "ms12config": {
+                        "$ref": "#/definitions/ms12config"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "ms12config",
                     "success"
                 ]
             }
