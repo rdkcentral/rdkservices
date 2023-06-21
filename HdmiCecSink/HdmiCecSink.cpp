@@ -3351,8 +3351,7 @@ namespace WPEFramework
       void HdmiCecSink::getCecVersion()
       {
 	  RFC_ParamData_t param = {0};
-         // WDMP_STATUS status = getRFCParameter((char*)"thunderapi", TR181_HDMICECSINK_CEC_VERSION, &param);
-	   WDMP_STATUS status = getRFCParameter(NULL, TR181_HDMICECSINK_CEC_VERSION, &param);
+          WDMP_STATUS status = getRFCParameter((char*)"thunderapi", TR181_HDMICECSINK_CEC_VERSION, &param);
           if(WDMP_SUCCESS == status && param.type == WDMP_STRING) {
              LOGINFO("CEC Version from RFC = [%s] \n", param.value);
              cecVersion = atof(param.value);
