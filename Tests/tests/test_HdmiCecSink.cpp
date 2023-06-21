@@ -7,7 +7,7 @@
 #include "HdmiCec.h"
 #include "HdmiCecMock.h"
 #include "WrapsMock.h"
-include "RfcApiMock.h"
+#include "RfcApiMock.h"
 
 using namespace WPEFramework;
 using ::testing::NiceMock;
