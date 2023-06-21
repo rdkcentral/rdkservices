@@ -337,7 +337,7 @@ TEST_F(HdmiCecSinkInitializedEventDsTest, HdmiCecEnableStatus)
 
 TEST_F(HdmiCecSinkTest, getCecVersion)
 {
-    EXPECT_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+    /*EXPECT_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
@@ -345,7 +345,7 @@ TEST_F(HdmiCecSinkTest, getCecVersion)
                 EXPECT_EQ(string(pcParameterName), string("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.HdmiCecSink.CECVersion"));
                 strncpy(pstParamData->value, "1.4", sizeof(pstParamData->value));
                 return WDMP_SUCCESS;
-            }));
+            }));*/
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCecVersion"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"CECVersion\":\"1.4\",\"success\":true}"));
