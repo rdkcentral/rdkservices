@@ -51,8 +51,8 @@
 
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 14
+#define API_VERSION_NUMBER_MINOR 4
+#define API_VERSION_NUMBER_PATCH 0
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -1482,7 +1482,12 @@ namespace WPEFramework {
             if((rdkshelltype != NULL) && (strcmp(rdkshelltype , "surface") == 0))
             {
 	      updateSurfaceClientIdentifiers(mCurrentService);
-	    } 
+	    }
+#ifdef ENABLE_RIALTO_FEATURE
+        LOGWARN("Creating rialto connector");
+        RialtoConnector *rialtoBridge = new RialtoConnector();
+        rialtoConnector = std::shared_ptr<RialtoConnector>(rialtoBridge);
+#endif //  ENABLE_RIALTO_FEATURE
             return "";
         }
 
@@ -2178,6 +2183,10 @@ namespace WPEFramework {
                             result = false;
                             response["message"] = "Failed to stop container";
                         }
+#ifdef ENABLE_RIALTO_FEATURE
+                            rialtoConnector->deactivateSession(client);
+                            //Should we wait for the state change ? Naaah
+#endif //ENABLE_RIALTO_FEATURE
                     }
                 }
             }
@@ -4200,7 +4209,9 @@ namespace WPEFramework {
                     // Starting a DAC app. Get the info from Packager
                     LOGINFO("Starting DAC app");
                     string bundlePath;
-
+#ifdef ENABLE_RIALTO_FEATURE
+                    string appId;
+#endif //ENABLE_RIALTO_FEATURE
                     {
                       // find the bundle location
                       JsonObject infoParams;
@@ -4244,6 +4255,9 @@ namespace WPEFramework {
                       {
                         LOGINFO("LISA not active");
                       }
+#ifdef ENABLE_RIALTO_FEATURE
+                      appId = id;
+#endif // ENABLE_RIALTO_FEATURE
                     }
 
                     if (bundlePath.empty())
@@ -4279,21 +4293,42 @@ namespace WPEFramework {
 
                     // We know where the app lives and are ready to start it,
                     // create a display with rdkshell
-                    if (!createDisplay(client, uri))
+                    if (!createDisplay(client, "wst-"+uri))
                     {
                         response["message"] = "Could not create display";
                         returnResponse(false);
                     }
 
                     string runtimeDir = getenv("XDG_RUNTIME_DIR");
-                    string display = runtimeDir + "/" + (gRdkShellSurfaceModeEnabled ? RDKSHELL_SURFACECLIENT_DISPLAYNAME : uri);
+                    string display = runtimeDir + "/" + (gRdkShellSurfaceModeEnabled ? RDKSHELL_SURFACECLIENT_DISPLAYNAME : "wst-"+uri);
 
                     // Set mime type
                     if (!setMimeType(client, mimeType))
                     {
                         LOGWARN("Failed to set mime type - non fatal...");
                     }
+#ifdef ENABLE_RIALTO_FEATURE
 
+                    if(!rialtoConnector->initialized())
+                    {
+                        string sesEnv,rialtoDebug;
+                        LOGWARN("Initializing rialto connector....");
+                        Core::SystemInfo::GetEnvironment(_T("SESSION_SERVER_ENV_VARS"), sesEnv);
+                        Core::SystemInfo::GetEnvironment(_T("RIALTO_DEBUG"), rialtoDebug);
+                        rialtoConnector->initialize(sesEnv,rialtoDebug);
+                    }
+                    LOGWARN("Creating app session ....");
+                    if(!rialtoConnector->createAppSession(client,display, appId))
+                    {
+                        response["message"] = "Rialto app session initialisation failed";
+                        returnResponse(false);
+                    }
+                    if(rialtoConnector->waitForStateChange(appId,RialtoServerStates::INACTIVE,200))
+                    {
+                        response["message"] = "Rialto app session not ready.";
+                        returnResponse(false);
+                    }
+#endif //ENABLE_RIALTO_FEATURE
                     // Start container
                     auto ociContainerPlugin = getOCIContainerPlugin();
                     if (!ociContainerPlugin)
@@ -4404,6 +4439,10 @@ namespace WPEFramework {
                         response["message"] = "Could not pause container";
                         returnResponse(false);
                     }
+#ifdef ENABLE_RIALTO_FEATURE
+                    rialtoConnector->suspendSession(client);
+                    //Do we need to wait for state change ?
+#endif //ENABLE_RIALTO_FEATURE
                 }
                 else
                 {
@@ -4458,7 +4497,14 @@ namespace WPEFramework {
                         response["message"] = "OCIContainer initialisation failed";
                         returnResponse(false);
                     }
-
+#ifdef ENABLE_RIALTO_FEATURE
+                    rialtoConnector->resumeSession(client);
+                    if(rialtoConnector->waitForStateChange(client,RialtoServerStates::ACTIVE,200))
+                    {
+                        response["message"] = "Rialto app session not ready.";
+                        returnResponse(false);
+                    }
+#endif //ENABLE_RIALTO_FEATURE
                     JsonObject ociContainerResult;
                     JsonObject param;
 
