@@ -16,13 +16,13 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.4.1] - 2023-06-21
+### Fixed
+- Fixed the ResidentApp failed to activate & crash in Thunder R4
+
 ## [1.4.0] - 2023-06-07
 ### Modified
 -Rialto support for RDKShell
-
-## [1.3.15] - 2023-06-21
-### Fixed
-- Fixed the ResidentApp failed to activate & crash in Thunder R4
 
 ## [1.3.14] - 2023-06-13
 ### Fixed
