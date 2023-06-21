@@ -26,7 +26,9 @@
 #include <rdkshell/linuxkeys.h>
 #include <interfaces/ICapture.h>
 #include "tptimer.h"
-
+#ifdef ENABLE_RIALTO_FEATURE
+#include "RialtoConnector.h"
+#endif
 namespace WPEFramework {
 
     namespace Plugin {
@@ -452,6 +454,9 @@ namespace WPEFramework {
             bool mEnableEasterEggs;
             ScreenCapture mScreenCapture;
             bool mErmEnabled;
+#ifdef ENABLE_RIALTO_FEATURE
+        std::shared_ptr<RialtoConnector>  rialtoConnector;
+#endif //ENABLE_RIALTO_FEATURE
         };
 
         struct PluginData
