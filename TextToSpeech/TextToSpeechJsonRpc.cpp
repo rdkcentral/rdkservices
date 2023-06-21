@@ -188,6 +188,12 @@ namespace Plugin {
             }
         }
 
+        if(parameters.HasLabel("speechrate")) {
+            string speechrate;         
+            speechrate = parameters["speechrate"].String();
+            _tts->SetSpeechRate(speechrate);
+        }
+
         if(parameters.HasLabel("fallbacktext")) {
             JsonObject fallback;
             string scenario,value;

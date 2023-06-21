@@ -189,6 +189,12 @@ TTS_Error TTSManager::setAPIKey(string apikey)
     return TTS_OK;
 }
 
+TTS_Error TTSManager::setSpeechRate(const string speechrate)
+{
+    m_needsConfigStoreUpdate |= m_defaultConfiguration.setSpeechRate(speechrate);
+    return TTS_OK;
+}
+
 TTS_Error TTSManager::getConfiguration(Configuration &configuration) {
     TTSLOG_TRACE("Getting Default Configuration");
 
