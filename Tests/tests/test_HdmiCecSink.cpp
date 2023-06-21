@@ -21,6 +21,7 @@ protected:
     NiceMock<IarmBusImplMock> iarmBusImplMock;
     NiceMock<ConnectionImplMock> connectionImplMock;
     NiceMock<MessageEncoderMock> messageEncoderMock;
+    NiceMock<RfcApiImplMock> rfcApiImplMock;
     NiceMock<WrapsImplMock> wrapsImplMock;
     IARM_EventHandler_t pwrMgrModeChangeEventHandler;
     IARM_EventHandler_t dsHdmiEventHandler;
@@ -345,5 +346,6 @@ TEST_F(HdmiCecSinkTest, getCecVersion)
                 return WDMP_SUCCESS;
             }));
 
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCecVersion"), _T("{}"), response));
     EXPECT_EQ(response, _T("{\"CECVersion\":\"1.4\",\"success\":true}"));
 }
