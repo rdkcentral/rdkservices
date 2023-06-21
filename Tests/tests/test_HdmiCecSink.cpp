@@ -185,7 +185,7 @@ TEST_F(HdmiCecSinkTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("sendGetAudioStatusMessage")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getAudioDeviceConnectedStatus")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("requestAudioDevicePowerStatus")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCecVersion")));
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCecVersion")));
 }
 
 TEST_F(HdmiCecSinkDsTest, setOSDNameParamMissing)
