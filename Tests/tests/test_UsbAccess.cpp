@@ -47,9 +47,6 @@ TEST_F(UsbAccessTest, RegisteredMethods)
 
 TEST_F(UsbAccessTest, UpdateFirmware)
 {
-    UdevImplMock udevImplMock;
-    WrapsImplMock wrapsImplMock;
-
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
 
@@ -57,12 +54,13 @@ TEST_F(UsbAccessTest, UpdateFirmware)
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](const char* command) {
-                EXPECT_EQ(string(command), string(_T("/lib/rdk/userInitiatedFWDnld.sh usb '/tmp;reboot;' 'my.bin' 0 >> /opt/logs/swupdate.log &")));
-
+                /*Since we have added the "etc/device.properties" file in the test fixture, it can be opened,
+                and the model number is now available. Therefore, we need to change the input parameter for this test API as well as the corresponding string in the system command to match the model number.*/
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/userInitiatedFWDnld.sh usb '/tmp;reboot;' 'HSTP11MWR.bin' 0 >> /opt/logs/swupdate.log &")));
                 return 0;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp;reboot;/my.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp;reboot;/HSTP11MWR.bin\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp\';reboot;/my.bin\"}"), response));
@@ -699,3 +697,259 @@ TEST_F(UsbAccessTest, getMountedSuccess_withUSBMountPath)
     Wraps::getInstance().impl = nullptr;
 }
 /*Test cases for getMounted ends here*/
+
+/*******************************************************************************************************************
+* Test function for :getAvailableFirmwareFiles
+* getAvailableFirmwareFiles :
+*                Gets a list of firmware files on a device.
+*
+*                @return list of firmware files and request succeeded.
+* Use case coverage:
+*                @Failure :1
+*                @Success :6
+********************************************************************************************************************/
+
+/**
+* @brief : getAvailableFirmwareFiles when setmntent returns nullptr,
+*        Check if setmntent fails to open the mounts file,
+*        then getAvailableFirmwareFiles shall be failed.
+*
+* @param[in]   :  NONE
+* @return      :  {"availableFirmwareFiles": [],"success":false}
+*/
+TEST_F(UsbAccessTest, getAvailableFirmwareFilesFailed_whenSetmntentValueNull)
+{
+    EXPECT_CALL(udevImplMock, udev_enumerate_get_list_entry(testing::_))
+        .WillOnce(testing::Return(reinterpret_cast<struct udev_list_entry*>(0x3)));
+    EXPECT_CALL(udevImplMock, udev_list_entry_get_name(testing::_))
+         .WillRepeatedly(testing::Return("/dev/sda1"));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_parent_with_subsystem_devtype(testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(reinterpret_cast<struct udev_device*>(0x5)));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_devtype(testing::_))
+        .WillRepeatedly(testing::Return("disk"));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_devnode(testing::_))
+        .WillRepeatedly(testing::Return("/dev/sda1"));
+
+    EXPECT_CALL(wrapsImplMock, setmntent(::testing::_, ::testing::_))
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(::testing::Invoke(
+            [&](const char* command, const char* type) {
+                EXPECT_EQ(string(command), string(_T("/proc/mounts")));
+                return nullptr;
+            }));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getAvailableFirmwareFiles"), _T("{}"), response));
+}
+
+/**
+* @brief : getAvailableFirmwareFiles when getmntent returns nullptr,
+*        Check if  getmntent fails to retrieve mount entries
+*        then  getAvailableFirmwareFiles shall be succeded and returns empty path list.
+*
+* @param[in]   :  NONE
+* @return      :  {"availableFirmwareFiles": [],"success":true}
+*/
+TEST_F(UsbAccessTest, getAvailableFirmwareFilesFailed_when_getmntentNull)
+{
+    EXPECT_CALL(udevImplMock, udev_enumerate_get_list_entry(testing::_))
+        .WillOnce(testing::Return(reinterpret_cast<struct udev_list_entry*>(0x3)));
+
+    EXPECT_CALL(udevImplMock, udev_list_entry_get_name(testing::_))
+         .WillRepeatedly(testing::Return("/dev/sda1"));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_parent_with_subsystem_devtype(testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(reinterpret_cast<struct udev_device*>(0x5)));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_devtype(testing::_))
+        .WillRepeatedly(testing::Return("disk"));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_devnode(testing::_))
+        .WillRepeatedly(testing::Return("/dev/sda1"));
+
+    EXPECT_CALL(wrapsImplMock, getmntent(testing::_))
+      .WillRepeatedly(::testing::Invoke(
+       [&](FILE*) -> struct mntent* {
+             return static_cast<struct mntent*>(NULL);
+     }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAvailableFirmwareFiles"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"availableFirmwareFiles\":[],\"success\":true}"));
+}
+
+/**
+ * @brief : getAvailableFirmwareFiles when the device list is empty,
+ *        Check if the device list is empty,
+ *        then  getAvailableFirmwareFiles shall be succeded and returns empty path list.
+ *
+ * @param[in]   : NONE
+ * @return      : {"availableFirmwareFiles": [],"success":true}
+ */
+TEST_F(UsbAccessTest, getAvailableFirmwareFiles_whenDeviceListEmpty)
+{
+    EXPECT_CALL(udevImplMock, udev_enumerate_get_list_entry(testing::_))
+        .WillOnce(testing::Return(nullptr));
+
+    EXPECT_CALL(wrapsImplMock, getmntent(testing::_))
+      .WillRepeatedly(::testing::Invoke(
+       [&](FILE*) -> struct mntent* {
+        static struct mntent entry1;
+        entry1.mnt_fsname = const_cast<char*>("/dev/sda1");
+        entry1.mnt_dir = const_cast<char*>("/run/sda1");
+
+        static int callCount = 0;
+        if (callCount == 0) {
+           callCount++;
+           return &entry1;
+        } else {
+           return static_cast<struct mntent*>(NULL);
+        }
+    }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAvailableFirmwareFiles"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"availableFirmwareFiles\":[],\"success\":true}"));
+}
+
+
+/**
+ * @brief : getAvailableFirmwareFiles when device node is not found,
+ *        Check if the device node is not found in the devnodes list,
+ *        then  getMounted shall be succeded and returns empty path list.
+ *
+ * @param[in]   :  NONE
+ * @return      :  {"availableFirmwareFiles": [],"success":true}
+ */
+TEST_F(UsbAccessTest, getAvailableFirmwareFiles_when_devNodNotFound)
+{
+    EXPECT_CALL(udevImplMock, udev_enumerate_get_list_entry(testing::_))
+        .WillOnce(testing::Return(reinterpret_cast<struct udev_list_entry*>(0x3)));
+    EXPECT_CALL(udevImplMock, udev_list_entry_get_name(testing::_))
+         .WillRepeatedly(testing::Return("/dev/sda1"));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_parent_with_subsystem_devtype(testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(reinterpret_cast<struct udev_device*>(0x5)));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_devtype(testing::_))
+        .WillRepeatedly(testing::Return("disk"));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_devnode(testing::_))
+        .WillRepeatedly(testing::Return("/dev/sda1"));
+
+    EXPECT_CALL(wrapsImplMock, getmntent(testing::_))
+      .WillRepeatedly(::testing::Invoke(
+       [&](FILE*) -> struct mntent* {
+        static struct mntent entry1;
+        static struct mntent entry2;
+
+        entry1.mnt_fsname = const_cast<char*>("/dev/sdb1");
+        entry1.mnt_dir = const_cast<char*>("/mnt/usb1");
+        entry2.mnt_fsname = const_cast<char*>("/dev/sdb2");
+        entry2.mnt_dir = const_cast<char*>("/mnt/usb2");
+        static int callCount = 0;
+        if (callCount == 0) {
+           callCount++;
+           return &entry1;
+        }
+        else if (callCount == 1) {
+           callCount++;
+           return &entry2;
+        }
+        else {
+           return static_cast<struct mntent*>(NULL);
+        }
+    }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAvailableFirmwareFiles"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"availableFirmwareFiles\":[],\"success\":true}"));
+}
+
+/**
+* @brief : getAvailableFirmwareFiles when bin files are not present,
+*        Check if .bin files are not present in mounted paths,
+*        then getAvailableFirmwareFiles shall succeed and returns an empty list.
+*
+* @param[in]   :  NONE
+* @return      :  {"availableFirmwareFiles": [],"success":true}
+*/
+TEST_F(UsbAccessTest, getAvailableFirmwareFilesSuccess_withoutBinfiles)
+{
+    EXPECT_CALL(udevImplMock, udev_enumerate_get_list_entry(testing::_))
+        .WillOnce(testing::Return(reinterpret_cast<struct udev_list_entry*>(0x3)));
+    EXPECT_CALL(udevImplMock, udev_list_entry_get_name(testing::_))
+         .WillRepeatedly(testing::Return("/dev/sda2"));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_parent_with_subsystem_devtype(testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(reinterpret_cast<struct udev_device*>(0x5)));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_devtype(testing::_))
+        .WillRepeatedly(testing::Return("disk"));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_devnode(testing::_))
+        .WillRepeatedly(testing::Return("/dev/sda2"));
+
+    EXPECT_CALL(wrapsImplMock, getmntent(testing::_))
+      .WillRepeatedly(::testing::Invoke(
+       [&](FILE*) -> struct mntent* {
+        static struct mntent entry1;
+
+        entry1.mnt_fsname = const_cast<char*>("/dev/sda2");
+        entry1.mnt_dir = const_cast<char*>("/run/sda2");
+
+        static int callCount = 0;
+        if (callCount == 0) {
+           callCount++;
+           return &entry1;
+        } else {
+           return static_cast<struct mntent*>(NULL);
+        }
+    }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAvailableFirmwareFiles"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"availableFirmwareFiles\":[],\"success\":true}"));
+}
+
+/**
+* @brief : getAvailableFirmwareFiles when bin files are present,
+*        Check if .bin files are present in mounted paths, additional paths(UsbTestFWUpdate, UsbProdFWUpdate),
+*        then getAvailableFirmwareFiles shall succeed and returns all the file paths.
+*
+* @param[in]   :  NONE
+* @return      :  returns The list of firmware files including the full path name
+*/
+TEST_F(UsbAccessTest, getAvailableFirmwareFilessuccess_withBinFiles)
+{
+    EXPECT_CALL(udevImplMock, udev_enumerate_get_list_entry(testing::_))
+        .WillOnce(testing::Return(reinterpret_cast<struct udev_list_entry*>(0x3)));
+    EXPECT_CALL(udevImplMock, udev_list_entry_get_name(testing::_))
+         .WillRepeatedly(testing::Return("/dev/sda1"));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_parent_with_subsystem_devtype(testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(reinterpret_cast<struct udev_device*>(0x5)));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_devtype(testing::_))
+        .WillRepeatedly(testing::Return("disk"));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_devnode(testing::_))
+        .WillRepeatedly(testing::Return("/dev/sda1"));
+
+    EXPECT_CALL(wrapsImplMock, getmntent(testing::_))
+      .WillRepeatedly(::testing::Invoke(
+       [&](FILE*) -> struct mntent* {
+        static struct mntent entry1;
+
+        entry1.mnt_fsname = const_cast<char*>("/dev/sda1");
+        entry1.mnt_dir = const_cast<char*>("/run/sda1");
+
+        static int callCount = 0;
+        if (callCount == 0) {
+           callCount++;
+           return &entry1;
+        } else {
+           return static_cast<struct mntent*>(NULL);
+        }
+    }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAvailableFirmwareFiles"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"availableFirmwareFiles\":[\"\\/run\\/sda1\\/UsbTestFWUpdate\\/HSTP11MWR_3.11p5s1_VBN_sdy.bin\",\"\\/run\\/sda1\\/UsbProdFWUpdate\\/HSTP11MWR_4.11p5s1_VBN_sdy.bin\",\"\\/run\\/sda1\\/HSTP11MWR_5.11p5s1_VBN_sdy.bin\"],\"success\":true}"));
+}
+/*Test cases for getAvailableFirmwareFiles ends here*/
