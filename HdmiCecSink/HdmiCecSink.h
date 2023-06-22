@@ -556,7 +556,7 @@ private:
 			void sendDeviceUpdateInfo(const int logicalAddress);
 			void sendFeatureAbort(const LogicalAddress logicalAddress, const OpCode feature, const AbortReason reason);
 			void systemAudioModeRequest();
-			void updateCurrentLatency(uint8_t videoLatency, bool lowLatencyMode, uint8_t audioOutputCompensated, uint8_t audioOutputDelay);
+			void updateCurrentLatency(int videoLatency, bool lowLatencyMode, int audioOutputCompensated, int audioOutputDelay);
 			void setLatencyInfo();
                         void SendStandbyMsgEvent(const int logicalAddress);
                         void requestAudioDevicePowerStatus();
