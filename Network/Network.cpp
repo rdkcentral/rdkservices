@@ -233,7 +233,6 @@ namespace WPEFramework
             m_service = service;
             m_service->AddRef();
 
-            string msg;
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
