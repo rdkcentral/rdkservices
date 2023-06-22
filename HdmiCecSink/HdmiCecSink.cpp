@@ -1615,7 +1615,7 @@ namespace WPEFramework
 	   }
 	   uint32_t HdmiCecSink::setLatencyInfoWrapper(const JsonObject& parameters, JsonObject& response)
            {
-	       uint8_t video_latency,audio_output_compensated,audio_output_delay;
+	       int video_latency,audio_output_compensated,audio_output_delay;
 	       bool low_latency_mode;
 
 	       returnIfParamNotFound(parameters, "videoLatency");
