@@ -987,7 +987,20 @@ namespace Plugin {
                             PluginHost::IShell* plugin(_service->QueryInterfaceByCallsign<PluginHost::IShell>(index->first));
 
                             if (plugin != nullptr) {
-                                Core::EnumerateType<PluginHost::IShell::reason> why(((value & MonitorObject::EXCEEDED_MEMORY) != 0) ? PluginHost::IShell::MEMORY_EXCEEDED : PluginHost::IShell::FAILURE);
+                                Core::EnumerateType<PluginHost::IShell::reason> why;
+
+                                if ((value & MonitorObject::EXCEEDED_MEMORY) != 0) {
+                                    why = PluginHost::IShell::MEMORY_EXCEEDED;
+
+                                    PluginHost::IStateControl *stateControl = plugin->QueryInterface<PluginHost::IStateControl>();
+                                    if (stateControl) {
+                                        if (stateControl->State() == PluginHost::IStateControl::SUSPENDED)
+                                            why = PluginHost::IShell::MEMORY_EXCEEDED_ON_SUSPEND;
+                                        stateControl->Release();
+                                    }
+                                } else {
+                                    why = PluginHost::IShell::FAILURE;
+                                }
 
                                 const string message("{\"callsign\": \"" + plugin->Callsign() + "\", \"action\": \"Deactivate\", \"reason\": \"" + why.Data() + "\" }");
 #ifdef USE_THUNDER_R4
