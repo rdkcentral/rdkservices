@@ -64,9 +64,6 @@ TEST_F(UsbAccessTest, UpdateFirmware)
     EXPECT_EQ(response, string("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp\';reboot;/my.bin\"}"), response));
-
-    Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
 }
 
 /*******************************************************************************************************************
@@ -126,9 +123,6 @@ TEST_F(UsbAccessTest, getFileListFailure_whenDeviceListEmpty)
         }
     }));
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":\"/run/media/sda1/logs/PreviousLogs\"}"), response));
-
-    Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
 }
 
 /**
@@ -167,9 +161,6 @@ TEST_F(UsbAccessTest, getFileListFailure_when_setmntentNull)
             }));
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":\"/run/media/sda1/logs/PreviousLogs\"}"), response));
-
-    Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
 }
 
 /**
@@ -206,9 +197,6 @@ TEST_F(UsbAccessTest, getFileListFailure_when_getmntentNull)
      }));
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":\"/run/media/sda1/logs/PreviousLogs\"}"), response));
-
-    Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
 }
 
 /**
@@ -264,9 +252,6 @@ TEST_F(UsbAccessTest, getFileListFailure_when_devNodNotFound)
     }));
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":\"/run/media/sda1/logs/PreviousLogs\"}"), response));
-
-    Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
 }
 
 /**
@@ -322,8 +307,6 @@ TEST_F(UsbAccessTest, getFileListSuccess_whenAbsPathFound)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":\"/run/media/sda1/logs/PreviousLogs\"}"), response));
     EXPECT_EQ(response, string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"logFile.txt\",\"t\":\"f\"}],\"success\":true}"));
-    Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
 }
 
 /**
@@ -382,8 +365,6 @@ TEST_F(UsbAccessTest, getFileListSuccess_withoutPath)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":}"), response));
     EXPECT_EQ(response, string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\",\"contents\":[{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"PreviousLogs\",\"t\":\"d\"}],\"success\":true}"));
-    Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
 }
 
 /**
@@ -444,8 +425,6 @@ TEST_F(UsbAccessTest, getFileListSuccess_withRelativePathParam)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":\"sda1/logs/PreviousLogs\"}"), response));
     EXPECT_EQ(response, string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"logFile.txt\",\"t\":\"f\"}],\"success\":true}"));
-    Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
 }
  /*Test cases for getFileList ends here*/
 
@@ -498,9 +477,6 @@ TEST_F(UsbAccessTest, getMountedFailure_when_setmntentNull)
 
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getMounted"), _T("{}"), response));
-
-    Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
 }
 
 /**
@@ -538,8 +514,6 @@ TEST_F(UsbAccessTest, getMountedSuccess_when_getmntentNull)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMounted"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"mounted\":[],\"success\":true}"));
-    Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
 }
 /**
  * @brief : getMounted when the device list is empty;
@@ -576,9 +550,6 @@ TEST_F(UsbAccessTest, getMountedSuccess_whenDeviceListEmpty)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMounted"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"mounted\":[],\"success\":true}"));
-
-    Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
 }
 /**
  * @brief : getMounted when device node is not found
@@ -634,9 +605,6 @@ TEST_F(UsbAccessTest, getMountedSuccess_when_devNodNotFound)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMounted"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"mounted\":[],\"success\":true}"));
-
-    Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
 }
 /**
  * @brief : getMounted when the device node of the mounted file system is found in the devnodes list 
@@ -693,8 +661,6 @@ TEST_F(UsbAccessTest, getMountedSuccess_withUSBMountPath)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMounted"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"mounted\":[\"\\/run\\/media\\/sda1\\/logs\"],\"success\":true}"));
-    Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
 }
 /*Test cases for getMounted ends here*/
 
