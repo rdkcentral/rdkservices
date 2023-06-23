@@ -52,7 +52,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 2
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -203,7 +203,7 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
 #define LISA_CALLSIGN "LISA"
 
-#define RECONNECTION_TIME_IN_MILLISECONDS 10000
+#define RECONNECTION_TIME_IN_MILLISECONDS 5000
 
 #define REMOTECONTROL_CALLSIGN "org.rdk.RemoteControl.1"
 #define KEYCODE_INVALID -1
@@ -624,6 +624,7 @@ namespace WPEFramework {
 
         std::mutex gLaunchMutex;
         std::mutex gExitReasonMutex;
+	std::mutex gSubscribeMutex;
         int32_t gLaunchCount = 0;
 
         static std::thread shellThread;
@@ -704,6 +705,27 @@ namespace WPEFramework {
                     auto deactivateStatus = deactivate(mCurrentService, "ResidentApp");
                     std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
                 }
+		else if (requestName.compare("susbscribeSystemEvent") == 0)
+                {
+                   gSubscribeMutex.lock();
+		   subscribeForSystemEvent("onSystemPowerStateChanged");
+		   gSubscribeMutex.unlock();
+                   std::cout << "subscribed system event " << std::endl;
+                   JsonObject joGetParams;
+                    JsonObject joGetResult;
+                    joGetParams["params"] = JsonObject();
+                    std::string getPowerStateInvoke = "org.rdk.System.1.getPowerState";
+                    auto thunderController = getThunderControllerClient();
+                    thunderController->Invoke<JsonObject, JsonObject>(5000, getPowerStateInvoke.c_str(), joGetParams, joGetResult);
+                    const std::string currentPowerState = joGetResult["powerState"].String();
+                    if (currentPowerState == "ON")
+                    {
+                        JsonObject request, response;
+                        request["callsign"] = "ResidentApp";
+                        request["visible"] = true;
+                        getThunderControllerClient("org.rdk.RDKShell.1")->Invoke<JsonObject, JsonObject>(0, "setVisibility", request, response);
+                    }
+		 }
                 else
                 {
                     std::string api("org.rdk.RDKShell.1.");
@@ -927,6 +949,13 @@ namespace WPEFramework {
                     gRdkShellMutex.lock();
                     sPersistentStoreFirstActivated = true;
                     gRdkShellMutex.unlock();
+                }
+		else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == SYSTEM_SERVICE_CALLSIGN)
+                {
+                        RDKShellApiRequest apiRequest;
+                        apiRequest.mName = "susbscribeSystemEvent";
+                        RDKShell* rdkshellPlugin = RDKShell::_instance;
+                        rdkshellPlugin->launchRequestThread(apiRequest);
                 }
                 else if (currentState == PluginHost::IShell::DEACTIVATION)
                 {
@@ -1713,6 +1742,7 @@ namespace WPEFramework {
             {
                 std::string powerState = parameters["powerState"].String();
                 std::string prevState = parameters["currentPowerState"].String();
+		std::cout << "powerState and PrevState inside pluginEventHandler " << prevState << "to" << powerState << std::endl;
                 if ((powerState.compare("STANDBY") == 0) || (powerState.compare("LIGHT_SLEEP") == 0) || (powerState.compare("DEEP_SLEEP") == 0))
                 {
                     std::cout << "Received power state change to sleep " << std::endl;
@@ -1724,6 +1754,7 @@ namespace WPEFramework {
                 if ((prevState == "STANDBY" || prevState == "LIGHT_SLEEP" || prevState == "DEEP_SLEEP" || prevState == "OFF")
                     && powerState == "ON")
                 {
+		    std::cout << "received power state change to ON" << std::endl;
                     JsonObject request, response;
                     request["callsign"] = "ResidentApp";
                     request["visible"] = true;
@@ -7024,7 +7055,7 @@ namespace WPEFramework {
                 if (Core::ERROR_NONE == subscribeForSystemEvent("onSystemPowerStateChanged"))
                 {  
                     m_timer.stop();
-                    std::cout << "Stopped SystemServices connection timer" << std::endl;
+                    std::cout << "Stopped SystemServices connection timer after subscription" << std::endl;
                 }
             }
         }
