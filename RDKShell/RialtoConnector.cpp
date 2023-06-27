@@ -21,9 +21,6 @@
 #include <cstdlib>
 #include "RialtoConnector.h"
 
-#define LOGINFO(fmt, ...) do { fprintf(stderr, " INFO [%s:%d] " fmt "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); fflush(stderr); } while (0)
-#define LOGWARN(fmt, ...) do { fprintf(stderr, " WARN [%s:%d] " fmt "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); fflush(stderr); } while (0)
-
 extern char **environ;
 
 namespace WPEFramework
@@ -55,7 +52,7 @@ namespace WPEFramework
     }
     bool RialtoConnector::createAppSession(const std::string &callsign, const std::string &displayName, const std::string &appId)
     {
-        LOGINFO("Creating app session with callsign %s, display name %s, appid %s", callsign.c_str(), displayName.c_str(), appId.c_str());
+        LOGINFO("Creating app session with callsign : '%s', display name : '%s', appid : '%s'", callsign.c_str(), displayName.c_str(), appId.c_str());
 
         firebolt::rialto::common::AppConfig config = {appId, displayName};
         return m_serverManagerService->initiateApplication(callsign,

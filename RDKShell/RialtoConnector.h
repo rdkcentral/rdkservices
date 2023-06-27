@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "Module.h"
+#include "UtilsLogging.h"
 #include <map>
 #include <string>
 #include <mutex>
