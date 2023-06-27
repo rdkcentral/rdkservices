@@ -724,6 +724,12 @@
             "result": {
                 "$ref": "#/definitions/result"
             }
+        },
+        "factoryReset": {
+            "summary": "Tells all paired and connected remotes to factory reset.\n  \n### Events \n\n No events",
+            "result": {
+                "$ref": "#/definitions/result"
+            }
         }
     },
     "events": {
