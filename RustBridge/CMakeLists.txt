@@ -33,8 +33,13 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 target_link_libraries(${MODULE_NAME} 
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
-        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${NAMESPACE}Protocols::${NAMESPACE}Protocols)
+        ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
+
+if (USE_THUNDER_R4)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}COM::${NAMESPACE}COM)
+else ()
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Protocols::${NAMESPACE}Protocols)
+endif (USE_THUNDER_R4)
 
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

@@ -30,18 +30,15 @@
 namespace TTS {
 
 struct Configuration {
-    Configuration() : volume(0), rate(0), primVolDuck(25) {};
+    Configuration() : volume(0), rate(0) {};
     ~Configuration() {}
 
     std::string ttsEndPoint;
     std::string ttsEndPointSecured;
     std::string language;
     std::string voice;
-    std::string apiKey;
-    FallbackData data;
     double volume;
     uint8_t rate;
-    int8_t primVolDuck;
 };
 
 class TTSEventCallback {
@@ -75,6 +72,9 @@ public:
     TTS_Error listVoices(std::string language, std::vector<std::string> &voices);
     TTS_Error setConfiguration(Configuration &configuration);
     TTS_Error getConfiguration(Configuration &configuration);
+    TTS_Error setFallbackText(FallbackData &data);
+    TTS_Error setPrimaryVolDuck(const uint8_t prim);
+    TTS_Error setAPIKey(string apikey);
 
     //Speak APIs
     TTS_Error speak(int speechId, std::string text);
@@ -102,6 +102,7 @@ private:
     TTSConfiguration m_defaultConfiguration;
     TTSEventCallback *m_callback;
     TTSSpeaker *m_speaker;
+    bool m_needsConfigStoreUpdate;
     TTSDownloader *m_downloader;
 };
 
