@@ -219,6 +219,14 @@ typedef enum _dsHdmiInSignalStatus_t {
     dsHDMI_IN_SIGNAL_STATUS_MAX
 } dsHdmiInSignalStatus_t;
 
+typedef enum dsAviContentType {
+  dsAVICONTENT_TYPE_GRAPHICS,
+  dsAVICONTENT_TYPE_PHOTO,
+  dsAVICONTENT_TYPE_CINEMA,
+  dsAVICONTENT_TYPE_GAME,
+  dsAVICONTENT_TYPE_INVALID,
+}dsAviContentType_t;
+
 struct dsSpd_infoframe_st {
     uint8_t pkttype;
     uint8_t version;
@@ -408,7 +416,10 @@ typedef struct _DSMgr_EventData_t {
             dsHdmiInPort_t port;
             bool allm_mode;
         } hdmi_in_allm_mode; /*HDMI in ALLM Mode change*/
-
+        struct _HDMI_IN_CONTENT_TYPE_DATA{
+            dsHdmiInPort_t port;
+            dsAviContentType_t aviContentType;
+        }hdmi_in_content_type;
     } data;
 } IARM_Bus_DSMgr_EventData_t;
 

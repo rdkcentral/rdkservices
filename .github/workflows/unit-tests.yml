@@ -278,20 +278,32 @@ jobs:
           /opt/secure/persistent/System
           /opt/logs
           /lib/rdk
+          /run/media/sda1/logs/PreviousLogs
+          /run/sda1/UsbTestFWUpdate
+          /run/sda1/UsbProdFWUpdate
+          /run/sda2
           &&
           sudo touch
           /opt/standbyReason.txt
           /opt/tmtryoptout
           /opt/fwdnldstatus.txt
+          /opt/dcm.properties
           /etc/device.properties
+          /etc/dcm.properties
           /etc/authService.conf
           /version.txt
+          /run/media/sda1/logs/PreviousLogs/logFile.txt
+          /run/sda1/HSTP11MWR_5.11p5s1_VBN_sdy.bin
+          /run/sda1/UsbTestFWUpdate/HSTP11MWR_3.11p5s1_VBN_sdy.bin
+          /run/sda1/UsbProdFWUpdate/HSTP11MWR_4.11p5s1_VBN_sdy.bin
           &&
           sudo chmod 777
           /opt/standbyReason.txt
           /opt/tmtryoptout
           /opt/fwdnldstatus.txt
+          /opt/dcm.properties
           /etc/device.properties
+          /etc/dcm.properties          
           /etc/authService.conf
           /version.txt
 
