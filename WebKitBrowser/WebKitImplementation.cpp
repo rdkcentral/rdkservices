@@ -495,9 +495,11 @@ static GSourceFuncs _handlerIntervention =
                 MemorySettings()
                     : Core::JSON::Container()
                     , WebProcessLimit()
+                    , WebProcessGPULimit()
                     , NetworkProcessLimit()
                 {
                     Add(_T("webprocesslimit"), &WebProcessLimit);
+                    Add(_T("webprocessgpulimit"), &WebProcessGPULimit);
                     Add(_T("networkprocesslimit"), &NetworkProcessLimit);
                 }
                 ~MemorySettings()
@@ -506,6 +508,7 @@ static GSourceFuncs _handlerIntervention =
 
             public:
                 Core::JSON::DecUInt32 WebProcessLimit;
+                Core::JSON::DecUInt32 WebProcessGPULimit;
                 Core::JSON::DecUInt32 NetworkProcessLimit;
             };
 
@@ -2754,9 +2757,11 @@ static GSourceFuncs _handlerIntervention =
                 }
 
 #if HAS_MEMORY_PRESSURE_SETTINGS_API
-                if ((_config.Memory.IsSet() == true) && (_config.Memory.NetworkProcessLimit.IsSet() == true)) {
+                if (_config.Memory.IsSet() == true) {
                     WebKitMemoryPressureSettings* memoryPressureSettings = webkit_memory_pressure_settings_new();
-                    webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.NetworkProcessLimit.Value());
+                    webkit_memory_pressure_settings_set_poll_interval(memoryPressureSettings, 1.0);
+                    if (_config.Memory.NetworkProcessLimit.IsSet() == true)
+                        webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.NetworkProcessLimit.Value());
                     webkit_website_data_manager_set_memory_pressure_settings(memoryPressureSettings);
                     webkit_memory_pressure_settings_free(memoryPressureSettings);
                 }
@@ -2773,9 +2778,33 @@ static GSourceFuncs _handlerIntervention =
                 g_free(indexedDBPath);
 
 #if HAS_MEMORY_PRESSURE_SETTINGS_API
-                if ((_config.Memory.IsSet() == true) && (_config.Memory.WebProcessLimit.IsSet() == true)) {
+                const char* webProcessGPULimitEnvvar;
+                if ((webProcessGPULimitEnvvar = std::getenv("WPE_POLL_MAX_MEMORY_GPU")) || _config.Memory.IsSet() == true) {
                     WebKitMemoryPressureSettings* memoryPressureSettings = webkit_memory_pressure_settings_new();
-                    webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.WebProcessLimit.Value());
+                    webkit_memory_pressure_settings_set_poll_interval(memoryPressureSettings, 1.0);
+                    if (_config.Memory.IsSet() == true && _config.Memory.WebProcessLimit.IsSet() == true)
+                        webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.WebProcessLimit.Value());
+                    if (webProcessGPULimitEnvvar != nullptr) {
+                        std::string actualWebProcessGPULimitEnvvar(webProcessGPULimitEnvvar);
+                        std::transform(actualWebProcessGPULimitEnvvar.begin(),
+                                       actualWebProcessGPULimitEnvvar.end(),
+                                       actualWebProcessGPULimitEnvvar.begin(),
+                                       [](unsigned char c){ return std::tolower(c); });
+
+                        size_t multiplierForConvertingValueToBytes = 1;
+                        if (actualWebProcessGPULimitEnvvar.length() > 0 && actualWebProcessGPULimitEnvvar[actualWebProcessGPULimitEnvvar.length()-1] == 'k')
+                            multiplierForConvertingValueToBytes = 1024;
+                        else if (actualWebProcessGPULimitEnvvar.length() > 0 && actualWebProcessGPULimitEnvvar[actualWebProcessGPULimitEnvvar.length()-1] == 'm')
+                            multiplierForConvertingValueToBytes = 1024 * 1024;
+
+                        if (multiplierForConvertingValueToBytes != 1)
+                            actualWebProcessGPULimitEnvvar = actualWebProcessGPULimitEnvvar.substr(0, actualWebProcessGPULimitEnvvar.length() - 1);
+                        size_t rawWebProcessGPULimitValue;
+                        if (sscanf(actualWebProcessGPULimitEnvvar.c_str(), "%zu", &rawWebProcessGPULimitValue)) {
+                            webkit_memory_pressure_settings_set_video_memory_limit(memoryPressureSettings,
+                                                                                   rawWebProcessGPULimitValue * multiplierForConvertingValueToBytes / 1024 / 1024); // converting to megabytes
+                        }
+                    }
                     // Pass web process memory pressure settings to WebKitWebContext constructor
                     wkContext = WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT, "website-data-manager", websiteDataManager, "memory-pressure-settings", memoryPressureSettings, nullptr));
                     webkit_memory_pressure_settings_free(memoryPressureSettings);
