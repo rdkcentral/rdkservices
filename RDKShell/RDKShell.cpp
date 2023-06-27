@@ -4358,11 +4358,8 @@ namespace WPEFramework {
 
                     if(!rialtoConnector->initialized())
                     {
-                        string sesEnv,rialtoDebug;
                         LOGWARN("Initializing rialto connector....");
-                        Core::SystemInfo::GetEnvironment(_T("SESSION_SERVER_ENV_VARS"), sesEnv);
-                        Core::SystemInfo::GetEnvironment(_T("RIALTO_DEBUG"), rialtoDebug);
-                        rialtoConnector->initialize(sesEnv,rialtoDebug);
+                        rialtoConnector->initialize();
                     }
                     LOGWARN("Creating app session ....");
                     if(!rialtoConnector->createAppSession(client,display, appId))

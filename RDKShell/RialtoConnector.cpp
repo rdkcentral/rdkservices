@@ -24,39 +24,32 @@
 #define LOGINFO(fmt, ...) do { fprintf(stderr, " INFO [%s:%d] " fmt "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); fflush(stderr); } while (0)
 #define LOGWARN(fmt, ...) do { fprintf(stderr, " WARN [%s:%d] " fmt "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); fflush(stderr); } while (0)
 
+extern char **environ;
+
 namespace WPEFramework
 {
     namespace
     {
-        std::list<std::string> getEnvironmentVariables(std::string & envVarsStr, const std::string & debugLevel)
+        std::list<std::string> getEnvironmentVariables()
         {
             std::list<std::string> environmentVariables;
-            if(!envVarsStr.empty())
+
+            std::list<std::string> environmentVariables;
+            char **envList = environ;
+            
+            for(;*envList;envList++)
             {
-                LOGINFO("SESSION_SERVER_ENV_VARS returned %s", envVarsStr.c_str());
-                size_t pos = 0;
-                while ((pos = envVarsStr.find(";")) != std::string::npos)
-                {
-                    environmentVariables.emplace_back(envVarsStr.substr(0, pos));
-                    envVarsStr.erase(0, pos + 1);
-                }
-                environmentVariables.emplace_back(envVarsStr);
-            }
-            else
-                LOGINFO("SESSION_SERVER_ENV_VARS returned empty");
-            return environmentVariables;
-            if(!debugLevel.empty())
-            {
-                setenv("RIALTO_DEBUG",debugLevel.c_str(),1);
-            }
+                environmentVariables.emplace_back(*envList);
+            }             
+           return environmentVariables;
         }
     } //anonymous namespace to contain private function.
  
-    void RialtoConnector::initialize(std::string & env,const std::string & debug)
+    void RialtoConnector::initialize()
     {
-        LOGWARN(" Rialto Bridge version 1.0");
+        LOGWARN(" Rialto Bridge version 1.1");
         firebolt::rialto::common::ServerManagerConfig config;
-        config.sessionServerEnvVars = getEnvironmentVariables(env,debug);
+        config.sessionServerEnvVars = getEnvironmentVariables();
         m_serverManagerService = create(shared_from_this(), config);
         isInitialized = true;
     }
