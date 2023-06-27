@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <syslog.h>
 #include "Wraps.h"
+#include <mntent.h>
 
 extern "C" int __wrap_system(const char* command)
 {
@@ -30,4 +31,14 @@ extern  "C" void __wrap_syslog(int pri, const char *fmt, ...)
 extern "C" FILE* __wrap_fopen(const char* filename, const char* mode)
 {
     return  Wraps::getInstance().fopen(filename, mode);
+}
+
+extern "C" FILE* __wrap_setmntent(const char* command, const char* type)
+{
+    return Wraps::getInstance().setmntent(command, type);
+}
+
+extern "C" struct mntent* __wrap_getmntent(FILE* pipe)
+{
+    return Wraps::getInstance().getmntent(pipe);
 }
