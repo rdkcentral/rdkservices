@@ -510,7 +510,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetAspectRatioCaps(range,pqmode,source,format);
+        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"AspectRatio");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -566,6 +566,11 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+	if( !isCapablityCheckPassed( pqmode, source, format, "AspectRatio" ) {
+            LOGERR("%s: CapablityCheck failed for AspectRatio\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if(!value.compare("TV 16X9 STRETCH")) {
             mode = tvDisplayMode_16x9;
@@ -736,6 +741,11 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+	if( !isCapablityCheckPassed( pqmode, source, format, "AspectRatio" ) {
+            LOGERR("%s: CapablityCheck failed for AspectRatio\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,TVSETTINGS_ASPECTRATIO_RFC_PARAM);
         if ( err != tr181Success ) {
@@ -987,7 +997,16 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ret = SetBacklight(backlight,pqmode.c_str(),format.c_str(),source.c_str(),true);
+	if( !isCapablityCheckPassed( pqmode, source, format, "Backlight" ) {
+            LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(pqmode,source,format) ) { //Needs rework
+            LOGINFO("Proceed with setBacklight\n");
+            ret = SetBacklight(backlight,pqmode.c_str(),format.c_str(),source.c_str(),true);
+        }
+
         if(ret != tvERROR_NONE) {
             LOGWARN("Failed to set backlight\n");
             returnResponse(false);
@@ -1022,6 +1041,16 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        if( !isCapablityCheckPassed( pqmode, source, format, "Backlight" ) {
+            LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(pqmode,source,format) ) { //Needs rework
+            LOGINFO("Proceed with setBacklight\n");
+            ret = SetBacklight(backlight,pqmode.c_str(),format.c_str(),source.c_str(),true);
+        }
+
        // if(appUsesGlobalBackLightFactor){
             tr181ErrorCode_t err = clearLocalParam(rfc_caller_id, TVSETTINGS_BACKLIGHT_SDR_RFC_PARAM);
             if ( err != tr181Success ) {
@@ -1048,7 +1077,10 @@ namespace Plugin {
             int err = GetLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight);
             if( err == 0 ) {
                 LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,backlight);
-                ret = SetBacklight(backlight,"current","current","current",false);
+                if( isSetRequired(pqmode,source,format) ) { //Needs rework
+                    LOGINFO("Proceed with setBacklight\n");
+                    ret = SetBacklight(backlight,pqmode.c_str(),format.c_str(),source.c_str(),false);
+                }
             }
             else
                 LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
@@ -1085,7 +1117,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetCustomParamsCaps(range,pqmode,source,format);
+        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"Backlight");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -1141,7 +1173,7 @@ namespace Plugin {
             format = "current";
 
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness);
+        int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness,PQ_PARAM_BRIGHTNESS,false);
         if( err == 0 ) {
             response["brightness"] = std::to_string(brightness);
             LOGINFO("Exit : Brightness Value: %d \n", brightness);
@@ -1220,12 +1252,17 @@ namespace Plugin {
         if(format.empty())
             format = "current";
         
-	if( isSetRequired(pqmode,source,format) ) {
-             LOGINFO("Proceed with setBrightness\n");
+        if( !isCapablityCheckPassed( pqmode, source, format, "Brightness" ) {
+            LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with %s \n",__FUNCTION__);
              ret = SetBrightness(brightness);
         }
         else
-            LOGINFO("Set not required for this request!!! Just Save it\n");
+            LOGD("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
 	if(ret != tvERROR_NONE) {
             LOGWARN("Failed to set Brightness\n");
@@ -1268,6 +1305,18 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+	if( !isCapablityCheckPassed( pqmode, source, format, "Brightness" ) {
+            LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with %s \n",__FUNCTION__);
+             ret = SetBrightness(brightness);
+        }
+	else
+            LOGD("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         int retval= UpdatePQParamsToCache("reset","Brightness",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_BRIGHTNESS,params);
         if(retval != 0 ) {
@@ -1317,7 +1366,7 @@ namespace Plugin {
 
 	unsigned int index = 0;
 
-	tvError_t ret = GetCustomParamsCaps(range,pqmode,source,format);
+	tvError_t ret = GetParamsCaps(range,pqmode,source,format,"Brightness");
 
 	if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -1451,13 +1500,18 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+        
+        if( !isCapablityCheckPassed( pqmode, source, format, "Contrast" ) {
+            LOGERR("%s: CapablityCheck failed for Contrast\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( isSetRequired(pqmode,source,format) ) {
-             LOGINFO("Proceed with %s\n",__FUNCTION__);
+             LOGINFO("Proceed with %s \n",__FUNCTION__);
              ret = SetContrast(contrast);
         }
         else
-            LOGINFO("Set not required for this request!!! Just Save it\n");
+            LOGD("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(ret != tvERROR_NONE) {
             LOGWARN("Failed to set Contrast\n");
@@ -1501,6 +1555,11 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+	if( !isCapablityCheckPassed( pqmode, source, format, "Contrast" ) {
+            LOGERR("%s: CapablityCheck failed for Contrast\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         int retval= UpdatePQParamsToCache("reset","Contrast",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CONTRAST,params);
 
         if(retval != 0 ) {
@@ -1512,7 +1571,12 @@ namespace Plugin {
             int err = GetLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast);
             if( err == 0 ) {
                 LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,contrast);
-                ret = SetContrast(contrast);
+                if( isSetRequired(pqmode,source,format) ) {
+                    LOGINFO("Proceed with %s \n",__FUNCTION__);
+                    ret = SetContrast(contrast);
+                }
+                else
+                    LOGD("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
             }
             else
                 LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
@@ -1550,7 +1614,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetCustomParamsCaps(range,pqmode,source,format);
+        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"Contrast");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -1684,13 +1748,18 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+       
+        if( !isCapablityCheckPassed( pqmode, source, format, "Saturation" ) {
+            LOGERR("%s: CapablityCheck failed for Saturation\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( isSetRequired(pqmode,source,format) ) {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetSaturation(saturation);
         }
         else
-            LOGINFO("Set not required for this request!!! Just Save it\n");
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
 
         if(ret != tvERROR_NONE) {
@@ -1735,6 +1804,18 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        if( !isCapablityCheckPassed( pqmode, source, format, "Saturation" ) {
+            LOGERR("%s: CapablityCheck failed for Saturation\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with %s\n",__FUNCTION__);
+             ret = SetSaturation(saturation);
+        }
+        else
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+
         int retval= UpdatePQParamsToCache("reset","Saturation",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_SATURATION,params);
 
         if(retval != 0 ) {
@@ -1746,7 +1827,13 @@ namespace Plugin {
             int err = GetLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation);
             if( err == 0 ) {
                 LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,saturation);
-                ret = SetSaturation(saturation);
+                if( isSetRequired(pqmode,source,format) ) {
+                    LOGINFO("Proceed with %s\n",__FUNCTION__);
+                    ret = SetSaturation(saturation);
+                }
+                else
+                    LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+
             }
             else
                 LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
@@ -1784,7 +1871,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetCustomParamsCaps(range,pqmode,source,format);
+        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"Saturation");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -1918,13 +2005,18 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
-        
+    
+        if( !isCapablityCheckPassed( pqmode, source, format, "Sharpness" ) {
+            LOGERR("%s: CapablityCheck failed for Sharpness\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         if( isSetRequired(pqmode,source,format) ) {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetSharpness(sharpness);
         }
         else
-            LOGINFO("Set not required for this request!!! Just Save it\n");
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(ret != tvERROR_NONE) {
             LOGWARN("Failed to set Sharpness\n");
@@ -1968,6 +2060,11 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        if( !isCapablityCheckPassed( pqmode, source, format, "Sharpness" ) {
+            LOGERR("%s: CapablityCheck failed for Sharpness\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         int retval= UpdatePQParamsToCache("reset","Sharpness",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_SHARPNESS,params);
 
         if(retval != 0 ) {
@@ -1979,7 +2076,12 @@ namespace Plugin {
             int err = GetLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness);
             if( err == 0 ) {
                 LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,sharpness);
-                ret = SetSharpness(sharpness);
+                if( isSetRequired(pqmode,source,format) ) {
+                    LOGINFO("Proceed with %s\n",__FUNCTION__);
+                    ret = SetSharpness(sharpness);
+                }
+                else
+                    LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
             }
             else
                 LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
@@ -2017,7 +2119,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetCustomParamsCaps(range,pqmode,source,format);
+        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"Sharpness");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -2152,12 +2254,17 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        if( !isCapablityCheckPassed( pqmode, source, format, "Hue" ) {
+            LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         if( isSetRequired(pqmode,source,format) ) {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetHue(hue);
         }
         else
-            LOGINFO("Set not required for this request!!! Just Save it\n");
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
 
         if(ret != tvERROR_NONE) {
@@ -2202,6 +2309,11 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+	if( !isCapablityCheckPassed( pqmode, source, format, "Hue" ) {
+            LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         int retval= UpdatePQParamsToCache("reset","Hue",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_HUE,params);
 
         if(retval != 0 ) {
@@ -2213,7 +2325,12 @@ namespace Plugin {
             int err = GetLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue);
             if( err == 0 ) {
                 LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,hue);
-                ret = SetHue(hue);
+                if( isSetRequired(pqmode,source,format) ) {
+                    LOGINFO("Proceed with %s\n",__FUNCTION__);
+                    ret = SetHue(hue);
+                }
+                else
+                    LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
             }
             else
                 LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
@@ -2251,7 +2368,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetCustomParamsCaps(range,pqmode,source,format);
+        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"Hue");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -2452,12 +2569,17 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        if( !isCapablityCheckPassed( pqmode, source, format, "ColorTemperature" ) {
+            LOGERR("%s: CapablityCheck failed for colorTemperature\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         if( isSetRequired(pqmode,source,format) ) {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetColorTemperature((tvColorTemp_t)colortemp);
         }
         else
-            LOGINFO("Set not required for this request!!! Just Save it\n");
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(ret != tvERROR_NONE) {
             LOGWARN("Failed to set ColorTemperature\n");
@@ -2500,6 +2622,11 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        if( !isCapablityCheckPassed( pqmode, source, format, "ColorTemperature" ) {
+            LOGERR("%s: CapablityCheck failed for colorTemperature\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         int retval= UpdatePQParamsToCache("reset","ColorTemp",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COLOR_TEMPERATURE,params);
 
         if(retval != 0 ) {
@@ -2511,7 +2638,13 @@ namespace Plugin {
             int err = GetLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex,colortemp);
             if( err == 0 ) {
                 LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,colortemp);
-                ret = SetColorTemperature((tvColorTemp_t)colortemp);
+                if( isSetRequired(pqmode,source,format) ) {
+                    LOGINFO("Proceed with %s\n",__FUNCTION__);
+                    ret = SetColorTemperature((tvColorTemp_t)colortemp);
+                }
+                else
+                    LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+
             }
             else
                 LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
@@ -2548,7 +2681,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetCustomParamsCaps(range,pqmode,source,format,true);
+        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"ColorTemperature");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -2620,7 +2753,7 @@ namespace Plugin {
         }
         cms += value;
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);	
-	int err = GetLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,saturation,true,COLOR_SATURATION);
+	int err = GetLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,saturation,PQ_PARAM_COMPONENT_SATURATION);
 	if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
             saturationColorObj["Setting"] = std::to_string(saturation);
             response["saturation"] = saturationColorObj;
@@ -2667,8 +2800,19 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+        
+        if( !isCapablityCheckPassed( pqmode, source, format, "Component" ) {
+            LOGERR("%s: CapablityCheck failed for ComponentSaturation\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        tvError_t ret = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_ENABLE);
+        if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with %s\n",__FUNCTION__);
+             tvError_t ret = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_ENABLE);
+        }
+        else
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+
         if(ret != tvERROR_NONE) {
             LOGWARN("CMS enable failed\n");
             returnResponse(false);
@@ -2679,14 +2823,20 @@ namespace Plugin {
             cms_params[0]=COLOR_STATE;
             cms_params[1]=COLOR_ENABLE;
             cms_params[2]=COMPONENT_ENABLE;
-            int retval = UpdatePQParamsToCache("set","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,cms_params);
+            int retval = UpdatePQParamsToCache("set","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_SATURATION,cms_params);
             if(retval != 0) {
                 LOGWARN("Failed to Save enableflag to ssm_data\n");
             }
             LOGINFO("CMS Enable Success to localstore\n");
         }
+        
+	if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with %s\n",__FUNCTION__);
+             ret = SetCurrentComponentSaturation(blSaturationColor, saturation);
+        }
+        else
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
-        ret = SetCurrentComponentSaturation(blSaturationColor, saturation);
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
@@ -2698,7 +2848,7 @@ namespace Plugin {
 
             char tr181format[64]={0};
             snprintf(tr181format,sizeof(tr181format),"saturation.%s",component_color[ConvertTVColorToVendorColor(blSaturationColor)]);
-            int retval=UpdatePQParamsToCache("set",tr181format,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
+            int retval=UpdatePQParamsToCache("set",tr181format,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_SATURATION,params);
 
             if(retval != 0) {
                 LOGWARN("Failed to Save component saturation to ssm_data\n");
@@ -2730,14 +2880,26 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
-			
-        err = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_DISABLE);
+	
+        if( !isCapablityCheckPassed( pqmode, source, format, "Component" ) {
+            LOGERR("%s: CapablityCheck failed for ComponentSaturation\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with %s\n",__FUNCTION__);
+              err = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_DISABLE);
+        }
+        else
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+
+
         if(err == tvERROR_NONE)
         {
             int params[3]={0};
             params[0]=COLOR_STATE;
             params[1]=COLOR_ENABLE;
-            int ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
+            int ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_SATURATION,params);
             if(ret != 0) {
                 LOGWARN("Failed to Save enable flag to ssm_data\n");
             }
@@ -2747,7 +2909,7 @@ namespace Plugin {
                 params[0]=COLOR_SATURATION;
                 params[1]=color;
                 snprintf(param,sizeof(param),"saturation.%s",component_color[color]);
-                ret |= UpdatePQParamsToCache("reset",param,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
+                ret |= UpdatePQParamsToCache("reset",param,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_SATURATION,params);
                 memset(&param, 0, sizeof(param));
             }
 
@@ -2810,7 +2972,7 @@ namespace Plugin {
         }
         cms += value;
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,hue,true,COLOR_HUE);
+        int err = GetLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,hue,PQ_PARAM_COMPONENT_HUE );
         if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
             hueColorObj["Setting"] = std::to_string(hue);
             response["hue"] = hueColorObj;
@@ -2858,7 +3020,18 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        tvError_t ret = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_ENABLE);
+	if( !isCapablityCheckPassed( pqmode, source, format, "Component" ) {
+            LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with %s\n",__FUNCTION__);
+             tvError_t ret = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_ENABLE);
+        }
+        else
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+
         if(ret != tvERROR_NONE) {
             LOGWARN("CMS enable failed\n");
             returnResponse(false);
@@ -2869,14 +3042,20 @@ namespace Plugin {
             cms_params[0]=COLOR_STATE;
             cms_params[1]=COLOR_ENABLE;
             cms_params[2]=COMPONENT_ENABLE;
-            int retval = UpdatePQParamsToCache("set","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,cms_params);
+            int retval = UpdatePQParamsToCache("set","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_HUE,cms_params);
             if(retval != 0) {
                 LOGWARN("Failed to Save enableflag to ssm_data\n");
             }
             LOGINFO("CMS Enable Success to localstore\n");
         }
+        
+	if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with %s\n",__FUNCTION__);
+             ret = SetCurrentComponentHue(blHueColor, hue);
+        }
+        else
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
-        ret = SetCurrentComponentHue(blHueColor, hue);
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
@@ -2888,7 +3067,7 @@ namespace Plugin {
 
             char tr181format[64]={0};
             snprintf(tr181format,sizeof(tr181format),"hue.%s",component_color[ConvertTVColorToVendorColor(blHueColor)]);
-            int retval=UpdatePQParamsToCache("set",tr181format,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
+            int retval=UpdatePQParamsToCache("set",tr181format,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_HUE,params);
 
             if(retval != 0) {
                 LOGWARN("Failed to Save component hue to ssm_data\n");
@@ -2921,13 +3100,24 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        err = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_DISABLE);
+	if( !isCapablityCheckPassed( pqmode, source, format, "Component" ) {
+            LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with %s\n",__FUNCTION__);
+             err = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_DISABLE);
+        }
+        else
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+
         if(err == tvERROR_NONE)
         {
             int params[3]={0};
             params[0]=COLOR_STATE;
             params[1]=COLOR_ENABLE;
-            int ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
+            int ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_HUE,params);
             if(ret != 0) {
                 LOGWARN("Failed to Save enable flag to ssm_data\n");
             }
@@ -2999,7 +3189,7 @@ namespace Plugin {
         }
         cms += value;
 	GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,luma,true,COLOR_LUMA);
+        int err = GetLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,luma,PQ_PARAM_COMPONENT_LUMA);
         if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
             lumaColorObj["Setting"] = std::to_string(luma);
             response["luma"] = lumaColorObj;
@@ -3046,7 +3236,18 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        tvError_t ret = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_ENABLE);
+        if( !isCapablityCheckPassed( pqmode, source, format, "Component" ) {
+            LOGERR("%s: CapablityCheck failed for ComponentLuma\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with %s\n",__FUNCTION__);
+             tvError_t ret = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_ENABLE);
+        }
+        else
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+
         if(ret != tvERROR_NONE) {
             LOGWARN("CMS enable failed\n");
             returnResponse(false);
@@ -3057,14 +3258,20 @@ namespace Plugin {
             cms_params[0]=COLOR_STATE;
             cms_params[1]=COLOR_ENABLE;
             cms_params[2]=COMPONENT_ENABLE;
-            int retval = UpdatePQParamsToCache("set","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,cms_params);
+            int retval = UpdatePQParamsToCache("set","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_LUMA,cms_params);
             if(retval != 0) {
                 LOGWARN("Failed to Save enableflag to ssm_data\n");
             }
             LOGINFO("CMS Enable Success to localstore\n");
         }
 
-        ret = SetCurrentComponentLuma(blLumaColor, luma);
+        if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with %s\n",__FUNCTION__);
+             ret = SetCurrentComponentLuma(blLumaColor, luma);
+        }
+        else
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
@@ -3076,7 +3283,7 @@ namespace Plugin {
 
             char tr181format[64]={0};
             snprintf(tr181format,sizeof(tr181format),"luma.%s",component_color[ConvertTVColorToVendorColor(blLumaColor)]);
-            int retval=UpdatePQParamsToCache("set",tr181format,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
+            int retval=UpdatePQParamsToCache("set",tr181format,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_LUMA,params);
 
             if(retval != 0) {
                 LOGWARN("Failed to Save component luma to ssm_data\n");
@@ -3109,13 +3316,24 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        err = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_DISABLE);
+        if( !isCapablityCheckPassed( pqmode, source, format, "Component" ) {
+            LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with %s\n",__FUNCTION__);
+             err = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_DISABLE);
+        }
+        else
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+
         if(err == tvERROR_NONE)
         {
             int params[3]={0};
             params[0]=COLOR_STATE;
             params[1]=COLOR_ENABLE;
-            int ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
+            int ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_LUMA,params);
             if(ret != 0) {
                 LOGWARN("Failed to Save enable flag to ssm_data\n");
             }
@@ -3125,7 +3343,7 @@ namespace Plugin {
                 params[0]=COLOR_LUMA;
                 params[1]=color;
                 snprintf(param,sizeof(param),"luma.%s",component_color[color]);
-                ret |= UpdatePQParamsToCache("reset",param,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
+                ret |= UpdatePQParamsToCache("reset",param,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_LUMA,params);
                 memset(&param, 0, sizeof(param));
             }
 
@@ -3170,7 +3388,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetComponentCaps(range,color,pqmode,source,format);
+        tvError_t ret = GetParamsCaps(range,color,pqmode,source,format,"CMS");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -3286,12 +3504,17 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        if( !isCapablityCheckPassed( pqmode, source, format, "DimmingMode" ) {
+            LOGERR("%s: CapablityCheck failed for DimmingMode\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         if( isSetRequired(pqmode,source,format) ) {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetTVDimmingMode(value.c_str());
         }
         else
-            LOGINFO("Set not required for this request!!! Just Save it\n");
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
 
 	if(ret != tvERROR_NONE) {
@@ -3341,6 +3564,11 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        if( !isCapablityCheckPassed( pqmode, source, format, "DimmingMode" ) {
+            LOGERR("%s: CapablityCheck failed for DimmingMode\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
 	int retval= UpdatePQParamsToCache("reset","DimmingMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_LDIM,params);
 
         if(retval != 0 ) {
@@ -3352,8 +3580,13 @@ namespace Plugin {
             int err = GetLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dMode);
             if( err == 0 ) {
                 LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,dMode);
-                GetDimmingModeStringFromEnum(dMode,dimmingMode);
-                ret = SetTVDimmingMode(dimmingMode.c_str());
+                if( isSetRequired(pqmode,source,format) ) {
+                    LOGINFO("Proceed with %s\n",__FUNCTION__);
+		    GetDimmingModeStringFromEnum(dMode,dimmingMode);
+                    ret = SetTVDimmingMode(dimmingMode.c_str());
+                }
+                else
+                    LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
             }
             else
                 LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
@@ -3397,7 +3630,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetDimmingModeCaps(supportedDimmingMode,pqmode,source,format);
+        tvError_t ret = GetParamsCaps(supportedDimmingMode,pqmode,source,format,"DimmingMode");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -3493,9 +3726,25 @@ namespace Plugin {
         LOGINFO("Entry\n");
         std::string value;
         tvBacklightMode_t blMode = tvBacklightMode_NONE;
+	std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
 
         value = parameters.HasLabel("mode") ? parameters["mode"].String() : "";
         returnIfParamNotFound(parameters,"mode");
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "global";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "global";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "global";
 
         if(!value.compare("none")) {
             blMode = tvBacklightMode_NONE;
@@ -3513,6 +3762,10 @@ namespace Plugin {
             returnResponse(false);
         }
 
+        if( !isCapablityCheckPassed( pqmode, source, format, "AutoBacklightControl" ) {
+            LOGERR("%s: CapablityCheck failed for AutoBacklightControl\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         tvError_t ret = SetCurrentBacklightMode(blMode);
 
@@ -3536,6 +3789,27 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         tvError_t ret = tvERROR_NONE;
+	std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "global";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "global";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "global";
+
+	if( !isCapablityCheckPassed( pqmode, source, format, "AutoBacklightControl" ) {
+            LOGERR("%s: CapablityCheck failed for AutoBacklightControl\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM);
         if ( err != tr181Success ) {
@@ -3612,7 +3886,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetAutoBacklightControlCaps(range,pqmode,source,format);
+        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"AutoBacklightControl");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -3710,6 +3984,10 @@ namespace Plugin {
         if(format.empty())
             format = "dolby";
 
+        if( !isCapablityCheckPassed( pqmode, source, format, "DolbyVisionMode" ) {
+            LOGERR("%s: CapablityCheck failed for DolbyVisionMode\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         tvError_t ret = SetTVDolbyVisionMode(value.c_str());
 
@@ -3756,6 +4034,11 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "dolby";
+
+	if( !isCapablityCheckPassed( pqmode, source, format, "DolbyVisionMode" ) {
+            LOGERR("%s: CapablityCheck failed for DolbyVisionMode\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM);
         if ( err != tr181Success ) {
@@ -3825,7 +4108,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetDolbyModeCaps(range,pqmode,source,format);
+        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"DolbyVisionMode");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -3902,6 +4185,11 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "hdr10";
+        
+	if( !isCapablityCheckPassed( pqmode, source, format, "HDR10Mode" ) {
+            LOGERR("%s: CapablityCheck failed for HDR10Mode\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         tvError_t ret = SetTVHDR10Mode(value.c_str());
 
@@ -3968,6 +4256,11 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "hdr10";
+
+	if( !isCapablityCheckPassed( pqmode, source, format, "HDR10Mode" ) {
+            LOGERR("%s: CapablityCheck failed for HDR10Mode\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,TVSETTINGS_HDR10MODE_RFC_PARAM);
         if ( err != tr181Success ) {
@@ -4037,7 +4330,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetHDR10Caps(range,pqmode,source,format);
+        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"HDR10Mode");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -4133,6 +4426,11 @@ namespace Plugin {
         if(format.empty())
             format = "hlg";
 
+	if( !isCapablityCheckPassed( pqmode, source, format, "HLGMode" ) {
+            LOGERR("%s: CapablityCheck failed for HLGMode\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         tvError_t ret = SetTVHLGMode(value.c_str());
 
         if(ret != tvERROR_NONE) {
@@ -4178,6 +4476,11 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "hlg";
+
+	if( !isCapablityCheckPassed( pqmode, source, format, "HLGMode" ) {
+            LOGERR("%s: CapablityCheck failed for HLGMode\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,TVSETTINGS_HLGMODE_RFC_PARAM);
         if ( err != tr181Success ) {
@@ -4247,7 +4550,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetHLGCaps(range,pqmode,source,format);
+        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"HLGMode");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -4407,6 +4710,29 @@ namespace Plugin {
         std::string color;
         std::string ctrl;
         int value;
+	std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        tvError_t ret = tvERROR_NONE;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "global";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "global";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "global";
+
+        if( !isCapablityCheckPassed( pqmode, source, format, "WhiteBalance" ) {
+            LOGERR("%s: CapablityCheck failed for WhiteBalance\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         if(parameters.HasLabel("applies") && parameters.HasLabel("color") && parameters.HasLabel("ctrl") && parameters.HasLabel("value"))
         {
             color = parameters["color"].String();
@@ -4471,6 +4797,30 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         tvError_t ret = tvERROR_NONE;
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        tvError_t ret = tvERROR_NONE;
+
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+        if(pqmode.empty())
+            pqmode = "global";
+
+        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        if(source.empty())
+            source = "global";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "global";
+
+        if( !isCapablityCheckPassed( pqmode, source, format, "WhiteBalance" ) {
+            LOGERR("%s: CapablityCheck failed for WhiteBalance\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         string identifier=(std::string(TVSETTINGS_GENERIC_STRING_RFC_PARAM)+std::string("wb."));
 
         tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,identifier.c_str());
@@ -4706,7 +5056,7 @@ namespace Plugin {
              ret = SetLowLatencyState( lowLatencyIndex );
         }
 		else
-            LOGINFO("Set not required for this request!!! Just Save it\n");
+            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(ret != tvERROR_NONE) {
             LOGWARN("Failed to setLowLatency\n");
@@ -4830,7 +5180,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetLowLatencyCaps(range,pqmode,source,format);
+        tvError_t ret = GetLowLatencyCaps(range,pqmode,source,format,"LowLatencyState");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
