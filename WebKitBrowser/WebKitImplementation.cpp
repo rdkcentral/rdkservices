@@ -538,6 +538,7 @@ static GSourceFuncs _handlerIntervention =
                 , Compositor()
                 , Inspector()
                 , InspectorNative()
+                , InspectorPort()
                 , FPS(false)
                 , Cursor(false)
                 , Touch(false)
@@ -606,6 +607,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("compositor"), &Compositor);
                 Add(_T("inspector"), &Inspector);
                 Add(_T("inspectornative"), &InspectorNative);
+                Add(_T("inspectorport"), &InspectorPort);
                 Add(_T("fps"), &FPS);
                 Add(_T("cursor"), &Cursor);
                 Add(_T("touch"), &Touch);
@@ -681,6 +683,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::String Compositor;
             Core::JSON::String Inspector;
             Core::JSON::Boolean InspectorNative;
+            Core::JSON::String InspectorPort;
             Core::JSON::Boolean FPS;
             Core::JSON::Boolean Cursor;
             Core::JSON::Boolean Touch;
@@ -2452,6 +2455,9 @@ static GSourceFuncs _handlerIntervention =
                     Core::SystemInfo::SetEnvironment(_T("WEBKIT_INSPECTOR_SERVER"), _config.Inspector.Value(), !environmentOverride);
                 } else {
                     Core::SystemInfo::SetEnvironment(_T("WEBKIT_INSPECTOR_HTTP_SERVER"), _config.Inspector.Value(), !environmentOverride);
+                }
+                if (_config.InspectorPort.Value().empty() == false) {
+                    Core::SystemInfo::SetEnvironment(_T("WEBKIT_INSPECTOR_PORT"), _config.InspectorPort.Value(), !environmentOverride);
                 }
 #else
                 if (_config.Automation.Value()) {
