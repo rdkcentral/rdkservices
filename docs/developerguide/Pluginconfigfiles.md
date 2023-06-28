@@ -13,7 +13,7 @@ set (preconditions Platform)
 set (callsign "org.rdk.FooPlugin")
 
 map()
-    kv(key ${PLUGIN_FooPlugin_KEY})
+    kv(key ${PLUGIN_FOOPLUGIN_KEY})
     kv(maxsize 1000000)
     kv(maxvalue 1000)
 end()

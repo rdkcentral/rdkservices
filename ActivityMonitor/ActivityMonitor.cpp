@@ -277,10 +277,16 @@ namespace WPEFramework
                     AppConfig conf;
 
                     getNumberParameterObject(m, "appPid", conf.pid);
+
+                    if (0 == conf.pid)
+                    {
+                        LOGERR("Invalid appPid: '%s'", parameters["appPid"].String().c_str());
+                        continue;
+                    }
+
                     getNumberParameterObject(m, "memoryThresholdMB", conf.memoryThresholdsMB);
                     getNumberParameterObject(m, "cpuThresholdPercent", conf.cpuThresholdPercent);
                     getNumberParameterObject(m, "cpuThresholdSeconds", conf.cpuThresholdSeconds);
-
 
                     m_monitorParams->config.push_back(conf);
                 }
@@ -294,6 +300,12 @@ namespace WPEFramework
             {
                 std::lock_guard<std::mutex> lock(m_monitoringMutex);
                 m_stopMonitoring = false;
+            }
+
+            if (0 == m_monitorParams->config.size())
+            {
+                LOGERR("Empty app list to monitor");
+                returnResponse(false);
             }
 
             m_monitor = std::thread(threadRun, this);

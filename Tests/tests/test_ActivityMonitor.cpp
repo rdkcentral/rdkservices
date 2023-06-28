@@ -26,8 +26,10 @@
 #include "IarmBusMock.h"
 #include <fstream>
 #include <unistd.h>
+#include "WrapsMock.h"
 
 using namespace WPEFramework;
+using ::testing::NiceMock;
 
 namespace {
 const string regFile = _T("/opt/waylandregistry.conf");
@@ -40,6 +42,7 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
+    NiceMock<WrapsImplMock> wrapsImplMock;
 
     ActivityMonitorTest()
         : plugin(Core::ProxyType<Plugin::ActivityMonitor>::Create())
@@ -47,10 +50,13 @@ protected:
         , connection(1, 0)
     {
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
+        Wraps::getInstance().impl = &wrapsImplMock; /*Set up mock for fopen;
+                                                      to use the mock implementation/the default behavior of the fopen function from Wraps class.*/
     }
     virtual ~ActivityMonitorTest() override
     {
         plugin->Deinitialize(nullptr);
+        Wraps::getInstance().impl = nullptr;
     }
 };
 

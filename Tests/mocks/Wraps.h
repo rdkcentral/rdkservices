@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <mntent.h>
 
 class WrapsImpl {
 public:
@@ -10,6 +11,9 @@ public:
     virtual FILE* popen(const char* command, const char* type) = 0;
     virtual int pclose(FILE *pipe) = 0;
     virtual void syslog(int pri, const char* fmt, va_list args) = 0;
+    virtual FILE* fopen(const char* filename, const char* mode) = 0;
+    virtual FILE* setmntent(const char* command, const char* type) = 0;
+    virtual struct mntent* getmntent(FILE *pipe) = 0;
 };
 
 class Wraps {
@@ -36,9 +40,24 @@ public:
     {
         return getInstance().impl->pclose(pipe);
     }
-	
+
     static void syslog(int pri, const char* fmt, va_list args)
     {
         getInstance().impl->syslog(pri, fmt, args);
+    }
+
+    static FILE* fopen(const char* filename, const char* mode)
+    {
+       return getInstance().impl->fopen(filename,mode);
+    }
+
+	static FILE* setmntent(const char* command, const char* type)
+    {
+        return getInstance().impl->setmntent(command, type);
+    }
+
+    static struct mntent* getmntent(FILE* pipe)
+    {
+        return getInstance().impl->getmntent(pipe);
     }
 };
