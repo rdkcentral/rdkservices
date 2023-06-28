@@ -3795,7 +3795,7 @@ namespace WPEFramework {
                     if (!trial.compare(0, 8, str2)) {
                         std::string gp = trial.c_str();
                         std::string delimiter = "=";
-                        clientVersionStr = gp.substr((gp.find(delimiter)+1), 12);
+                        clientVersionStr = gp.substr((gp.find(delimiter)+1));
                         break;
                     }
                 }
