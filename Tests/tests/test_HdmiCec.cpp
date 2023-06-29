@@ -31,13 +31,14 @@
 #include "WrapsMock.h"
 
 using namespace WPEFramework;
+using ::testing::NiceMock;
 
 class HdmiCecTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::HdmiCec> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
-	testing::NiceMock<WrapsImplMock> wrapsImplMock;
+	NiceMock<WrapsImplMock> wrapsImplMock;
     string response;
 
     HdmiCecTest()
@@ -57,26 +58,22 @@ class HdmiCecDsTest : public HdmiCecTest {
 protected:
     testing::NiceMock<LibCCECImplMock> libCCECImplMock;
     testing::NiceMock<ConnectionImplMock> connectionImplMock;
-	testing::NiceMock<WrapsImplMock> wrapsImplMock;
     HdmiCecDsTest()
         : HdmiCecTest()
     {
         LibCCEC::getInstance().impl = &libCCECImplMock;
         Connection::getInstance().impl = &connectionImplMock;
-		Wraps::getInstance().impl = &wrapsImplMock;
     }
     virtual ~HdmiCecDsTest() override
     {
         LibCCEC::getInstance().impl = nullptr;
         Connection::getInstance().impl = nullptr;
-		Wraps::getInstance().impl = nullptr;
     }
 };
 
 class HdmiCecInitializedTest : public HdmiCecTest {
 protected:
     testing::NiceMock<IarmBusImplMock> iarmBusImplMock;
-	testing::NiceMock<WrapsImplMock> wrapsImplMock;
     IARM_EventHandler_t cecMgrEventHandler;
     IARM_EventHandler_t dsHdmiEventHandler;
     testing::NiceMock<LibCCECImplMock> libCCECImplMock;
@@ -89,7 +86,6 @@ protected:
         IarmBus::getInstance().impl = &iarmBusImplMock;
         LibCCEC::getInstance().impl = &libCCECImplMock;
         Connection::getInstance().impl = &connectionImplMock;
-		Wraps::getInstance().impl = &wrapsImplMock;
 
         ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
@@ -123,7 +119,6 @@ protected:
         IarmBus::getInstance().impl = nullptr;
         LibCCEC::getInstance().impl = nullptr;
         Connection::getInstance().impl = nullptr;
-		Wraps::getInstance().impl = nullptr;
         //Turning off HdmiCec. otherwise we get segementation faults as things memory early while threads are still running
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": false}"), response));
         EXPECT_EQ(response, string("{\"success\":true}"));
