@@ -12,9 +12,10 @@
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
 #include "ColorMock.h"
+#include "WrapsMock.h"
 
 using namespace WPEFramework;
-
+using ::testing::NiceMock;
 using testing::Eq;
 
 class FrontPanelTest : public ::testing::Test {
@@ -22,6 +23,7 @@ protected:
     Core::ProxyType<Plugin::FrontPanel> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
+	NiceMock<WrapsImplMock> wrapsImplMock;
     string response;
 
     FrontPanelTest()
@@ -29,8 +31,13 @@ protected:
         , handler(*(plugin))
         , connection(1, 0)
     {
+		Wraps::getInstance().impl = &wrapsImplMock; /*Set up mock for fopen;
+                                                      to use the mock implementation/the default behavior of the fopen function from Wraps class.*/
     }
-    virtual ~FrontPanelTest() = default;
+    virtual ~FrontPanelTest() override
+	{
+		Wraps::getInstance().impl = nullptr;
+	}
 };
 
 class FrontPanelDsTest : public FrontPanelTest {
