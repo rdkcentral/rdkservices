@@ -141,6 +141,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             registerMethod("getCaptivePortalURI", &Network::getCaptivePortalURI, this);
             registerMethod("stopConnectivityMonitoring", &Network::stopConnectivityMonitoring, this);
             registerMethod("getPublicIP", &Network::getPublicIP, this);
+            registerMethod("getDhcpOption", &Network::getDhcpOption, this);
             registerMethod("setStunEndPoint", &Network::setStunEndPoint, this);
 
             const char * script1 = R"(grep DEVICE_TYPE /etc/device.properties | cut -d "=" -f2 | tr -d '\n')";
@@ -160,6 +161,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             m_useIpv4EthCache = false;
             m_useIpv6EthCache = false;
             m_useStbIPCache = false;
+            m_useDhcpOptCache = false;
             m_stbIpCache = "";
             m_useDefInterfaceCache = false;
             m_defInterfaceCache = "";
@@ -212,6 +214,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, eventHandler) );
+                    IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DHCP_OPTION_CHANGED, eventHandler) );
                     LOGINFO("Successfully activated Network Plugin");
                     m_isPluginInited = true;
                 }
@@ -241,6 +244,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, eventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DHCP_OPTION_CHANGED, eventHandler) );
             }
             Unregister("getQuirks");
             Unregister("getInterfaces");
@@ -263,6 +267,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             Unregister("startConnectivityMonitoring");
             Unregister("stopConnectivityMonitoring");
             Unregister("getPublicIP");
+            Unregister("getDhcpOption");
             Unregister("setStunEndPoint");
 
             Network::_instance = nullptr;
@@ -361,6 +366,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, eventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DHCP_OPTION_CHANGED, eventHandler) );
                 LOGINFO("NETWORK_AVAILABILITY_RETRY_SUCCESS: threadEventRegistration successfully subscribed to IARM event for Network Plugin");
                 m_isPluginInited = true;
             }
@@ -1461,6 +1467,41 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             return (Core::ERROR_NONE);
         }
 
+        uint32_t Network::getDhcpOption(const JsonObject& parameters, JsonObject& response)
+        {
+            bool result = false;
+
+            if (parameters.HasLabel("dhcpOption"))
+            {
+                int dhcpOption = parameters["dhcpOption"].Number();
+
+                switch(dhcpOption)
+                {
+                    case DHCP_OPTION43:
+                        if(m_useDhcpOptCache)
+                        {
+                           response["option43"] =  m_dhcpOpt43Cache;
+                        }
+                        else
+                        {
+                            response["option43"] = string("");
+                        }
+
+                        result = true;
+                    break;
+                    default:
+                        LOGERR ("Invalid dhcp option < %d >", dhcpOption);
+                }
+            }
+            else
+            {
+                LOGWARN("interval parameter not included");
+            }
+
+            response["success"] = result;
+            return (Core::ERROR_NONE);
+        }
+
         /*
          * Notifications
          */
@@ -1518,6 +1559,45 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             sendNotify("onInternetStatusChange", params);
         }
 
+        void Network::onDhcpOptionChanged(std::string& dhcpOptDate , int dhcpOptTyp)
+        {
+            JsonObject params;
+            JsonObject option43;
+            Core::OptionalType<Core::JSON::Error> error;
+
+            LOGINFO("dhcp onDhcpOptionChanged json data = \n%s", dhcpOptDate.c_str());
+            if(dhcpOptDate.empty())
+            {
+                LOGERR("dhcp option data NULL");
+                return;
+            }
+
+            switch(dhcpOptTyp)
+            {
+                case DHCP_OPTION43:
+                {
+                    m_dhcpOpt43Cache = dhcpOptDate;
+                    m_useDhcpOptCache = true;
+                    if (!option43.FromString(dhcpOptDate, error))
+                    {
+                        LOGERR("Failed to parse dhcp option json string");
+                        return;
+                    }
+                    else
+                    {
+                        params["option43"] = option43;
+                    }
+
+                    break;
+                }
+                default:
+                    LOGERR("dhcp option invalied !");
+                    return;
+            }
+
+            sendNotify("onDhcpOptionChanged", params);
+        }
+
         void Network::onInterfaceIPAddressChanged(string interface, string ipv6Addr, string ipv4Addr, bool acquired)
         {
             JsonObject params;
@@ -1547,6 +1627,8 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                     m_useIpv4EthCache = false;
                 }
             }
+            if(!acquired)
+                m_useDhcpOptCache = false;
             params["status"] = string (acquired ? "ACQUIRED" : "LOST");
             sendNotify("onIPAddressStatusChanged", params);
         }
@@ -1645,7 +1727,20 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             {
                 InternetConnectionState_t *e = (InternetConnectionState_t*) data;
                 onInternetStatusChange(*e);
+                break;
             }
+
+            case IARM_BUS_NETWORK_MANAGER_EVENT_DHCP_OPTION_CHANGED:
+            {
+                IARM_BUS_NetSrvMgr_DhcpOpt_EventData_t *e = (IARM_BUS_NetSrvMgr_DhcpOpt_EventData_t*) data;
+                if(e->dhcpOptData != nullptr)
+                {
+                    std::string dhcpOption(e->dhcpOptData);
+                    onDhcpOptionChanged(dhcpOption, e->dhcpOptTyp);
+                }
+                //TODO else
+            }
+
             }
         }
 

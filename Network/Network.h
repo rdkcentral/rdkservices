@@ -46,6 +46,7 @@ typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS,
     IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE,
     IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED,
+    IARM_BUS_NETWORK_MANAGER_EVENT_DHCP_OPTION_CHANGED,
     IARM_BUS_NETWORK_MANAGER_MAX,
 } IARM_Bus_NetworkManager_EventId_t;
 
@@ -143,6 +144,16 @@ typedef struct
     char public_ip[MAX_IP_ADDRESS_LEN];
 } IARM_BUS_NetSrvMgr_Iface_StunRequest_t;
 
+typedef enum _NSM_DhcpOptions{
+    DHCP_OPTION43 = 43,  // vendor specific info
+    DHCP_OPTION114 = 114 // captive portal
+} NSM_DhcpOptions_t;
+
+typedef struct _IARM_BUS_NetSrvMgr_DhcpOpt_EventData_t {
+   int dhcpOptTyp;
+   char dhcpOptData[1024];   // vendor-specific data (suboption)
+} IARM_BUS_NetSrvMgr_DhcpOpt_EventData_t;
+
 namespace WPEFramework {
     namespace Plugin {
 
@@ -200,6 +211,7 @@ namespace WPEFramework {
             uint32_t stopConnectivityMonitoring(const JsonObject& parameters, JsonObject& response);
             uint32_t getPublicIP(const JsonObject& parameters, JsonObject& response);
             uint32_t setStunEndPoint(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDhcpOption(const JsonObject& parameters, JsonObject& response);
             bool getIPIARMWrapper(IARM_BUS_NetSrvMgr_Iface_Settings_t& iarmData, const string interface, const string ipversion);
 
             void onInterfaceEnabledStatusChanged(std::string interface, bool enabled);
@@ -207,6 +219,7 @@ namespace WPEFramework {
             void onInternetStatusChange(InternetConnectionState_t InternetConnectionState);
             void onInterfaceIPAddressChanged(std::string interface, std::string ipv6Addr, std::string ipv4Addr, bool acquired);
             void onDefaultInterfaceChanged(std::string oldInterface, std::string newInterface);
+            void onDhcpOptionChanged(std::string& dhcpOptDate, int dhcpOptTyp);
 
             static void eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
@@ -281,6 +294,8 @@ namespace WPEFramework {
             std::atomic<bool> m_useIpv4EthCache;
             std::atomic<bool> m_useIpv6EthCache;
             std::atomic<bool> m_useStbIPCache;
+            std::atomic<bool> m_useDhcpOptCache;
+            std::string m_dhcpOpt43Cache;
             string m_stbIpCache;
             std::atomic<bool> m_useDefInterfaceCache;
             string m_defInterfaceCache;
@@ -292,6 +307,7 @@ namespace WPEFramework {
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6WifiCache;
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4EthCache;
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6EthCache;
+
         };
     } // namespace Plugin
 } // namespace WPEFramework
