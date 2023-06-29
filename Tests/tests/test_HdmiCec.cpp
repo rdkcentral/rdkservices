@@ -160,12 +160,12 @@ protected:
 TEST_F(HdmiCecTest, RegisteredMethods)
 {
 
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setEnabled")));
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getEnabled")));
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCECAddresses")));
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("sendMessage")));
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getActiveSourceStatus")));
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDeviceList")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setEnabled")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getEnabled")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCECAddresses")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("sendMessage")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getActiveSourceStatus")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDeviceList")));
     
 }
 
