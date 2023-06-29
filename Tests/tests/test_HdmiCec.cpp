@@ -28,13 +28,17 @@
 #include "ServiceMock.h"
 #include "devicesettings.h"
 #include "HdmiCecMock.h"
+#include "WrapsMock.h"
+
 using namespace WPEFramework;
+using ::testing::NiceMock;
 
 class HdmiCecTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::HdmiCec> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
+	NiceMock<WrapsImplMock> wrapsImplMock;
     string response;
 
     HdmiCecTest()
@@ -42,8 +46,13 @@ protected:
         , handler(*(plugin))
         , connection(1, 0)
     {
+		Wraps::getInstance().impl = &wrapsImplMock; /*Set up mock for fopen;
+                                                      to use the mock implementation/the default behavior of the fopen function from Wraps class.*/
     }
-    virtual ~HdmiCecTest() = default;
+    virtual ~HdmiCecTest() override
+	{
+		Wraps::getInstance().impl = nullptr;
+	}
 };
 class HdmiCecDsTest : public HdmiCecTest {
 protected:
