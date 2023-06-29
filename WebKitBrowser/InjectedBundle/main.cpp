@@ -108,7 +108,7 @@ public:
             TRACE(Trace::Error, (_T("Could not open connection to node %s. Error: %s"), _comClient->Source().RemoteId().c_str(), Core::NumberType<uint32_t>(result).Text().c_str()));
         } else {
             // Due to the LXC container support all ID's get mapped. For the TraceBuffer, use the host given ID.
-            Trace::TraceUnit::Instance().Open(_comClient->ConnectionId());
+            Messaging::MessageUnit::Instance().Open(_comClient->ConnectionId());
         }
         _whiteListedOriginDomainPairs = WhiteListedOriginDomainsList::RequestFromWPEFramework();
 
@@ -119,6 +119,8 @@ public:
 
     void Deinitialize()
     {
+        Messaging::MessageUnit::Instance().Close();
+
 #if defined(UPDATE_TZ_FROM_FILE)
         _tzSupport.Deinitialize();
 #endif
@@ -337,7 +339,7 @@ static WKBundlePageUIClientV4 s_pageUIClient = {
         uint32_t columnNumber, WKStringRef url, const void* clientInfo) {
         auto prepareMessage = [&]() {
             string messageString = WebKit::Utils::WKStringToString(message);
-            const uint16_t maxStringLength = Trace::TRACINGBUFFERSIZE - 1;
+            const uint16_t maxStringLength = Messaging::MessageUnit::DataSize - 1;
             if (messageString.length() > maxStringLength) {
                 messageString = messageString.substr(0, maxStringLength);
             }
