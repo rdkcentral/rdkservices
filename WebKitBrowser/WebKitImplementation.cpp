@@ -554,6 +554,7 @@ static GSourceFuncs _handlerIntervention =
                 , CertificateCheck(true)
                 , ClientIdentifier()
                 , AllowWindowClose(false)
+                , AllowMoveToSuspendOnWindowClose(false)
                 , NonCompositedWebGLEnabled(false)
                 , EnvironmentOverride(false)
                 , Automation(false)
@@ -622,6 +623,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("javascript"), &JavaScript);
                 Add(_T("clientidentifier"), &ClientIdentifier);
                 Add(_T("windowclose"), &AllowWindowClose);
+                Add(_T("allowmovetosuspendonwindowclose"), &AllowMoveToSuspendOnWindowClose);
                 Add(_T("noncompositedwebgl"), &NonCompositedWebGLEnabled);
                 Add(_T("environmentoverride"), &EnvironmentOverride);
                 Add(_T("automation"), &Automation);
@@ -696,6 +698,7 @@ static GSourceFuncs _handlerIntervention =
             JavaScriptSettings JavaScript;
             Core::JSON::String ClientIdentifier;
             Core::JSON::Boolean AllowWindowClose;
+            Core::JSON::Boolean AllowMoveToSuspendOnWindowClose;
             Core::JSON::Boolean NonCompositedWebGLEnabled;
             Core::JSON::Boolean EnvironmentOverride;
             Core::JSON::Boolean Automation;
@@ -3076,6 +3079,9 @@ static GSourceFuncs _handlerIntervention =
               webkit_settings_set_enable_tabs_to_links(preferences, _config.SpatialNavigation.Value());
             }
             webkit_settings_set_allow_scripts_to_close_windows(preferences, _config.AllowWindowClose.Value());
+#if WEBKIT_CHECK_VERSION(2, 38, 0)
+            webkit_settings_set_allow_move_to_suspend_on_window_close(preferences, _config.AllowMoveToSuspendOnWindowClose.Value());
+#endif
             webkit_settings_set_enable_non_composited_webgl(preferences, _config.NonCompositedWebGLEnabled.Value());
 
             // Media Content Types Requiring Hardware Support
