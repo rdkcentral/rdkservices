@@ -419,10 +419,10 @@ TEST_F(FrontPanelInitializedEventDsTest, getFrontPanelLights)
 
 TEST_F(FrontPanelInitializedEventDsTest, getPreferences)
 {
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPreferences"), _T("{\"preferences\":{\"test\": true}}"), response));
-    //EXPECT_EQ(response, string("{\"success\":true}"));
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPreferences"), _T(""), response));
-    //EXPECT_EQ(response, string("{\"preferences\":{\"test\":true},\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setPreferences"), _T("{\"preferences\":{\"test\": true}}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPreferences"), _T(""), response));
+    EXPECT_EQ(response, string("{\"preferences\":{\"test\":true},\"success\":true}"));
 }
 
 TEST_F(FrontPanelInitializedEventDsTest, is24HourClock)
