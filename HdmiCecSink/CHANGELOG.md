@@ -16,6 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.14] 2023-06-20
+### Fixed
+- During THREAD_STATE_PING, Updating the info if anything that not updated for already present devices
+
+## [1.0.13] - 2023-05-05
+### Fixed
+- Added Gunit test support
+
 ## [1.0.12] - 2023-04-12
 ### Fixed
 - Fixed IARM_Bus_UnRegisterEventHandler  call to IARM_Bus_RemoveEventHandler

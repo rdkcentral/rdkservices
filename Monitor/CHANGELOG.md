@@ -16,6 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.3] - 2023-06-21
+### Fixed
+- Fixed the ResidentApp failed to activate & crash in Thunder R4
+
+## [1.0.2] - 2023-06-05
+### Added 
+- Added Support to build the plugin to both R4 & R2
+
 ## [1.0.1] - 2023-04-20
 ### Fixed
 - Fix a crash in Measure() method caused by a race for '\_source' member

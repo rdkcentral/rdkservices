@@ -16,6 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.4] - 2023-06-05
+### Added 
+- Added Support to build the plugin to both R4 & R2
+
+## [1.0.3] - 2023-05-05
+### Fixed
+- Added Gunit test support
+
 ## [1.0.2] - 2023-04-12
 ### Fixed
 - Fixed IARM_Bus_UnRegisterEventHandler  call to IARM_Bus_RemoveEventHandler

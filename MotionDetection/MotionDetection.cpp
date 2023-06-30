@@ -182,7 +182,13 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             string index = parameters["index"].String();
             string sMode = parameters["mode"].String();
-            int mode = stoi(sMode);
+            int mode;
+            try {
+                mode = stoi(sMode);
+            }catch (const std::exception& err) {
+                LOGERR("Failed to get Mode value..!");
+                returnResponse(false);
+            }
             MOTION_DETECTION_Result_t rc = MOTION_DETECTION_RESULT_SUCCESS;
             rc = MOTION_DETECTION_ArmMotionDetector((MOTION_DETECTION_Mode_t)mode, index.c_str());
 
@@ -234,7 +240,13 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             string index = parameters["index"].String();
             string sPeriod = parameters["period"].String();
-            int period = stoi(sPeriod);
+            int period;
+            try{
+                period = stoi(sPeriod);
+            }catch (const std::exception& err) {
+                 LOGERR("Failed to get period value..!");
+                returnResponse(false);
+            }
             MOTION_DETECTION_Result_t rc = MOTION_DETECTION_RESULT_SUCCESS;
             rc = MOTION_DETECTION_SetNoMotionPeriod(index.c_str(), period);
 

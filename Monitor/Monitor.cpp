@@ -110,8 +110,11 @@ namespace Plugin {
                     Core::ProxyType<Web::JSONBodyType<Core::JSON::ArrayType<Monitor::Data>>> response(jsonBodyDataFactory.Element());
 
                     _monitor->Snapshot(*response);
-
+#ifndef USE_THUNDER_R4
                     result->Body(Core::proxy_cast<Web::IBody>(response));
+#else
+                    result->Body(Core::ProxyType<Web::IBody>(response));
+#endif /* USE_THUNDER_R4 */
                 }
             } else {
                 MetaData memoryInfo;
@@ -121,8 +124,11 @@ namespace Plugin {
                     Core::ProxyType<Web::JSONBodyType<Monitor::Data::MetaData>> response(jsonMemoryBodyDataFactory.Element());
 
                     *response = memoryInfo;
-
+#ifndef USE_THUNDER_R4
                     result->Body(Core::proxy_cast<Web::IBody>(response));
+#else
+                    result->Body(Core::ProxyType<Web::IBody>(response));
+#endif /* USE_THUNDER_R4 */
                 }
             }
 
@@ -135,8 +141,11 @@ namespace Plugin {
                 Core::ProxyType<Web::JSONBodyType<Monitor::Data::MetaData>> response(jsonMemoryBodyDataFactory.Element());
 
                 *response = memoryInfo;
-
+#ifndef USE_THUNDER_R4
                 result->Body(Core::proxy_cast<Web::IBody>(response));
+#else
+                result->Body(Core::ProxyType<Web::IBody>(response));
+#endif /* USE_THUNDER_R4 */
             }
 
             result->ContentType = Web::MIME_JSON;

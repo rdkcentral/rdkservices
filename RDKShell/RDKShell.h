@@ -26,7 +26,9 @@
 #include <rdkshell/linuxkeys.h>
 #include <interfaces/ICapture.h>
 #include "tptimer.h"
-
+#ifdef ENABLE_RIALTO_FEATURE
+#include "RialtoConnector.h"
+#endif
 namespace WPEFramework {
 
     namespace Plugin {
@@ -399,7 +401,13 @@ namespace WPEFramework {
 
               private:
                   virtual void StateChange(PluginHost::IShell* shell);
-
+#ifdef USE_THUNDER_R4
+                  virtual void Activation(const string& name, PluginHost::IShell* plugin);
+                  virtual void Deactivation(const string& name, PluginHost::IShell* plugin);
+                  virtual void  Activated(const string& callSign,  PluginHost::IShell* plugin);
+                  virtual void  Deactivated(const string& callSign,  PluginHost::IShell* plugin);
+                  virtual void  Unavailable(const string& callSign,  PluginHost::IShell* plugin);
+#endif /* USE_THUNDER_R4 */
               private:
                   RDKShell& mShell;
             };
@@ -440,6 +448,9 @@ namespace WPEFramework {
             bool mEnableEasterEggs;
             ScreenCapture mScreenCapture;
             bool mErmEnabled;
+#ifdef ENABLE_RIALTO_FEATURE
+        std::shared_ptr<RialtoConnector>  rialtoConnector;
+#endif //ENABLE_RIALTO_FEATURE
         };
 
         struct PluginData

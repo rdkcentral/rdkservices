@@ -66,8 +66,8 @@
 using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_MINOR 5
+#define API_VERSION_NUMBER_PATCH 0
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -76,6 +76,7 @@ using namespace std;
 #define RFC_PWRMGR2 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.PwrMgr2.Enable"
 
 #define ZONEINFO_DIR "/usr/share/zoneinfo"
+#define LOCALTIME_FILE "/opt/persistent/localtime"
 
 #define DEVICE_PROPERTIES_FILE "/etc/device.properties"
 
@@ -1077,7 +1078,7 @@ namespace WPEFramework {
 		LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
 		IARM_Bus_MFRLib_GetSerializedData_Param_t param;
 		param.bufLen = 0;
-		param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+		param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
 		IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 		param.buffer[param.bufLen] = '\0';
 		LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
@@ -1150,7 +1151,7 @@ namespace WPEFramework {
             param.bufLen = 0;
             param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
             if (!parameter.compare(MODEL_NAME)) {
-                param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+                param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
             } else if (!parameter.compare(HARDWARE_ID)) {
                 param.type = mfrSERIALIZED_TYPE_HWID;
             }
@@ -2376,7 +2377,15 @@ namespace WPEFramework {
 								fflush(f);
 								fsync(fileno(f));
 								fclose(f);
+#ifdef ENABLE_LINK_LOCALTIME
+								// Now create the linux link back to the zone info file to our writeable localtime
+                                				if (Utils::fileExists(LOCALTIME_FILE)) {
+                                					remove (LOCALTIME_FILE);
+                                				}
 
+								LOGWARN("Linux localtime linked to %s\n", city.c_str());
+								symlink(city.c_str(), LOCALTIME_FILE);
+#endif
 							} else {
 								LOGERR("Unable to open %s file.\n", TZ_FILE);
 								populateResponseWithError(SysSrv_FileAccessFailed, response);
@@ -2469,7 +2478,7 @@ namespace WPEFramework {
 						}
 					}else{
 						resp = writeTerritory(territoryStr,regionStr);
-						LOGWARN(" territory name %s ", territoryStr.c_str());
+						LOGWARN(" Region is empty, only territory is updated. territory name %s ", territoryStr.c_str());
 					}
 				}else{
 					JsonObject error;
@@ -2538,11 +2547,28 @@ namespace WPEFramework {
 			if(str.length() > 0){
 				retValue = true;
 				m_strTerritory = str.substr(str.find(":")+1,str.length());
-				getline (inFile, str);
-				if(str.length() > 0){
-					m_strRegion = str.substr(str.find(":")+1,str.length());
+				int index = m_strStandardTerritoryList.find(m_strTerritory);
+				if((m_strTerritory.length() == 3) && (index >=0 && index <= 1100) ){
+					getline (inFile, str);
+					if(str.length() > 0){
+					    m_strRegion = str.substr(str.find(":")+1,str.length());
+					    if(!isRegionValid(m_strRegion))
+					    {
+						    m_strTerritory = "";
+						    m_strRegion = "";
+						    LOGERR("Territory file corrupted  - region : %s",m_strRegion.c_str());
+						    LOGERR("Returning empty values");
+					    }
+					}
 				}
-			}else{
+				else{
+					m_strTerritory = "";
+					m_strRegion = "";
+					LOGERR("Territory file corrupted - territory : %s",m_strTerritory.c_str());
+					LOGERR("Returning empty values");
+				}
+			}
+			else{
 				LOGERR("Invalid territory file");
 			}
 			inFile.close();
@@ -4505,7 +4531,11 @@ namespace WPEFramework {
                 if (file.IsDirectory() == true)
                 {
                   Core::Directory dir(file.Name().c_str());
+#ifndef USE_THUNDER_R4
                   if (dir.Destroy(true) == false)
+#else
+                  if (dir.Destroy() == false)
+#endif
                   {
                     response["message"] = "failed to delete dir: '" + file.Name() + "'";
                     break;
@@ -4532,7 +4562,11 @@ namespace WPEFramework {
             if (file.IsDirectory() == true)
             {
               Core::Directory dir(persistentPath.c_str());
+#ifndef USE_THUNDER_R4
               if (dir.Destroy(true) == false)
+#else
+              if (dir.Destroy() == false)
+#endif
               {
                 response["message"] = "failed to delete dir: '" + persistentPath + "'";
                 break;
