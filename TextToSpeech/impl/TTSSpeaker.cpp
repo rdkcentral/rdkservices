@@ -19,20 +19,13 @@
 
 #include "TTSSpeaker.h"
 #include "TTSURLConstructer.h"
+#include "SatToken.h"
 #include <unistd.h>
 #include <regex>
 
 #define INT_FROM_ENV(env, default_value) ((getenv(env) ? atoi(getenv(env)) : 0) > 0 ? atoi(getenv(env)) : default_value)
 #define TTS_CONFIGURATION_STORE "/opt/persistent/tts.setting.ini"
 #define UPDATE_AND_RETURN(o, n) if(o != n) { o = n; return true; }
-
-
-namespace WPEFramework {
-namespace Plugin {
-bool _readFromFile(std::string filename, TTS::TTSConfiguration &ttsConfig);
-bool _writeToFile(std::string filename, TTS::TTSConfiguration &ttsConfig);
-}//namespace Plugin
-}//namespace WPEFramework
 
 namespace TTS {
 
@@ -42,6 +35,9 @@ TTSConfiguration::TTSConfiguration() :
     m_ttsEndPoint(""),
     m_ttsEndPointSecured(""),
     m_apiKey(""),
+    m_endpointType(""),
+    m_speechRate(""),
+    m_satPluginCallsign(""),
     m_language("en-US"),
     m_voice(""),
     m_volume(MAX_VOLUME),
@@ -59,6 +55,9 @@ TTSConfiguration::TTSConfiguration(TTSConfiguration &config)
     m_ttsEndPointSecured = config.m_ttsEndPointSecured;
     m_language = config.m_language;
     m_apiKey = config.m_apiKey;
+    m_satPluginCallsign = config.m_satPluginCallsign;
+    m_endpointType = config.m_endpointType;
+    m_speechRate = config.m_speechRate;
     m_voice = config.m_voice;
     m_volume = config.m_volume;
     m_rate = config.m_rate;
@@ -76,6 +75,9 @@ TTSConfiguration& TTSConfiguration::operator = (const TTSConfiguration &config)
     m_ttsEndPointSecured = config.m_ttsEndPointSecured;
     m_language = config.m_language;
     m_apiKey = config.m_apiKey;
+    m_satPluginCallsign = config.m_satPluginCallsign;
+    m_endpointType = config.m_endpointType;
+    m_speechRate = config.m_speechRate;
     m_voice = config.m_voice;
     m_volume = config.m_volume;
     m_rate = config.m_rate;
@@ -116,6 +118,26 @@ bool TTSConfiguration::setApiKey(const std::string apikey) {
     }
     else
         TTSLOG_VERBOSE("Invalid api key input \"%s\"", apikey.c_str());
+    return false;
+}
+
+bool TTSConfiguration::setEndpointType(const std::string type) {
+    if(!type.empty())
+    {
+        UPDATE_AND_RETURN(m_endpointType, type);
+    }
+    else
+        TTSLOG_VERBOSE("Invalid EndPoint type input \"%s\"", type.c_str());
+    return false;
+}
+
+bool TTSConfiguration::setSpeechRate(const std::string rate) {
+    if(!rate.empty())
+    {
+        UPDATE_AND_RETURN(m_speechRate, rate);
+    }
+    else
+        TTSLOG_VERBOSE("Invalid Speechrate input \"%s\"", rate.c_str());
     return false;
 }
 
@@ -166,6 +188,14 @@ bool TTSConfiguration::setPrimVolDuck(const int8_t primvolduck) {
     }
     else
         TTSLOG_VERBOSE("Invalid PrimVolDuck input \"%d\"", primvolduck);
+    return false;
+}
+
+bool TTSConfiguration::setSATPluginCallsign(const std::string callsign) {
+    if(!callsign.empty())
+    {
+        UPDATE_AND_RETURN(m_satPluginCallsign, callsign);
+    }
     return false;
 }
 
@@ -871,6 +901,17 @@ void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
         m_currentSpeech = &data;
 
         g_object_set(G_OBJECT(m_source), "location", constructURL(config, data).c_str(), NULL);
+        //Add SAT token for TTS 2.0
+        if((config.endPointType().compare("TTS2")) == 0) {
+            string token = WPEFramework::Plugin::TTS::SatToken::getInstance(config.satPluginCallsign())->getSAT();
+            string authStr = "test, Authorization=(string)\"Bearer\\ " + token + "\"";
+            GstStructure* extraHeaders = gst_structure_from_string((const gchar*)(authStr.c_str()), NULL);
+            if (extraHeaders != NULL)
+            {
+                g_object_set(G_OBJECT(m_source), "extra-headers", extraHeaders, NULL);
+                gst_structure_free(extraHeaders);
+            }    
+        }
         // PCM Sink seems to be accepting volume change before PLAYING state
         g_object_set(G_OBJECT(m_audioVolume), "volume", (double) (data.client->configuration()->volume() / MAX_VOLUME), NULL);
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);

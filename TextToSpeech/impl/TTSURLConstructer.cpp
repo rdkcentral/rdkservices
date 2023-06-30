@@ -85,26 +85,30 @@ std::string TTSURLConstructer::constructURL(TTSConfiguration &config,std::string
         }
     }
     else
-    {
-     
+    {     
         tts_request.append(config.secureEndPoint());
-
         // Voice
-        if(!config.voice().empty()) {
-        tts_request.append("voice=");
-        tts_request.append(config.voice());
+        if(!config.voice().empty()) 
+        {
+            tts_request.append("voice=");
+            tts_request.append(config.voice());
         }
-
         // Language
-        if(!config.language().empty()) {
-        tts_request.append("&language=");
-        tts_request.append(config.language());
+        if(!config.language().empty()) 
+        {
+            tts_request.append("&language=");
+            tts_request.append(config.language());
+        }        
+        if((config.endPointType().compare("TTS2")) == 0) 
+        {
+            tts_request.append("&speaking_rate=");
+            tts_request.append(config.speechRate());
         }
-
-        // Rate / speed
-        tts_request.append("&rate=");
-        tts_request.append(std::to_string(config.rate() > 100 ? 100 : config.rate()));
-
+        else 
+        {   // Rate / speed
+            tts_request.append("&rate=");
+            tts_request.append(std::to_string(config.rate() > 100 ? 100 : config.rate()));
+        }
         // Sanitize String
         std::string sanitizedString;
         if(isfallback)
