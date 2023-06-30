@@ -13,7 +13,6 @@ add_library(${MODULE_NAME} SHARED
         Module.cpp
         TextToSpeech.cpp
         TextToSpeechJsonRpc.cpp
-        ProxyStubs_TextToSpeech.cpp
         TextToSpeechImplementation.cpp
         impl/TTSManager.cpp
         impl/TTSSpeaker.cpp
@@ -32,6 +31,10 @@ find_package(GStreamer REQUIRED)
 
 find_package(Curl)
 
+find_package(${NAMESPACE}Plugins REQUIRED)
+
+find_package(${NAMESPACE}Definitions REQUIRED)
+
 set(AUDIO_CLIENT_LIB "")
 if (BUILD_AMLOGIC)
     set(AUDIO_CLIENT_LIB "audio_client")
@@ -40,7 +43,12 @@ elseif (BUILD_REALTEK)
 endif()
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${GSTREAMER_INCLUDES})
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${CURL_LIBRARY} ${GSTREAMER_LIBRARIES} ${AUDIO_CLIENT_LIB})
+
+target_link_libraries(${MODULE_NAME} PRIVATE
+    ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+    ${NAMESPACE}Definitions::${NAMESPACE}Definitions
+    ${CURL_LIBRARY} ${GSTREAMER_LIBRARIES} ${AUDIO_CLIENT_LIB}
+    )
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
