@@ -68,9 +68,12 @@ namespace Plugin {
         ttsConfig->setSecureEndPoint(GET_STR(config, "secureendpoint", ""));
         ttsConfig->setLanguage(GET_STR(config, "language", "en-US"));
         ttsConfig->setVoice(GET_STR(config, "voice", ""));
+        ttsConfig->setEndpointType(GET_STR(config, "endpoint_type", "TTS1"));
+        ttsConfig->setSpeechRate(GET_STR(config, "speechrate", ""));
         ttsConfig->setVolume(std::stod(GET_STR(config, "volume", "100")));
         ttsConfig->setRate(std::stoi(GET_STR(config, "rate", "50")));
         ttsConfig->setPrimVolDuck(std::stoi(GET_STR(config,"primvolduckpercent", "25")));
+        ttsConfig->setSATPluginCallsign(GET_STR(config, "satplugincallsign", ""));
 
         if(config.HasLabel("voices")) {
             JsonObject voices = config["voices"].Object();
@@ -89,6 +92,7 @@ namespace Plugin {
         TTSLOG_INFO("Language : %s", ttsConfig->language().c_str());
         TTSLOG_INFO("Voice : %s", ttsConfig->voice().c_str());
         TTSLOG_INFO("Volume : %lf", ttsConfig->volume());
+        TTSLOG_INFO("Speech Rate : %s", ttsConfig->speechRate().c_str());
         TTSLOG_INFO("Rate : %u", ttsConfig->rate());
         TTSLOG_INFO("PrimaryVolumeDuck percentage : %d", ttsConfig->primVolDuck());
         TTSLOG_INFO("TTS is %s", ttsConfig->enabled()? "Enabled" : "Disabled");
@@ -218,6 +222,15 @@ namespace Plugin {
         _ttsManager->setAPIKey(apikey);
         _adminLock.Unlock();
         TTSLOG_INFO("api key updated\n");
+        return (Core::ERROR_NONE);
+    }
+    
+    uint32_t TextToSpeechImplementation::SetSpeechRate(const string speechRate)
+    {
+        _adminLock.Lock();
+        _ttsManager->setSpeechRate(speechRate);
+        _adminLock.Unlock();
+        TTSLOG_INFO("speechrate updated %s\n",speechRate.c_str());
         return (Core::ERROR_NONE);
     }
 
@@ -460,6 +473,7 @@ namespace Plugin {
                 ttsConfig.setEnabled(enabled.Value());
                 ttsConfig.setVolume(std::stod(GET_STR(config,"volume","0.0")));
                 ttsConfig.setRate(static_cast<uint8_t>(std::stoi(GET_STR(config,"rate","0"))));
+                ttsConfig.setSpeechRate(GET_STR(config,"speechrate",""));
                 ttsConfig.setPrimVolDuck(static_cast<int8_t>(std::stoi(GET_STR(config,"primvolduckpercent","25"))));
                 ttsConfig.setVoice(GET_STR(config,"voice",""));
                 ttsConfig.setLanguage(GET_STR(config,"language",""));
@@ -489,6 +503,7 @@ namespace Plugin {
         config["enabled"] = JsonValue((bool)ttsConfig.enabled());
         config["volume"] = std::to_string(ttsConfig.volume());
         config["rate"] = std::to_string(ttsConfig.rate());
+        config["speechrate"] = ttsConfig.speechRate();
         config["primvolduckpercent"] = std::to_string(ttsConfig.primVolDuck());
         config["voice"] = ttsConfig.voice();
         config["language"] = ttsConfig.language();

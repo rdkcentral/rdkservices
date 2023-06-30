@@ -75,6 +75,7 @@ public:
     TTS_Error setFallbackText(FallbackData &data);
     TTS_Error setPrimaryVolDuck(const uint8_t prim);
     TTS_Error setAPIKey(string apikey);
+    TTS_Error setSpeechRate(string speechrate);
 
     //Speak APIs
     TTS_Error speak(int speechId, std::string text);
