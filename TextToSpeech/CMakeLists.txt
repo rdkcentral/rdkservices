@@ -7,6 +7,11 @@ set(PLUGIN_TEXTTOSPEECH_MODE "Local" CACHE STRING "Controls if the plugin should
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
+find_package(WPEFrameworkSecurityUtil)
+if(NOT WPEFRAMEWORK_SECURITYUTIL_FOUND)
+    add_definitions(-DSECURITY_TOKEN_ENABLED=0)
+endif()
+
 add_subdirectory(test)
 
 add_library(${MODULE_NAME} SHARED
@@ -19,6 +24,7 @@ add_library(${MODULE_NAME} SHARED
         impl/logger.cpp
         impl/TTSDownloader.cpp
         impl/TTSURLConstructer.cpp
+        impl/SatToken.cpp
         )
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
@@ -47,7 +53,7 @@ target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${GSTREAMER_INCLUDE
 target_link_libraries(${MODULE_NAME} PRIVATE
     ${NAMESPACE}Plugins::${NAMESPACE}Plugins
     ${NAMESPACE}Definitions::${NAMESPACE}Definitions
-    ${CURL_LIBRARY} ${GSTREAMER_LIBRARIES} ${AUDIO_CLIENT_LIB}
+    ${CURL_LIBRARY} ${GSTREAMER_LIBRARIES} ${AUDIO_CLIENT_LIB} ${WPEFRAMEWORK_SECURITYUTIL_LIBRARIES}
     )
 
 install(TARGETS ${MODULE_NAME}
