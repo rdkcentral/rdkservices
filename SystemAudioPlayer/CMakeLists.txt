@@ -6,6 +6,10 @@ set(PLUGIN_SYSTEMAUDIOPLAYER_MODE "Local" CACHE STRING "Controls if the plugin s
 set(PLUGIN_SYSTEMAUDIOPLAYER_STARTUPORDER "40" CACHE STRING "To configure startup order of SystemAudioPlayer plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
+if (USE_THUNDER_R4)
+    find_package(${NAMESPACE}COM REQUIRED)
+    find_package(${NAMESPACE}WebSocket REQUIRED)
+endif (USE_THUNDER_R4)
 
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 find_package(websocketpp REQUIRED)
@@ -39,7 +43,7 @@ list(APPEND CMAKE_MODULE_PATH
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GSTREAMERBASE REQUIRED gstreamer-app-1.0)
 
-find_package(GSTREAMER REQUIRED)
+find_package(GStreamer REQUIRED)
 
 find_package(Curl)
 
@@ -79,6 +83,11 @@ target_link_libraries(${MODULE_NAME} PRIVATE ${Boost_SYSTEM_LIBRARY})
 target_link_libraries(${MODULE_NAME} PRIVATE OpenSSL::SSL)
 target_link_libraries(${MODULE_NAME} PRIVATE OpenSSL::Crypto)
 target_link_libraries(${MODULE_NAME} PRIVATE ${Boost_FILESYSTEM_LIBRARY})
+
+if (USE_THUNDER_R4)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}COM::${NAMESPACE}COM)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}WebSocket::${NAMESPACE}WebSocket)
+endif (USE_THUNDER_R4)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

@@ -694,6 +694,7 @@ TEST_F(WarehouseInitializedTest, getHardwareTestResults)
 }
 
 extern "C" FILE* __real_popen(const char* command, const char* type);
+extern "C" int __real_pclose(FILE* pipe);
 TEST_F(WarehouseInitializedTest, getDeviceInfo)
 {
     const string deviceInfoScript = _T("/lib/rdk/getDeviceDetails.sh");
@@ -712,6 +713,11 @@ TEST_F(WarehouseInitializedTest, getDeviceInfo)
             [&](const char* command, const char* type) -> FILE* {
                 EXPECT_EQ(string(command), string(_T("sh /lib/rdk/getDeviceDetails.sh read")));
                 return __real_popen(command, type);
+            }));
+    ON_CALL(wrapsImplMock, pclose(::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [&](FILE* pipe){
+                return __real_pclose(pipe);
             }));
 
     //Invoke getDeviceInfo

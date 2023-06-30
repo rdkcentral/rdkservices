@@ -16,6 +16,22 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.20] - 2023-06-01
+### Added
+- Implementation to get the partner provisioning context from whoAmI
+
+## [1.0.19] - 2023-05-30
+### Fixed
+- Updated unsolicited_maintenance completed status as true in stopMaintenance()
+
+## [1.0.18] - 2023-05-11
+### Fixed
+- Updated maintenance tasks names
+
+## [1.0.17] - 2023-04-25
+### Fixed
+- Software update start and stop works through single access point, swupdate_utility.sh
+
 ## [1.0.16] - 2023-04-12
 ### Fixed
 - Fixed IARM_Bus_UnRegisterEventHandler  call to IARM_Bus_RemoveEventHandler

@@ -362,6 +362,7 @@ typedef struct {
 #define CTRLM_VOICE_IARM_CALL_SESSION_TYPES        "Voice_SessionTypes"       ///< IARM Call to get voice session request types
 #define CTRLM_VOICE_IARM_CALL_SESSION_REQUEST      "Voice_SessionRequest"     ///< IARM Call to request a voice session
 #define CTRLM_VOICE_IARM_CALL_SESSION_TERMINATE    "Voice_SessionTerminate"   ///< IARM Call to terminate a voice session
+#define CTRLM_VOICE_IARM_CALL_SESSION_AUDIO_STREAM_START "Voice_SessionAudioStreamStart"   ///< IARM Call to start an audio stream in a voice session
 
 #define CTRLM_VOICE_IARM_CALL_RESULT_LEN_MAX       (2048) ///< IARM Call result length
 

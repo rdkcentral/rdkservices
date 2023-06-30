@@ -286,7 +286,9 @@ jobs:
           /opt/standbyReason.txt
           /opt/tmtryoptout
           /opt/fwdnldstatus.txt
+          /opt/dcm.properties
           /etc/device.properties
+          /etc/dcm.properties
           /etc/authService.conf
           /version.txt
           &&
@@ -294,7 +296,9 @@ jobs:
           /opt/standbyReason.txt
           /opt/tmtryoptout
           /opt/fwdnldstatus.txt
+          /opt/dcm.properties
           /etc/device.properties
+          /etc/dcm.properties          
           /etc/authService.conf
           /version.txt
 

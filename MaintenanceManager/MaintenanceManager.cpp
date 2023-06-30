@@ -66,14 +66,18 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 16
+#define API_VERSION_NUMBER_PATCH 20
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
 #define PROC_DIR "/proc"
+#define MAINTENANCE_MANAGER_RFC_CALLER_ID "MaintenanceManager"
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define TR181_STOP_MAINTENANCE  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StopMaintenance.Enable"
 #define TR181_RDKVFWUPGRADER  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKFirmwareUpgrader.Enable"
+#define TR181_PARTNER_ID "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName"
+#define TR181_TARGET_PROPOSITION "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.TargetProposition"
+#define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
 
 string notifyStatusToString(Maint_notify_status_t &status)
 {
@@ -224,8 +228,14 @@ namespace WPEFramework {
         string script_names[]={
             "DCMscript_maintaince.sh",
             "RFCbase.sh",
-            "deviceInitiatedFWDnld.sh",
+            "swupdate_utility.sh",
             "uploadSTBLogs.sh"
+        };
+
+        string deviceInitializationContext[] = {
+            "partnerId",
+            "targetProposition",
+            "regionalConfigService"
         };
 
         /**
@@ -255,7 +265,13 @@ namespace WPEFramework {
             MaintenanceManager::m_task_map[task_names_foreground[2].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[3].c_str()]=false;
 
+            MaintenanceManager::m_param_map[deviceInitializationContext[0].c_str()] = TR181_PARTNER_ID;
+            MaintenanceManager::m_param_map[deviceInitializationContext[1].c_str()] = TR181_TARGET_PROPOSITION;
+            MaintenanceManager::m_param_map[deviceInitializationContext[2].c_str()] = TR181_XCONFURL;
 
+            MaintenanceManager::m_paramType_map[deviceInitializationContext[0].c_str()] = DATA_TYPE::WDMP_STRING;
+            MaintenanceManager::m_paramType_map[deviceInitializationContext[1].c_str()] = DATA_TYPE::WDMP_STRING;
+            MaintenanceManager::m_paramType_map[deviceInitializationContext[2].c_str()] = DATA_TYPE::WDMP_STRING;
          }
 
         void MaintenanceManager::task_execution_thread(){
@@ -292,6 +308,16 @@ namespace WPEFramework {
             internetConnectStatus = isDeviceOnline();
 #endif
 
+#if defined(ENABLE_WHOAMI)
+    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
+        /* WhoAmI check*/
+        bool whoAmIStatus = knowWhoAmI();
+        if (whoAmIStatus) {
+            LOGINFO("knowWhoAmI() returned successfully");
+        }
+    }
+#endif
+
             if ( false == internetConnectStatus ) {
                 m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
@@ -307,13 +333,26 @@ namespace WPEFramework {
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-                tasks.push_back("/lib/rdk/StartDCM_maintaince.sh");
+#ifndef ENABLE_WHOAMI
+                tasks.push_back(task_names_foreground[0].c_str());
+#endif
             }
             else if( SOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
             }
 
-#if defined(SUPPRESS_MAINTENANCE)
+#if defined(ENABLE_WHOAMI)
+            if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
+                tasks.push_back(task_names_foreground[1].c_str());
+                tasks.push_back(task_names_foreground[2].c_str());
+                tasks.push_back(task_names_foreground[0].c_str());
+                tasks.push_back(task_names_foreground[3].c_str());
+            } else {
+                tasks.push_back(task_names_foreground[1].c_str());
+                tasks.push_back(task_names_foreground[2].c_str());
+                tasks.push_back(task_names_foreground[3].c_str());
+            }
+#elif defined(SUPPRESS_MAINTENANCE)
             /* decide which all tasks are needed based on the activation status */
             if (activationStatus){
                 if(skipFirmwareCheck){
@@ -322,18 +361,18 @@ namespace WPEFramework {
                     SET_STATUS(g_task_status,DIFD_COMPLETE);
 
                     /* Add tasks */
-                    tasks.push_back("/lib/rdk/RFCbase.sh");
-                    tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
+                    tasks.push_back(task_names_foreground[1].c_str());
+                    tasks.push_back(task_names_foreground[3].c_str());
                 }else{
-                    tasks.push_back("/lib/rdk/RFCbase.sh");
-                    tasks.push_back("/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log");
-                    tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
+                    tasks.push_back(task_names_foreground[1].c_str());
+                    tasks.push_back(task_names_foreground[2].c_str());
+                    tasks.push_back(task_names_foreground[3].c_str());
                 }
             }
 #else
-            tasks.push_back("/lib/rdk/RFCbase.sh");
-            tasks.push_back("/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log");
-            tasks.push_back("/lib/rdk/Start_uploadSTBLogs.sh");
+            tasks.push_back(task_names_foreground[1].c_str());
+            tasks.push_back(task_names_foreground[2].c_str());
+            tasks.push_back(task_names_foreground[3].c_str());
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
 
@@ -354,6 +393,134 @@ namespace WPEFramework {
 
 	    m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
+        }
+
+        bool MaintenanceManager::knowWhoAmI()
+        {
+            bool success = false;
+            int retryDelay = 10;
+            int retryCount = 0;
+            const char* secMgr_callsign = "org.rdk.SecManager";
+            const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
+            PluginHost::IShell::state state;
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
+
+            do {
+
+                if ((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+                    LOGINFO("%s is active", secMgr_callsign);
+
+                    thunder_client=getThunderPluginHandle(secMgr_callsign_ver);
+                    if (thunder_client == nullptr) {
+                        LOGINFO("Failed to get plugin handle");
+                    } else {
+                        JsonObject params;
+                        JsonObject joGetResult;
+
+                        thunder_client->Invoke<JsonObject, JsonObject>(5000, "getDeviceInitializationContext", params, joGetResult);
+                        if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
+                            if (joGetResult.HasLabel("partnerProvisioningContext")) {
+                                JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
+                                int size = (int)(sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]));
+                                for (int idx=0; idx < size; idx++) {
+                                    const char* key = deviceInitializationContext[idx].c_str();
+
+                                    // Retrive partnerProvisioningContext Value
+                                    string paramValue = getProvisioningContext[key].String();
+
+                                    if (!paramValue.empty()) {
+                                        if (strcmp(key, "regionalConfigService") == 0) {
+                                            paramValue = "https://" + paramValue;
+                                        }
+                                        LOGINFO("[partnerProvisioningContext] %s : %s", key, paramValue.c_str());
+
+                                        // Retrieve tr181 parameter from m_param_map
+                                        string rfc_parameter = m_param_map[key];
+
+                                        //  Retrieve parameter data type from m_paramType_map
+                                        DATA_TYPE rfc_dataType = m_paramType_map[key];
+
+                                        // Set the RFC values for partnerProvisioningContext parameters
+                                        setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
+                                    } else {
+                                        LOGINFO("Not able to fetch %s value from partnerProvisioningContext", key);
+                                    }
+                                }
+                                success = true;
+                            } else {
+                                LOGINFO("partnerProvisioningContext is not available in the response");
+                            }
+                        } else {
+                            // Get retryDelay value and sleep for that much seconds
+                            if (joGetResult.HasLabel("retryDelay")) {
+                                retryDelay = joGetResult["retryDelay"].Number();
+                            }
+                            LOGINFO("getDeviceInitializationContext failed");
+                        }
+                    }
+                } else {
+                    LOGINFO("%s is not active", secMgr_callsign);
+                }
+
+		retryCount++;
+                if (retryCount == 4 && !success) {
+                    if (checkActivatedStatus() == "activated") {
+                        LOGINFO("Device is already activated. Exiting from knowWhoAmI()");
+                        success = true;
+                    }
+                }
+
+		if (!success) {
+                    LOGINFO("Retrying in %d seconds", retryDelay);
+                    sleep(retryDelay);
+                }
+
+            } while (!success);
+            return success;
+        }
+
+        // Thunder plugin communication
+        WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* MaintenanceManager::getThunderPluginHandle(const char* callsign)
+        {
+            string token;
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
+
+            auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+            if (security != nullptr) {
+                string payload = "http://localhost";
+                if (security->CreateToken(
+                        static_cast<uint16_t>(payload.length()),
+                        reinterpret_cast<const uint8_t*>(payload.c_str()),
+                        token)
+                    == Core::ERROR_NONE) {
+                    std::cout << "MaintenanceManager got security token" << std::endl;
+                } else {
+                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                }
+                security->Release();
+            } else {
+                std::cout << "No security agent" << std::endl;
+            }
+
+            string query = "token=" + token;
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
+            thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(callsign, "", false, query);
+            return thunder_client;
+        }
+
+        bool MaintenanceManager::setRFC(const char* rfc, const char* value, DATA_TYPE dataType)
+        {
+            bool result = false;
+            WDMP_STATUS status;
+            status = setRFCParameter((char *)MAINTENANCE_MANAGER_RFC_CALLER_ID, rfc, value, dataType);
+
+            if ( WDMP_SUCCESS == status ){
+                LOGINFO("Successfuly set the tr181 parameter %s with value %s", rfc, value);
+                result = true;
+            } else {
+                LOGINFO("Failed setting %s parameter", rfc);
+            }
+            return result;
         }
 
         const string MaintenanceManager::checkActivatedStatus()
@@ -1290,88 +1457,70 @@ namespace WPEFramework {
         }
 
         bool MaintenanceManager::stopMaintenanceTasks(){
-            pid_t pid_num=-1;
-
+	        string codeDLtask;
             int k_ret=EINVAL;
             int i=0;
-
             bool task_status[4]={false};
             bool result=false;
-	    bool rdkvfwrfc=false;
-	    string rdkvfw="rdkvfwupgrader";
 
-                LOGINFO("Stopping maintenance activities");
-                /* run only when the maintenance status is MAINTENANCE_STARTED */
-                m_statusMutex.lock();
-                if ( MAINTENANCE_STARTED == m_notify_status  ){
+            LOGINFO("Stopping maintenance activities");
+            /* run only when the maintenance status is MAINTENANCE_STARTED */
+            m_statusMutex.lock();
+            if ( MAINTENANCE_STARTED == m_notify_status  ){
 
-                    // Set the condition flag m_abort_flag to true
-                    m_abort_flag = true;
+                // Set the condition flag m_abort_flag to true
+                m_abort_flag = true;
 
-                    auto task_status_DCM=m_task_map.find(task_names_foreground[0].c_str());
-                    auto task_status_RFC=m_task_map.find(task_names_foreground[1].c_str());
-                    auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
-                    auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[3].c_str());
+                auto task_status_DCM=m_task_map.find(task_names_foreground[0].c_str());
+                auto task_status_RFC=m_task_map.find(task_names_foreground[1].c_str());
+                auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
+                auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[3].c_str());
 
-                    task_status[0] = task_status_DCM->second;
-                    task_status[1] = task_status_RFC->second;
-                    task_status[2] = task_status_FWDLD->second;
-                    task_status[3] = task_status_LOGUPLD->second;
+                task_status[0] = task_status_DCM->second;
+                task_status[1] = task_status_RFC->second;
+                task_status[2] = task_status_FWDLD->second;
+                task_status[3] = task_status_LOGUPLD->second;
 
-		    /*Read rfc firmware upgrader and if rfc is true add rdkvfwupgrader to script_names[i].c_str() and rfc is false no need any change*/
-                    rdkvfwrfc = readRFC(TR181_RDKVFWUPGRADER);
-		    if (rdkvfwrfc == true) {
-                        //Update script_names[2].c_str() Which is deviceInitiated.sh value to rdkvfwupgrader
-			script_names[2].swap(rdkvfw);
-		        LOGINFO(" %s rdkvfw rfc is true so script_names change to\n",script_names[2].c_str());
-		    }
-                    for (i=0;i<4;i++)
-                        LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
-                    for (i=0;i<4;i++){
-                        if(task_status[i]){
-                            LOGINFO("Checking the Task PID\n");
-                            pid_num=getTaskPID(script_names[i].c_str());
-                            LOGINFO("PID of script_name [%d] = %s is %d \n", i,script_names[i].c_str(),pid_num);
-                            if( pid_num != -1){
-                                /* send the signal to task to terminate */
-                                k_ret=kill(pid_num,SIGABRT);
-                                if (k_ret == 0){
-                                    LOGINFO(" %s Termimated\n",script_names[i].c_str());
-                                    /*this means we killed the task currently running */
-                                    m_task_map[task_names_foreground[i].c_str()]=false;
-                                }
-                                else{
-                                    LOGINFO("Failed to terminate with error %s - %d \n",script_names[i].c_str(),k_ret);
-                                }
-                            }
-                            else {
-                                LOGINFO("Didnt find PID for %s\n",script_names[i].c_str());
-                            }
+                for (i=0;i<4;i++) {
+                    LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
+                }
+                for (i=0;i<4;i++){
+                    if(task_status[i]){
 
-                            /* No need to loop again */
-                            break;
+                        k_ret = abortTask( script_names[i].c_str() );        // default signal is SIGABRT
+
+                        if( k_ret == 0 ) {                                      // if task(s) was(were) killed successfully ...                    
+                            m_task_map[task_names_foreground[i].c_str()]=false; // set it to false 
                         }
-                        else{
-                            LOGINFO("Task[%d] is false \n",i);
-                        }
+                        /* No need to loop again */
+                        break;
                     }
-
-                    result=true;
+                    else{
+                        LOGINFO("Task[%d] is false \n",i);
+                    }
                 }
-                else {
-                    LOGERR("Failed to stopMaintenance without starting maintenance \n");
-                }
-                task_thread.notify_one();
 
-                if(m_thread.joinable()){
-                    m_thread.join();
-                    LOGINFO("Thread joined successfully\n");
-                }
-                LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR\n");
-                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
-		m_statusMutex.unlock();
+                result=true;
+            }
+            else {
+                LOGERR("Failed to stopMaintenance without starting maintenance \n");
+            }
+            task_thread.notify_one();
 
-                return result;
+            if(m_thread.joinable()){
+                m_thread.join();
+                LOGINFO("Thread joined successfully\n");
+            }
+
+            if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete){
+                g_unsolicited_complete = true;
+	    }
+
+            LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR\n");
+            MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
+            m_statusMutex.unlock();
+
+            return result;
         }
 
         bool MaintenanceManager::readRFC(const char *rfc){
@@ -1393,6 +1542,30 @@ namespace WPEFramework {
             }
             LOGINFO(" %s = %s , call value %d ", rfc, (ret == true)?"true":"false", wdmpStatus);
             return ret;
+        }
+
+
+        int MaintenanceManager::abortTask(const char* taskname, int sig_to_send){
+            int k_ret=EINVAL;
+            pid_t pid_num;
+
+            pid_num=getTaskPID( taskname );
+            LOGINFO("PID of %s is %d \n", taskname , (int)pid_num);
+            if( pid_num != -1){
+                /* send the signal to task to terminate */
+                k_ret = kill( pid_num, sig_to_send );
+                LOGINFO(" %s sent signal %d\n", taskname, sig_to_send );
+                if (k_ret == 0){
+                   LOGINFO(" %s Terminated\n", taskname );
+                }
+                else{
+                    LOGINFO("Failed to terminate with error %s - %d \n", taskname, k_ret);
+                }
+            }
+            else {
+                LOGINFO("Didnt find PID for %s\n", taskname);
+            }
+            return k_ret;
         }
 
         /* Helper function to find the Script/Task PID*/
@@ -1431,7 +1604,7 @@ namespace WPEFramework {
                 }
             }
             closedir(dir);
-            return -1;
+            return (pid_t)-1;
         }
 
         void MaintenanceManager::onMaintenanceStatusChange(Maint_notify_status_t status) {
