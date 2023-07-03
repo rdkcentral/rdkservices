@@ -184,6 +184,7 @@ target_include_directories(${PROJECT_NAME}
         mocks
         mocks/devicesettings
         mocks/thunder
+        ${CMAKE_CURRENT_SOURCE_DIR}/../OCIContainer/stubs
         )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
