@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.5.2] - 2023-07-03
+### Added
+- Added In getSystemVersions response the version value taken from the BRANCH value instead of using the existing value from VERSION
+
 ## [1.5.1] - 2023-06-05
 ### Added 
 - Added Support to build the plugin to both R4 & R2
