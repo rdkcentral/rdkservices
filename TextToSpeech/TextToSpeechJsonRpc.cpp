@@ -176,6 +176,9 @@ namespace Plugin {
             getNumberParameter("rate", rate);
             config.rate = static_cast<uint8_t>(rate);
         }
+        else {
+            config.rate = 0;
+        }
 
         if(parameters.HasLabel("authinfo")) {
             JsonObject auth;
