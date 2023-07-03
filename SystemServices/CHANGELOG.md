@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.11] - 2023-07-03
+### Fixed
+- Added In getSystemVersions response the version value taken from the BRANCH value instead of using the existing value from VERSION
+
 ## [1.1.10] - 2023-05-11
 ### Fixed
 - Move IARMMgrs patches to generic layer
