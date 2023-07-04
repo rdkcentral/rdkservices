@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <mntent.h>
+#include <fstream>
 
 #include "UsbAccess.h"
 
