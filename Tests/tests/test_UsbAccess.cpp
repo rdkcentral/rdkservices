@@ -23,6 +23,11 @@ protected:
         , handler(*(plugin))
         , connection(1, 0)
     {
+		/*In order to ensure consistent behavior across all test APIs,
+         the "/etc/device.properties" file is opened only once*/
+        std::ofstream file("/etc/device.properties");
+        file << "MODEL_NUM=HSTP11MWR";
+        file.close();
         Udev::getInstance().impl = &udevImplMock;
         Wraps::getInstance().impl = &wrapsImplMock;
     }
