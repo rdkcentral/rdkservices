@@ -5,8 +5,6 @@
 
 #include "Wraps.h"
 
-class WrapsImplMock : public WrapsImpl {
-public:
 extern "C" FILE* __real_setmntent(const char* command, const char* type);
 
 class WrapsImplMock : public WrapsImpl {
