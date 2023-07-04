@@ -28,11 +28,6 @@ extern  "C" void __wrap_syslog(int pri, const char *fmt, ...)
     va_end(args);
 }
 
-extern "C" FILE* __wrap_fopen(const char* filename, const char* mode)
-{
-    return  Wraps::getInstance().fopen(filename, mode);
-}
-
 extern "C" FILE* __wrap_setmntent(const char* command, const char* type)
 {
     return Wraps::getInstance().setmntent(command, type);
