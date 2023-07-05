@@ -41,6 +41,32 @@
             "summary":"Name of the Container.",
             "type":"string",
             "example":"com.bskyb.epgui"
+        },
+        "result": {
+            "type":"object",
+            "properties": {
+                "success": {
+                    "$ref": "#/common/success"
+                },
+                "error":{
+                        "summary": "An error message in case of a failure",
+                        "type": "string",
+                        "example": "internal dobby error"
+                }
+            },
+            "required": [
+                "success"
+            ]
+        },
+        "success": {
+            "summary": "Whether the request succeeded",
+            "type": "boolean",
+            "example": "true"
+        },
+        "error": {
+            "summary": "Error message",
+            "type": "string",
+            "example": "mount failed"
         }
     },
     "methods": {
@@ -194,6 +220,11 @@
                     },
                     "success":{
                         "$ref": "#/common/success"
+                    },
+                    "error":{
+                        "summary": "An error message in case of a failure",
+                        "type": "string",
+                        "example": "internal dobby error"
                     }
                 },
                 "required": [
@@ -235,6 +266,11 @@
                     },
                     "success":{
                         "$ref": "#/common/success"
+                    },
+                    "error":{
+                        "summary": "An error message in case of a failure",
+                        "type": "string",
+                        "example": "could not remove symlink"
                     }
                 },
                 "required": [
@@ -416,7 +452,12 @@
                         "$ref": "#/definitions/Descriptor"
                     },
                     "success":{
-                        "$ref": "#/definitions/success"
+                        "$ref": "#/common/success"
+                    },
+                    "error":{
+                        "summary": "An error message in case of a failure",
+                        "type": "string",
+                        "example": "internal dobby error"
                     }
                 },
                 "required": [
