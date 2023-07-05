@@ -41,7 +41,6 @@ find_package_handle_standard_args(
 target_include_directories(${MODULE_NAME}
         PRIVATE
         ../helpers
-
         )
 
 target_link_libraries(${MODULE_NAME}
@@ -57,6 +56,20 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${SYSTEMD_LIBRARIES}
 )
+
+
+find_library(OMIPROXY omiclientlib)
+if(OMIPROXY)
+
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I=/usr/include/glib-2.0 -I=/usr/lib/glib-2.0/include")
+  target_link_libraries (${MODULE_NAME} PRIVATE omiclientlib)
+
+else()
+
+  target_include_directories(${MODULE_NAME} PRIVATE stubs)
+
+endif (OMIPROXY)
+
 # ${NAMESPACE}Protocols::${NAMESPACE}Protocols
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
