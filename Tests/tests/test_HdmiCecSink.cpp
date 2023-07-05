@@ -6,6 +6,8 @@
 #include "devicesettings.h"
 #include "HdmiCec.h"
 #include "HdmiCecMock.h"
+#include "WrapsMock.h"
+#include "RfcApiMock.h"
 
 using namespace WPEFramework;
 using ::testing::NiceMock;
@@ -19,9 +21,12 @@ protected:
     NiceMock<IarmBusImplMock> iarmBusImplMock;
     NiceMock<ConnectionImplMock> connectionImplMock;
     NiceMock<MessageEncoderMock> messageEncoderMock;
+    NiceMock<RfcApiImplMock> rfcApiImplMock;
+    NiceMock<WrapsImplMock> wrapsImplMock;
     IARM_EventHandler_t pwrMgrModeChangeEventHandler;
     IARM_EventHandler_t dsHdmiEventHandler;
     IARM_EventHandler_t dsHdmiCecSinkEventHandler;
+    string response;
 
     HdmiCecSinkTest()
         : plugin(Core::ProxyType<Plugin::HdmiCecSink>::Create())
@@ -32,6 +37,9 @@ protected:
         LibCCEC::getInstance().impl = &libCCECImplMock;
         Connection::getInstance().impl = &connectionImplMock;
         MessageEncoder::getInstance().impl = &messageEncoderMock;
+        RfcApi::getInstance().impl = &rfcApiImplMock;
+        Wraps::getInstance().impl = &wrapsImplMock; /*Set up mock for fopen;
+                                                      to use the mock implementation/the default behavior of the fopen function from Wraps class.*/
 
         ON_CALL(connectionImplMock, poll(::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
@@ -81,6 +89,8 @@ protected:
         LibCCEC::getInstance().impl = nullptr;
         Connection::getInstance().impl = nullptr;
         MessageEncoder::getInstance().impl = nullptr;
+        RfcApi::getInstance().impl = nullptr;
+        Wraps::getInstance().impl = nullptr;
     }
 };
 
@@ -322,4 +332,20 @@ TEST_F(HdmiCecSinkInitializedEventDsTest, HdmiCecEnableStatus)
     
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
+}
+
+TEST_F(HdmiCecSinkTest, DISABLED_getCecVersion)
+{
+    /*EXPECT_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                EXPECT_EQ(string(pcCallerID), string("HdmiCecSink"));
+                EXPECT_EQ(string(pcParameterName), string("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.HdmiCecSink.CECVersion"));
+                strncpy(pstParamData->value, "1.4", sizeof(pstParamData->value));
+                return WDMP_SUCCESS;
+            }));*/
+    
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCecVersion"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"CECVersion\":\"1.4\",\"success\":true}"));
 }
