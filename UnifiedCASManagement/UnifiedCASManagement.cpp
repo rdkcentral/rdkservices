@@ -154,7 +154,7 @@ uint32_t UnifiedCASManagement::manage(const JsonObject& params, JsonObject& resp
         jsonParams.ToString(openParams);
         LOGINFO("OpenData = %s\n", openParams.c_str());
 
-        if (false == m_player->openMediaPlayer(openParams))
+        if (false == m_player->openMediaPlayer(openParams, manage))
         {
             LOGERR("Failed to open MediaPlayer");
             success = false;

@@ -22,6 +22,7 @@
 
 #include "MediaPlayer.h"
 #include "libmediaplayer.h"
+#include "AnyCasCASServiceImpl.h"
 
 using namespace libmediaplayer;
 
@@ -51,11 +52,14 @@ public:
      * @details   This method sets environment varible and also registers callback methods.
      *
      * @parm[in]  t_openParams  Parameter required to create a CMI session.
+     * @parm[in]  t_sessionType Parameter denoting the type of management session.
      * @parm[out] None
      *
      * @return    None
      */
-    virtual bool openMediaPlayer(std::string& t_openParams) override;
+    virtual bool openMediaPlayer(
+                 std::string&       t_openParams, 
+                 const std::string& t_sessionType) override;
 
     /**
      * @brief     This method destroys libmediaplayer.
@@ -102,7 +106,9 @@ private:
                 notification_payload * t_payload,
                 void *                 t_data);
 
-    std::unique_ptr <libmediaplayer::mediaplayer> m_libMediaPlayer; //To store the libmediaplayer instance
+    std::unique_ptr <libmediaplayer::mediaplayer> m_libMediaPlayer = nullptr; //To store the libmediaplayer instance
+    std::shared_ptr <AnyCasCASServiceImpl>        m_anyCasCASServiceInst = nullptr; //To store AnyCasCASServiceImpl instance
+    std::string                                   m_sessionType = "";//To store the type of management session
 };
 
 } // namespace Plugin

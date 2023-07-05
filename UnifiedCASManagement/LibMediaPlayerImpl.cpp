@@ -20,7 +20,6 @@
 #include "UtilsJsonRpc.h"
 
 #include "LibMediaPlayerImpl.h"
-#include "AnyCasCASServiceImpl.h"
 #include "UnifiedCASManagement.h"
 
 struct kv_pair
@@ -62,34 +61,62 @@ LibMediaPlayerImpl::~LibMediaPlayerImpl()
     LOGINFO(" LibMediaPlayerImpl Destructor");
 }
 
-bool LibMediaPlayerImpl::openMediaPlayer(std::string& t_openParams)
+bool LibMediaPlayerImpl::openMediaPlayer(
+     std::string&       t_openParams, 
+     const std::string& t_sessionType)
 {
     bool retValue = false;
-
-    if(nullptr != m_libMediaPlayer)
+    
+    m_sessionType = t_sessionType;
+    if(m_sessionType != "MANAGE_NO_TUNER")
     {
-        LOGERR("LibMediaplayer instance is already avalailable");
-        return retValue;
-    }
-
-    setEnvVariables();
-
-    if(0 != mediaplayer::initialize(QAM, true, true))
-    {
-        LOGERR("Could not initialize QAM support");
-    }
-    else
-    {
-        m_libMediaPlayer = std::unique_ptr <mediaplayer>(mediaplayer::createMediaPlayer(QAM, t_openParams, CAS_TYPE_ANYCAS));
-        if(nullptr == m_libMediaPlayer)
+        if(nullptr != m_libMediaPlayer)
         {
-            LOGERR("LibMediaPlayer creation failed.");
+            LOGERR("LibMediaplayer instance is already avalailable");
+            return retValue;
+        }
+
+        setEnvVariables();
+
+        if(0 != mediaplayer::initialize(QAM, true, true))
+        {
+            LOGERR("Could not initialize QAM support");
         }
         else
         {
-            m_libMediaPlayer->registerEventCallbacks(LibMediaPlayerImpl::eventCallBack, LibMediaPlayerImpl::errorCallBack, this);
-            LOGINFO(" Successfully initialized and registered for callbacks with LibMediaPlayer");
-            retValue = true;
+            m_libMediaPlayer = std::unique_ptr <mediaplayer>(mediaplayer::createMediaPlayer(QAM, t_openParams, CAS_TYPE_ANYCAS));
+            if(nullptr == m_libMediaPlayer)
+            {
+                LOGERR("LibMediaPlayer creation failed.");
+            }
+            else
+            {
+                m_libMediaPlayer->registerEventCallbacks(LibMediaPlayerImpl::eventCallBack, LibMediaPlayerImpl::errorCallBack, this);
+                LOGINFO(" Successfully initialized and registered for callbacks with LibMediaPlayer");
+                retValue = true;
+            }
+        }
+    }
+    else
+    {
+        /* NO_TUNE Management session does not require a tuner or a media pipeline so, creating AnyCasCASService instance directly*/
+        m_anyCasCASServiceInst = std::make_shared <AnyCasCASServiceImpl>(t_openParams);
+        if(nullptr != m_anyCasCASServiceInst)
+        {
+            if(true != m_anyCasCASServiceInst->initializeCasService(nullptr, nullptr))
+            {
+                LOGERR("Failed to initialize AnyCasCASServiceImpl.");
+            }
+            else
+            {
+                m_anyCasCASServiceInst->registerCallbacks(LibMediaPlayerImpl::eventCallBack, LibMediaPlayerImpl::errorCallBack, this);
+                LOGINFO(" Successfully initialized and registered for callbacks with AnyCasCASServiceImpl");
+                retValue = true;
+            }
+        }
+        else
+        {
+            LOGERR("Failed to create instance of AnyCasCASServiceImpl.");
         }
     }
     return retValue;
@@ -99,22 +126,45 @@ bool LibMediaPlayerImpl::closeMediaPlayer(void)
 {
     bool retValue = false;
 
-    if(nullptr == m_libMediaPlayer)
+    if(m_sessionType != "MANAGE_NO_TUNER")
     {
-        LOGERR("LibMediaPlayer instance not found.");
-    }
-    else
-    {
-        if(0 != m_libMediaPlayer->stop())
+        if(nullptr == m_libMediaPlayer)
         {
-            LOGERR("Failed to stop libmediaplayer.");
+            LOGERR("LibMediaPlayer instance not found.");
         }
         else
         {
-            m_libMediaPlayer.reset();
-            m_libMediaPlayer = nullptr;
-            retValue = true;
-            LOGERR("libmediaplayer stopped.");
+            if(0 != m_libMediaPlayer->stop())
+            {
+                LOGERR("Failed to stop libmediaplayer.");
+            }
+            else
+            {
+                m_libMediaPlayer.reset();
+                retValue = true;
+                LOGERR("libmediaplayer stopped.");
+            }
+        }
+    }
+    else
+    {
+        if(nullptr != m_anyCasCASServiceInst)
+        {
+            if(false == m_anyCasCASServiceInst->stopCasService())
+            {
+                LOGERR("stopCasService failed");
+            }
+            else
+            {
+                m_anyCasCASServiceInst.reset();
+                m_sessionType.clear();
+                retValue = true;
+                LOGERR("stopCasService success.");
+            }
+        }
+        else
+        {
+            LOGERR("AnyCasCASServiceImpl instance not found");
         }
     }
     return retValue;
@@ -124,33 +174,49 @@ bool LibMediaPlayerImpl::requestCASData(std::string& t_data)
 {
     bool retValue = false;
 
-    if(nullptr == m_libMediaPlayer)
+    if(m_sessionType != "MANAGE_NO_TUNER")
     {
-        LOGERR("LibMediaPlayer instance not found.");
-    }
-    else
-    {
-        std::weak_ptr<CASService>   tmpPtr = m_libMediaPlayer->getCasServiceInstance();
-        std::shared_ptr<CASService> casService = tmpPtr.lock();
-        AnyCasCASServiceImpl*       anyCasService = nullptr;
-
-        if (nullptr != casService)
+        if(nullptr == m_libMediaPlayer)
         {
-            anyCasService = dynamic_cast<AnyCasCASServiceImpl *>(casService.get());
-            if (nullptr != anyCasService)
-            {
-                anyCasService->sendCASData(t_data);
-                LOGINFO(" Successfully sent CASData using sendCASData method");
-                retValue = true;
-            }
-            else
-            {
-                LOGERR("Could not get AnyCasCASServiceImpl instance");
-            }
+            LOGERR("LibMediaPlayer instance not found.");
         }
         else
         {
-            LOGERR("Could not get CASService instance");
+            std::weak_ptr<CASService>   tmpPtr = m_libMediaPlayer->getCasServiceInstance();
+            std::shared_ptr<CASService> casService = tmpPtr.lock();
+            AnyCasCASServiceImpl*       anyCasService = nullptr;
+
+            if (nullptr != casService)
+            {
+                anyCasService = dynamic_cast<AnyCasCASServiceImpl *>(casService.get());
+                if (nullptr != anyCasService)
+                {
+                    anyCasService->sendCASData(t_data);
+                    LOGINFO(" Successfully sent CASData using sendCASData method");
+                    retValue = true;
+                }
+                else
+                {
+                    LOGERR("Could not get AnyCasCASServiceImpl instance");
+                }
+            }
+            else
+            {
+                LOGERR("Could not get CASService instance");
+            }
+        }
+    }
+    else
+    {
+        if(nullptr != m_anyCasCASServiceInst)
+        {
+            m_anyCasCASServiceInst->sendCASData(t_data);
+            LOGINFO(" Successfully sent CASData using sendCASData method");
+            retValue = true;
+        }
+        else
+        {
+            LOGERR("AnyCasCASServiceImpl instance not found");
         }
     }
     return retValue;

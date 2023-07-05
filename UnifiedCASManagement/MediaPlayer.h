@@ -51,11 +51,14 @@ public:
      * @details   This method sets environment varible and also registers callback methods.
      *
      * @parm[in]  t_openParams  Parameter required to create a CMI session.
+     * @parm[in]  t_sessionType Parameter denoting the type of management session.
      * @parm[out] None
      *
      * @return    None
      */
-    virtual bool openMediaPlayer(std::string& t_openParams)
+    virtual bool openMediaPlayer(
+                 std::string&       t_openParams, 
+                 const std::string& t_sessionType)
     {
         return true;
     }
