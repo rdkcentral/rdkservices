@@ -432,8 +432,15 @@ uint32_t OCIContainer::startContainerFromCryptedBundle(const JsonObject &paramet
     // startContainer returns -1 on failure
     if (descriptor <= 0)
     {
-        LOGERR("Failed to start container - internal Dobby error.");
-        response["error"] = "internal dobby error";
+        LOGERR("Failed to start container - internal Dobby error. Unmounting container.");
+
+        if (!mOmiProxy->umountCryptedBundle(id.c_str())) {
+            LOGERR("Failed to umount container %s - sync unmount request to omi failed.", id.c_str());
+            response["error"] = "dobby start failed, unmount failed";
+        } else {
+            response["error"] = "dobby start failed";
+        }
+
         returnResponse(false);
     }
 
