@@ -3,12 +3,20 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_OCICONTAINER_STARTUPORDER "" CACHE STRING "To configure startup order of OCIContainer plugin")
 
+find_package(PkgConfig)
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(jsoncpp REQUIRED)
 find_package(Dobby REQUIRED CONFIG)
 
 # Temporary fix to get defines in Dobby. Will be removed later.
 add_definitions( -DRDK )
+
+pkg_search_module(OMI_CLIENT "omiclientlib")
+
+if(NOT OMI_CLIENT_FOUND)
+    set(OMI_CLIENT_INCLUDE_DIRS stubs)
+    message("Using stubs for omiclientlib")
+endif()
 
 add_library(${MODULE_NAME} SHARED
         OCIContainer.cpp
@@ -41,7 +49,9 @@ find_package_handle_standard_args(
 target_include_directories(${MODULE_NAME}
         PRIVATE
         ../helpers
-        )
+        ${OMI_CLIENT_INCLUDE_DIRS}
+)
+
 
 target_link_libraries(${MODULE_NAME}
         PRIVATE
@@ -52,23 +62,10 @@ target_link_libraries(${MODULE_NAME}
         AppInfraCommon
         AppInfraLogging
         JsonCpp::JsonCpp
-
+        ${OMI_CLIENT_LIBRARIES}
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${SYSTEMD_LIBRARIES}
 )
-
-
-find_library(OMIPROXY omiclientlib)
-if(OMIPROXY)
-
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I=/usr/include/glib-2.0 -I=/usr/lib/glib-2.0/include")
-  target_link_libraries (${MODULE_NAME} PRIVATE omiclientlib)
-
-else()
-
-  target_include_directories(${MODULE_NAME} PRIVATE stubs)
-
-endif (OMIPROXY)
 
 # ${NAMESPACE}Protocols::${NAMESPACE}Protocols
 install(TARGETS ${MODULE_NAME}
