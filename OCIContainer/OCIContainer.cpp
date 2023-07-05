@@ -44,6 +44,7 @@ OCIContainer::OCIContainer()
     Register("getContainerState", &OCIContainer::getContainerState, this);
     Register("getContainerInfo", &OCIContainer::getContainerInfo, this);
     Register("startContainer", &OCIContainer::startContainer, this);
+    Register("startContainerFromCryptedBundle", &OCIContainer::startContainerFromCryptedBundle, this);
     Register("startContainerFromDobbySpec", &OCIContainer::startContainerFromDobbySpec, this);
     Register("stopContainer", &OCIContainer::stopContainer, this);
     Register("pauseContainer", &OCIContainer::pauseContainer, this);
@@ -53,6 +54,7 @@ OCIContainer::OCIContainer()
 
 OCIContainer::~OCIContainer()
 {
+
 }
 
 const string OCIContainer::Initialize(PluginHost::IShell *service)
@@ -92,6 +94,7 @@ void OCIContainer::Deinitialize(PluginHost::IShell *service)
     Unregister("getContainerState");
     Unregister("getContainerInfo");
     Unregister("startContainer");
+    Unregister("startContainerFromCryptedBundle");
     Unregister("startContainerFromDobbySpec");
     Unregister("stopContainer");
     Unregister("pauseContainer");
@@ -353,6 +356,79 @@ uint32_t OCIContainer::startContainer(const JsonObject &parameters, JsonObject &
             response["error"] = "dobby start failed";
         }
 
+        returnResponse(false);
+    }
+
+    response["descriptor"] = descriptor;
+    returnResponse(true);
+}
+
+/**
+ * @brief Starts a container from a crypted OCI bundle
+ *
+ * @param[in]  parameters   - Must include 'containerId', 'rootFSPath' and 'configFilePath'.
+ * @param[out] response     - Dobby descriptor of the started container.
+ *
+ * @return                  A code indicating success.
+ */
+uint32_t OCIContainer::startContainerFromCryptedBundle(const JsonObject &parameters, JsonObject &response)
+{
+    LOGINFO("Start container from crypted OCI bundle");
+
+    // To start a container, we need a path to an OCI bundle and an ID for the container
+    returnIfStringParamNotFound(parameters, "containerId");
+    returnIfStringParamNotFound(parameters, "rootFSPath");
+    returnIfStringParamNotFound(parameters, "configFilePath");
+
+    std::string id = parameters["containerId"].String();
+    std::string rootfsPath = parameters["rootFSPath"].String();
+    std::string configPath = parameters["configFilePath"].String();
+    std::string command = parameters["command"].String();
+    std::string westerosSocket = parameters["westerosSocket"].String();
+
+    // Can be used to pass file descriptors to container construction.
+    // Currently unsupported, see DobbyProxy::startContainerFromBundle().
+    std::list<int> emptyList;
+
+    int descriptor;
+
+    std::string containerPath;
+
+    if (!mOmiProxy->mountCryptedBundle(id,
+                                       rootfsPath,
+                                       configPath,
+                                       containerPath))
+    {
+        LOGERR("Failed to start container - sync mount request to omi failed.");
+        returnResponse(false);
+    }
+
+
+    LOGINFO("Mount request to omi succeeded, contenerPath: %s", containerPath.c_str());
+
+    // If no additional arguments, start the container
+    if ((command == "null" || command.empty()) && (westerosSocket == "null" || westerosSocket.empty()))
+    {
+        descriptor = mDobbyProxy->startContainerFromBundle(id, containerPath, emptyList);
+    }
+    else
+    {
+        // Dobby expects empty strings if values not set
+        if (command == "null" || command.empty())
+        {
+            command = "";
+        }
+        if (westerosSocket == "null" || westerosSocket.empty())
+        {
+            westerosSocket = "";
+        }
+        descriptor = mDobbyProxy->startContainerFromBundle(id, containerPath, emptyList, command, westerosSocket);
+    }
+
+    // startContainer returns -1 on failure
+    if (descriptor <= 0)
+    {
+        LOGERR("Failed to start container - internal Dobby error.");
         returnResponse(false);
     }
 
