@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <mntent.h>
 #include <fstream>
+#include "IarmBusMock.h"
 #include "ServiceMock.h"
 #include "FactoriesImplementation.h"
 #include "UsbAccess.h"
@@ -20,6 +21,7 @@ protected:
     string response;
     NiceMock<UdevImplMock> udevImplMock;
     NiceMock<WrapsImplMock> wrapsImplMock;
+	NiceMock<IarmBusImplMock> iarmBusImplMock;
 
     UsbAccessTest()
         : plugin(Core::ProxyType<Plugin::UsbAccess>::Create())
@@ -33,11 +35,13 @@ protected:
         file.close();
         Udev::getInstance().impl = &udevImplMock;
         Wraps::getInstance().impl = &wrapsImplMock;
+		IarmBus::getInstance().impl = &iarmBusImplMock;
     }
     virtual ~UsbAccessTest() override
     {
         Wraps::getInstance().impl = nullptr;
         Udev::getInstance().impl = nullptr;
+		IarmBus::getInstance().impl = nullptr;
     }
 };
 
@@ -64,6 +68,35 @@ protected:
         dispatcher->Release();
 
         PluginHost::IFactories::Assign(nullptr);
+    }
+};
+
+class UsbAccessEventIarmTest : public UsbAccessEventTest {
+protected:
+    IARM_EventHandler_t eventHandler;
+
+    UsbAccessEventIarmTest()
+        : UsbAccessEventTest()
+    {
+        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
+                    if ((string(IARM_BUS_SYSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED)) {
+                        eventHandler = handler;
+                    }
+                    return IARM_RESULT_SUCCESS;
+                }));
+        EXPECT_EQ(string(""), plugin->Initialize(&service));
+    }
+
+    virtual ~UsbAccessEventIarmTest() override
+    {
+        plugin->Deinitialize(&service);
+    }
+
+    virtual void SetUp()
+    {
+        ASSERT_TRUE(eventHandler != nullptr);
     }
 };
 
@@ -103,7 +136,7 @@ TEST_F(UsbAccessTest, UpdateFirmware)
 
 /*******************************************************************************************************************
  * Test function for :getFileList
- * getDeviceInfo :
+ * getFileList :
  *                Gets a list of files and folders from the specified directory or path.
  *
  *                @return Response object containing the file list
@@ -706,8 +739,8 @@ TEST_F(UsbAccessTest, getMountedSuccess_withUSBMountPath)
 *
 *                @return list of firmware files and request succeeded.
 * Use case coverage:
-*                @Failure :2
-*                @Success :4
+*                @Failure :1
+*                @Success :5
 ********************************************************************************************************************/
 
 /**
@@ -753,7 +786,7 @@ TEST_F(UsbAccessTest, getAvailableFirmwareFilesFailed_whenSetmntentValueNull)
 * @param[in]   :  NONE
 * @return      :  {"availableFirmwareFiles": [],"success":true}
 */
-TEST_F(UsbAccessTest, getAvailableFirmwareFilesFailed_when_getmntentNull)
+TEST_F(UsbAccessTest, getAvailableFirmwareFilesSuccess_when_getmntentNull)
 {
     EXPECT_CALL(udevImplMock, udev_enumerate_get_list_entry(testing::_))
         .WillOnce(testing::Return(reinterpret_cast<struct udev_list_entry*>(0x3)));
@@ -2094,3 +2127,52 @@ TEST_F(UsbAccessTest, clearLinkSuccess_withNonDefaultInputBaseUrl)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 /*Test cases for clearLinks ends here*/
+
+/*******************************************************************************************************************
+*Test function for Event:onUSBMountChanged
+*Event : onUSBMountChanged
+*             Triggered when a USB drive is mounted or unmounted.
+*
+*                @return (i)mount status [true when the USB device is mounted or false when the USB device is unmounted]
+*                        and (ii)the location where the device is mounted
+* Use case coverage:
+*                @Success :2
+********************************************************************************************************************/
+
+/**
+ * @brief : onUSBMountChanged when a USB drive is mounted/unmounted
+ *          Check onUSBMountChanged triggered successfully when a USB drive is mounted
+ *          with mount status = true and the location where the device is mounted
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  \"params\":{\"mounted\":true,\"device\":\"\\/dev\\/sda1\"}
+ *
+ */
+TEST_F(UsbAccessEventIarmTest, onUSBMountChangedSuccess)
+{
+    Core::Event onUSBMountChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.UsbAccess.onUSBMountChanged\",\"params\":{\"mounted\":true,\"device\":\"\\/dev\\/sda1\"}}");
+
+                onUSBMountChanged.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onUSBMountChanged"), _T("org.rdk.UsbAccess"), message);
+
+    IARM_Bus_SYSMgr_EventData_t usbEventData;
+    usbEventData.data.usbMountData.mounted= 1;
+    strcpy(usbEventData.data.usbMountData.dir, "/dev/sda1");
+    eventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED, &usbEventData, 1);
+
+    EXPECT_EQ(Core::ERROR_NONE, onUSBMountChanged.Lock());
+
+    handler.Unsubscribe(0, _T("onUSBMountChanged"), _T("org.rdk.System"), message);
+}
+/*Test cases for onUSBMountChanged ends here*/
