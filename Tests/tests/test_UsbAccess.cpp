@@ -706,8 +706,8 @@ TEST_F(UsbAccessTest, getMountedSuccess_withUSBMountPath)
 *
 *                @return list of firmware files and request succeeded.
 * Use case coverage:
-*                @Failure :1
-*                @Success :6
+*                @Failure :2
+*                @Success :4
 ********************************************************************************************************************/
 
 /**
@@ -788,7 +788,7 @@ TEST_F(UsbAccessTest, getAvailableFirmwareFilesFailed_when_getmntentNull)
  * @param[in]   : NONE
  * @return      : {"availableFirmwareFiles": [],"success":true}
  */
-TEST_F(UsbAccessTest, getAvailableFirmwareFiles_whenDeviceListEmpty)
+TEST_F(UsbAccessTest, getAvailableFirmwareFilesSuccess_whenDeviceListEmpty)
 {
     EXPECT_CALL(udevImplMock, udev_enumerate_get_list_entry(testing::_))
         .WillOnce(testing::Return(nullptr));
@@ -822,7 +822,7 @@ TEST_F(UsbAccessTest, getAvailableFirmwareFiles_whenDeviceListEmpty)
  * @param[in]   :  NONE
  * @return      :  {"availableFirmwareFiles": [],"success":true}
  */
-TEST_F(UsbAccessTest, getAvailableFirmwareFiles_when_devNodNotFound)
+TEST_F(UsbAccessTest, getAvailableFirmwareFilesSuccess_when_devNodNotFound)
 {
     EXPECT_CALL(udevImplMock, udev_enumerate_get_list_entry(testing::_))
         .WillOnce(testing::Return(reinterpret_cast<struct udev_list_entry*>(0x3)));
@@ -918,7 +918,7 @@ TEST_F(UsbAccessTest, getAvailableFirmwareFilesSuccess_withoutBinfiles)
 * @param[in]   :  NONE
 * @return      :  returns The list of firmware files including the full path name
 */
-TEST_F(UsbAccessTest, getAvailableFirmwareFilessuccess_withBinFiles)
+TEST_F(UsbAccessTest, getAvailableFirmwareFilesSuccess_withBinFiles)
 {
     EXPECT_CALL(udevImplMock, udev_enumerate_get_list_entry(testing::_))
         .WillOnce(testing::Return(reinterpret_cast<struct udev_list_entry*>(0x3)));
@@ -1907,3 +1907,190 @@ TEST_F(UsbAccessTest, createLinkSuccess_with_m_CreatedLinkIds_bLink_NOT_Exists_C
     std::remove("/tmp/usbdrive");
 }
 /*Test cases for createLink ends here*/
+
+/*********************************************************************************************************
+ * Test function for :getLinks
+ * getLinks :Returns a list of created links and the associated root folder of the USB drive.
+ *
+ *                @return Whether the request succeeded
+ * Use case coverage:
+ *                @Success :2
+ *******************************************************************************************************/
+
+/**
+ * @brief : getLinks when there are no Links,
+ *          Check if there is no symbolic link exists,
+ *          then getLinks shall be succeded and returns empty links list.
+ *
+ * @param[in]   :  None
+ * @return      :  {"links":[],"success":true}
+ */
+TEST_F(UsbAccessTest, getLinkSuccess_WhenNoSymLink)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getLinks"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"links\":[],\"success\":true}"));
+}
+
+/**
+ * @brief : getLinks when symbolic links exist,
+ *          Check if symbolic links are created and stored,
+ *          then getLinks shall be succeded and returns a list of created links and the associated root folder of the USB drive.
+ *
+ * @param[in]   :  None
+ * @return      :  {"links":["path":"run/media/sda1","baseURL":"http:/localhost:50050/usbdrive"],"success":true}
+*/
+TEST_F(UsbAccessTest, getLinkSuccess_whenSymLinkExist)
+{
+    EXPECT_CALL(udevImplMock, udev_enumerate_get_list_entry(testing::_))
+        .WillOnce(testing::Return(reinterpret_cast<struct udev_list_entry*>(0x3)));
+
+    EXPECT_CALL(udevImplMock, udev_list_entry_get_name(testing::_))
+         .WillRepeatedly(testing::Return("/dev/sda1"));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_parent_with_subsystem_devtype(testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(reinterpret_cast<struct udev_device*>(0x5)));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_devtype(testing::_))
+        .WillRepeatedly(testing::Return("disk"));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_devnode(testing::_))
+        .WillRepeatedly(testing::Return("/dev/sda1"));
+
+    EXPECT_CALL(wrapsImplMock, getmntent(testing::_))
+      .WillRepeatedly(::testing::Invoke(
+       [&](FILE*) -> struct mntent* {
+        static struct mntent entry1;
+
+        entry1.mnt_fsname = const_cast<char*>("/dev/sda1"); // Set the value for mnt_fsname
+        entry1.mnt_dir = const_cast<char*>("/run/media/sda1");    // Set the value for mnt_dir
+
+        static int callCount = 0;
+        if (callCount == 0) {
+            callCount++;
+            return &entry1;
+        } else {
+            return static_cast<struct mntent*>(NULL);
+        }
+    }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("createLink"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"baseURL\":\"http:\\/\\/localhost:50050\\/usbdrive\",\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getLinks"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"links\":[{\"path\":\"\\/run\\/media\\/sda1\",\"baseURL\":\"http:\\/\\/localhost:50050\\/usbdrive\"}],\"success\":true}"));
+    //Remove the symbolicLink created
+    std::remove("/tmp/usbdrive");
+
+}
+/*Test cases for getLinks ends here*/
+
+/*********************************************************************************************************
+ * Test function for :clearLink
+ * clearLink :Clears or removes the symbolic link created by the createLink
+ *
+ *                @return Whether the request succeeded
+ * Use case coverage:
+ *                @Success :3
+ *                @Failure :4
+ *******************************************************************************************************/
+
+
+/**
+ * @brief : clearLink without baseURL
+ *          Check if  input parameter baseURL is missing from the request parameters JSON object;
+ *          then  clearLink shall be failed and return Erorr code: ERROR_BAD_REQUEST
+ *
+ * @param[in]   :  Invalid parameters without the "baseURL" label
+ * @return      :  error code: ERROR_BAD_REQUEST
+ */
+TEST_F(UsbAccessTest, clearLinkFailed_onBadRequest)
+{
+    EXPECT_EQ(Core::ERROR_BAD_REQUEST, handler.Invoke(connection, _T("clearLink"), _T("{\"MissingBaseUrl\":\"http://localhost:50050/usbdrive\"}"), response));
+}
+
+/**
+ * @brief : clearLink when input baseURL[LINK_URL_HTTP] not exists
+ *          Check if  input parameter baseURL is the default URL [http://localhost:50050/usbdrive];and if this link does not exist;
+ *          then  clearLink shall be failed
+ *
+ * @param[in]   :  valid baseURL
+ * @return      :  error code: ERROR_GENERAL
+ */
+TEST_F(UsbAccessTest, clearLinkFailed_withDefaultInputBaseUrl_whenLinkNotExist)
+{
+    std::remove("/tmp/usbdrive");
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("clearLink"), _T("{\"baseURL\":\"http://localhost:50050/usbdrive\"}"), response));
+}
+
+/**
+ * @brief : clearLink when input baseURL is other than [LINK_URL_HTTP] ,but this link does not exists
+ *          Check if  input parameter baseURL is other than [http://localhost:50050/usbdrive];and if this link does not exist;
+ *          then  clearLink shall be failed
+ *
+ * @param[in]   :  any valid baseURL other than http://localhost:50050/usbdrive
+ * @return      :  error code: ERROR_GENERAL
+ */
+TEST_F(UsbAccessTest, clearLinkFailed_withNonDefaultInputBaseUrl_whenLinkNotExist)
+{
+    std::remove("/tmp/usbdrive123");
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("clearLink"), _T("{\"baseURL\":\"http://localhost:50050/usbdrive123\"}"), response));
+}
+
+/**
+ *  @brief : clearLink with Invalid input baseURL.
+ *           Check if  input parameter baseURL is invalid[ contains characters other than 0-9 digits];
+ *           then clearLink shall be failed
+ *
+ *@param[in]   :  Invalid baseURL [contains characters other than 0-9 digits]
+ *@return      :  error code: ERROR_GENERAL
+ */
+TEST_F(UsbAccessTest, clearLinkFailed_withInvalidInputBaseUrl)
+{
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("clearLink"), _T("{\"baseURL\":\"http://localhost:50050/usbdrive#_123\"}"), response));
+}
+
+/**
+ * @brief : clearLink when input baseURL is empty
+ *          Check if  input parameter baseURL is empty;
+ *          then the default LINK PATH "/tmp/usbdrive" will be cleared
+ *
+ * @param[in]   :  any valid baseURL other than http://localhost:50050/usbdrive
+ * @return      :  error code: ERROR_GENERAL
+ */
+TEST_F(UsbAccessTest, clearLinkSuccess_whenInputParamIsEmpty)
+{
+    symlink("/run/media/sda1", "/tmp/usbdrive");
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("clearLink"), _T("{\"baseURL\":}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+/**
+ * @brief : clearLink when input baseURL is "http://localhost:50050/usbdrive"
+ *          Check if  input parameter baseURL = http://localhost:50050/usbdrive;
+ *          and if the LINK_PATH is presnt,then clearLink shall be succeeded and input baseURL will be cleared
+ *
+ * @param[in]   :  default baseURL http://localhost:50050/usbdrive
+ * @return      :  error code: ERROR_GENERAL
+ */
+TEST_F(UsbAccessTest, clearLinkSuccess_withDefaultInputBaseUrl)
+{
+    symlink("/run/media/sda1", "/tmp/usbdrive");
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("clearLink"), _T("{\"baseURL\":\"http://localhost:50050/usbdrive\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+/**
+ * @brief : clearLink with valid input baseURL is other than "http://localhost:50050/usbdrive".
+ *          Check if  input parameter baseURL is Other than http://localhost:50050/usbdrive;
+ *          and if the particular LINK_PATH is present,then clearLink shall be succeeded and input baseURL will be cleared
+ *
+ * @param[in]   :  default baseURL http://localhost:50050/usbdrive
+ * @return      :  error code: ERROR_GENERAL
+ */
+TEST_F(UsbAccessTest, clearLinkSuccess_withNonDefaultInputBaseUrl)
+{
+    symlink("/run/media/sda1", "/tmp/usbdrive123");
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("clearLink"), _T("{\"baseURL\":\"http://localhost:50050/usbdrive123\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+/*Test cases for clearLinks ends here*/
