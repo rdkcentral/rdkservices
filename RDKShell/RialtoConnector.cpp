@@ -21,47 +21,36 @@
 #include <cstdlib>
 #include "RialtoConnector.h"
 
-#define LOGINFO(fmt, ...) do { fprintf(stderr, " INFO [%s:%d] " fmt "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); fflush(stderr); } while (0)
-#define LOGWARN(fmt, ...) do { fprintf(stderr, " WARN [%s:%d] " fmt "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); fflush(stderr); } while (0)
+extern char **environ;
 
 namespace WPEFramework
 {
     namespace
     {
-        std::list<std::string> getEnvironmentVariables(std::string & envVarsStr, const std::string & debugLevel)
+        std::list<std::string> getEnvironmentVariables()
         {
             std::list<std::string> environmentVariables;
-            if(!envVarsStr.empty())
+            char **envList = environ;
+            
+            for(;*envList;envList++)
             {
-                LOGINFO("SESSION_SERVER_ENV_VARS returned %s", envVarsStr.c_str());
-                size_t pos = 0;
-                while ((pos = envVarsStr.find(";")) != std::string::npos)
-                {
-                    environmentVariables.emplace_back(envVarsStr.substr(0, pos));
-                    envVarsStr.erase(0, pos + 1);
-                }
-                environmentVariables.emplace_back(envVarsStr);
-            }
-            else
-                LOGINFO("SESSION_SERVER_ENV_VARS returned empty");
-            return environmentVariables;
-            if(!debugLevel.empty())
-            {
-                setenv("RIALTO_DEBUG",debugLevel.c_str(),1);
-            }
+                environmentVariables.emplace_back(*envList);
+            }             
+           return environmentVariables;
         }
     } //anonymous namespace to contain private function.
  
-    void RialtoConnector::initialize(std::string & env,const std::string & debug)
+    void RialtoConnector::initialize()
     {
-        LOGWARN(" Rialto Bridge version 1.0");
-        std::list<std::string> envList = getEnvironmentVariables(env,debug);
-        m_serverManagerService = create(shared_from_this(), envList);
+        LOGWARN(" Rialto Bridge version 1.1");
+        firebolt::rialto::common::ServerManagerConfig config;
+        config.sessionServerEnvVars = getEnvironmentVariables();
+        m_serverManagerService = create(shared_from_this(), config);
         isInitialized = true;
     }
     bool RialtoConnector::createAppSession(const std::string &callsign, const std::string &displayName, const std::string &appId)
     {
-        LOGINFO("Creating app session with callsign %s, display name %s, appid %s", callsign.c_str(), displayName.c_str(), appId.c_str());
+        LOGINFO("Creating app session with callsign : '%s', display name : '%s', appid : '%s'", callsign.c_str(), displayName.c_str(), appId.c_str());
 
         firebolt::rialto::common::AppConfig config = {appId, displayName};
         return m_serverManagerService->initiateApplication(callsign,
@@ -110,27 +99,36 @@ namespace WPEFramework
             std::lock_guard<std::mutex> lockguard(m_stateMutex);
             appStateMap[appId] = state;
         }
+        LOGINFO("[RialtoConnector::stateChanged] State change announced for %s to %d, isActive ? %d ", appId.c_str(),
+                static_cast<int>(state), (state == RialtoServerStates::ACTIVE));
         m_stateCond.notify_one();
-
-        LOGINFO("[RialtoConnector::stateChanged] State change announced for %s, isActive ? %d ", appId.c_str(), (state == RialtoServerStates::ACTIVE));
     }
 
-    bool RialtoConnector::waitForStateChange(const std::string &appId, const RialtoServerStates &state, int timeout)
+    // wait until socket is in given state
+    // return true when state set, false on timeout
+    bool RialtoConnector::waitForStateChange(const std::string& appId, const RialtoServerStates& state, int timeoutMillis)
     {
         bool status = false;
         std::unique_lock<std::mutex> lock(m_stateMutex);
-        if (appStateMap[appId] == state)
+        auto startTime = std::chrono::steady_clock::now();
+        auto endTime = startTime + std::chrono::milliseconds(timeoutMillis);
+
+        while (std::chrono::steady_clock::now() < endTime)
         {
-            status = true;
-        }
-        else
-        {
-            if (m_stateCond.wait_for(lock, std::chrono::milliseconds(timeout)) != std::cv_status::timeout)
+            if (appStateMap[appId] == state)
             {
-                if (appStateMap[appId] == state)
-                    status = true;
+                status = true;
+                break;
             }
+
+            auto remainingTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - std::chrono::steady_clock::now());
+            if (remainingTime.count() <= 0)
+                break;
+
+            m_stateCond.wait_for(lock, remainingTime);
         }
+
         return status;
     }
+
 } // namespace WPEFramework
