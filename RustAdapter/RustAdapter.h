@@ -126,6 +126,13 @@ public:
   void Detach(PluginHost::Channel &channel) override;
 
   /**
+   * IDispatcher::Close
+   */
+#if THUNDER_VERSION == 4
+  void Close(const uint32_t channelId) override;
+#endif /* THUNDER_VERSION */
+
+  /**
    * WPEFramework::PluginHost::IDispatcher::Invoke
    */
 #if JSON_RPC_CONTEXT
