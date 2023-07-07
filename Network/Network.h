@@ -33,7 +33,8 @@
 #define MAX_IP_ADDRESS_LEN 46
 #define NETSRVMGR_INTERFACES_MAX 16
 #define MAX_ENDPOINTS 5
-#define MAX_ENDPOINT_SIZE 260 // 253 + 1 + 5 + 1 (domain name max length + ':' + port number max chars + '\0')
+#define MAX_ENDPOINT_SIZE 512
+#define MAX_URI_LEN 512
 #define MAX_HOST_NAME_LEN 128
 
 typedef enum _NetworkManager_EventId_t {
@@ -44,6 +45,7 @@ typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS,
     IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS,
     IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE,
+    IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED,
     IARM_BUS_NETWORK_MANAGER_MAX,
 } IARM_Bus_NetworkManager_EventId_t;
 
@@ -88,6 +90,21 @@ typedef struct
     unsigned char size;
     char          endpoints[MAX_ENDPOINTS][MAX_ENDPOINT_SIZE];
 } IARM_BUS_NetSrvMgr_Iface_TestEndpoints_t;
+
+typedef enum _InternetConnectionState_t {
+    NO_INTERNET,
+    LIMITED_INTERNET,
+    CAPTIVE_PORTAL,
+    FULLY_CONNECTED
+}InternetConnectionState_t;
+
+typedef struct
+{
+    int connectivityState;
+    int monitorInterval;
+    bool monitorConnectivity;
+    char captivePortalURI[MAX_URI_LEN];
+} IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t;
 
 typedef struct {
     char interface[16];
@@ -141,7 +158,10 @@ namespace WPEFramework {
         // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
         // this class exposes a public method called, Notify(), using this methods, all subscribed clients
         // will receive a JSONRPC message as a notification, in case this method is called.
-        class Network : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+        class Network : public PluginHost::IPlugin
+            , public PluginHost::JSONRPC
+            , public PluginHost::ISubSystem::IInternet
+        {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -174,12 +194,17 @@ namespace WPEFramework {
             uint32_t getSTBIPFamily(const JsonObject& parameters, JsonObject& response);
             uint32_t isConnectedToInternet(const JsonObject& parameters, JsonObject& response);
             uint32_t setConnectivityTestEndpoints(const JsonObject& parameters, JsonObject& response);
+            uint32_t getInternetConnectionState(const JsonObject& parameters, JsonObject& response);
+            uint32_t startConnectivityMonitoring(const JsonObject& parameters, JsonObject& response);
+            uint32_t getCaptivePortalURI(const JsonObject& parameters, JsonObject& response);
+            uint32_t stopConnectivityMonitoring(const JsonObject& parameters, JsonObject& response);
             uint32_t getPublicIP(const JsonObject& parameters, JsonObject& response);
             uint32_t setStunEndPoint(const JsonObject& parameters, JsonObject& response);
             bool getIPIARMWrapper(IARM_BUS_NetSrvMgr_Iface_Settings_t& iarmData, const string interface, const string ipversion);
 
             void onInterfaceEnabledStatusChanged(std::string interface, bool enabled);
             void onInterfaceConnectionStatusChanged(std::string interface, bool connected);
+            void onInternetStatusChange(InternetConnectionState_t InternetConnectionState);
             void onInterfaceIPAddressChanged(std::string interface, std::string ipv6Addr, std::string ipv4Addr, bool acquired);
             void onDefaultInterfaceChanged(std::string oldInterface, std::string newInterface);
 
@@ -210,7 +235,22 @@ namespace WPEFramework {
             BEGIN_INTERFACE_MAP(Network)
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
+            INTERFACE_ENTRY(PluginHost::ISubSystem::IInternet)
             END_INTERFACE_MAP
+            
+            /*
+            * ------------------------------------------------------------------------------------------------------------
+            * ISubSystem::INetwork methods
+            * ------------------------------------------------------------------------------------------------------------
+            */
+            string PublicIPAddress() const override
+            {
+                return m_publicIPAddress;
+            }
+            network_type NetworkType() const override
+            {
+                return (m_publicIPAddress.empty() == true ? PluginHost::ISubSystem::IInternet::UNKNOWN : (m_ipversion == "IPV6" ? PluginHost::ISubSystem::IInternet::IPV6 : PluginHost::ISubSystem::IInternet::IPV4));
+            }
 
             //IPlugin methods
             virtual const std::string Initialize(PluginHost::IShell* service) override;
@@ -223,11 +263,14 @@ namespace WPEFramework {
             static Network *getInstance() {return _instance;}
 
         private:
+            PluginHost::IShell* m_service;
             NetUtils m_netUtils;
             string m_stunEndPoint;
             string m_isHybridDevice;
             string m_defaultInterface;
             string m_gatewayInterface;
+            string m_publicIPAddress;
+            string m_ipversion;
             uint16_t m_stunPort;
             uint16_t m_stunBindTimeout;
             uint16_t m_stunCacheTimeout;

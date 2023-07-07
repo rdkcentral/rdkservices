@@ -29,6 +29,7 @@ if(COMCAST_CONFIG)
 endif()
 
 option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
+option(PLUGIN_RUSTBRIDGE "Include RustBridge plugin" OFF)
 
 if(RDK_SERVICES_TEST)
     include(tests.cmake)
@@ -41,6 +42,10 @@ string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
 include(CmakeHelperFunctions)
 
 get_directory_property(SEVICES_DEFINES COMPILE_DEFINITIONS)
+
+if (USE_THUNDER_R4)
+    add_definitions(-DUSE_THUNDER_R4)
+endif (USE_THUNDER_R4)
 
 if(PLUGIN_PACKAGER)
     add_subdirectory(Packager)
@@ -68,6 +73,10 @@ endif()
 
 if(PLUGIN_REMOTECONTROL)
 	add_subdirectory(RemoteControl)
+endif()
+
+if(PLUGIN_RUSTBRIDGE)
+    add_subdirectory(RustBridge)
 endif()
 
 if(PLUGIN_SYSTEMSERVICES)
@@ -110,7 +119,8 @@ if(PLUGIN_DATACAPTURE)
     add_subdirectory(DataCapture)
 endif()
 
-if(SEVICES_DEFINES MATCHES "HAS_FRONT_PANEL")
+if((DEFINED PLUGIN_FRONTPANEL AND PLUGIN_FRONTPANEL)
+        OR (NOT DEFINED PLUGIN_FRONTPANEL AND (SEVICES_DEFINES MATCHES "HAS_FRONT_PANEL")))
     add_subdirectory(FrontPanel)
 endif()
 
@@ -357,6 +367,10 @@ endif()
 
 if(PLUGIN_LEDCONTROL)
     add_subdirectory(LEDControl)
+endif()
+
+if(PLUGIN_MESSAGECONTROL)
+    add_subdirectory(MessageControl)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)

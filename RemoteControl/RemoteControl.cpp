@@ -35,6 +35,10 @@
 
 #define RF4CE_IEEE_MAC_ADDRESS_STR_MAX    24
 
+#define IARM_FACTORY_RESET_TIMEOUT  (15 * 1000)  // 15 seconds, in milliseconds
+#define IARM_IRDB_CALLS_TIMEOUT     (10 * 1000)  // 10 seconds, in milliseconds
+
+
 // Local types and definitions
 // Pairing validation status
 typedef enum
@@ -93,6 +97,8 @@ namespace WPEFramework {
             Register("getLastKeypressSource",  &RemoteControl::getLastKeypressSourceWrapper, this);
             Register("configureWakeupKeys",    &RemoteControl::configureWakeupKeysWrapper,   this);
             Register("initializeIRDB",         &RemoteControl::initializeIRDBWrapper,        this);
+            Register("findMyRemote",           &RemoteControl::findMyRemoteWrapper,          this);
+            Register("factoryReset",           &RemoteControl::factoryReset,                 this);
 
             setApiVersionNumber(1);
         }
@@ -1276,6 +1282,94 @@ namespace WPEFramework {
 
             returnResponse(bSuccess);
         }
+
+        uint32_t RemoteControl::findMyRemoteWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool               bSuccess = false;
+            const char*        paramKey = NULL;
+            int                netType  = CTRLM_NETWORK_TYPE_RF4CE;
+
+            // The "netType" parameter is mandatory.
+            if (!parameters.IsSet() || !parameters.HasLabel("netType") || !parameters.HasLabel("level"))
+            {
+                // There are either NO parameters, or the one we need is missing.  We will treat this as a fatal error. Exit now.
+                LOGERR("ERROR - this method requires 'netType' and 'level' parameters!");
+                returnResponse(false);
+            }
+
+            // Get the net type from the parameters.
+            paramKey = "netType";
+            if (parameters.HasLabel(paramKey))
+            {
+                int value = CTRLM_NETWORK_TYPE_RF4CE;
+                getNumberParameter(paramKey, value);
+                if ((value < CTRLM_NETWORK_TYPE_RF4CE) || (value > CTRLM_NETWORK_TYPE_BLUETOOTH_LE))
+                {
+                    // The netType value is not in range.  We will treat this as a fatal error. Exit now.
+                    LOGERR("ERROR - Bad 'netType' parameter value: %d!", value);
+                    returnResponse(false);
+                }
+                netType = value;
+                LOGINFO("netType passed in is <%s>.", networkTypeStr(netType));
+            }
+
+            std::string levelStr;
+            ctrlm_fmr_alarm_level_t level;
+            paramKey = "level";
+            if (parameters.HasLabel(paramKey))
+            {
+                getStringParameter(paramKey, levelStr);
+                LOGINFO("levelStr passed in is <%s>.", levelStr.c_str());
+                transform(levelStr.begin(), levelStr.end(), levelStr.begin(), ::tolower);
+
+                level = findMyRemoteLevelFromString(levelStr);
+                if (level == CTRLM_FMR_LEVEL_INVALID)
+                {
+                    LOGERR("ERROR - Bad 'level' parameter: value is %s.", levelStr.c_str());
+                    returnResponse(false);
+                }
+            }
+            else
+            {
+                LOGERR("ERROR - 'level' parameter missing!");
+                returnResponse(false);
+            }
+
+            bSuccess = findMyRemote(netType, level, response);
+
+            returnResponse(bSuccess);
+        }
+
+
+        uint32_t RemoteControl::factoryReset(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool bSuccess = false;
+
+            ctrlm_main_iarm_call_factory_reset_t reset;
+            memset((void*)&reset, 0, sizeof(reset));
+            reset.api_revision = CTRLM_MAIN_IARM_BUS_API_REVISION;
+            reset.network_id = CTRLM_MAIN_NETWORK_ID_ALL;
+    
+            // The default timeout for IARM calls is 5 seconds, but this call could take longer and we need to ensure the remotes receive
+            // the message before the larger system factory reset operation continues.  Therefore, make this timeout longer.
+            IARM_Result_t res = IARM_Bus_Call_with_IPCTimeout(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_FACTORY_RESET, (void*)&reset, sizeof(reset), IARM_FACTORY_RESET_TIMEOUT);
+            if (res != IARM_RESULT_SUCCESS)
+            {
+                LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_FACTORY_RESET IARM_Bus_Call FAILED, res: %d", (int)res);
+            }
+            else if (reset.result != CTRLM_IARM_CALL_RESULT_SUCCESS)
+            {
+                LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_FACTORY_RESET FAILED, result: %d.", (int)reset.result);
+            }
+            else
+            {
+                bSuccess = true;
+            }
+
+            returnResponse(bSuccess);
+        }
         //End methods
 
 
@@ -1321,10 +1415,10 @@ namespace WPEFramework {
             }
 
             status["netType"]              = JsonValue((int)CTRLM_NETWORK_TYPE_BLUETOOTH_LE);
-            status["netTypesSupported"]    = JsonValue(m_netTypesArray);
+            status["netTypesSupported"]    = m_netTypesArray;
             status["pairingState"]         = std::string(ctrlm_ble_state_str(statusEvt->status));
+            status["irProgState"]          = std::string(ctrlm_ir_prog_state_str(statusEvt->ir_state));
             status["remoteData"]           = remoteArray;
-//            status["irProgState"]          = std::string("Optional");
 //            status["fmrState"]             = std::string("Optional");
 //            status["fmrSource"]            = std::string("Optional");
             response["status"] = status;
@@ -1540,8 +1634,8 @@ namespace WPEFramework {
                 LOGERR("ERROR - NETWORK_STATUS_GET IARM_Bus_Call FAILED, res: %d", (int)res);
                 return false;
             }
-            LOGINFO("BLE network status - netType: <BLE>, network_id: <%d>, status: <%s>, num_remotes: <%d>.\n",
-                       netStatus.network_id, ctrlm_ble_state_str(netStatus.status), netStatus.num_remotes);
+            LOGINFO("BLE network status - netType: <BLE>, network_id: <%d>, status: <%s>, ir_state: <%s>, num_remotes: <%d>.\n",
+                       netStatus.network_id, ctrlm_ble_state_str(netStatus.status), ctrlm_ir_prog_state_str(netStatus.ir_state), netStatus.num_remotes);
 
             if (netStatus.num_remotes == 0)
             {
@@ -1589,10 +1683,10 @@ namespace WPEFramework {
             }
 
             status["netType"]              = JsonValue((int)CTRLM_NETWORK_TYPE_BLUETOOTH_LE);
-            status["netTypesSupported"]    = JsonValue(m_netTypesArray);
+            status["netTypesSupported"]    = m_netTypesArray;
             status["pairingState"]         = std::string(ctrlm_ble_state_str(netStatus.status));
+            status["irProgState"]          = std::string(ctrlm_ir_prog_state_str(netStatus.ir_state));
             status["remoteData"]           = remoteArray;
-//            status["irProgState"]          = std::string("Optional");
 //            status["fmrState"]             = std::string("Optional");
 //            status["fmrSource"]            = std::string("Optional");
             response["status"] = status;
@@ -1723,7 +1817,10 @@ namespace WPEFramework {
             irMfrParams.network_id   = networkId;
             irMfrParams.type = (avDevType == "AMP" ? CTRLM_IR_DEVICE_AMP : CTRLM_IR_DEVICE_TV);
             snprintf(irMfrParams.manufacturer, sizeof(irMfrParams.manufacturer), "%s", manufacturer.c_str());
-            res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_MANUFACTURERS, (void*)&irMfrParams, sizeof(irMfrParams));
+
+            // The default timeout for IARM calls is 5 seconds, but this call could take longer since the results could come from a cloud IRDB.
+            // So increase the timeout to IARM_IRDB_CALLS_TIMEOUT
+            res = IARM_Bus_Call_with_IPCTimeout(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_MANUFACTURERS, (void*)&irMfrParams, sizeof(irMfrParams), IARM_IRDB_CALLS_TIMEOUT);
             if (res != IARM_RESULT_SUCCESS)
             {
                 LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_IR_MANUFACTURERS IARM_Bus_Call FAILED, res: %d", (int)res);
@@ -1781,7 +1878,10 @@ namespace WPEFramework {
             irModels.type = (avDevType == "AMP" ? CTRLM_IR_DEVICE_AMP : CTRLM_IR_DEVICE_TV);
             snprintf(irModels.manufacturer, sizeof(irModels.manufacturer), "%s", manufacturer.c_str());
             snprintf(irModels.model, sizeof(irModels.model), "%s", model.c_str());
-            res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME,  CTRLM_MAIN_IARM_CALL_IR_MODELS, (void*)&irModels, sizeof(irModels));
+
+            // The default timeout for IARM calls is 5 seconds, but this call could take longer since the results could come from a cloud IRDB.
+            // So increase the timeout to IARM_IRDB_CALLS_TIMEOUT
+            res = IARM_Bus_Call_with_IPCTimeout(CTRLM_MAIN_IARM_BUS_NAME,  CTRLM_MAIN_IARM_CALL_IR_MODELS, (void*)&irModels, sizeof(irModels), IARM_IRDB_CALLS_TIMEOUT);
             if (res != IARM_RESULT_SUCCESS)
             {
                 LOGERR("ERROR -  CTRLM_MAIN_IARM_CALL_IR_MODELS IARM_Bus_Call FAILED, res: %d", (int)res);
@@ -1836,7 +1936,10 @@ namespace WPEFramework {
             memset((void*)&irAutoLookup, 0, sizeof(irAutoLookup));
             irAutoLookup.api_revision = CTRLM_MAIN_IARM_BUS_API_REVISION;
             irAutoLookup.network_id   = networkId;
-            res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_AUTO_LOOKUP, (void*)&irAutoLookup, sizeof(irAutoLookup));
+            
+            // The default timeout for IARM calls is 5 seconds, but this call could take longer since the results could come from a cloud IRDB.
+            // So increase the timeout to IARM_IRDB_CALLS_TIMEOUT
+            res = IARM_Bus_Call_with_IPCTimeout(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_AUTO_LOOKUP, (void*)&irAutoLookup, sizeof(irAutoLookup), IARM_IRDB_CALLS_TIMEOUT);
             if (res != IARM_RESULT_SUCCESS)
             {
                 LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_IR_AUTO_LOOKUP IARM_Bus_Call FAILED, res: %d", (int)res);
@@ -1894,7 +1997,10 @@ namespace WPEFramework {
             irCodes.type         = (avDevType == "AMP" ? CTRLM_IR_DEVICE_AMP : CTRLM_IR_DEVICE_TV);
             snprintf(irCodes.manufacturer, sizeof(irCodes.manufacturer), "%s", manufacturer.c_str());
             snprintf(irCodes.model, sizeof(irCodes.model), "%s", model.c_str());
-            res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_CODES, (void*)&irCodes, sizeof(irCodes));
+
+            // The default timeout for IARM calls is 5 seconds, but this call could take longer since the results could come from a cloud IRDB.
+            // So increase the timeout to IARM_IRDB_CALLS_TIMEOUT
+            res = IARM_Bus_Call_with_IPCTimeout(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_CODES, (void*)&irCodes, sizeof(irCodes), IARM_IRDB_CALLS_TIMEOUT);
             if (res != IARM_RESULT_SUCCESS)
             {
                 LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_IR_CODES IARM_Bus_Call FAILED, res: %d", (int)res);
@@ -2204,7 +2310,10 @@ namespace WPEFramework {
             memset((void*)&initializeIRDBParams, 0, sizeof(initializeIRDBParams));
             initializeIRDBParams.api_revision   = CTRLM_MAIN_IARM_BUS_API_REVISION;
             initializeIRDBParams.network_id     = networkId;
-            res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_INITIALIZE, (void*)&initializeIRDBParams, sizeof(initializeIRDBParams));
+                
+            // The default timeout for IARM calls is 5 seconds, but this call could take longer since the results could come from a cloud IRDB.
+            // So increase the timeout to IARM_IRDB_CALLS_TIMEOUT
+            res = IARM_Bus_Call_with_IPCTimeout(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_INITIALIZE, (void*)&initializeIRDBParams, sizeof(initializeIRDBParams), IARM_IRDB_CALLS_TIMEOUT);
             if (res != IARM_RESULT_SUCCESS)
             {
                 LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_IR_INITIALIZE IARM_Bus_Call FAILED, res: %d", (int)res);
@@ -2230,6 +2339,50 @@ namespace WPEFramework {
             }
 
             return false;
+        }
+
+        bool RemoteControl::findMyRemote(int netType, ctrlm_fmr_alarm_level_t level, JsonObject& response)
+        {
+            ctrlm_iarm_call_FindMyRemote_params_t           findMyRemoteParams;
+            IARM_Result_t                                   res;
+            ctrlm_network_id_t                              networkId;
+
+            if(netType==CTRLM_NETWORK_TYPE_RF4CE)
+            {
+                networkId = getRf4ceNetworkID();
+            }
+            else
+            {
+                networkId = getBleNetworkID();
+            }
+
+            // Start by finding the network_id of the rf4ce network on this STB.
+            if (networkId == CTRLM_MAIN_NETWORK_ID_INVALID)
+            {
+                LOGERR("ERROR - No network_id found!!");
+                return false;
+            }
+
+            // Now we can get the RF4CE network information.
+            memset((void*)&findMyRemoteParams, 0, sizeof(findMyRemoteParams));
+            findMyRemoteParams.api_revision   = CTRLM_MAIN_IARM_BUS_API_REVISION;
+            findMyRemoteParams.network_id     = networkId;
+            findMyRemoteParams.level          = level;
+            res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_FIND_MY_REMOTE, (void*)&findMyRemoteParams, sizeof(findMyRemoteParams));
+            if (res != IARM_RESULT_SUCCESS)
+            {
+                LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_FIND_MY_REMOTE IARM_Bus_Call FAILED, res: %d", (int)res);
+                return false;
+            }
+            else
+            {
+                if (findMyRemoteParams.result != CTRLM_IARM_CALL_RESULT_SUCCESS)
+                {
+                    LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_FIND_MY_REMOTE FAILED, result: %d.", (int)findMyRemoteParams.result);
+                    return false;
+                }
+            }
+            return true;
         }
         // End private method implementations
 
@@ -2291,6 +2444,16 @@ namespace WPEFramework {
             case CTRLM_BLE_STATE_PAIRING:      return("PAIRING");
             case CTRLM_BLE_STATE_COMPLETE:     return("COMPLETE");
             case CTRLM_BLE_STATE_FAILED:       return("FAILED");
+            default:                           return("UNKNOWN");
+            }
+        }
+        const char *RemoteControl::ctrlm_ir_prog_state_str(ctrlm_ir_state_t status)
+        {
+            switch(status) {
+            case CTRLM_IR_STATE_IDLE:          return("IDLE");
+            case CTRLM_IR_STATE_WAITING:       return("WAITING");
+            case CTRLM_IR_STATE_COMPLETE:      return("COMPLETE");
+            case CTRLM_IR_STATE_FAILED:        return("FAILED");
             default:                           return("UNKNOWN");
             }
         }
@@ -2461,7 +2624,7 @@ namespace WPEFramework {
 
             // Store the STB-based information from the RF4CE network
             status["netType"]              = JsonValue((int)CTRLM_NETWORK_TYPE_RF4CE);
-            status["netTypesSupported"]    = JsonValue(m_netTypesArray);
+            status["netTypesSupported"]    = m_netTypesArray;
             if(netStatus.status.rf4ce.controller_qty > 0)
                 status["pairingState"]     = std::string("COMPLETE");
             else
@@ -2661,6 +2824,20 @@ namespace WPEFramework {
                 wakeupCustomList.Add(list[i]);
             }
             return wakeupCustomList;
+        }
+
+        ctrlm_fmr_alarm_level_t RemoteControl::findMyRemoteLevelFromString(std::string configStr) {
+            ctrlm_fmr_alarm_level_t config;
+            if (0 == configStr.compare("off")) {
+                config = CTRLM_FMR_DISABLE;
+            } else if (0 == configStr.compare("mid")) {
+                config = CTRLM_FMR_LEVEL_MID;
+            } else if (0 == configStr.compare("high")) {
+                config = CTRLM_FMR_LEVEL_HIGH;
+            } else {
+                config = CTRLM_FMR_LEVEL_INVALID;
+            }
+            return config;
         }
         //End generic local private utility methods
 

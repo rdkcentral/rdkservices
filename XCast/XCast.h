@@ -102,6 +102,8 @@ private:
     uint32_t m_apiVersionNumber;
     bool m_isDynamicRegistrationsRequired;
     mutex m_appConfigMutex;
+    WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> * m_SystemPluginObj = NULL;
+    PluginHost::IShell *m_CurrentService;
     std::vector<DynamicAppConfig*> m_appConfigCache;
     static string m_friendlyName;
     static bool m_standbyBehavior;
@@ -115,9 +117,12 @@ private:
     void getUrlFromAppLaunchParams (const char *app_name, const char *payload, const char *query_string, const char *additional_data_url, char *url);
     bool getEntryFromAppLaunchParamList (const char* appName, DynamicAppConfig& retAppConfig);
     void dumpDynamicAppConfigCache(string strListName, std::vector<DynamicAppConfig*> appConfigList);
-    bool deleteFromDynamicAppCache(string strAppNames);
+    bool deleteFromDynamicAppCache(JsonArray applications);
     bool deleteFromDynamicAppCache(vector<string>& appsToDelete);
-    void updateDynamicAppCache(string strApps);
+    void updateDynamicAppCache(JsonArray applications);
+    void getSystemPlugin();
+    int updateSystemFriendlyName();
+    void onFriendlyNameUpdateHandler(const JsonObject& parameters);
 
     /**
      * Check whether the xdial service is allowed in this device.

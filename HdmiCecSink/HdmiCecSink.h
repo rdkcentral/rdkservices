@@ -87,6 +87,7 @@ namespace WPEFramework {
                 void process (const ReportShortAudioDescriptor  &msg, const Header &header);
 		void process (const SetSystemAudioMode &msg, const Header &header);
 		void process (const ReportAudioStatus &msg, const Header &header);
+		void process (const GiveFeatures &msg, const Header &header);
         private:
             Connection conn;
             void printHeader(const Header &header)
@@ -517,7 +518,7 @@ private:
         public:
             HdmiCecSink();
             virtual ~HdmiCecSink();
-            virtual const string Initialize(PluginHost::IShell* shell) override { return {}; }
+            virtual const string Initialize(PluginHost::IShell* shell) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override { return {}; }
             static HdmiCecSink* _instance;
@@ -682,6 +683,7 @@ private:
             void Send_Report_Arc_Terminated_Message();
             void arcStartStopTimerFunction();
             void getHdmiArcPortID();
+	    void getCecVersion();
         };
 	} // namespace Plugin
 } // namespace WPEFramework

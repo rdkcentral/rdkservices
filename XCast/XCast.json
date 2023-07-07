@@ -171,6 +171,8 @@
             }
         },
         "getFriendlyName":{
+            "deprecated" : true,
+            "referenceUrl" : " https://rdkcentral.github.io/rdkservices/#/api/SystemPlugin?id=getFriendlyName",
             "summary": "Returns the friendly name set by setFriendlyName API.",
             "result": {
                 "type":"object",
@@ -306,6 +308,8 @@
             }
         },
         "setFriendlyName":{
+            "deprecated" : true,
+            "referenceUrl" : " https://rdkcentral.github.io/rdkservices/#/api/SystemPlugin?id=setFriendlyName",
             "summary": "Sets the friendly name of device. It allows an application to override the default friendly name value with the friendly name passed as an argument. The provided name  should not be empty. If a user provided name is not available, the caller of the API should use the default name partnerId+Model  (or any other agreed default name) as the parameter. After initialization, XCastService should not be activated until setFriendlyName() is invoked. Frinedly name is not persisted on device after each reboot or reconnect application should call API to update the friendlyName",
             "params": {
                 "type":"object",

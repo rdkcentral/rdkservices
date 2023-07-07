@@ -8,8 +8,8 @@ on:
 
 env:
   BUILD_TYPE: Debug
-  THUNDER_REF: "a87b48eca1e76c3e6f03d689e6302b1fb090b52c"
-  INTERFACES_REF: "f61d710cc51628819d0fd80b8cc65e55eeec12b4"
+  THUNDER_REF: "39c82df24c7b4a4a10663cf527a3b289e7c1ceae"
+  INTERFACES_REF: "8d3bd0ddd187c6104543699041ec53e1e186d49a"
 
 jobs:
   unit-tests:
@@ -182,7 +182,6 @@ jobs:
           rdk/iarmmgrs-hal/sysMgr.h
           network/wifiSrvMgrIarmIf.h
           network/netsrvmgrIarm.h
-          framebuffer-api.h
           libudev.h
           rfcapi.h
           rbus.h
@@ -213,7 +212,6 @@ jobs:
           -I ${{github.workspace}}/rdkservices/Tests/headers/ccec/drivers
           -I ${{github.workspace}}/rdkservices/Tests/headers/network
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
-          -include ${{github.workspace}}/rdkservices/Tests/mocks/FrameBuffer.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Iarm.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Rfc.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
@@ -227,7 +225,7 @@ jobs:
           -DENABLE_DEEP_SLEEP
           -DENABLE_SET_WAKEUP_SRC_CONFIG
           -DENABLE_THERMAL_PROTECTION
-          -DUSE_FRAMEBUFFER_SCREENCAPTURE
+          -DUSE_DRM_SCREENCAPTURE
           -DHAS_API_SYSTEM
           -DHAS_API_POWERSTATE
           -DHAS_RBUS
@@ -280,20 +278,32 @@ jobs:
           /opt/secure/persistent/System
           /opt/logs
           /lib/rdk
+          /run/media/sda1/logs/PreviousLogs
+          /run/sda1/UsbTestFWUpdate
+          /run/sda1/UsbProdFWUpdate
+          /run/sda2
           &&
           sudo touch
           /opt/standbyReason.txt
           /opt/tmtryoptout
           /opt/fwdnldstatus.txt
+          /opt/dcm.properties
           /etc/device.properties
+          /etc/dcm.properties
           /etc/authService.conf
           /version.txt
+          /run/media/sda1/logs/PreviousLogs/logFile.txt
+          /run/sda1/HSTP11MWR_5.11p5s1_VBN_sdy.bin
+          /run/sda1/UsbTestFWUpdate/HSTP11MWR_3.11p5s1_VBN_sdy.bin
+          /run/sda1/UsbProdFWUpdate/HSTP11MWR_4.11p5s1_VBN_sdy.bin
           &&
           sudo chmod 777
           /opt/standbyReason.txt
           /opt/tmtryoptout
           /opt/fwdnldstatus.txt
+          /opt/dcm.properties
           /etc/device.properties
+          /etc/dcm.properties          
           /etc/authService.conf
           /version.txt
 

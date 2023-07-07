@@ -63,6 +63,7 @@ using namespace std;
 #define HDMICECSINK_CALLSIGN_VER HDMICECSINK_CALLSIGN".1"
 #define HDMICECSINK_ARC_INITIATION_EVENT "arcInitiationEvent"
 #define HDMICECSINK_ARC_TERMINATION_EVENT "arcTerminationEvent"
+#define HDMICECSINK_ARC_AUDIO_STATUS_EVENT "reportAudioStatusEvent"
 #define HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT "shortAudiodesciptorEvent"
 #define HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT "setSystemAudioModeEvent"
 #define HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT "reportAudioDeviceConnectedStatus"
@@ -83,12 +84,13 @@ using namespace std;
 #define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 19
+#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_PATCH 1
 
 static bool isCecEnabled = false;
 static int  hdmiArcPortId = -1;
 static int retryPowerRequestCount = 0;
+static int  hdmiArcVolumeLevel = 0;
 std::vector<int> sad_list;
 #ifdef USE_IARM
 namespace
@@ -170,8 +172,11 @@ namespace WPEFramework {
 
         namespace {
             // Display Settings should use inter faces
-
+#ifndef USE_THUNDER_R4
             class Job : public Core::IDispatchType<void> {
+#else
+            class Job : public Core::IDispatch {
+#endif /* USE_THUNDER_R4 */
             public:
                 Job(std::function<void()> work)
                     : _work(work)
@@ -204,7 +209,11 @@ namespace WPEFramework {
             {
                 uint32_t result = Core::ERROR_ASYNC_FAILED;
                 Core::Event event(false, true);
+#ifndef USE_THUNDER_R4
                 Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]() {
+#else
+                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]() {
+#endif /* USE_THUNDER_R4 */
                     auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
                     if (interface == nullptr) {
                         result = Core::ERROR_UNAVAILABLE;
@@ -439,7 +448,7 @@ namespace WPEFramework {
                 LOGINFO("%s is active", HDMICECSINK_CALLSIGN);
 
                 if(!m_subscribed) {
-			        if((subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_CEC_ENABLED_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_POWER_STATUS_EVENT) == Core::ERROR_NONE)) {
+			        if((subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_CEC_ENABLED_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_POWER_STATUS_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_AUDIO_STATUS_EVENT) == Core::ERROR_NONE)) {
                                     m_subscribed = true;
                                     LOGINFO("%s: HdmiCecSink event subscription completed.\n",__FUNCTION__);
 			        }
@@ -590,6 +599,7 @@ namespace WPEFramework {
                 IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
 		IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE, formatUpdateEventHandler) );
 		IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE, formatUpdateEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_ATMOS_CAPS_CHANGED, checkAtmosCapsEventHandler) );
                 IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
                 IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE, audioPortStateEventHandler) );
                 IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED, dsSettingsChangeEventHandler) );
@@ -888,7 +898,20 @@ namespace WPEFramework {
 		    break;
            }
         }
-        
+
+	void DisplaySettings::checkAtmosCapsEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    {
+
+        dsATMOSCapability_t atmosCaps = dsAUDIO_ATMOS_NOTSUPPORTED;
+        bool atmosCapsChangedstatus;
+        IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+        atmosCaps = eventData->data.AtmosCapsChange.caps;
+        atmosCapsChangedstatus = eventData->data.AtmosCapsChange.status;
+        LOGINFO("Received IARM_BUS_DSMGR_EVENT_ATMOS_CAPS_CHANGED: %d \n", atmosCaps);
+        if(DisplaySettings::_instance && atmosCapsChangedstatus) {
+        DisplaySettings::_instance->notifyAtmosCapabilityChange(atmosCaps);
+        }
+    }        
         void DisplaySettings::audioPortStateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             dsAudioPortState_t audioPortState = dsAUDIOPORT_STATE_UNINITIALIZED;
@@ -1008,14 +1031,26 @@ namespace WPEFramework {
                 for (size_t i = 0; i < aPorts.size(); i++)
                 {
                     device::AudioOutputPort &aPort = aPorts.at(i);
+                    string portName = aPort.getName();
                     if (aPort.isConnected())
                     {
-                        string portName = aPort.getName();
                         if((portName == "HDMI_ARC0") && (m_hdmiInAudioDeviceConnected != true)) {
                             continue;
                         }
                         vectorSet(connectedAudioPorts, portName);
                     }
+		    else if (portName == "HDMI_ARC0" && m_hdmiInAudioDeviceConnected == true && m_arcEarcAudioEnabled == false)
+		    {
+	               /* This is the case where we get ARC initiation or eARC detection done before HPD.Send connectedport update as ARC disconnected and Restart the ARC-eARC again */
+			m_hdmiInAudioDeviceConnected = false;
+			m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
+			m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+			m_hdmiInAudioDeviceType = dsAUDIOARCSUPPORT_NONE;
+			m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UNKNOWN;
+			DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
+			LOGINFO("[HDMI_ARC0] sendHdmiCecSinkAudioDevicePowerOn !!! \n");
+			sendMsgToQueue(SEND_AUDIO_DEVICE_POWERON_MSG, NULL);
+		    }
                 }
             }
             catch(const device::Exception& err)
@@ -2217,6 +2252,22 @@ namespace WPEFramework {
              sendNotify("audioFormatChanged", params);
 	}
 
+    void DisplaySettings::notifyAtmosCapabilityChange(dsATMOSCapability_t atmosCaps)
+    {
+         JsonObject params;
+         switch (atmosCaps) {
+        case dsAUDIO_ATMOS_ATMOSMETADATA:
+            params["currentAtmosCapability"] = "ATMOS_SUPPORTED";
+            break;
+        case dsAUDIO_ATMOS_NOTSUPPORTED:
+            params["currentAtmosCapability"] = "ATMOS_NOT_SUPPORTED";
+            break;
+        default:
+            LOGINFO("Atmos capability unknown, not notifying");
+            break;
+         }
+             sendNotify("AtmosCapabilityChanged", params);
+    }
 	void DisplaySettings::notifyVideoFormatChange(dsHDRStandard_t videoFormat)
 	{
             JsonObject params;
@@ -2364,8 +2415,15 @@ namespace WPEFramework {
             string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
             try
             {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                level = aPort.getLevel();
+                if( audioPort != "HDMI_ARC0")
+                {
+                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                     level = aPort.getLevel();
+                }
+                else
+                {
+                    level = hdmiArcVolumeLevel;
+                }
                 response["volumeLevel"] = to_string(level);
             }
             catch(const device::Exception& err)
@@ -2797,6 +2855,7 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "muted");
                 string sMuted = parameters["muted"].String();
                 bool muted = false;
+                static bool cache_muted = false;
                 try {
                         muted = parameters["muted"].Boolean();
                 }catch (const device::Exception& err) {
@@ -2811,6 +2870,13 @@ namespace WPEFramework {
                 {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                     aPort.setMuted(muted);
+                    if(cache_muted != muted)
+                    {
+                        cache_muted = muted;
+                        JsonObject params;
+                        params["muted"] = muted;
+                        sendNotify("muteStatusChanged", params);
+                    }
                 }
                 catch (const device::Exception& err)
                 {
@@ -2819,6 +2885,33 @@ namespace WPEFramework {
                 }
                 returnResponse(success);
         }
+	#define KEY_PRESSES_AT_ONCE 5
+        void DisplaySettings::setVolumeThread( int level)
+        {
+            LOGINFO("Entry  %s:  level: %d hdmiArcVolumeLevel:%d \n",__FUNCTION__,level,hdmiArcVolumeLevel);
+	    do
+	    {
+                JsonObject hdmiCecSinkResult;
+                JsonObject params;
+		// 5 is logical address for audio system
+                params["logicalAddress"] = 5;
+		// key code for volume up and down key event
+                params["keyCode"] =(level > hdmiArcVolumeLevel)?0x41:0x42;
+		int loopCount  = abs(level-hdmiArcVolumeLevel);
+                loopCount=(loopCount>KEY_PRESSES_AT_ONCE)?KEY_PRESSES_AT_ONCE:loopCount;
+
+                for(int i =0; i< loopCount;i++  )
+	        {
+                    _instance->m_client->Invoke<JsonObject, JsonObject>(2000, "sendKeyPressEvent", params, hdmiCecSinkResult);
+                    if (!hdmiCecSinkResult["success"].Boolean()) {
+                        LOGERR("%s HdmiCecSink Plugin sendKeyPressEvent returned error\n",__FUNCTION__);
+                    }
+	        }
+		sleep(3);
+                LOGINFO("After iteration %s:  level: %d hdmiArcVolumeLevel:%d loopCount:%d \n",__FUNCTION__,level,hdmiArcVolumeLevel,loopCount);
+	    }while( abs(level-hdmiArcVolumeLevel) > KEY_PRESSES_AT_ONCE/2 );
+            LOGINFO("Exit  %s:  level: %d hdmiArcVolumeLevel:%d \n",__FUNCTION__,level,hdmiArcVolumeLevel);
+        }
 
         uint32_t DisplaySettings::setVolumeLevel(const JsonObject& parameters, JsonObject& response)
         {
@@ -2826,6 +2919,7 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "volumeLevel");
                 string sLevel = parameters["volumeLevel"].String();
                 float level = 0;
+                int cache_volumelevel = 0;
                 try {
                         level = stof(sLevel);
                 }catch (const device::Exception& err) {
@@ -2837,9 +2931,24 @@ namespace WPEFramework {
                 string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "HDMI0";
                 try
                 {
-                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                        aPort.setLevel(level);
-                        success= true;
+                    if( audioPort != "HDMI_ARC0")
+                    {
+                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                         aPort.setLevel(level);
+                    }
+                    else
+                    {
+                        std::thread t_setVolThread = std::thread(setVolumeThread,(int)level);
+                        t_setVolThread.detach();
+                    }
+                    if(cache_volumelevel != (int)level)
+                    {
+                        cache_volumelevel = (int)level;
+                        JsonObject params;
+                        params["volumeLevel"] = (int)level;
+                        sendNotify("volumeLevelChanged", params);
+                    }
+                    success= true;
                 }
                 catch (const device::Exception& err)
                 {
@@ -3740,30 +3849,66 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getSinkAtmosCapability (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
             LOGINFOMETHOD();
-			bool success = true;
-			dsATMOSCapability_t atmosCapability;
+            bool success = true;
+            bool isValidAudioPort =  false;
+            dsATMOSCapability_t atmosCapability;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "NULL";
             try
             {
-                if (device::Host::getInstance().isHDMIOutPortPresent())
+                if(audioPort != "NULL") {
+                    device::List<device::AudioOutputPort> aPorts = device::Host::getInstance().getAudioOutputPorts();
+                    for (size_t i = 0; i < aPorts.size(); i++)
+                    {
+                        device::AudioOutputPort port = aPorts.at(i);
+                        if(audioPort == port.getName()) {
+                            isValidAudioPort = true;
+                            break;
+                        }
+                    }
+
+                    if(isValidAudioPort != true) {
+                         success = false;
+                         LOGERR("getSinkAtmosCapability failure: Unsupported Audio Port!!!\n");
+                         returnResponse(success);
+                    }
+		}
+
+                if (device::Host::getInstance().isHDMIOutPortPresent()) //STB
                 {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                    if(isValidAudioPort) {
+                        aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                    }
                     if (aPort.isConnected()) {
                         aPort.getSinkDeviceAtmosCapability (atmosCapability);
                         response["atmos_capability"] = (int)atmosCapability;
                     }
                     else {
-                        LOGERR("getSinkAtmosCapability failure: HDMI0 not connected!\n");
+                        LOGERR("getSinkAtmosCapability failure: %s not connected!\n", aPort.getName().c_str());
                         success = false;
                     }
                 }
-                else {
-                    device::Host::getInstance().getSinkDeviceAtmosCapability (atmosCapability);
-                    response["atmos_capability"] = (int)atmosCapability;
+                else { //TV
+                    if(isValidAudioPort) {
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                        if ( (aPort.getName() == "HDMI_ARC0" && aPort.isConnected() && m_arcEarcAudioEnabled == true) || (aPort.getName() != "HDMI_ARC0" && aPort.isConnected()) )  {
+                            aPort.getSinkDeviceAtmosCapability (atmosCapability);
+                            response["atmos_capability"] = (int)atmosCapability;
+                        }
+                        else {
+                            LOGERR("getSinkAtmosCapability failure: %s not connected!\n", audioPort.c_str());
+                            success = false;
+                        }
+                    }
+                    else {
+                        device::Host::getInstance().getSinkDeviceAtmosCapability (atmosCapability);
+                        response["atmos_capability"] = (int)atmosCapability;
+                    }
                 }
             }
             catch(const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                LOG_DEVICE_EXCEPTION1(audioPort);
                 success = false;
             }
             returnResponse(success);
@@ -4718,6 +4863,10 @@ void DisplaySettings::sendMsgThread()
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onSystemAudioModeEventHandler, this);
                     m_clientRegisteredEventNames.push_back(eventName);
+                } else if(strcmp(eventName, HDMICECSINK_ARC_AUDIO_STATUS_EVENT) == 0) {
+                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                            , &DisplaySettings::onArcAudioStatusEventHandler, this);
+                    m_clientRegisteredEventNames.push_back(eventName);
                 } else if(strcmp(eventName, HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT) == 0) {
                     err =m_client->Subscribe<JsonObject>(1000, eventName
                             , &DisplaySettings::onAudioDeviceConnectedStatusEventHandler, this);
@@ -4950,10 +5099,13 @@ void DisplaySettings::sendMsgThread()
                     {
                         LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
                     }
-            } else {
+            }  else {
+                LOGERR("Invalid SAD state m_AudioDeviceSADState =%d", m_AudioDeviceSADState);
+               }/*End of (m_AudioDeviceSADState == AUDIO_DEVICE_SAD_REQUESTED) */
+			}
+		    else {
                 LOGERR("Field 'ShortAudioDescriptor' could not be found in the event's payload.");
             }/*End of (m_AudioDeviceSADState == AUDIO_DEVICE_SAD_REQUESTED) */
-	  }
         }
 
         // 5.
@@ -5011,6 +5163,18 @@ void DisplaySettings::sendMsgThread()
             }
         }
 
+        void DisplaySettings::onArcAudioStatusEventHandler(const JsonObject& parameters) {
+            string message;
+            parameters.ToString(message);
+            LOGINFO("[ARC Audio Status Event], %s : %s", __FUNCTION__, C_STR(message));
+
+            if (parameters.HasLabel("muteStatus") && parameters.HasLabel("volumeLevel")) {
+                hdmiArcVolumeLevel =  stoi(parameters["volumeLevel"].String());
+            } else {
+                LOGERR("Field 'muteStatus' and 'volumeLevel' could not be found in the event's payload.");
+            }
+        }
+
 	/* Event handler when Audio Device is Added/Removed     */
 	void DisplaySettings::onAudioDeviceConnectedStatusEventHandler(const JsonObject& parameters)
 	{
@@ -5022,18 +5186,28 @@ void DisplaySettings::sendMsgThread()
 	    if(!value.compare("true")) {
 	        m_hdmiCecAudioDeviceDetected = true;
             } else{
-	        m_hdmiCecAudioDeviceDetected = false;
-		m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
-		if (m_hdmiInAudioDeviceType == dsAUDIOARCSUPPORT_ARC) {
-		    if (m_AudioDeviceSADState != AUDIO_DEVICE_SAD_CLEARED) {
-		        m_AudioDeviceSADState = AUDIO_DEVICE_SAD_CLEARED;
-		        LOGINFO("%s: Clearing Audio device SAD\n", __FUNCTION__);
-		        //clear the SAD list
-		        sad_list.clear();
-		    } else {
-		        LOGINFO("SAD already cleared\n");
+	            m_hdmiCecAudioDeviceDetected = false;
+		        if (m_hdmiInAudioDeviceConnected == true) {
+					LOGINFO("Audio device removed event Handler, clearing the states m_hdmiInAudioDeviceConnected =%d, m_currentArcRoutingState =%d", \
+                    m_hdmiInAudioDeviceConnected, m_currentArcRoutingState);
+				    m_hdmiInAudioDeviceConnected = false;	
+		    	    m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
+                    m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+				    connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
+			    }
+		        if (m_AudioDeviceSADState != AUDIO_DEVICE_SAD_CLEARED && m_AudioDeviceSADState != AUDIO_DEVICE_SAD_UNKNOWN) {
+		            LOGINFO("%s: Clearing Audio device SAD previous state= %d current state = %d\n", __FUNCTION__, m_AudioDeviceSADState, AUDIO_DEVICE_SAD_CLEARED);
+		            //clear the SAD list
+		            sad_list.clear();
+		            m_AudioDeviceSADState = AUDIO_DEVICE_SAD_CLEARED;
+		        } else {
+		            LOGINFO("SAD already cleared\n");
 	            }
-		}
+                //if m_arcEarcAudioEnabled == true(case where arc/earc is already routed) we will not reset device type because it will be done from setEnableAudioPort during disable from the connectedAudioPort update
+				if (m_arcEarcAudioEnabled == false && m_hdmiInAudioDeviceType != dsAUDIOARCSUPPORT_NONE) {
+					LOGINFO("Reset m_hdmiInAudioDeviceType since m_arcEarcAudioEnabled = %d", m_arcEarcAudioEnabled);
+					m_hdmiInAudioDeviceType = dsAUDIOARCSUPPORT_NONE;
+				}
 
             }
 	    LOGINFO("updated m_hdmiCecAudioDeviceDetected status [%d] ... \n", m_hdmiCecAudioDeviceDetected);
@@ -5047,6 +5221,7 @@ void DisplaySettings::sendMsgThread()
 		} else {
                     LOGINFO("Audio Device is removed \n");
 		}
+                hdmiArcVolumeLevel = 0;
         }
 
 	void DisplaySettings::onAudioDevicePowerStatusEventHandler(const JsonObject& parameters) {
@@ -5179,6 +5354,11 @@ void DisplaySettings::sendMsgThread()
 		isCecEnabled = false;
 		try
                     {
+                        //if m_arcEarcAudioEnabled == true(case where arc/earc is already routed) we will not reset device type because it will be done from setEnableAudioPort during disable from the connectedAudioPort update
+                        if (m_arcEarcAudioEnabled == false && m_hdmiInAudioDeviceType != dsAUDIOARCSUPPORT_NONE) {
+                           LOGINFO("Reset m_hdmiInAudioDeviceType since m_arcEarcAudioEnabled = %d", m_arcEarcAudioEnabled);
+                           m_hdmiInAudioDeviceType = dsAUDIOARCSUPPORT_NONE;
+                        }
                         if(m_hdmiInAudioDeviceConnected ==  true) {
                             m_hdmiInAudioDeviceConnected = false;
                             connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
@@ -5264,7 +5444,7 @@ void DisplaySettings::sendMsgThread()
 
             LOGWARN ("DisplaySettings::onTimer pluginActivated:%d line:%d", pluginActivated, __LINE__);
             if(!m_subscribed) {
-                if (pluginActivated && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_CEC_ENABLED_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_POWER_STATUS_EVENT) == Core::ERROR_NONE))
+                if (pluginActivated && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_INITIATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_TERMINATION_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SHORT_AUDIO_DESCRIPTOR_EVENT)== Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_SYSTEM_AUDIO_MODE_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_CONNECTED_STATUS_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_CEC_ENABLED_EVENT) == Core::ERROR_NONE) && (subscribeForHdmiCecSinkEvent(HDMICECSINK_AUDIO_DEVICE_POWER_STATUS_EVENT) == Core::ERROR_NONE)&& (subscribeForHdmiCecSinkEvent(HDMICECSINK_ARC_AUDIO_STATUS_EVENT) == Core::ERROR_NONE))
                 {
                     m_subscribed = true;
                     if (m_timer.isActive()) {

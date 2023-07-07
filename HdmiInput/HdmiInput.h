@@ -92,6 +92,8 @@ namespace WPEFramework {
             void hdmiInputALLMChange( int port , bool allmMode);
             static void dsHdmiGameFeatureStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
+	    void hdmiInputAviContentTypeChange(int port, int content_type);
+            static void dsHdmiAviContentTypeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         public:
             HdmiInput();
             virtual ~HdmiInput();
