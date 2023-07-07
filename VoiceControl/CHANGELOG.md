@@ -16,6 +16,15 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.4.1] - 2023-06-01
+### Fixed
+- Added optional audio file name parameter to voice session request API
+
+## [1.4.0] - 2022-06-01
+### Added
+- Updated API version to 1.4.0
+- Added voiceSessionAudioStart API
+
 ## [1.3.1] - 2023-04-10
 ### Fixed
 - Fixed warnings treated as errors for unit tests workflow

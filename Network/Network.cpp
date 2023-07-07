@@ -34,7 +34,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 8
+#define API_VERSION_NUMBER_PATCH 10
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
@@ -54,6 +54,9 @@ using namespace std;
 #define IARM_BUS_NETSRVMGR_API_getSTBip_family "getSTBip_family"
 #define IARM_BUS_NETSRVMGR_API_isConnectedToInternet "isConnectedToInternet"
 #define IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints "setConnectivityTestEndpoints"
+#define IARM_BUS_NETSRVMGR_API_getInternetConnectionState "getInternetConnectionState"
+#define IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring "startConnectivityMonitoring"
+#define IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring "stopConnectivityMonitoring"
 #define IARM_BUS_NETSRVMGR_API_isAvailable "isAvailable"
 #define IARM_BUS_NETSRVMGR_API_getPublicIP "getPublicIP"
 
@@ -97,6 +100,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
         Network::Network()
         : PluginHost::JSONRPC()
+        , m_service(nullptr)
         , m_apiVersionNumber(API_VERSION_NUMBER_MAJOR)
         {
             Network::_instance = this;
@@ -132,7 +136,10 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             registerMethod("getSTBIPFamily", &Network::getSTBIPFamily, this);
             registerMethod("isConnectedToInternet", &Network::isConnectedToInternet, this);
             registerMethod("setConnectivityTestEndpoints", &Network::setConnectivityTestEndpoints, this);
-
+            registerMethod("getInternetConnectionState", &Network::getInternetConnectionState, this);
+            registerMethod("startConnectivityMonitoring", &Network::startConnectivityMonitoring, this);
+            registerMethod("getCaptivePortalURI", &Network::getCaptivePortalURI, this);
+            registerMethod("stopConnectivityMonitoring", &Network::stopConnectivityMonitoring, this);
             registerMethod("getPublicIP", &Network::getPublicIP, this);
             registerMethod("setStunEndPoint", &Network::setStunEndPoint, this);
 
@@ -169,8 +176,11 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
         {
         }
 
-        const string Network::Initialize(PluginHost::IShell* /* service */)
+        const string Network::Initialize(PluginHost::IShell*  service )
         {
+            m_service = service;
+            m_service->AddRef();
+
             string msg;
             if (Utils::IARM::init())
             {
@@ -201,6 +211,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
+                    IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, eventHandler) );
                     LOGINFO("Successfully activated Network Plugin");
                     m_isPluginInited = true;
                 }
@@ -229,6 +240,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, eventHandler) );
             }
             Unregister("getQuirks");
             Unregister("getInterfaces");
@@ -246,10 +258,17 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             Unregister("getIPSettings");
             Unregister("isConnectedToInternet");
             Unregister("setConnectivityTestEndpoints");
+            Unregister("getInternetConnectionState");
+            Unregister("getCaptivePortalURI");
+            Unregister("startConnectivityMonitoring");
+            Unregister("stopConnectivityMonitoring");
             Unregister("getPublicIP");
             Unregister("setStunEndPoint");
 
             Network::_instance = nullptr;
+
+            m_service->Release();
+            m_service = nullptr;
         }
 
         string Network::Information() const
@@ -341,6 +360,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, eventHandler) );
                 LOGINFO("NETWORK_AVAILABILITY_RETRY_SUCCESS: threadEventRegistration successfully subscribed to IARM event for Network Plugin");
                 m_isPluginInited = true;
             }
@@ -1125,6 +1145,8 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 response["primarydns"] = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
                 response["secondarydns"] = string(iarmData.secondarydns,MAX_IP_ADDRESS_LEN - 1);
                 errCode = iarmData.errCode;
+
+                m_ipversion = string(iarmData.ipversion);
             }
 
             return result;
@@ -1141,6 +1163,43 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 {
                     LOGINFO("%s :: isconnected = %d \n",__FUNCTION__,isconnected);
                     response["connectedToInternet"] = isconnected;
+
+                    if (isconnected)
+                    {
+                        PluginHost::ISubSystem* subSystem = m_service->SubSystems();
+
+                        if (subSystem != nullptr) {
+
+                            const PluginHost::ISubSystem::IInternet* internet(subSystem->Get<PluginHost::ISubSystem::IInternet>());
+                            if (nullptr == internet)
+                            {
+                                if (m_ipversion.empty())
+                                {
+                                    JsonObject p, r;
+                                    getIPSettings(p, r);
+                                }
+
+                                if (m_publicIPAddress.empty())
+                                {
+                                    JsonObject p2, r2;
+                                    if (m_ipversion == "IPV6")
+                                        p2["ipv6"] = true;
+                                    getPublicIP(p2, r2);
+                                }
+
+                                if (!m_publicIPAddress.empty())
+                                {
+                                    subSystem->Set(PluginHost::ISubSystem::INTERNET, this);
+                                    LOGWARN("Set INTERNET ISubSystem");
+                                }
+                                else
+                                    LOGERR("Connected to Internet, but no publicIP");
+                            }
+    
+                            subSystem->Release();
+                        }
+                    }
+
                     result = true;
                 }
                 else
@@ -1195,6 +1254,114 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             {
                 LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
+
+            returnResponse(result);
+        }
+
+        uint32_t Network::getInternetConnectionState(const JsonObject& parameters, JsonObject& response)
+        {
+            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t iarmData;
+            bool result = false;
+
+            if(m_isPluginInited)
+            {
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInternetConnectionState, (void*)&iarmData, sizeof(iarmData)))
+                {
+                    LOGINFO("InternetConnectionState = %d ",iarmData.connectivityState);
+                    response["state"] = iarmData.connectivityState;
+                    if (iarmData.connectivityState == CAPTIVE_PORTAL)
+                    {
+                        LOGINFO("Captive potal found URI = %s ", iarmData.captivePortalURI);
+                        response["URI"] = string(iarmData.captivePortalURI, MAX_URI_LEN - 1);
+                    }
+                    result = true;
+                }
+                else
+                {
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
+                }
+            }
+            else
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t Network::getCaptivePortalURI(const JsonObject& parameters, JsonObject& response)
+        {
+            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t iarmData;
+            bool result = false;
+
+            if(m_isPluginInited)
+            {
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInternetConnectionState, (void*)&iarmData, sizeof(iarmData)))
+                {
+                    LOGINFO("InternetConnectionState = %d ",iarmData.connectivityState);
+                    if (iarmData.connectivityState == CAPTIVE_PORTAL)
+                    {
+                        LOGINFO("Captive potal URI found = %s ", iarmData.captivePortalURI);
+                        response["URI"] = string(iarmData.captivePortalURI, MAX_URI_LEN - 1);
+                    }
+                    else
+                    {
+                        LOGERR("No Captive potal URI found ");
+                        response["URI"] = string("");
+                    }
+
+                    result = true;
+                }
+                else
+                {
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
+                }
+            }
+            else
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t Network::startConnectivityMonitoring(const JsonObject& parameters, JsonObject& response)
+        {
+            bool result = false;
+            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t iarmData;
+
+            if (parameters.HasLabel("interval"))
+            {
+                iarmData.monitorConnectivity = true;
+                iarmData.monitorInterval = parameters["interval"].Number();
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring, (void *)&iarmData, sizeof(iarmData)))
+                {
+                    LOGINFO ("starting connectivity monitor with %d sec interval", iarmData.monitorInterval);
+                    result = true;
+                }
+                else
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring);
+            }
+            else
+            {
+                LOGWARN("interval parameter not included");
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t Network::stopConnectivityMonitoring(const JsonObject& parameters, JsonObject& response)
+        {
+            bool result = false;
+            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t iarmData;
+            iarmData.monitorConnectivity = false;
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring, (void *)&iarmData, sizeof(iarmData)))
+            {
+                LOGINFO ("connectivity monitor stopped !");
+                result = true;
+            }
+            else
+                LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring);
 
             returnResponse(result);
         }
@@ -1281,6 +1448,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getPublicIP, (void *)&iarmData, sizeof(iarmData)))
                 {
                     response["public_ip"] = string(iarmData.public_ip);
+                    m_publicIPAddress = string(iarmData.public_ip);
                     result = true;
                 }
             }
@@ -1321,6 +1489,33 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             m_defIpversionCache = "";
             m_defInterfaceCache = "";
             sendNotify("onConnectionStatusChanged", params);
+        }
+
+        void Network::onInternetStatusChange(InternetConnectionState_t InternetConnectionState)
+        {
+            JsonObject params;
+            params["state"] = static_cast <int> (InternetConnectionState);
+            switch (InternetConnectionState)
+            {
+                case NO_INTERNET:
+                    params["status"] = string("NO_INTERNET");
+                break;
+                case LIMITED_INTERNET:
+                    params["status"] = string("LIMITED_INTERNET");
+                break;
+                case CAPTIVE_PORTAL:
+                    params["status"] = string("CAPTIVE_PORTAL");
+                break;
+                case FULLY_CONNECTED:
+                    params["status"] = string("FULLY_CONNECTED");
+                break;
+                default:
+                    LOGERR("onInternetStatusChange event date error <%d>", InternetConnectionState);
+                    return;
+                break;
+            }
+            LOGINFO("onInternetStatusChange Event State = %d", InternetConnectionState);
+            sendNotify("onInternetStatusChange", params);
         }
 
         void Network::onInterfaceIPAddressChanged(string interface, string ipv6Addr, string ipv4Addr, bool acquired)
@@ -1445,6 +1640,11 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t *e = (IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t*) data;
                 onDefaultInterfaceChanged(e->oldInterface, e->newInterface);
                 break;
+            }
+            case IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED:
+            {
+                InternetConnectionState_t *e = (InternetConnectionState_t*) data;
+                onInternetStatusChange(*e);
             }
             }
         }

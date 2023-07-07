@@ -71,7 +71,7 @@
 
                 uint32_t endpoint_setValue(const JsonObject &parameters, JsonObject &response);
 
-                virtual void event_onValueChanged(const string &key, const string &value);
+                void event_onValueChanged(const string &key, const string &value);
             };
 
         } // namespace Plugin
@@ -80,13 +80,13 @@
 
 ## Highlighting important sections from the Header file:
 
-- RDK services are implemented as Thunder Plugins and must adhere to the `PluginHost::IPlugin` interface. If a RDK service handles WEB requests it implements `PluginHost::IWeb`. If it activates/deactivates and handles JSON-RPC it implements `PluginHost::IDispatcher` (or derives from `PluginHost::JSONRPC`).
+- RDK services are implemented as Thunder Plugins and must adhere to the `PluginHost::IPlugin` interface. If it activates/deactivates and handles JSON-RPC it implements `PluginHost::IDispatcher` (or derives from `PluginHost::JSONRPC`).
 
     ```C++
     class FooPlugin : public PluginHost::IPlugin, public PluginHost::JSONRPC
     ```
 
-- A plugin specifies the interfaces that it implements within the `BEGIN_INTERFACE_MAP/END_INTERFACE_MAP` macros. These are basically macros for AddRef defined in [WPEFramework](https://github.com/rdkcentral/Thunder/blob/master/Source/core/Services.h#L362).
+- A plugin specifies the interfaces that it implements within the `BEGIN_INTERFACE_MAP/END_INTERFACE_MAP` macros. These are basically macros for QueryInterface defined in [WPEFramework](https://github.com/rdkcentral/Thunder/blob/master/Source/core/Services.h#L362).
 
     ```C++
     BEGIN_INTERFACE_MAP(FooPlugin)
@@ -105,7 +105,7 @@
 - Declare the API and event handlers.
     ```C++
     uint32_t endpoint_setValue(const JsonObject &parameters, JsonObject &response);
-    virtual void event_onValueChanged(const string &key, const string &value);
+    void event_onValueChanged(const string &key, const string &value);
     ```
 
 

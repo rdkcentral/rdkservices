@@ -32,9 +32,12 @@
 #pragma once
 
 #include "Module.h"
-#include "tracing/Logging.h"
+#include <interfaces/ITextToSpeech.h>
 
-#include "TextToSpeechImplementation.h"
+#include "tracing/Logging.h"
+#include "impl/logger.h"
+#include <mutex>
+#include <map>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -58,48 +61,67 @@ namespace Plugin {
                 }
 
             public:
-                virtual void StateChanged(const string &data) {
-                    _parent.dispatchJsonEvent("onttsstatechanged", data);
+                virtual void Enabled(const bool state) {
+                    JsonObject params;
+                    params["state"] = JsonValue((bool)state);
+                    _parent.Notify("onttsstatechanged",params);
                 }
 
-                virtual void VoiceChanged(const string &data) {
-                    _parent.dispatchJsonEvent("onvoicechanged", data);
+                virtual void VoiceChanged(const string voice) {
+                    JsonObject params;
+                    params["voice"] = voice;
+                    _parent.Notify("onvoicechanged", params);
                 }
 
-                virtual void WillSpeak(const string &data) {
-                    _parent.dispatchJsonEvent("onwillspeak", data);
+                virtual void WillSpeak(const uint32_t speechid) {
+                    JsonObject params;
+                    params["speechid"]  = JsonValue((int)speechid);
+                    params["text"]      = "";
+                    _parent.Notify("onwillspeak", params);
                 }
 
-                virtual void SpeechStart(const string &data) {
-                    _parent.dispatchJsonEvent("onspeechstart", data);
+                virtual void SpeechStart(const uint32_t speechid) {
+                    JsonObject params;
+                    params["speechid"]  = JsonValue((int)speechid);
+                    params["text"]      = "";
+                    _parent.Notify("onspeechstart", params);
                 }
 
-                virtual void SpeechPause(const string &data) {
-                    _parent.dispatchJsonEvent("onspeechpause", data);
+                virtual void SpeechPause(const uint32_t speechid) {
+                    JsonObject params;
+                    params["speechid"]  = JsonValue((int)speechid);
+                    _parent.Notify("onspeechpause",params);
                 }
 
-                virtual void SpeechResume(const string &data) {
-                    _parent.dispatchJsonEvent("onspeechresume", data);
+                virtual void SpeechResume(const uint32_t speechid) {
+                    JsonObject params;
+                    params["speechid"]  = JsonValue((int)speechid);
+                    _parent.Notify("onspeechresume", params);
                 }
 
-                virtual void SpeechCancelled(const string &data) {
-                    _parent.dispatchJsonEvent("onspeechcancelled", data);
+                virtual void SpeechInterrupted(const uint32_t speechid) {
+                    JsonObject params;
+                    params["speechid"]  = JsonValue((int)speechid);
+                    _parent.Notify("onspeechinterrupted", params);
                 }
 
-                virtual void SpeechInterrupted(const string &data) {
-                    _parent.dispatchJsonEvent("onspeechinterrupted", data);
+                virtual void NetworkError(const uint32_t speechid) {
+                    JsonObject params;
+                    params["speechid"]  = JsonValue((int)speechid);
+                    _parent.Notify("onnetworkerror", params);
                 }
 
-                virtual void NetworkError(const string &data) {
-                    _parent.dispatchJsonEvent("onnetworkerror", data);
+                virtual void PlaybackError(const uint32_t speechid) {
+                    JsonObject params;
+                    params["speechid"]  = JsonValue((int)speechid);
+                    _parent.Notify("onplaybackerror", params);
                 }
 
-                virtual void PlaybackError(const string &data) {
-                    _parent.dispatchJsonEvent("onplaybackerror", data);
-                }
-
-                virtual void SpeechComplete(const string &data) {
-                    _parent.dispatchJsonEvent("onspeechcomplete", data);
+                virtual void SpeechComplete(const uint32_t speechid) {
+                    JsonObject params;
+                    params["speechid"]  = JsonValue((int)speechid);
+                    params["text"]      = "";
+                    _parent.Notify("onspeechcomplete", params);
                 }
 
                 virtual void Activated(RPC::IRemoteConnection* /* connection */) final
