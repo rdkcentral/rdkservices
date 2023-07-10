@@ -67,7 +67,10 @@ bool LibMediaPlayerImpl::openMediaPlayer(
 {
     bool retValue = false;
     
+    setEnvVariables();
+
     m_sessionType = t_sessionType;
+
     if(m_sessionType != "MANAGE_NO_TUNER")
     {
         if(nullptr != m_libMediaPlayer)
@@ -75,8 +78,6 @@ bool LibMediaPlayerImpl::openMediaPlayer(
             LOGERR("LibMediaplayer instance is already avalailable");
             return retValue;
         }
-
-        setEnvVariables();
 
         if(0 != mediaplayer::initialize(QAM, true, true))
         {
