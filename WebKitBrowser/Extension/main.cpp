@@ -32,6 +32,7 @@
 #include "NotifyWPEFramework.h"
 #include "RequestHeaders.h"
 #include "WhiteListedOriginDomainsList.h"
+#include "MixedContentWhiteListedOriginDomainsList.h"
 
 #ifdef ENABLE_SECURITY_AGENT
 #include "SecurityAgent.h"
@@ -99,8 +100,9 @@ public:
 
         const char *uid;
         const char *whitelist;
+        const char *mixedContentWhitelist;
 
-        g_variant_get((GVariant*) userData, "(&sm&sb)", &uid, &whitelist, &_logToSystemConsoleEnabled);
+        g_variant_get((GVariant*) userData, "(&sm&sbm&s)", &uid, &whitelist, &_logToSystemConsoleEnabled, &mixedContentWhitelist);
 
         if (_logToSystemConsoleEnabled && Core::SystemInfo::GetEnvironment(string(_T("CLIENT_IDENTIFIER")), _consoleLogPrefix))
           _consoleLogPrefix = _consoleLogPrefix.substr(0, _consoleLogPrefix.find(','));
@@ -121,6 +123,13 @@ public:
             auto list = WebKit::WhiteListedOriginDomainsList::Parse(whitelist);
             if (list) {
               list->AddWhiteListToWebKit(extension);
+            }
+        }
+
+        if (mixedContentWhitelist != nullptr) {
+            auto list = WebKit::MixedContentWhiteListedOriginDomainsList::Parse(mixedContentWhitelist);
+            if (list) {
+              list->AddMixedContentWhitelistToWebKit(extension);
             }
         }
 
