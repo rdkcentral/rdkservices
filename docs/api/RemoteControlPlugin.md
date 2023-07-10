@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.RemoteControl_Plugin"></a>
+<a name="RemoteControl_Plugin"></a>
 # RemoteControl Plugin
 
 **Version: [1.3.0](https://github.com/rdkcentral/rdkservices/blob/main/RemoteControl/CHANGELOG.md)**
@@ -8,25 +8,25 @@ A org.rdk.RemoteControl plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Abbreviation, Acronyms and Terms](#head.Abbreviation,_Acronyms_and_Terms)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Abbreviation,_Acronyms_and_Terms"></a>
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
 # Abbreviation, Acronyms and Terms
 
 [[Refer to this link](userguide/aat.md)]
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `RemoteControl` plugin provides the ability to pair and IR-program remote controls.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -38,7 +38,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkRemoteControl.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.RemoteControl plugin:
@@ -47,24 +47,24 @@ RemoteControl interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getApiVersionNumber](#method.getApiVersionNumber) | Gets the current API version number |
-| [getNetStatus](#method.getNetStatus) | Returns the status information provided by the last `onStatus` event for the specified network |
-| [startPairing](#method.startPairing) | Initiates pairing a remote with the STB on the specified network |
-| [initializeIRDB](#method.initializeIRDB) | Initializes the IR database |
-| [clearIRCodes](#method.clearIRCodes) | Clears the IR codes from the specified remote |
-| [setIRCode](#method.setIRCode) | Programs an IR code into the specified remote control |
-| [getIRCodesByAutoLookup](#method.getIRCodesByAutoLookup) | Returns a list of available IR codes for the TV and AVRs specified by the input parameters |
-| [getIRCodesByNames](#method.getIRCodesByNames) | Returns a list of IR codes for the AV device specified by the input parameters |
-| [getIRDBManufacturers](#method.getIRDBManufacturers) | Returns a list of manufacturer names based on the specified input parameters |
-| [getIRDBModels](#method.getIRDBModels) | Returns a list of model names based on the specified input parameters |
-| [getLastKeypressSource](#method.getLastKeypressSource) | Returns last key press source data |
-| [configureWakeupKeys](#method.configureWakeupKeys) | Configures which keys on the remote will wake the target from deepsleep |
-| [findMyRemote](#method.findMyRemote) | Tells the most recently used remote to beep |
-| [factoryReset](#method.factoryReset) | Tells all paired and connected remotes to factory reset |
+| [getApiVersionNumber](#getApiVersionNumber) | Gets the current API version number |
+| [getNetStatus](#getNetStatus) | Returns the status information provided by the last `onStatus` event for the specified network |
+| [startPairing](#startPairing) | Initiates pairing a remote with the STB on the specified network |
+| [initializeIRDB](#initializeIRDB) | Initializes the IR database |
+| [clearIRCodes](#clearIRCodes) | Clears the IR codes from the specified remote |
+| [setIRCode](#setIRCode) | Programs an IR code into the specified remote control |
+| [getIRCodesByAutoLookup](#getIRCodesByAutoLookup) | Returns a list of available IR codes for the TV and AVRs specified by the input parameters |
+| [getIRCodesByNames](#getIRCodesByNames) | Returns a list of IR codes for the AV device specified by the input parameters |
+| [getIRDBManufacturers](#getIRDBManufacturers) | Returns a list of manufacturer names based on the specified input parameters |
+| [getIRDBModels](#getIRDBModels) | Returns a list of model names based on the specified input parameters |
+| [getLastKeypressSource](#getLastKeypressSource) | Returns last key press source data |
+| [configureWakeupKeys](#configureWakeupKeys) | Configures which keys on the remote will wake the target from deepsleep |
+| [findMyRemote](#findMyRemote) | Tells the most recently used remote to beep |
+| [factoryReset](#factoryReset) | Tells all paired and connected remotes to factory reset |
 
 
-<a name="method.getApiVersionNumber"></a>
-## *getApiVersionNumber [<sup>method</sup>](#head.Methods)*
+<a name="getApiVersionNumber"></a>
+## *getApiVersionNumber*
 
 Gets the current API version number. 
   
@@ -113,8 +113,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getNetStatus"></a>
-## *getNetStatus [<sup>method</sup>](#head.Methods)*
+<a name="getNetStatus"></a>
+## *getNetStatus*
 
 Returns the status information provided by the last `onStatus` event for the specified network. 
   
@@ -223,8 +223,8 @@ No Events
 }
 ```
 
-<a name="method.startPairing"></a>
-## *startPairing [<sup>method</sup>](#head.Methods)*
+<a name="startPairing"></a>
+## *startPairing*
 
 Initiates pairing a remote with the STB on the specified network. 
  
@@ -237,7 +237,7 @@ Initiates pairing a remote with the STB on the specified network.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onStatus](#event.onStatus) | pairingState will be updated to relect the current status of the request, along with updated remoteData upon a successful pairing. |
+| [onStatus](#onStatus) | pairingState will be updated to relect the current status of the request, along with updated remoteData upon a successful pairing. |
 ### Parameters
 
 | Name | Type | Description |
@@ -281,8 +281,8 @@ Initiates pairing a remote with the STB on the specified network.
 }
 ```
 
-<a name="method.initializeIRDB"></a>
-## *initializeIRDB [<sup>method</sup>](#head.Methods)*
+<a name="initializeIRDB"></a>
+## *initializeIRDB*
 
 Initializes the IR database.
   
@@ -335,8 +335,8 @@ No Events
 }
 ```
 
-<a name="method.clearIRCodes"></a>
-## *clearIRCodes [<sup>method</sup>](#head.Methods)*
+<a name="clearIRCodes"></a>
+## *clearIRCodes*
 
 Clears the IR codes from the specified remote.
  
@@ -350,7 +350,7 @@ Events
 
 | Event | Description |
 | :-------- | :-------- |
-| [onStatus](#event.onStatus) | irProgState will be updated to relect the current status of the request |
+| [onStatus](#onStatus) | irProgState will be updated to relect the current status of the request |
 ### Parameters
 
 | Name | Type | Description |
@@ -394,8 +394,8 @@ Events
 }
 ```
 
-<a name="method.setIRCode"></a>
-## *setIRCode [<sup>method</sup>](#head.Methods)*
+<a name="setIRCode"></a>
+## *setIRCode*
 
 Programs an IR code into the specified remote control.
  
@@ -409,7 +409,7 @@ Events
 
 | Event | Description |
 | :-------- | :-------- |
-| [onStatus](#event.onStatus) | irProgState will be updated to relect the current status of the request |
+| [onStatus](#onStatus) | irProgState will be updated to relect the current status of the request |
 ### Parameters
 
 | Name | Type | Description |
@@ -457,8 +457,8 @@ Events
 }
 ```
 
-<a name="method.getIRCodesByAutoLookup"></a>
-## *getIRCodesByAutoLookup [<sup>method</sup>](#head.Methods)*
+<a name="getIRCodesByAutoLookup"></a>
+## *getIRCodesByAutoLookup*
 
 Returns a list of available IR codes for the TV and AVRs specified by the input parameters. 
   
@@ -529,8 +529,8 @@ No Events
 }
 ```
 
-<a name="method.getIRCodesByNames"></a>
-## *getIRCodesByNames [<sup>method</sup>](#head.Methods)*
+<a name="getIRCodesByNames"></a>
+## *getIRCodesByNames*
 
 Returns a list of IR codes for the AV device specified by the input parameters. 
   
@@ -600,8 +600,8 @@ No Events
 }
 ```
 
-<a name="method.getIRDBManufacturers"></a>
-## *getIRDBManufacturers [<sup>method</sup>](#head.Methods)*
+<a name="getIRDBManufacturers"></a>
+## *getIRDBManufacturers*
 
 Returns a list of manufacturer names based on the specified input parameters. 
   
@@ -665,8 +665,8 @@ No Events
 }
 ```
 
-<a name="method.getIRDBModels"></a>
-## *getIRDBModels [<sup>method</sup>](#head.Methods)*
+<a name="getIRDBModels"></a>
+## *getIRDBModels*
 
 Returns a list of model names based on the specified input parameters. 
   
@@ -734,8 +734,8 @@ No Events
 }
 ```
 
-<a name="method.getLastKeypressSource"></a>
-## *getLastKeypressSource [<sup>method</sup>](#head.Methods)*
+<a name="getLastKeypressSource"></a>
+## *getLastKeypressSource*
 
 Returns last key press source data. 
   
@@ -802,8 +802,8 @@ No Events
 }
 ```
 
-<a name="method.configureWakeupKeys"></a>
-## *configureWakeupKeys [<sup>method</sup>](#head.Methods)*
+<a name="configureWakeupKeys"></a>
+## *configureWakeupKeys*
 
 Configures which keys on the remote will wake the target from deepsleep. 
   
@@ -860,8 +860,8 @@ No Events
 }
 ```
 
-<a name="method.findMyRemote"></a>
-## *findMyRemote [<sup>method</sup>](#head.Methods)*
+<a name="findMyRemote"></a>
+## *findMyRemote*
 
 Tells the most recently used remote to beep.
   
@@ -916,8 +916,8 @@ No Events
 }
 ```
 
-<a name="method.factoryReset"></a>
-## *factoryReset [<sup>method</sup>](#head.Methods)*
+<a name="factoryReset"></a>
+## *factoryReset*
 
 Tells all paired and connected remotes to factory reset.
   
@@ -964,10 +964,10 @@ This method takes no parameters.
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.RemoteControl plugin:
 
@@ -975,11 +975,11 @@ RemoteControl interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onStatus](#event.onStatus) | Triggered at any time when the status of any one of the supported STB remote networks changes |
+| [onStatus](#onStatus) | Triggered at any time when the status of any one of the supported STB remote networks changes |
 
 
-<a name="event.onStatus"></a>
-## *onStatus [<sup>event</sup>](#head.Notifications)*
+<a name="onStatus"></a>
+## *onStatus*
 
 Triggered at any time when the status of any one of the supported STB remote networks changes.
 
