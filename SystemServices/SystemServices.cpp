@@ -97,7 +97,9 @@ using namespace std;
 #define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
 #define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
 
-#define mfrSERIALIZED_TYPE_SKYMODELNAME 22
+typedef enum _mfrSerializedType_t {
+mfrSERIALIZED_TYPE_SKYMODELNAME = 8000
+} mfrSerializedType_t;
 
 /**
  * @struct firmwareUpdate
