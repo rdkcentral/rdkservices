@@ -1017,14 +1017,26 @@ namespace WPEFramework {
                 for (size_t i = 0; i < aPorts.size(); i++)
                 {
                     device::AudioOutputPort &aPort = aPorts.at(i);
+                    string portName = aPort.getName();
                     if (aPort.isConnected())
                     {
-                        string portName = aPort.getName();
                         if((portName == "HDMI_ARC0") && (m_hdmiInAudioDeviceConnected != true)) {
                             continue;
                         }
                         vectorSet(connectedAudioPorts, portName);
                     }
+		    else if (portName == "HDMI_ARC0" && m_hdmiInAudioDeviceConnected == true && m_arcEarcAudioEnabled == false)
+		    {
+	               /* This is the case where we get ARC initiation or eARC detection done before HPD.Send connectedport update as ARC disconnected and Restart the ARC-eARC again */
+			m_hdmiInAudioDeviceConnected = false;
+			m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
+			m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+			m_hdmiInAudioDeviceType = dsAUDIOARCSUPPORT_NONE;
+			m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UNKNOWN;
+			DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
+			LOGINFO("[HDMI_ARC0] sendHdmiCecSinkAudioDevicePowerOn !!! \n");
+			sendMsgToQueue(SEND_AUDIO_DEVICE_POWERON_MSG, NULL);
+		    }
                 }
             }
             catch(const device::Exception& err)
