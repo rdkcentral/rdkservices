@@ -97,6 +97,8 @@ using namespace std;
 #define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
 #define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
 
+#define mfrSERIALIZED_TYPE_SKYMODELNAME 8000
+
 /**
  * @struct firmwareUpdate
  * @brief This structure contains information of firmware update.
@@ -1078,7 +1080,8 @@ namespace WPEFramework {
 		LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
 		IARM_Bus_MFRLib_GetSerializedData_Param_t param;
 		param.bufLen = 0;
-		param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
+		//param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
+		param.type = mfrSERIALIZED_TYPE_SKYMODELNAME
 		IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 		param.buffer[param.bufLen] = '\0';
 		LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
@@ -1151,7 +1154,8 @@ namespace WPEFramework {
             param.bufLen = 0;
             param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
             if (!parameter.compare(MODEL_NAME)) {
-                param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
+                //param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
+				param.type = mfrSERIALIZED_TYPE_SKYMODELNAME
             } else if (!parameter.compare(HARDWARE_ID)) {
                 param.type = mfrSERIALIZED_TYPE_HWID;
             }
