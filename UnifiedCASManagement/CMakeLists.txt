@@ -19,36 +19,55 @@ set(PLUGIN_NAME UnifiedCASManagement)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
-if (USE_THUNDER_R4)
-    find_package(${NAMESPACE}COM REQUIRED)
-else ()
-    find_package(${NAMESPACE}Protocols REQUIRED)
-endif (USE_THUNDER_R4)
+find_package(${NAMESPACE}Protocols REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 
-add_library(${MODULE_NAME} SHARED
-        UnifiedCASManagement.cpp
-        UnifiedCASManagementJsonRpc.cpp
-        RTPlayer.cpp
-        ConnectionManager.cpp
-        Module.cpp
-        )
+list(APPEND CMAKE_MODULE_PATH
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
+find_package(IARMBus)
+
+find_package(LMPLAYER REQUIRED)
+
+if (LMPLAYER_FOUND)
+	add_library(${MODULE_NAME} SHARED
+	        UnifiedCASManagement.cpp
+	        Module.cpp
+	        LibMediaPlayerImpl.cpp
+	        )
+else(LMPLAYER_FOUND)
+    message ("MISSING A PLAYER IMPLEMENTATION.")
+	add_library(${MODULE_NAME} SHARED
+	        UnifiedCASManagement.cpp
+	        Module.cpp
+	        )
+endif(LMPLAYER_FOUND)
+
+if (IARMBus_FOUND)
+    target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})
+else (IARMBus_FOUND)
+    message ("Module IARMBus required.")
+    target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})
+endif(IARMBus_FOUND)
 
 add_definitions( -DRT_PLATFORM_LINUX=1 )
+
 set_target_properties(${MODULE_NAME} PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         CXX_STANDARD_REQUIRED YES)
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
+if (LMPLAYER_FOUND)
+    add_definitions(-DLMPLAYER_FOUND)
+    target_include_directories(${MODULE_NAME} PRIVATE ${LMPLAYER_INCLUDE_DIRS})
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${LMPLAYER_LIBRARIES})
 
-#find_package(rtRemote)
-#find_package(pxCore)
-
-find_path(PXCORE_INCLUDE_DIRS "pxObject.h" PATH_SUFFIXES "pxcore")
-target_include_directories(${MODULE_NAME} PRIVATE ${PXCORE_INCLUDE_DIRS})
-
-target_link_libraries(${MODULE_NAME} PUBLIC  ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${NAMESPACE}Definitions::${NAMESPACE}Definitions rtRemote rtCore)
+else(LMPLAYER_FOUND)
+    message ("MISSING A PLAYER IMPLEMENTATION.")
+endif(LMPLAYER_FOUND)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
