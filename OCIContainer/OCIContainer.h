@@ -8,6 +8,8 @@
 #include <vector>
 #include <map>
 
+#include <i_omi_proxy.hpp>
+
 namespace WPEFramework
 {
 
@@ -48,6 +50,7 @@ public:
     //Begin events
     void onContainerStarted(int32_t descriptor, const std::string& name);
     void onContainerStopped(int32_t descriptor, const std::string& name);
+    void onVerityFailed(const std::string& name);
     //End events
 
     //Build QueryInterface implementation, specifying all possible interfaces to be returned.
@@ -65,10 +68,13 @@ public:
 
 private:
     int mEventListenerId; // Dobby event listener ID
+    long unsigned mOmiListenerId;
     std::shared_ptr<IDobbyProxy> mDobbyProxy; // DobbyProxy instance
     std::shared_ptr<AI_IPC::IIpcService> mIpcService; // Ipc Service instance
     const int GetContainerDescriptorFromId(const std::string& containerId);
     static const void stateListener(int32_t descriptor, const std::string& name, IDobbyProxyEvents::ContainerState state, const void* _this);
+    static const void omiErrorListener(const std::string& id, omi::IOmiProxy::ErrorType err, const void* _this);
+    std::shared_ptr<omi::IOmiProxy> mOmiProxy;
 };
 } // namespace Plugin
 } // namespace WPEFramework
