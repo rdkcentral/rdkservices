@@ -1158,9 +1158,9 @@ namespace WPEFramework
                             reinterpret_cast<const uint8_t*>(payload.c_str()),
                             token)
                         == Core::ERROR_NONE) {
-                        std::cout << "HdmiInput got security token" << std::endl;
+                        std::cout << "ControlSettings got security token" << std::endl;
                     } else {
-                        std::cout << "HdmiInput failed to get security token" << std::endl;
+                        std::cout << "ControlSettings failed to get security token" << std::endl;
                     }
                     security->Release();
                 } else {
