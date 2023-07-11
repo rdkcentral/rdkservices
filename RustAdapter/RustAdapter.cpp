@@ -141,6 +141,14 @@ WPEFramework::Plugin::RustAdapter::Detach(PluginHost::Channel &channel)
   m_impl->Detach(channel);
 }
 
+#if THUNDER_VERSION == 4
+void
+WPEFramework::Plugin::RustAdapter::Close(const uint32_t channelId)
+{
+    m_impl->Close(channelId);
+}
+#endif /* THUNDER_VERSION */
+
 WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>
 WPEFramework::Plugin::RustAdapter::Inbound(const string &identifier)
 {

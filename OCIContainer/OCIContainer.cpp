@@ -1,13 +1,16 @@
+#include <sys/stat.h>
+
 #include "OCIContainer.h"
 
 #include <Dobby/DobbyProxy.h>
 #include <Dobby/IpcService/IpcFactory.h>
+#include <omi_proxy.hpp>
 
 #include "UtilsJsonRpc.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 namespace WPEFramework
 {
@@ -74,12 +77,17 @@ const string OCIContainer::Initialize(PluginHost::IShell *service)
     // Register a state change event listener
     mEventListenerId = mDobbyProxy->registerListener(stateListener, static_cast<const void*>(this));
 
+    mOmiProxy = std::make_shared<omi::OmiProxy>();
+
+    mOmiListenerId = mOmiProxy->registerListener(omiErrorListener, static_cast<const void*>(this));
+
     return string();
 }
 
 void OCIContainer::Deinitialize(PluginHost::IShell *service)
 {
     mDobbyProxy->unregisterListener(mEventListenerId);
+    mOmiProxy->unregisterListener(mOmiListenerId);
     Unregister("listContainers");
     Unregister("getContainerState");
     Unregister("getContainerInfo");
@@ -232,6 +240,36 @@ uint32_t OCIContainer::getContainerInfo(const JsonObject &parameters, JsonObject
     returnResponse(true);
 }
 
+static bool is_encrypted(const std::string &bundlePath) {
+    struct stat st;
+
+    std::string str = bundlePath + "rootfs.img";
+
+    if (stat(str.c_str(), &st))
+    {
+        return false;
+    }
+
+    if (!(st.st_mode & S_IFREG || st.st_mode & S_IFLNK))
+    {
+        return false;
+    }
+
+    str = bundlePath + "config.json.jwt";
+
+    if (stat(str.c_str(), &st))
+    {
+        return false;
+    }
+
+    if (!(st.st_mode & S_IFREG || st.st_mode & S_IFLNK))
+    {
+        return false;
+    }
+
+    return true;
+}
+
 /**
  * @brief Starts a container from an OCI bundle
  *
@@ -257,11 +295,32 @@ uint32_t OCIContainer::startContainer(const JsonObject &parameters, JsonObject &
     // Currently unsupported, see DobbyProxy::startContainerFromBundle().
     std::list<int> emptyList;
 
+    std::string containerPath;
+
+    const bool encrypted = is_encrypted(bundlePath);
+
+    if (encrypted && !mOmiProxy->mountCryptedBundle(id,
+                                       bundlePath + "rootfs.img",
+                                       bundlePath + "config.json.jwt",
+                                       containerPath))
+    {
+        LOGERR("Failed to start container - sync mount request to omi failed.");
+        response["error"] = "mount failed";
+        returnResponse(false);
+    }
+
+    if (encrypted)
+    {
+        LOGINFO("Mount request to omi succeeded, contenerPath: %s", containerPath.c_str());
+    }
+
     int descriptor;
+
     // If no additional arguments, start the container
     if ((command == "null" || command.empty()) && (westerosSocket == "null" || westerosSocket.empty()))
     {
-        descriptor = mDobbyProxy->startContainerFromBundle(id, bundlePath, emptyList);
+        LOGINFO("startContainerFromBundle: id: %s, containerPath: %s", id.c_str(), encrypted ? containerPath.c_str() : bundlePath.c_str());
+        descriptor = mDobbyProxy->startContainerFromBundle(id, encrypted ? containerPath : bundlePath, emptyList);
     }
     else
     {
@@ -274,13 +333,26 @@ uint32_t OCIContainer::startContainer(const JsonObject &parameters, JsonObject &
         {
             westerosSocket = "";
         }
-        descriptor = mDobbyProxy->startContainerFromBundle(id, bundlePath, emptyList, command, westerosSocket);
+
+        LOGINFO("startContainerFromBundle: id: %s, containerPath: %s, command: %s, westerosSocket: %s", id.c_str(), encrypted ? containerPath.c_str() : bundlePath.c_str(), command.c_str(), westerosSocket.c_str());
+        descriptor = mDobbyProxy->startContainerFromBundle(id, encrypted ? containerPath : bundlePath, emptyList, command, westerosSocket);
     }
 
     // startContainer returns -1 on failure
     if (descriptor <= 0)
     {
         LOGERR("Failed to start container - internal Dobby error.");
+
+        if (encrypted && !mOmiProxy->umountCryptedBundle(id.c_str()))
+        {
+            LOGERR("Failed to umount container %s - sync unmount request to omi failed.", id.c_str());
+            response["error"] = "dobby start failed, unmount failed";
+        }
+        else
+        {
+            response["error"] = "dobby start failed";
+        }
+
         returnResponse(false);
     }
 
@@ -519,6 +591,16 @@ void OCIContainer::onContainerStarted(int32_t descriptor, const std::string& nam
  */
 void OCIContainer::onContainerStopped(int32_t descriptor, const std::string& name)
 {
+
+    if (!mOmiProxy->umountCryptedBundle(name))
+    {
+        LOGERR("Failed to umount container %s - sync unmount request to omi failed.", name.c_str());
+    }
+    else
+    {
+        LOGINFO("Container %s properly unmounted.", name.c_str());
+    }
+
     JsonObject params;
     params["descriptor"] = std::to_string(descriptor);
     params["name"] = name;
@@ -589,6 +671,61 @@ const void OCIContainer::stateListener(int32_t descriptor, const std::string& na
         LOGINFO("Received an unknown state event for container '%s'.", name.c_str());
     }
 }
+
+/**
+ * @brief Callback listener for OMI error events.
+ *
+ * @param id         Container id
+ * @param err        Error type
+ * @param _this      Callback parameters, or in this case, the pointer to 'this'
+ */
+const void OCIContainer::omiErrorListener(const std::string& id, omi::IOmiProxy::ErrorType err, const void* _this)
+{
+
+    // Cast const void* back to OCIContainer* type to get 'this'
+    OCIContainer* __this = const_cast<OCIContainer*>(reinterpret_cast<const OCIContainer*>(_this));
+
+    if (__this != nullptr && err == omi::IOmiProxy::ErrorType::verityFailed)
+    {
+        __this->onVerityFailed(id);
+    }
+    else
+    {
+        LOGINFO("Received an unknown error type from OMI");
+    }
+}
+
+/**
+ * @brief Handle failure of verity check for container.
+ *
+ * @param name          Container name.
+ */
+void OCIContainer::onVerityFailed(const std::string& name)
+{
+    LOGINFO("Handle onVerityFailed");
+    int cd = GetContainerDescriptorFromId(name);
+    if (cd < 0)
+    {
+        LOGERR("Failed to acquire container descriptor - cannot stop container due to verity failure");
+        return;
+    }
+
+    JsonObject params;
+    params["descriptor"] = cd;
+    params["name"] = name;
+    // Set error type to Verity Error (1)
+    params["errorCode"] = 1;
+    sendNotify("onContainerFailed", params);
+
+    bool stoppedSuccessfully = mDobbyProxy->stopContainer(cd, true);
+
+    if (!stoppedSuccessfully)
+    {
+        LOGERR("Failed to stop container - internal Dobby error.");
+        return;
+    }
+}
+
 // End Internal methods
 
 } // namespace Plugin

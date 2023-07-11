@@ -175,6 +175,13 @@ RemotePlugin::Information() const
   return { };
 }
 
+#if THUNDER_VERSION == 4
+void RemotePlugin::Close(const uint32_t channelId) /* override */
+{
+  return;
+}
+#endif /* THUNDER_VERSION */
+
 void RemotePlugin::onRead(const Response& rsp)
 {
     LOGDBG("RemotePlugin::onRead response: channel_id=%u, json=\"%s\"", rsp.channel_id, rsp.json.c_str());

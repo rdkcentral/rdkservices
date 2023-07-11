@@ -78,6 +78,14 @@ WK_EXPORT void WKPreferencesSetPageCacheEnabled(WKPreferencesRef preferences, bo
 #include "LoggingUtils.h"
 #endif
 
+
+#if !WEBKIT_GLIB_API
+#define HAS_MEMORY_PRESSURE_SETTINGS_API 0
+#else
+#define HAS_MEMORY_PRESSURE_SETTINGS_API WEBKIT_CHECK_VERSION(2, 38, 0)
+#endif
+
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -479,6 +487,29 @@ static GSourceFuncs _handlerIntervention =
             };
 
         public:
+            class MemorySettings : public Core::JSON::Container {
+            public:
+                MemorySettings(const MemorySettings&) = delete;
+                MemorySettings& operator=(const MemorySettings&) = delete;
+
+                MemorySettings()
+                    : Core::JSON::Container()
+                    , WebProcessLimit()
+                    , NetworkProcessLimit()
+                {
+                    Add(_T("webprocesslimit"), &WebProcessLimit);
+                    Add(_T("networkprocesslimit"), &NetworkProcessLimit);
+                }
+                ~MemorySettings()
+                {
+                }
+
+            public:
+                Core::JSON::DecUInt32 WebProcessLimit;
+                Core::JSON::DecUInt32 NetworkProcessLimit;
+            };
+
+        public:
             Config()
                 : Core::JSON::Container()
                 , UserAgent()
@@ -505,7 +536,7 @@ static GSourceFuncs _handlerIntervention =
                 , MSEBuffers()
                 , ThunderDecryptorPreference()
                 , MemoryProfile()
-                , MemoryPressure()
+                , Memory()
                 , MediaContentTypesRequiringHardwareSupport()
                 , MediaDiskCache(true)
                 , DiskCache()
@@ -569,7 +600,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("msebuffers"), &MSEBuffers);
                 Add(_T("thunderdecryptorpreference"), &ThunderDecryptorPreference);
                 Add(_T("memoryprofile"), &MemoryProfile);
-                Add(_T("memorypressure"), &MemoryPressure);
+                Add(_T("memory"), &Memory);
                 Add(_T("mediacontenttypesrequiringhardwaresupport"), &MediaContentTypesRequiringHardwareSupport);
                 Add(_T("mediadiskcache"), &MediaDiskCache);
                 Add(_T("diskcache"), &DiskCache);
@@ -640,7 +671,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::String MSEBuffers;
             Core::JSON::Boolean ThunderDecryptorPreference;
             Core::JSON::String MemoryProfile;
-            Core::JSON::String MemoryPressure;
+            MemorySettings Memory;
             Core::JSON::String MediaContentTypesRequiringHardwareSupport;
             Core::JSON::Boolean MediaDiskCache;
             Core::JSON::String DiskCache;
@@ -2165,9 +2196,18 @@ static GSourceFuncs _handlerIntervention =
             }
 
             // Memory Pressure
-            if (_config.MemoryPressure.Value().empty() == false) {
-                Core::SystemInfo::SetEnvironment(_T("WPE_POLL_MAX_MEMORY"), _config.MemoryPressure.Value(), !environmentOverride);
+#if !HAS_MEMORY_PRESSURE_SETTINGS_API
+            std::stringstream limitStr;
+            if ((_config.Memory.IsSet() == true) && (_config.Memory.NetworkProcessLimit.IsSet() == true)) {
+                limitStr << "networkprocess:" << _config.Memory.NetworkProcessLimit.Value() << "m";
             }
+            if ((_config.Memory.IsSet() == true) && (_config.Memory.WebProcessLimit.IsSet() == true)) {
+                limitStr << (!limitStr.str().empty() ? "," : "") << "webprocess:" << _config.Memory.WebProcessLimit.Value() << "m";
+            }
+            if (!limitStr.str().empty()) {
+                Core::SystemInfo::SetEnvironment(_T("WPE_POLL_MAX_MEMORY"), limitStr.str(), !environmentOverride);
+            }
+#endif
 
             // Memory Profile
             if (_config.MemoryProfile.Value().empty() == false) {
@@ -2713,6 +2753,14 @@ static GSourceFuncs _handlerIntervention =
                     indexedDBSizeBytes = _config.IndexedDBSize.Value() * 1024;
                 }
 
+#if HAS_MEMORY_PRESSURE_SETTINGS_API
+                if ((_config.Memory.IsSet() == true) && (_config.Memory.NetworkProcessLimit.IsSet() == true)) {
+                    WebKitMemoryPressureSettings* memoryPressureSettings = webkit_memory_pressure_settings_new();
+                    webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.NetworkProcessLimit.Value());
+                    webkit_website_data_manager_set_memory_pressure_settings(memoryPressureSettings);
+                    webkit_memory_pressure_settings_free(memoryPressureSettings);
+                }
+#endif
                 auto* websiteDataManager = webkit_website_data_manager_new(
                     "local-storage-directory", wpeStoragePath,
                     "disk-cache-directory", wpeDiskCachePath,
@@ -2724,7 +2772,18 @@ static GSourceFuncs _handlerIntervention =
                 g_free(wpeDiskCachePath);
                 g_free(indexedDBPath);
 
-                wkContext = webkit_web_context_new_with_website_data_manager(websiteDataManager);
+#if HAS_MEMORY_PRESSURE_SETTINGS_API
+                if ((_config.Memory.IsSet() == true) && (_config.Memory.WebProcessLimit.IsSet() == true)) {
+                    WebKitMemoryPressureSettings* memoryPressureSettings = webkit_memory_pressure_settings_new();
+                    webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.WebProcessLimit.Value());
+                    // Pass web process memory pressure settings to WebKitWebContext constructor
+                    wkContext = WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT, "website-data-manager", websiteDataManager, "memory-pressure-settings", memoryPressureSettings, nullptr));
+                    webkit_memory_pressure_settings_free(memoryPressureSettings);
+                } else
+#endif
+                {
+                    wkContext = webkit_web_context_new_with_website_data_manager(websiteDataManager);
+                }
                 g_object_unref(websiteDataManager);
             }
 
@@ -2780,6 +2839,10 @@ static GSourceFuncs _handlerIntervention =
             webkit_settings_set_enable_page_cache(preferences, FALSE);
             webkit_settings_set_enable_directory_upload(preferences, FALSE);
 
+#if WEBKIT_CHECK_VERSION(2, 38, 0)
+            webkit_settings_set_enable_webrtc(preferences, TRUE);
+#endif
+
             // Turn on/off WebGL
             webkit_settings_set_enable_webgl(preferences, _config.WebGLEnabled.Value());
 
@@ -2819,11 +2882,17 @@ static GSourceFuncs _handlerIntervention =
 
             // Allow mixed content.
             bool enableWebSecurity = _config.Secure.Value();
+#if WEBKIT_CHECK_VERSION(2, 38, 0)
+            g_object_set(G_OBJECT(preferences),
+                     "disable-web-security", !enableWebSecurity,
+                     "allow-running-of-insecure-content", !enableWebSecurity,
+                     "allow-display-of-insecure-content", !enableWebSecurity, nullptr);
+#else
             g_object_set(G_OBJECT(preferences),
                      "enable-websecurity", enableWebSecurity,
                      "allow-running-of-insecure-content", !enableWebSecurity,
                      "allow-display-of-insecure-content", !enableWebSecurity, nullptr);
-
+#endif
             _view = WEBKIT_WEB_VIEW(g_object_new(WEBKIT_TYPE_WEB_VIEW,
                 "backend", webkit_web_view_backend_new(wpe_view_backend_create(), nullptr, nullptr),
                 "web-context", wkContext,
