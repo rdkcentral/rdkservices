@@ -104,13 +104,12 @@ namespace WPEFramework {
 	    void hdmiInputAviContentTypeChange(int port, int content_type);
             static void dsHdmiAviContentTypeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
-	    void tvLowLatencyChange(bool low_latency);
-            static void tvLowLatencyModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
             void hdmiInAVLatencyChange(int audio_output_delay,int video_latency);
             static void dsHdmiAVLatencyEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
 	    void reportLatencyInfoToHdmiCecSink();
+            void onGameModeEventHandler(const JsonObject& parameters);
         public:
             HdmiInput();
             virtual ~HdmiInput();
