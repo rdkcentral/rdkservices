@@ -205,7 +205,6 @@ namespace WPEFramework
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS, dsHdmiGameFeatureStatusEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE, dsHdmiAviContentTypeEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_AV_LATENCY, dsHdmiAVLatencyEventHandler) );
-		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_TVMGR_NAME,IARM_BUS_TVMGR_EVENT_TV_LOW_LATENCY_MODE, tvLowLatencyModeEventHandler) );
 	    }
         }
 
