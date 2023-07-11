@@ -133,6 +133,7 @@ namespace WPEFramework
 	    
 	const string HdmiInput::Initialize(PluginHost::IShell *  service )
 	{
+	    LOGINFO("Entering HdmiInput::Initialize");
 	    ASSERT(service != nullptr);
             ASSERT(m_service == nullptr);
 
@@ -143,6 +144,7 @@ namespace WPEFramework
 	    InitializeIARM();
 
 	    subscribeForTvMgrEvent("gameModeEvent");
+	    LOGINFO("Exiting HdmiInput::Initialize");
 	    return (string());
 	}
 
