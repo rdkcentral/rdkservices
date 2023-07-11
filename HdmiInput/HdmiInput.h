@@ -110,6 +110,7 @@ namespace WPEFramework {
 
 	    void reportLatencyInfoToHdmiCecSink();
             void onGameModeEventHandler(const JsonObject& parameters);
+	    uint32_t subscribeForTvMgrEvent(const char* eventName);
         public:
             HdmiInput();
             virtual ~HdmiInput();
