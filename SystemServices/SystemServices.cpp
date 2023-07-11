@@ -51,6 +51,7 @@
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
 #include "mfrMgr.h"
+#include "mfrSkyExtTypes.h"
 
 #ifdef ENABLE_DEEP_SLEEP
 #include "deepSleepMgr.h"
@@ -97,10 +98,6 @@ using namespace std;
 #define LOG_UPLOAD_STATUS_SUCCESS "UPLOAD_SUCCESS"
 #define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
 #define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
-
-typedef enum _mfrSerializedType_t {
-mfrSERIALIZED_TYPE_SKYMODELNAME = 8000
-} mfrSerializedType_t;
 
 /**
  * @struct firmwareUpdate
@@ -1096,18 +1093,28 @@ namespace WPEFramework {
 		LOGWARN("SystemService getDeviceInfo query %s", parameter.c_str());
 		IARM_Bus_MFRLib_GetSerializedData_Param_t param;
 		param.bufLen = 0;
-		//param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
-		param.type = mfrSERIALIZED_TYPE_SKYMODELNAME
+		param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
 		IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
-		param.buffer[param.bufLen] = '\0';
-		LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
 		bool status = false;
 		if (result == IARM_RESULT_SUCCESS) {
+			param.buffer[param.bufLen] = '\0';
+			LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
 			response[parameter.c_str()] = string(param.buffer);
 			status = true;
 		}
 		else{
-			LOGWARN("SystemService getDeviceInfo - Manufacturer Data Read Failed");
+			param.bufLen = 0;
+			param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+			result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
+			if (result == IARM_RESULT_SUCCESS) {
+				param.buffer[param.bufLen] = '\0';
+				LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
+				response[parameter.c_str()] = string(param.buffer);
+				status = true;
+			} else {
+				LOGWARN("Failed to get the skymodel name");
+				populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
+			}
 		}
 		return status;
 	}
@@ -1170,18 +1177,16 @@ namespace WPEFramework {
             param.bufLen = 0;
             param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
             if (!parameter.compare(MODEL_NAME)) {
-                //param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
-				param.type = mfrSERIALIZED_TYPE_SKYMODELNAME
+                param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
             } else if (!parameter.compare(HARDWARE_ID)) {
                 param.type = mfrSERIALIZED_TYPE_HWID;
             }
             IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
-            param.buffer[param.bufLen] = '\0';
-
-            LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
 
             bool status = false;
             if (result == IARM_RESULT_SUCCESS) {
+				param.buffer[param.bufLen] = '\0';
+				LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
                 response[parameter.c_str()] = string(param.buffer);
                 status = true;
 		if(!parameter.compare(MODEL_NAME)){
@@ -1192,7 +1197,22 @@ namespace WPEFramework {
 			m_ManufacturerDataHardwareID = param.buffer;
 			m_ManufacturerDataHardwareIdValid = true;
 		}
-            } else {
+            }else if(!parameter.compare(MODEL_NAME)){
+				param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+				param.bufLen = 0;
+				result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
+				if (result == IARM_RESULT_SUCCESS) {
+						param.buffer[param.bufLen] = '\0';
+						LOGWARN("SystemService getDeviceInfo param type= %d result= %s", param.type, param.buffer);
+						response[parameter.c_str()] = string(param.buffer);
+						status = true;
+				}else
+				{
+					LOGWARN("Failed to get the skymodel name");
+					populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
+				}
+			}
+			else {
                 populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
             }
 
