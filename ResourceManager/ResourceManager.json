@@ -1,0 +1,73 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "ResourceManager API", 
+        "class": "ResourceManager", 
+        "description": "The ResourceManager plugin provides an interface to platform resources."
+    },
+    "common": {
+        "$ref": "../common/common.json"
+    },
+    "definitions": {
+        "clients": {
+            "summary": "A list of clients",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "example": "org.rdk.Netflix"
+            }
+        },
+        "callsign": {
+            "summary": "The application callsign",
+            "type": "string",
+            "example": "Cobalt"
+        }
+    },
+    "methods": {
+        "setAVBlocked": {
+            "summary": "adds/removes the list of applications with the given callsigns to/from the blacklist.",
+            "params": {
+                "type": "object",
+                "properties":{
+                    "appId": {
+                        "summary": "The application callsign",
+                        "type": "string",
+                        "example": "searchanddiscovery"
+                    },
+                    "blocked": {
+                        "summary": "Whether to block (`true`) or unblock (`false`) AV for the callsign",
+                        "type": "boolean",
+                        "example": "true"
+                    }
+                },
+                "required": [
+                    "appId",
+                    "blocked"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "getBlockedAVApplications": {
+            "summary": "Gets a list of blacklisted clients.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "clients": {
+                        "$ref": "#/definitions/clients"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "clients",
+                    "success"
+                ]
+            }
+        }
+    }
+}
+
