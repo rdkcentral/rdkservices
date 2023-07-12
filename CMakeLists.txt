@@ -110,7 +110,8 @@ if(PLUGIN_DATACAPTURE)
     add_subdirectory(DataCapture)
 endif()
 
-if(HAS_FRONT_PANEL)
+if((DEFINED PLUGIN_FRONTPANEL AND PLUGIN_FRONTPANEL)
+        OR (NOT DEFINED PLUGIN_FRONTPANEL AND (SEVICES_DEFINES MATCHES "HAS_FRONT_PANEL")))
     add_subdirectory(FrontPanel)
 endif()
 
