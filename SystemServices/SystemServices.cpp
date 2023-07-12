@@ -51,7 +51,7 @@
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
 #include "mfrMgr.h"
-#include "mfrSkyExtTypes.h"
+#include "mfrSkyTypes.h"
 
 #ifdef ENABLE_DEEP_SLEEP
 #include "deepSleepMgr.h"
