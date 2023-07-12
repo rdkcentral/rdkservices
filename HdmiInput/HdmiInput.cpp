@@ -153,9 +153,9 @@ namespace WPEFramework
 		uint32_t err = Core::ERROR_NONE;
 		LOGINFO("Attempting to subscribe for event: %s\n", eventName);
 		Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
-		if (nullptr == m_client) {
+		if (nullptr == m_tv_client) {
 			getControlSettingsPlugin();
-			if (nullptr == m_client) {
+			if (nullptr == m_tv_client) {
 				LOGERR("JSONRPC: %s: client initialization failed", TVSETTINGS_CALLSIGN_VER);
 				err = Core::ERROR_UNAVAILABLE;
 			}
@@ -164,7 +164,7 @@ namespace WPEFramework
                 if(err == Core::ERROR_NONE) {
 			/* Register handlers for Event reception. */
 			if(strcmp(eventName, TVMGR_GAME_MODE_EVENT) == 0) {
-				err =m_client->Subscribe<JsonObject>(1000, eventName, &HdmiInput::onGameModeEventHandler, this);
+				err =m_tv_client->Subscribe<JsonObject>(1000, eventName, &HdmiInput::onGameModeEventHandler, this);
 				m_subscribed = true;
 			}
 			else {
