@@ -51,7 +51,7 @@
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
 #include "mfrMgr.h"
-#include "mfrSkyTypes.h"
+#include "mfrSkyExtTypes.h"
 
 #ifdef ENABLE_DEEP_SLEEP
 #include "deepSleepMgr.h"
@@ -1104,7 +1104,7 @@ namespace WPEFramework {
 		}
 		else{
 			param.bufLen = 0;
-			param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+			param.type = (mfrSerializedType_t)mfrSERIALIZED_TYPE_SKYMODELNAME;
 			result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 			if (result == IARM_RESULT_SUCCESS) {
 				param.buffer[param.bufLen] = '\0';
@@ -1198,7 +1198,7 @@ namespace WPEFramework {
 			m_ManufacturerDataHardwareIdValid = true;
 		}
             }else if(!parameter.compare(MODEL_NAME)){
-				param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+				param.type = (mfrSerializedType_t)mfrSERIALIZED_TYPE_SKYMODELNAME;
 				param.bufLen = 0;
 				result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 				if (result == IARM_RESULT_SUCCESS) {
