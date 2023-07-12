@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "ResourceManager Plugin",
+      "callsign": "org.rdk.ResourceManager",
+      "locator": "libWPEFrameworkResourceManager.so",
+      "status": "production",
+      "description": "The `ResourceManager`plugin controls the management of platform resource reservations."
+    },
+    "interface": {
+      "$ref": "ResourceManager.json#"
+    }
+}

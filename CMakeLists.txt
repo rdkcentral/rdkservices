@@ -363,6 +363,10 @@ if(PLUGIN_MESSAGECONTROL)
     add_subdirectory(MessageControl)
 endif()
 
+if (PLUGIN_RESOURCEMANAGER)
+    add_subdirectory(ResourceManager)
+endif()
+
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
     set(CPACK_DEB_COMPONENT_INSTALL ON)
