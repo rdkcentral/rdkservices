@@ -55,6 +55,11 @@
             "type": "number",
             "example": 25
         },
+        "speechrate" : {
+            "summary": "TTS Rate for TTS2 endpoint",
+            "type": "string",
+            "example": "medium"
+        },
         "rate":{
             "summary": "The TTS Rate",
             "type": "number",
@@ -444,6 +449,9 @@
                     },
                     "rate":{
                         "$ref": "#/definitions/rate"
+                    },
+                    "speechrate":{
+                        "$ref": "#/definitions/speechrate"
                     },
                     "fallbacktext":{
                         "type": "object",

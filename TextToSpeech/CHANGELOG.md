@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.9] - 2023-07-12
+### Added
+- SAT token appending,speechrate parameter for flex 2.0
+
 ## [1.0.8] - 2023-07-03
 ### Fixed
 - Rate not intialized to 0
