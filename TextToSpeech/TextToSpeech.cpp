@@ -93,36 +93,33 @@ namespace Plugin {
     {
         ASSERT(_service == service);
         ASSERT(_tts != nullptr);
+        
+        if(_tts)
+            _tts->Unregister(&_notification);
 
         if(_service)
             _service->Unregister(&_notification);
 
         if(_tts) {
-            _tts->Unregister(&_notification);
-
             if(_tts->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
                 ASSERT(_connectionId != 0);
-                TRACE_L1("TextToSpeech Plugin is not properly destructed. %d", _connectionId);
+                TTSLOG_WARNING("TextToSpeech Plugin is not properly destructed. %d", _connectionId);
 
                 if(_service) {
-                    // The process can disappear in the meantime...
-                    // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
                     RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
-                    if(connection) {
+
+                    // The process can disappear in the meantime...
+                    if (connection != nullptr) {
+                        // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
                         connection->Terminate();
                         connection->Release();
                     }
                 }
             }
-
-            _tts = nullptr;
         }
 
-        if(_service) {
-            _service->Release();
-            _service = nullptr;
-        }
-
+        _tts = nullptr;
+        _service = nullptr;
         m_AclCalled = false;
     }
 
