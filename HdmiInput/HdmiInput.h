@@ -60,7 +60,7 @@ namespace WPEFramework {
             uint32_t getEdidVersionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t startHdmiInput(const JsonObject& parameters, JsonObject& response);
             uint32_t stopHdmiInput(const JsonObject& parameters, JsonObject& response);
-
+	    uint32_t setPlaneTopMost(const JsonObject& parameters, JsonObject& response);
             uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response);
             uint32_t getHdmiGameFeatureStatusWrapper(const JsonObject& parameters, JsonObject& response);
