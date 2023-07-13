@@ -51,8 +51,9 @@
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
 #include "mfrMgr.h"
+#ifdef USE_SKY_MODEL_NAME
 #include "mfrSkyExtTypes.h"
-
+#endif
 #ifdef ENABLE_DEEP_SLEEP
 #include "deepSleepMgr.h"
 #endif
@@ -1103,6 +1104,7 @@ namespace WPEFramework {
 			status = true;
 		}
 		else{
+            #ifdef USE_SKY_MODEL_NAME
 			param.bufLen = 0;
 			param.type = (mfrSerializedType_t)mfrSERIALIZED_TYPE_SKYMODELNAME;
 			result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
@@ -1111,7 +1113,9 @@ namespace WPEFramework {
 				LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
 				response[parameter.c_str()] = string(param.buffer);
 				status = true;
-			} else {
+			} else
+            #endif
+            {
 				LOGWARN("Failed to get the skymodel name");
 				populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
 			}
@@ -1197,7 +1201,9 @@ namespace WPEFramework {
 			m_ManufacturerDataHardwareID = param.buffer;
 			m_ManufacturerDataHardwareIdValid = true;
 		}
-            }else if(!parameter.compare(MODEL_NAME)){
+            }
+            #ifdef USE_SKY_MODEL_NAME
+            else if(!parameter.compare(MODEL_NAME)){
 				param.type = (mfrSerializedType_t)mfrSERIALIZED_TYPE_SKYMODELNAME;
 				param.bufLen = 0;
 				result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
@@ -1212,6 +1218,7 @@ namespace WPEFramework {
 					populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
 				}
 			}
+            #endif
 			else {
                 populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
             }
