@@ -225,7 +225,18 @@ namespace WPEFramework
             returnIfParamNotFound(parameters, "topMost");
 
 	     bool topMostPlane = parameters["topMost"].Boolean();
-		// need to add the logic
+		// need to add the logic properly after amlogic implementation
+	
+            bool success = true;
+            try
+            {
+                device::HdmiInput::getInstance().setPlaneTopMost(topMostPlane);
+            }
+            catch (const device::Exception& err)
+            {
+                LOGWARN("HdmiInputService::setPlaneTopMost Failed");
+                success = false;
+            }
 	     returnResponse(success);
 	}
 
