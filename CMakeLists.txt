@@ -31,6 +31,7 @@ if(COMCAST_CONFIG)
 endif()
 
 option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
+option(PLUGIN_RUSTBRIDGE "Include RustBridge plugin" OFF)
 
 if(RDK_SERVICES_TEST)
     include(tests.cmake)
@@ -68,6 +69,10 @@ endif()
 
 if(PLUGIN_REMOTECONTROL)
 	add_subdirectory(RemoteControl)
+endif()
+
+if(PLUGIN_RUSTBRIDGE)
+    add_subdirectory(RustBridge)
 endif()
 
 if(PLUGIN_SYSTEMSERVICES)
