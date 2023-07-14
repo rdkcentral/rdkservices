@@ -116,17 +116,16 @@ std::vector<std::string>* LgiNetworkClient::getInterfaces()
 {
     GError* error = nullptr;
     guint count = 0;
-    int idx = 0;
+    guint idx = 0;
     gchar** out_ids = nullptr;
     std::vector<std::string>* result = nullptr;
 
     if (networkconfig1_call_get_interfaces_sync(m_interface, &count, &out_ids, nullptr, &error))
     {
         result = new std::vector<std::string>();
-        while (count)
+        while (idx < count)
         {
             result->push_back(string(out_ids[idx++]));
-            count--;
         }
     }
     else
@@ -135,6 +134,14 @@ std::vector<std::string>* LgiNetworkClient::getInterfaces()
        if (error)
            g_error_free(error);
     }
+
+    if (out_ids) {
+        for (idx = 0; idx < count; ++idx) {
+            g_free(out_ids[idx]);
+        }
+        g_free(out_ids);
+    }
+
     return result;
 }
 
@@ -168,6 +175,7 @@ bool LgiNetworkClient::getParamsForInterface(const std::string iface, std::vecto
             {
                 params.push_back(make_pair(std::string(key), std::string(value)));
             }
+            g_variant_unref(out_params);
         }
 
         return true;
@@ -212,6 +220,7 @@ bool LgiNetworkClient::getSpecificParamsForInterface(const std::string iface, st
                 if (iter != params.end())
                     iter->second = string(value);
             }
+            g_variant_unref(out_params);
         }
 
         return true;
@@ -231,6 +240,7 @@ std::string LgiNetworkClient::getDefaultInterface()
     if (networkconfig1_call_get_active_interface_sync(m_interface, &out_id, &out_status, nullptr, &error))
     {
         iface.assign(out_id);
+        g_free(out_id);
     }
     else
     {
