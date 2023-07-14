@@ -1,7 +1,11 @@
 #pragma once
 
 #include "../Module.h"
+#ifdef USE_THUNDER_R4
+#include <interfaces/IDeviceInfo.h>
+#else
 #include <interfaces/IDeviceInfo2.h>
+#endif /* USE_THUNDER_R4 */
 
 namespace WPEFramework {
 namespace Plugin {

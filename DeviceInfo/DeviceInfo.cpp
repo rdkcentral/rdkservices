@@ -53,7 +53,11 @@ namespace Plugin {
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
         _subSystem = service->SubSystems();
         _service = service;
+#ifndef USE_THUNDER_R4
         _systemId = Core::SystemInfo::Instance().Id(Core::SystemInfo::Instance().RawDeviceId(), ~0);
+#else
+        _systemId = string();
+#endif /* USE_THUNDER_R4 */
 
         ASSERT(_subSystem != nullptr);
 
