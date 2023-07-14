@@ -21,7 +21,11 @@
 #define DEVICEINFO_DEVICEINFO_H
 
 #include "Module.h"
+#ifdef USE_THUNDER_R4
+#include <interfaces/IDeviceInfo.h>
+#else
 #include <interfaces/IDeviceInfo2.h>
+#endif /* USE_THUNDER_R4 */
 #include <interfaces/IFirmwareVersion.h>
 #include <interfaces/json/JsonData_DeviceInfo.h>
 
