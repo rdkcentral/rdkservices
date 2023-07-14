@@ -1,1 +1,0 @@
-../../cmake/FindNXCLIENT.cmake
