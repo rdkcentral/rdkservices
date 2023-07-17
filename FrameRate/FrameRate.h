@@ -69,7 +69,7 @@ namespace WPEFramework {
             void frameRatePreChange();
             static void FrameRatePreChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
-            void frameRatePostChange();
+            void frameRatePostChange(char *displayFrameRate);
             static void FrameRatePostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
 
