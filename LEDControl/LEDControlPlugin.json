@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "LEDControl Plugin",
+      "callsign": "org.rdk.LEDControl",
+      "locator": "libWPEFrameworkLEDControl.so",
+      "status": "production",
+      "description": "The `LEDControl` plugin allows you to control brightness and power state for LEDs on a device."
+    },
+    "interface": {
+      "$ref": "LEDControl.json#"
+    }
+}
